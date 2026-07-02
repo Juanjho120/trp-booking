@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import { SiteFooter, SiteHeader } from "@/components/layout";
@@ -80,6 +81,38 @@ export function PropertyDetailPage({ accommodation }: PropertyDetailPageProps) {
                   </p>
                 </CardContent>
               </Card>
+            </div>
+          </div>
+        </section>
+
+        <section className="pb-8 pt-4">
+          <div className="mx-auto max-w-7xl px-6 lg:px-8">
+            <div className="grid gap-4 lg:grid-cols-[1.25fr_0.75fr]">
+              <div className="relative min-h-[24rem] overflow-hidden rounded-[2rem] bg-muted shadow-sm lg:min-h-[34rem]">
+                <Image
+                  alt={accommodation.coverImage.alt.es}
+                  className="object-cover"
+                  fill
+                  priority
+                  sizes="(min-width: 1024px) 60vw, 100vw"
+                  src={accommodation.coverImage.src}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
+                {accommodation.galleryImages.map((image) => (
+                  <div className="relative min-h-[12rem] overflow-hidden rounded-[1.5rem] bg-muted shadow-sm" key={image.src}>
+                    <Image
+                      alt={image.alt.es}
+                      className="object-cover"
+                      fill
+                      sizes="(min-width: 1024px) 28vw, (min-width: 640px) 33vw, 100vw"
+                      src={image.src}
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>

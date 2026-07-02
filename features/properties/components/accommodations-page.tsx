@@ -1,9 +1,16 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import { SiteFooter, SiteHeader } from "@/components/layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { accommodations } from "@/config/accommodations";
 
 export function AccommodationsPage() {
@@ -30,10 +37,25 @@ export function AccommodationsPage() {
         <section className="pb-20">
           <div className="mx-auto grid max-w-7xl gap-6 px-6 lg:grid-cols-3 lg:px-8">
             {accommodations.map((accommodation) => (
-              <Card className="overflow-hidden rounded-[1.75rem] border-border/70 bg-card shadow-sm" key={accommodation.id}>
-                <div className="aspect-[16/11] bg-[linear-gradient(135deg,_hsl(var(--primary)/0.18),_hsl(var(--muted)))]" />
+              <Card
+                className="overflow-hidden rounded-[1.75rem] border-border/70 bg-card shadow-sm"
+                key={accommodation.id}
+              >
+                <div className="relative aspect-[16/11] overflow-hidden bg-muted">
+                  <Image
+                    alt={accommodation.coverImage.alt.es}
+                    className="object-cover transition duration-500 hover:scale-105"
+                    fill
+                    sizes="(min-width: 1024px) 33vw, 100vw"
+                    src={accommodation.coverImage.src}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/5 to-transparent" />
+                </div>
                 <CardHeader>
-                  <Badge className="w-fit rounded-full" variant={accommodation.kind === "composed" ? "default" : "secondary"}>
+                  <Badge
+                    className="w-fit rounded-full"
+                    variant={accommodation.kind === "composed" ? "default" : "secondary"}
+                  >
                     {accommodation.kind === "composed" ? "Combinado" : "Privado"}
                   </Badge>
                   <CardTitle className="pt-3 text-2xl">{accommodation.name.es}</CardTitle>

@@ -1,4 +1,4 @@
-import type { Accommodation } from "@/types/accommodation";
+import type { Accommodation, AccommodationId } from "@/types/accommodation";
 import type { Locale } from "@/types/locale";
 
 export const accommodations = [
@@ -39,6 +39,36 @@ export const accommodations = [
         en: "Earlier check-in may be coordinated if the guest notifies the host in advance.",
       },
     },
+    coverImage: {
+      src: "/images/accommodations/black-white-apartment/cover.webp",
+      alt: {
+        es: "Patio exterior azul de Apartamento Blanco y Negro en Panajachel.",
+        en: "Blue exterior courtyard of Black & White Apartment in Panajachel.",
+      },
+    },
+    galleryImages: [
+      {
+        src: "/images/accommodations/black-white-apartment/gallery-01.webp",
+        alt: {
+          es: "Dormitorio con decoración en blanco y negro del apartamento.",
+          en: "Bedroom with black and white decor in the apartment.",
+        },
+      },
+      {
+        src: "/images/accommodations/black-white-apartment/gallery-02.webp",
+        alt: {
+          es: "Área interior funcional con cocina y mesa del apartamento.",
+          en: "Functional indoor area with kitchen and table in the apartment.",
+        },
+      },
+      {
+        src: "/images/accommodations/black-white-apartment/gallery-03.webp",
+        alt: {
+          es: "Baño privado del Apartamento Blanco y Negro.",
+          en: "Private bathroom of Black & White Apartment.",
+        },
+      },
+    ],
     highlights: {
       es: ["Hasta 2 huéspedes", "1 dormitorio", "1 baño", "WiFi de fibra óptica 100 Mbps"],
       en: ["Up to 2 guests", "1 bedroom", "1 bathroom", "100 Mbps fiber optic WiFi"],
@@ -127,6 +157,36 @@ export const accommodations = [
         en: "Earlier check-in may be coordinated if the guest notifies the host in advance.",
       },
     },
+    coverImage: {
+      src: "/images/accommodations/perfect-retreat-bungalow/cover.webp",
+      alt: {
+        es: "Entrada del Bungalow Refugio Perfecto con patio exterior.",
+        en: "Entrance of Perfect Retreat Bungalow with exterior courtyard.",
+      },
+    },
+    galleryImages: [
+      {
+        src: "/images/accommodations/perfect-retreat-bungalow/gallery-01.webp",
+        alt: {
+          es: "Dormitorio del Bungalow Refugio Perfecto con tonos crema y cortinas grises.",
+          en: "Bedroom of Perfect Retreat Bungalow with cream tones and gray curtains.",
+        },
+      },
+      {
+        src: "/images/accommodations/perfect-retreat-bungalow/gallery-02.webp",
+        alt: {
+          es: "Área de comedor y cocina equipada del bungalow.",
+          en: "Dining area and equipped kitchen of the bungalow.",
+        },
+      },
+      {
+        src: "/images/accommodations/perfect-retreat-bungalow/gallery-03.webp",
+        alt: {
+          es: "Baño completo del Bungalow Refugio Perfecto.",
+          en: "Full bathroom of Perfect Retreat Bungalow.",
+        },
+      },
+    ],
     highlights: {
       es: ["Hasta 4 huéspedes", "2 dormitorios", "1 baño", "Ambiente amplio y privado"],
       en: ["Up to 4 guests", "2 bedrooms", "1 bathroom", "Spacious and private atmosphere"],
@@ -217,6 +277,36 @@ export const accommodations = [
         en: "Earlier check-in may be coordinated if the guest notifies the host in advance.",
       },
     },
+    coverImage: {
+      src: "/images/accommodations/complete-retreat/cover.webp",
+      alt: {
+        es: "Patio exterior compartido de Tu Refugio Perfecto en Panajachel.",
+        en: "Shared exterior courtyard of Tu Refugio Perfecto in Panajachel.",
+      },
+    },
+    galleryImages: [
+      {
+        src: "/images/accommodations/complete-retreat/gallery-01.webp",
+        alt: {
+          es: "Dormitorio de Apartamento Blanco y Negro incluido en Refugio Completo.",
+          en: "Bedroom of Black & White Apartment included in the complete retreat.",
+        },
+      },
+      {
+        src: "/images/accommodations/complete-retreat/gallery-02.webp",
+        alt: {
+          es: "Comedor del Bungalow Refugio Perfecto incluido en Refugio Completo.",
+          en: "Dining area of Perfect Retreat Bungalow included in the complete retreat.",
+        },
+      },
+      {
+        src: "/images/accommodations/complete-retreat/gallery-03.webp",
+        alt: {
+          es: "Baño completo disponible al reservar Refugio Completo.",
+          en: "Full bathroom available when booking the complete retreat.",
+        },
+      },
+    ],
     highlights: {
       es: ["Hasta 6 huéspedes", "3 dormitorios", "2 baños", "Dos alojamientos en una sola reserva"],
       en: ["Up to 6 guests", "3 bedrooms", "2 bathrooms", "Two accommodations in one booking"],
@@ -268,6 +358,10 @@ export const accommodations = [
     composedOf: ["black-white-apartment", "perfect-retreat-bungalow"],
   },
 ] as const satisfies readonly Accommodation[];
+
+export function getAccommodationById(id: AccommodationId) {
+  return accommodations.find((accommodation) => accommodation.id === id);
+}
 
 export function getAccommodationBySlug(slug: string, locale: Locale = "es") {
   return accommodations.find((accommodation) => accommodation.slug[locale] === slug);

@@ -1,8 +1,10 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { getAccommodationById } from "@/config/accommodations";
 import { siteConfig } from "@/config/site";
 
 const heroHighlights = [
@@ -10,6 +12,8 @@ const heroHighlights = [
   "Alojamientos privados",
   "Cerca del Lago de Atitlán",
 ] as const;
+
+const featuredAccommodation = getAccommodationById("complete-retreat");
 
 export function HeroSection() {
   return (
@@ -52,8 +56,18 @@ export function HeroSection() {
         <Card className="overflow-hidden rounded-[2rem] border-border/70 bg-card/80 shadow-2xl shadow-primary/10 backdrop-blur">
           <CardContent className="p-0">
             <div className="relative aspect-[4/5] min-h-[34rem] overflow-hidden bg-muted">
-              <div className="absolute inset-0 bg-[linear-gradient(145deg,_hsl(var(--primary)/0.25),_transparent_45%),linear-gradient(315deg,_hsl(var(--muted)),_hsl(var(--background)))]" />
-              <div className="absolute inset-x-6 bottom-6 rounded-[1.5rem] border border-border/70 bg-background/90 p-6 shadow-xl backdrop-blur">
+              {featuredAccommodation ? (
+                <Image
+                  alt={featuredAccommodation.coverImage.alt.es}
+                  className="object-cover"
+                  fill
+                  priority
+                  sizes="(min-width: 1024px) 42vw, 100vw"
+                  src={featuredAccommodation.coverImage.src}
+                />
+              ) : null}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/15 to-transparent" />
+              <div className="absolute inset-x-6 bottom-6 rounded-[1.5rem] border border-white/25 bg-background/92 p-6 shadow-xl backdrop-blur">
                 <p className="text-sm font-medium uppercase tracking-[0.24em] text-muted-foreground">
                   Direct Booking
                 </p>

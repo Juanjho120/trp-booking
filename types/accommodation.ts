@@ -25,6 +25,11 @@ export type ArrivalPolicy = Readonly<{
   earlyCheckInNote: LocalizedText;
 }>;
 
+export type AccommodationImage = Readonly<{
+  src: string;
+  alt: LocalizedText;
+}>;
+
 export type Accommodation = Readonly<{
   id: AccommodationId;
   kind: AccommodationKind;
@@ -38,6 +43,8 @@ export type Accommodation = Readonly<{
   bathrooms: number;
   preparationBuffer: PreparationBufferPolicy;
   arrivalPolicy: ArrivalPolicy;
+  coverImage: AccommodationImage;
+  galleryImages: readonly AccommodationImage[];
   highlights: LocalizedList;
   amenities: LocalizedList;
   rules: LocalizedList;
