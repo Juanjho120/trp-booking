@@ -4,10 +4,11 @@ import { Separator } from "@/components/ui/separator";
 import { siteConfig } from "@/config/site";
 
 const footerLinks = [
-  { label: "Alojamientos", href: "#alojamientos" },
-  { label: "Beneficios", href: "#beneficios" },
-  { label: "Ubicación", href: "#ubicacion" },
-  { label: "Contacto", href: "#contacto" },
+  { label: "Inicio", href: "/" },
+  { label: "Alojamientos", href: "/alojamientos" },
+  { label: "Beneficios", href: "/#beneficios" },
+  { label: "Ubicación", href: "/#ubicacion" },
+  { label: "Contacto", href: "/#contacto" },
 ] as const;
 
 export function SiteFooter() {
@@ -45,6 +46,9 @@ export function SiteFooter() {
               </a>
               <a className="transition hover:text-foreground" href={`mailto:${siteConfig.emails.reservationsEn}`}>
                 {siteConfig.emails.reservationsEn}
+              </a>
+              <a className="transition hover:text-foreground" href={`mailto:${siteConfig.emails.admin}`}>
+                {siteConfig.emails.admin}
               </a>
             </div>
           </div>

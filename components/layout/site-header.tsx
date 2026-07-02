@@ -4,10 +4,11 @@ import { Button } from "@/components/ui/button";
 import { siteConfig } from "@/config/site";
 
 const navigationItems = [
-  { label: "Alojamientos", href: "#alojamientos" },
-  { label: "Beneficios", href: "#beneficios" },
-  { label: "Ubicación", href: "#ubicacion" },
-  { label: "Contacto", href: "#contacto" },
+  { label: "Inicio", href: "/" },
+  { label: "Alojamientos", href: "/alojamientos" },
+  { label: "Beneficios", href: "/#beneficios" },
+  { label: "Ubicación", href: "/#ubicacion" },
+  { label: "Contacto", href: "/#contacto" },
 ] as const;
 
 export function SiteHeader() {
@@ -42,10 +43,10 @@ export function SiteHeader() {
 
         <div className="flex items-center gap-3">
           <Button asChild className="hidden rounded-full md:inline-flex">
-            <Link href="#alojamientos">Reservar ahora</Link>
+            <Link href="/alojamientos">Reservar ahora</Link>
           </Button>
           <Button asChild className="rounded-full md:hidden" size="sm">
-            <Link href="#alojamientos">Reservar</Link>
+            <Link href="/alojamientos">Reservar</Link>
           </Button>
         </div>
       </div>

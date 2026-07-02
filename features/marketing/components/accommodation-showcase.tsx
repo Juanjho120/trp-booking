@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,30 +34,28 @@ export function AccommodationShowcase() {
                     Hasta {accommodation.maxGuests} huéspedes
                   </span>
                 </div>
-                <CardTitle className="text-2xl">{accommodation.name.es}</CardTitle>
+                <CardTitle className="mt-4 text-2xl">{accommodation.name.es}</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm leading-6 text-muted-foreground">
                   {accommodation.shortDescription.es}
                 </p>
-                <div className="mt-6 grid grid-cols-3 gap-3 text-center text-sm">
-                  <div className="rounded-2xl bg-muted p-3">
-                    <p className="font-semibold text-foreground">{accommodation.bedrooms}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">Dorm.</p>
+                <div className="mt-6 flex items-end justify-between gap-4">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Desde</p>
+                    <p className="mt-1 text-3xl font-semibold text-foreground">
+                      ${accommodation.baseNightlyPriceUsd}
+                      <span className="text-sm font-normal text-muted-foreground"> / noche</span>
+                    </p>
                   </div>
-                  <div className="rounded-2xl bg-muted p-3">
-                    <p className="font-semibold text-foreground">{accommodation.bathrooms}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">Baños</p>
-                  </div>
-                  <div className="rounded-2xl bg-muted p-3">
-                    <p className="font-semibold text-foreground">${accommodation.baseNightlyPriceUsd}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">/ noche</p>
-                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {accommodation.bedrooms} hab. · {accommodation.bathrooms} baño{accommodation.bathrooms > 1 ? "s" : ""}
+                  </p>
                 </div>
               </CardContent>
               <CardFooter>
-                <Button className="w-full rounded-full" variant="outline">
-                  Ver disponibilidad
+                <Button asChild className="w-full rounded-full">
+                  <Link href={`/alojamientos/${accommodation.slug.es}`}>Ver detalles</Link>
                 </Button>
               </CardFooter>
             </Card>
