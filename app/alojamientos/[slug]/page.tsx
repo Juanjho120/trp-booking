@@ -5,7 +5,9 @@ import {
   getAccommodationBySlug,
   getAccommodationSlugs,
 } from "@/config/accommodations";
+import { createSeoMetadata } from "@/config/seo";
 import { PropertyDetailPage } from "@/features/properties";
+import { esMessages } from "@/messages";
 
 type PageProps = Readonly<{
   params: Promise<{
@@ -22,15 +24,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const accommodation = getAccommodationBySlug(slug, "es");
 
   if (!accommodation) {
-    return {
-      title: "Alojamiento no encontrado | Tu Refugio Perfecto",
-    };
+    return createSeoMetadata({
+      title: esMessages.seo.notFoundAccommodation.title,
+      description: esMessages.seo.notFoundAccommodation.description,
+      path: "/alojamientos",
+    });
   }
 
-  return {
+  return createSeoMetadata({
     title: `${accommodation.name.es} | Tu Refugio Perfecto`,
     description: accommodation.shortDescription.es,
-  };
+    path: `/alojamientos/${accommodation.slug.es}`,
+    imagePath: accommodation.coverImage.src,
+  });
 }
 
 export default async function Page({ params }: PageProps) {

@@ -15,6 +15,24 @@ export const esMessages = {
     bedrooms: "habitaciones",
     bathrooms: "baños",
   },
+  seo: {
+    home: {
+      title: "Tu Refugio Perfecto | Bungalows privados en Panajachel",
+      description:
+        "Reserva directo alojamientos privados en Panajachel, Guatemala, cerca del Lago de Atitlán.",
+    },
+    accommodations: {
+      title: "Alojamientos en Panajachel | Tu Refugio Perfecto",
+      description:
+        "Explora Apartamento Blanco y Negro, Bungalow Refugio Perfecto y Refugio Completo para reservar directo en Panajachel.",
+    },
+    notFoundAccommodation: {
+      title: "Alojamiento no encontrado | Tu Refugio Perfecto",
+      description:
+        "El alojamiento solicitado no está disponible. Explora las opciones de Tu Refugio Perfecto en Panajachel.",
+    },
+  },
+
   navigation: {
     mainAriaLabel: "Navegación principal",
     homeAriaLabel: "Ir a la página de inicio",

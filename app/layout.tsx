@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
-import "./globals.css";
-import { cn } from "@/lib/utils";
+import type { ReactNode } from "react";
 
-const inter = Inter({subsets:['latin'],variable:'--font-sans'});
+import { siteConfig } from "@/config/site";
+import { cn } from "@/lib/utils";
+import { esMessages } from "@/messages";
+
+import "./globals.css";
+
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,9 +21,30 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Tu Refugio Perfecto | Bungalows in Panajachel",
-  description:
-    "Direct booking website for Tu Refugio Perfecto, private accommodations in Panajachel near Lake Atitlán.",
+  metadataBase: new URL(siteConfig.url),
+  title: {
+    default: esMessages.seo.home.title,
+    template: `%s`,
+  },
+  description: esMessages.seo.home.description,
+  applicationName: siteConfig.internalName,
+  generator: "Next.js",
+  referrer: "origin-when-cross-origin",
+  keywords: [
+    "Panajachel",
+    "Lake Atitlán",
+    "Lago de Atitlán",
+    "bungalows",
+    "alojamientos en Panajachel",
+    "direct booking Guatemala",
+    "Tu Refugio Perfecto",
+  ],
+  authors: [{ name: siteConfig.publicName, url: siteConfig.url }],
+  creator: siteConfig.publicName,
+  publisher: siteConfig.publicName,
+  alternates: {
+    canonical: siteConfig.url,
+  },
 };
 
 type RootLayoutProps = Readonly<{
@@ -28,8 +53,8 @@ type RootLayoutProps = Readonly<{
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang="en" className={cn("font-sans", inter.variable)}>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+    <html lang="es-GT">
+      <body className={cn(inter.variable, geistSans.variable, geistMono.variable, "antialiased")}>
         {children}
       </body>
     </html>

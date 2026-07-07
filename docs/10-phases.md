@@ -15,8 +15,8 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 2 — Public Website Foundation
-Current subphase: 2.7 Public copy cleanup and visual QA
-Current focus: static public pages, centralized public copy, visual polish, and QA before database work.
+Current subphase: 2.8 Static SEO metadata and sitemap foundation
+Current focus: static SEO metadata, canonical URLs, robots.txt, sitemap.xml, and SEO documentation before closing Phase 2.
 ```
 
 ---
@@ -27,7 +27,7 @@ Status: **Completed**
 
 Goal: Create official project documentation before writing code.
 
-Deliverables:
+Completed deliverables:
 
 ```text
 README.md
@@ -84,31 +84,34 @@ Completed subphases:
 2.4 Static accommodation detail pages
 2.5 Accommodation image foundation
 2.6 Centralized public page copy and amenity icons
+2.7 Public copy cleanup and visual QA
 ```
 
 Current subphase:
 
 ```text
-2.7 Public copy cleanup and visual QA
+2.8 Static SEO metadata and sitemap foundation
 ```
 
-Phase 2.7 deliverables:
+Phase 2.8 deliverables:
 
 ```text
-Centralized copy review for public pages
-Header/footer visual cleanup
-Homepage section polish
-Accommodation listing visual cleanup
-Accommodation detail visual cleanup
-Responsive QA checklist
-Public page QA document
+Centralized SEO metadata copy
+Root metadataBase and site-level metadata
+Static metadata for home page
+Static metadata for accommodations listing
+Dynamic metadata for accommodation detail pages
+Canonical URLs
+Open Graph and Twitter metadata
+robots.txt route
+sitemap.xml route
+SEO foundation documentation
 Progress tracker update
 ```
 
 Pending Phase 2 subphases:
 
 ```text
-2.8 Static SEO metadata and sitemap foundation
 2.9 Phase 2 closure review
 ```
 

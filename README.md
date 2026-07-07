@@ -110,7 +110,7 @@ AGENTS.md
 
 ```text
 Current phase: Phase 2 — Public Website Foundation
-Current subphase: 2.7 Public copy cleanup and visual QA
+Current subphase: 2.8 Static SEO metadata and sitemap foundation
 ```
 
-See `docs/10-phases.md`, `docs/11-progress-log.md`, and `docs/12-public-visual-qa.md` for the official phase tracker and QA checklist.
+See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/12-public-visual-qa.md`, and `docs/13-seo-foundation.md` for the official phase tracker and QA checklists.

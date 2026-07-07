@@ -6,7 +6,7 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 2 — Public Website Foundation
-Current subphase: 2.7 Public copy cleanup and visual QA
+Current subphase: 2.8 Static SEO metadata and sitemap foundation
 Last updated: 2026-07-07
 ```
 
@@ -56,32 +56,35 @@ Completed subphases:
 2.4 Static accommodation detail pages
 2.5 Accommodation image foundation
 2.6 Centralized public page copy and amenity icons
+2.7 Public copy cleanup and visual QA
 ```
 
 Current subphase:
 
 ```text
-2.7 Public copy cleanup and visual QA
+2.8 Static SEO metadata and sitemap foundation
 ```
 
-Current 2.7 goals:
+Current 2.8 goals:
 
 ```text
-Keep user-facing copy centralized in messages/es.ts and messages/en.ts
-Improve public header and footer polish
-Improve homepage visual rhythm and responsive behavior
-Improve accommodation listing and detail page readability
-Document public QA checks before SEO and database work
-Avoid introducing database, payment, Cloudinary, Resend, or Airbnb iCal logic in this subphase
+Add centralized SEO copy in messages/es.ts and messages/en.ts.
+Add site-level metadataBase and metadata defaults.
+Add metadata for / and /alojamientos.
+Add dynamic metadata for /alojamientos/[slug].
+Add canonical URLs, Open Graph metadata, and Twitter metadata.
+Add app/sitemap.ts and app/robots.ts.
+Document the static SEO foundation.
+Avoid introducing database, payment, Cloudinary, Resend, or Airbnb iCal logic in this subphase.
 ```
 
 ## Next Recommended Work
 
 ```text
-1. Run public visual QA for home, /alojamientos, and each /alojamientos/[slug] page.
-2. Verify mobile, tablet, and desktop layouts.
-3. Fix any layout/copy issues discovered in visual QA.
-4. Move to 2.8 Static SEO metadata and sitemap foundation after 2.7 is accepted.
+1. Validate npm run lint and npm run build.
+2. Review generated /sitemap.xml and /robots.txt locally after running the app.
+3. Verify page metadata in browser/devtools or page source.
+4. Move to 2.9 Phase 2 closure review after 2.8 is accepted.
 ```
 
 ## Continuity Notes for New Conversations
@@ -94,6 +97,7 @@ AGENTS.md
 docs/10-phases.md
 docs/11-progress-log.md
 docs/12-public-visual-qa.md
+docs/13-seo-foundation.md
 ```
 
 Important working rules:
