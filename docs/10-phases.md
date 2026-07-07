@@ -15,8 +15,8 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 5 — Cloudinary Integration
-Current subphase: 5.1 Cloudinary strategy and environment foundation
-Current focus: define the Cloudinary integration approach and environment requirements after closing the protected admin authentication foundation.
+Current subphase: 5.2 Cloudinary environment validation
+Current focus: add server-side validation for the Cloudinary variables defined during Phase 5.1.
 ```
 
 ---
@@ -151,8 +151,8 @@ Goal: Add the image storage, delivery, and transformation foundation for accommo
 Subphase status:
 
 ```text
-5.1 Cloudinary strategy and environment foundation — In progress
-5.2 Cloudinary environment validation — Not started
+5.1 Cloudinary strategy and environment foundation — Completed
+5.2 Cloudinary environment validation — In progress
 5.3 Cloudinary service foundation — Not started
 5.4 Accommodation image data mapping review — Not started
 5.5 Phase 5 documentation update — Not started
@@ -169,6 +169,16 @@ Phase 5 rules:
 - Do not store provider secrets in client-side code.
 - Do not upload or persist images until the Cloudinary strategy and environment validation are documented.
 - Public pages must keep working during the image integration foundation.
+```
+
+Phase 5.1 result:
+
+```text
+- Cloudinary usage scope was documented.
+- Server-only credential handling rules were documented.
+- Placeholder Cloudinary variables were added to .env.example.
+- Folder naming, public delivery, and DB mapping expectations were documented.
+- No SDK, uploads, image UI, provider calls, migrations, or operational features were added.
 ```
 
 ---

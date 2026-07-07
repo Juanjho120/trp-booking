@@ -6,10 +6,10 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 5 — Cloudinary Integration
-Current subphase: 5.1 Cloudinary strategy and environment foundation
+Current subphase: 5.2 Cloudinary environment validation
 Last updated: 2026-07-07
 Last completed phase: Phase 4 — Admin Authentication Foundation
-Last completed subphase: 4.6 Phase 4 documentation update
+Last completed subphase: 5.1 Cloudinary strategy and environment foundation
 ```
 
 ## Completed Work
@@ -75,6 +75,22 @@ Completed subphases:
 4.6 Phase 4 documentation update
 ```
 
+Closure result:
+
+```text
+Phase 4 is complete as an admin authentication foundation phase.
+/admin is protected before exposing operational admin features.
+The minimal admin shell exists and remains intentionally safe.
+No booking, payment, calendar, image upload, email, iCal, or PMS functionality was added in Phase 4.
+```
+
+Important correction completed during Phase 4.6:
+
+```text
+After /admin middleware and Auth.js routes were enabled, local development must use AUTH_TRUST_HOST=true to avoid Auth.js UntrustedHost errors.
+.env.example and docs/22-auth-environment-validation.md were corrected during Phase 4.6.
+```
+
 ### Phase 4.1 — Auth.js Strategy and Admin Access Foundation
 
 Status: **Completed**
@@ -116,13 +132,6 @@ AUTH_ALLOWED_ADMIN_EMAILS validation added
 Optional AUTH_URL validation added
 getAllowedAdminEmails helper added
 docs/22-auth-environment-validation.md added
-```
-
-Important Phase 4.6 correction:
-
-```text
-After /admin middleware and Auth.js routes were enabled, local development must use AUTH_TRUST_HOST=true to avoid Auth.js UntrustedHost errors.
-.env.example and docs/22-auth-environment-validation.md were corrected during Phase 4.6.
 ```
 
 ### Phase 4.3 — Auth.js Configuration
@@ -216,13 +225,42 @@ docs/11-progress-log.md updated to close Phase 4 and start Phase 5.1
 docs/22-auth-environment-validation.md corrected with the AUTH_TRUST_HOST=true requirement after admin middleware is enabled
 ```
 
-Closure result:
+### Phase 5.1 — Cloudinary Strategy and Environment Foundation
+
+Status: **Completed**
+
+Completed deliverables:
 
 ```text
-Phase 4 is complete as an admin authentication foundation phase.
-/admin is protected before exposing operational admin features.
-The minimal admin shell exists and remains intentionally safe.
-No booking, payment, calendar, image upload, email, iCal, or PMS functionality was added in Phase 4.
+docs/27-cloudinary-strategy-and-environment.md added
+Cloudinary usage scope documented
+Cloudinary server-only credential rules documented
+Cloudinary placeholder variables added to .env.example
+Folder naming strategy documented
+Public ID strategy documented
+Public delivery strategy documented
+Database mapping expectations documented using existing PropertyImage fields
+Signed/admin-controlled upload direction selected for future implementation
+README.md updated with Phase 5.1 completion and Phase 5.2 current status
+docs/10-phases.md updated to mark 5.1 completed and 5.2 in progress
+docs/11-progress-log.md updated with Phase 5.1 completion
+```
+
+Important decisions:
+
+```text
+TRP Booking will use Cloudinary for accommodation image storage, delivery, and transformations.
+Cloudinary credentials must remain server-side only.
+Do not create NEXT_PUBLIC variables for API key or API secret.
+The project will use separate validated variables instead of a single CLOUDINARY_URL for clearer validation.
+Future admin uploads should prefer signed/admin-controlled uploads over unsigned public presets.
+Development and production assets must be separated by folder.
+```
+
+Important limitation:
+
+```text
+Phase 5.1 did not add the cloudinary npm package, SDK configuration code, upload route handlers, image upload server actions, admin image management UI, database migrations, database writes, seed data, or Cloudinary API calls.
 ```
 
 ## Current Work
@@ -234,30 +272,32 @@ Status: **In progress**
 Current subphase:
 
 ```text
-5.1 Cloudinary strategy and environment foundation
+5.2 Cloudinary environment validation
 ```
 
-Phase 5.1 goals:
+Phase 5.2 goals:
 
 ```text
-Review the documented Cloudinary scope.
-Define which Cloudinary variables will be required.
-Define server-only usage rules for Cloudinary credentials.
-Define image ownership, folder naming, and public delivery expectations.
+Extend server-side environment validation for Cloudinary variables.
+Validate CLOUDINARY_CLOUD_NAME.
+Validate CLOUDINARY_API_KEY.
+Validate CLOUDINARY_API_SECRET.
+Validate CLOUDINARY_UPLOAD_FOLDER.
+Reject placeholder values.
+Keep Cloudinary variables server-side only.
+Do not install or call the Cloudinary SDK yet unless the subphase is explicitly expanded.
 Do not upload images or add image management UI yet.
-Do not add booking, payment, email, calendar, iCal, or PMS features.
 ```
 
 ## Next Recommended Work
 
 ```text
-1. Apply Phase 4.6 documentation files.
-2. Keep local AUTH_TRUST_HOST=true.
-3. Run npm run env:validate.
-4. Run npm run db:validate.
-5. Run npm run lint and npm run build.
-6. Commit Phase 4.6.
-7. Continue with Phase 5.1 Cloudinary strategy and environment foundation.
+1. Apply Phase 5.1 files.
+2. Run npm run env:validate.
+3. Run npm run db:validate.
+4. Run npm run lint and npm run build.
+5. Commit Phase 5.1.
+6. Continue with Phase 5.2 Cloudinary environment validation.
 ```
 
 ## Continuity Notes for New Conversations
@@ -278,6 +318,7 @@ docs/23-auth-js-configuration.md
 docs/24-admin-route-protection.md
 docs/25-minimal-admin-shell.md
 docs/26-phase-4-auth-closure-review.md
+docs/27-cloudinary-strategy-and-environment.md
 lib/env/server.ts
 .env.example
 auth.ts
@@ -285,6 +326,7 @@ middleware.ts
 app/api/auth/[...nextauth]/route.ts
 app/admin/page.tsx
 features/admin/components/minimal-admin-shell.tsx
+prisma/schema.prisma
 ```
 
 Important working rules:
@@ -297,4 +339,5 @@ Do not integrate Resend, Tilopay, or Airbnb iCal before their documented phases.
 Keep phase/subphase tracking updated.
 Do not expose admin pages without route protection.
 Do not commit secrets, provider keys, or real credentials.
+Keep Cloudinary API key and API secret server-side only.
 ```
