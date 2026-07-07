@@ -6,10 +6,10 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 4 — Admin Authentication Foundation
-Current subphase: 4.5 Minimal admin shell
+Current subphase: 4.6 Phase 4 documentation update
 Last updated: 2026-07-07
 Last completed phase: Phase 3 — Database Foundation
-Last completed subphase: 4.4 Admin route protection foundation
+Last completed subphase: 4.5 Minimal admin shell
 ```
 
 ## Completed Work
@@ -156,6 +156,29 @@ Important limitation:
 Phase 4.4 does not add admin pages, admin login UI, admin layout, Prisma adapter, database migrations, Tilopay, Cloudinary, Resend, Airbnb iCal sync, or PMS features.
 ```
 
+### Phase 4.5 — Minimal Admin Shell
+
+Status: **Completed**
+
+Completed deliverables:
+
+```text
+Protected /admin page added
+Minimal admin shell component added under features/admin
+Admin session identity card added using Auth.js session data
+Server action sign-out button added using Auth.js signOut
+Admin module placeholder cards added for future documented phases
+Admin copy centralized in messages/es.ts and messages/en.ts
+Admin metadata added with noindex robots behavior
+docs/25-minimal-admin-shell.md added
+```
+
+Important limitation:
+
+```text
+Phase 4.5 does not add booking management, payment management, calendar management, image management, email sending, Airbnb iCal sync, Prisma adapter, database migrations, or PMS features.
+```
+
 ## Current Work
 
 ### Phase 4 — Admin Authentication Foundation
@@ -165,28 +188,31 @@ Status: **In progress**
 Current subphase:
 
 ```text
-4.5 Minimal admin shell
+4.6 Phase 4 documentation update
 ```
 
-Phase 4.5 goals:
+Phase 4.6 goals:
 
 ```text
-Create the first protected /admin shell.
-Use the project design system.
-Keep the admin shell minimal and operationally safe.
-Do not add booking, payment, calendar, image, email, or iCal features yet.
-Keep public pages accessible without login.
+Review Phase 4 implementation and documentation.
+Confirm the authentication foundation is complete.
+Confirm /admin remains protected.
+Confirm public routes remain accessible without login.
+Close Phase 4 before starting Cloudinary or any later integration phase.
 ```
 
 ## Next Recommended Work
 
 ```text
-1. Apply Phase 4.4 files.
+1. Apply Phase 4.5 files.
 2. Run npm run env:validate.
 3. Run npm run db:validate.
 4. Run npm run lint and npm run build.
-5. Commit Phase 4.4.
-6. Continue with Phase 4.5 Minimal admin shell.
+5. Test /admin while signed out.
+6. Test /admin while signed in with an allowlisted Google account.
+7. Test sign out from /admin.
+8. Commit Phase 4.5.
+9. Continue with Phase 4.6 Phase 4 documentation update.
 ```
 
 ## Continuity Notes for New Conversations
@@ -203,18 +229,21 @@ docs/21-auth-admin-strategy.md
 docs/22-auth-environment-validation.md
 docs/23-auth-js-configuration.md
 docs/24-admin-route-protection.md
+docs/25-minimal-admin-shell.md
 lib/env/server.ts
 .env.example
 auth.ts
 middleware.ts
 app/api/auth/[...nextauth]/route.ts
+app/admin/page.tsx
+features/admin/components/minimal-admin-shell.tsx
 ```
 
 Important working rules:
 
 ```text
 Use ZIPs with real files for non-trivial changes.
-Do not hardcode public user-facing copy in TSX components.
+Do not hardcode public or admin UI copy in TSX components.
 Do not add PMS features.
 Do not integrate Cloudinary, Resend, Tilopay, or Airbnb iCal before their documented phases.
 Keep phase/subphase tracking updated.

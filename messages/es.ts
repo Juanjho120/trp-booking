@@ -31,6 +31,11 @@ export const esMessages = {
       description:
         "El alojamiento solicitado no está disponible. Explora las opciones de Tu Refugio Perfecto en Panajachel.",
     },
+    admin: {
+      title: "Admin | Tu Refugio Perfecto",
+      description:
+        "Panel privado mínimo para administrar la base de autenticación de TRP Booking.",
+    },
   },
 
   navigation: {
@@ -178,6 +183,70 @@ export const esMessages = {
       highlightsTitle: "Detalles destacados",
       amenitiesTitle: "Amenidades",
       rulesTitle: "Reglas importantes",
+    },
+  },
+  admin: {
+    shell: {
+      brandLabel: "Administración privada",
+      badge: "Admin protegido",
+      title: "Panel mínimo de TRP Booking.",
+      description:
+        "Esta primera shell confirma que el acceso privado ya está protegido antes de agregar herramientas operativas de reservas directas.",
+      fallbackUserName: "Administrador",
+      viewPublicSite: "Ver sitio público",
+      signOut: "Cerrar sesión",
+      sessionCard: {
+        title: "Sesión admin",
+        signedInAs: "Sesión iniciada como",
+        protectionNote:
+          "Solo correos autorizados por el allowlist server-side pueden entrar a este espacio.",
+      },
+      modules: [
+        {
+          title: "Alojamientos",
+          description:
+            "Base futura para revisar alojamientos, contenido y configuración visible del sitio.",
+          status: "Próximamente",
+        },
+        {
+          title: "Reservas directas",
+          description:
+            "Espacio reservado para revisar reservaciones directas cuando el flujo de booking exista.",
+          status: "Pendiente",
+        },
+        {
+          title: "Pagos y reembolsos",
+          description:
+            "Área futura para seguimiento operativo de pagos validados y reembolsos documentados.",
+          status: "Pendiente",
+        },
+        {
+          title: "Imágenes",
+          description:
+            "Se integrará cuando la fase de Cloudinary esté documentada e implementada.",
+          status: "Diferido",
+        },
+        {
+          title: "Emails",
+          description:
+            "Se agregará cuando la fase de Resend esté habilitada para notificaciones oficiales.",
+          status: "Diferido",
+        },
+        {
+          title: "Sincronización iCal",
+          description:
+            "Se mantiene fuera de esta fase hasta la integración documentada de Airbnb iCal.",
+          status: "Diferido",
+        },
+      ],
+      guardrails: {
+        title: "Límites de esta fase",
+        items: [
+          "No administra reservas, pagos, calendarios ni imágenes todavía.",
+          "No reemplaza TAMIAS ni agrega funciones de PMS.",
+          "Mantiene las páginas públicas accesibles sin login.",
+        ],
+      },
     },
   },
   errors: {

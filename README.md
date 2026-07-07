@@ -116,6 +116,7 @@ docs/
   22-auth-environment-validation.md
   23-auth-js-configuration.md
   24-admin-route-protection.md
+  25-minimal-admin-shell.md
 ```
 
 The assistant collaboration rules live in:
@@ -128,9 +129,9 @@ AGENTS.md
 
 ```text
 Current phase: Phase 4 — Admin Authentication Foundation
-Current subphase: 4.5 Minimal admin shell
-Last completed subphase: 4.4 Admin route protection foundation
+Current subphase: 4.6 Phase 4 documentation update
+Last completed subphase: 4.5 Minimal admin shell
 Last completed phase: Phase 3 — Database Foundation
 ```
 
-See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/21-auth-admin-strategy.md`, `docs/22-auth-environment-validation.md`, `docs/23-auth-js-configuration.md`, and `docs/24-admin-route-protection.md` for the official Phase 4 tracker and setup notes.
+See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/21-auth-admin-strategy.md`, `docs/22-auth-environment-validation.md`, `docs/23-auth-js-configuration.md`, `docs/24-admin-route-protection.md`, and `docs/25-minimal-admin-shell.md` for the official Phase 4 tracker and setup notes.
