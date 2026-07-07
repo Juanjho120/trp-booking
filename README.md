@@ -110,6 +110,7 @@ docs/
   17-prisma-core-schema.md
   18-soft-delete-audit-conventions.md
   19-seed-strategy.md
+  20-phase-3-database-closure-review.md
 ```
 
 The assistant collaboration rules live in:
@@ -121,10 +122,10 @@ AGENTS.md
 ## Development Status
 
 ```text
-Current phase: Phase 3 — Database Foundation
-Current subphase: 3.6 Database documentation update
-Last completed subphase: 3.5 Initial seed strategy for accommodations, amenities, rules, and static content
-Last completed phase: Phase 2 — Public Website Foundation
+Current phase: Phase 4 — Admin Authentication Foundation
+Current subphase: 4.1 Auth.js strategy and admin access foundation
+Last completed subphase: 3.6 Database documentation update
+Last completed phase: Phase 3 — Database Foundation
 ```
 
 See `docs/10-phases.md`, `docs/11-progress-log.md`, and the Phase 3 documentation files for the official tracker and setup notes.

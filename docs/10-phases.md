@@ -14,9 +14,9 @@ Deferred — Intentionally postponed.
 ## Current Phase
 
 ```text
-Current phase: Phase 3 — Database Foundation
-Current subphase: 3.6 Database documentation update
-Current focus: close Phase 3 by consolidating database documentation and confirming that the schema, environment validation, soft delete policy, and seed strategy are aligned before migrations.
+Current phase: Phase 4 — Admin Authentication Foundation
+Current subphase: 4.1 Auth.js strategy and admin access foundation
+Current focus: define and implement the minimal admin authentication foundation without adding booking, payments, Cloudinary, Resend, or Airbnb iCal logic.
 ```
 
 ---
@@ -74,38 +74,61 @@ Completed subphases:
 
 ## Phase 3 — Database Foundation
 
-Status: **In progress**
+Status: **Completed**
 
 Goal: Add Prisma and Supabase/PostgreSQL foundation after the public static foundation is stable.
 
-Subphase status:
+Completed subphases:
 
 ```text
-3.1 Prisma and Supabase foundation setup — Completed
-3.2 Environment variable validation foundation — Completed
-3.3 Initial Prisma schema for core booking domain — Completed
-3.4 Soft delete and audit field conventions — Completed
-3.5 Initial seed strategy for accommodations, amenities, rules, and static content — Completed
-3.6 Database documentation update — In progress
+3.1 Prisma and Supabase foundation setup
+3.2 Environment variable validation foundation
+3.3 Initial Prisma schema for core booking domain
+3.4 Soft delete and audit field conventions
+3.5 Initial seed strategy for accommodations, amenities, rules, and static content
+3.6 Database documentation update
 ```
 
-Phase 3 rules:
+Important Phase 3 closure notes:
 
 ```text
-- Do not add admin UI in Phase 3.
-- Do not integrate Tilopay in Phase 3.
-- Do not integrate Cloudinary in Phase 3.
-- Do not integrate Resend in Phase 3.
-- Do not implement Airbnb iCal sync in Phase 3.
-- Do not move TRP Booking toward PMS features.
-- Keep current public pages working while adding database foundation.
+- Phase 3 created and validated the Prisma schema foundation.
+- Phase 3 did not create or apply migrations.
+- Phase 3 did not write records to Supabase.
+- Migration execution remains deferred until the first migration-specific task is explicitly introduced and reviewed.
 ```
 
 ---
 
 ## Phase 4 — Admin Authentication Foundation
 
-Status: **Not started**
+Status: **In progress**
+
+Goal: Add the minimum authentication foundation required for the private admin area.
+
+Planned subphases:
+
+```text
+4.1 Auth.js strategy and admin access foundation — In progress
+4.2 Auth environment variables and validation — Not started
+4.3 Auth.js configuration — Not started
+4.4 Admin route protection foundation — Not started
+4.5 Minimal admin shell — Not started
+4.6 Phase 4 documentation update — Not started
+```
+
+Phase 4 rules:
+
+```text
+- Do not add booking checkout in Phase 4.
+- Do not integrate Tilopay in Phase 4.
+- Do not integrate Cloudinary in Phase 4.
+- Do not integrate Resend in Phase 4.
+- Do not implement Airbnb iCal sync in Phase 4.
+- Do not add PMS features.
+- Keep public pages working while adding admin authentication foundation.
+- Do not expose admin pages without route protection.
+```
 
 ---
 
