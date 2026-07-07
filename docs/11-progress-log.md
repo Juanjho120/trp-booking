@@ -6,10 +6,10 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 5 — Cloudinary Integration
-Current subphase: 5.3 Cloudinary service foundation
+Current subphase: 5.4 Accommodation image data mapping review
 Last updated: 2026-07-07
 Last completed phase: Phase 4 — Admin Authentication Foundation
-Last completed subphase: 5.2 Cloudinary environment validation
+Last completed subphase: 5.3 Cloudinary service foundation
 ```
 
 ## Completed Work
@@ -299,6 +299,41 @@ Important limitation:
 Phase 5.2 did not add the cloudinary npm package, SDK configuration code, upload route handlers, image upload server actions, admin image management UI, database migrations, database writes, seed data, or Cloudinary API calls.
 ```
 
+
+### Phase 5.3 — Cloudinary Service Foundation
+
+Status: **Completed**
+
+Completed deliverables:
+
+```text
+cloudinary dependency added to package.json
+lib/cloudinary/client.ts added
+lib/cloudinary/folders.ts added
+lib/cloudinary/delivery.ts added
+lib/cloudinary/index.ts added
+docs/29-cloudinary-service-foundation.md added
+README.md updated with Phase 5.3 completion and Phase 5.4 current status
+docs/10-phases.md updated to mark 5.3 completed and 5.4 in progress
+docs/11-progress-log.md updated with Phase 5.3 completion
+```
+
+Important decisions:
+
+```text
+Cloudinary SDK configuration remains server-side only.
+The Cloudinary client is configured from validated CloudinaryEnv values.
+Accommodation image folders continue to follow trp-booking/{environment}/accommodations/{propertySlug}.
+Public IDs can be generated deterministically using sort order and image purpose.
+The delivery URL helper only generates URLs and does not upload or mutate assets.
+```
+
+Important limitation:
+
+```text
+Phase 5.3 does not add upload route handlers, server actions for uploads, admin image management UI, image persistence, database migrations, seed data, Cloudinary asset deletion, booking checkout, Tilopay, Resend, Airbnb iCal sync, or PMS features.
+```
+
 ## Current Work
 
 ### Phase 5 — Cloudinary Integration
@@ -308,30 +343,29 @@ Status: **In progress**
 Current subphase:
 
 ```text
-5.3 Cloudinary service foundation
+5.4 Accommodation image data mapping review
 ```
 
-Phase 5.3 goals:
+Phase 5.4 goals:
 
 ```text
-Add a server-side Cloudinary configuration/service foundation.
-Use validated Cloudinary environment variables.
-Keep provider calls server-side only.
-Do not add public upload UI yet.
-Do not write image records to the database yet unless explicitly introduced in a later subphase.
+Review the current PropertyImage schema fields against Cloudinary-backed metadata.
+Confirm whether existing fields cover Cloudinary public IDs, secure URLs, alt text, ordering, and cover image behavior.
+Do not create migrations unless the review explicitly identifies a required schema change.
+Do not upload images or add admin image management UI yet.
 Do not add booking, payment, email, calendar, iCal, or PMS features.
 ```
 
 ## Next Recommended Work
 
 ```text
-1. Apply Phase 5.2 files.
-2. Add real Cloudinary values to local .env.
+1. Apply Phase 5.3 files.
+2. Run npm install to install the Cloudinary SDK and update package-lock.json.
 3. Run npm run env:validate.
 4. Run npm run db:validate.
 5. Run npm run lint and npm run build.
-6. Commit Phase 5.2.
-7. Continue with Phase 5.3 Cloudinary service foundation.
+6. Commit Phase 5.3, including the updated package-lock.json.
+7. Continue with Phase 5.4 Accommodation image data mapping review.
 ```
 
 ## Continuity Notes for New Conversations
@@ -354,7 +388,9 @@ docs/25-minimal-admin-shell.md
 docs/26-phase-4-auth-closure-review.md
 docs/27-cloudinary-strategy-and-environment.md
 docs/28-cloudinary-environment-validation.md
+docs/29-cloudinary-service-foundation.md
 lib/env/server.ts
+lib/cloudinary/index.ts
 .env.example
 auth.ts
 middleware.ts

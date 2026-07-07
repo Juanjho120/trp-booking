@@ -15,8 +15,8 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 5 — Cloudinary Integration
-Current subphase: 5.3 Cloudinary service foundation
-Current focus: add the server-side Cloudinary configuration/service foundation after validating the required environment variables.
+Current subphase: 5.4 Accommodation image data mapping review
+Current focus: review how Cloudinary-backed image metadata maps to accommodation image data before adding persistence or admin UI.
 ```
 
 ---
@@ -153,8 +153,8 @@ Subphase status:
 ```text
 5.1 Cloudinary strategy and environment foundation — Completed
 5.2 Cloudinary environment validation — Completed
-5.3 Cloudinary service foundation — In progress
-5.4 Accommodation image data mapping review — Not started
+5.3 Cloudinary service foundation — Completed
+5.4 Accommodation image data mapping review — In progress
 5.5 Phase 5 documentation update — Not started
 ```
 
@@ -191,6 +191,17 @@ Phase 5.2 result:
 - Placeholder values are rejected by env validation.
 - Cloudinary API key and API secret remain server-side only.
 - No Cloudinary SDK, provider calls, uploads, image UI, migrations, or database writes were added.
+```
+
+Phase 5.3 result:
+
+```text
+- The Cloudinary npm package was added to package.json.
+- A server-side Cloudinary client factory was added under lib/cloudinary.
+- Cloudinary SDK configuration uses validated environment variables from lib/env/server.ts.
+- Folder and public ID helper functions were added for accommodation images.
+- A delivery URL helper was added for future public image rendering.
+- No upload route handlers, admin image UI, database writes, seed data, migrations, or operational booking features were added.
 ```
 
 ---
