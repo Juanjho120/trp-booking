@@ -102,6 +102,7 @@ docs/
   12-public-visual-qa.md
   13-seo-foundation.md
   14-phase-2-closure-review.md
+  15-database-foundation.md
 ```
 
 The assistant collaboration rules live in:
@@ -114,8 +115,9 @@ AGENTS.md
 
 ```text
 Current phase: Phase 3 — Database Foundation
-Current subphase: 3.1 Prisma and Supabase foundation setup
+Current subphase: 3.2 Environment variable validation foundation
+Last completed subphase: 3.1 Prisma and Supabase foundation setup
 Last completed phase: Phase 2 — Public Website Foundation
 ```
 
-See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/12-public-visual-qa.md`, `docs/13-seo-foundation.md`, and `docs/14-phase-2-closure-review.md` for the official phase tracker and QA checklists.
+See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/12-public-visual-qa.md`, `docs/13-seo-foundation.md`, `docs/14-phase-2-closure-review.md`, and `docs/15-database-foundation.md` for the official phase tracker and QA checklists.

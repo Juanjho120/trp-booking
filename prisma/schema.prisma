@@ -1,0 +1,20 @@
+// TRP Booking — Prisma schema foundation
+//
+// Phase 3.1 intentionally adds only the Prisma/PostgreSQL foundation.
+// Core booking models will be added in Phase 3.3 after the database model is reviewed.
+//
+// Development database target:
+// - Supabase project: portfolio-lab
+// - PostgreSQL schema: trp_booking
+//
+// Do not commit real DATABASE_URL or DIRECT_URL values.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}

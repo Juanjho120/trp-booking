@@ -15,8 +15,8 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 3 — Database Foundation
-Current subphase: 3.1 Prisma and Supabase foundation setup
-Current focus: prepare Prisma, Supabase/PostgreSQL, typed database configuration, and the first database model without adding admin, payments, Cloudinary, Resend, or Airbnb iCal logic yet.
+Current subphase: 3.2 Environment variable validation foundation
+Current focus: add typed environment validation after the Prisma/PostgreSQL foundation has been installed and documented.
 ```
 
 ---
@@ -89,35 +89,6 @@ Completed subphases:
 2.9 Phase 2 closure review
 ```
 
-Completed deliverables:
-
-```text
-Public home page
-Public accommodations listing
-Static accommodation detail pages
-Real static image foundation
-Centralized public copy foundation
-Amenity icon catalog
-Public visual QA checklist
-Static SEO metadata
-Canonical URLs
-Open Graph metadata
-Twitter metadata
-robots.txt route
-sitemap.xml route
-Phase 2 closure review document
-```
-
-Phase 2 validation:
-
-```text
-npm run lint: validated by user
-npm run build: validated by user
-/sitemap.xml: validated by user
-/robots.txt: validated by user
-Public pages: validated locally by user during Phase 2.7 and Phase 2.8
-```
-
 ---
 
 ## Phase 3 — Database Foundation
@@ -126,15 +97,15 @@ Status: **In progress**
 
 Goal: Add Prisma and Supabase/PostgreSQL foundation after the public static foundation is stable.
 
-Planned subphases:
+Subphase status:
 
 ```text
-3.1 Prisma and Supabase foundation setup
-3.2 Environment variable validation foundation
-3.3 Initial Prisma schema for core booking domain
-3.4 Soft delete and audit field conventions
-3.5 Initial seed strategy for accommodations, amenities, rules, and static content
-3.6 Database documentation update
+3.1 Prisma and Supabase foundation setup — Completed
+3.2 Environment variable validation foundation — In progress
+3.3 Initial Prisma schema for core booking domain — Not started
+3.4 Soft delete and audit field conventions — Not started
+3.5 Initial seed strategy for accommodations, amenities, rules, and static content — Not started
+3.6 Database documentation update — Not started
 ```
 
 Phase 3 rules:
