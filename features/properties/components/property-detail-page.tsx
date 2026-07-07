@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { ReactNode } from "react";
 
 import { SiteFooter, SiteHeader } from "@/components/layout";
 import { Badge } from "@/components/ui/badge";
@@ -30,7 +31,10 @@ export function PropertyDetailPage({ accommodation }: PropertyDetailPageProps) {
             </Button>
 
             <div className="mt-8">
-              <Badge className="rounded-full" variant={accommodation.kind === "composed" ? "default" : "secondary"}>
+              <Badge
+                className="rounded-full"
+                variant={accommodation.kind === "composed" ? "default" : "secondary"}
+              >
                 {accommodation.kind === "composed"
                   ? messages.properties.detail.composedLabel
                   : messages.properties.detail.privateLabel}
@@ -46,69 +50,79 @@ export function PropertyDetailPage({ accommodation }: PropertyDetailPageProps) {
 
           <Card className="h-fit rounded-[2rem] border-border/70 bg-card shadow-lg">
             <CardHeader>
-              <CardTitle>{messages.properties.detail.reservationSummary}</CardTitle>
+              <CardTitle>{messages.properties.detail.priceTitle}</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="flex items-end justify-between gap-4">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">
-                    {messages.properties.detail.from}
-                  </p>
-                  <p className="mt-1 text-4xl font-semibold">
-                    ${accommodation.baseNightlyPriceUsd}
-                    <span className="text-base font-normal text-muted-foreground">
-                      {" "}
-                      {messages.properties.detail.perNight}
-                    </span>
-                  </p>
-                </div>
+            <CardContent className="space-y-5">
+              <div className="rounded-2xl bg-muted/45 p-5">
+                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                  {messages.properties.detail.from}
+                </p>
+                <p className="mt-1 text-4xl font-semibold text-foreground">
+                  ${accommodation.baseNightlyPriceUsd}
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {messages.properties.detail.perNight}
+                </p>
               </div>
 
-              <Separator className="my-6" />
-
-              <div className="grid grid-cols-3 gap-3 text-center text-sm">
-                <div className="rounded-2xl bg-muted p-4">
-                  <p className="font-semibold text-foreground">{accommodation.maxGuests}</p>
-                  <p className="text-xs text-muted-foreground">{messages.properties.detail.guests}</p>
-                </div>
-                <div className="rounded-2xl bg-muted p-4">
-                  <p className="font-semibold text-foreground">{accommodation.bedrooms}</p>
-                  <p className="text-xs text-muted-foreground">{messages.properties.detail.bedroomAbbr}</p>
-                </div>
-                <div className="rounded-2xl bg-muted p-4">
-                  <p className="font-semibold text-foreground">{accommodation.bathrooms}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {accommodation.bathrooms > 1
-                      ? messages.properties.detail.bathroomPlural
-                      : messages.properties.detail.bathroomSingular}
-                  </p>
-                </div>
+              <div className="grid gap-3 text-sm text-muted-foreground sm:grid-cols-3 lg:grid-cols-1">
+                <DetailStat label={messages.properties.detail.maxGuests} value={`${accommodation.maxGuests}`} />
+                <DetailStat label={messages.properties.detail.bedrooms} value={`${accommodation.bedrooms}`} />
+                <DetailStat label={messages.properties.detail.bathrooms} value={`${accommodation.bathrooms}`} />
               </div>
 
-              <div className="mt-6 rounded-2xl border border-border bg-background p-4 text-sm text-muted-foreground">
-                <p className="font-medium text-foreground">{accommodation.arrivalPolicy.checkInFrom.es}</p>
-                <p className="mt-2 leading-6">{accommodation.arrivalPolicy.earlyCheckInNote.es}</p>
+              <Separator />
+
+              <div className="space-y-3 text-sm leading-6 text-muted-foreground">
+                <p>
+                  <span className="font-medium text-foreground">
+                    {messages.properties.detail.checkIn}:
+                  </span>{" "}
+                  {accommodation.arrivalPolicy.checkInFrom.es}
+                </p>
+                <p>
+                  <span className="font-medium text-foreground">
+                    {messages.properties.detail.earlyCheckIn}:
+                  </span>{" "}
+                  {accommodation.arrivalPolicy.earlyCheckInNote.es}
+                </p>
               </div>
 
-              <Button className="mt-6 w-full rounded-full" disabled>
-                {messages.properties.detail.calendarComingSoon}
+              <div className="rounded-2xl border border-border/70 bg-background p-4 text-sm leading-6 text-muted-foreground">
+                <p className="font-medium text-foreground">
+                  {messages.properties.detail.preparationBuffer}
+                </p>
+                <p className="mt-2">
+                  {accommodation.preparationBuffer.daysBefore}{" "}
+                  {messages.properties.detail.preparationBufferBefore} ·{" "}
+                  {accommodation.preparationBuffer.daysAfter}{" "}
+                  {messages.properties.detail.preparationBufferAfter}
+                </p>
+                <p className="mt-2">{messages.properties.detail.preparationBufferDescription}</p>
+              </div>
+
+              <Button className="w-full rounded-full" disabled>
+                {messages.properties.detail.reserveCta}
               </Button>
-              <p className="mt-3 text-center text-xs text-muted-foreground">
-                {messages.properties.detail.availabilityLater}
+              <p className="text-center text-xs leading-5 text-muted-foreground">
+                {messages.properties.detail.reserveComingSoon}
               </p>
             </CardContent>
           </Card>
         </section>
 
         <section className="mx-auto max-w-7xl px-6 pb-20 lg:px-8">
-          <div className="grid gap-4 lg:grid-cols-4">
-            {accommodation.galleryImages.map((image) => (
+          <h2 className="text-2xl font-semibold tracking-tight">
+            {messages.properties.detail.galleryTitle}
+          </h2>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[accommodation.coverImage, ...accommodation.galleryImages].map((image) => (
               <div className="relative aspect-[4/3] overflow-hidden rounded-[1.5rem] bg-muted" key={image.src}>
                 <Image
                   alt={image.alt.es}
-                  className="object-cover transition duration-500 hover:scale-105"
+                  className="object-cover"
                   fill
-                  sizes="(min-width: 1024px) 25vw, 100vw"
+                  sizes="(min-width: 1024px) 25vw, 50vw"
                   src={image.src}
                 />
               </div>
@@ -116,70 +130,76 @@ export function PropertyDetailPage({ accommodation }: PropertyDetailPageProps) {
           </div>
         </section>
 
-        <section className="mx-auto max-w-7xl px-6 pb-20 lg:px-8">
-          <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr]">
-            <div className="grid gap-4 sm:grid-cols-2">
+        <section className="mx-auto grid max-w-7xl gap-6 px-6 pb-20 lg:grid-cols-3 lg:px-8">
+          <InfoCard title={messages.properties.detail.highlightsTitle}>
+            <ul className="grid gap-3">
               {accommodation.highlights.es.map((highlight) => (
-                <div className="rounded-2xl border border-border bg-card p-5 text-sm font-medium text-foreground" key={highlight}>
+                <li className="text-sm leading-6 text-muted-foreground" key={highlight}>
                   {highlight}
-                </div>
+                </li>
               ))}
-            </div>
+            </ul>
+          </InfoCard>
 
-            <div>
-              <h2 className="text-3xl font-semibold tracking-tight">
-                {messages.properties.detail.mainAmenities}
-              </h2>
-              <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                {accommodation.amenityKeys.map((amenityKey) => {
-                  const amenity = getAmenityByKey(amenityKey);
+          <InfoCard title={messages.properties.detail.amenitiesTitle}>
+            <ul className="grid gap-3">
+              {accommodation.amenityKeys.map((amenityKey) => {
+                const amenity = getAmenityByKey(amenityKey);
 
-                  return (
-                    <div
-                      className="flex items-center gap-3 rounded-2xl bg-muted p-4 text-sm text-foreground"
-                      key={amenity.key}
-                    >
-                      <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-background text-primary shadow-sm">
-                        <AmenityIcon icon={amenity.icon} />
-                      </span>
-                      <span>{amenity.label.es}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </section>
+                return (
+                  <li className="flex items-center gap-3 text-sm text-muted-foreground" key={amenity.key}>
+                    <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                      <AmenityIcon className="size-4" name={amenity.icon} />
+                    </span>
+                    {amenity.label.es}
+                  </li>
+                );
+              })}
+            </ul>
+          </InfoCard>
 
-        <section className="bg-muted/35 py-20">
-          <div className="mx-auto grid max-w-7xl gap-8 px-6 lg:grid-cols-[0.9fr_1.1fr] lg:px-8">
-            <div>
-              <Badge className="rounded-full" variant="secondary">
-                {messages.properties.detail.rulesBadge}
-              </Badge>
-              <h2 className="mt-5 text-3xl font-semibold tracking-tight">
-                {messages.properties.detail.beforeBooking}
-              </h2>
-              <p className="mt-4 text-sm leading-6 text-muted-foreground">
-                {messages.properties.detail.rulesDescription}
-              </p>
-            </div>
-
-            <Card className="rounded-[2rem] border-border/70 bg-card">
-              <CardContent className="p-6">
-                <div className="grid gap-3">
-                  {accommodation.rules.es.map((rule) => (
-                    <div className="rounded-2xl border border-border bg-background p-4 text-sm text-muted-foreground" key={rule}>
-                      {rule}
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <InfoCard title={messages.properties.detail.rulesTitle}>
+            <ul className="grid gap-3">
+              {accommodation.rules.es.map((rule) => (
+                <li className="text-sm leading-6 text-muted-foreground" key={rule}>
+                  {rule}
+                </li>
+              ))}
+            </ul>
+          </InfoCard>
         </section>
       </main>
       <SiteFooter />
     </div>
+  );
+}
+
+type DetailStatProps = Readonly<{
+  label: string;
+  value: string;
+}>;
+
+function DetailStat({ label, value }: DetailStatProps) {
+  return (
+    <div className="rounded-2xl border border-border/70 bg-background p-4">
+      <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{label}</p>
+      <p className="mt-2 text-2xl font-semibold text-foreground">{value}</p>
+    </div>
+  );
+}
+
+type InfoCardProps = Readonly<{
+  children: ReactNode;
+  title: string;
+}>;
+
+function InfoCard({ children, title }: InfoCardProps) {
+  return (
+    <Card className="rounded-[1.5rem] border-border/70 bg-card shadow-sm">
+      <CardHeader>
+        <CardTitle className="text-xl">{title}</CardTitle>
+      </CardHeader>
+      <CardContent>{children}</CardContent>
+    </Card>
   );
 }

@@ -13,7 +13,7 @@ export function DirectBookingBenefits() {
             <Badge className="rounded-full" variant="secondary">
               {messages.home.benefits.badge}
             </Badge>
-            <h2 className="mt-5 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+            <h2 className="mt-5 text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
               {messages.home.benefits.title}
             </h2>
             <p className="mt-4 text-base leading-7 text-muted-foreground">
@@ -23,10 +23,13 @@ export function DirectBookingBenefits() {
 
           <div className="grid gap-5 md:grid-cols-3 lg:grid-cols-1">
             {messages.home.benefits.items.map((benefit, index) => (
-              <Card className="rounded-[1.5rem] border-border/70 bg-card/80" key={benefit.title}>
+              <Card
+                className="rounded-[1.5rem] border-border/70 bg-card/80 shadow-sm"
+                key={benefit.title}
+              >
                 <CardContent className="p-6">
                   <div className="mb-5 flex size-11 items-center justify-center rounded-2xl bg-primary/10 text-sm font-semibold text-primary">
-                    0{index + 1}
+                    {String(index + 1).padStart(2, "0")}
                   </div>
                   <h3 className="text-lg font-semibold text-foreground">{benefit.title}</h3>
                   <p className="mt-3 text-sm leading-6 text-muted-foreground">

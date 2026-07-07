@@ -1,4 +1,3 @@
-import type { LucideIcon } from "lucide-react";
 import {
   Bath,
   Bed,
@@ -11,15 +10,20 @@ import {
   Flame,
   Home,
   Refrigerator,
+  ShieldCheck,
   ShowerHead,
   TreePalm,
   Utensils,
-  ShieldCheck,
-  Wifi,
   Users,
+  Wifi,
 } from "lucide-react";
 
 import type { AmenityIconName } from "@/types/amenity";
+
+type AmenityIconProps = Readonly<{
+  name: AmenityIconName;
+  className?: string;
+}>;
 
 const amenityIcons = {
   bath: Bath,
@@ -39,14 +43,10 @@ const amenityIcons = {
   shieldCheck: ShieldCheck,
   wifi: Wifi,
   users: Users,
-} as const satisfies Record<AmenityIconName, LucideIcon>;
+} satisfies Record<AmenityIconName, typeof Bath>;
 
-type AmenityIconProps = Readonly<{
-  icon: AmenityIconName;
-}>;
+export function AmenityIcon({ className, name }: AmenityIconProps) {
+  const Icon = amenityIcons[name];
 
-export function AmenityIcon({ icon }: AmenityIconProps) {
-  const Icon = amenityIcons[icon];
-
-  return <Icon aria-hidden="true" className="size-5" strokeWidth={1.8} />;
+  return <Icon aria-hidden="true" className={className} />;
 }

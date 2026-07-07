@@ -1,54 +1,107 @@
 # 11 — Progress Log
 
-This document tracks completed implementation work so the project can be resumed from another conversation without losing context.
+This document is the official progress tracker for TRP Booking. Update it whenever a phase or subphase changes status.
 
 ## Current Status
 
 ```text
 Current phase: Phase 2 — Public Website Foundation
 Current subphase: 2.7 Public copy cleanup and visual QA
+Last updated: 2026-07-07
 ```
 
 ## Completed Work
 
-| Phase | Subphase | Status | Notes |
-|---|---:|---|---|
-| Phase 0 | 0.1 | Completed | Initial project definition, scope, architecture, database planning, payments, iCal sync, deployment, and phase documentation created. |
-| Phase 1 | 1.1 | Completed | GitHub repository `trp-booking` created. |
-| Phase 1 | 1.2 | Completed | Documentation committed first. |
-| Phase 1 | 1.3 | Completed | Clean Next.js 15 setup completed after reverting the accidental Next 16 setup. |
-| Phase 1 | 1.4 | Completed | TypeScript strict and ESLint kept enabled. |
-| Phase 1 | 1.5 | Completed | shadcn/ui with Radix Luma preset installed. |
-| Phase 1 | 1.6 | Completed | Base folders added: `config`, `features`, `lib`, `messages`, and `types`. |
-| Phase 1 | 1.7 | Completed | Initial typed site config, accommodation config, localized messages, and centralized error foundation added. |
-| Phase 2 | 2.1 | Completed | Initial marketing homepage shell added. |
-| Phase 2 | 2.2 | Completed | Public layout foundation added with header, footer, navigation, and marketing sections. |
-| Phase 2 | 2.3 | Completed | Static accommodation listing and detail pages added. |
-| Phase 2 | 2.4 | Completed | Static image foundation added using optimized local WebP assets. |
-| Phase 2 | 2.5 | Completed | Public copy centralization started and amenity icon foundation prepared. |
-| Phase 2 | 2.6 | Completed | Public copy centralized in `messages/en.ts` and `messages/es.ts`; amenity labels and icons centralized through the typed amenity catalog. |
+### Phase 0 — Project Definition and Technical Documentation
 
-## Important Technical Decisions Already Applied
+Status: **Completed**
+
+Completed deliverables:
 
 ```text
-- Next.js 15.5.20 is the target version.
-- React Compiler is disabled for now.
-- Code stays outside a src/ directory.
-- TypeScript strict must remain enabled.
-- shadcn/ui + Radix Luma is the design system foundation.
-- No unstyled native browser UI should be used for public booking, payment, calendar, modal, select, alert, confirmation, or form interactions.
-- Public copy should be centralized in message files instead of hardcoded in TSX components.
-- Accommodation content can remain in typed config until it moves to the database.
-- Amenity labels/icons are centralized in a catalog.
-- TRP Booking must not grow into a PMS; TAMIAS remains the PMS/internal operations system.
+README.md
+AGENTS.md
+/docs initial documentation set
+Project scope definition
+Direct booking website boundary
+Rules for not turning TRP Booking into a PMS
+```
+
+### Phase 1 — Repository and Next.js Setup
+
+Status: **Completed**
+
+Completed deliverables:
+
+```text
+GitHub repository: trp-booking
+Clean Next.js 15 setup
+TypeScript strict
+ESLint
+shadcn/ui + Radix Luma
+Base project folders
+Initial config, messages, typed accommodation data, and error keys
+```
+
+### Phase 2 — Public Website Foundation
+
+Status: **In progress**
+
+Completed subphases:
+
+```text
+2.1 Public layout foundation
+2.2 Initial marketing homepage shell
+2.3 Static accommodations listing
+2.4 Static accommodation detail pages
+2.5 Accommodation image foundation
+2.6 Centralized public page copy and amenity icons
+```
+
+Current subphase:
+
+```text
+2.7 Public copy cleanup and visual QA
+```
+
+Current 2.7 goals:
+
+```text
+Keep user-facing copy centralized in messages/es.ts and messages/en.ts
+Improve public header and footer polish
+Improve homepage visual rhythm and responsive behavior
+Improve accommodation listing and detail page readability
+Document public QA checks before SEO and database work
+Avoid introducing database, payment, Cloudinary, Resend, or Airbnb iCal logic in this subphase
 ```
 
 ## Next Recommended Work
 
 ```text
-1. Perform visual QA on the public home and accommodation pages.
-2. Review responsive behavior on mobile, tablet, and desktop.
-3. Clean remaining user-facing copy that is still hardcoded in TSX.
-4. Add basic static SEO metadata for public pages.
-5. Start Prisma + Supabase setup only after the public static foundation is stable.
+1. Run public visual QA for home, /alojamientos, and each /alojamientos/[slug] page.
+2. Verify mobile, tablet, and desktop layouts.
+3. Fix any layout/copy issues discovered in visual QA.
+4. Move to 2.8 Static SEO metadata and sitemap foundation after 2.7 is accepted.
+```
+
+## Continuity Notes for New Conversations
+
+Minimum context files to review before continuing:
+
+```text
+README.md
+AGENTS.md
+docs/10-phases.md
+docs/11-progress-log.md
+docs/12-public-visual-qa.md
+```
+
+Important working rules:
+
+```text
+Use ZIPs with real files for non-trivial changes.
+Do not hardcode public user-facing copy in TSX components.
+Do not add PMS features.
+Do not integrate Prisma, Cloudinary, Resend, Tilopay, or Airbnb iCal before their documented phases.
+Keep phase/subphase tracking updated.
 ```

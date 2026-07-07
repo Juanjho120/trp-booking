@@ -13,26 +13,24 @@ const featuredAccommodation = getAccommodationById("complete-retreat");
 export function HeroSection() {
   return (
     <section className="relative overflow-hidden bg-[radial-gradient(circle_at_top_left,_hsl(var(--primary)/0.14),_transparent_34rem)]">
-      <div className="mx-auto grid min-h-[calc(100vh-5rem)] max-w-7xl items-center gap-12 px-6 py-20 lg:grid-cols-[1fr_0.9fr] lg:px-8 lg:py-24">
+      <div className="mx-auto grid min-h-[calc(100vh-5rem)] max-w-7xl items-center gap-12 px-6 py-16 lg:grid-cols-[1fr_0.9fr] lg:px-8 lg:py-24">
         <div className="max-w-3xl">
           <Badge className="rounded-full px-4 py-1.5" variant="secondary">
             {messages.home.hero.badge}
           </Badge>
-
           <h1 className="mt-7 text-balance text-5xl font-semibold tracking-tight text-foreground sm:text-6xl lg:text-7xl">
             {messages.home.hero.title}
           </h1>
-
           <p className="mt-6 max-w-2xl text-pretty text-lg leading-8 text-muted-foreground">
             {messages.home.hero.description}
           </p>
 
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <Button asChild className="h-12 rounded-full px-7 text-base">
-              <Link href="#alojamientos">{messages.common.viewAccommodations}</Link>
+              <Link href="/#alojamientos">{messages.common.viewAccommodations}</Link>
             </Button>
             <Button asChild className="h-12 rounded-full px-7 text-base" variant="outline">
-              <Link href="#beneficios">{messages.common.whyBookDirect}</Link>
+              <Link href="/#beneficios">{messages.common.whyBookDirect}</Link>
             </Button>
           </div>
 
@@ -50,7 +48,7 @@ export function HeroSection() {
 
         <Card className="overflow-hidden rounded-[2rem] border-border/70 bg-card/80 shadow-2xl shadow-primary/10 backdrop-blur">
           <CardContent className="p-0">
-            <div className="relative aspect-[4/5] min-h-[34rem] overflow-hidden bg-muted">
+            <div className="relative aspect-[4/5] min-h-[30rem] overflow-hidden bg-muted sm:min-h-[34rem]">
               {featuredAccommodation ? (
                 <Image
                   alt={featuredAccommodation.coverImage.alt.es}
@@ -62,7 +60,7 @@ export function HeroSection() {
                 />
               ) : null}
               <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/15 to-transparent" />
-              <div className="absolute inset-x-6 bottom-6 rounded-[1.5rem] border border-white/25 bg-background/90 p-6 shadow-xl backdrop-blur">
+              <div className="absolute inset-x-4 bottom-4 rounded-[1.5rem] border border-white/25 bg-background/92 p-5 shadow-xl backdrop-blur sm:inset-x-6 sm:bottom-6 sm:p-6">
                 <p className="text-sm font-medium uppercase tracking-[0.24em] text-muted-foreground">
                   {messages.home.hero.bookingCard.eyebrow}
                 </p>

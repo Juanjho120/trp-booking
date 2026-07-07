@@ -8,15 +8,22 @@ export const enMessages = {
     viewDetails: "View details",
     exploreAccommodations: "Explore accommodations",
     whyBookDirect: "Why book direct",
+    from: "From",
+    perNight: "per night",
+    guests: "guests",
+    upTo: "Up to",
+    bedrooms: "bedrooms",
+    bathrooms: "bathrooms",
   },
   navigation: {
     mainAriaLabel: "Main navigation",
     homeAriaLabel: "Go to homepage",
     locationLabel: "Panajachel, Guatemala",
     items: [
-      { label: "Accommodations", href: "#alojamientos" },
-      { label: "Benefits", href: "#beneficios" },
-      { label: "Location", href: "#ubicacion" },
+      { label: "Home", href: "/" },
+      { label: "Accommodations", href: "/alojamientos" },
+      { label: "Benefits", href: "/#beneficios" },
+      { label: "Location", href: "/#ubicacion" },
       { label: "Contact", href: "#contacto" },
     ],
   },
@@ -25,8 +32,13 @@ export const enMessages = {
       "Direct reservations for private accommodations in Panajachel, near Lake Atitlán.",
     navigationTitle: "Navigation",
     contactTitle: "Contact",
+    reservationsEmailLabel: "Reservations",
+    englishEmailLabel: "English support",
+    adminEmailLabel: "Administration",
     rights: "All rights reserved.",
     poweredBy: "Direct booking website powered by",
+    note:
+      "Soon you will be able to check availability, book, and pay online from this website.",
   },
   home: {
     hero: {
@@ -43,7 +55,7 @@ export const enMessages = {
         eyebrow: "Direct Booking",
         title: "Book direct, avoid intermediaries, and receive confirmation by email.",
         description:
-          "Availability, secure payments with Tilopay, and Airbnb synchronization will be integrated in upcoming phases.",
+          "Availability, secure Tilopay payments, and Airbnb synchronization will be added in upcoming phases.",
       },
     },
     accommodations: {
@@ -56,97 +68,98 @@ export const enMessages = {
       upToGuestsPrefix: "Up to",
       guests: "guests",
       from: "From",
-      perNight: "/ night",
+      perNight: "per night",
       bedroomAbbr: "bed.",
       bathroomSingular: "bathroom",
       bathroomPlural: "bathrooms",
     },
     benefits: {
       badge: "Direct booking",
-      title: "A clear, reliable, and simple experience.",
+      title: "A clear, trustworthy experience without unnecessary intermediaries.",
       description:
-        "The website is designed so guests can review important information, check availability, and complete their reservation with confidence.",
+        "The website is designed so guests can learn about the accommodations, review important information, and book with direct host communication.",
       items: [
         {
           title: "Direct communication",
           description:
-            "Talk directly with the host before and after booking without depending on intermediaries.",
+            "Ask questions about arrival, rules, and availability without spreading the conversation across several platforms.",
         },
         {
-          title: "Secure online payment",
+          title: "Transparent information",
           description:
-            "The payment flow will be integrated with Tilopay, and the reservation will only be confirmed after an approved payment.",
+            "Photos, amenities, rules, policies, and prices are shown before starting any booking flow.",
         },
         {
-          title: "Synchronized availability",
+          title: "Email confirmation",
           description:
-            "The calendar will synchronize with Airbnb to reduce the risk of double bookings.",
+            "When booking is active, every confirmed reservation will send important details and arrival instructions.",
         },
       ],
     },
     location: {
       badge: "Location",
-      title: "Panajachel, a comfortable base for experiencing Lake Atitlán.",
+      title: "Near Calle Santander and Lake Atitlán.",
       description:
-        "The accommodations are designed for guests who want privacy, a convenient location, and a peaceful stay near restaurants, shops, and lake access.",
+        "The accommodations are in Panajachel, in a practical area for resting, walking, visiting restaurants, and exploring the lake.",
       highlights: [
-        "Near Calle Santander",
-        "A few minutes from Lake Atitlán",
-        "Ideal for resting or exploring Panajachel",
+        "Panajachel, Guatemala",
+        "Around 10 minutes walking to the lake",
+        "Near restaurants and shops",
       ],
-      mapTitle: "Arrival map and photos",
+      mapTitle: "General location",
       mapDescription:
-        "Detailed arrival instructions will be sent after payment is confirmed.",
+        "The exact address and detailed arrival instructions are shared after the reservation is confirmed.",
     },
     trust: {
       badge: "Trust",
-      title: "Clear information before payment.",
+      title: "Designed for confident booking.",
       description:
-        "The public experience must help guests feel safe before completing a direct reservation.",
+        "The site is being built with clear policies, real photos, official email addresses, and a secure payment flow for local and international guests.",
       items: [
-        "49 five-star reviews on Airbnb",
-        "Clear rules before booking",
-        "Automatic email confirmation",
-        "Check-in from 8:00 a.m.",
+        "Real photos of the accommodations",
+        "Rules and policies visible before booking",
+        "Official emails from the turefugioperfecto.com.gt domain",
+        "Secure Tilopay payments in the booking phase",
       ],
     },
     cta: {
-      eyebrow: "Coming soon",
-      title: "Book direct at Tu Refugio Perfecto.",
+      badge: "Online booking coming soon",
+      title: "Explore the accommodations before choosing your dates.",
       description:
-        "The next phase will add availability, secure payments, and calendar synchronization to complete direct bookings.",
+        "The public foundation already presents the available spaces. Upcoming phases will add availability, direct booking, payments, and Airbnb synchronization.",
     },
   },
   properties: {
     listing: {
-      badge: "Accommodations",
-      title: "Private spaces to rest in Panajachel.",
+      badge: "Available accommodations",
+      title: "Three ways to stay at Tu Refugio Perfecto.",
       description:
-        "Explore each available option and choose between a private apartment, a family bungalow, or the complete retreat for small groups.",
-      guests: "guests",
-      bedroomAbbr: "bed.",
-      night: "night",
-      privateLabel: "Private",
-      composedLabel: "Combined",
+        "Book the apartment, the bungalow, or both accommodations together as Refugio Completo.",
     },
     detail: {
-      backToAccommodations: "← Back to accommodations",
+      backToAccommodations: "Back to accommodations",
       privateLabel: "Private accommodation",
       composedLabel: "Combined accommodation",
-      reservationSummary: "Reservation summary",
+      priceTitle: "Summary",
       from: "From",
-      perNight: "/ night",
-      guests: "guests",
-      bedroomAbbr: "bed.",
-      bathroomSingular: "bathroom",
-      bathroomPlural: "bathrooms",
-      calendarComingSoon: "Calendar coming soon",
-      availabilityLater: "Availability, booking, and payment will be connected in later phases.",
-      mainAmenities: "Main amenities",
-      rulesBadge: "Rules",
-      beforeBooking: "Before booking",
-      rulesDescription:
-        "These rules help maintain a peaceful, safe, and comfortable environment for all guests.",
+      perNight: "per night",
+      maxGuests: "Maximum guests",
+      bedrooms: "Bedrooms",
+      bathrooms: "Bathrooms",
+      checkIn: "Check-in",
+      earlyCheckIn: "Earlier check-in",
+      preparationBuffer: "Preparation buffer",
+      preparationBufferDescription:
+        "These days are automatically blocked before and after each reservation to prepare the accommodation. The admin may unlock them when operationally convenient.",
+      preparationBufferBefore: "day(s) before",
+      preparationBufferAfter: "day(s) after",
+      reserveCta: "Book this accommodation",
+      reserveComingSoon:
+        "The availability calendar and online payment will be added in upcoming phases.",
+      galleryTitle: "Gallery",
+      highlightsTitle: "Highlights",
+      amenitiesTitle: "Amenities",
+      rulesTitle: "Important rules",
     },
   },
   errors: {
@@ -154,19 +167,10 @@ export const enMessages = {
       unavailableDates: "The selected dates are no longer available.",
       invalidGuestCount: "The number of guests exceeds the allowed capacity.",
       expiredReservation: "The reservation expired before payment was completed.",
-      dateChangesRequireApproval:
-        "Reservation date changes require prior administrator approval.",
     },
     payment: {
       failed:
         "We could not complete the payment. Please try again or contact us for help.",
-      webhookNotConfirmed:
-        "The reservation cannot be confirmed yet because the payment has not been validated.",
-    },
-    calendar: {
-      syncFailed: "We could not synchronize the calendar right now. Please try again later.",
-      preparationBufferConflict:
-        "The selected dates are not available due to accommodation preparation time.",
     },
   },
 } as const;

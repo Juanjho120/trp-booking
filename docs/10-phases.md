@@ -5,17 +5,18 @@ This document defines the official implementation phases for TRP Booking and tra
 ## Status Legend
 
 ```text
-Not started  — Work has not begun.
-In progress  — Work has started but the phase is not complete.
-Completed    — Deliverables are implemented and committed.
-Deferred     — Intentionally postponed.
+Not started — Work has not begun.
+In progress — Work has started but the phase is not complete.
+Completed — Deliverables are implemented and committed.
+Deferred — Intentionally postponed.
 ```
 
 ## Current Phase
 
 ```text
 Current phase: Phase 2 — Public Website Foundation
-Current focus: visual QA, responsive review, public copy cleanup, and static SEO metadata before database work.
+Current subphase: 2.7 Public copy cleanup and visual QA
+Current focus: static public pages, centralized public copy, visual polish, and QA before database work.
 ```
 
 ---
@@ -66,20 +67,6 @@ Completed subphases:
 1.8 Initial site config, accommodation config, messages, and error keys
 ```
 
-Deliverables:
-
-```text
-GitHub repository trp-booking
-Next.js 15 setup
-TypeScript strict
-ESLint
-Basic App Router structure
-Base layout
-Initial i18n/message structure
-Centralized error message foundation
-Design system foundation
-```
-
 ---
 
 ## Phase 2 — Public Website Foundation
@@ -91,11 +78,11 @@ Goal: Build the first static public website experience before adding database, a
 Completed subphases:
 
 ```text
-2.1 Initial marketing homepage shell
-2.2 Public layout foundation with header and footer
-2.3 Static accommodation listing page
+2.1 Public layout foundation
+2.2 Initial marketing homepage shell
+2.3 Static accommodations listing
 2.4 Static accommodation detail pages
-2.5 Static image foundation with optimized local WebP assets
+2.5 Accommodation image foundation
 2.6 Centralized public page copy and amenity icons
 ```
 
@@ -105,334 +92,84 @@ Current subphase:
 2.7 Public copy cleanup and visual QA
 ```
 
-Remaining / upcoming subphases:
+Phase 2.7 deliverables:
 
 ```text
-2.8 Basic SEO metadata review for static pages
-2.9 Mobile responsive review
+Centralized copy review for public pages
+Header/footer visual cleanup
+Homepage section polish
+Accommodation listing visual cleanup
+Accommodation detail visual cleanup
+Responsive QA checklist
+Public page QA document
+Progress tracker update
 ```
 
-Deliverables:
+Pending Phase 2 subphases:
 
 ```text
-Home page
-Accommodation listing page
-Accommodation detail pages
-Header
-Footer
-Responsive layout
-Brand tone implementation
-Static optimized images
-Centralized public copy foundation
-Amenity icons
-Basic SEO metadata
+2.8 Static SEO metadata and sitemap foundation
+2.9 Phase 2 closure review
 ```
 
 ---
 
-## Phase 3 — Prisma and Supabase Setup
+## Phase 3 — Database Foundation
 
 Status: **Not started**
 
-Goal: Connect database and define initial schema.
-
-Deliverables:
-
-```text
-Supabase portfolio-lab schema trp_booking
-Prisma setup
-Initial models
-Initial migration
-Seed data for three accommodations
-Database connection validation
-```
+Goal: Add Prisma and Supabase/PostgreSQL foundation after the public static foundation is stable.
 
 ---
 
-## Phase 4 — Cloudinary Images
+## Phase 4 — Admin Authentication Foundation
 
 Status: **Not started**
-
-Goal: Manage and display accommodation photos from Cloudinary.
-
-Deliverables:
-
-```text
-Cloudinary configuration
-Admin image upload
-Cover image selection
-Gallery ordering
-Image deletion
-Alt text management
-Optimized public gallery
-```
 
 ---
 
-## Phase 5 — Admin Authentication and Admin Base
+## Phase 5 — Cloudinary Integration
 
 Status: **Not started**
-
-Goal: Protect the private area.
-
-Deliverables:
-
-```text
-Auth.js setup
-Admin login
-Protected /admin routes
-Admin dashboard
-Admin navigation
-Basic audit logging
-```
 
 ---
 
-## Phase 6 — Accommodation Admin
+## Phase 6 — Availability Calendar Foundation
 
 Status: **Not started**
-
-Goal: Manage core accommodation content.
-
-Deliverables:
-
-```text
-Create/edit properties
-Manage descriptions
-Manage base prices
-Manage capacity
-Manage amenities
-Manage rules
-Manage composed listing configuration
-```
 
 ---
 
-## Phase 7 — Availability Engine
+## Phase 7 — Airbnb iCal Synchronization
 
 Status: **Not started**
-
-Goal: Calculate availability correctly.
-
-Deliverables:
-
-```text
-CalendarBlock model usage
-Manual blocks
-Availability service
-Overlap prevention
-Composed listing availability rules
-Preparation buffer block generation
-Preparation buffer admin unlock
-Public date selector
-Admin calendar view
-```
 
 ---
 
-## Phase 8 — Airbnb iCal Synchronization
+## Phase 8 — Reservation Flow
 
 Status: **Not started**
-
-Goal: Synchronize calendars with Airbnb.
-
-Deliverables:
-
-```text
-ExternalCalendar configuration
-Airbnb iCal import parser
-ExternalCalendarEvent storage
-CalendarBlock generation from Airbnb
-TRP Booking iCal export endpoint
-Preparation buffer export to Airbnb
-Manual sync button
-Vercel Cron endpoint
-Sync logs
-```
 
 ---
 
-## Phase 9 — Reservation Flow Without Payment
+## Phase 9 — Tilopay Sandbox Integration
 
 Status: **Not started**
-
-Goal: Create reservation flow and pending holds.
-
-Deliverables:
-
-```text
-Reservation form
-Guest details
-Estimated arrival time
-Server-side availability validation
-Server-side price calculation
-PENDING_PAYMENT reservation
-Reservation expiration
-Reservation summary page
-No self-service confirmed date modification
-```
 
 ---
 
-## Phase 10 — Tilopay Sandbox Integration
+## Phase 10 — Email Notifications
 
 Status: **Not started**
-
-Goal: Connect reservations to sandbox payments.
-
-Deliverables:
-
-```text
-PaymentService
-TilopayPaymentProvider
-Create payment transaction
-Payment redirect or embedded flow, depending on Tilopay
-Tilopay webhook route
-Webhook validation
-Payment status updates
-Reservation confirmation after payment
-Payment failed handling
-```
 
 ---
 
-## Phase 11 — Resend Email Notifications
+## Phase 11 — Cancellation, Refund, and Change Request Rules
 
 Status: **Not started**
-
-Goal: Send transactional emails.
-
-Deliverables:
-
-```text
-Resend setup
-Reservation confirmation email
-Arrival instructions email
-Payment failed email
-Cancellation email
-Reservation dates updated email
-Stay extension confirmed email
-Refund email
-Admin notification email
-EmailNotification logs
-Spanish templates
-English templates
-```
 
 ---
 
-## Phase 12 — Cancellation, Date Changes, Extensions, and Refunds
+## Phase 12 — Production Readiness
 
 Status: **Not started**
-
-Goal: Handle cancellations, admin-approved date changes, stay extensions, and refund tracking.
-
-Deliverables:
-
-```text
-Cancellation policy implementation
-Cancel reservation from admin
-Admin-approved date change workflow
-Stay extension availability validation
-Additional payment handling for extensions
-Refund eligibility calculation
-Full refund tracking
-Partial refund tracking
-Tilopay refund API integration if available
-Manual refund tracking if needed
-Refund email
-Audit logs
-```
-
----
-
-## Phase 13 — SEO and Trust Polish
-
-Status: **Not started**
-
-Goal: Prepare public pages for trust and search visibility.
-
-Deliverables:
-
-```text
-Metadata per page
-Open Graph images
-Sitemap
-Robots.txt
-FAQ page
-Policies page
-Book directly with us section
-Mobile polish
-Performance review
-Image optimization review
-```
-
----
-
-## Phase 14 — Logo Refresh and Brand Finalization
-
-Status: **Not started**
-
-Goal: Replace temporary brand assets with polished assets.
-
-Deliverables:
-
-```text
-Refreshed logo SVG
-Header logo
-Square logo
-Favicon
-Dark background version
-Light background version
-Social preview image
-```
-
-This phase may be done earlier if final logo assets are ready.
-
----
-
-## Phase 15 — Production Preparation
-
-Status: **Not started**
-
-Goal: Prepare the project for real reservations and payments.
-
-Deliverables:
-
-```text
-Production Supabase project
-Production Cloudinary account
-Production Resend domain
-Production Tilopay affiliation
-Vercel Pro production configuration
-Official domain setup
-Environment variables configured
-Cron configured
-Webhook configured
-End-to-end test booking
-End-to-end test cancellation
-End-to-end test refund, if supported
-Airbnb import/export validation
-Launch checklist completed
-```
-
----
-
-## Phase 16 — Analytics and Conversion Tracking
-
-Status: **Not started**
-
-Goal: Measure user behavior and booking conversion.
-
-Deliverables:
-
-```text
-Vercel Analytics
-Custom events
-Accommodation view event
-Date selection event
-Checkout start event
-Payment success event
-Payment failed event
-Admin dashboard metrics, optional
-```

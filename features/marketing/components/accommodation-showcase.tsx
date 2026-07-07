@@ -17,13 +17,13 @@ const messages = esMessages;
 
 export function AccommodationShowcase() {
   return (
-    <section className="bg-muted/35 py-20" id="alojamientos">
+    <section className="py-20" id="alojamientos">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <div className="max-w-2xl">
+        <div className="max-w-3xl">
           <Badge className="rounded-full" variant="secondary">
             {messages.home.accommodations.badge}
           </Badge>
-          <h2 className="mt-5 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+          <h2 className="mt-5 text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
             {messages.home.accommodations.title}
           </h2>
           <p className="mt-4 text-base leading-7 text-muted-foreground">
@@ -34,64 +34,58 @@ export function AccommodationShowcase() {
         <div className="mt-10 grid gap-6 lg:grid-cols-3">
           {accommodations.map((accommodation) => (
             <Card
-              className="overflow-hidden rounded-[1.75rem] border-border/70 bg-card/90 shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
+              className="group overflow-hidden rounded-[1.75rem] border-border/70 bg-card shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
               key={accommodation.id}
             >
               <div className="relative aspect-[16/11] overflow-hidden bg-muted">
                 <Image
                   alt={accommodation.coverImage.alt.es}
-                  className="object-cover transition duration-500 hover:scale-105"
+                  className="object-cover transition duration-500 group-hover:scale-105"
                   fill
                   sizes="(min-width: 1024px) 33vw, 100vw"
                   src={accommodation.coverImage.src}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/5 to-transparent" />
               </div>
               <CardHeader>
-                <div className="flex items-center justify-between gap-4">
-                  <Badge
-                    className="rounded-full"
-                    variant={accommodation.kind === "composed" ? "default" : "secondary"}
-                  >
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant={accommodation.kind === "composed" ? "default" : "secondary"}>
                     {accommodation.kind === "composed"
                       ? messages.home.accommodations.composedLabel
                       : messages.home.accommodations.privateLabel}
                   </Badge>
-                  <span className="text-sm font-medium text-muted-foreground">
+                  <Badge variant="outline">
                     {messages.home.accommodations.upToGuestsPrefix} {accommodation.maxGuests}{" "}
                     {messages.home.accommodations.guests}
-                  </span>
+                  </Badge>
                 </div>
-                <CardTitle className="mt-4 text-2xl">{accommodation.name.es}</CardTitle>
+                <CardTitle className="text-2xl">{accommodation.name.es}</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-5">
                 <p className="text-sm leading-6 text-muted-foreground">
                   {accommodation.shortDescription.es}
                 </p>
-                <div className="mt-6 flex items-end justify-between gap-4">
+                <div className="flex items-end justify-between gap-4 rounded-2xl bg-muted/45 p-4">
                   <div>
-                    <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                    <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
                       {messages.home.accommodations.from}
                     </p>
-                    <p className="mt-1 text-3xl font-semibold text-foreground">
+                    <p className="text-2xl font-semibold text-foreground">
                       ${accommodation.baseNightlyPriceUsd}
-                      <span className="text-sm font-normal text-muted-foreground">
-                        {" "}
-                        {messages.home.accommodations.perNight}
-                      </span>
                     </p>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {accommodation.bedrooms} {messages.home.accommodations.bedroomAbbr} ·{" "}
-                    {accommodation.bathrooms}{" "}
-                    {accommodation.bathrooms > 1
-                      ? messages.home.accommodations.bathroomPlural
-                      : messages.home.accommodations.bathroomSingular}
+                    {messages.home.accommodations.perNight}
                   </p>
                 </div>
+                <p className="text-sm text-muted-foreground">
+                  {accommodation.bedrooms} {messages.home.accommodations.bedroomAbbr} · {accommodation.bathrooms}{" "}
+                  {accommodation.bathrooms > 1
+                    ? messages.home.accommodations.bathroomPlural
+                    : messages.home.accommodations.bathroomSingular}
+                </p>
               </CardContent>
               <CardFooter>
-                <Button asChild className="w-full rounded-full">
+                <Button asChild className="w-full rounded-full" variant="outline">
                   <Link href={`/alojamientos/${accommodation.slug.es}`}>
                     {messages.common.viewDetails}
                   </Link>

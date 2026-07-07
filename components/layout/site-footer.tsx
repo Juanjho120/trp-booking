@@ -1,61 +1,63 @@
 import Link from "next/link";
 
-import { Separator } from "@/components/ui/separator";
 import { siteConfig } from "@/config/site";
 import { esMessages } from "@/messages";
 
 const messages = esMessages;
 
 export function SiteFooter() {
+  const currentYear = new Date().getFullYear();
+
   return (
-    <footer className="border-t border-border bg-card/60" id="contacto">
-      <div className="mx-auto max-w-7xl px-6 py-12 lg:px-8">
-        <div className="grid gap-10 md:grid-cols-[1.2fr_0.8fr_0.8fr]">
-          <div>
-            <p className="text-sm font-semibold text-foreground">{siteConfig.publicName}</p>
-            <p className="mt-3 max-w-md text-sm leading-6 text-muted-foreground">
-              {messages.footer.description}
-            </p>
-          </div>
+    <footer className="border-t border-border/70 bg-muted/30" id="contacto">
+      <div className="mx-auto grid max-w-7xl gap-10 px-6 py-12 md:grid-cols-[1.2fr_0.8fr_1fr] lg:px-8">
+        <div>
+          <p className="text-lg font-semibold text-foreground">{siteConfig.brandName}</p>
+          <p className="mt-3 max-w-sm text-sm leading-6 text-muted-foreground">
+            {messages.footer.description}
+          </p>
+          <p className="mt-4 rounded-2xl border border-border bg-background p-4 text-sm leading-6 text-muted-foreground">
+            {messages.footer.note}
+          </p>
+        </div>
 
-          <div>
-            <p className="text-sm font-semibold text-foreground">{messages.footer.navigationTitle}</p>
-            <div className="mt-3 flex flex-col gap-2">
-              {messages.navigation.items.map((link) => (
-                <Link
-                  className="text-sm text-muted-foreground transition hover:text-foreground"
-                  href={link.href}
-                  key={link.href}
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <p className="text-sm font-semibold text-foreground">{messages.footer.contactTitle}</p>
-            <div className="mt-3 flex flex-col gap-2 text-sm text-muted-foreground">
-              <a className="transition hover:text-foreground" href={`mailto:${siteConfig.emails.reservationsEs}`}>
-                {siteConfig.emails.reservationsEs}
-              </a>
-              <a className="transition hover:text-foreground" href={`mailto:${siteConfig.emails.reservationsEn}`}>
-                {siteConfig.emails.reservationsEn}
-              </a>
-            </div>
+        <div>
+          <p className="text-sm font-semibold text-foreground">
+            {messages.footer.navigationTitle}
+          </p>
+          <div className="mt-4 grid gap-3">
+            {messages.navigation.items.map((item) => (
+              <Link
+                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                href={item.href}
+                key={item.href}
+              >
+                {item.label}
+              </Link>
+            ))}
           </div>
         </div>
 
-        <Separator className="my-8" />
-
-        <div className="flex flex-col gap-3 text-xs text-muted-foreground md:flex-row md:items-center md:justify-between">
-          <p>
-            © {new Date().getFullYear()} {siteConfig.brandName}. {messages.footer.rights}
+        <div>
+          <p className="text-sm font-semibold text-foreground">
+            {messages.footer.contactTitle}
           </p>
-          <p>
-            {messages.footer.poweredBy} {siteConfig.internalName}.
-          </p>
+          <div className="mt-4 grid gap-3 text-sm text-muted-foreground">
+            <a className="transition-colors hover:text-foreground" href={`mailto:${siteConfig.emails.reservationsEs}`}>
+              {messages.footer.reservationsEmailLabel}: {siteConfig.emails.reservationsEs}
+            </a>
+            <a className="transition-colors hover:text-foreground" href={`mailto:${siteConfig.emails.reservationsEn}`}>
+              {messages.footer.englishEmailLabel}: {siteConfig.emails.reservationsEn}
+            </a>
+            <a className="transition-colors hover:text-foreground" href={`mailto:${siteConfig.emails.admin}`}>
+              {messages.footer.adminEmailLabel}: {siteConfig.emails.admin}
+            </a>
+          </div>
         </div>
+      </div>
+
+      <div className="border-t border-border/70 px-6 py-5 text-center text-xs text-muted-foreground">
+        © {currentYear} {siteConfig.brandName}. {messages.footer.rights}
       </div>
     </footer>
   );

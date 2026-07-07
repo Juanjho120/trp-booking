@@ -8,15 +8,22 @@ export const esMessages = {
     viewDetails: "Ver detalles",
     exploreAccommodations: "Explorar alojamientos",
     whyBookDirect: "Por qué reservar directo",
+    from: "Desde",
+    perNight: "por noche",
+    guests: "huéspedes",
+    upTo: "Hasta",
+    bedrooms: "habitaciones",
+    bathrooms: "baños",
   },
   navigation: {
     mainAriaLabel: "Navegación principal",
     homeAriaLabel: "Ir a la página de inicio",
     locationLabel: "Panajachel, Guatemala",
     items: [
-      { label: "Alojamientos", href: "#alojamientos" },
-      { label: "Beneficios", href: "#beneficios" },
-      { label: "Ubicación", href: "#ubicacion" },
+      { label: "Inicio", href: "/" },
+      { label: "Alojamientos", href: "/alojamientos" },
+      { label: "Beneficios", href: "/#beneficios" },
+      { label: "Ubicación", href: "/#ubicacion" },
       { label: "Contacto", href: "#contacto" },
     ],
   },
@@ -25,8 +32,13 @@ export const esMessages = {
       "Reservas directas para alojamientos privados en Panajachel, cerca del Lago de Atitlán.",
     navigationTitle: "Navegación",
     contactTitle: "Contacto",
+    reservationsEmailLabel: "Reservas",
+    englishEmailLabel: "English support",
+    adminEmailLabel: "Administración",
     rights: "Todos los derechos reservados.",
     poweredBy: "Direct booking website desarrollado con",
+    note:
+      "Próximamente podrás consultar disponibilidad, reservar y pagar en línea desde este sitio.",
   },
   home: {
     hero: {
@@ -56,97 +68,98 @@ export const esMessages = {
       upToGuestsPrefix: "Hasta",
       guests: "huéspedes",
       from: "Desde",
-      perNight: "/ noche",
+      perNight: "por noche",
       bedroomAbbr: "hab.",
       bathroomSingular: "baño",
       bathroomPlural: "baños",
     },
     benefits: {
       badge: "Reserva directa",
-      title: "Una experiencia clara, confiable y sin complicaciones.",
+      title: "Una experiencia clara, confiable y sin intermediarios innecesarios.",
       description:
-        "El sitio está diseñado para que el huésped pueda revisar información importante, consultar disponibilidad y completar su reserva con confianza.",
+        "La página está pensada para que puedas conocer los alojamientos, revisar información importante y reservar con comunicación directa con el anfitrión.",
       items: [
         {
           title: "Comunicación directa",
           description:
-            "Habla directamente con el anfitrión antes y después de reservar, sin depender de intermediarios.",
+            "Puedes resolver dudas sobre llegada, reglas y disponibilidad sin depender de mensajes dispersos en varias plataformas.",
         },
         {
-          title: "Pago seguro en línea",
+          title: "Información transparente",
           description:
-            "El flujo de pago estará integrado con Tilopay y la reserva se confirmará únicamente después del pago aprobado.",
+            "Fotos, amenidades, reglas, políticas y precios se presentan antes de iniciar cualquier reserva.",
         },
         {
-          title: "Disponibilidad sincronizada",
+          title: "Confirmación por correo",
           description:
-            "El calendario se sincronizará con Airbnb para reducir el riesgo de reservas duplicadas.",
+            "Cuando el booking esté activo, cada reserva confirmada enviará detalles importantes e instrucciones de llegada.",
         },
       ],
     },
     location: {
       badge: "Ubicación",
-      title: "Panajachel, una base cómoda para vivir el Lago de Atitlán.",
+      title: "Cerca de Calle Santander y del Lago de Atitlán.",
       description:
-        "Los alojamientos están pensados para huéspedes que desean privacidad, buena ubicación y una estadía tranquila cerca de restaurantes, tiendas y acceso al lago.",
+        "Los alojamientos están en Panajachel, en una zona práctica para descansar, caminar, visitar restaurantes y explorar el lago.",
       highlights: [
-        "Cerca de Calle Santander",
-        "A pocos minutos del Lago de Atitlán",
-        "Ideal para descansar o explorar Panajachel",
+        "Panajachel, Guatemala",
+        "Aproximadamente 10 minutos caminando al lago",
+        "Cerca de restaurantes y tiendas",
       ],
-      mapTitle: "Mapa y fotos de llegada",
+      mapTitle: "Ubicación general",
       mapDescription:
-        "Las instrucciones detalladas de llegada se enviarán después de confirmar el pago.",
+        "La dirección exacta y las instrucciones detalladas se comparten después de confirmar la reserva.",
     },
     trust: {
       badge: "Confianza",
-      title: "Información clara antes de pagar.",
+      title: "Diseñado para reservar con tranquilidad.",
       description:
-        "La experiencia pública debe ayudar al huésped a sentirse seguro antes de completar una reserva directa.",
+        "El sitio se construye con políticas claras, fotografías reales, correos oficiales y un flujo de pago seguro para huéspedes nacionales y extranjeros.",
       items: [
-        "49 reseñas de 5 estrellas en Airbnb",
-        "Reglas claras antes de reservar",
-        "Confirmación automática por correo",
-        "Check-in desde las 8:00 a. m.",
+        "Fotos reales de los alojamientos",
+        "Reglas y políticas visibles antes de reservar",
+        "Correos oficiales del dominio turefugioperfecto.com.gt",
+        "Pagos seguros con Tilopay en la fase de booking",
       ],
     },
     cta: {
-      eyebrow: "Próximamente",
-      title: "Reserva directo en Tu Refugio Perfecto.",
+      badge: "Próximamente booking online",
+      title: "Explora los alojamientos antes de elegir tus fechas.",
       description:
-        "La siguiente fase agregará disponibilidad, pagos seguros y sincronización de calendarios para completar reservas directas.",
+        "La base pública ya presenta los espacios disponibles. Las próximas fases agregarán calendario, reservas directas, pagos y sincronización con Airbnb.",
     },
   },
   properties: {
     listing: {
-      badge: "Alojamientos",
-      title: "Espacios privados para descansar en Panajachel.",
+      badge: "Alojamientos disponibles",
+      title: "Tres formas de hospedarte en Tu Refugio Perfecto.",
       description:
-        "Explora cada opción disponible y elige entre un apartamento privado, un bungalow familiar o el refugio completo para grupos pequeños.",
-      guests: "huéspedes",
-      bedroomAbbr: "hab.",
-      night: "noche",
-      privateLabel: "Privado",
-      composedLabel: "Combinado",
+        "Puedes reservar el apartamento, el bungalow o ambos alojamientos juntos como Refugio Completo.",
     },
     detail: {
-      backToAccommodations: "← Volver a alojamientos",
+      backToAccommodations: "Volver a alojamientos",
       privateLabel: "Alojamiento privado",
       composedLabel: "Alojamiento combinado",
-      reservationSummary: "Resumen de reserva",
+      priceTitle: "Resumen",
       from: "Desde",
-      perNight: "/ noche",
-      guests: "huéspedes",
-      bedroomAbbr: "hab.",
-      bathroomSingular: "baño",
-      bathroomPlural: "baños",
-      calendarComingSoon: "Calendario próximamente",
-      availabilityLater: "La disponibilidad, reserva y pago se conectarán en fases posteriores.",
-      mainAmenities: "Amenidades principales",
-      rulesBadge: "Reglas",
-      beforeBooking: "Antes de reservar",
-      rulesDescription:
-        "Estas reglas ayudan a mantener un ambiente tranquilo, seguro y cómodo para todos los huéspedes.",
+      perNight: "por noche",
+      maxGuests: "Capacidad máxima",
+      bedrooms: "Habitaciones",
+      bathrooms: "Baños",
+      checkIn: "Check-in",
+      earlyCheckIn: "Check-in más temprano",
+      preparationBuffer: "Bloqueo de preparación",
+      preparationBufferDescription:
+        "Estos días se bloquean automáticamente antes y después de cada reserva para preparar el alojamiento. El administrador podrá desbloquearlos si conviene.",
+      preparationBufferBefore: "día(s) antes",
+      preparationBufferAfter: "día(s) después",
+      reserveCta: "Reservar este alojamiento",
+      reserveComingSoon:
+        "El calendario de disponibilidad y el pago en línea se agregarán en próximas fases.",
+      galleryTitle: "Galería",
+      highlightsTitle: "Detalles destacados",
+      amenitiesTitle: "Amenidades",
+      rulesTitle: "Reglas importantes",
     },
   },
   errors: {
@@ -154,20 +167,10 @@ export const esMessages = {
       unavailableDates: "Las fechas seleccionadas ya no están disponibles.",
       invalidGuestCount: "La cantidad de huéspedes excede la capacidad permitida.",
       expiredReservation: "La reservación expiró antes de completar el pago.",
-      dateChangesRequireApproval:
-        "Los cambios de fechas requieren autorización previa del administrador.",
     },
     payment: {
       failed:
         "No pudimos completar el pago. Intenta nuevamente o contáctanos para recibir ayuda.",
-      webhookNotConfirmed:
-        "La reservación aún no puede confirmarse porque el pago no ha sido validado.",
-    },
-    calendar: {
-      syncFailed:
-        "No pudimos sincronizar el calendario en este momento. Intenta nuevamente más tarde.",
-      preparationBufferConflict:
-        "Las fechas seleccionadas no están disponibles por tiempo de preparación del alojamiento.",
     },
   },
 } as const;

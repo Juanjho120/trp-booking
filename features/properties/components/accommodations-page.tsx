@@ -41,51 +41,53 @@ export function AccommodationsPage() {
           <div className="mx-auto grid max-w-7xl gap-6 px-6 lg:grid-cols-3 lg:px-8">
             {accommodations.map((accommodation) => (
               <Card
-                className="overflow-hidden rounded-[1.75rem] border-border/70 bg-card shadow-sm"
+                className="group overflow-hidden rounded-[1.75rem] border-border/70 bg-card shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
                 key={accommodation.id}
               >
                 <div className="relative aspect-[16/11] overflow-hidden bg-muted">
                   <Image
                     alt={accommodation.coverImage.alt.es}
-                    className="object-cover transition duration-500 hover:scale-105"
+                    className="object-cover transition duration-500 group-hover:scale-105"
                     fill
                     sizes="(min-width: 1024px) 33vw, 100vw"
                     src={accommodation.coverImage.src}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/5 to-transparent" />
                 </div>
                 <CardHeader>
-                  <Badge
-                    className="w-fit rounded-full"
-                    variant={accommodation.kind === "composed" ? "default" : "secondary"}
-                  >
-                    {accommodation.kind === "composed"
-                      ? messages.properties.listing.composedLabel
-                      : messages.properties.listing.privateLabel}
-                  </Badge>
-                  <CardTitle className="pt-3 text-2xl">{accommodation.name.es}</CardTitle>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant={accommodation.kind === "composed" ? "default" : "secondary"}>
+                      {accommodation.kind === "composed"
+                        ? messages.properties.detail.composedLabel
+                        : messages.properties.detail.privateLabel}
+                    </Badge>
+                    <Badge variant="outline">
+                      {messages.common.upTo} {accommodation.maxGuests} {messages.common.guests}
+                    </Badge>
+                  </div>
+                  <CardTitle className="text-2xl">{accommodation.name.es}</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-5">
                   <p className="text-sm leading-6 text-muted-foreground">
                     {accommodation.shortDescription.es}
                   </p>
-                  <div className="mt-6 grid grid-cols-3 gap-3 text-center text-sm">
-                    <div className="rounded-2xl bg-muted p-3">
-                      <p className="font-semibold text-foreground">{accommodation.maxGuests}</p>
-                      <p className="text-xs text-muted-foreground">{messages.properties.listing.guests}</p>
-                    </div>
-                    <div className="rounded-2xl bg-muted p-3">
-                      <p className="font-semibold text-foreground">{accommodation.bedrooms}</p>
-                      <p className="text-xs text-muted-foreground">{messages.properties.listing.bedroomAbbr}</p>
-                    </div>
-                    <div className="rounded-2xl bg-muted p-3">
-                      <p className="font-semibold text-foreground">${accommodation.baseNightlyPriceUsd}</p>
-                      <p className="text-xs text-muted-foreground">{messages.properties.listing.night}</p>
-                    </div>
+                  <div className="rounded-2xl bg-muted/45 p-4">
+                    <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                      {messages.common.from}
+                    </p>
+                    <p className="mt-1 text-2xl font-semibold text-foreground">
+                      ${accommodation.baseNightlyPriceUsd}{" "}
+                      <span className="text-sm font-normal text-muted-foreground">
+                        {messages.common.perNight}
+                      </span>
+                    </p>
                   </div>
+                  <p className="text-sm text-muted-foreground">
+                    {accommodation.bedrooms} {messages.common.bedrooms} · {accommodation.bathrooms}{" "}
+                    {messages.common.bathrooms}
+                  </p>
                 </CardContent>
                 <CardFooter>
-                  <Button asChild className="w-full rounded-full">
+                  <Button asChild className="w-full rounded-full" variant="outline">
                     <Link href={`/alojamientos/${accommodation.slug.es}`}>
                       {messages.common.viewDetails}
                     </Link>

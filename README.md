@@ -97,6 +97,7 @@ docs/
   09-deployment.md
   10-phases.md
   11-progress-log.md
+  12-public-visual-qa.md
 ```
 
 The assistant collaboration rules live in:
@@ -112,4 +113,4 @@ Current phase: Phase 2 — Public Website Foundation
 Current subphase: 2.7 Public copy cleanup and visual QA
 ```
 
-See `docs/10-phases.md` and `docs/11-progress-log.md` for the official phase tracker.
+See `docs/10-phases.md`, `docs/11-progress-log.md`, and `docs/12-public-visual-qa.md` for the official phase tracker and QA checklist.
