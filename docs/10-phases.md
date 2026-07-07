@@ -15,7 +15,7 @@ Deferred     — Intentionally postponed.
 
 ```text
 Current phase: Phase 2 — Public Website Foundation
-Current focus: static public pages, centralized public copy, and visual polish before database work.
+Current focus: visual QA, responsive review, public copy cleanup, and static SEO metadata before database work.
 ```
 
 ---
@@ -96,18 +96,18 @@ Completed subphases:
 2.3 Static accommodation listing page
 2.4 Static accommodation detail pages
 2.5 Static image foundation with optimized local WebP assets
+2.6 Centralized public page copy and amenity icons
 ```
 
 Current subphase:
 
 ```text
-2.6 Centralize public page copy and add amenity icons
+2.7 Public copy cleanup and visual QA
 ```
 
 Remaining / upcoming subphases:
 
 ```text
-2.7 Public copy cleanup and visual QA
 2.8 Basic SEO metadata review for static pages
 2.9 Mobile responsive review
 ```

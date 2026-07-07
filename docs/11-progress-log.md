@@ -6,7 +6,7 @@ This document tracks completed implementation work so the project can be resumed
 
 ```text
 Current phase: Phase 2 — Public Website Foundation
-Current subphase: 2.6 Centralize public page copy and add amenity icons
+Current subphase: 2.7 Public copy cleanup and visual QA
 ```
 
 ## Completed Work
@@ -25,7 +25,8 @@ Current subphase: 2.6 Centralize public page copy and add amenity icons
 | Phase 2 | 2.2 | Completed | Public layout foundation added with header, footer, navigation, and marketing sections. |
 | Phase 2 | 2.3 | Completed | Static accommodation listing and detail pages added. |
 | Phase 2 | 2.4 | Completed | Static image foundation added using optimized local WebP assets. |
-| Phase 2 | 2.5 | In progress | Public copy is being centralized in `messages/en.ts` and `messages/es.ts`. Amenity icons are being added. |
+| Phase 2 | 2.5 | Completed | Public copy centralization started and amenity icon foundation prepared. |
+| Phase 2 | 2.6 | Completed | Public copy centralized in `messages/en.ts` and `messages/es.ts`; amenity labels and icons centralized through the typed amenity catalog. |
 
 ## Important Technical Decisions Already Applied
 
@@ -45,9 +46,9 @@ Current subphase: 2.6 Centralize public page copy and add amenity icons
 ## Next Recommended Work
 
 ```text
-1. Finish public copy centralization and amenity icons.
-2. Perform visual QA on the public home and accommodation pages.
-3. Review responsive behavior.
+1. Perform visual QA on the public home and accommodation pages.
+2. Review responsive behavior on mobile, tablet, and desktop.
+3. Clean remaining user-facing copy that is still hardcoded in TSX.
 4. Add basic static SEO metadata for public pages.
 5. Start Prisma + Supabase setup only after the public static foundation is stable.
 ```

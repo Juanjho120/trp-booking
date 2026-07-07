@@ -109,7 +109,7 @@ AGENTS.md
 
 ```text
 Current phase: Phase 2 — Public Website Foundation
-Current subphase: 2.6 Centralize public page copy and add amenity icons
+Current subphase: 2.7 Public copy cleanup and visual QA
 ```
 
 See `docs/10-phases.md` and `docs/11-progress-log.md` for the official phase tracker.
