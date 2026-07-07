@@ -114,6 +114,7 @@ docs/
   20-phase-3-database-closure-review.md
   21-auth-admin-strategy.md
   22-auth-environment-validation.md
+  23-auth-js-configuration.md
 ```
 
 The assistant collaboration rules live in:
@@ -126,9 +127,9 @@ AGENTS.md
 
 ```text
 Current phase: Phase 4 — Admin Authentication Foundation
-Current subphase: 4.3 Auth.js configuration
-Last completed subphase: 4.2 Auth environment variables and validation
+Current subphase: 4.4 Admin route protection foundation
+Last completed subphase: 4.3 Auth.js configuration
 Last completed phase: Phase 3 — Database Foundation
 ```
 
-See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/21-auth-admin-strategy.md`, and `docs/22-auth-environment-validation.md` for the official Phase 4 tracker and setup notes.
+See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/21-auth-admin-strategy.md`, `docs/22-auth-environment-validation.md`, and `docs/23-auth-js-configuration.md` for the official Phase 4 tracker and setup notes.

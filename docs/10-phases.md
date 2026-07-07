@@ -15,8 +15,8 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 4 — Admin Authentication Foundation
-Current subphase: 4.3 Auth.js configuration
-Current focus: install and configure Auth.js with Google OAuth, JWT sessions, and server-side admin allowlist behavior.
+Current subphase: 4.4 Admin route protection foundation
+Current focus: protect /admin routes using the Auth.js configuration, JWT session, and server-side admin allowlist.
 ```
 
 ---
@@ -111,8 +111,8 @@ Subphase status:
 ```text
 4.1 Auth.js strategy and admin access foundation — Completed
 4.2 Auth environment variables and validation — Completed
-4.3 Auth.js configuration — In progress
-4.4 Admin route protection foundation — Not started
+4.3 Auth.js configuration — Completed
+4.4 Admin route protection foundation — In progress
 4.5 Minimal admin shell — Not started
 4.6 Phase 4 documentation update — Not started
 ```

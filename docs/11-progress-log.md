@@ -6,10 +6,10 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 4 — Admin Authentication Foundation
-Current subphase: 4.3 Auth.js configuration
+Current subphase: 4.4 Admin route protection foundation
 Last updated: 2026-07-07
 Last completed phase: Phase 3 — Database Foundation
-Last completed subphase: 4.2 Auth environment variables and validation
+Last completed subphase: 4.3 Auth.js configuration
 ```
 
 ## Completed Work
@@ -109,6 +109,30 @@ Important limitation:
 Phase 4.2 does not install next-auth and does not configure Auth.js yet.
 ```
 
+### Phase 4.3 — Auth.js Configuration
+
+Status: **Completed**
+
+Completed deliverables:
+
+```text
+next-auth dependency added to package.json
+Root auth.ts configuration added
+Google OAuth provider configured with validated server-side environment variables
+JWT session strategy configured
+Server-side admin allowlist enforced during Google sign-in
+Verified Google email check added during sign-in
+Auth.js route handler added at app/api/auth/[...nextauth]/route.ts
+Auth.js session/JWT type augmentation added
+docs/23-auth-js-configuration.md added
+```
+
+Important limitation:
+
+```text
+Phase 4.3 does not add middleware, admin route protection, admin pages, admin login UI, Prisma adapter, database migrations, Tilopay, Cloudinary, Resend, Airbnb iCal sync, or PMS features.
+```
+
 ## Current Work
 
 ### Phase 4 — Admin Authentication Foundation
@@ -118,29 +142,30 @@ Status: **In progress**
 Current subphase:
 
 ```text
-4.3 Auth.js configuration
+4.4 Admin route protection foundation
 ```
 
-Phase 4.3 goals:
+Phase 4.4 goals:
 
 ```text
-Install and configure Auth.js.
-Add Google OAuth provider configuration.
-Use JWT sessions.
-Apply server-side admin allowlist during sign-in.
-Avoid Prisma adapter until an explicit later task.
-Keep public pages compiling and visually stable.
+Protect /admin routes before exposing any admin UI.
+Use the Auth.js configuration from Phase 4.3.
+Keep public pages accessible without login.
+Redirect unauthenticated users away from protected admin routes.
+Block authenticated but non-allowlisted users server-side.
+Avoid admin UI implementation until route protection is in place.
 ```
 
 ## Next Recommended Work
 
 ```text
-1. Add real local Auth.js values to .env.
-2. Run npm run env:validate.
-3. Run npm run db:validate.
-4. Run npm run lint and npm run build.
-5. Commit Phase 4.2.
-6. Continue with Phase 4.3 Auth.js configuration.
+1. Apply Phase 4.3 files.
+2. Run npm install to regenerate package-lock.json with next-auth.
+3. Run npm run env:validate.
+4. Run npm run db:validate.
+5. Run npm run lint and npm run build.
+6. Commit Phase 4.3.
+7. Continue with Phase 4.4 Admin route protection foundation.
 ```
 
 ## Continuity Notes for New Conversations
@@ -155,8 +180,11 @@ docs/11-progress-log.md
 docs/20-phase-3-database-closure-review.md
 docs/21-auth-admin-strategy.md
 docs/22-auth-environment-validation.md
+docs/23-auth-js-configuration.md
 lib/env/server.ts
 .env.example
+auth.ts
+app/api/auth/[...nextauth]/route.ts
 ```
 
 Important working rules:
