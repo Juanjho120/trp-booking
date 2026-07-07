@@ -14,9 +14,9 @@ Deferred — Intentionally postponed.
 ## Current Phase
 
 ```text
-Current phase: Phase 2 — Public Website Foundation
-Current subphase: 2.8 Static SEO metadata and sitemap foundation
-Current focus: static SEO metadata, canonical URLs, robots.txt, sitemap.xml, and SEO documentation before closing Phase 2.
+Current phase: Phase 3 — Database Foundation
+Current subphase: 3.1 Prisma and Supabase foundation setup
+Current focus: prepare Prisma, Supabase/PostgreSQL, typed database configuration, and the first database model without adding admin, payments, Cloudinary, Resend, or Airbnb iCal logic yet.
 ```
 
 ---
@@ -71,7 +71,7 @@ Completed subphases:
 
 ## Phase 2 — Public Website Foundation
 
-Status: **In progress**
+Status: **Completed**
 
 Goal: Build the first static public website experience before adding database, admin, booking, payments, or calendar logic.
 
@@ -85,43 +85,69 @@ Completed subphases:
 2.5 Accommodation image foundation
 2.6 Centralized public page copy and amenity icons
 2.7 Public copy cleanup and visual QA
-```
-
-Current subphase:
-
-```text
 2.8 Static SEO metadata and sitemap foundation
+2.9 Phase 2 closure review
 ```
 
-Phase 2.8 deliverables:
+Completed deliverables:
 
 ```text
-Centralized SEO metadata copy
-Root metadataBase and site-level metadata
-Static metadata for home page
-Static metadata for accommodations listing
-Dynamic metadata for accommodation detail pages
+Public home page
+Public accommodations listing
+Static accommodation detail pages
+Real static image foundation
+Centralized public copy foundation
+Amenity icon catalog
+Public visual QA checklist
+Static SEO metadata
 Canonical URLs
-Open Graph and Twitter metadata
+Open Graph metadata
+Twitter metadata
 robots.txt route
 sitemap.xml route
-SEO foundation documentation
-Progress tracker update
+Phase 2 closure review document
 ```
 
-Pending Phase 2 subphases:
+Phase 2 validation:
 
 ```text
-2.9 Phase 2 closure review
+npm run lint: validated by user
+npm run build: validated by user
+/sitemap.xml: validated by user
+/robots.txt: validated by user
+Public pages: validated locally by user during Phase 2.7 and Phase 2.8
 ```
 
 ---
 
 ## Phase 3 — Database Foundation
 
-Status: **Not started**
+Status: **In progress**
 
 Goal: Add Prisma and Supabase/PostgreSQL foundation after the public static foundation is stable.
+
+Planned subphases:
+
+```text
+3.1 Prisma and Supabase foundation setup
+3.2 Environment variable validation foundation
+3.3 Initial Prisma schema for core booking domain
+3.4 Soft delete and audit field conventions
+3.5 Initial seed strategy for accommodations, amenities, rules, and static content
+3.6 Database documentation update
+```
+
+Phase 3 rules:
+
+```text
+- Do not add admin UI in Phase 3.
+- Do not integrate Tilopay in Phase 3.
+- Do not integrate Cloudinary in Phase 3.
+- Do not integrate Resend in Phase 3.
+- Do not implement Airbnb iCal sync in Phase 3.
+- Do not move TRP Booking toward PMS features.
+- Keep current public pages working while adding database foundation.
+```
 
 ---
 

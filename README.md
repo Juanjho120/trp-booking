@@ -30,9 +30,9 @@ It also includes a private admin area to manage the minimum operational features
 
 ## Important Scope Boundary
 
-This project is not intended to become a PMS.
+This project is not intended to become a PMS. TAMIAS is the internal PMS / operational system for property management.
 
-TAMIAS is the internal PMS / operational system for property management. TRP Booking is focused only on the public booking experience, direct reservations, payments, Airbnb iCal synchronization, and a minimal admin panel for that flow.
+TRP Booking is focused only on the public booking experience, direct reservations, payments, Airbnb iCal synchronization, and a minimal admin panel for that flow.
 
 ## Initial Stack
 
@@ -75,9 +75,11 @@ Max guests: 6
 - User-facing error messages must be centralized, reusable, bilingual, and mapped by domain instead of hardcoded inside components or server handlers.
 - Public page copy should be centralized in `messages/en.ts` and `messages/es.ts` instead of hardcoded in TSX components.
 - Amenity labels and icons should be managed through the typed amenity catalog.
-- Guests must not modify confirmed reservation dates directly from the public website. Date changes require admin authorization or cancellation and a new reservation according to the cancellation policy.
+- Guests must not modify confirmed reservation dates directly from the public website.
+- Date changes require admin authorization or cancellation and a new reservation according to the cancellation policy.
 - Stay extensions require a server-side availability check and any additional payment before the reservation is updated or extended.
-- Confirmed reservations and imported Airbnb bookings must generate preparation buffer blocks automatically. The admin can manually unlock preparation buffer days when operationally convenient.
+- Confirmed reservations and imported Airbnb bookings must generate preparation buffer blocks automatically.
+- The admin can manually unlock preparation buffer days when operationally convenient.
 
 ## Documentation
 
@@ -98,6 +100,8 @@ docs/
   10-phases.md
   11-progress-log.md
   12-public-visual-qa.md
+  13-seo-foundation.md
+  14-phase-2-closure-review.md
 ```
 
 The assistant collaboration rules live in:
@@ -109,8 +113,9 @@ AGENTS.md
 ## Development Status
 
 ```text
-Current phase: Phase 2 — Public Website Foundation
-Current subphase: 2.8 Static SEO metadata and sitemap foundation
+Current phase: Phase 3 — Database Foundation
+Current subphase: 3.1 Prisma and Supabase foundation setup
+Last completed phase: Phase 2 — Public Website Foundation
 ```
 
-See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/12-public-visual-qa.md`, and `docs/13-seo-foundation.md` for the official phase tracker and QA checklists.
+See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/12-public-visual-qa.md`, `docs/13-seo-foundation.md`, and `docs/14-phase-2-closure-review.md` for the official phase tracker and QA checklists.
