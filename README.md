@@ -120,6 +120,7 @@ docs/
   25-minimal-admin-shell.md
   26-phase-4-auth-closure-review.md
   27-cloudinary-strategy-and-environment.md
+  28-cloudinary-environment-validation.md
 ```
 
 The assistant collaboration rules live in:
@@ -132,9 +133,9 @@ AGENTS.md
 
 ```text
 Current phase: Phase 5 — Cloudinary Integration
-Current subphase: 5.2 Cloudinary environment validation
+Current subphase: 5.3 Cloudinary service foundation
 Last completed phase: Phase 4 — Admin Authentication Foundation
-Last completed subphase: 5.1 Cloudinary strategy and environment foundation
+Last completed subphase: 5.2 Cloudinary environment validation
 ```
 
-See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/26-phase-4-auth-closure-review.md`, and `docs/27-cloudinary-strategy-and-environment.md` for the official current tracker and Phase 5 setup notes.
+See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/26-phase-4-auth-closure-review.md`, `docs/27-cloudinary-strategy-and-environment.md`, and `docs/28-cloudinary-environment-validation.md` for the official current tracker and Phase 5 setup notes.

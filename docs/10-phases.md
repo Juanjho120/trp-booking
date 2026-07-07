@@ -15,8 +15,8 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 5 — Cloudinary Integration
-Current subphase: 5.2 Cloudinary environment validation
-Current focus: add server-side validation for the Cloudinary variables defined during Phase 5.1.
+Current subphase: 5.3 Cloudinary service foundation
+Current focus: add the server-side Cloudinary configuration/service foundation after validating the required environment variables.
 ```
 
 ---
@@ -152,8 +152,8 @@ Subphase status:
 
 ```text
 5.1 Cloudinary strategy and environment foundation — Completed
-5.2 Cloudinary environment validation — In progress
-5.3 Cloudinary service foundation — Not started
+5.2 Cloudinary environment validation — Completed
+5.3 Cloudinary service foundation — In progress
 5.4 Accommodation image data mapping review — Not started
 5.5 Phase 5 documentation update — Not started
 ```
@@ -179,6 +179,18 @@ Phase 5.1 result:
 - Placeholder Cloudinary variables were added to .env.example.
 - Folder naming, public delivery, and DB mapping expectations were documented.
 - No SDK, uploads, image UI, provider calls, migrations, or operational features were added.
+```
+
+Phase 5.2 result:
+
+```text
+- Server-side validation was added for CLOUDINARY_CLOUD_NAME.
+- Server-side validation was added for CLOUDINARY_API_KEY.
+- Server-side validation was added for CLOUDINARY_API_SECRET.
+- Server-side validation was added for CLOUDINARY_UPLOAD_FOLDER.
+- Placeholder values are rejected by env validation.
+- Cloudinary API key and API secret remain server-side only.
+- No Cloudinary SDK, provider calls, uploads, image UI, migrations, or database writes were added.
 ```
 
 ---

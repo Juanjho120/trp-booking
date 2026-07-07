@@ -6,10 +6,10 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 5 — Cloudinary Integration
-Current subphase: 5.2 Cloudinary environment validation
+Current subphase: 5.3 Cloudinary service foundation
 Last updated: 2026-07-07
 Last completed phase: Phase 4 — Admin Authentication Foundation
-Last completed subphase: 5.1 Cloudinary strategy and environment foundation
+Last completed subphase: 5.2 Cloudinary environment validation
 ```
 
 ## Completed Work
@@ -263,6 +263,42 @@ Important limitation:
 Phase 5.1 did not add the cloudinary npm package, SDK configuration code, upload route handlers, image upload server actions, admin image management UI, database migrations, database writes, seed data, or Cloudinary API calls.
 ```
 
+### Phase 5.2 — Cloudinary Environment Validation
+
+Status: **Completed**
+
+Completed deliverables:
+
+```text
+Cloudinary server-side env validation added to lib/env/server.ts
+CLOUDINARY_CLOUD_NAME validation added
+CLOUDINARY_API_KEY validation added
+CLOUDINARY_API_SECRET validation added
+CLOUDINARY_UPLOAD_FOLDER validation added
+CloudinaryEnv type added
+getCloudinaryEnv helper added
+.env.example updated to state Cloudinary variables are now validated
+README.md updated with Phase 5.2 completion and Phase 5.3 current status
+docs/28-cloudinary-environment-validation.md added
+docs/10-phases.md updated to mark 5.2 completed and 5.3 in progress
+docs/11-progress-log.md updated with Phase 5.2 completion
+```
+
+Important decisions:
+
+```text
+Cloudinary variables are now required by npm run env:validate.
+Real Cloudinary values must be present in local .env before validation can pass.
+CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET remain server-side only.
+CLOUDINARY_UPLOAD_FOLDER must stay under the trp-booking/ folder prefix.
+```
+
+Important limitation:
+
+```text
+Phase 5.2 did not add the cloudinary npm package, SDK configuration code, upload route handlers, image upload server actions, admin image management UI, database migrations, database writes, seed data, or Cloudinary API calls.
+```
+
 ## Current Work
 
 ### Phase 5 — Cloudinary Integration
@@ -272,32 +308,30 @@ Status: **In progress**
 Current subphase:
 
 ```text
-5.2 Cloudinary environment validation
+5.3 Cloudinary service foundation
 ```
 
-Phase 5.2 goals:
+Phase 5.3 goals:
 
 ```text
-Extend server-side environment validation for Cloudinary variables.
-Validate CLOUDINARY_CLOUD_NAME.
-Validate CLOUDINARY_API_KEY.
-Validate CLOUDINARY_API_SECRET.
-Validate CLOUDINARY_UPLOAD_FOLDER.
-Reject placeholder values.
-Keep Cloudinary variables server-side only.
-Do not install or call the Cloudinary SDK yet unless the subphase is explicitly expanded.
-Do not upload images or add image management UI yet.
+Add a server-side Cloudinary configuration/service foundation.
+Use validated Cloudinary environment variables.
+Keep provider calls server-side only.
+Do not add public upload UI yet.
+Do not write image records to the database yet unless explicitly introduced in a later subphase.
+Do not add booking, payment, email, calendar, iCal, or PMS features.
 ```
 
 ## Next Recommended Work
 
 ```text
-1. Apply Phase 5.1 files.
-2. Run npm run env:validate.
-3. Run npm run db:validate.
-4. Run npm run lint and npm run build.
-5. Commit Phase 5.1.
-6. Continue with Phase 5.2 Cloudinary environment validation.
+1. Apply Phase 5.2 files.
+2. Add real Cloudinary values to local .env.
+3. Run npm run env:validate.
+4. Run npm run db:validate.
+5. Run npm run lint and npm run build.
+6. Commit Phase 5.2.
+7. Continue with Phase 5.3 Cloudinary service foundation.
 ```
 
 ## Continuity Notes for New Conversations
@@ -319,6 +353,7 @@ docs/24-admin-route-protection.md
 docs/25-minimal-admin-shell.md
 docs/26-phase-4-auth-closure-review.md
 docs/27-cloudinary-strategy-and-environment.md
+docs/28-cloudinary-environment-validation.md
 lib/env/server.ts
 .env.example
 auth.ts
