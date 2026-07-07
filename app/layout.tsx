@@ -1,30 +1,28 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Inter } from "next/font/google";
+import { Geist_Mono, Inter } from "next/font/google";
 import type { ReactNode } from "react";
-
 import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
 import { esMessages } from "@/messages";
-
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
   subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
 });
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
   subsets: ["latin"],
+  variable: "--font-geist-mono",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   title: {
     default: esMessages.seo.home.title,
-    template: `%s`,
+    template: "%s",
   },
   description: esMessages.seo.home.description,
   applicationName: siteConfig.internalName,
@@ -53,8 +51,14 @@ type RootLayoutProps = Readonly<{
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang="es-GT">
-      <body className={cn(inter.variable, geistSans.variable, geistMono.variable, "antialiased")}>
+    <html lang="es">
+      <body
+        className={cn(
+          inter.variable,
+          geistMono.variable,
+          "min-h-screen bg-background font-sans antialiased",
+        )}
+      >
         {children}
       </body>
     </html>
