@@ -6,10 +6,10 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 4 — Admin Authentication Foundation
-Current subphase: 4.2 Auth environment variables and validation
+Current subphase: 4.3 Auth.js configuration
 Last updated: 2026-07-07
 Last completed phase: Phase 3 — Database Foundation
-Last completed subphase: 4.1 Auth.js strategy and admin access foundation
+Last completed subphase: 4.2 Auth environment variables and validation
 ```
 
 ## Completed Work
@@ -84,6 +84,31 @@ TRP Booking will start with Auth.js / NextAuth using Google OAuth and a server-s
 The initial implementation will use JWT sessions and will not introduce the Prisma adapter yet.
 ```
 
+### Phase 4.2 — Auth Environment Variables and Validation
+
+Status: **Completed**
+
+Completed deliverables:
+
+```text
+Auth.js environment placeholders added to .env.example
+Server-side environment validation extended for Auth.js variables
+AUTH_SECRET validation added
+AUTH_TRUST_HOST validation added
+AUTH_GOOGLE_ID validation added
+AUTH_GOOGLE_SECRET validation added
+AUTH_ALLOWED_ADMIN_EMAILS validation added
+Optional AUTH_URL validation added
+getAllowedAdminEmails helper added
+docs/22-auth-environment-validation.md added
+```
+
+Important limitation:
+
+```text
+Phase 4.2 does not install next-auth and does not configure Auth.js yet.
+```
+
 ## Current Work
 
 ### Phase 4 — Admin Authentication Foundation
@@ -93,26 +118,29 @@ Status: **In progress**
 Current subphase:
 
 ```text
-4.2 Auth environment variables and validation
+4.3 Auth.js configuration
 ```
 
-Phase 4.2 goals:
+Phase 4.3 goals:
 
 ```text
-Add Auth.js environment placeholders.
-Extend environment validation for Auth.js.
-Keep all secrets out of the repository.
-Prepare the project for Auth.js installation and configuration in Phase 4.3.
+Install and configure Auth.js.
+Add Google OAuth provider configuration.
+Use JWT sessions.
+Apply server-side admin allowlist during sign-in.
+Avoid Prisma adapter until an explicit later task.
+Keep public pages compiling and visually stable.
 ```
 
 ## Next Recommended Work
 
 ```text
-1. Run npm run db:validate.
+1. Add real local Auth.js values to .env.
 2. Run npm run env:validate.
-3. Run npm run lint and npm run build.
-4. Commit Phase 4.1.
-5. Continue with Phase 4.2 Auth environment variables and validation.
+3. Run npm run db:validate.
+4. Run npm run lint and npm run build.
+5. Commit Phase 4.2.
+6. Continue with Phase 4.3 Auth.js configuration.
 ```
 
 ## Continuity Notes for New Conversations
@@ -126,7 +154,9 @@ docs/10-phases.md
 docs/11-progress-log.md
 docs/20-phase-3-database-closure-review.md
 docs/21-auth-admin-strategy.md
-prisma/schema.prisma
+docs/22-auth-environment-validation.md
+lib/env/server.ts
+.env.example
 ```
 
 Important working rules:
