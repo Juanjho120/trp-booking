@@ -1,13 +1,14 @@
-// TRP Booking — Prisma schema foundation
+// TRP Booking — Prisma core booking domain schema
 //
-// Phase 3.1 intentionally adds only the Prisma/PostgreSQL foundation.
-// Core booking models will be added in Phase 3.3 after the database model is reviewed.
+// Phase 3.3 adds the initial database model only.
+// It does not create migrations, seed scripts, admin UI, payments integration,
+// Cloudinary integration, Resend integration, Airbnb iCal sync, or reservation checkout.
 //
 // Development database target:
 // - Supabase project: portfolio-lab
 // - PostgreSQL schema: trp_booking
 //
-// Do not commit real DATABASE_URL or DIRECT_URL values.
+// Keep DATABASE_URL and DIRECT_URL private.
 
 generator client {
   provider = "prisma-client-js"
@@ -17,4 +18,502 @@ datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
+}
+
+enum UserRole {
+  ADMIN
+}
+
+enum PropertyStatus {
+  DRAFT
+  ACTIVE
+  INACTIVE
+}
+
+enum ReservationStatus {
+  PENDING_PAYMENT
+  CONFIRMED
+  CANCELLED
+  REFUNDED
+  PARTIALLY_REFUNDED
+  EXPIRED
+  BLOCKED
+}
+
+enum PaymentProvider {
+  TILOPAY
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum RefundStatus {
+  PENDING
+  APPROVED
+  FAILED
+  MANUAL
+}
+
+enum CalendarBlockSource {
+  DIRECT_RESERVATION
+  AIRBNB
+  MANUAL_BLOCK
+  MAINTENANCE
+  COMPOSED_LISTING_DEPENDENCY
+  PREPARATION_BUFFER
+}
+
+enum ExternalCalendarProvider {
+  AIRBNB
+}
+
+enum ExternalCalendarStatus {
+  ACTIVE
+  INACTIVE
+  ERROR
+}
+
+enum CalendarSyncTriggeredBy {
+  CRON
+  ADMIN
+  SYSTEM
+}
+
+enum CalendarSyncStatus {
+  STARTED
+  SUCCESS
+  FAILED
+  PARTIAL_SUCCESS
+}
+
+enum EmailNotificationType {
+  RESERVATION_CONFIRMED
+  PAYMENT_APPROVED
+  PAYMENT_FAILED
+  RESERVATION_CANCELLED
+  RESERVATION_DATES_UPDATED
+  STAY_EXTENSION_CONFIRMED
+  REFUND_PROCESSED
+  ARRIVAL_INSTRUCTIONS
+  ADMIN_NEW_RESERVATION
+}
+
+enum EmailNotificationStatus {
+  PENDING
+  SENT
+  FAILED
+  SKIPPED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String?
+  email     String   @unique
+  role      UserRole @default(ADMIN)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  deletedProperties        Property[]         @relation("PropertyDeletedBy")
+  deletedPropertyImages    PropertyImage[]    @relation("PropertyImageDeletedBy")
+  deletedAmenities         Amenity[]          @relation("AmenityDeletedBy")
+  deletedHouseRules        HouseRule[]        @relation("HouseRuleDeletedBy")
+  deletedExternalCalendars ExternalCalendar[] @relation("ExternalCalendarDeletedBy")
+  deletedCalendarBlocks    CalendarBlock[]    @relation("CalendarBlockDeletedBy")
+  unlockedCalendarBlocks   CalendarBlock[]    @relation("CalendarBlockUnlockedBy")
+  auditLogs                AdminAuditLog[]
+
+  @@map("users")
+}
+
+model Property {
+  id                  String         @id @default(cuid())
+  nameEs              String
+  nameEn              String
+  slug                String         @unique
+  shortDescriptionEs  String         @db.Text
+  shortDescriptionEn  String         @db.Text
+  longDescriptionEs   String         @db.Text
+  longDescriptionEn   String         @db.Text
+  maxGuests           Int
+  bedrooms            Int
+  bathrooms           Int
+  baseNightlyPrice    Decimal        @db.Decimal(10, 2)
+  currency            String         @default("USD")
+  status              PropertyStatus @default(DRAFT)
+  checkInTime         String
+  checkOutTime        String?
+  isComposed          Boolean        @default(false)
+  preparationDaysBefore Int          @default(0)
+  preparationDaysAfter  Int          @default(0)
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+  deletedAt           DateTime?
+  deletedById         String?
+
+  deletedBy        User?               @relation("PropertyDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull)
+  parentComponents PropertyComponent[] @relation("ParentProperty")
+  componentOf      PropertyComponent[] @relation("ComponentProperty")
+  images           PropertyImage[]
+  amenities        PropertyAmenity[]
+  rules            PropertyRule[]
+  reservations     Reservation[]
+  calendarBlocks   CalendarBlock[]
+  externalCalendars ExternalCalendar[]
+
+  @@index([status])
+  @@index([deletedAt])
+  @@map("properties")
+}
+
+model PropertyComponent {
+  id                  String   @id @default(cuid())
+  parentPropertyId    String
+  componentPropertyId String
+  createdAt           DateTime @default(now())
+
+  parentProperty    Property @relation("ParentProperty", fields: [parentPropertyId], references: [id], onDelete: Cascade)
+  componentProperty Property @relation("ComponentProperty", fields: [componentPropertyId], references: [id], onDelete: Restrict)
+
+  @@unique([parentPropertyId, componentPropertyId])
+  @@index([componentPropertyId])
+  @@map("property_components")
+}
+
+model PropertyImage {
+  id                 String   @id @default(cuid())
+  propertyId         String
+  cloudinaryPublicId String?
+  url                String
+  secureUrl          String?
+  altTextEs          String
+  altTextEn          String
+  sortOrder          Int      @default(0)
+  isCover            Boolean  @default(false)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  deletedAt          DateTime?
+  deletedById        String?
+
+  property  Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  deletedBy User?    @relation("PropertyImageDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull)
+
+  @@index([propertyId, sortOrder])
+  @@index([deletedAt])
+  @@map("property_images")
+}
+
+model Amenity {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  nameEs      String
+  nameEn      String
+  icon        String
+  category    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+  deletedById String?
+
+  deletedBy User?             @relation("AmenityDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull)
+  properties PropertyAmenity[]
+
+  @@index([deletedAt])
+  @@map("amenities")
+}
+
+model PropertyAmenity {
+  id         String   @id @default(cuid())
+  propertyId String
+  amenityId  String
+  createdAt  DateTime @default(now())
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  amenity  Amenity  @relation(fields: [amenityId], references: [id], onDelete: Restrict)
+
+  @@unique([propertyId, amenityId])
+  @@index([amenityId])
+  @@map("property_amenities")
+}
+
+model HouseRule {
+  id            String   @id @default(cuid())
+  titleEs       String
+  titleEn       String
+  descriptionEs String   @db.Text
+  descriptionEn String   @db.Text
+  category      String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  deletedAt     DateTime?
+  deletedById   String?
+
+  deletedBy User?          @relation("HouseRuleDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull)
+  properties PropertyRule[]
+
+  @@index([deletedAt])
+  @@map("house_rules")
+}
+
+model PropertyRule {
+  id         String   @id @default(cuid())
+  propertyId String
+  ruleId     String
+  createdAt  DateTime @default(now())
+
+  property Property  @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  rule     HouseRule @relation(fields: [ruleId], references: [id], onDelete: Restrict)
+
+  @@unique([propertyId, ruleId])
+  @@index([ruleId])
+  @@map("property_rules")
+}
+
+model Reservation {
+  id                  String            @id @default(cuid())
+  propertyId          String
+  guestName           String
+  guestEmail          String
+  guestPhone          String?
+  guestCountry        String?
+  checkInDate         DateTime          @db.Date
+  checkOutDate        DateTime          @db.Date
+  arrivalTimeEstimate String?
+  guestCount          Int
+  status              ReservationStatus @default(PENDING_PAYMENT)
+  subtotal            Decimal           @db.Decimal(10, 2)
+  cleaningFee         Decimal           @default(0) @db.Decimal(10, 2)
+  taxes               Decimal           @default(0) @db.Decimal(10, 2)
+  discounts           Decimal           @default(0) @db.Decimal(10, 2)
+  total               Decimal           @db.Decimal(10, 2)
+  currency            String            @default("USD")
+  expiresAt           DateTime?
+  confirmedAt         DateTime?
+  cancelledAt         DateTime?
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+
+  property           Property            @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  guests             ReservationGuest[]
+  payments           Payment[]
+  calendarBlocks     CalendarBlock[]
+  emailNotifications EmailNotification[]
+
+  @@index([propertyId, checkInDate, checkOutDate])
+  @@index([status])
+  @@index([guestEmail])
+  @@map("reservations")
+}
+
+model ReservationGuest {
+  id            String   @id @default(cuid())
+  reservationId String
+  name          String
+  email         String?
+  phone         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  reservation Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+
+  @@index([reservationId])
+  @@map("reservation_guests")
+}
+
+model Payment {
+  id                    String          @id @default(cuid())
+  reservationId         String
+  provider              PaymentProvider @default(TILOPAY)
+  providerTransactionId String?
+  providerReference     String?
+  status                PaymentStatus   @default(PENDING)
+  amount                Decimal         @db.Decimal(10, 2)
+  currency              String          @default("USD")
+  paidAt                DateTime?
+  failedAt              DateTime?
+  rawPayload            Json?
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+
+  reservation Reservation @relation(fields: [reservationId], references: [id], onDelete: Restrict)
+  refunds     Refund[]
+
+  @@index([reservationId])
+  @@index([provider, providerReference])
+  @@index([status])
+  @@map("payments")
+}
+
+model Refund {
+  id               String       @id @default(cuid())
+  paymentId        String
+  providerRefundId String?
+  amount           Decimal      @db.Decimal(10, 2)
+  currency         String       @default("USD")
+  reason           String?
+  status           RefundStatus @default(PENDING)
+  rawPayload       Json?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+
+  @@index([paymentId])
+  @@index([status])
+  @@map("refunds")
+}
+
+model CalendarBlock {
+  id                       String              @id @default(cuid())
+  propertyId               String
+  startDate                DateTime            @db.Date
+  endDate                  DateTime            @db.Date
+  source                   CalendarBlockSource
+  reason                   String?
+  reservationId            String?
+  externalCalendarEventId  String?
+  parentBlockId            String?
+  isAdminOverrideAllowed   Boolean             @default(false)
+  unlockedByAdminAt        DateTime?
+  unlockedByAdminId        String?
+  adminOverrideReason      String?
+  createdAt                DateTime            @default(now())
+  updatedAt                DateTime            @updatedAt
+  deletedAt                DateTime?
+  deletedById              String?
+
+  property              Property               @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  reservation           Reservation?            @relation(fields: [reservationId], references: [id], onDelete: SetNull)
+  externalCalendarEvent ExternalCalendarEvent?  @relation(fields: [externalCalendarEventId], references: [id], onDelete: SetNull)
+  parentBlock           CalendarBlock?          @relation("CalendarBlockParent", fields: [parentBlockId], references: [id], onDelete: SetNull)
+  childBlocks           CalendarBlock[]         @relation("CalendarBlockParent")
+  unlockedByAdmin       User?                   @relation("CalendarBlockUnlockedBy", fields: [unlockedByAdminId], references: [id], onDelete: SetNull)
+  deletedBy             User?                   @relation("CalendarBlockDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull)
+
+  @@index([propertyId, startDate, endDate])
+  @@index([source])
+  @@index([reservationId])
+  @@index([externalCalendarEventId])
+  @@index([deletedAt])
+  @@map("calendar_blocks")
+}
+
+model ExternalCalendar {
+  id                 String                 @id @default(cuid())
+  propertyId         String
+  provider           ExternalCalendarProvider @default(AIRBNB)
+  name               String
+  importUrlEncrypted String?
+  exportToken        String                 @unique
+  lastSyncedAt       DateTime?
+  status             ExternalCalendarStatus @default(ACTIVE)
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+  deletedAt          DateTime?
+  deletedById        String?
+
+  property  Property                @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  deletedBy User?                   @relation("ExternalCalendarDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull)
+  events    ExternalCalendarEvent[]
+  syncLogs  ExternalCalendarSyncLog[]
+
+  @@index([propertyId])
+  @@index([status])
+  @@index([deletedAt])
+  @@map("external_calendars")
+}
+
+model ExternalCalendarEvent {
+  id                 String   @id @default(cuid())
+  externalCalendarId String
+  providerEventUid   String
+  summary            String?
+  startDate          DateTime @db.Date
+  endDate            DateTime @db.Date
+  rawPayload         Json?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  externalCalendar ExternalCalendar @relation(fields: [externalCalendarId], references: [id], onDelete: Cascade)
+  calendarBlocks    CalendarBlock[]
+
+  @@unique([externalCalendarId, providerEventUid])
+  @@index([startDate, endDate])
+  @@map("external_calendar_events")
+}
+
+model ExternalCalendarSyncLog {
+  id                 String                  @id @default(cuid())
+  externalCalendarId String
+  triggeredBy        CalendarSyncTriggeredBy
+  status             CalendarSyncStatus
+  startedAt          DateTime                @default(now())
+  finishedAt         DateTime?
+  eventsImported     Int                     @default(0)
+  eventsRemoved      Int                     @default(0)
+  blocksCreated      Int                     @default(0)
+  blocksUpdated      Int                     @default(0)
+  errorCode          String?
+  errorMessage       String?
+  createdAt          DateTime                @default(now())
+
+  externalCalendar ExternalCalendar @relation(fields: [externalCalendarId], references: [id], onDelete: Cascade)
+
+  @@index([externalCalendarId])
+  @@index([status])
+  @@index([startedAt])
+  @@map("external_calendar_sync_logs")
+}
+
+model EmailNotification {
+  id                String                  @id @default(cuid())
+  reservationId     String
+  type              EmailNotificationType
+  recipient         String
+  locale            String
+  status            EmailNotificationStatus @default(PENDING)
+  providerMessageId String?
+  sentAt            DateTime?
+  errorMessage      String?
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+
+  reservation Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+
+  @@index([reservationId])
+  @@index([status])
+  @@index([type])
+  @@map("email_notifications")
+}
+
+model AdminAuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  action     String
+  entityType String
+  entityId   String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("admin_audit_logs")
+}
+
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("settings")
 }

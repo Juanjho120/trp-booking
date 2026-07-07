@@ -15,8 +15,8 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 3 — Database Foundation
-Current subphase: 3.3 Initial Prisma schema for core booking domain
-Current focus: add the first documented Prisma models for the core booking domain after environment validation is in place.
+Current subphase: 3.4 Soft delete and audit field conventions
+Current focus: review and document the soft delete and audit conventions applied by the initial Prisma schema.
 ```
 
 ---
@@ -26,25 +26,6 @@ Current focus: add the first documented Prisma models for the core booking domai
 Status: **Completed**
 
 Goal: Create official project documentation before writing code.
-
-Completed deliverables:
-
-```text
-README.md
-AGENTS.md
-docs/00-project-overview.md
-docs/01-product-scope.md
-docs/02-brand-and-content.md
-docs/03-architecture.md
-docs/04-database-model.md
-docs/05-development-standards.md
-docs/06-security-and-payments.md
-docs/07-airbnb-ical-sync.md
-docs/08-email-notifications.md
-docs/09-deployment.md
-docs/10-phases.md
-docs/11-progress-log.md
-```
 
 ---
 
@@ -102,8 +83,8 @@ Subphase status:
 ```text
 3.1 Prisma and Supabase foundation setup — Completed
 3.2 Environment variable validation foundation — Completed
-3.3 Initial Prisma schema for core booking domain — In progress
-3.4 Soft delete and audit field conventions — Not started
+3.3 Initial Prisma schema for core booking domain — Completed
+3.4 Soft delete and audit field conventions — In progress
 3.5 Initial seed strategy for accommodations, amenities, rules, and static content — Not started
 3.6 Database documentation update — Not started
 ```

@@ -104,6 +104,7 @@ docs/
   14-phase-2-closure-review.md
   15-database-foundation.md
   16-environment-validation.md
+  17-prisma-core-schema.md
 ```
 
 The assistant collaboration rules live in:
@@ -116,9 +117,9 @@ AGENTS.md
 
 ```text
 Current phase: Phase 3 — Database Foundation
-Current subphase: 3.3 Initial Prisma schema for core booking domain
-Last completed subphase: 3.2 Environment variable validation foundation
+Current subphase: 3.4 Soft delete and audit field conventions
+Last completed subphase: 3.3 Initial Prisma schema for core booking domain
 Last completed phase: Phase 2 — Public Website Foundation
 ```
 
-See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/15-database-foundation.md`, and `docs/16-environment-validation.md` for the official Phase 3 tracker and setup notes.
+See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/15-database-foundation.md`, `docs/16-environment-validation.md`, and `docs/17-prisma-core-schema.md` for the official Phase 3 tracker and setup notes.

@@ -6,10 +6,10 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 3 — Database Foundation
-Current subphase: 3.3 Initial Prisma schema for core booking domain
+Current subphase: 3.4 Soft delete and audit field conventions
 Last updated: 2026-07-07
 Last completed phase: Phase 2 — Public Website Foundation
-Last completed subphase: 3.2 Environment variable validation foundation
+Last completed subphase: 3.3 Initial Prisma schema for core booking domain
 ```
 
 ## Completed Work
@@ -18,50 +18,13 @@ Last completed subphase: 3.2 Environment variable validation foundation
 
 Status: **Completed**
 
-Completed deliverables:
-
-```text
-README.md
-AGENTS.md
-/docs initial documentation set
-Project scope definition
-Direct booking website boundary
-Rules for not turning TRP Booking into a PMS
-```
-
 ### Phase 1 — Repository and Next.js Setup
 
 Status: **Completed**
 
-Completed deliverables:
-
-```text
-GitHub repository: trp-booking
-Clean Next.js 15 setup
-TypeScript strict
-ESLint
-shadcn/ui + Radix Luma
-Base project folders
-Initial config, messages, typed accommodation data, and error keys
-```
-
 ### Phase 2 — Public Website Foundation
 
 Status: **Completed**
-
-Completed subphases:
-
-```text
-2.1 Public layout foundation
-2.2 Initial marketing homepage shell
-2.3 Static accommodations listing
-2.4 Static accommodation detail pages
-2.5 Accommodation image foundation
-2.6 Centralized public page copy and amenity icons
-2.7 Public copy cleanup and visual QA
-2.8 Static SEO metadata and sitemap foundation
-2.9 Phase 2 closure review
-```
 
 Validated by user:
 
@@ -86,7 +49,6 @@ Prisma scripts added to package.json
 PostgreSQL datasource foundation added in prisma/schema.prisma
 Supabase development target documented as portfolio-lab / trp_booking
 .env.example added without real secrets
-.gitignore updated so .env.example can be committed while real env files stay ignored
 Prisma migrations folder scaffolded with .gitkeep
 Database foundation documentation added in docs/15-database-foundation.md
 ```
@@ -113,6 +75,41 @@ scripts/validate-env.ts added
 docs/16-environment-validation.md added
 ```
 
+Validated by user:
+
+```text
+npm run env:validate
+npm run db:validate
+npm run lint
+npm run build
+```
+
+### Phase 3.3 — Initial Prisma Schema for Core Booking Domain
+
+Status: **Completed**
+
+Completed deliverables:
+
+```text
+Initial Prisma enums for properties, reservations, payments, refunds, calendar blocks, iCal sync, email notifications, and admin roles
+Initial Prisma models aligned with docs/04-database-model.md
+Property composition support for Refugio Completo
+Property image, amenity, and rule models
+Reservation, payment, refund, and guest models
+Calendar block and external calendar models
+External calendar event and sync log models
+Email notification model
+Admin audit log model
+Setting model
+docs/17-prisma-core-schema.md added
+```
+
+Important limitation:
+
+```text
+Phase 3.3 updates the Prisma schema only. It does not create or apply migrations yet.
+```
+
 ## Current Work
 
 ### Phase 3 — Database Foundation
@@ -122,28 +119,26 @@ Status: **In progress**
 Current subphase:
 
 ```text
-3.3 Initial Prisma schema for core booking domain
+3.4 Soft delete and audit field conventions
 ```
 
-Phase 3.3 goals:
+Phase 3.4 goals:
 
 ```text
-Add the first documented Prisma models for the core booking domain.
-Keep models aligned with docs/04-database-model.md.
-Preserve soft delete and audit conventions where required.
-Avoid admin UI, payments integration, Cloudinary, Resend, and Airbnb iCal implementation.
-Keep public pages compiling and visually stable.
+Review soft delete fields in the initial Prisma schema.
+Confirm which records must never be hard-deleted.
+Document audit requirements for critical admin operations.
+Prepare guardrails before seed strategy and migrations.
 ```
 
 ## Next Recommended Work
 
 ```text
-1. Run npm install after applying Phase 3.2 so package-lock.json is updated.
+1. Run npm run db:validate.
 2. Run npm run env:validate.
-3. Run npm run db:validate.
-4. Run npm run lint and npm run build.
-5. Commit Phase 3.2.
-6. Continue with Phase 3.3 initial Prisma schema for core booking domain.
+3. Run npm run lint and npm run build.
+4. Commit Phase 3.3.
+5. Continue with Phase 3.4 soft delete and audit field conventions.
 ```
 
 ## Continuity Notes for New Conversations
@@ -153,10 +148,13 @@ Minimum context files to review before continuing:
 ```text
 README.md
 AGENTS.md
+docs/04-database-model.md
 docs/10-phases.md
 docs/11-progress-log.md
 docs/15-database-foundation.md
 docs/16-environment-validation.md
+docs/17-prisma-core-schema.md
+prisma/schema.prisma
 ```
 
 Important working rules:
