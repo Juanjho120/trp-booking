@@ -44,9 +44,14 @@ export const authConfig = {
     jwt({ token, user }) {
       const normalizedEmail = normalizeAdminEmail(user?.email ?? token.email);
 
-      if (normalizedEmail && allowedAdminEmails.has(normalizedEmail)) {
+      if (normalizedEmail) {
         token.email = normalizedEmail;
+      }
+
+      if (normalizedEmail && allowedAdminEmails.has(normalizedEmail)) {
         token.role = ADMIN_ROLE;
+      } else {
+        delete token.role;
       }
 
       return token;
@@ -58,6 +63,8 @@ export const authConfig = {
 
       if (session.user && token.role === ADMIN_ROLE) {
         session.user.role = ADMIN_ROLE;
+      } else if (session.user) {
+        delete session.user.role;
       }
 
       return session;

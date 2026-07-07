@@ -15,8 +15,8 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 4 — Admin Authentication Foundation
-Current subphase: 4.4 Admin route protection foundation
-Current focus: protect /admin routes using the Auth.js configuration, JWT session, and server-side admin allowlist.
+Current subphase: 4.5 Minimal admin shell
+Current focus: add the first protected admin shell using the project design system now that /admin route protection exists.
 ```
 
 ---
@@ -112,8 +112,8 @@ Subphase status:
 4.1 Auth.js strategy and admin access foundation — Completed
 4.2 Auth environment variables and validation — Completed
 4.3 Auth.js configuration — Completed
-4.4 Admin route protection foundation — In progress
-4.5 Minimal admin shell — Not started
+4.4 Admin route protection foundation — Completed
+4.5 Minimal admin shell — In progress
 4.6 Phase 4 documentation update — Not started
 ```
 

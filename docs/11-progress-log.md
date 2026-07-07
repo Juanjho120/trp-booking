@@ -6,10 +6,10 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 4 — Admin Authentication Foundation
-Current subphase: 4.4 Admin route protection foundation
+Current subphase: 4.5 Minimal admin shell
 Last updated: 2026-07-07
 Last completed phase: Phase 3 — Database Foundation
-Last completed subphase: 4.3 Auth.js configuration
+Last completed subphase: 4.4 Admin route protection foundation
 ```
 
 ## Completed Work
@@ -133,6 +133,29 @@ Important limitation:
 Phase 4.3 does not add middleware, admin route protection, admin pages, admin login UI, Prisma adapter, database migrations, Tilopay, Cloudinary, Resend, Airbnb iCal sync, or PMS features.
 ```
 
+### Phase 4.4 — Admin Route Protection Foundation
+
+Status: **Completed**
+
+Completed deliverables:
+
+```text
+middleware.ts added for /admin route protection
+/admin route matcher added
+Unauthenticated admin access redirects to the Auth.js sign-in endpoint
+Authenticated users without ADMIN role redirect away from /admin
+Allowlisted admin sessions can continue to /admin routes
+JWT callback now clears stale ADMIN role when an email is no longer allowlisted
+Session callback now avoids exposing stale admin role values
+docs/24-admin-route-protection.md added
+```
+
+Important limitation:
+
+```text
+Phase 4.4 does not add admin pages, admin login UI, admin layout, Prisma adapter, database migrations, Tilopay, Cloudinary, Resend, Airbnb iCal sync, or PMS features.
+```
+
 ## Current Work
 
 ### Phase 4 — Admin Authentication Foundation
@@ -142,30 +165,28 @@ Status: **In progress**
 Current subphase:
 
 ```text
-4.4 Admin route protection foundation
+4.5 Minimal admin shell
 ```
 
-Phase 4.4 goals:
+Phase 4.5 goals:
 
 ```text
-Protect /admin routes before exposing any admin UI.
-Use the Auth.js configuration from Phase 4.3.
+Create the first protected /admin shell.
+Use the project design system.
+Keep the admin shell minimal and operationally safe.
+Do not add booking, payment, calendar, image, email, or iCal features yet.
 Keep public pages accessible without login.
-Redirect unauthenticated users away from protected admin routes.
-Block authenticated but non-allowlisted users server-side.
-Avoid admin UI implementation until route protection is in place.
 ```
 
 ## Next Recommended Work
 
 ```text
-1. Apply Phase 4.3 files.
-2. Run npm install to regenerate package-lock.json with next-auth.
-3. Run npm run env:validate.
-4. Run npm run db:validate.
-5. Run npm run lint and npm run build.
-6. Commit Phase 4.3.
-7. Continue with Phase 4.4 Admin route protection foundation.
+1. Apply Phase 4.4 files.
+2. Run npm run env:validate.
+3. Run npm run db:validate.
+4. Run npm run lint and npm run build.
+5. Commit Phase 4.4.
+6. Continue with Phase 4.5 Minimal admin shell.
 ```
 
 ## Continuity Notes for New Conversations
@@ -181,9 +202,11 @@ docs/20-phase-3-database-closure-review.md
 docs/21-auth-admin-strategy.md
 docs/22-auth-environment-validation.md
 docs/23-auth-js-configuration.md
+docs/24-admin-route-protection.md
 lib/env/server.ts
 .env.example
 auth.ts
+middleware.ts
 app/api/auth/[...nextauth]/route.ts
 ```
 
