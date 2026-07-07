@@ -117,6 +117,7 @@ docs/
   23-auth-js-configuration.md
   24-admin-route-protection.md
   25-minimal-admin-shell.md
+  26-phase-4-auth-closure-review.md
 ```
 
 The assistant collaboration rules live in:
@@ -128,10 +129,10 @@ AGENTS.md
 ## Development Status
 
 ```text
-Current phase: Phase 4 — Admin Authentication Foundation
-Current subphase: 4.6 Phase 4 documentation update
-Last completed subphase: 4.5 Minimal admin shell
-Last completed phase: Phase 3 — Database Foundation
+Current phase: Phase 5 — Cloudinary Integration
+Current subphase: 5.1 Cloudinary strategy and environment foundation
+Last completed phase: Phase 4 — Admin Authentication Foundation
+Last completed subphase: 4.6 Phase 4 documentation update
 ```
 
-See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/21-auth-admin-strategy.md`, `docs/22-auth-environment-validation.md`, `docs/23-auth-js-configuration.md`, `docs/24-admin-route-protection.md`, and `docs/25-minimal-admin-shell.md` for the official Phase 4 tracker and setup notes.
+See `docs/10-phases.md`, `docs/11-progress-log.md`, and `docs/26-phase-4-auth-closure-review.md` for the official current tracker and Phase 4 closure notes.

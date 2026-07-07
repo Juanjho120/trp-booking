@@ -5,11 +5,11 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 ## Current Status
 
 ```text
-Current phase: Phase 4 — Admin Authentication Foundation
-Current subphase: 4.6 Phase 4 documentation update
+Current phase: Phase 5 — Cloudinary Integration
+Current subphase: 5.1 Cloudinary strategy and environment foundation
 Last updated: 2026-07-07
-Last completed phase: Phase 3 — Database Foundation
-Last completed subphase: 4.5 Minimal admin shell
+Last completed phase: Phase 4 — Admin Authentication Foundation
+Last completed subphase: 4.6 Phase 4 documentation update
 ```
 
 ## Completed Work
@@ -60,6 +60,21 @@ No migrations were created or applied in Phase 3.
 No Supabase data was written in Phase 3.
 ```
 
+### Phase 4 — Admin Authentication Foundation
+
+Status: **Completed**
+
+Completed subphases:
+
+```text
+4.1 Auth.js strategy and admin access foundation
+4.2 Auth environment variables and validation
+4.3 Auth.js configuration
+4.4 Admin route protection foundation
+4.5 Minimal admin shell
+4.6 Phase 4 documentation update
+```
+
 ### Phase 4.1 — Auth.js Strategy and Admin Access Foundation
 
 Status: **Completed**
@@ -80,8 +95,8 @@ Security guardrails documented before implementation
 Important decision:
 
 ```text
-TRP Booking will start with Auth.js / NextAuth using Google OAuth and a server-side admin allowlist.
-The initial implementation will use JWT sessions and will not introduce the Prisma adapter yet.
+TRP Booking starts with Auth.js / NextAuth using Google OAuth and a server-side admin allowlist.
+The initial implementation uses JWT sessions and does not introduce the Prisma adapter yet.
 ```
 
 ### Phase 4.2 — Auth Environment Variables and Validation
@@ -103,10 +118,11 @@ getAllowedAdminEmails helper added
 docs/22-auth-environment-validation.md added
 ```
 
-Important limitation:
+Important Phase 4.6 correction:
 
 ```text
-Phase 4.2 does not install next-auth and does not configure Auth.js yet.
+After /admin middleware and Auth.js routes were enabled, local development must use AUTH_TRUST_HOST=true to avoid Auth.js UntrustedHost errors.
+.env.example and docs/22-auth-environment-validation.md were corrected during Phase 4.6.
 ```
 
 ### Phase 4.3 — Auth.js Configuration
@@ -130,7 +146,7 @@ docs/23-auth-js-configuration.md added
 Important limitation:
 
 ```text
-Phase 4.3 does not add middleware, admin route protection, admin pages, admin login UI, Prisma adapter, database migrations, Tilopay, Cloudinary, Resend, Airbnb iCal sync, or PMS features.
+Phase 4.3 did not add middleware, admin route protection, admin pages, admin login UI, Prisma adapter, database migrations, Tilopay, Cloudinary, Resend, Airbnb iCal sync, or PMS features.
 ```
 
 ### Phase 4.4 — Admin Route Protection Foundation
@@ -153,7 +169,7 @@ docs/24-admin-route-protection.md added
 Important limitation:
 
 ```text
-Phase 4.4 does not add admin pages, admin login UI, admin layout, Prisma adapter, database migrations, Tilopay, Cloudinary, Resend, Airbnb iCal sync, or PMS features.
+Phase 4.4 did not add admin pages, admin login UI, admin layout, Prisma adapter, database migrations, Tilopay, Cloudinary, Resend, Airbnb iCal sync, or PMS features.
 ```
 
 ### Phase 4.5 — Minimal Admin Shell
@@ -173,46 +189,75 @@ Admin metadata added with noindex robots behavior
 docs/25-minimal-admin-shell.md added
 ```
 
+Manual result confirmed:
+
+```text
+After setting AUTH_TRUST_HOST=true locally and restarting the dev server, /admin worked with the Auth.js protected admin flow.
+```
+
 Important limitation:
 
 ```text
-Phase 4.5 does not add booking management, payment management, calendar management, image management, email sending, Airbnb iCal sync, Prisma adapter, database migrations, or PMS features.
+Phase 4.5 did not add booking management, payment management, calendar management, image management, email sending, Airbnb iCal sync, Prisma adapter, database migrations, or PMS features.
+```
+
+### Phase 4.6 — Phase 4 Documentation Update
+
+Status: **Completed**
+
+Completed deliverables:
+
+```text
+docs/26-phase-4-auth-closure-review.md added
+README.md updated with Phase 4 closure and Phase 5 current status
+docs/10-phases.md updated to mark Phase 4 completed and Phase 5 in progress
+docs/11-progress-log.md updated to close Phase 4 and start Phase 5.1
+.env.example corrected to use AUTH_TRUST_HOST=true by default for local Auth.js admin routes
+docs/22-auth-environment-validation.md corrected with the AUTH_TRUST_HOST=true requirement after admin middleware is enabled
+```
+
+Closure result:
+
+```text
+Phase 4 is complete as an admin authentication foundation phase.
+/admin is protected before exposing operational admin features.
+The minimal admin shell exists and remains intentionally safe.
+No booking, payment, calendar, image upload, email, iCal, or PMS functionality was added in Phase 4.
 ```
 
 ## Current Work
 
-### Phase 4 — Admin Authentication Foundation
+### Phase 5 — Cloudinary Integration
 
 Status: **In progress**
 
 Current subphase:
 
 ```text
-4.6 Phase 4 documentation update
+5.1 Cloudinary strategy and environment foundation
 ```
 
-Phase 4.6 goals:
+Phase 5.1 goals:
 
 ```text
-Review Phase 4 implementation and documentation.
-Confirm the authentication foundation is complete.
-Confirm /admin remains protected.
-Confirm public routes remain accessible without login.
-Close Phase 4 before starting Cloudinary or any later integration phase.
+Review the documented Cloudinary scope.
+Define which Cloudinary variables will be required.
+Define server-only usage rules for Cloudinary credentials.
+Define image ownership, folder naming, and public delivery expectations.
+Do not upload images or add image management UI yet.
+Do not add booking, payment, email, calendar, iCal, or PMS features.
 ```
 
 ## Next Recommended Work
 
 ```text
-1. Apply Phase 4.5 files.
-2. Run npm run env:validate.
-3. Run npm run db:validate.
-4. Run npm run lint and npm run build.
-5. Test /admin while signed out.
-6. Test /admin while signed in with an allowlisted Google account.
-7. Test sign out from /admin.
-8. Commit Phase 4.5.
-9. Continue with Phase 4.6 Phase 4 documentation update.
+1. Apply Phase 4.6 documentation files.
+2. Keep local AUTH_TRUST_HOST=true.
+3. Run npm run env:validate.
+4. Run npm run db:validate.
+5. Run npm run lint and npm run build.
+6. Commit Phase 4.6.
+7. Continue with Phase 5.1 Cloudinary strategy and environment foundation.
 ```
 
 ## Continuity Notes for New Conversations
@@ -222,6 +267,8 @@ Minimum context files to review before continuing:
 ```text
 README.md
 AGENTS.md
+docs/03-architecture.md
+docs/04-database-model.md
 docs/10-phases.md
 docs/11-progress-log.md
 docs/20-phase-3-database-closure-review.md
@@ -230,6 +277,7 @@ docs/22-auth-environment-validation.md
 docs/23-auth-js-configuration.md
 docs/24-admin-route-protection.md
 docs/25-minimal-admin-shell.md
+docs/26-phase-4-auth-closure-review.md
 lib/env/server.ts
 .env.example
 auth.ts
@@ -245,7 +293,8 @@ Important working rules:
 Use ZIPs with real files for non-trivial changes.
 Do not hardcode public or admin UI copy in TSX components.
 Do not add PMS features.
-Do not integrate Cloudinary, Resend, Tilopay, or Airbnb iCal before their documented phases.
+Do not integrate Resend, Tilopay, or Airbnb iCal before their documented phases.
 Keep phase/subphase tracking updated.
 Do not expose admin pages without route protection.
+Do not commit secrets, provider keys, or real credentials.
 ```

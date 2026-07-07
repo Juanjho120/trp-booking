@@ -14,9 +14,9 @@ Deferred — Intentionally postponed.
 ## Current Phase
 
 ```text
-Current phase: Phase 4 — Admin Authentication Foundation
-Current subphase: 4.6 Phase 4 documentation update
-Current focus: review and close the Phase 4 authentication foundation after the protected minimal admin shell.
+Current phase: Phase 5 — Cloudinary Integration
+Current subphase: 5.1 Cloudinary strategy and environment foundation
+Current focus: define the Cloudinary integration approach and environment requirements after closing the protected admin authentication foundation.
 ```
 
 ---
@@ -102,11 +102,11 @@ Important Phase 3 closure notes:
 
 ## Phase 4 — Admin Authentication Foundation
 
-Status: **In progress**
+Status: **Completed**
 
 Goal: Add the minimum authentication foundation required for the private admin area.
 
-Subphase status:
+Completed subphases:
 
 ```text
 4.1 Auth.js strategy and admin access foundation — Completed
@@ -114,27 +114,62 @@ Subphase status:
 4.3 Auth.js configuration — Completed
 4.4 Admin route protection foundation — Completed
 4.5 Minimal admin shell — Completed
-4.6 Phase 4 documentation update — In progress
+4.6 Phase 4 documentation update — Completed
 ```
 
-Phase 4 rules:
+Phase 4 closure result:
 
 ```text
-- Do not add booking checkout in Phase 4.
-- Do not integrate Tilopay in Phase 4.
-- Do not integrate Cloudinary in Phase 4.
-- Do not integrate Resend in Phase 4.
-- Do not implement Airbnb iCal sync in Phase 4.
-- Do not add PMS features.
-- Keep public pages working while adding admin authentication foundation.
-- Do not expose admin pages without route protection.
+- Google OAuth admin authentication is configured through Auth.js / NextAuth.
+- JWT sessions are used without the Prisma adapter.
+- Admin access is controlled by the server-side AUTH_ALLOWED_ADMIN_EMAILS allowlist.
+- /admin routes are protected before exposing admin UI.
+- The first protected minimal admin shell exists.
+- Public routes remain accessible without login.
+- AUTH_TRUST_HOST=true is required for local/admin Auth.js routes after middleware is enabled.
+```
+
+Phase 4 rules preserved:
+
+```text
+- No booking checkout was added in Phase 4.
+- No Tilopay integration was added in Phase 4.
+- No Cloudinary integration was added in Phase 4.
+- No Resend integration was added in Phase 4.
+- No Airbnb iCal sync was implemented in Phase 4.
+- No PMS features were added.
 ```
 
 ---
 
 ## Phase 5 — Cloudinary Integration
 
-Status: **Not started**
+Status: **In progress**
+
+Goal: Add the image storage, delivery, and transformation foundation for accommodation images without introducing reservation, payment, email, or iCal functionality.
+
+Subphase status:
+
+```text
+5.1 Cloudinary strategy and environment foundation — In progress
+5.2 Cloudinary environment validation — Not started
+5.3 Cloudinary service foundation — Not started
+5.4 Accommodation image data mapping review — Not started
+5.5 Phase 5 documentation update — Not started
+```
+
+Phase 5 rules:
+
+```text
+- Do not add booking checkout in Phase 5.
+- Do not integrate Tilopay in Phase 5.
+- Do not integrate Resend in Phase 5.
+- Do not implement Airbnb iCal sync in Phase 5.
+- Do not add PMS features.
+- Do not store provider secrets in client-side code.
+- Do not upload or persist images until the Cloudinary strategy and environment validation are documented.
+- Public pages must keep working during the image integration foundation.
+```
 
 ---
 
