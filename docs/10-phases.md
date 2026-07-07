@@ -15,8 +15,8 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 3 — Database Foundation
-Current subphase: 3.4 Soft delete and audit field conventions
-Current focus: review and document the soft delete and audit conventions applied by the initial Prisma schema.
+Current subphase: 3.5 Initial seed strategy for accommodations, amenities, rules, and static content
+Current focus: define how the existing typed public configuration will be seeded into the database later without creating application seed logic before the schema conventions are finalized.
 ```
 
 ---
@@ -84,8 +84,8 @@ Subphase status:
 3.1 Prisma and Supabase foundation setup — Completed
 3.2 Environment variable validation foundation — Completed
 3.3 Initial Prisma schema for core booking domain — Completed
-3.4 Soft delete and audit field conventions — In progress
-3.5 Initial seed strategy for accommodations, amenities, rules, and static content — Not started
+3.4 Soft delete and audit field conventions — Completed
+3.5 Initial seed strategy for accommodations, amenities, rules, and static content — In progress
 3.6 Database documentation update — Not started
 ```
 
