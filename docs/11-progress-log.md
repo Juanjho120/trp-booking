@@ -6,10 +6,10 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 3 — Database Foundation
-Current subphase: 3.2 Environment variable validation foundation
+Current subphase: 3.3 Initial Prisma schema for core booking domain
 Last updated: 2026-07-07
 Last completed phase: Phase 2 — Public Website Foundation
-Last completed subphase: 3.1 Prisma and Supabase foundation setup
+Last completed subphase: 3.2 Environment variable validation foundation
 ```
 
 ## Completed Work
@@ -91,10 +91,26 @@ Prisma migrations folder scaffolded with .gitkeep
 Database foundation documentation added in docs/15-database-foundation.md
 ```
 
-Important decision:
+Validated by user:
 
 ```text
-TRP Booking uses Prisma 6.x for the initial foundation to avoid accidentally adopting Prisma 7 breaking changes during Phase 3. Prisma 7 can be evaluated later only through an explicit migration task.
+npm run db:validate
+```
+
+### Phase 3.2 — Environment Variable Validation Foundation
+
+Status: **Completed**
+
+Completed deliverables:
+
+```text
+zod dependency added for typed runtime validation
+tsx dev dependency added for local validation script execution
+env:validate script added
+lib/env/server.ts added with server-side environment schema
+scripts/validate-env.ts added
+.env.example preserved without real secrets
+docs/16-environment-validation.md added
 ```
 
 ## Current Work
@@ -106,28 +122,28 @@ Status: **In progress**
 Current subphase:
 
 ```text
-3.2 Environment variable validation foundation
+3.3 Initial Prisma schema for core booking domain
 ```
 
-Phase 3.2 goals:
+Phase 3.3 goals:
 
 ```text
-Add typed environment validation.
-Keep secrets out of the repository.
-Avoid exposing raw environment values to the client.
-Prepare safe runtime checks for server-only configuration.
-Keep the public pages compiling and visually stable.
+Add the first documented Prisma models for the core booking domain.
+Keep models aligned with docs/04-database-model.md.
+Preserve soft delete and audit conventions where required.
+Avoid admin UI, payments integration, Cloudinary, Resend, and Airbnb iCal implementation.
+Keep public pages compiling and visually stable.
 ```
 
 ## Next Recommended Work
 
 ```text
-1. Run npm install after applying Phase 3.1 so package-lock.json is updated.
-2. Copy .env.example to .env locally and fill development placeholders with Supabase values.
+1. Run npm install after applying Phase 3.2 so package-lock.json is updated.
+2. Run npm run env:validate.
 3. Run npm run db:validate.
 4. Run npm run lint and npm run build.
-5. Commit Phase 3.1.
-6. Continue with Phase 3.2 environment validation foundation.
+5. Commit Phase 3.2.
+6. Continue with Phase 3.3 initial Prisma schema for core booking domain.
 ```
 
 ## Continuity Notes for New Conversations
@@ -139,8 +155,8 @@ README.md
 AGENTS.md
 docs/10-phases.md
 docs/11-progress-log.md
-docs/14-phase-2-closure-review.md
 docs/15-database-foundation.md
+docs/16-environment-validation.md
 ```
 
 Important working rules:

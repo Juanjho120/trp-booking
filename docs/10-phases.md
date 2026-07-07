@@ -15,8 +15,8 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 3 — Database Foundation
-Current subphase: 3.2 Environment variable validation foundation
-Current focus: add typed environment validation after the Prisma/PostgreSQL foundation has been installed and documented.
+Current subphase: 3.3 Initial Prisma schema for core booking domain
+Current focus: add the first documented Prisma models for the core booking domain after environment validation is in place.
 ```
 
 ---
@@ -101,8 +101,8 @@ Subphase status:
 
 ```text
 3.1 Prisma and Supabase foundation setup — Completed
-3.2 Environment variable validation foundation — In progress
-3.3 Initial Prisma schema for core booking domain — Not started
+3.2 Environment variable validation foundation — Completed
+3.3 Initial Prisma schema for core booking domain — In progress
 3.4 Soft delete and audit field conventions — Not started
 3.5 Initial seed strategy for accommodations, amenities, rules, and static content — Not started
 3.6 Database documentation update — Not started
