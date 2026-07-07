@@ -83,6 +83,7 @@ Max guests: 6
 - Business-critical reservation, payment, refund, calendar, sync, and audit records must not be hard-deleted.
 - Admin-managed catalog records that can be hidden from the UI should use soft delete where historical consistency matters.
 - Seed data must be deterministic and idempotent; no seed script should create duplicate properties, amenities, rules, or relationships.
+- Admin access must be protected before any admin page exposes operational data or actions.
 
 ## Documentation
 
@@ -111,6 +112,7 @@ docs/
   18-soft-delete-audit-conventions.md
   19-seed-strategy.md
   20-phase-3-database-closure-review.md
+  21-auth-admin-strategy.md
 ```
 
 The assistant collaboration rules live in:
@@ -123,9 +125,9 @@ AGENTS.md
 
 ```text
 Current phase: Phase 4 — Admin Authentication Foundation
-Current subphase: 4.1 Auth.js strategy and admin access foundation
-Last completed subphase: 3.6 Database documentation update
+Current subphase: 4.2 Auth environment variables and validation
+Last completed subphase: 4.1 Auth.js strategy and admin access foundation
 Last completed phase: Phase 3 — Database Foundation
 ```
 
-See `docs/10-phases.md`, `docs/11-progress-log.md`, and the Phase 3 documentation files for the official tracker and setup notes.
+See `docs/10-phases.md`, `docs/11-progress-log.md`, and `docs/21-auth-admin-strategy.md` for the official Phase 4 tracker and setup notes.

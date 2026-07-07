@@ -15,8 +15,8 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 4 — Admin Authentication Foundation
-Current subphase: 4.1 Auth.js strategy and admin access foundation
-Current focus: define and implement the minimal admin authentication foundation without adding booking, payments, Cloudinary, Resend, or Airbnb iCal logic.
+Current subphase: 4.2 Auth environment variables and validation
+Current focus: add Auth.js-related environment variable placeholders and validation before installing or configuring Auth.js.
 ```
 
 ---
@@ -106,11 +106,11 @@ Status: **In progress**
 
 Goal: Add the minimum authentication foundation required for the private admin area.
 
-Planned subphases:
+Subphase status:
 
 ```text
-4.1 Auth.js strategy and admin access foundation — In progress
-4.2 Auth environment variables and validation — Not started
+4.1 Auth.js strategy and admin access foundation — Completed
+4.2 Auth environment variables and validation — In progress
 4.3 Auth.js configuration — Not started
 4.4 Admin route protection foundation — Not started
 4.5 Minimal admin shell — Not started
