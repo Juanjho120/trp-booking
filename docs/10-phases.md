@@ -1,10 +1,30 @@
 # 10 — Project Phases
 
+This document defines the official implementation phases for TRP Booking and tracks the current progress at a high level.
+
+## Status Legend
+
+```text
+Not started  — Work has not begun.
+In progress  — Work has started but the phase is not complete.
+Completed    — Deliverables are implemented and committed.
+Deferred     — Intentionally postponed.
+```
+
+## Current Phase
+
+```text
+Current phase: Phase 2 — Public Website Foundation
+Current focus: static public pages, centralized public copy, and visual polish before database work.
+```
+
+---
+
 ## Phase 0 — Project Definition and Technical Documentation
 
-Goal:
+Status: **Completed**
 
-Create official project documentation before writing code.
+Goal: Create official project documentation before writing code.
 
 Deliverables:
 
@@ -22,19 +42,29 @@ docs/07-airbnb-ical-sync.md
 docs/08-email-notifications.md
 docs/09-deployment.md
 docs/10-phases.md
+docs/11-progress-log.md
 ```
 
-Status:
-
-```text
-In progress
-```
+---
 
 ## Phase 1 — Repository and Next.js Setup
 
-Goal:
+Status: **Completed**
 
-Create the technical foundation.
+Goal: Create the technical foundation.
+
+Completed subphases:
+
+```text
+1.1 GitHub repository created
+1.2 Initial documentation committed
+1.3 Clean Next.js 15 setup
+1.4 TypeScript strict enabled
+1.5 ESLint configured
+1.6 shadcn/ui + Radix Luma design system foundation
+1.7 Base project folders created
+1.8 Initial site config, accommodation config, messages, and error keys
+```
 
 Deliverables:
 
@@ -43,20 +73,68 @@ GitHub repository trp-booking
 Next.js 15 setup
 TypeScript strict
 ESLint
-Prettier, if selected
 Basic App Router structure
 Base layout
-Initial i18n structure
-Environment validation
+Initial i18n/message structure
 Centralized error message foundation
-Initial Vercel deployment
+Design system foundation
 ```
 
-## Phase 2 — Prisma and Supabase Setup
+---
 
-Goal:
+## Phase 2 — Public Website Foundation
 
-Connect database and define initial schema.
+Status: **In progress**
+
+Goal: Build the first static public website experience before adding database, admin, booking, payments, or calendar logic.
+
+Completed subphases:
+
+```text
+2.1 Initial marketing homepage shell
+2.2 Public layout foundation with header and footer
+2.3 Static accommodation listing page
+2.4 Static accommodation detail pages
+2.5 Static image foundation with optimized local WebP assets
+```
+
+Current subphase:
+
+```text
+2.6 Centralize public page copy and add amenity icons
+```
+
+Remaining / upcoming subphases:
+
+```text
+2.7 Public copy cleanup and visual QA
+2.8 Basic SEO metadata review for static pages
+2.9 Mobile responsive review
+```
+
+Deliverables:
+
+```text
+Home page
+Accommodation listing page
+Accommodation detail pages
+Header
+Footer
+Responsive layout
+Brand tone implementation
+Static optimized images
+Centralized public copy foundation
+Amenity icons
+Basic SEO metadata
+```
+
+---
+
+## Phase 3 — Prisma and Supabase Setup
+
+Status: **Not started**
+
+Goal: Connect database and define initial schema.
 
 Deliverables:
 
@@ -69,30 +147,13 @@ Seed data for three accommodations
 Database connection validation
 ```
 
-## Phase 3 — Public Site Base
-
-Goal:
-
-Build the first public pages.
-
-Deliverables:
-
-```text
-Home page
-Accommodation listing page
-Accommodation detail page
-Header
-Footer
-Responsive layout
-Brand tone implementation
-Basic SEO metadata
-```
+---
 
 ## Phase 4 — Cloudinary Images
 
-Goal:
+Status: **Not started**
 
-Manage and display accommodation photos.
+Goal: Manage and display accommodation photos from Cloudinary.
 
 Deliverables:
 
@@ -106,11 +167,13 @@ Alt text management
 Optimized public gallery
 ```
 
+---
+
 ## Phase 5 — Admin Authentication and Admin Base
 
-Goal:
+Status: **Not started**
 
-Protect the private area.
+Goal: Protect the private area.
 
 Deliverables:
 
@@ -123,11 +186,13 @@ Admin navigation
 Basic audit logging
 ```
 
+---
+
 ## Phase 6 — Accommodation Admin
 
-Goal:
+Status: **Not started**
 
-Manage core accommodation content.
+Goal: Manage core accommodation content.
 
 Deliverables:
 
@@ -141,11 +206,13 @@ Manage rules
 Manage composed listing configuration
 ```
 
+---
+
 ## Phase 7 — Availability Engine
 
-Goal:
+Status: **Not started**
 
-Calculate availability correctly.
+Goal: Calculate availability correctly.
 
 Deliverables:
 
@@ -161,11 +228,13 @@ Public date selector
 Admin calendar view
 ```
 
+---
+
 ## Phase 8 — Airbnb iCal Synchronization
 
-Goal:
+Status: **Not started**
 
-Synchronize calendars with Airbnb.
+Goal: Synchronize calendars with Airbnb.
 
 Deliverables:
 
@@ -181,11 +250,13 @@ Vercel Cron endpoint
 Sync logs
 ```
 
+---
+
 ## Phase 9 — Reservation Flow Without Payment
 
-Goal:
+Status: **Not started**
 
-Create reservation flow and pending holds.
+Goal: Create reservation flow and pending holds.
 
 Deliverables:
 
@@ -201,11 +272,13 @@ Reservation summary page
 No self-service confirmed date modification
 ```
 
+---
+
 ## Phase 10 — Tilopay Sandbox Integration
 
-Goal:
+Status: **Not started**
 
-Connect reservations to sandbox payments.
+Goal: Connect reservations to sandbox payments.
 
 Deliverables:
 
@@ -221,11 +294,13 @@ Reservation confirmation after payment
 Payment failed handling
 ```
 
+---
+
 ## Phase 11 — Resend Email Notifications
 
-Goal:
+Status: **Not started**
 
-Send transactional emails.
+Goal: Send transactional emails.
 
 Deliverables:
 
@@ -244,11 +319,13 @@ Spanish templates
 English templates
 ```
 
+---
+
 ## Phase 12 — Cancellation, Date Changes, Extensions, and Refunds
 
-Goal:
+Status: **Not started**
 
-Handle cancellations, admin-approved date changes, stay extensions, and refund tracking.
+Goal: Handle cancellations, admin-approved date changes, stay extensions, and refund tracking.
 
 Deliverables:
 
@@ -267,11 +344,13 @@ Refund email
 Audit logs
 ```
 
+---
+
 ## Phase 13 — SEO and Trust Polish
 
-Goal:
+Status: **Not started**
 
-Prepare public pages for trust and search visibility.
+Goal: Prepare public pages for trust and search visibility.
 
 Deliverables:
 
@@ -288,11 +367,13 @@ Performance review
 Image optimization review
 ```
 
+---
+
 ## Phase 14 — Logo Refresh and Brand Finalization
 
-Goal:
+Status: **Not started**
 
-Replace temporary brand assets with polished assets.
+Goal: Replace temporary brand assets with polished assets.
 
 Deliverables:
 
@@ -308,11 +389,13 @@ Social preview image
 
 This phase may be done earlier if final logo assets are ready.
 
+---
+
 ## Phase 15 — Production Preparation
 
-Goal:
+Status: **Not started**
 
-Prepare the project for real reservations and payments.
+Goal: Prepare the project for real reservations and payments.
 
 Deliverables:
 
@@ -333,11 +416,13 @@ Airbnb import/export validation
 Launch checklist completed
 ```
 
+---
+
 ## Phase 16 — Analytics and Conversion Tracking
 
-Goal:
+Status: **Not started**
 
-Measure user behavior and booking conversion.
+Goal: Measure user behavior and booking conversion.
 
 Deliverables:
 
@@ -350,27 +435,4 @@ Checkout start event
 Payment success event
 Payment failed event
 Admin dashboard metrics, optional
-```
-
-## Implementation Order
-
-Recommended order:
-
-```text
-1. Documentation
-2. Repository setup
-3. Next.js setup
-4. Database setup
-5. Public site
-6. Images
-7. Admin
-8. Availability
-9. Airbnb iCal
-10. Reservations
-11. Payments
-12. Emails
-13. Cancellations/date changes/extensions/refunds
-14. SEO/trust polish
-15. Production
-16. Analytics
 ```

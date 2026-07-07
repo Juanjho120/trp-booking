@@ -1,3 +1,5 @@
+import type { AmenityKey } from "@/types/amenity";
+
 export type AccommodationId =
   | "black-white-apartment"
   | "perfect-retreat-bungalow"
@@ -46,7 +48,7 @@ export type Accommodation = Readonly<{
   coverImage: AccommodationImage;
   galleryImages: readonly AccommodationImage[];
   highlights: LocalizedList;
-  amenities: LocalizedList;
+  amenityKeys: readonly AmenityKey[];
   rules: LocalizedList;
   composedOf?: readonly AccommodationId[];
 }>;

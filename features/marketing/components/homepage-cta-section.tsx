@@ -1,6 +1,9 @@
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
+import { esMessages } from "@/messages";
+
+const messages = esMessages;
 
 export function HomepageCtaSection() {
   return (
@@ -9,18 +12,18 @@ export function HomepageCtaSection() {
         <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-2xl">
             <p className="text-sm font-semibold uppercase tracking-[0.24em] text-primary-foreground/75">
-              Próximamente
+              {messages.home.cta.eyebrow}
             </p>
             <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
-              Reserva directo en Tu Refugio Perfecto.
+              {messages.home.cta.title}
             </h2>
             <p className="mt-4 text-base leading-7 text-primary-foreground/80">
-              La siguiente fase agregará páginas públicas por alojamiento, galerías y contenido completo antes de conectar disponibilidad y pagos.
+              {messages.home.cta.description}
             </p>
           </div>
 
           <Button asChild className="rounded-full bg-background text-foreground hover:bg-background/90" size="lg">
-            <Link href="#alojamientos">Explorar alojamientos</Link>
+            <Link href="#alojamientos">{messages.common.exploreAccommodations}</Link>
           </Button>
         </div>
       </div>

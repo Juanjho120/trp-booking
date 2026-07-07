@@ -2,14 +2,9 @@ import Link from "next/link";
 
 import { Separator } from "@/components/ui/separator";
 import { siteConfig } from "@/config/site";
+import { esMessages } from "@/messages";
 
-const footerLinks = [
-  { label: "Inicio", href: "/" },
-  { label: "Alojamientos", href: "/alojamientos" },
-  { label: "Beneficios", href: "/#beneficios" },
-  { label: "Ubicación", href: "/#ubicacion" },
-  { label: "Contacto", href: "/#contacto" },
-] as const;
+const messages = esMessages;
 
 export function SiteFooter() {
   return (
@@ -19,14 +14,14 @@ export function SiteFooter() {
           <div>
             <p className="text-sm font-semibold text-foreground">{siteConfig.publicName}</p>
             <p className="mt-3 max-w-md text-sm leading-6 text-muted-foreground">
-              Reservas directas para alojamientos privados en Panajachel, cerca del Lago de Atitlán.
+              {messages.footer.description}
             </p>
           </div>
 
           <div>
-            <p className="text-sm font-semibold text-foreground">Navegación</p>
+            <p className="text-sm font-semibold text-foreground">{messages.footer.navigationTitle}</p>
             <div className="mt-3 flex flex-col gap-2">
-              {footerLinks.map((link) => (
+              {messages.navigation.items.map((link) => (
                 <Link
                   className="text-sm text-muted-foreground transition hover:text-foreground"
                   href={link.href}
@@ -39,16 +34,13 @@ export function SiteFooter() {
           </div>
 
           <div>
-            <p className="text-sm font-semibold text-foreground">Contacto</p>
+            <p className="text-sm font-semibold text-foreground">{messages.footer.contactTitle}</p>
             <div className="mt-3 flex flex-col gap-2 text-sm text-muted-foreground">
               <a className="transition hover:text-foreground" href={`mailto:${siteConfig.emails.reservationsEs}`}>
                 {siteConfig.emails.reservationsEs}
               </a>
               <a className="transition hover:text-foreground" href={`mailto:${siteConfig.emails.reservationsEn}`}>
                 {siteConfig.emails.reservationsEn}
-              </a>
-              <a className="transition hover:text-foreground" href={`mailto:${siteConfig.emails.admin}`}>
-                {siteConfig.emails.admin}
               </a>
             </div>
           </div>
@@ -57,8 +49,12 @@ export function SiteFooter() {
         <Separator className="my-8" />
 
         <div className="flex flex-col gap-3 text-xs text-muted-foreground md:flex-row md:items-center md:justify-between">
-          <p>© {new Date().getFullYear()} {siteConfig.brandName}. All rights reserved.</p>
-          <p>Direct booking website powered by {siteConfig.internalName}.</p>
+          <p>
+            © {new Date().getFullYear()} {siteConfig.brandName}. {messages.footer.rights}
+          </p>
+          <p>
+            {messages.footer.poweredBy} {siteConfig.internalName}.
+          </p>
         </div>
       </div>
     </footer>

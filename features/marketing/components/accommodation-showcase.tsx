@@ -11,6 +11,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { accommodations } from "@/config/accommodations";
+import { esMessages } from "@/messages";
+
+const messages = esMessages;
 
 export function AccommodationShowcase() {
   return (
@@ -18,13 +21,13 @@ export function AccommodationShowcase() {
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="max-w-2xl">
           <Badge className="rounded-full" variant="secondary">
-            Alojamientos
+            {messages.home.accommodations.badge}
           </Badge>
           <h2 className="mt-5 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-            Elige el espacio ideal para tu estadía.
+            {messages.home.accommodations.title}
           </h2>
           <p className="mt-4 text-base leading-7 text-muted-foreground">
-            Reserva un alojamiento independiente o el refugio completo para disfrutar más privacidad y comodidad en grupo.
+            {messages.home.accommodations.description}
           </p>
         </div>
 
@@ -50,10 +53,13 @@ export function AccommodationShowcase() {
                     className="rounded-full"
                     variant={accommodation.kind === "composed" ? "default" : "secondary"}
                   >
-                    {accommodation.kind === "composed" ? "Combinado" : "Privado"}
+                    {accommodation.kind === "composed"
+                      ? messages.home.accommodations.composedLabel
+                      : messages.home.accommodations.privateLabel}
                   </Badge>
                   <span className="text-sm font-medium text-muted-foreground">
-                    Hasta {accommodation.maxGuests} huéspedes
+                    {messages.home.accommodations.upToGuestsPrefix} {accommodation.maxGuests}{" "}
+                    {messages.home.accommodations.guests}
                   </span>
                 </div>
                 <CardTitle className="mt-4 text-2xl">{accommodation.name.es}</CardTitle>
@@ -64,20 +70,31 @@ export function AccommodationShowcase() {
                 </p>
                 <div className="mt-6 flex items-end justify-between gap-4">
                   <div>
-                    <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Desde</p>
+                    <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                      {messages.home.accommodations.from}
+                    </p>
                     <p className="mt-1 text-3xl font-semibold text-foreground">
                       ${accommodation.baseNightlyPriceUsd}
-                      <span className="text-sm font-normal text-muted-foreground"> / noche</span>
+                      <span className="text-sm font-normal text-muted-foreground">
+                        {" "}
+                        {messages.home.accommodations.perNight}
+                      </span>
                     </p>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {accommodation.bedrooms} hab. · {accommodation.bathrooms} baño{accommodation.bathrooms > 1 ? "s" : ""}
+                    {accommodation.bedrooms} {messages.home.accommodations.bedroomAbbr} ·{" "}
+                    {accommodation.bathrooms}{" "}
+                    {accommodation.bathrooms > 1
+                      ? messages.home.accommodations.bathroomPlural
+                      : messages.home.accommodations.bathroomSingular}
                   </p>
                 </div>
               </CardContent>
               <CardFooter>
                 <Button asChild className="w-full rounded-full">
-                  <Link href={`/alojamientos/${accommodation.slug.es}`}>Ver detalles</Link>
+                  <Link href={`/alojamientos/${accommodation.slug.es}`}>
+                    {messages.common.viewDetails}
+                  </Link>
                 </Button>
               </CardFooter>
             </Card>

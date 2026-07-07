@@ -1,6 +1,6 @@
 # TRP Booking
 
-**TRP Booking** is the technical name for the direct booking website of **Tu Refugio Perfecto**, a lodging business in Panajachel, Guatemala.
+TRP Booking is the technical name for the direct booking website of Tu Refugio Perfecto, a lodging business in Panajachel, Guatemala.
 
 The public brand of the project is:
 
@@ -30,7 +30,7 @@ It also includes a private admin area to manage the minimum operational features
 
 ## Important Scope Boundary
 
-This project is **not intended to become a PMS**.
+This project is not intended to become a PMS.
 
 TAMIAS is the internal PMS / operational system for property management. TRP Booking is focused only on the public booking experience, direct reservations, payments, Airbnb iCal synchronization, and a minimal admin panel for that flow.
 
@@ -73,6 +73,8 @@ Max guests: 6
 ## Key Operational Rules
 
 - User-facing error messages must be centralized, reusable, bilingual, and mapped by domain instead of hardcoded inside components or server handlers.
+- Public page copy should be centralized in `messages/en.ts` and `messages/es.ts` instead of hardcoded in TSX components.
+- Amenity labels and icons should be managed through the typed amenity catalog.
 - Guests must not modify confirmed reservation dates directly from the public website. Date changes require admin authorization or cancellation and a new reservation according to the cancellation policy.
 - Stay extensions require a server-side availability check and any additional payment before the reservation is updated or extended.
 - Confirmed reservations and imported Airbnb bookings must generate preparation buffer blocks automatically. The admin can manually unlock preparation buffer days when operationally convenient.
@@ -94,6 +96,7 @@ docs/
   08-email-notifications.md
   09-deployment.md
   10-phases.md
+  11-progress-log.md
 ```
 
 The assistant collaboration rules live in:
@@ -104,4 +107,9 @@ AGENTS.md
 
 ## Development Status
 
-This repository starts with documentation first. Code setup should begin only after the documentation has been reviewed and accepted.
+```text
+Current phase: Phase 2 — Public Website Foundation
+Current subphase: 2.6 Centralize public page copy and add amenity icons
+```
+
+See `docs/10-phases.md` and `docs/11-progress-log.md` for the official phase tracker.

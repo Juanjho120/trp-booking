@@ -12,6 +12,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { accommodations } from "@/config/accommodations";
+import { esMessages } from "@/messages";
+
+const messages = esMessages;
 
 export function AccommodationsPage() {
   return (
@@ -21,14 +24,14 @@ export function AccommodationsPage() {
         <section className="bg-[radial-gradient(circle_at_top_left,_hsl(var(--primary)/0.12),_transparent_32rem)] py-20">
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
             <Badge className="rounded-full" variant="secondary">
-              Alojamientos
+              {messages.properties.listing.badge}
             </Badge>
             <div className="mt-6 max-w-3xl">
               <h1 className="text-balance text-4xl font-semibold tracking-tight sm:text-6xl">
-                Espacios privados para descansar en Panajachel.
+                {messages.properties.listing.title}
               </h1>
               <p className="mt-6 text-lg leading-8 text-muted-foreground">
-                Explora cada opción disponible y elige entre un apartamento privado, un bungalow familiar o el refugio completo para grupos pequeños.
+                {messages.properties.listing.description}
               </p>
             </div>
           </div>
@@ -56,7 +59,9 @@ export function AccommodationsPage() {
                     className="w-fit rounded-full"
                     variant={accommodation.kind === "composed" ? "default" : "secondary"}
                   >
-                    {accommodation.kind === "composed" ? "Combinado" : "Privado"}
+                    {accommodation.kind === "composed"
+                      ? messages.properties.listing.composedLabel
+                      : messages.properties.listing.privateLabel}
                   </Badge>
                   <CardTitle className="pt-3 text-2xl">{accommodation.name.es}</CardTitle>
                 </CardHeader>
@@ -67,21 +72,23 @@ export function AccommodationsPage() {
                   <div className="mt-6 grid grid-cols-3 gap-3 text-center text-sm">
                     <div className="rounded-2xl bg-muted p-3">
                       <p className="font-semibold text-foreground">{accommodation.maxGuests}</p>
-                      <p className="text-xs text-muted-foreground">huéspedes</p>
+                      <p className="text-xs text-muted-foreground">{messages.properties.listing.guests}</p>
                     </div>
                     <div className="rounded-2xl bg-muted p-3">
                       <p className="font-semibold text-foreground">{accommodation.bedrooms}</p>
-                      <p className="text-xs text-muted-foreground">hab.</p>
+                      <p className="text-xs text-muted-foreground">{messages.properties.listing.bedroomAbbr}</p>
                     </div>
                     <div className="rounded-2xl bg-muted p-3">
                       <p className="font-semibold text-foreground">${accommodation.baseNightlyPriceUsd}</p>
-                      <p className="text-xs text-muted-foreground">noche</p>
+                      <p className="text-xs text-muted-foreground">{messages.properties.listing.night}</p>
                     </div>
                   </div>
                 </CardContent>
                 <CardFooter>
                   <Button asChild className="w-full rounded-full">
-                    <Link href={`/alojamientos/${accommodation.slug.es}`}>Ver detalles</Link>
+                    <Link href={`/alojamientos/${accommodation.slug.es}`}>
+                      {messages.common.viewDetails}
+                    </Link>
                   </Button>
                 </CardFooter>
               </Card>

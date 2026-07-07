@@ -1,23 +1,8 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { esMessages } from "@/messages";
 
-const benefits = [
-  {
-    title: "Comunicación directa",
-    description:
-      "Habla directamente con el anfitrión antes y después de reservar, sin depender de intermediarios.",
-  },
-  {
-    title: "Pago seguro en línea",
-    description:
-      "El flujo de pago estará integrado con Tilopay y la reserva se confirmará únicamente después del pago aprobado.",
-  },
-  {
-    title: "Disponibilidad sincronizada",
-    description:
-      "El calendario se sincronizará con Airbnb para reducir el riesgo de reservas duplicadas.",
-  },
-] as const;
+const messages = esMessages;
 
 export function DirectBookingBenefits() {
   return (
@@ -26,18 +11,18 @@ export function DirectBookingBenefits() {
         <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
           <div>
             <Badge className="rounded-full" variant="secondary">
-              Reserva directa
+              {messages.home.benefits.badge}
             </Badge>
             <h2 className="mt-5 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-              Una experiencia clara, confiable y sin complicaciones.
+              {messages.home.benefits.title}
             </h2>
             <p className="mt-4 text-base leading-7 text-muted-foreground">
-              El sitio está diseñado para que el huésped pueda revisar información importante, consultar disponibilidad y completar su reserva con confianza.
+              {messages.home.benefits.description}
             </p>
           </div>
 
           <div className="grid gap-5 md:grid-cols-3 lg:grid-cols-1">
-            {benefits.map((benefit, index) => (
+            {messages.home.benefits.items.map((benefit, index) => (
               <Card className="rounded-[1.5rem] border-border/70 bg-card/80" key={benefit.title}>
                 <CardContent className="p-6">
                   <div className="mb-5 flex size-11 items-center justify-center rounded-2xl bg-primary/10 text-sm font-semibold text-primary">
