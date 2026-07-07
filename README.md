@@ -82,6 +82,7 @@ Max guests: 6
 - The admin can manually unlock preparation buffer days when operationally convenient.
 - Business-critical reservation, payment, refund, calendar, sync, and audit records must not be hard-deleted.
 - Admin-managed catalog records that can be hidden from the UI should use soft delete where historical consistency matters.
+- Seed data must be deterministic and idempotent; no seed script should create duplicate properties, amenities, rules, or relationships.
 
 ## Documentation
 
@@ -108,6 +109,7 @@ docs/
   16-environment-validation.md
   17-prisma-core-schema.md
   18-soft-delete-audit-conventions.md
+  19-seed-strategy.md
 ```
 
 The assistant collaboration rules live in:
@@ -120,9 +122,9 @@ AGENTS.md
 
 ```text
 Current phase: Phase 3 — Database Foundation
-Current subphase: 3.5 Initial seed strategy for accommodations, amenities, rules, and static content
-Last completed subphase: 3.4 Soft delete and audit field conventions
+Current subphase: 3.6 Database documentation update
+Last completed subphase: 3.5 Initial seed strategy for accommodations, amenities, rules, and static content
 Last completed phase: Phase 2 — Public Website Foundation
 ```
 
-See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/15-database-foundation.md`, `docs/16-environment-validation.md`, `docs/17-prisma-core-schema.md`, and `docs/18-soft-delete-audit-conventions.md` for the official Phase 3 tracker and setup notes.
+See `docs/10-phases.md`, `docs/11-progress-log.md`, and the Phase 3 documentation files for the official tracker and setup notes.

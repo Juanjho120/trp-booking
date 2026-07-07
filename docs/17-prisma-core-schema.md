@@ -7,7 +7,7 @@ This document describes the Phase 3.3 initial Prisma schema for the TRP Booking 
 ```text
 Phase: Phase 3 — Database Foundation
 Subphase completed by this document: 3.3 Initial Prisma schema for core booking domain
-Next subphase: 3.4 Soft delete and audit field conventions
+Follow-up schema adjustment: 3.5 added HouseRule.key for deterministic seeding
 ```
 
 ## Goal
@@ -69,6 +69,20 @@ CalendarSyncStatus
 EmailNotificationType
 EmailNotificationStatus
 ```
+
+## Seed-Related Stable Keys
+
+The schema supports deterministic seed operations through stable unique fields:
+
+```text
+Property.slug
+Amenity.key
+HouseRule.key
+Setting.key
+ExternalCalendar.exportToken
+```
+
+`HouseRule.key` was added in Phase 3.5 because the seed strategy requires deterministic, idempotent rule upserts.
 
 ## Property Composition
 
@@ -138,8 +152,6 @@ Delete images
 The schema includes soft delete fields on admin-managed business records where historical consistency matters.
 
 Records related to reservations, payments, refunds, imported calendar events, sync logs, and audit logs are not designed for hard deletion.
-
-Phase 3.4 will review and document these conventions more explicitly before migrations are created.
 
 ## Validation
 

@@ -15,8 +15,8 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 3 — Database Foundation
-Current subphase: 3.5 Initial seed strategy for accommodations, amenities, rules, and static content
-Current focus: define how the existing typed public configuration will be seeded into the database later without creating application seed logic before the schema conventions are finalized.
+Current subphase: 3.6 Database documentation update
+Current focus: close Phase 3 by consolidating database documentation and confirming that the schema, environment validation, soft delete policy, and seed strategy are aligned before migrations.
 ```
 
 ---
@@ -85,8 +85,8 @@ Subphase status:
 3.2 Environment variable validation foundation — Completed
 3.3 Initial Prisma schema for core booking domain — Completed
 3.4 Soft delete and audit field conventions — Completed
-3.5 Initial seed strategy for accommodations, amenities, rules, and static content — In progress
-3.6 Database documentation update — Not started
+3.5 Initial seed strategy for accommodations, amenities, rules, and static content — Completed
+3.6 Database documentation update — In progress
 ```
 
 Phase 3 rules:

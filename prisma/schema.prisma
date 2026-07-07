@@ -1,6 +1,6 @@
 // TRP Booking — Prisma core booking domain schema
 //
-// Phase 3.3 adds the initial database model only.
+// Phase 3.5 keeps the initial database model aligned with the seed strategy.
 // It does not create migrations, seed scripts, admin UI, payments integration,
 // Cloudinary integration, Resend integration, Airbnb iCal sync, or reservation checkout.
 //
@@ -132,38 +132,38 @@ model User {
 }
 
 model Property {
-  id                  String         @id @default(cuid())
-  nameEs              String
-  nameEn              String
-  slug                String         @unique
-  shortDescriptionEs  String         @db.Text
-  shortDescriptionEn  String         @db.Text
-  longDescriptionEs   String         @db.Text
-  longDescriptionEn   String         @db.Text
-  maxGuests           Int
-  bedrooms            Int
-  bathrooms           Int
-  baseNightlyPrice    Decimal        @db.Decimal(10, 2)
-  currency            String         @default("USD")
-  status              PropertyStatus @default(DRAFT)
-  checkInTime         String
-  checkOutTime        String?
-  isComposed          Boolean        @default(false)
-  preparationDaysBefore Int          @default(0)
-  preparationDaysAfter  Int          @default(0)
-  createdAt           DateTime       @default(now())
-  updatedAt           DateTime       @updatedAt
-  deletedAt           DateTime?
-  deletedById         String?
+  id                    String         @id @default(cuid())
+  nameEs                String
+  nameEn                String
+  slug                  String         @unique
+  shortDescriptionEs    String         @db.Text
+  shortDescriptionEn    String         @db.Text
+  longDescriptionEs     String         @db.Text
+  longDescriptionEn     String         @db.Text
+  maxGuests             Int
+  bedrooms              Int
+  bathrooms             Int
+  baseNightlyPrice      Decimal        @db.Decimal(10, 2)
+  currency              String         @default("USD")
+  status                PropertyStatus @default(DRAFT)
+  checkInTime           String
+  checkOutTime          String?
+  isComposed            Boolean        @default(false)
+  preparationDaysBefore Int            @default(0)
+  preparationDaysAfter  Int            @default(0)
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+  deletedAt             DateTime?
+  deletedById           String?
 
-  deletedBy        User?               @relation("PropertyDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull)
-  parentComponents PropertyComponent[] @relation("ParentProperty")
-  componentOf      PropertyComponent[] @relation("ComponentProperty")
-  images           PropertyImage[]
-  amenities        PropertyAmenity[]
-  rules            PropertyRule[]
-  reservations     Reservation[]
-  calendarBlocks   CalendarBlock[]
+  deletedBy         User?               @relation("PropertyDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull)
+  parentComponents  PropertyComponent[] @relation("ParentProperty")
+  componentOf       PropertyComponent[] @relation("ComponentProperty")
+  images            PropertyImage[]
+  amenities         PropertyAmenity[]
+  rules             PropertyRule[]
+  reservations      Reservation[]
+  calendarBlocks    CalendarBlock[]
   externalCalendars ExternalCalendar[]
 
   @@index([status])
@@ -220,7 +220,7 @@ model Amenity {
   deletedAt   DateTime?
   deletedById String?
 
-  deletedBy User?             @relation("AmenityDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull)
+  deletedBy  User?             @relation("AmenityDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull)
   properties PropertyAmenity[]
 
   @@index([deletedAt])
@@ -243,6 +243,7 @@ model PropertyAmenity {
 
 model HouseRule {
   id            String   @id @default(cuid())
+  key           String   @unique
   titleEs       String
   titleEn       String
   descriptionEs String   @db.Text
@@ -253,7 +254,7 @@ model HouseRule {
   deletedAt     DateTime?
   deletedById   String?
 
-  deletedBy User?          @relation("HouseRuleDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull)
+  deletedBy  User?          @relation("HouseRuleDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull)
   properties PropertyRule[]
 
   @@index([deletedAt])
@@ -369,23 +370,23 @@ model Refund {
 }
 
 model CalendarBlock {
-  id                       String              @id @default(cuid())
-  propertyId               String
-  startDate                DateTime            @db.Date
-  endDate                  DateTime            @db.Date
-  source                   CalendarBlockSource
-  reason                   String?
-  reservationId            String?
-  externalCalendarEventId  String?
-  parentBlockId            String?
-  isAdminOverrideAllowed   Boolean             @default(false)
-  unlockedByAdminAt        DateTime?
-  unlockedByAdminId        String?
-  adminOverrideReason      String?
-  createdAt                DateTime            @default(now())
-  updatedAt                DateTime            @updatedAt
-  deletedAt                DateTime?
-  deletedById              String?
+  id                      String              @id @default(cuid())
+  propertyId              String
+  startDate               DateTime            @db.Date
+  endDate                 DateTime            @db.Date
+  source                  CalendarBlockSource
+  reason                  String?
+  reservationId           String?
+  externalCalendarEventId String?
+  parentBlockId           String?
+  isAdminOverrideAllowed  Boolean             @default(false)
+  unlockedByAdminAt       DateTime?
+  unlockedByAdminId       String?
+  adminOverrideReason     String?
+  createdAt               DateTime            @default(now())
+  updatedAt               DateTime            @updatedAt
+  deletedAt               DateTime?
+  deletedById             String?
 
   property              Property               @relation(fields: [propertyId], references: [id], onDelete: Restrict)
   reservation           Reservation?            @relation(fields: [reservationId], references: [id], onDelete: SetNull)
@@ -404,16 +405,16 @@ model CalendarBlock {
 }
 
 model ExternalCalendar {
-  id                 String                 @id @default(cuid())
+  id                 String                   @id @default(cuid())
   propertyId         String
   provider           ExternalCalendarProvider @default(AIRBNB)
   name               String
   importUrlEncrypted String?
-  exportToken        String                 @unique
+  exportToken        String                   @unique
   lastSyncedAt       DateTime?
-  status             ExternalCalendarStatus @default(ACTIVE)
-  createdAt          DateTime               @default(now())
-  updatedAt          DateTime               @updatedAt
+  status             ExternalCalendarStatus   @default(ACTIVE)
+  createdAt          DateTime                 @default(now())
+  updatedAt          DateTime                 @updatedAt
   deletedAt          DateTime?
   deletedById        String?
 
