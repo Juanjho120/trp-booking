@@ -5,11 +5,11 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 ## Current Status
 
 ```text
-Current phase: Phase 6 — Availability Calendar Foundation
-Current subphase: 6.5 Phase 6 documentation update
+Current phase: Phase 7 — Airbnb iCal Synchronization
+Current subphase: 7.1 Airbnb iCal strategy and environment contract
 Last updated: 2026-07-08
-Last completed phase: Phase 5 — Cloudinary Integration
-Last completed subphase: 6.4 Preparation buffer and blocked-date evaluation
+Last completed phase: Phase 6 — Availability Calendar Foundation
+Last completed subphase: 6.5 Phase 6 documentation update
 ```
 
 ## Completed Work
@@ -271,40 +271,60 @@ Important limitation:
 Phase 6.4 does not create reservations, create pending holds, write preparation buffer blocks, add admin unlock UI, start checkout, integrate Tilopay, integrate Resend, import/export Airbnb iCal, write migrations, seed data, or add PMS features.
 ```
 
+### Phase 6.5 — Phase 6 Documentation Update
+
+Status: **Completed**
+
+Completed deliverables:
+
+```text
+docs/36-phase-6-availability-closure-review.md added
+README.md updated with Phase 6 closure and Phase 7 current status
+docs/10-phases.md updated to mark Phase 6 completed and Phase 7 in progress
+docs/11-progress-log.md updated with Phase 6 closure and Phase 7.1 current work
+```
+
+Closure result:
+
+```text
+Phase 6 is complete as the availability calendar foundation.
+The project now has typed availability rules, a server-side Prisma availability service, a runtime public availability API, a public non-booking availability page, and derived preparation buffer evaluation for confirmed reservations.
+Phase 6 did not add booking checkout, Tilopay, Resend, Airbnb iCal sync, migrations, seed data, admin calendar UI, reservation creation, or PMS features.
+```
+
 ## Current Work
 
-### Phase 6 — Availability Calendar Foundation
+### Phase 7 — Airbnb iCal Synchronization
 
 Status: **In progress**
 
 Current subphase:
 
 ```text
-6.5 Phase 6 documentation update
+7.1 Airbnb iCal strategy and environment contract
 ```
 
-Phase 6.5 goals:
+Phase 7.1 goals:
 
 ```text
-Close Phase 6 after confirming the public availability foundation, runtime availability API, composed listing rules, and preparation buffer evaluation.
-Do not add booking checkout yet.
-Do not integrate Tilopay yet.
-Do not integrate Resend yet.
-Do not implement Airbnb iCal sync yet.
-Do not add PMS features.
+Define secure handling for Airbnb import URLs and export tokens.
+Define how imported Airbnb events should become availability blocks without exposing private tokens.
+Define how TRP Booking should export unavailable dates later.
+Confirm how Phase 6 availability and preparation buffer rules are reused by Phase 7.
+Do not implement actual iCal parsing, cron sync, export endpoints, checkout, payment, email, or PMS features in 7.1.
 ```
 
 ## Next Recommended Work
 
 ```text
-1. Apply Phase 6.4 files.
+1. Apply Phase 6.5 files.
 2. Run npm run db:generate.
 3. Run npm run build.
 4. Run npm run env:validate.
 5. Run npm run db:validate.
 6. Run npm run lint.
-7. Commit Phase 6.4.
-8. Continue with Phase 6.5 Phase 6 documentation update.
+7. Commit Phase 6.5.
+8. Continue with Phase 7.1 Airbnb iCal strategy and environment contract.
 ```
 
 ## Continuity Notes for New Conversations
@@ -325,6 +345,7 @@ docs/32-availability-strategy-and-calendar-rules.md
 docs/33-availability-domain-service-foundation.md
 docs/34-public-availability-calendar-ui-foundation.md
 docs/35-preparation-buffer-and-blocked-date-evaluation.md
+docs/36-phase-6-availability-closure-review.md
 lib/db/prisma.ts
 lib/availability/index.ts
 lib/availability/service.ts
@@ -356,4 +377,5 @@ Keep Cloudinary API key and API secret server-side only.
 Public accommodation images should stay Cloudinary-backed after Phase 5.4.
 Phase 6 availability code must preserve composed listing and preparation buffer rules.
 Public availability UI must not create reservations or start checkout during Phase 6.
+Phase 7 must not expose Airbnb iCal URLs or tokens in code, docs, logs, API responses, or public UI.
 ```

@@ -134,6 +134,7 @@ docs/
   33-availability-domain-service-foundation.md
   34-public-availability-calendar-ui-foundation.md
   35-preparation-buffer-and-blocked-date-evaluation.md
+  36-phase-6-availability-closure-review.md
 ```
 
 The assistant collaboration rules live in:
@@ -145,10 +146,10 @@ AGENTS.md
 ## Development Status
 
 ```text
-Current phase: Phase 6 — Availability Calendar Foundation
-Current subphase: 6.5 Phase 6 documentation update
-Last completed phase: Phase 5 — Cloudinary Integration
-Last completed subphase: 6.4 Preparation buffer and blocked-date evaluation
+Current phase: Phase 7 — Airbnb iCal Synchronization
+Current subphase: 7.1 Airbnb iCal strategy and environment contract
+Last completed phase: Phase 6 — Availability Calendar Foundation
+Last completed subphase: 6.5 Phase 6 documentation update
 ```
 
-See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/32-availability-strategy-and-calendar-rules.md`, `docs/33-availability-domain-service-foundation.md`, `docs/34-public-availability-calendar-ui-foundation.md`, and `docs/35-preparation-buffer-and-blocked-date-evaluation.md` for the official current tracker and availability rules.
+See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/07-airbnb-ical-sync.md`, and `docs/36-phase-6-availability-closure-review.md` for the official current tracker and next iCal synchronization context.

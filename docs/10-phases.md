@@ -14,9 +14,9 @@ Deferred — Intentionally postponed.
 ## Current Phase
 
 ```text
-Current phase: Phase 6 — Availability Calendar Foundation
-Current subphase: 6.5 Phase 6 documentation update
-Current focus: close the availability calendar foundation after preparation buffer and blocked-date evaluation, without checkout, payment, email, or Airbnb iCal sync.
+Current phase: Phase 7 — Airbnb iCal Synchronization
+Current subphase: 7.1 Airbnb iCal strategy and environment contract
+Current focus: define the secure iCal import/export and sync contract before implementing calendar parsing, cron sync, admin sync, or export endpoints.
 ```
 
 ---
@@ -167,18 +167,18 @@ Phase 5 closure result:
 
 ## Phase 6 — Availability Calendar Foundation
 
-Status: **In progress**
+Status: **Completed**
 
 Goal: Add the first availability calendar foundation for public date visibility and future reservation validation without introducing checkout, payment, email, or Airbnb iCal sync yet.
 
-Subphase status:
+Completed subphases:
 
 ```text
 6.1 Availability strategy and booking calendar rules — Completed
 6.2 Availability domain service foundation — Completed
 6.3 Public availability calendar UI foundation — Completed
 6.4 Preparation buffer and blocked-date evaluation — Completed
-6.5 Phase 6 documentation update — In progress
+6.5 Phase 6 documentation update — Completed
 ```
 
 Phase 6 rules:
@@ -190,7 +190,7 @@ Phase 6 rules:
 - Do not implement Airbnb iCal import/export in Phase 6.
 - Do not add PMS features.
 - Guests must not be able to modify confirmed reservation dates directly.
-- Public availability must eventually account for confirmed reservations, imported Airbnb bookings, manual blocks, and preparation buffer blocks.
+- Public availability must account for confirmed reservations, imported Airbnb bookings, manual blocks, and preparation buffer blocks.
 - Preparation buffer rules must preserve the documented policies for each accommodation.
 - Date ranges use lodging convention: check-in inclusive, check-out exclusive.
 ```
@@ -245,11 +245,53 @@ Phase 6.4 result:
 - No checkout, payment, email, Airbnb iCal sync, migrations, seed data, admin calendar UI, reservation creation, or PMS features were added.
 ```
 
+Phase 6.5 result:
+
+```text
+- docs/36-phase-6-availability-closure-review.md was added.
+- README.md was updated to close Phase 6 and open Phase 7.
+- docs/10-phases.md was updated to mark Phase 6 completed and Phase 7 in progress.
+- docs/11-progress-log.md was updated with Phase 6 closure and Phase 7.1 current work.
+- No code, checkout, payment, email, Airbnb iCal sync, migrations, seed data, admin calendar UI, reservation creation, or PMS features were added.
+```
+
+Phase 6 closure result:
+
+```text
+- Public availability now has a documented strategy, typed rules, a server-side Prisma service, a public runtime API, and a public non-booking calendar UI.
+- Availability evaluation covers composed listing dependencies, confirmed reservations, active pending holds, calendar blocks, and derived preparation buffers from confirmed reservations.
+- Phase 6 intentionally stops before reservation creation, checkout, payment collection, email delivery, Airbnb iCal synchronization, and admin calendar management.
+```
+
 ---
 
 ## Phase 7 — Airbnb iCal Synchronization
 
-Status: **Not started**
+Status: **In progress**
+
+Goal: Add Airbnb iCal import/export synchronization without exposing private iCal tokens, without creating checkout/payment flows, and without turning TRP Booking into a PMS.
+
+Subphase status:
+
+```text
+7.1 Airbnb iCal strategy and environment contract — In progress
+7.2 Airbnb calendar configuration model — Not started
+7.3 Airbnb iCal import parser and sync service — Not started
+7.4 Airbnb iCal export feed foundation — Not started
+7.5 Scheduled sync and manual sync foundation — Not started
+7.6 Phase 7 documentation update — Not started
+```
+
+Phase 7 rules:
+
+```text
+- Do not commit real Airbnb iCal URLs or tokens.
+- Do not expose raw iCal tokens in logs, API responses, or public UI.
+- Store import URLs and export tokens only in server-side private configuration or database records.
+- Sync must respect composed listing dependencies and preparation buffer rules from Phase 6.
+- Export feeds must include direct reservation blocks and preparation buffer blocks when they become available.
+- Do not add booking checkout, Tilopay, Resend, or PMS features in Phase 7 unless a later documented subphase explicitly allows it.
+```
 
 ---
 
