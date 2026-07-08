@@ -54,6 +54,22 @@ docs/48-reservation-form-ux-and-manual-locale-switcher.md
 - Header, footer, homepage sections, accommodation listing, accommodation detail, and reservation request UI now react to the manual locale selection.
 ```
 
+## Property Detail Layout Polish
+
+After the initial UX pass, the accommodation detail page was polished again before Phase 8.4.
+
+```text
+- The property title and long description now occupy the main left column.
+- A compact accommodation summary card now occupies the right column.
+- The reservation form now appears in the right column beside the gallery instead of forcing the whole page into a long vertical stack.
+- The gallery now appears as a carousel in the main content column.
+- Clicking the gallery opens a full-screen photo modal.
+- The modal shows all accommodation images as a mosaic inspired by lodging marketplace gallery behavior.
+- Highlighted details, amenities, and important rules remain below the gallery/form area as three separate cards.
+```
+
+This keeps the reservation form visible and important without wasting the full width of the left content area.
+
 ## Dependency Decision
 
 This subphase adds:
