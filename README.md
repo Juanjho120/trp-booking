@@ -86,6 +86,8 @@ Max guests: 6
 - Admin access must be protected before any admin page exposes operational data or actions.
 - Provider secrets for Auth.js, Cloudinary, Tilopay, Resend, Airbnb iCal, and similar services must remain server-side only.
 - Public accommodation images are delivered from Cloudinary after Phase 5.4; local files under `public/images/accommodations` remain only as upload sources or temporary rollback references until an admin image management flow replaces them.
+- Availability ranges use date-only boundaries where `checkInDate` is inclusive and `checkOutDate` is exclusive.
+- Availability must account for composed listing dependencies and preparation buffer rules before payment or reservation confirmation.
 
 ## Documentation
 
@@ -125,6 +127,7 @@ docs/
   29-cloudinary-service-foundation.md
   30-public-accommodation-cloudinary-images.md
   31-phase-5-cloudinary-closure-review.md
+  32-availability-strategy-and-calendar-rules.md
 ```
 
 The assistant collaboration rules live in:
@@ -137,9 +140,9 @@ AGENTS.md
 
 ```text
 Current phase: Phase 6 — Availability Calendar Foundation
-Current subphase: 6.1 Availability strategy and booking calendar rules
+Current subphase: 6.2 Availability domain service foundation
 Last completed phase: Phase 5 — Cloudinary Integration
-Last completed subphase: 5.5 Phase 5 documentation update
+Last completed subphase: 6.1 Availability strategy and booking calendar rules
 ```
 
-See `docs/10-phases.md`, `docs/11-progress-log.md`, and `docs/31-phase-5-cloudinary-closure-review.md` for the official current tracker and Phase 5 closure notes.
+See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/31-phase-5-cloudinary-closure-review.md`, and `docs/32-availability-strategy-and-calendar-rules.md` for the official current tracker and availability rules.

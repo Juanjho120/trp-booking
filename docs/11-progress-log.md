@@ -6,10 +6,10 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 6 — Availability Calendar Foundation
-Current subphase: 6.1 Availability strategy and booking calendar rules
+Current subphase: 6.2 Availability domain service foundation
 Last updated: 2026-07-08
 Last completed phase: Phase 5 — Cloudinary Integration
-Last completed subphase: 5.5 Phase 5 documentation update
+Last completed subphase: 6.1 Availability strategy and booking calendar rules
 ```
 
 ## Completed Work
@@ -174,12 +174,6 @@ Future admin uploads should prefer signed/admin-controlled uploads over unsigned
 Development and production assets must be separated by folder.
 ```
 
-Important limitation:
-
-```text
-Phase 5.1 did not add the cloudinary npm package, SDK configuration code, upload route handlers, image upload server actions, admin image management UI, database migrations, database writes, seed data, or Cloudinary API calls.
-```
-
 ### Phase 5.2 — Cloudinary Environment Validation
 
 Status: **Completed**
@@ -201,21 +195,6 @@ docs/10-phases.md updated to mark 5.2 completed and 5.3 in progress
 docs/11-progress-log.md updated with Phase 5.2 completion
 ```
 
-Important decisions:
-
-```text
-Cloudinary variables are now required by npm run env:validate.
-Real Cloudinary values must be present in local .env before validation can pass.
-CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET remain server-side only.
-CLOUDINARY_UPLOAD_FOLDER must stay under the trp-booking/ folder prefix.
-```
-
-Important limitation:
-
-```text
-Phase 5.2 did not add the cloudinary npm package, SDK configuration code, upload route handlers, image upload server actions, admin image management UI, database migrations, database writes, seed data, or Cloudinary API calls.
-```
-
 ### Phase 5.3 — Cloudinary Service Foundation
 
 Status: **Completed**
@@ -232,22 +211,6 @@ docs/29-cloudinary-service-foundation.md added
 README.md updated with Phase 5.3 completion and Phase 5.4 current status
 docs/10-phases.md updated to mark 5.3 completed and 5.4 in progress
 docs/11-progress-log.md updated with Phase 5.3 completion
-```
-
-Important decisions:
-
-```text
-Cloudinary SDK configuration remains server-side only.
-The Cloudinary client is configured from validated CloudinaryEnv values.
-Accommodation image folders continue to follow trp-booking/{environment}/accommodations/{propertySlug}.
-Public IDs can be generated deterministically using sort order and image purpose.
-The delivery URL helper only generates URLs and does not upload or mutate assets.
-```
-
-Important limitation:
-
-```text
-Phase 5.3 does not add upload route handlers, server actions for uploads, admin image management UI, image persistence, database migrations, seed data, Cloudinary asset deletion, booking checkout, Tilopay, Resend, Airbnb iCal sync, or PMS features.
 ```
 
 ### Phase 5.4 — Public Accommodation Images from Cloudinary
@@ -278,12 +241,6 @@ Cloudinary public IDs remain deterministic and based on CLOUDINARY_UPLOAD_FOLDER
 The public listing and detail pages keep using the existing AccommodationImage shape, so UI changes are minimal.
 ```
 
-Important limitation:
-
-```text
-Phase 5.4 does not add upload route handlers, server actions for uploads, admin image management UI, image persistence, database migrations, seed data, Cloudinary asset deletion, booking checkout, Tilopay, Resend, Airbnb iCal sync, or PMS features.
-```
-
 ### Phase 5.5 — Phase 5 Documentation Update
 
 Status: **Completed**
@@ -304,6 +261,38 @@ Phase 5 is not considered complete merely because Cloudinary variables and servi
 Phase 5 is considered complete because public accommodation images are now rendered from Cloudinary delivery URLs.
 ```
 
+### Phase 6.1 — Availability Strategy and Booking Calendar Rules
+
+Status: **Completed**
+
+Completed deliverables:
+
+```text
+docs/32-availability-strategy-and-calendar-rules.md added
+types/availability.ts added
+lib/availability/rules.ts added
+lib/availability/index.ts added
+README.md updated with Phase 6.1 completion and Phase 6.2 current status
+docs/10-phases.md updated to mark 6.1 completed and 6.2 in progress
+docs/11-progress-log.md updated with Phase 6.1 completion
+```
+
+Important decisions:
+
+```text
+Availability date ranges use check-in inclusive and check-out exclusive boundaries.
+Date-only values must use YYYY-MM-DD format.
+Availability dependency rules must account for individual accommodations and Refugio Completo.
+Preparation buffer ranges are generated from the accommodation preparation buffer policies.
+Phase 6.1 creates a code-level rule foundation, not just documentation.
+```
+
+Important limitation:
+
+```text
+Phase 6.1 does not query the database, create reservations, start checkout, integrate Tilopay, integrate Resend, import/export Airbnb iCal, write migrations, seed data, or add PMS features.
+```
+
 ## Current Work
 
 ### Phase 6 — Availability Calendar Foundation
@@ -313,15 +302,18 @@ Status: **In progress**
 Current subphase:
 
 ```text
-6.1 Availability strategy and booking calendar rules
+6.2 Availability domain service foundation
 ```
 
-Phase 6.1 goals:
+Phase 6.2 goals:
 
 ```text
-Define the availability calendar rules before implementing date selection.
-Confirm how confirmed reservations, imported Airbnb bookings, manual blocks, and preparation buffers should affect availability.
-Document the booking calendar UI boundary before adding interactive public date selection.
+Implement the server-side availability evaluation foundation using the Phase 6.1 rules.
+Read relevant reservations and calendar blocks through Prisma.
+Apply composed listing dependency rules.
+Respect active pending reservation holds and confirmed reservations.
+Respect manual, maintenance, imported Airbnb, composed dependency, and preparation buffer blocks.
+Ignore expired pending reservations and soft-deleted calendar blocks.
 Do not add booking checkout yet.
 Do not integrate Tilopay yet.
 Do not integrate Resend yet.
@@ -332,12 +324,12 @@ Do not add PMS features.
 ## Next Recommended Work
 
 ```text
-1. Apply Phase 5.5 closure documentation files.
+1. Apply Phase 6.1 files.
 2. Run npm run env:validate.
 3. Run npm run db:validate.
 4. Run npm run lint and npm run build.
-5. Commit Phase 5.5.
-6. Continue with Phase 6.1 Availability strategy and booking calendar rules.
+5. Commit Phase 6.1.
+6. Continue with Phase 6.2 Availability domain service foundation.
 ```
 
 ## Continuity Notes for New Conversations
@@ -349,20 +341,13 @@ README.md
 AGENTS.md
 docs/03-architecture.md
 docs/04-database-model.md
+docs/07-airbnb-ical-sync.md
 docs/10-phases.md
 docs/11-progress-log.md
 docs/20-phase-3-database-closure-review.md
-docs/21-auth-admin-strategy.md
-docs/22-auth-environment-validation.md
-docs/23-auth-js-configuration.md
-docs/24-admin-route-protection.md
-docs/25-minimal-admin-shell.md
-docs/26-phase-4-auth-closure-review.md
-docs/27-cloudinary-strategy-and-environment.md
-docs/28-cloudinary-environment-validation.md
-docs/29-cloudinary-service-foundation.md
-docs/30-public-accommodation-cloudinary-images.md
 docs/31-phase-5-cloudinary-closure-review.md
+docs/32-availability-strategy-and-calendar-rules.md
+lib/availability/index.ts
 lib/env/server.ts
 lib/cloudinary/index.ts
 config/accommodations.ts
@@ -389,4 +374,5 @@ Do not expose admin pages without route protection.
 Do not commit secrets, provider keys, or real credentials.
 Keep Cloudinary API key and API secret server-side only.
 Public accommodation images should stay Cloudinary-backed after Phase 5.4.
+Phase 6 availability code must preserve composed listing and preparation buffer rules.
 ```

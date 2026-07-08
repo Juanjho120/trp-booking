@@ -15,8 +15,8 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 6 — Availability Calendar Foundation
-Current subphase: 6.1 Availability strategy and booking calendar rules
-Current focus: define the availability calendar rules and implementation boundary before adding public date selection, reservation checkout, payment, email, or iCal sync.
+Current subphase: 6.2 Availability domain service foundation
+Current focus: implement the server-side availability evaluation foundation using the Phase 6.1 rules, without checkout, payment, email, or Airbnb iCal sync.
 ```
 
 ---
@@ -129,17 +129,6 @@ Phase 4 closure result:
 - AUTH_TRUST_HOST=true is required for local/admin Auth.js routes after middleware is enabled.
 ```
 
-Phase 4 rules preserved:
-
-```text
-- No booking checkout was added in Phase 4.
-- No Tilopay integration was added in Phase 4.
-- No Cloudinary integration was added in Phase 4.
-- No Resend integration was added in Phase 4.
-- No Airbnb iCal sync was implemented in Phase 4.
-- No PMS features were added.
-```
-
 ---
 
 ## Phase 5 — Cloudinary Integration
@@ -156,18 +145,6 @@ Completed subphases:
 5.3 Cloudinary service foundation — Completed
 5.4 Public accommodation images from Cloudinary — Completed
 5.5 Phase 5 documentation update — Completed
-```
-
-Phase 5 rules preserved:
-
-```text
-- No booking checkout was added in Phase 5.
-- No Tilopay integration was added in Phase 5.
-- No Resend integration was added in Phase 5.
-- No Airbnb iCal sync was implemented in Phase 5.
-- No PMS features were added.
-- Provider secrets remain server-side only.
-- Public pages continue working while accommodation images are now delivered from Cloudinary.
 ```
 
 Phase 5 closure result:
@@ -197,8 +174,8 @@ Goal: Add the first availability calendar foundation for public date visibility 
 Subphase status:
 
 ```text
-6.1 Availability strategy and booking calendar rules — In progress
-6.2 Availability domain service foundation — Not started
+6.1 Availability strategy and booking calendar rules — Completed
+6.2 Availability domain service foundation — In progress
 6.3 Public availability calendar UI foundation — Not started
 6.4 Preparation buffer and blocked-date evaluation — Not started
 6.5 Phase 6 documentation update — Not started
@@ -213,8 +190,20 @@ Phase 6 rules:
 - Do not implement Airbnb iCal import/export in Phase 6.
 - Do not add PMS features.
 - Guests must not be able to modify confirmed reservation dates directly.
-- Public availability must eventually account for confirmed reservations, imported Airbnb bookings, and preparation buffer blocks.
+- Public availability must eventually account for confirmed reservations, imported Airbnb bookings, manual blocks, and preparation buffer blocks.
 - Preparation buffer rules must preserve the documented policies for each accommodation.
+- Date ranges use lodging convention: check-in inclusive, check-out exclusive.
+```
+
+Phase 6.1 result:
+
+```text
+- Availability strategy and booking calendar rules were documented in docs/32-availability-strategy-and-calendar-rules.md.
+- Typed availability domain types were added in types/availability.ts.
+- Availability dependency rules were added for individual and composed accommodations.
+- Date-only helper functions were added for YYYY-MM-DD boundaries.
+- Preparation buffer range helpers were added for future service and UI work.
+- No checkout, payment, email, iCal sync, database writes, migrations, seed data, or PMS features were added.
 ```
 
 ---
