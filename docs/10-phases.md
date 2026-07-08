@@ -15,8 +15,8 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 8 — Reservation Flow
-Current subphase: 8.2 Reservation quote and server-side pricing foundation
-Current focus: implement the server-side reservation quote and pricing foundation using the Phase 8.1 reservation hold contract, without creating reservations, checkout, payment processing, email delivery, or PMS features.
+Current subphase: 8.3 Public guest details and reservation request form
+Current focus: add the public guest details and reservation request form using the server-side quote foundation, without creating reservations, starting checkout, integrating Tilopay, sending Resend emails, or adding PMS features.
 ```
 
 ---
@@ -230,8 +230,8 @@ Subphase status:
 
 ```text
 8.1 Reservation flow strategy and pending hold contract — Completed
-8.2 Reservation quote and server-side pricing foundation — In progress
-8.3 Public guest details and reservation request form — Not started
+8.2 Reservation quote and server-side pricing foundation — Completed
+8.3 Public guest details and reservation request form — In progress
 8.4 Pending reservation creation and expiration handling — Not started
 8.5 Availability revalidation before payment handoff — Not started
 8.6 Phase 8 documentation update — Not started
@@ -259,6 +259,19 @@ Phase 8.1 result:
 - Server-side validation boundaries were documented for date ranges, guest capacity, availability, price calculation, currency, and expiration handling.
 - Phase 8.1 confirmed that reservations must not become CONFIRMED until payment is validated by a later Tilopay webhook phase.
 - Phase 8.1 did not add route handlers, form UI, reservation writes, checkout, Tilopay, Resend, migration files, seed data, deployment, admin reservation UI, or PMS features.
+```
+
+Phase 8.2 result:
+
+```text
+- types/reservation-quote.ts was added with the public quote contract.
+- lib/reservations/pricing.ts was added with the server-side quote calculation service.
+- lib/reservations/index.ts was added as the reservation service export boundary.
+- GET /api/reservations/quote was added as a public-safe quote endpoint.
+- messages/es.ts and messages/en.ts were updated with centralized reservation quote errors.
+- docs/44-reservation-quote-and-server-side-pricing-foundation.md was added.
+- The quote foundation uses server-controlled accommodation prices, date-only night counting, capacity validation, USD cents, and fixed decimal output.
+- Phase 8.2 does not create reservations, pending holds, checkout sessions, Tilopay payment intents, Resend emails, migration files, seed data, admin reservation UI, deployment configuration, or PMS features.
 ```
 
 ---

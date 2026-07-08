@@ -254,6 +254,9 @@ export const enMessages = {
       unavailableDates: "The selected dates are no longer available.",
       invalidGuestCount: "The number of guests exceeds the allowed capacity.",
       expiredReservation: "The reservation expired before payment was completed.",
+      invalidAccommodation: "The requested accommodation is not available for quoting.",
+      invalidDateRange: "The quote dates are not valid.",
+      invalidQuoteRequest: "We could not calculate a quote with the submitted information.",
     },
     payment: {
       failed:

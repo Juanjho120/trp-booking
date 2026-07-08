@@ -96,6 +96,7 @@ Max guests: 6
 - Airbnb scheduled sync must be protected by `CRON_SECRET` and must return redacted operational summaries only.
 - Reservation flow must re-check availability server-side before creating pending holds or handing off to payment.
 - Pending reservation holds must use `PENDING_PAYMENT` with a non-null `expiresAt` and must never be confirmed before validated payment.
+- Reservation quotes and totals must be calculated server-side; client-provided totals are display-only and untrusted.
 
 ## Documentation
 
@@ -147,6 +148,7 @@ docs/
   41-scheduled-sync-and-manual-sync-foundation.md
   42-phase-7-airbnb-ical-closure-review.md
   43-reservation-flow-strategy-and-pending-hold-contract.md
+  44-reservation-quote-and-server-side-pricing-foundation.md
 ```
 
 The assistant collaboration rules live in:
@@ -159,9 +161,9 @@ AGENTS.md
 
 ```text
 Current phase: Phase 8 — Reservation Flow
-Current subphase: 8.2 Reservation quote and server-side pricing foundation
+Current subphase: 8.3 Public guest details and reservation request form
 Last completed phase: Phase 7 — Airbnb iCal Synchronization
-Last completed subphase: 8.1 Reservation flow strategy and pending hold contract
+Last completed subphase: 8.2 Reservation quote and server-side pricing foundation
 ```
 
-See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/36-phase-6-availability-closure-review.md`, `docs/42-phase-7-airbnb-ical-closure-review.md`, and `docs/43-reservation-flow-strategy-and-pending-hold-contract.md` for the official current tracker and reservation flow context.
+See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/43-reservation-flow-strategy-and-pending-hold-contract.md`, and `docs/44-reservation-quote-and-server-side-pricing-foundation.md` for the official current tracker and reservation flow context.

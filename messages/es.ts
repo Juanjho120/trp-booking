@@ -254,6 +254,9 @@ export const esMessages = {
       unavailableDates: "Las fechas seleccionadas ya no están disponibles.",
       invalidGuestCount: "La cantidad de huéspedes excede la capacidad permitida.",
       expiredReservation: "La reservación expiró antes de completar el pago.",
+      invalidAccommodation: "El alojamiento solicitado no está disponible para cotizar.",
+      invalidDateRange: "Las fechas de la cotización no son válidas.",
+      invalidQuoteRequest: "No pudimos calcular la cotización con la información enviada.",
     },
     payment: {
       failed:

@@ -6,10 +6,10 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 8 — Reservation Flow
-Current subphase: 8.2 Reservation quote and server-side pricing foundation
+Current subphase: 8.3 Public guest details and reservation request form
 Last updated: 2026-07-08
 Last completed phase: Phase 7 — Airbnb iCal Synchronization
-Last completed subphase: 8.1 Reservation flow strategy and pending hold contract
+Last completed subphase: 8.2 Reservation quote and server-side pricing foundation
 ```
 
 ## Completed Work
@@ -265,20 +265,55 @@ docs/11-progress-log.md updated with Phase 8.1 completion
 Important decisions:
 
 ```text
-The direct reservation flow must recheck availability server-side before creating a pending hold.
-Pending holds use Reservation.status = PENDING_PAYMENT with a required non-null expiresAt.
-Active pending holds block availability only until expiresAt.
-Expired pending holds must not block availability, reservation creation, or payment handoff.
-The initial MVP hold duration is 15 minutes.
-Reservations must not become CONFIRMED until a later Tilopay webhook validation succeeds.
-Reservation totals must be calculated server-side and must not trust client-provided totals.
-Tilopay remains Phase 9 and Resend remains Phase 10.
+Pending holds use Reservation.status = PENDING_PAYMENT.
+Future pending hold creation must set expiresAt to a non-null value.
+Initial hold duration is 15 minutes.
+Expired pending holds must not block public availability, reservation creation, or payment handoff.
+Reservations must not become CONFIRMED until payment validation exists and succeeds.
+Phase 8 must keep Tilopay processing in Phase 9 and Resend email delivery in Phase 10.
 ```
 
 Important limitation:
 
 ```text
-Phase 8.1 does not add reservation creation route handlers, pricing service code, guest form UI, checkout, Tilopay, Resend, migration files, seed data, admin reservation UI, deployment changes, or PMS features.
+Phase 8.1 does not add route handlers, form UI, reservation writes, checkout, Tilopay, Resend, migration files, seed data, deployment, admin reservation UI, or PMS features.
+```
+
+### Phase 8.2 — Reservation Quote and Server-side Pricing Foundation
+
+Status: **Completed**
+
+Completed deliverables:
+
+```text
+types/reservation-quote.ts added
+lib/reservations/pricing.ts added
+lib/reservations/index.ts added
+app/api/reservations/quote/route.ts added
+messages/es.ts updated with centralized quote errors
+messages/en.ts updated with centralized quote errors
+docs/44-reservation-quote-and-server-side-pricing-foundation.md added
+README.md updated with Phase 8.2 completion and Phase 8.3 current status
+docs/10-phases.md updated to mark 8.2 completed and 8.3 in progress
+docs/11-progress-log.md updated with Phase 8.2 completion
+```
+
+Important decisions:
+
+```text
+The quote service uses server-controlled accommodation configuration only.
+The client must never send trusted totals to the server.
+Monetary values are returned in USD cents and fixed decimal strings.
+The current MVP quote rules use baseNightlyPriceUsd * number of nights.
+Cleaning fee, taxes, and discounts are intentionally 0 until a later documented pricing phase changes them.
+The quote endpoint is non-binding and does not guarantee final availability.
+Availability must still be rechecked before creating a pending hold and before payment handoff.
+```
+
+Important limitation:
+
+```text
+Phase 8.2 does not create reservations, pending holds, checkout sessions, Tilopay payment intents, Tilopay redirects, Tilopay webhooks, Resend emails, migration files, seed data, deployment configuration, admin reservation UI, or PMS features.
 ```
 
 ## Current Work
@@ -290,29 +325,27 @@ Status: **In progress**
 Current subphase:
 
 ```text
-8.2 Reservation quote and server-side pricing foundation
+8.3 Public guest details and reservation request form
 ```
 
-Phase 8.2 goals:
+Phase 8.3 goals:
 
 ```text
-Add the server-side quote foundation for direct reservations.
-Calculate number of nights, subtotal, fees, discounts, taxes, total, and currency on the server.
-Validate accommodation, date ranges, guest count, and availability before returning a quote.
-Do not create reservations, start checkout, call Tilopay, send Resend emails, add admin reservation UI, or add PMS features yet.
+Add the public guest details and reservation request form using the server-side quote endpoint as a read-only pricing foundation.
+Do not create reservations, pending holds, checkout sessions, Tilopay payment handoff, Resend emails, admin reservation UI, or PMS features in 8.3 unless the tracker is explicitly updated.
 ```
 
 ## Next Recommended Work
 
 ```text
-1. Apply Phase 8.1 files.
+1. Apply Phase 8.2 files.
 2. Run npm run db:generate.
 3. Run npm run db:validate.
 4. Run npm run build.
 5. Run npm run env:validate.
 6. Run npm run lint.
-7. Commit Phase 8.1.
-8. Continue with Phase 8.2 Reservation quote and server-side pricing foundation.
+7. Commit Phase 8.2.
+8. Continue with Phase 8.3 Public guest details and reservation request form.
 ```
 
 ## Continuity Notes for New Conversations
@@ -324,7 +357,6 @@ README.md
 AGENTS.md
 docs/03-architecture.md
 docs/04-database-model.md
-docs/07-airbnb-ical-sync.md
 docs/10-phases.md
 docs/11-progress-log.md
 docs/32-availability-strategy-and-calendar-rules.md
@@ -332,29 +364,17 @@ docs/33-availability-domain-service-foundation.md
 docs/34-public-availability-calendar-ui-foundation.md
 docs/35-preparation-buffer-and-blocked-date-evaluation.md
 docs/36-phase-6-availability-closure-review.md
-docs/37-airbnb-ical-strategy-and-environment-contract.md
-docs/38-airbnb-calendar-configuration-model.md
-docs/39-airbnb-ical-import-parser-and-sync-service.md
-docs/40-airbnb-ical-export-feed-foundation.md
-docs/41-scheduled-sync-and-manual-sync-foundation.md
 docs/42-phase-7-airbnb-ical-closure-review.md
 docs/43-reservation-flow-strategy-and-pending-hold-contract.md
+docs/44-reservation-quote-and-server-side-pricing-foundation.md
 lib/db/prisma.ts
 lib/availability/index.ts
 lib/availability/service.ts
-lib/airbnb-ical/index.ts
+lib/reservations/index.ts
 lib/env/server.ts
-lib/cloudinary/index.ts
 config/accommodations.ts
-config/seo.ts
-next.config.ts
-vercel.json
-.env.example
-auth.ts
-middleware.ts
-app/api/auth/[...nextauth]/route.ts
-app/admin/page.tsx
-features/admin/components/minimal-admin-shell.tsx
+messages/es.ts
+messages/en.ts
 prisma/schema.prisma
 ```
 
@@ -374,5 +394,5 @@ Phase 6 availability code must preserve composed listing and preparation buffer 
 Phase 7 must not expose Airbnb iCal URLs or tokens in code, docs, logs, API responses, or public UI.
 Scheduled sync must validate CRON_SECRET and return redacted summaries only.
 Phase 8 reservation flow must re-check availability server-side and must not confirm reservations before payment validation.
-Phase 8 pending holds must use PENDING_PAYMENT with non-null expiresAt and must not block availability after expiration.
+Server-side quote calculation is the source of truth for reservation totals.
 ```
