@@ -185,6 +185,50 @@ export const enMessages = {
       rulesTitle: "Important rules",
     },
   },
+  reservations: {
+    request: {
+      title: "Request your direct reservation",
+      description:
+        "Enter your dates and main guest details to calculate a server-side quote. This phase does not create a reservation or start payment yet.",
+      fields: {
+        checkInDate: "Check-in date",
+        checkOutDate: "Check-out date",
+        guestCount: "Guests",
+        guestName: "Full name",
+        guestEmail: "Email address",
+        guestPhone: "Phone",
+        guestCountry: "Country",
+        arrivalTimeEstimate: "Estimated arrival time",
+      },
+      placeholders: {
+        date: "YYYY-MM-DD",
+        guestName: "Your full name",
+        guestEmail: "email@example.com",
+        guestPhone: "+502 0000 0000",
+        guestCountry: "Guatemala",
+        arrivalTimeEstimate: "Example: 3:00 p.m.",
+      },
+      maxGuestsNote: "Maximum allowed capacity: {maxGuests} guest(s).",
+      calculateQuote: "Calculate quote",
+      loadingQuote: "Calculating quote...",
+      genericQuoteError: "We could not calculate the quote. Review the details and try again.",
+      quoteTitle: "Estimated quote",
+      quoteRows: {
+        nights: "Nights",
+        nightlyRate: "Nightly rate",
+        subtotal: "Subtotal",
+        cleaningFee: "Cleaning fee",
+        taxes: "Taxes",
+        discounts: "Discounts",
+        total: "Total",
+      },
+      nonBindingQuoteNote:
+        "This quote is informational. Availability and totals will be recalculated on the server before creating the payment hold.",
+      createHoldDisabled: "Create reservation hold in the next phase",
+      phaseBoundaryNote:
+        "Phase 8.3 only collects details and calculates a quote. It does not save reservations, block dates, or process payments.",
+    },
+  },
   admin: {
     shell: {
       brandLabel: "Private administration",

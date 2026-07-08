@@ -185,6 +185,50 @@ export const esMessages = {
       rulesTitle: "Reglas importantes",
     },
   },
+  reservations: {
+    request: {
+      title: "Solicita tu reserva directa",
+      description:
+        "Completa tus fechas y datos principales para calcular una cotización segura desde el servidor. En esta fase todavía no se crea una reservación ni se inicia pago.",
+      fields: {
+        checkInDate: "Fecha de entrada",
+        checkOutDate: "Fecha de salida",
+        guestCount: "Cantidad de huéspedes",
+        guestName: "Nombre completo",
+        guestEmail: "Correo electrónico",
+        guestPhone: "Teléfono",
+        guestCountry: "País",
+        arrivalTimeEstimate: "Hora estimada de llegada",
+      },
+      placeholders: {
+        date: "YYYY-MM-DD",
+        guestName: "Tu nombre completo",
+        guestEmail: "correo@ejemplo.com",
+        guestPhone: "+502 0000 0000",
+        guestCountry: "Guatemala",
+        arrivalTimeEstimate: "Ej. 3:00 p. m.",
+      },
+      maxGuestsNote: "Capacidad máxima permitida: {maxGuests} huésped(es).",
+      calculateQuote: "Calcular cotización",
+      loadingQuote: "Calculando cotización...",
+      genericQuoteError: "No pudimos calcular la cotización. Revisa los datos e intenta de nuevo.",
+      quoteTitle: "Cotización estimada",
+      quoteRows: {
+        nights: "Noches",
+        nightlyRate: "Precio por noche",
+        subtotal: "Subtotal",
+        cleaningFee: "Limpieza",
+        taxes: "Impuestos",
+        discounts: "Descuentos",
+        total: "Total",
+      },
+      nonBindingQuoteNote:
+        "Esta cotización es informativa. La disponibilidad y el total se recalcularán en el servidor antes de crear el hold de pago.",
+      createHoldDisabled: "Crear hold de reserva en la siguiente fase",
+      phaseBoundaryNote:
+        "Phase 8.3 solo captura datos y calcula cotización. No guarda reservaciones, no bloquea fechas y no procesa pagos.",
+    },
+  },
   admin: {
     shell: {
       brandLabel: "Administración privada",

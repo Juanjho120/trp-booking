@@ -6,10 +6,10 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 8 — Reservation Flow
-Current subphase: 8.3 Public guest details and reservation request form
+Current subphase: 8.4 Pending reservation creation and expiration handling
 Last updated: 2026-07-08
 Last completed phase: Phase 7 — Airbnb iCal Synchronization
-Last completed subphase: 8.2 Reservation quote and server-side pricing foundation
+Last completed subphase: 8.3 Public guest details and reservation request form
 ```
 
 ## Completed Work
@@ -316,6 +316,40 @@ Important limitation:
 Phase 8.2 does not create reservations, pending holds, checkout sessions, Tilopay payment intents, Tilopay redirects, Tilopay webhooks, Resend emails, migration files, seed data, deployment configuration, admin reservation UI, or PMS features.
 ```
 
+### Phase 8.3 — Public Guest Details and Reservation Request Form
+
+Status: **Completed**
+
+Completed deliverables:
+
+```text
+features/reservations/components/reservation-request-form.tsx added
+features/reservations/index.ts added
+features/properties/components/property-detail-page.tsx updated to render the request form
+messages/es.ts updated with reservation request form copy
+messages/en.ts updated with reservation request form copy
+docs/45-public-guest-details-and-reservation-request-form.md added
+README.md updated with Phase 8.3 completion and Phase 8.4 current status
+docs/10-phases.md updated to mark 8.3 completed and 8.4 in progress
+docs/11-progress-log.md updated with Phase 8.3 completion
+```
+
+Important decisions:
+
+```text
+The public form uses text-based YYYY-MM-DD fields instead of native browser date pickers.
+The form calculates a non-binding server-side quote through GET /api/reservations/quote.
+Guest details are captured in UI state only during 8.3.
+The final hold creation button remains disabled until 8.4 introduces server-side reservation creation.
+No client-provided totals are trusted.
+```
+
+Important limitation:
+
+```text
+Phase 8.3 does not create reservations, pending holds, checkout sessions, Tilopay payment intents, Tilopay redirects, Tilopay webhooks, Resend emails, migration files, seed data, deployment configuration, admin reservation UI, or PMS features.
+```
+
 ## Current Work
 
 ### Phase 8 — Reservation Flow
@@ -325,27 +359,28 @@ Status: **In progress**
 Current subphase:
 
 ```text
-8.3 Public guest details and reservation request form
+8.4 Pending reservation creation and expiration handling
 ```
 
-Phase 8.3 goals:
+Phase 8.4 goals:
 
 ```text
-Add the public guest details and reservation request form using the server-side quote endpoint as a read-only pricing foundation.
-Do not create reservations, pending holds, checkout sessions, Tilopay payment handoff, Resend emails, admin reservation UI, or PMS features in 8.3 unless the tracker is explicitly updated.
+Create server-side pending reservation holds using PENDING_PAYMENT and non-null expiresAt.
+Recalculate quote and recheck availability immediately before writing a pending reservation.
+Do not confirm reservations, start checkout, call Tilopay, send Resend emails, add admin reservation UI, or add PMS features in 8.4.
 ```
 
 ## Next Recommended Work
 
 ```text
-1. Apply Phase 8.2 files.
+1. Apply Phase 8.3 files.
 2. Run npm run db:generate.
 3. Run npm run db:validate.
 4. Run npm run build.
 5. Run npm run env:validate.
 6. Run npm run lint.
-7. Commit Phase 8.2.
-8. Continue with Phase 8.3 Public guest details and reservation request form.
+7. Commit Phase 8.3.
+8. Continue with Phase 8.4 Pending reservation creation and expiration handling.
 ```
 
 ## Continuity Notes for New Conversations
@@ -367,6 +402,7 @@ docs/36-phase-6-availability-closure-review.md
 docs/42-phase-7-airbnb-ical-closure-review.md
 docs/43-reservation-flow-strategy-and-pending-hold-contract.md
 docs/44-reservation-quote-and-server-side-pricing-foundation.md
+docs/45-public-guest-details-and-reservation-request-form.md
 lib/db/prisma.ts
 lib/availability/index.ts
 lib/availability/service.ts
@@ -395,4 +431,5 @@ Phase 7 must not expose Airbnb iCal URLs or tokens in code, docs, logs, API resp
 Scheduled sync must validate CRON_SECRET and return redacted summaries only.
 Phase 8 reservation flow must re-check availability server-side and must not confirm reservations before payment validation.
 Server-side quote calculation is the source of truth for reservation totals.
+Phase 8.3 request form must not write reservations, block dates, or start checkout.
 ```

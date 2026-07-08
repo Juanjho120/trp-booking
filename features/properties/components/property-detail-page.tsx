@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { getAmenityByKey } from "@/config/amenities";
+import { ReservationRequestForm } from "@/features/reservations";
 import { esMessages } from "@/messages";
 import type { Accommodation } from "@/types/accommodation";
 
@@ -101,12 +102,10 @@ export function PropertyDetailPage({ accommodation }: PropertyDetailPageProps) {
                 <p className="mt-2">{messages.properties.detail.preparationBufferDescription}</p>
               </div>
 
-              <Button className="w-full rounded-full" disabled>
-                {messages.properties.detail.reserveCta}
-              </Button>
-              <p className="text-center text-xs leading-5 text-muted-foreground">
-                {messages.properties.detail.reserveComingSoon}
-              </p>
+              <ReservationRequestForm
+                accommodationId={accommodation.id}
+                maxGuests={accommodation.maxGuests}
+              />
             </CardContent>
           </Card>
         </section>

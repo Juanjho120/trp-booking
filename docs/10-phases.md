@@ -15,8 +15,8 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 8 — Reservation Flow
-Current subphase: 8.3 Public guest details and reservation request form
-Current focus: add the public guest details and reservation request form using the server-side quote foundation, without creating reservations, starting checkout, integrating Tilopay, sending Resend emails, or adding PMS features.
+Current subphase: 8.4 Pending reservation creation and expiration handling
+Current focus: add server-side pending reservation creation and expiration handling after the public guest details form, without integrating Tilopay, sending Resend emails, confirming reservations, or adding PMS features.
 ```
 
 ---
@@ -231,8 +231,8 @@ Subphase status:
 ```text
 8.1 Reservation flow strategy and pending hold contract — Completed
 8.2 Reservation quote and server-side pricing foundation — Completed
-8.3 Public guest details and reservation request form — In progress
-8.4 Pending reservation creation and expiration handling — Not started
+8.3 Public guest details and reservation request form — Completed
+8.4 Pending reservation creation and expiration handling — In progress
 8.5 Availability revalidation before payment handoff — Not started
 8.6 Phase 8 documentation update — Not started
 ```
@@ -272,6 +272,19 @@ Phase 8.2 result:
 - docs/44-reservation-quote-and-server-side-pricing-foundation.md was added.
 - The quote foundation uses server-controlled accommodation prices, date-only night counting, capacity validation, USD cents, and fixed decimal output.
 - Phase 8.2 does not create reservations, pending holds, checkout sessions, Tilopay payment intents, Resend emails, migration files, seed data, admin reservation UI, deployment configuration, or PMS features.
+```
+
+Phase 8.3 result:
+
+```text
+- features/reservations/components/reservation-request-form.tsx was added as a public client-side request form.
+- features/reservations/index.ts was added as the reservation feature export boundary.
+- The accommodation detail page now renders the reservation request form instead of a disabled coming-soon CTA.
+- The form collects date, guest count, guest contact, country, and estimated arrival time in the UI.
+- The form calculates a non-binding quote through GET /api/reservations/quote.
+- messages/es.ts and messages/en.ts were updated with centralized reservation request form copy.
+- docs/45-public-guest-details-and-reservation-request-form.md was added.
+- Phase 8.3 does not create reservations, pending holds, checkout sessions, Tilopay payment intents, Resend emails, migration files, seed data, admin reservation UI, deployment configuration, or PMS features.
 ```
 
 ---
