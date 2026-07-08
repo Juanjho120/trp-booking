@@ -1,12 +1,14 @@
+"use client";
+
 import { CheckCircle2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { esMessages } from "@/messages";
-
-const messages = esMessages;
+import { useLocale } from "@/features/i18n";
 
 export function TrustSection() {
+  const { messages } = useLocale();
+
   return (
     <section className="py-20">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">

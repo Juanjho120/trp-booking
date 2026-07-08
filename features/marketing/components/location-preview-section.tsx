@@ -1,10 +1,12 @@
+"use client";
+
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { esMessages } from "@/messages";
-
-const messages = esMessages;
+import { useLocale } from "@/features/i18n";
 
 export function LocationPreviewSection() {
+  const { messages } = useLocale();
+
   return (
     <section className="bg-muted/35 py-20" id="ubicacion">
       <div className="mx-auto grid max-w-7xl gap-10 px-6 lg:grid-cols-[1fr_0.9fr] lg:px-8">

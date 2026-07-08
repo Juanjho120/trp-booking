@@ -1,16 +1,21 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { getAccommodationById } from "@/config/accommodations";
-import { esMessages } from "@/messages";
+import { useLocale } from "@/features/i18n";
+import type { Accommodation } from "@/types/accommodation";
 
-const messages = esMessages;
-const featuredAccommodation = getAccommodationById("complete-retreat");
+type HeroSectionProps = Readonly<{
+  featuredAccommodation?: Accommodation;
+}>;
 
-export function HeroSection() {
+export function HeroSection({ featuredAccommodation }: HeroSectionProps) {
+  const { locale, messages } = useLocale();
+
   return (
     <section className="relative overflow-hidden bg-[radial-gradient(circle_at_top_left,_hsl(var(--primary)/0.14),_transparent_34rem)]">
       <div className="mx-auto grid min-h-[calc(100vh-5rem)] max-w-7xl items-center gap-12 px-6 py-16 lg:grid-cols-[1fr_0.9fr] lg:px-8 lg:py-24">
@@ -51,7 +56,7 @@ export function HeroSection() {
             <div className="relative aspect-[4/5] min-h-[30rem] overflow-hidden bg-muted sm:min-h-[34rem]">
               {featuredAccommodation ? (
                 <Image
-                  alt={featuredAccommodation.coverImage.alt.es}
+                  alt={featuredAccommodation.coverImage.alt[locale]}
                   className="object-cover"
                   fill
                   priority

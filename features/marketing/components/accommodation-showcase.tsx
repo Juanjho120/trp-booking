@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 
@@ -10,12 +12,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { accommodations } from "@/config/accommodations";
-import { esMessages } from "@/messages";
+import { useLocale } from "@/features/i18n";
+import type { Accommodation } from "@/types/accommodation";
 
-const messages = esMessages;
+type AccommodationShowcaseProps = Readonly<{
+  accommodations: readonly Accommodation[];
+}>;
 
-export function AccommodationShowcase() {
+export function AccommodationShowcase({ accommodations }: AccommodationShowcaseProps) {
+  const { locale, messages } = useLocale();
+
   return (
     <section className="py-20" id="alojamientos">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
@@ -39,7 +45,7 @@ export function AccommodationShowcase() {
             >
               <div className="relative aspect-[16/11] overflow-hidden bg-muted">
                 <Image
-                  alt={accommodation.coverImage.alt.es}
+                  alt={accommodation.coverImage.alt[locale]}
                   className="object-cover transition duration-500 group-hover:scale-105"
                   fill
                   sizes="(min-width: 1024px) 33vw, 100vw"
@@ -58,11 +64,11 @@ export function AccommodationShowcase() {
                     {messages.home.accommodations.guests}
                   </Badge>
                 </div>
-                <CardTitle className="text-2xl">{accommodation.name.es}</CardTitle>
+                <CardTitle className="text-2xl">{accommodation.name[locale]}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-5">
                 <p className="text-sm leading-6 text-muted-foreground">
-                  {accommodation.shortDescription.es}
+                  {accommodation.shortDescription[locale]}
                 </p>
                 <div className="flex items-end justify-between gap-4 rounded-2xl bg-muted/45 p-4">
                   <div>

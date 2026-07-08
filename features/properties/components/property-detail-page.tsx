@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { LocaleSwitcher, useLocale } from "@/features/i18n";
+import { useLocale } from "@/features/i18n";
 import { ReservationRequestForm } from "@/features/reservations";
 import type { Accommodation } from "@/types/accommodation";
 
@@ -28,12 +28,9 @@ export function PropertyDetailPage({ accommodation }: PropertyDetailPageProps) {
       <main>
         <section className="mx-auto grid max-w-7xl gap-10 px-6 py-10 lg:grid-cols-[1.1fr_0.9fr] lg:px-8 lg:py-16">
           <div>
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <Button asChild className="rounded-full" variant="ghost">
-                <Link href="/alojamientos">{messages.properties.detail.backToAccommodations}</Link>
-              </Button>
-              <LocaleSwitcher />
-            </div>
+            <Button asChild className="rounded-full" variant="ghost">
+              <Link href="/alojamientos">{messages.properties.detail.backToAccommodations}</Link>
+            </Button>
 
             <div className="mt-8">
               <Badge

@@ -13,7 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { LocaleSwitcher, useLocale } from "@/features/i18n";
+import { useLocale } from "@/features/i18n";
 import type { Accommodation } from "@/types/accommodation";
 
 type AccommodationsPageProps = Readonly<{
@@ -29,12 +29,9 @@ export function AccommodationsPage({ accommodations }: AccommodationsPageProps) 
       <main>
         <section className="bg-[radial-gradient(circle_at_top_left,_hsl(var(--primary)/0.12),_transparent_32rem)] py-20">
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <Badge className="rounded-full" variant="secondary">
-                {messages.properties.listing.badge}
-              </Badge>
-              <LocaleSwitcher />
-            </div>
+            <Badge className="rounded-full" variant="secondary">
+              {messages.properties.listing.badge}
+            </Badge>
             <div className="mt-6 max-w-3xl">
               <h1 className="text-balance text-4xl font-semibold tracking-tight sm:text-6xl">
                 {messages.properties.listing.title}

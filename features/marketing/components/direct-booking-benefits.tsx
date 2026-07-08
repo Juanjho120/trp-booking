@@ -1,10 +1,12 @@
+"use client";
+
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { esMessages } from "@/messages";
-
-const messages = esMessages;
+import { useLocale } from "@/features/i18n";
 
 export function DirectBookingBenefits() {
+  const { messages } = useLocale();
+
   return (
     <section className="py-20" id="beneficios">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">

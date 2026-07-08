@@ -1,12 +1,13 @@
+"use client";
+
 import Link from "next/link";
 
 import { siteConfig } from "@/config/site";
-import { esMessages } from "@/messages";
-
-const messages = esMessages;
+import { useLocale } from "@/features/i18n";
 
 export function SiteFooter() {
   const currentYear = new Date().getFullYear();
+  const { messages } = useLocale();
 
   return (
     <footer className="border-t border-border/70 bg-muted/30" id="contacto">

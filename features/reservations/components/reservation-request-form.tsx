@@ -1,9 +1,10 @@
 "use client";
 
 import { CalendarDays, ChevronDown, Search } from "lucide-react";
-import { type FormEvent, useMemo, useState } from "react";
+import { type ComponentType, type FormEvent, useMemo, useState } from "react";
 import { DayPicker, type DateRange } from "react-day-picker";
 import type { Country } from "react-phone-number-input";
+import flagComponents from "react-phone-number-input/flags";
 
 import { Button } from "@/components/ui/button";
 import { useLocale } from "@/features/i18n";
@@ -34,12 +35,17 @@ type QuoteApiResponse = QuoteApiSuccessResponse | QuoteApiErrorResponse;
 
 type RequestStatus = "idle" | "loading" | "success" | "error";
 
-type TimeOption = Readonly<{
+type SelectOption = Readonly<{
   value: string;
   label: string;
 }>;
 
+type FlagComponentProps = Readonly<{
+  title?: string;
+}>;
+
 const defaultCountry: Country = "GT";
+const countryFlagComponents = flagComponents as Record<string, ComponentType<FlagComponentProps>>;
 
 const dayPickerClassNames = {
   months: "grid gap-4",
@@ -58,9 +64,9 @@ const dayPickerClassNames = {
   day: "relative flex size-10 items-center justify-center text-sm",
   day_button:
     "flex size-9 items-center justify-center rounded-full text-sm transition hover:bg-primary/10 hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/30",
-  selected: "text-primary-foreground",
+  selected: "",
   range_start: "rounded-l-full bg-primary text-primary-foreground",
-  range_middle: "bg-primary/15 text-primary",
+  range_middle: "rounded-none bg-primary/15 text-primary",
   range_end: "rounded-r-full bg-primary text-primary-foreground",
   today: "font-bold text-primary",
   outside: "text-muted-foreground/40",
@@ -91,6 +97,17 @@ function formatShortDate(date: Date | undefined, locale: string): string | null 
   }).format(date);
 }
 
+function startOfDate(date: Date): number {
+  const normalizedDate = new Date(date);
+  normalizedDate.setHours(0, 0, 0, 0);
+  return normalizedDate.getTime();
+}
+
+function isDateInRange(date: Date, from: Date, to: Date): boolean {
+  const dateTime = startOfDate(date);
+  return dateTime >= startOfDate(from) && dateTime <= startOfDate(to);
+}
+
 function buildQuoteUrl(input: Readonly<{
   accommodationId: AccommodationId;
   checkInDate: string;
@@ -109,8 +126,8 @@ function buildQuoteUrl(input: Readonly<{
   return `/api/reservations/quote?${searchParams.toString()}`;
 }
 
-function buildTimeOptions(): readonly TimeOption[] {
-  const options: TimeOption[] = [];
+function buildTimeOptions(): readonly SelectOption[] {
+  const options: SelectOption[] = [];
 
   for (let hour = 8; hour <= 22; hour += 1) {
     for (const minute of [0, 30]) {
@@ -216,10 +233,6 @@ export function ReservationRequestForm({
   function handleDateRangeSelect(nextDateRange: DateRange | undefined): void {
     setDateRange(nextDateRange);
     setQuote(null);
-
-    if (nextDateRange?.from && nextDateRange.to) {
-      setDatePickerOpen(false);
-    }
   }
 
   return (
@@ -231,12 +244,14 @@ export function ReservationRequestForm({
 
       <DateRangeField
         clearLabel={uxCopy.dateRange.clear}
+        doneLabel={uxCopy.dateRange.done}
         helper={uxCopy.dateRange.helper}
         label={uxCopy.dateRange.label}
         onClear={() => {
           setDateRange(undefined);
           setQuote(null);
         }}
+        onDone={() => setDatePickerOpen(false)}
         onOpenChange={setDatePickerOpen}
         onSelect={handleDateRangeSelect}
         open={datePickerOpen}
@@ -264,23 +279,21 @@ export function ReservationRequestForm({
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field
-          autoComplete="name"
-          label={requestMessages.fields.guestName}
-          onChange={setGuestName}
-          placeholder={requestMessages.placeholders.guestName}
-          value={guestName}
-        />
-        <Field
-          autoComplete="email"
-          inputMode="email"
-          label={requestMessages.fields.guestEmail}
-          onChange={setGuestEmail}
-          placeholder={requestMessages.placeholders.guestEmail}
-          value={guestEmail}
-        />
-      </div>
+      <Field
+        autoComplete="name"
+        label={requestMessages.fields.guestName}
+        onChange={setGuestName}
+        placeholder={requestMessages.placeholders.guestName}
+        value={guestName}
+      />
+      <Field
+        autoComplete="email"
+        inputMode="email"
+        label={requestMessages.fields.guestEmail}
+        onChange={setGuestEmail}
+        placeholder={requestMessages.placeholders.guestEmail}
+        value={guestEmail}
+      />
 
       <CountrySelect
         countryOptions={countryOptions}
@@ -309,6 +322,7 @@ export function ReservationRequestForm({
       />
 
       <OptionSelect
+        dropDirection="up"
         label={uxCopy.arrivalTime.label}
         onOpenChange={setArrivalTimeOpen}
         onSelect={(value) => {
@@ -345,9 +359,11 @@ export function ReservationRequestForm({
 
 function DateRangeField({
   clearLabel,
+  doneLabel,
   helper,
   label,
   onClear,
+  onDone,
   onOpenChange,
   onSelect,
   open,
@@ -356,9 +372,11 @@ function DateRangeField({
   value,
 }: Readonly<{
   clearLabel: string;
+  doneLabel: string;
   helper: string;
   label: string;
   onClear: () => void;
+  onDone: () => void;
   onOpenChange: (open: boolean) => void;
   onSelect: (value: DateRange | undefined) => void;
   open: boolean;
@@ -366,6 +384,11 @@ function DateRangeField({
   today: Date;
   value: DateRange | undefined;
 }>) {
+  const [hoveredDate, setHoveredDate] = useState<Date | undefined>();
+  const previewRange = value?.from && !value.to && hoveredDate && startOfDate(hoveredDate) > startOfDate(value.from)
+    ? { from: value.from, to: hoveredDate }
+    : null;
+
   return (
     <div className="relative grid gap-2 text-sm font-medium text-foreground">
       <span>{label}</span>
@@ -382,19 +405,36 @@ function DateRangeField({
       <span className="text-xs leading-5 text-muted-foreground">{helper}</span>
 
       {open ? (
-        <div className="absolute left-0 top-full z-30 mt-2 w-full rounded-[1.5rem] border border-border/70 bg-card p-4 shadow-2xl sm:w-[24rem]">
+        <div
+          className="absolute left-0 top-full z-[80] mt-2 w-full rounded-[1.5rem] border border-border/70 bg-card p-4 shadow-2xl sm:w-[24rem]"
+          onMouseLeave={() => setHoveredDate(undefined)}
+        >
           <DayPicker
             classNames={dayPickerClassNames}
             disabled={{ before: today }}
+            excludeDisabled
             mode="range"
+            modifiers={{
+              preview_range: (date) =>
+                previewRange ? isDateInRange(date, previewRange.from, previewRange.to) : false,
+            }}
+            modifiersClassNames={{
+              preview_range: "bg-primary/10 text-primary",
+            }}
             numberOfMonths={1}
+            onDayMouseEnter={setHoveredDate}
             onSelect={onSelect}
             selected={value}
             weekStartsOn={1}
           />
-          <Button className="mt-3 w-full rounded-full" onClick={onClear} type="button" variant="ghost">
-            {clearLabel}
-          </Button>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            <Button className="rounded-full" onClick={onClear} type="button" variant="ghost">
+              {clearLabel}
+            </Button>
+            <Button className="rounded-full" onClick={onDone} type="button" variant="secondary">
+              {doneLabel}
+            </Button>
+          </div>
         </div>
       ) : null}
     </div>
@@ -402,6 +442,7 @@ function DateRangeField({
 }
 
 function OptionSelect({
+  dropDirection = "down",
   label,
   onOpenChange,
   onSelect,
@@ -410,15 +451,17 @@ function OptionSelect({
   placeholder,
   value,
 }: Readonly<{
+  dropDirection?: "down" | "up";
   label: string;
   onOpenChange: (open: boolean) => void;
   onSelect: (value: string) => void;
   open: boolean;
-  options: readonly TimeOption[];
+  options: readonly SelectOption[];
   placeholder: string;
   value: string;
 }>) {
   const selectedOption = options.find((option) => option.value === value);
+  const dropdownPositionClass = dropDirection === "up" ? "bottom-full mb-2" : "top-full mt-2";
 
   return (
     <div className="relative grid gap-2 text-sm font-medium text-foreground">
@@ -434,7 +477,7 @@ function OptionSelect({
         <ChevronDown aria-hidden="true" className="size-4 text-muted-foreground" />
       </button>
       {open ? (
-        <div className="absolute left-0 top-full z-30 mt-2 max-h-64 w-full overflow-auto rounded-2xl border border-border/70 bg-card p-2 shadow-2xl">
+        <div className={`absolute left-0 z-[80] max-h-80 w-full overflow-auto rounded-2xl border border-border/70 bg-card p-2 shadow-2xl ${dropdownPositionClass}`}>
           {options.map((option) => (
             <button
               className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm transition hover:bg-muted"
@@ -494,15 +537,15 @@ function CountrySelect({
         onClick={() => onOpenChange(!open)}
         type="button"
       >
-        <span className="flex items-center gap-2 truncate">
-          <span aria-hidden="true">{value.flag}</span>
+        <span className="flex min-w-0 items-center gap-2 truncate">
+          <CountryFlag country={value} />
           <span className="truncate">{value.name}</span>
           <span className="text-muted-foreground">{value.dialCode}</span>
         </span>
         <ChevronDown aria-hidden="true" className="size-4 text-muted-foreground" />
       </button>
       {open ? (
-        <div className="absolute left-0 top-full z-30 mt-2 w-full rounded-2xl border border-border/70 bg-card p-2 shadow-2xl">
+        <div className="absolute left-0 top-full z-[80] mt-2 w-full rounded-2xl border border-border/70 bg-card p-2 shadow-2xl">
           <label className="flex items-center gap-2 rounded-xl border border-border/70 bg-background px-3 py-2 text-sm text-muted-foreground">
             <Search aria-hidden="true" className="size-4" />
             <input
@@ -523,7 +566,7 @@ function CountrySelect({
                   type="button"
                 >
                   <span className="flex min-w-0 items-center gap-2">
-                    <span aria-hidden="true">{country.flag}</span>
+                    <CountryFlag country={country} />
                     <span className="truncate">{country.name}</span>
                   </span>
                   <span className="shrink-0 text-muted-foreground">{country.dialCode}</span>
@@ -537,6 +580,16 @@ function CountrySelect({
       ) : null}
       <span className="sr-only">{placeholder}</span>
     </div>
+  );
+}
+
+function CountryFlag({ country }: Readonly<{ country: CountryOption }>) {
+  const FlagComponent = countryFlagComponents[country.iso2];
+
+  return (
+    <span className="flex h-4 w-6 shrink-0 overflow-hidden rounded-[0.2rem] bg-muted shadow-sm ring-1 ring-border/70 [&_svg]:h-full [&_svg]:w-full">
+      {FlagComponent ? <FlagComponent title={country.name} /> : <span className="sr-only">{country.iso2}</span>}
+    </span>
   );
 }
 

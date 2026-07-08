@@ -1,12 +1,14 @@
+"use client";
+
 import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { esMessages } from "@/messages";
-
-const messages = esMessages;
+import { useLocale } from "@/features/i18n";
 
 export function HomepageCtaSection() {
+  const { messages } = useLocale();
+
   return (
     <section className="px-6 pb-20 lg:px-8">
       <div className="mx-auto max-w-7xl rounded-[2rem] bg-primary px-6 py-14 text-primary-foreground shadow-xl shadow-primary/20 sm:px-10 lg:px-14">

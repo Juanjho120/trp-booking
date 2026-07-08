@@ -16,9 +16,19 @@ The goal is to avoid persisting loosely-entered guest data from free text fields
 
 ```text
 package.json
+app/page.tsx
+components/layout/site-header.tsx
+components/layout/site-footer.tsx
 features/i18n/use-locale.tsx
 features/i18n/locale-switcher.tsx
 features/i18n/index.ts
+features/marketing/components/home-page.tsx
+features/marketing/components/hero-section.tsx
+features/marketing/components/accommodation-showcase.tsx
+features/marketing/components/direct-booking-benefits.tsx
+features/marketing/components/location-preview-section.tsx
+features/marketing/components/trust-section.tsx
+features/marketing/components/homepage-cta-section.tsx
 features/properties/components/accommodations-page.tsx
 features/properties/components/property-detail-page.tsx
 features/reservations/components/reservation-request-form.tsx
@@ -31,11 +41,17 @@ docs/48-reservation-form-ux-and-manual-locale-switcher.md
 
 ```text
 - Replaced free text check-in/check-out fields with a styled date range picker.
+- The date range picker stays open while the guest selects the start and end dates.
+- The date range picker shows the selected range with shaded in-range dates and includes explicit Clear and Done actions.
 - Replaced free text guest count with a controlled selector from 1 to the accommodation maxGuests value.
 - Replaced free text country with a searchable country picker with flag, localized country name, and calling code.
+- The country picker renders actual SVG flag icons instead of relying only on emoji flags, which may render as country abbreviations on some operating systems.
 - Added phone input with country calling code inferred from the selected country.
 - Replaced free text estimated arrival time with a styled time selector.
-- Added a manual ES/EN locale switcher to the public accommodation listing and detail pages.
+- The estimated arrival time selector opens upward to avoid being clipped near the bottom of the reservation card.
+- Full name and email now render as separate rows for better form readability.
+- Added a manual ES/EN locale switcher to the global site header instead of placing it inside individual accommodation sections.
+- Header, footer, homepage sections, accommodation listing, accommodation detail, and reservation request UI now react to the manual locale selection.
 ```
 
 ## Dependency Decision
@@ -58,12 +74,13 @@ The project still avoids unnecessary dependencies. These two are justified becau
 
 ## Manual Locale Behavior
 
-The new locale switcher is manual.
+The locale switcher is manual and global.
 
 ```text
 - It does not infer the language from the browser.
 - It persists the selection in localStorage.
-- It updates client-rendered public accommodation listing/detail content and reservation request UI.
+- It appears in the global site header.
+- It updates client-rendered public content consistently so guests do not see a Spanish menu with English page content or the opposite.
 ```
 
 Future i18n work may move this to route-based `/es` and `/en` paths, but this subphase provides the requested manual switcher without disrupting the current route structure.

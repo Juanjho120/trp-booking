@@ -6,6 +6,7 @@ export type ReservationRequestUxCopy = Readonly<{
     buttonPlaceholder: string;
     helper: string;
     clear: string;
+    done: string;
   };
   guests: {
     label: string;
@@ -35,8 +36,9 @@ const copies: Record<Locale, ReservationRequestUxCopy> = {
     dateRange: {
       label: "Fechas de estadía",
       buttonPlaceholder: "Selecciona fecha de entrada y salida",
-      helper: "Selecciona un rango. La fecha de salida no cuenta como noche reservada.",
+      helper: "Selecciona la fecha de entrada y luego la fecha de salida. La salida no cuenta como noche reservada.",
       clear: "Limpiar fechas",
+      done: "Listo",
     },
     guests: {
       label: "Huéspedes",
@@ -64,8 +66,9 @@ const copies: Record<Locale, ReservationRequestUxCopy> = {
     dateRange: {
       label: "Stay dates",
       buttonPlaceholder: "Select check-in and check-out",
-      helper: "Select a range. The check-out date is not counted as a reserved night.",
+      helper: "Select the check-in date and then the check-out date. Check-out is not counted as a reserved night.",
       clear: "Clear dates",
+      done: "Done",
     },
     guests: {
       label: "Guests",
