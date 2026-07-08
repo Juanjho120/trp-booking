@@ -236,26 +236,26 @@ export function ReservationRequestForm({
   }
 
   return (
-    <form className="space-y-5" onSubmit={handleQuoteRequest}>
-      <DateRangeField
-        clearLabel={uxCopy.dateRange.clear}
-        doneLabel={uxCopy.dateRange.done}
-        helper={uxCopy.dateRange.helper}
-        label={uxCopy.dateRange.label}
-        onClear={() => {
-          setDateRange(undefined);
-          setQuote(null);
-        }}
-        onDone={() => setDatePickerOpen(false)}
-        onOpenChange={setDatePickerOpen}
-        onSelect={handleDateRangeSelect}
-        open={datePickerOpen}
-        selectedLabel={selectedDateRangeLabel}
-        today={today}
-        value={dateRange}
-      />
+    <form className="space-y-4" onSubmit={handleQuoteRequest}>
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)]">
+        <DateRangeField
+          clearLabel={uxCopy.dateRange.clear}
+          doneLabel={uxCopy.dateRange.done}
+          helper={uxCopy.dateRange.helper}
+          label={uxCopy.dateRange.label}
+          onClear={() => {
+            setDateRange(undefined);
+            setQuote(null);
+          }}
+          onDone={() => setDatePickerOpen(false)}
+          onOpenChange={setDatePickerOpen}
+          onSelect={handleDateRangeSelect}
+          open={datePickerOpen}
+          selectedLabel={selectedDateRangeLabel}
+          today={today}
+          value={dateRange}
+        />
 
-      <div className="grid gap-4 sm:grid-cols-2">
         <OptionSelect
           label={uxCopy.guests.label}
           onOpenChange={setGuestSelectorOpen}
@@ -269,9 +269,6 @@ export function ReservationRequestForm({
           placeholder={uxCopy.guests.placeholder}
           value={guestCount}
         />
-        <div className="rounded-2xl bg-muted/40 p-4 text-sm leading-6 text-muted-foreground">
-          {requestMessages.maxGuestsNote.replace("{maxGuests}", String(maxGuests))}
-        </div>
       </div>
 
       <Field
@@ -290,31 +287,33 @@ export function ReservationRequestForm({
         value={guestEmail}
       />
 
-      <CountrySelect
-        countryOptions={countryOptions}
-        label={uxCopy.country.label}
-        noResultsLabel={uxCopy.country.noResults}
-        onOpenChange={setCountryOpen}
-        onSearchChange={setCountrySearch}
-        onSelect={(country) => {
-          setGuestCountry(country.iso2);
-          setCountryOpen(false);
-          setCountrySearch("");
-        }}
-        open={countryOpen}
-        placeholder={uxCopy.country.placeholder}
-        search={countrySearch}
-        searchPlaceholder={uxCopy.country.search}
-        value={selectedCountry}
-      />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <CountrySelect
+          countryOptions={countryOptions}
+          label={uxCopy.country.label}
+          noResultsLabel={uxCopy.country.noResults}
+          onOpenChange={setCountryOpen}
+          onSearchChange={setCountrySearch}
+          onSelect={(country) => {
+            setGuestCountry(country.iso2);
+            setCountryOpen(false);
+            setCountrySearch("");
+          }}
+          open={countryOpen}
+          placeholder={uxCopy.country.placeholder}
+          search={countrySearch}
+          searchPlaceholder={uxCopy.country.search}
+          value={selectedCountry}
+        />
 
-      <PhoneField
-        dialCode={selectedCountry.dialCode}
-        inputLabel={uxCopy.phone.localNumber}
-        label={uxCopy.phone.label}
-        onChange={setGuestPhoneLocal}
-        value={guestPhoneLocal}
-      />
+        <PhoneField
+          dialCode={selectedCountry.dialCode}
+          inputLabel={uxCopy.phone.localNumber}
+          label={uxCopy.phone.label}
+          onChange={setGuestPhoneLocal}
+          value={guestPhoneLocal}
+        />
+      </div>
 
       <OptionSelect
         dropDirection="up"
@@ -535,7 +534,6 @@ function CountrySelect({
         <span className="flex min-w-0 items-center gap-2 truncate">
           <CountryFlag country={value} />
           <span className="truncate">{value.name}</span>
-          <span className="text-muted-foreground">{value.dialCode}</span>
         </span>
         <ChevronDown aria-hidden="true" className="size-4 text-muted-foreground" />
       </button>
@@ -564,7 +562,6 @@ function CountrySelect({
                     <CountryFlag country={country} />
                     <span className="truncate">{country.name}</span>
                   </span>
-                  <span className="shrink-0 text-muted-foreground">{country.dialCode}</span>
                 </button>
               ))
             ) : (
