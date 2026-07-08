@@ -79,6 +79,18 @@ enum ExternalCalendarStatus {
   ERROR
 }
 
+enum ExternalCalendarDirection {
+  IMPORT
+  EXPORT
+  BIDIRECTIONAL
+}
+
+enum ExternalCalendarEventStatus {
+  ACTIVE
+  REMOVED
+  CANCELLED
+}
+
 enum CalendarSyncTriggeredBy {
   CRON
   ADMIN
@@ -405,18 +417,26 @@ model CalendarBlock {
 }
 
 model ExternalCalendar {
-  id                 String                   @id @default(cuid())
-  propertyId         String
-  provider           ExternalCalendarProvider @default(AIRBNB)
-  name               String
-  importUrlEncrypted String?
-  exportToken        String                   @unique
-  lastSyncedAt       DateTime?
-  status             ExternalCalendarStatus   @default(ACTIVE)
-  createdAt          DateTime                 @default(now())
-  updatedAt          DateTime                 @updatedAt
-  deletedAt          DateTime?
-  deletedById        String?
+  id                       String                   @id @default(cuid())
+  propertyId               String
+  provider                 ExternalCalendarProvider @default(AIRBNB)
+  direction                ExternalCalendarDirection @default(BIDIRECTIONAL)
+  name                     String
+  importUrlEncrypted       String?                  @db.Text
+  exportTokenHash          String?                  @unique
+  exportTokenLastRotatedAt DateTime?
+  isImportEnabled          Boolean                  @default(true)
+  isExportEnabled          Boolean                  @default(true)
+  lastImportStartedAt      DateTime?
+  lastImportFinishedAt     DateTime?
+  lastExportGeneratedAt    DateTime?
+  lastFailureCode          String?
+  lastFailureMessage       String?                  @db.Text
+  status                   ExternalCalendarStatus   @default(ACTIVE)
+  createdAt                DateTime                 @default(now())
+  updatedAt                DateTime                 @updatedAt
+  deletedAt                DateTime?
+  deletedById              String?
 
   property  Property                @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   deletedBy User?                   @relation("ExternalCalendarDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull)
@@ -424,27 +444,33 @@ model ExternalCalendar {
   syncLogs  ExternalCalendarSyncLog[]
 
   @@index([propertyId])
-  @@index([status])
+  @@index([provider, status])
+  @@index([direction])
   @@index([deletedAt])
   @@map("external_calendars")
 }
 
 model ExternalCalendarEvent {
-  id                 String   @id @default(cuid())
+  id                 String                      @id @default(cuid())
   externalCalendarId String
   providerEventUid   String
+  status             ExternalCalendarEventStatus @default(ACTIVE)
   summary            String?
-  startDate          DateTime @db.Date
-  endDate            DateTime @db.Date
+  startDate          DateTime                    @db.Date
+  endDate            DateTime                    @db.Date
+  firstSeenAt        DateTime                    @default(now())
+  lastSeenAt         DateTime                    @default(now())
+  removedAt          DateTime?
   rawPayload         Json?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  createdAt          DateTime                    @default(now())
+  updatedAt          DateTime                    @updatedAt
 
   externalCalendar ExternalCalendar @relation(fields: [externalCalendarId], references: [id], onDelete: Cascade)
   calendarBlocks    CalendarBlock[]
 
   @@unique([externalCalendarId, providerEventUid])
-  @@index([startDate, endDate])
+  @@index([externalCalendarId, startDate, endDate])
+  @@index([status])
   @@map("external_calendar_events")
 }
 
@@ -452,15 +478,17 @@ model ExternalCalendarSyncLog {
   id                 String                  @id @default(cuid())
   externalCalendarId String
   triggeredBy        CalendarSyncTriggeredBy
-  status             CalendarSyncStatus
+  status             CalendarSyncStatus      @default(STARTED)
   startedAt          DateTime                @default(now())
   finishedAt         DateTime?
   eventsImported     Int                     @default(0)
+  eventsUpdated      Int                     @default(0)
   eventsRemoved      Int                     @default(0)
+  eventsSkipped      Int                     @default(0)
   blocksCreated      Int                     @default(0)
   blocksUpdated      Int                     @default(0)
   errorCode          String?
-  errorMessage       String?
+  errorMessage       String?                 @db.Text
   createdAt          DateTime                @default(now())
 
   externalCalendar ExternalCalendar @relation(fields: [externalCalendarId], references: [id], onDelete: Cascade)

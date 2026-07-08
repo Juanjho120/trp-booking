@@ -399,7 +399,7 @@ Preparation buffer blocks must be included when calculating public availability 
 
 ## ExternalCalendar
 
-Stores external calendar configuration.
+Stores server-side external calendar configuration for Airbnb import and export feeds.
 
 Suggested fields:
 
@@ -407,25 +407,47 @@ Suggested fields:
 id
 propertyId
 provider
+direction
 name
 importUrlEncrypted
-exportToken
-lastSyncedAt
+exportTokenHash
+exportTokenLastRotatedAt
+isImportEnabled
+isExportEnabled
+lastImportStartedAt
+lastImportFinishedAt
+lastExportGeneratedAt
+lastFailureCode
+lastFailureMessage
 status
 createdAt
 updatedAt
+deletedAt
+deletedById
 ```
 
 Important:
 
+- Do not commit real Airbnb iCal URLs.
 - Do not store raw iCal URLs with tokens in plaintext if avoidable.
 - Do not expose iCal import URLs publicly.
-- Export tokens must be unguessable.
+- `importUrlEncrypted` is a server-side encrypted value, not public metadata.
+- `exportTokenHash` stores a hash of the export feed token, not the raw token itself.
+- Export feed tokens must be unguessable, rotatable, and revocable by disabling or soft-deleting the calendar configuration.
+- `lastFailureMessage` must contain redacted operational context only and must not include raw provider tokens.
 
 Suggested provider:
 
 ```text
 AIRBNB
+```
+
+Suggested directions:
+
+```text
+IMPORT
+EXPORT
+BIDIRECTIONAL
 ```
 
 Suggested statuses:
@@ -446,14 +468,31 @@ Suggested fields:
 id
 externalCalendarId
 providerEventUid
+status
 summary
 startDate
 endDate
+firstSeenAt
+lastSeenAt
+removedAt
 rawPayload
 createdAt
 updatedAt
 ```
 
+Suggested statuses:
+
+```text
+ACTIVE
+REMOVED
+CANCELLED
+```
+
+Important:
+
+- Imported Airbnb events must not be hard-deleted by normal application workflows.
+- Missing provider events should transition to `REMOVED` and set `removedAt` so sync history remains auditable.
+- `rawPayload` must not include provider secrets or raw calendar import URLs.
 
 ## ExternalCalendarSyncLog
 
@@ -469,7 +508,9 @@ status
 startedAt
 finishedAt
 eventsImported
+eventsUpdated
 eventsRemoved
+eventsSkipped
 blocksCreated
 blocksUpdated
 errorCode
@@ -495,6 +536,8 @@ PARTIAL_SUCCESS
 ```
 
 Do not store full iCal URLs with tokens in sync logs.
+
+`errorMessage` must be redacted and safe for admin diagnostics.
 
 ## EmailNotification
 

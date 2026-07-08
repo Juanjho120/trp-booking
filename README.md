@@ -92,6 +92,7 @@ Max guests: 6
 - Public availability UI must not create reservations, start checkout, or collect payments during Phase 6.
 - Confirmed reservations now derive preparation buffer blocking records at read time until a later write flow persists automatic buffer blocks.
 - Airbnb iCal import URLs and export tokens must never be committed, logged, exposed through API responses, or displayed in public UI.
+- Airbnb export feed tokens must be stored as hashes, not as raw reusable tokens.
 
 ## Documentation
 
@@ -137,6 +138,7 @@ docs/
   35-preparation-buffer-and-blocked-date-evaluation.md
   36-phase-6-availability-closure-review.md
   37-airbnb-ical-strategy-and-environment-contract.md
+  38-airbnb-calendar-configuration-model.md
 ```
 
 The assistant collaboration rules live in:
@@ -149,9 +151,9 @@ AGENTS.md
 
 ```text
 Current phase: Phase 7 — Airbnb iCal Synchronization
-Current subphase: 7.2 Airbnb calendar configuration model
+Current subphase: 7.3 Airbnb iCal import parser and sync service
 Last completed phase: Phase 6 — Availability Calendar Foundation
-Last completed subphase: 7.1 Airbnb iCal strategy and environment contract
+Last completed subphase: 7.2 Airbnb calendar configuration model
 ```
 
-See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/07-airbnb-ical-sync.md`, `docs/36-phase-6-availability-closure-review.md`, and `docs/37-airbnb-ical-strategy-and-environment-contract.md` for the official current tracker and iCal synchronization context.
+See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/07-airbnb-ical-sync.md`, `docs/36-phase-6-availability-closure-review.md`, `docs/37-airbnb-ical-strategy-and-environment-contract.md`, and `docs/38-airbnb-calendar-configuration-model.md` for the official current tracker and iCal synchronization context.

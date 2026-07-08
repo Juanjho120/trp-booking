@@ -6,10 +6,10 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 7 — Airbnb iCal Synchronization
-Current subphase: 7.2 Airbnb calendar configuration model
+Current subphase: 7.3 Airbnb iCal import parser and sync service
 Last updated: 2026-07-08
 Last completed phase: Phase 6 — Availability Calendar Foundation
-Last completed subphase: 7.1 Airbnb iCal strategy and environment contract
+Last completed subphase: 7.2 Airbnb calendar configuration model
 ```
 
 ## Completed Work
@@ -188,6 +188,39 @@ Important limitation:
 Phase 7.1 does not add an iCal parser dependency, iCal fetch client, calendar configuration database model, database migrations, seed data, cron endpoint, manual sync action, export endpoint, admin calendar UI, reservation creation, checkout, Tilopay integration, Resend integration, or PMS features.
 ```
 
+### Phase 7.2 — Airbnb Calendar Configuration Model
+
+Status: **Completed**
+
+Completed deliverables:
+
+```text
+prisma/schema.prisma updated with the hardened ExternalCalendar configuration model
+prisma/schema.prisma updated with ExternalCalendarDirection and ExternalCalendarEventStatus enums
+docs/04-database-model.md updated with the secure iCal configuration fields
+docs/38-airbnb-calendar-configuration-model.md added
+README.md updated with Phase 7.2 completion and Phase 7.3 current status
+docs/10-phases.md updated to mark 7.2 completed and 7.3 in progress
+docs/11-progress-log.md updated with Phase 7.2 completion
+```
+
+Important decisions:
+
+```text
+ExternalCalendar stores server-side Airbnb configuration only.
+Airbnb import URLs are modeled as encrypted values through importUrlEncrypted.
+Export feed tokens are modeled as exportTokenHash values instead of raw reusable tokens.
+Import and export can be independently enabled or disabled.
+ExternalCalendarEvent tracks ACTIVE, REMOVED, or CANCELLED status so provider removals can be reconciled without hard-deleting history.
+ExternalCalendarSyncLog stores redacted operational counters and errors only.
+```
+
+Important limitation:
+
+```text
+Phase 7.2 does not add migration files, seed data, iCal parser dependency, fetch client, cron endpoint, manual sync action, export endpoint, admin calendar UI, reservation creation, checkout, Tilopay integration, Resend integration, or PMS features.
+```
+
 ## Current Work
 
 ### Phase 7 — Airbnb iCal Synchronization
@@ -197,29 +230,29 @@ Status: **In progress**
 Current subphase:
 
 ```text
-7.2 Airbnb calendar configuration model
+7.3 Airbnb iCal import parser and sync service
 ```
 
-Phase 7.2 goals:
+Phase 7.3 goals:
 
 ```text
-Introduce the database/configuration model for Airbnb import calendars and export tokens.
-Keep import URLs and export tokens server-side only.
-Preserve soft delete and audit conventions.
-Do not implement actual iCal parsing, cron sync, admin sync, export endpoints, checkout, payment, email, or PMS features yet.
+Introduce the iCal import parser and server-side sync service using the Phase 7.2 calendar configuration model.
+Persist imported Airbnb events and AIRBNB CalendarBlock records safely.
+Reuse Phase 6 composed listing and preparation buffer rules.
+Do not add cron scheduling, manual admin sync UI, export endpoints, checkout, payment, email, or PMS features yet.
 ```
 
 ## Next Recommended Work
 
 ```text
-1. Apply Phase 7.1 files.
+1. Apply Phase 7.2 files.
 2. Run npm run db:generate.
-3. Run npm run build.
-4. Run npm run env:validate.
-5. Run npm run db:validate.
+3. Run npm run db:validate.
+4. Run npm run build.
+5. Run npm run env:validate.
 6. Run npm run lint.
-7. Commit Phase 7.1.
-8. Continue with Phase 7.2 Airbnb calendar configuration model.
+7. Commit Phase 7.2.
+8. Continue with Phase 7.3 Airbnb iCal import parser and sync service.
 ```
 
 ## Continuity Notes for New Conversations
@@ -242,6 +275,7 @@ docs/34-public-availability-calendar-ui-foundation.md
 docs/35-preparation-buffer-and-blocked-date-evaluation.md
 docs/36-phase-6-availability-closure-review.md
 docs/37-airbnb-ical-strategy-and-environment-contract.md
+docs/38-airbnb-calendar-configuration-model.md
 lib/db/prisma.ts
 lib/availability/index.ts
 lib/availability/service.ts

@@ -15,8 +15,8 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 7 — Airbnb iCal Synchronization
-Current subphase: 7.2 Airbnb calendar configuration model
-Current focus: introduce the database/configuration model for Airbnb calendar imports and export tokens without implementing parser, cron sync, admin sync, checkout, payment, email, or PMS features.
+Current subphase: 7.3 Airbnb iCal import parser and sync service
+Current focus: implement the iCal import parser and server-side sync service on top of the secure calendar configuration model, without cron scheduling, manual admin sync UI, export endpoints, checkout, payment, email, or PMS features.
 ```
 
 ---
@@ -201,8 +201,8 @@ Subphase status:
 
 ```text
 7.1 Airbnb iCal strategy and environment contract — Completed
-7.2 Airbnb calendar configuration model — In progress
-7.3 Airbnb iCal import parser and sync service — Not started
+7.2 Airbnb calendar configuration model — Completed
+7.3 Airbnb iCal import parser and sync service — In progress
 7.4 Airbnb iCal export feed foundation — Not started
 7.5 Scheduled sync and manual sync foundation — Not started
 7.6 Phase 7 documentation update — Not started
@@ -227,6 +227,20 @@ Phase 7.1 result:
 - The import, export, scheduled sync, manual sync, logging, and environment contracts were defined.
 - Reserved server-only configuration names were documented for later implementation.
 - No iCal parser, cron endpoint, export endpoint, admin sync UI, migrations, seed data, checkout, payment, email, or PMS features were added.
+```
+
+Phase 7.2 result:
+
+```text
+- The Prisma external calendar configuration model was strengthened for secure Airbnb import/export setup.
+- ExternalCalendar now distinguishes import/export direction and separate import/export enablement flags.
+- Airbnb import URLs are modeled as encrypted server-side values.
+- Export feed tokens are modeled as hashes instead of raw reusable tokens.
+- ExternalCalendarEvent now tracks imported event status and first/last seen timestamps for reconciliation.
+- ExternalCalendarSyncLog now tracks imported, updated, removed, skipped, created, and updated block counts with redacted error metadata.
+- docs/38-airbnb-calendar-configuration-model.md was added.
+- docs/04-database-model.md was updated to reflect the secure calendar configuration model.
+- No migration files, seed data, parser, fetch client, cron endpoint, export endpoint, admin calendar UI, checkout, payment, email, or PMS features were added.
 ```
 
 ---
