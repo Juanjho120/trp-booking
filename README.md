@@ -94,6 +94,7 @@ Max guests: 6
 - Airbnb iCal import URLs and export tokens must never be committed, logged, exposed through API responses, or displayed in public UI.
 - Airbnb export feed tokens must be stored as hashes, not as raw reusable tokens.
 - Airbnb scheduled sync must be protected by `CRON_SECRET` and must return redacted operational summaries only.
+- Reservation flow must re-check availability server-side before creating pending holds or handing off to payment.
 
 ## Documentation
 
@@ -143,6 +144,7 @@ docs/
   39-airbnb-ical-import-parser-and-sync-service.md
   40-airbnb-ical-export-feed-foundation.md
   41-scheduled-sync-and-manual-sync-foundation.md
+  42-phase-7-airbnb-ical-closure-review.md
 ```
 
 The assistant collaboration rules live in:
@@ -154,10 +156,10 @@ AGENTS.md
 ## Development Status
 
 ```text
-Current phase: Phase 7 — Airbnb iCal Synchronization
-Current subphase: 7.6 Phase 7 documentation update
-Last completed phase: Phase 6 — Availability Calendar Foundation
-Last completed subphase: 7.5 Scheduled sync and manual sync foundation
+Current phase: Phase 8 — Reservation Flow
+Current subphase: 8.1 Reservation flow strategy and pending hold contract
+Last completed phase: Phase 7 — Airbnb iCal Synchronization
+Last completed subphase: 7.6 Phase 7 documentation update
 ```
 
-See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/07-airbnb-ical-sync.md`, `docs/36-phase-6-availability-closure-review.md`, `docs/37-airbnb-ical-strategy-and-environment-contract.md`, `docs/38-airbnb-calendar-configuration-model.md`, `docs/39-airbnb-ical-import-parser-and-sync-service.md`, `docs/40-airbnb-ical-export-feed-foundation.md`, and `docs/41-scheduled-sync-and-manual-sync-foundation.md` for the official current tracker and iCal synchronization context.
+See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/36-phase-6-availability-closure-review.md`, `docs/37-airbnb-ical-strategy-and-environment-contract.md`, `docs/38-airbnb-calendar-configuration-model.md`, `docs/39-airbnb-ical-import-parser-and-sync-service.md`, `docs/40-airbnb-ical-export-feed-foundation.md`, `docs/41-scheduled-sync-and-manual-sync-foundation.md`, and `docs/42-phase-7-airbnb-ical-closure-review.md` for the official current tracker and Airbnb iCal synchronization closure context.

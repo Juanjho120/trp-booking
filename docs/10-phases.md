@@ -14,9 +14,9 @@ Deferred — Intentionally postponed.
 ## Current Phase
 
 ```text
-Current phase: Phase 7 — Airbnb iCal Synchronization
-Current subphase: 7.6 Phase 7 documentation update
-Current focus: close the Airbnb iCal synchronization phase after scheduled sync and manual sync foundation, without adding checkout, payment, email, admin PMS features, or reservation flow.
+Current phase: Phase 8 — Reservation Flow
+Current subphase: 8.1 Reservation flow strategy and pending hold contract
+Current focus: define the reservation flow, pending hold rules, guest data boundary, and server-side validation contract before creating reservation records, starting Tilopay checkout, sending email, or adding PMS features.
 ```
 
 ---
@@ -193,11 +193,11 @@ Phase 6 closure result:
 
 ## Phase 7 — Airbnb iCal Synchronization
 
-Status: **In progress**
+Status: **Completed**
 
 Goal: Add Airbnb iCal import/export synchronization without exposing private iCal tokens, without creating checkout/payment flows, and without turning TRP Booking into a PMS.
 
-Subphase status:
+Completed subphases:
 
 ```text
 7.1 Airbnb iCal strategy and environment contract — Completed
@@ -205,85 +205,50 @@ Subphase status:
 7.3 Airbnb iCal import parser and sync service — Completed
 7.4 Airbnb iCal export feed foundation — Completed
 7.5 Scheduled sync and manual sync foundation — Completed
-7.6 Phase 7 documentation update — In progress
+7.6 Phase 7 documentation update — Completed
 ```
 
-Phase 7 rules:
+Phase 7 closure result:
 
 ```text
-- Do not commit real Airbnb iCal URLs or tokens.
-- Do not expose raw iCal tokens in logs, API responses, or public UI.
-- Store import URLs and export tokens only in server-side private configuration or database records.
-- Sync must respect composed listing dependencies and preparation buffer rules from Phase 6.
-- Export feeds must include direct reservation blocks and preparation buffer blocks when they become available.
-- Do not add booking checkout, Tilopay, Resend, or PMS features in Phase 7 unless a later documented subphase explicitly allows it.
-```
-
-Phase 7.1 result:
-
-```text
-- docs/37-airbnb-ical-strategy-and-environment-contract.md was added.
-- The secure handling contract for Airbnb import URLs and export tokens was documented.
-- The import, export, scheduled sync, manual sync, logging, and environment contracts were defined.
-- Reserved server-only configuration names were documented for later implementation.
-- No iCal parser, cron endpoint, export endpoint, admin sync UI, migrations, seed data, checkout, payment, email, or PMS features were added.
-```
-
-Phase 7.2 result:
-
-```text
-- The Prisma external calendar configuration model was strengthened for secure Airbnb import/export setup.
-- ExternalCalendar now distinguishes import/export direction and separate import/export enablement flags.
-- Airbnb import URLs are modeled as encrypted server-side values.
-- Export feed tokens are modeled as hashes instead of raw reusable tokens.
-- ExternalCalendarEvent now tracks imported event status and first/last seen timestamps for reconciliation.
-- ExternalCalendarSyncLog now tracks imported, updated, removed, skipped, created, and updated block counts with redacted error metadata.
-- docs/38-airbnb-calendar-configuration-model.md was added.
-- docs/04-database-model.md was updated to reflect the secure calendar configuration model.
-- No migration files, seed data, parser, fetch client, cron endpoint, export endpoint, admin calendar UI, checkout, payment, email, or PMS features were added.
-```
-
-Phase 7.3 result:
-
-```text
-- A server-side Airbnb iCal parser was added under lib/airbnb-ical/parser.ts.
-- The parser supports folded iCal lines and Airbnb all-day VEVENT ranges with UID, DTSTART, DTEND, SUMMARY, and STATUS.
-- A server-side Airbnb import sync service was added under lib/airbnb-ical/sync-service.ts.
-- The sync service can fetch iCal content from a decrypted runtime URL, parse events, upsert ExternalCalendarEvent records, create/update AIRBNB CalendarBlock records, create/update PREPARATION_BUFFER blocks for imported Airbnb bookings, and soft-delete blocks when provider events disappear.
-- Sync results are recorded through ExternalCalendarSyncLog with redacted error metadata.
-- The service reuses Phase 6 date-only, composed listing, and preparation buffer rules.
-- No cron endpoint, admin sync UI, export endpoint, migration files, seed data, checkout, payment, email, or PMS features were added.
-```
-
-Phase 7.4 result:
-
-```text
-- A public-safe iCal export feed route was added at GET /api/ical/[token].
-- The route validates raw export tokens by hashing them and comparing against ExternalCalendar.exportTokenHash.
-- The export feed returns text/calendar content with generic Unavailable events only.
-- Export feeds include confirmed direct reservation blocks, derived preparation buffers, active CalendarBlock records, Airbnb blocks, manual blocks, maintenance blocks, composed dependency blocks, and preparation buffer blocks.
-- Export feeds exclude soft-deleted blocks, manually unlocked preparation buffers, guest data, payment data, admin notes, private Airbnb import URLs, exportTokenHash, and raw errors.
-- No cron scheduling, manual admin sync UI, migration files, seed data, checkout, payment, email, real Airbnb URLs, raw token storage, or PMS features were added.
-```
-
-Phase 7.5 result:
-
-```text
-- Vercel Cron configuration was added through vercel.json with a 30-minute schedule for /api/cron/sync-airbnb-calendars.
-- A protected cron route was added at GET /api/cron/sync-airbnb-calendars.
-- The cron route validates CRON_SECRET through Authorization: Bearer <secret> or x-cron-secret.
-- lib/airbnb-ical/scheduled-sync.ts was added to run configured Airbnb imports in batch.
-- A manual sync service foundation was added through syncAirbnbIcalCalendarManually without adding admin UI.
-- Batch sync uses server-side URL resolution and never returns raw import URLs or tokens.
-- .env.example documents CRON_SECRET and the optional early-development AIRBNB_ICAL_IMPORT_URLS_JSON fallback without committing real URLs.
-- No admin sync UI, migration files, seed data, checkout, payment, email, real Airbnb URLs, raw token storage, or PMS features were added.
+- Airbnb iCal synchronization now has a secure import/export contract, hardened calendar configuration model, parser, import sync service, export feed endpoint, scheduled sync foundation, and manual sync service foundation.
+- Import URLs and raw export tokens remain secrets and must not be committed, logged, exposed through API responses, or displayed in public UI.
+- Export feed tokens are validated by hash through ExternalCalendar.exportTokenHash.
+- Scheduled sync is protected by CRON_SECRET and returns redacted summaries only.
+- Phase 7 intentionally stops before reservation checkout, Tilopay integration, Resend emails, admin calendar UI, real deployment configuration, production credentials, and PMS features.
 ```
 
 ---
 
 ## Phase 8 — Reservation Flow
 
-Status: **Not started**
+Status: **In progress**
+
+Goal: Add the public direct reservation flow foundation using server-side validation, pending holds, guest details, and availability revalidation before any payment handoff.
+
+Subphase status:
+
+```text
+8.1 Reservation flow strategy and pending hold contract — In progress
+8.2 Reservation quote and server-side pricing foundation — Not started
+8.3 Public guest details and reservation request form — Not started
+8.4 Pending reservation creation and expiration handling — Not started
+8.5 Availability revalidation before payment handoff — Not started
+8.6 Phase 8 documentation update — Not started
+```
+
+Phase 8 rules:
+
+```text
+- Do not integrate Tilopay in Phase 8 unless a later documented subphase explicitly allows payment handoff preparation only.
+- Do not send Resend emails in Phase 8.
+- Do not confirm reservations before payment validation.
+- Pending reservations must expire if payment is not completed in time.
+- Availability must be rechecked server-side before creating a pending reservation and again before payment handoff.
+- Guest count, date ranges, and totals must be validated on the server.
+- Guests must not modify confirmed reservation dates directly from the public website.
+- Do not add PMS features.
+```
 
 ---
 
