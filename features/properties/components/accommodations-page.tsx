@@ -11,12 +11,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { accommodations } from "@/config/accommodations";
 import { esMessages } from "@/messages";
+import type { Accommodation } from "@/types/accommodation";
 
 const messages = esMessages;
 
-export function AccommodationsPage() {
+type AccommodationsPageProps = Readonly<{
+  accommodations: readonly Accommodation[];
+}>;
+
+export function AccommodationsPage({ accommodations }: AccommodationsPageProps) {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <SiteHeader />

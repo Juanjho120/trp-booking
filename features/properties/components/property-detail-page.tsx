@@ -21,6 +21,9 @@ type PropertyDetailPageProps = Readonly<{
 const messages = esMessages;
 
 export function PropertyDetailPage({ accommodation }: PropertyDetailPageProps) {
+  const amenities = accommodation.amenities ??
+    accommodation.amenityKeys.map((amenityKey) => getAmenityByKey(amenityKey));
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <SiteHeader />
@@ -142,18 +145,14 @@ export function PropertyDetailPage({ accommodation }: PropertyDetailPageProps) {
 
           <InfoCard title={messages.properties.detail.amenitiesTitle}>
             <ul className="grid gap-3">
-              {accommodation.amenityKeys.map((amenityKey) => {
-                const amenity = getAmenityByKey(amenityKey);
-
-                return (
-                  <li className="flex items-center gap-3 text-sm text-muted-foreground" key={amenity.key}>
-                    <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                      <AmenityIcon className="size-4" name={amenity.icon} />
-                    </span>
-                    {amenity.label.es}
-                  </li>
-                );
-              })}
+              {amenities.map((amenity) => (
+                <li className="flex items-center gap-3 text-sm text-muted-foreground" key={amenity.key}>
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <AmenityIcon className="size-4" name={amenity.icon} />
+                  </span>
+                  {amenity.label.es}
+                </li>
+              ))}
             </ul>
           </InfoCard>
 

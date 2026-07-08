@@ -1,9 +1,9 @@
-import { getAccommodationById } from "@/config/accommodations";
 import {
   assertDateOnlyString,
   assertValidAvailabilityDateRange,
   dateOnlyToUtcDate,
 } from "@/lib/availability/rules";
+import { getPublicAccommodationById } from "@/lib/properties";
 import type { AvailabilityDateRange } from "@/types/availability";
 import type {
   ReservationQuote,
@@ -93,8 +93,10 @@ function assertGuestCount(input: ReservationQuoteInput, maxGuests: number): void
   }
 }
 
-export function calculateReservationQuote(input: ReservationQuoteInput): ReservationQuote {
-  const accommodation = getAccommodationById(input.accommodationId);
+export async function calculateReservationQuote(
+  input: ReservationQuoteInput,
+): Promise<ReservationQuote> {
+  const accommodation = await getPublicAccommodationById(input.accommodationId);
 
   if (!accommodation) {
     throw new ReservationQuoteError("INVALID_ACCOMMODATION");

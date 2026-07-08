@@ -16,7 +16,7 @@ Deferred — Intentionally postponed.
 ```text
 Current phase: Phase 8 — Reservation Flow
 Current subphase: 8.4 Pending reservation creation and expiration handling
-Current focus: add server-side pending reservation creation and expiration handling after the public guest details form, without integrating Tilopay, sending Resend emails, confirming reservations, or adding PMS features.
+Current focus: create server-side pending reservation holds using seeded, database-backed public accommodation records, without integrating Tilopay, sending Resend emails, confirming reservations, or adding PMS features.
 ```
 
 ---
@@ -95,7 +95,8 @@ Important Phase 3 closure notes:
 - Phase 3 created and validated the Prisma schema foundation.
 - Phase 3 did not create or apply migrations.
 - Phase 3 did not write records to Supabase.
-- Migration execution remains deferred until the first migration-specific task is explicitly introduced and reviewed.
+- Migration execution was later corrected in docs/46-database-migration-bootstrap-correction.md.
+- Initial seed execution and DB-backed public accommodation reads were later corrected in docs/47-initial-seed-and-db-backed-accommodation-source.md.
 ```
 
 ---
@@ -155,12 +156,11 @@ Phase 5 closure result:
 - The Cloudinary SDK dependency is installed.
 - A server-side Cloudinary client foundation exists under lib/cloudinary.
 - Accommodation image public IDs are deterministic and folder-based.
-- Public accommodation listing cards now receive Cloudinary delivery URLs through coverImage.src.
-- Public accommodation detail galleries now receive Cloudinary delivery URLs through coverImage and galleryImages.
-- SEO/Open Graph image metadata supports Cloudinary URLs.
+- Public accommodation listing cards now receive image URLs from database property_images records after Phase 8.3.1.
+- Public accommodation detail galleries now receive image URLs from database property_images records after Phase 8.3.1.
+- SEO/Open Graph image metadata supports the DB-backed public accommodation image URL.
 - next/image is configured to allow res.cloudinary.com.
-- Local files under public/images/accommodations remain only as upload source/rollback metadata through fallbackSrc.
-- No upload route handlers, admin image UI, database writes, migrations, seed data, booking checkout, Tilopay, Resend, Airbnb iCal sync, or PMS features were added.
+- Local files under public/images/accommodations may remain as fallback seed URLs until Cloudinary public IDs are persisted through the database/admin flow.
 ```
 
 ---
@@ -186,6 +186,7 @@ Phase 6 closure result:
 ```text
 - Public availability now has a documented strategy, typed rules, a server-side Prisma service, a public runtime API, and a public non-booking calendar UI.
 - Availability evaluation covers composed listing dependencies, confirmed reservations, active pending holds, calendar blocks, and derived preparation buffers from confirmed reservations.
+- After Phase 8.3.1, availability resolves property records and preparation buffer policies from the database instead of static accommodation config.
 - Phase 6 intentionally stops before reservation creation, checkout, payment collection, email delivery, Airbnb iCal synchronization, and admin calendar management.
 ```
 
@@ -224,7 +225,7 @@ Phase 7 closure result:
 
 Status: **In progress**
 
-Goal: Add the public direct reservation flow foundation using server-side validation, pending holds, guest details, and availability revalidation before any payment handoff.
+Goal: Add the public direct reservation flow foundation using server-side validation, pending holds, guest details, seeded accommodation records, and availability revalidation before any payment handoff.
 
 Subphase status:
 
@@ -232,6 +233,7 @@ Subphase status:
 8.1 Reservation flow strategy and pending hold contract — Completed
 8.2 Reservation quote and server-side pricing foundation — Completed
 8.3 Public guest details and reservation request form — Completed
+8.3.1 Initial seed and DB-backed accommodation source — Completed
 8.4 Pending reservation creation and expiration handling — In progress
 8.5 Availability revalidation before payment handoff — Not started
 8.6 Phase 8 documentation update — Not started
@@ -247,6 +249,7 @@ Phase 8 rules:
 - Availability must be rechecked server-side before creating a pending reservation and again before payment handoff.
 - Guest count, date ranges, and totals must be validated on the server.
 - Guests must not modify confirmed reservation dates directly from the public website.
+- Public accommodation listing, detail, quote, availability, and reservation creation must use seeded database property records as the source of truth.
 - Do not add PMS features.
 ```
 
@@ -285,6 +288,19 @@ Phase 8.3 result:
 - messages/es.ts and messages/en.ts were updated with centralized reservation request form copy.
 - docs/45-public-guest-details-and-reservation-request-form.md was added.
 - Phase 8.3 does not create reservations, pending holds, checkout sessions, Tilopay payment intents, Resend emails, migration files, seed data, admin reservation UI, deployment configuration, or PMS features.
+```
+
+Phase 8.3.1 result:
+
+```text
+- prisma/seed.ts was added with deterministic, idempotent seed records for properties, property_components, property_images, amenities, property_amenities, house_rules, and property_rules.
+- package.json now includes db:seed and Prisma seed configuration.
+- lib/properties/public.ts was added as the server-side DB-backed public accommodation query service.
+- Public accommodations list and detail routes now read from Prisma instead of config/accommodations.ts.
+- The reservation quote service now reads pricing and capacity from seeded database properties.
+- The availability service now resolves property IDs and preparation buffer policies from seeded database records.
+- docs/47-initial-seed-and-db-backed-accommodation-source.md was added.
+- Phase 8.3.1 does not create reservations, pending holds, checkout sessions, Tilopay payment intents, Resend emails, external calendar configuration, admin calendar UI, deployment configuration, or PMS features.
 ```
 
 ---

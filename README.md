@@ -74,7 +74,8 @@ Max guests: 6
 
 - User-facing error messages must be centralized, reusable, bilingual, and mapped by domain instead of hardcoded inside components or server handlers.
 - Public page copy should be centralized instead of hardcoded in TSX components.
-- Amenity labels and icons should be managed through the typed amenity catalog.
+- Public accommodation content must be read from the database after Phase 8.3.1. Typed accommodation config may remain only as transitional fallback/reference until it is removed.
+- Amenity labels and icons must come from seeded database records for public pages after Phase 8.3.1.
 - Guests must not modify confirmed reservation dates directly from the public website.
 - Date changes require admin authorization or cancellation and a new reservation according to the cancellation policy.
 - Stay extensions require a server-side availability check and any additional payment before the reservation is updated or extended.
@@ -85,7 +86,7 @@ Max guests: 6
 - Seed data must be deterministic and idempotent; no seed script should create duplicate properties, amenities, rules, or relationships.
 - Admin access must be protected before any admin page exposes operational data or actions.
 - Provider secrets for Auth.js, Cloudinary, Tilopay, Resend, Airbnb iCal, and similar services must remain server-side only.
-- Public accommodation images are delivered from Cloudinary after Phase 5.4; local files under `public/images/accommodations` remain only as upload sources or temporary rollback references until an admin image management flow replaces them.
+- Public accommodation images are backed by database `property_images` records after Phase 8.3.1. Image records may point to local fallback URLs until Cloudinary public IDs are managed through the database/admin flow.
 - Availability ranges use date-only boundaries where `checkInDate` is inclusive and `checkOutDate` is exclusive.
 - Availability must account for composed listing dependencies and preparation buffer rules before payment or reservation confirmation.
 - Availability checks must ignore expired pending reservations, soft-deleted calendar blocks, and manually unlocked preparation buffer blocks.
@@ -150,6 +151,8 @@ docs/
   43-reservation-flow-strategy-and-pending-hold-contract.md
   44-reservation-quote-and-server-side-pricing-foundation.md
   45-public-guest-details-and-reservation-request-form.md
+  46-database-migration-bootstrap-correction.md
+  47-initial-seed-and-db-backed-accommodation-source.md
 ```
 
 The assistant collaboration rules live in:
@@ -164,7 +167,7 @@ AGENTS.md
 Current phase: Phase 8 — Reservation Flow
 Current subphase: 8.4 Pending reservation creation and expiration handling
 Last completed phase: Phase 7 — Airbnb iCal Synchronization
-Last completed subphase: 8.3 Public guest details and reservation request form
+Last completed subphase: 8.3.1 Initial seed and DB-backed accommodation source
 ```
 
-See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/36-phase-6-availability-closure-review.md`, `docs/42-phase-7-airbnb-ical-closure-review.md`, `docs/43-reservation-flow-strategy-and-pending-hold-contract.md`, `docs/44-reservation-quote-and-server-side-pricing-foundation.md`, and `docs/45-public-guest-details-and-reservation-request-form.md` for the official current tracker and reservation flow context.
+See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/46-database-migration-bootstrap-correction.md`, and `docs/47-initial-seed-and-db-backed-accommodation-source.md` for the official current tracker and database-backed reservation flow context.

@@ -89,7 +89,7 @@ export async function GET(
       guestCount: searchParams.get("guestCount"),
     });
 
-    const quote = calculateReservationQuote({
+    const quote = await calculateReservationQuote({
       accommodationId: parsedRequest.accommodationId as AccommodationId,
       checkInDate: parsedRequest.checkInDate as DateOnlyString,
       checkOutDate: parsedRequest.checkOutDate as DateOnlyString,

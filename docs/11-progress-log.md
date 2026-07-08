@@ -9,7 +9,7 @@ Current phase: Phase 8 — Reservation Flow
 Current subphase: 8.4 Pending reservation creation and expiration handling
 Last updated: 2026-07-08
 Last completed phase: Phase 7 — Airbnb iCal Synchronization
-Last completed subphase: 8.3 Public guest details and reservation request form
+Last completed subphase: 8.3.1 Initial seed and DB-backed accommodation source
 ```
 
 ## Completed Work
@@ -85,6 +85,7 @@ Important Phase 3 closure result:
 Phase 3 is complete as a database foundation phase.
 No migrations were created or applied in Phase 3.
 No Supabase data was written in Phase 3.
+This was corrected later through docs/46 and docs/47 before Phase 8.4 writes reservations.
 ```
 
 ### Phase 4 — Admin Authentication Foundation
@@ -129,10 +130,10 @@ Closure result:
 
 ```text
 Phase 5 is complete as a real Cloudinary integration phase.
-Cloudinary is not only documented; public accommodation images are rendered through Cloudinary delivery URLs.
-The public accommodation listing, accommodation detail galleries, and SEO/Open Graph images now use the Cloudinary image foundation.
-Local accommodation images remain only as upload source/rollback metadata through fallbackSrc.
-No booking checkout, Tilopay, Resend, Airbnb iCal sync, PMS features, admin upload UI, database writes, migrations, or seed data were added in Phase 5.
+Cloudinary is not only documented; public accommodation image helpers exist.
+After Phase 8.3.1, public accommodation images are read from database property_images records and can use Cloudinary public IDs when those IDs are persisted.
+Local accommodation images may remain as fallback seed URLs until the database/admin image flow is expanded.
+No booking checkout, Tilopay, Resend, Airbnb iCal sync, PMS features, admin upload UI, reservation writes, or seed data were added in Phase 5.
 ```
 
 ### Phase 6 — Availability Calendar Foundation
@@ -154,7 +155,8 @@ Closure result:
 ```text
 Phase 6 is complete as the availability calendar foundation.
 The project now has typed availability rules, a server-side Prisma availability service, a runtime public availability API, a public non-booking availability page, and derived preparation buffer evaluation for confirmed reservations.
-Phase 6 did not add booking checkout, Tilopay, Resend, Airbnb iCal sync, migrations, seed data, admin calendar UI, reservation creation, or PMS features.
+After Phase 8.3.1, the availability service resolves property IDs and preparation buffer policies from database records.
+Phase 6 did not add booking checkout, Tilopay, Resend, Airbnb iCal sync, seed data, admin calendar UI, reservation creation, or PMS features.
 ```
 
 ### Phase 7 — Airbnb iCal Synchronization
@@ -177,7 +179,7 @@ Closure result:
 ```text
 Phase 7 is complete as the Airbnb iCal synchronization foundation.
 The project now has a secure iCal import/export contract, hardened external calendar configuration model, parser, import sync service, export feed endpoint, scheduled sync foundation, and manual sync service foundation.
-Phase 7 did not add real Airbnb URLs, raw token storage, migration files, seed data, admin sync UI, reservation checkout, Tilopay, Resend, production deployment, or PMS features.
+Phase 7 did not add real Airbnb URLs, raw token storage, seed data, admin sync UI, reservation checkout, Tilopay, Resend, production deployment, or PMS features.
 ```
 
 Important Phase 7 decisions:
@@ -190,63 +192,6 @@ Scheduled sync must validate CRON_SECRET and return redacted summaries only.
 The optional AIRBNB_ICAL_IMPORT_URLS_JSON fallback is an early-development bridge until encrypted DB-backed import URL management exists.
 Imported Airbnb bookings must affect composed listing availability and preparation buffers.
 TRP export feeds must expose only generic unavailable ranges as text/calendar content.
-```
-
-Phase 7.1 deliverables:
-
-```text
-docs/37-airbnb-ical-strategy-and-environment-contract.md added
-Secure import/export and environment contract defined
-```
-
-Phase 7.2 deliverables:
-
-```text
-prisma/schema.prisma updated with the hardened ExternalCalendar model
-ExternalCalendarDirection and ExternalCalendarEventStatus added
-docs/38-airbnb-calendar-configuration-model.md added
-docs/04-database-model.md updated
-```
-
-Phase 7.3 deliverables:
-
-```text
-lib/airbnb-ical/types.ts added
-lib/airbnb-ical/parser.ts added
-lib/airbnb-ical/sync-service.ts added
-lib/airbnb-ical/index.ts added
-docs/39-airbnb-ical-import-parser-and-sync-service.md added
-```
-
-Phase 7.4 deliverables:
-
-```text
-app/api/ical/[token]/route.ts added
-lib/airbnb-ical/export-feed.ts added
-lib/airbnb-ical/types.ts updated with export feed types
-lib/airbnb-ical/index.ts updated with export feed exports
-docs/40-airbnb-ical-export-feed-foundation.md added
-```
-
-Phase 7.5 deliverables:
-
-```text
-vercel.json added with a 30-minute cron schedule for /api/cron/sync-airbnb-calendars
-app/api/cron/sync-airbnb-calendars/route.ts added
-lib/airbnb-ical/scheduled-sync.ts added
-lib/airbnb-ical/types.ts updated with batch sync and URL resolver types
-lib/airbnb-ical/index.ts updated with scheduled/manual sync exports
-.env.example updated with CRON_SECRET and optional AIRBNB_ICAL_IMPORT_URLS_JSON fallback
-docs/41-scheduled-sync-and-manual-sync-foundation.md added
-```
-
-Phase 7.6 deliverables:
-
-```text
-README.md updated with Phase 7 completion and Phase 8 current status
-docs/10-phases.md updated to mark Phase 7 completed and Phase 8 in progress
-docs/11-progress-log.md updated with Phase 7 closure
-docs/42-phase-7-airbnb-ical-closure-review.md added
 ```
 
 ### Phase 8.1 — Reservation Flow Strategy and Pending Hold Contract
@@ -301,7 +246,8 @@ docs/11-progress-log.md updated with Phase 8.2 completion
 Important decisions:
 
 ```text
-The quote service uses server-controlled accommodation configuration only.
+The quote service originally used server-controlled accommodation configuration only.
+After Phase 8.3.1, the quote service reads pricing and capacity from database properties.
 The client must never send trusted totals to the server.
 Monetary values are returned in USD cents and fixed decimal strings.
 The current MVP quote rules use baseNightlyPriceUsd * number of nights.
@@ -350,6 +296,78 @@ Important limitation:
 Phase 8.3 does not create reservations, pending holds, checkout sessions, Tilopay payment intents, Tilopay redirects, Tilopay webhooks, Resend emails, migration files, seed data, deployment configuration, admin reservation UI, or PMS features.
 ```
 
+### Phase 8 Corrective Task — Database Migration Bootstrap
+
+Status: **Completed**
+
+Completed deliverables:
+
+```text
+prisma/migrations/20260708193000_init_trp_booking_schema/migration.sql added
+prisma/migrations/migration_lock.toml added
+package.json updated with db:migrate:* scripts
+docs/46-database-migration-bootstrap-correction.md added
+duplicate generated init migration removed in a follow-up commit
+```
+
+Important decisions:
+
+```text
+The database bootstrap correction was required before Phase 8.4 can write PENDING_PAYMENT reservations.
+Future subphases that add or change persisted data must include the required Prisma migration unless no schema change is needed and that is explicitly documented.
+```
+
+### Phase 8.3.1 — Initial Seed and DB-backed Accommodation Source
+
+Status: **Completed**
+
+Completed deliverables:
+
+```text
+prisma/seed.ts added with deterministic idempotent seeds
+package.json updated with db:seed and Prisma seed command
+lib/properties/public.ts added as the DB-backed public accommodation query service
+lib/properties/index.ts added as the public properties export boundary
+types/accommodation.ts updated so DB-backed amenities can be carried with the accommodation object
+app/alojamientos/page.tsx updated to load public accommodations from Prisma
+app/alojamientos/[slug]/page.tsx updated to load accommodation details and metadata from Prisma
+features/properties/components/accommodations-page.tsx updated to receive DB-backed accommodations
+features/properties/components/property-detail-page.tsx updated to render DB-backed amenities and rules
+lib/reservations/pricing.ts updated to calculate quotes from database properties
+app/api/reservations/quote/route.ts updated to await the DB-backed quote service
+lib/availability/rules.ts updated so preparation buffer ranges can receive DB-backed policies
+lib/availability/service.ts updated to resolve properties and preparation buffer policies from database records
+docs/47-initial-seed-and-db-backed-accommodation-source.md added
+README.md, docs/10-phases.md, and docs/11-progress-log.md updated
+```
+
+Seeded tables:
+
+```text
+properties
+property_components
+property_images
+amenities
+property_amenities
+house_rules
+property_rules
+```
+
+Important decisions:
+
+```text
+The seeded Property.id values intentionally match the existing AccommodationId union values.
+This keeps existing availability dependency rules, quote contracts, and form contracts stable while the data source moves to the database.
+Public listing, detail, quote, availability, and future reservation creation now use seeded database records as the source of truth.
+external_calendars remains for a later admin/calendar configuration subphase because real Airbnb iCal URLs and export tokens need protected configuration handling.
+```
+
+Important limitation:
+
+```text
+Phase 8.3.1 does not create reservations, pending holds, checkout sessions, Tilopay payment intents, Tilopay redirects, Tilopay webhooks, Resend emails, external calendar configuration, admin calendar UI, deployment configuration, or PMS features.
+```
+
 ## Current Work
 
 ### Phase 8 — Reservation Flow
@@ -367,20 +385,23 @@ Phase 8.4 goals:
 ```text
 Create server-side pending reservation holds using PENDING_PAYMENT and non-null expiresAt.
 Recalculate quote and recheck availability immediately before writing a pending reservation.
+Use seeded database properties, property components, images, amenities, and rules as the source of truth.
 Do not confirm reservations, start checkout, call Tilopay, send Resend emails, add admin reservation UI, or add PMS features in 8.4.
 ```
 
 ## Next Recommended Work
 
 ```text
-1. Apply Phase 8.3 files.
+1. Apply Phase 8.3.1 files.
 2. Run npm run db:generate.
 3. Run npm run db:validate.
-4. Run npm run build.
-5. Run npm run env:validate.
-6. Run npm run lint.
-7. Commit Phase 8.3.
-8. Continue with Phase 8.4 Pending reservation creation and expiration handling.
+4. Run npm run db:migrate:status.
+5. Run npm run db:seed.
+6. Run npm run build.
+7. Run npm run env:validate.
+8. Run npm run lint.
+9. Commit Phase 8.3.1.
+10. Continue with Phase 8.4 Pending reservation creation and expiration handling.
 ```
 
 ## Continuity Notes for New Conversations
@@ -403,15 +424,19 @@ docs/42-phase-7-airbnb-ical-closure-review.md
 docs/43-reservation-flow-strategy-and-pending-hold-contract.md
 docs/44-reservation-quote-and-server-side-pricing-foundation.md
 docs/45-public-guest-details-and-reservation-request-form.md
+docs/46-database-migration-bootstrap-correction.md
+docs/47-initial-seed-and-db-backed-accommodation-source.md
 lib/db/prisma.ts
+lib/properties/index.ts
+lib/properties/public.ts
 lib/availability/index.ts
 lib/availability/service.ts
 lib/reservations/index.ts
 lib/env/server.ts
-config/accommodations.ts
+prisma/schema.prisma
+prisma/seed.ts
 messages/es.ts
 messages/en.ts
-prisma/schema.prisma
 ```
 
 Important working rules:
@@ -425,11 +450,12 @@ Keep phase/subphase tracking updated.
 Do not expose admin pages without route protection.
 Do not commit secrets, provider keys, or real credentials.
 Keep Cloudinary API key and API secret server-side only.
-Public accommodation images should stay Cloudinary-backed after Phase 5.4.
+Public accommodation images should be read from database property_images records after Phase 8.3.1.
 Phase 6 availability code must preserve composed listing and preparation buffer rules.
 Phase 7 must not expose Airbnb iCal URLs or tokens in code, docs, logs, API responses, or public UI.
 Scheduled sync must validate CRON_SECRET and return redacted summaries only.
 Phase 8 reservation flow must re-check availability server-side and must not confirm reservations before payment validation.
 Server-side quote calculation is the source of truth for reservation totals.
 Phase 8.3 request form must not write reservations, block dates, or start checkout.
+Phase 8.3.1 seed data is required before Phase 8.4 writes pending reservations.
 ```

@@ -1,39 +1,30 @@
 # 19 — Seed Strategy
 
-This document closes Phase 3.5 and defines the initial seed strategy for accommodations, amenities, rules, and static content.
+This document originally closed Phase 3.5 and defined the initial seed strategy for accommodations, amenities, rules, and static content.
+
+It has been updated after Phase 8.3.1 because the project now has a real Prisma seed script and DB-backed public accommodation reads.
 
 ## Phase
 
 ```text
-Phase: Phase 3 — Database Foundation
-Subphase completed by this document: 3.5 Initial seed strategy for accommodations, amenities, rules, and static content
-Next subphase: 3.6 Database documentation update
+Original phase: Phase 3 — Database Foundation
+Original subphase: 3.5 Initial seed strategy for accommodations, amenities, rules, and static content
+Implemented correction: Phase 8.3.1 Initial seed and DB-backed accommodation source
 ```
 
-## Goal
-
-TRP Booking already has typed static content used by the public website.
-
-Phase 3.5 defines how that content should later become deterministic database seed data without creating duplicates or introducing inconsistent records.
-
-This phase does not create a seed script yet.
-
-## Current Static Sources
-
-Current source files:
+## Current Status
 
 ```text
-config/accommodations.ts
-config/amenities.ts
-messages/es.ts
-messages/en.ts
-types/accommodation.ts
-types/amenity.ts
+The seed strategy is now implemented through prisma/seed.ts.
 ```
 
-The current public website still reads from typed config.
+The seed script is deterministic and idempotent.
 
-The database seed script will be introduced later only after migrations are created and reviewed.
+It can be run with:
+
+```bash
+npm run db:seed
+```
 
 ## Seed Principles
 
@@ -51,11 +42,49 @@ Free of provider credentials
 
 A seed command must never create duplicate properties, amenities, house rules, or relationship rows.
 
-## Stable Unique Keys
+## Seeded Tables
 
-The seed strategy depends on stable unique fields.
+Phase 8.3.1 seeds:
 
-Current stable keys:
+```text
+properties
+property_components
+property_images
+amenities
+property_amenities
+house_rules
+property_rules
+```
+
+The seed does not create:
+
+```text
+reservations
+reservation_guests
+payments
+refunds
+calendar_blocks
+external_calendars
+external_calendar_events
+external_calendar_sync_logs
+email_notifications
+admin_audit_logs
+settings
+```
+
+## Stable Keys and IDs
+
+The seeded property IDs intentionally match the existing public accommodation IDs:
+
+```text
+black-white-apartment
+perfect-retreat-bungalow
+complete-retreat
+```
+
+This keeps the existing public contracts stable while the source of truth moves to the database.
+
+Other stable keys:
 
 ```text
 Property.slug
@@ -64,29 +93,29 @@ HouseRule.key
 Setting.key
 ```
 
-`HouseRule.key` was added during Phase 3.5 because the previous schema could not support deterministic idempotent rule upserts.
-
 ## Property Seed Strategy
 
-Properties should be seeded from `config/accommodations.ts`.
+Seeded properties:
+
+```text
+Apartamento Blanco y Negro
+Bungalow Refugio Perfecto
+Refugio Completo
+```
 
 Mapping:
 
 ```text
-Accommodation.name.es -> Property.nameEs
-Accommodation.name.en -> Property.nameEn
-Accommodation.slug.es -> Property.slug
-Accommodation.shortDescription.es -> Property.shortDescriptionEs
-Accommodation.shortDescription.en -> Property.shortDescriptionEn
-Accommodation.longDescription.es -> Property.longDescriptionEs
-Accommodation.longDescription.en -> Property.longDescriptionEn
-Accommodation.maxGuests -> Property.maxGuests
-Accommodation.bedrooms -> Property.bedrooms
-Accommodation.bathrooms -> Property.bathrooms
-Accommodation.baseNightlyPriceUsd -> Property.baseNightlyPrice
-Accommodation.preparationBuffer.daysBefore -> Property.preparationDaysBefore
-Accommodation.preparationBuffer.daysAfter -> Property.preparationDaysAfter
-Accommodation.kind === "composed" -> Property.isComposed
+nameEs/nameEn -> Property.nameEs/nameEn
+slug -> Property.slug
+shortDescriptionEs/En -> Property.shortDescriptionEs/En
+longDescriptionEs/En -> Property.longDescriptionEs/En
+maxGuests -> Property.maxGuests
+bedrooms -> Property.bedrooms
+bathrooms -> Property.bathrooms
+baseNightlyPrice -> Property.baseNightlyPrice
+preparationDaysBefore/After -> Property.preparationDaysBefore/After
+isComposed -> Property.isComposed
 ```
 
 Default seed values:
@@ -94,27 +123,19 @@ Default seed values:
 ```text
 Property.currency = "USD"
 Property.status = "ACTIVE"
-Property.checkInTime = "08:00"
+Property.checkInTime = "8:00 a.m."
 Property.checkOutTime = null until final check-out policy is explicitly confirmed
-```
-
-Initial seeded properties:
-
-```text
-apartamento-blanco-y-negro
-bungalow-refugio-perfecto
-refugio-completo
 ```
 
 ## Property Composition Seed Strategy
 
-`Refugio Completo` must be seeded as a composed listing.
+`Refugio Completo` is seeded as a composed listing.
 
-Seed relationship:
+Seed relationships:
 
 ```text
-Refugio Completo -> Apartamento Blanco y Negro
-Refugio Completo -> Bungalow Refugio Perfecto
+complete-retreat -> black-white-apartment
+complete-retreat -> perfect-retreat-bungalow
 ```
 
 Database table:
@@ -129,25 +150,21 @@ Idempotency rule:
 Use @@unique([parentPropertyId, componentPropertyId]).
 ```
 
-The seed script should resolve property IDs by `Property.slug`.
-
 ## Amenity Seed Strategy
 
-Amenities should be seeded from `config/amenities.ts`.
+Amenities are seeded into:
+
+```text
+Amenity
+```
 
 Mapping:
 
 ```text
-AmenityDefinition.key -> Amenity.key
-AmenityDefinition.label.es -> Amenity.nameEs
-AmenityDefinition.label.en -> Amenity.nameEn
-AmenityDefinition.icon -> Amenity.icon
-```
-
-Default seed values:
-
-```text
-Amenity.category = null until a category taxonomy is explicitly defined
+key -> Amenity.key
+nameEs/nameEn -> Amenity.nameEs/nameEn
+icon -> Amenity.icon
+category -> Amenity.category
 ```
 
 Idempotency rule:
@@ -158,13 +175,7 @@ Use Amenity.key.
 
 ## Property Amenity Seed Strategy
 
-Property amenity assignments should be seeded from:
-
-```text
-Accommodation.amenityKeys
-```
-
-Database table:
+Property amenity assignments are seeded into:
 
 ```text
 PropertyAmenity
@@ -176,49 +187,27 @@ Idempotency rule:
 Use @@unique([propertyId, amenityId]).
 ```
 
-The seed script should:
-
-```text
-Resolve Property by slug.
-Resolve Amenity by key.
-Create missing relationship rows.
-Remove obsolete seed-managed relationship rows only if a later seed ownership policy explicitly allows it.
-```
-
 ## House Rule Seed Strategy
 
-Current static rules live inside each accommodation as localized lists.
-
-To seed rules safely, rules must be normalized into deterministic keys.
-
-The seed script should use stable keys such as:
+House rules are normalized into deterministic keys such as:
 
 ```text
-max-guests
+max-guests-2
+max-guests-4
+max-guests-6
 no-pets
 quiet-hours
 no-parties
 no-smoking
 no-alcohol
 care-property
-follow-both-accommodations-rules
+respect-both-listings
 ```
 
 Database table:
 
 ```text
 HouseRule
-```
-
-Mapping:
-
-```text
-rule.key -> HouseRule.key
-rule.title.es -> HouseRule.titleEs
-rule.title.en -> HouseRule.titleEn
-rule.description.es -> HouseRule.descriptionEs
-rule.description.en -> HouseRule.descriptionEn
-rule.category -> HouseRule.category
 ```
 
 Idempotency rule:
@@ -229,9 +218,7 @@ Use HouseRule.key.
 
 ## Property Rule Seed Strategy
 
-Property rule assignments should be seeded according to the rules listed per accommodation.
-
-Database table:
+Property rule assignments are seeded into:
 
 ```text
 PropertyRule
@@ -243,40 +230,29 @@ Idempotency rule:
 Use @@unique([propertyId, ruleId]).
 ```
 
-The seed script should resolve:
-
-```text
-Property by slug
-HouseRule by key
-```
-
 ## Image Seed Strategy
 
-Images should not be seeded into `PropertyImage` yet.
+Phase 8.3.1 seeds `PropertyImage` records.
 
-Reason:
-
-```text
-The current images are static files under public/images.
-Cloudinary integration belongs to Phase 5.
-PropertyImage records require final Cloudinary behavior before they become authoritative.
-```
-
-Until Phase 5:
+Current image records use local fallback URLs from:
 
 ```text
-Public pages may continue reading static image data from config/accommodations.ts.
+public/images/accommodations
 ```
+
+`cloudinaryPublicId` remains optional so Cloudinary-backed records can be persisted later without changing the public page contract.
+
+Public pages read image records from the database after Phase 8.3.1.
 
 ## External Calendar Seed Strategy
 
-External calendars should not be seeded yet.
+External calendars are not seeded in Phase 8.3.1.
 
 Reason:
 
 ```text
-Airbnb iCal integration belongs to Phase 7.
-The real iCal import URLs contain tokens and must not be committed.
+Real Airbnb iCal import URLs contain tokens and must not be committed.
+Export feed tokens must be generated/stored securely.
 ```
 
 Future behavior:
@@ -299,33 +275,18 @@ booking.allowGuestDateChangeRequests
 calendar.syncIntervalMinutes
 ```
 
-No settings seed script is part of Phase 3.5.
-
-## What Phase 3.5 Does Not Do
-
-Phase 3.5 does not add:
-
-```text
-Seed scripts
-Migrations
-Database writes
-Admin UI
-Auth.js
-Cloudinary
-Resend
-Tilopay
-Airbnb iCal sync
-Reservation checkout
-PMS features
-```
+No settings seed is part of Phase 8.3.1.
 
 ## Validation
 
-After applying this phase, run:
+After applying the implemented seed phase, run:
 
-```powershell
+```bash
+npm run db:generate
 npm run db:validate
+npm run db:migrate:status
+npm run db:seed
+npm run build
 npm run env:validate
 npm run lint
-npm run build
 ```

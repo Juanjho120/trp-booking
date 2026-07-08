@@ -5,9 +5,8 @@ import {
   type PrismaClient,
 } from "@prisma/client";
 
-import { getAccommodationById } from "@/config/accommodations";
 import { prisma } from "@/lib/db/prisma";
-import type { AccommodationId } from "@/types/accommodation";
+import type { AccommodationId, PreparationBufferPolicy } from "@/types/accommodation";
 import type {
   AvailabilityBlockSource,
   AvailabilityBlockingRecord,
@@ -31,7 +30,8 @@ import {
 
 const propertyAvailabilitySelect = {
   id: true,
-  slug: true,
+  preparationDaysBefore: true,
+  preparationDaysAfter: true,
 } satisfies Prisma.PropertySelect;
 
 const reservationAvailabilitySelect = {
@@ -74,6 +74,7 @@ type AvailabilityServiceOptions = Readonly<{
 type PropertyAvailabilityMapping = Readonly<{
   propertyId: string;
   accommodationId: AccommodationId;
+  preparationBuffer: PreparationBufferPolicy;
 }>;
 
 type PreparationBufferLookupWindow = Readonly<{
@@ -87,63 +88,54 @@ function assertServerSideAvailabilityService(): void {
   }
 }
 
-function getAccommodationSlug(accommodationId: AccommodationId): string {
-  const accommodation = getAccommodationById(accommodationId);
-
-  if (!accommodation) {
-    throw new Error(`Accommodation not found for ${accommodationId}.`);
-  }
-
-  return accommodation.slug.es;
-}
-
-function getAccommodationIdBySlug(slug: string): AccommodationId {
+function toAccommodationId(value: string): AccommodationId {
   const accommodationIds: readonly AccommodationId[] = [
     "black-white-apartment",
     "perfect-retreat-bungalow",
     "complete-retreat",
   ];
 
-  const accommodation = accommodationIds
-    .map((candidateId) => getAccommodationById(candidateId))
-    .find((candidate) => candidate?.slug.es === slug);
-
-  if (!accommodation) {
-    throw new Error(`Accommodation config not found for property slug ${slug}.`);
+  if (!accommodationIds.includes(value as AccommodationId)) {
+    throw new Error(`Unsupported accommodation id in database: ${value}.`);
   }
 
-  return accommodation.id;
+  return value as AccommodationId;
 }
 
 async function resolvePropertyMappings(
   prismaClient: PrismaClient,
   accommodationIds: readonly AccommodationId[],
 ): Promise<readonly PropertyAvailabilityMapping[]> {
-  const expectedSlugs = accommodationIds.map(getAccommodationSlug);
   const properties: PropertyAvailabilityRecord[] = await prismaClient.property.findMany({
     where: {
       deletedAt: null,
-      slug: {
-        in: expectedSlugs,
+      id: {
+        in: [...accommodationIds],
       },
     },
     select: propertyAvailabilitySelect,
   });
 
-  const foundSlugs = new Set(properties.map((property) => property.slug));
-  const missingSlugs = expectedSlugs.filter((slug) => !foundSlugs.has(slug));
+  const foundPropertyIds = new Set(properties.map((property) => property.id));
+  const missingAccommodationIds = accommodationIds.filter(
+    (accommodationId) => !foundPropertyIds.has(accommodationId),
+  );
 
-  if (missingSlugs.length > 0) {
+  if (missingAccommodationIds.length > 0) {
     throw new Error(
-      `Availability cannot be evaluated because property records are missing for: ${missingSlugs.join(
+      `Availability cannot be evaluated because property records are missing for: ${missingAccommodationIds.join(
         ", ",
-      )}.`,
+      )}. Run npm run db:seed before checking availability.`,
     );
   }
 
   return properties.map((property) => ({
     propertyId: property.id,
-    accommodationId: getAccommodationIdBySlug(property.slug),
+    accommodationId: toAccommodationId(property.id),
+    preparationBuffer: {
+      daysBefore: property.preparationDaysBefore,
+      daysAfter: property.preparationDaysAfter,
+    },
   }));
 }
 
@@ -187,21 +179,13 @@ function toAvailabilityBlockSource(
 
 function getPreparationBufferLookupWindow(
   requestedRange: AvailabilityDateRange,
-  accommodationIds: readonly AccommodationId[],
+  propertyMappings: readonly PropertyAvailabilityMapping[],
 ): PreparationBufferLookupWindow {
-  const maxPreparationDays = accommodationIds.reduce(
-    (currentMax, accommodationId) => {
-      const accommodation = getAccommodationById(accommodationId);
-
-      if (!accommodation) {
-        throw new Error(`Accommodation not found for ${accommodationId}.`);
-      }
-
-      return {
-        daysBefore: Math.max(currentMax.daysBefore, accommodation.preparationBuffer.daysBefore),
-        daysAfter: Math.max(currentMax.daysAfter, accommodation.preparationBuffer.daysAfter),
-      };
-    },
+  const maxPreparationDays = propertyMappings.reduce(
+    (currentMax, mapping) => ({
+      daysBefore: Math.max(currentMax.daysBefore, mapping.preparationBuffer.daysBefore),
+      daysAfter: Math.max(currentMax.daysAfter, mapping.preparationBuffer.daysAfter),
+    }),
     {
       daysBefore: 0,
       daysAfter: 0,
@@ -276,6 +260,7 @@ function toDerivedPreparationBufferBlockingRecords(
   reservation: ReservationAvailabilityRecord,
   requestedRange: AvailabilityDateRange,
   propertyIdToAccommodationId: ReadonlyMap<string, AccommodationId>,
+  propertyIdToPreparationBuffer: ReadonlyMap<string, PreparationBufferPolicy>,
   fallbackAccommodationId: AccommodationId,
   calendarBlocks: readonly CalendarBlockAvailabilityRecord[],
 ): readonly AvailabilityBlockingRecord[] {
@@ -285,9 +270,15 @@ function toDerivedPreparationBufferBlockingRecords(
 
   const accommodationId =
     propertyIdToAccommodationId.get(reservation.propertyId) ?? fallbackAccommodationId;
+  const preparationBuffer = propertyIdToPreparationBuffer.get(reservation.propertyId);
+
+  if (!preparationBuffer) {
+    return [];
+  }
+
   const stayRange = toDateOnlyRange(reservation.checkInDate, reservation.checkOutDate);
 
-  return buildPreparationBufferRanges(accommodationId, stayRange)
+  return buildPreparationBufferRanges(accommodationId, stayRange, preparationBuffer)
     .filter((bufferRange) => availabilityDateRangesOverlap(requestedRange, bufferRange))
     .filter(
       (bufferRange) =>
@@ -325,10 +316,13 @@ export async function getAvailabilityBlockingRecords(
   const propertyIdToAccommodationId = new Map(
     propertyMappings.map((mapping) => [mapping.propertyId, mapping.accommodationId]),
   );
+  const propertyIdToPreparationBuffer = new Map(
+    propertyMappings.map((mapping) => [mapping.propertyId, mapping.preparationBuffer]),
+  );
   const blockingPropertyIds = propertyMappings.map((mapping) => mapping.propertyId);
   const preparationLookupWindow = getPreparationBufferLookupWindow(
     requestedRange,
-    blockingAccommodationIds,
+    propertyMappings,
   );
 
   const [reservations, calendarBlocks]: [
@@ -400,6 +394,7 @@ export async function getAvailabilityBlockingRecords(
       reservation,
       requestedRange,
       propertyIdToAccommodationId,
+      propertyIdToPreparationBuffer,
       input.accommodationId,
       calendarBlocks,
     ),

@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import {
-  getAccommodationBySlug,
-  getAccommodationSlugs,
-} from "@/config/accommodations";
 import { createSeoMetadata } from "@/config/seo";
 import { PropertyDetailPage } from "@/features/properties";
+import { getPublicAccommodationBySlug } from "@/lib/properties";
 import { esMessages } from "@/messages";
+
+export const dynamic = "force-dynamic";
 
 type PageProps = Readonly<{
   params: Promise<{
@@ -15,13 +14,9 @@ type PageProps = Readonly<{
   }>;
 }>;
 
-export function generateStaticParams() {
-  return getAccommodationSlugs("es").map((slug) => ({ slug }));
-}
-
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const accommodation = getAccommodationBySlug(slug, "es");
+  const accommodation = await getPublicAccommodationBySlug(slug);
 
   if (!accommodation) {
     return createSeoMetadata({
@@ -41,7 +36,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function Page({ params }: PageProps) {
   const { slug } = await params;
-  const accommodation = getAccommodationBySlug(slug, "es");
+  const accommodation = await getPublicAccommodationBySlug(slug);
 
   if (!accommodation) {
     notFound();

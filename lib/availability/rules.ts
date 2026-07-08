@@ -1,5 +1,4 @@
-import { getAccommodationById } from "@/config/accommodations";
-import type { AccommodationId } from "@/types/accommodation";
+import type { AccommodationId, PreparationBufferPolicy } from "@/types/accommodation";
 import type {
   AvailabilityDateRange,
   AvailabilityDependencyRule,
@@ -9,6 +8,21 @@ import type {
 } from "@/types/availability";
 
 const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+const fallbackPreparationBuffers: Record<AccommodationId, PreparationBufferPolicy> = {
+  "black-white-apartment": {
+    daysBefore: 1,
+    daysAfter: 1,
+  },
+  "perfect-retreat-bungalow": {
+    daysBefore: 2,
+    daysAfter: 2,
+  },
+  "complete-retreat": {
+    daysBefore: 2,
+    daysAfter: 2,
+  },
+};
 
 export const availabilityDependencyRules: readonly AvailabilityDependencyRule[] = [
   {
@@ -130,35 +144,25 @@ export function getBlockingAccommodationIds(
 
 export function getAvailabilityRuleSummary(
   accommodationId: AccommodationId,
+  preparationBuffer: PreparationBufferPolicy = fallbackPreparationBuffers[accommodationId],
 ): AvailabilityRuleSummary {
-  const accommodation = getAccommodationById(accommodationId);
-
-  if (!accommodation) {
-    throw new Error(`Accommodation not found for ${accommodationId}.`);
-  }
-
   return {
     accommodationId,
     affectedAccommodationIds: getAffectedAccommodationIds(accommodationId),
     blockingAccommodationIds: getBlockingAccommodationIds(accommodationId),
-    preparationBuffer: accommodation.preparationBuffer,
+    preparationBuffer,
   };
 }
 
 export function buildPreparationBufferRanges(
   accommodationId: AccommodationId,
   stayRange: AvailabilityDateRange,
+  preparationBuffer: PreparationBufferPolicy = fallbackPreparationBuffers[accommodationId],
 ): readonly PreparationBufferDateRange[] {
   assertValidAvailabilityDateRange(stayRange);
 
-  const accommodation = getAccommodationById(accommodationId);
-
-  if (!accommodation) {
-    throw new Error(`Accommodation not found for ${accommodationId}.`);
-  }
-
   const ranges: PreparationBufferDateRange[] = [];
-  const { daysBefore, daysAfter } = accommodation.preparationBuffer;
+  const { daysBefore, daysAfter } = preparationBuffer;
 
   if (daysBefore > 0) {
     ranges.push({
