@@ -73,7 +73,7 @@ Max guests: 6
 ## Key Operational Rules
 
 - User-facing error messages must be centralized, reusable, bilingual, and mapped by domain instead of hardcoded inside components or server handlers.
-- Public page copy should be centralized in `messages/en.ts` and `messages/es.ts` instead of hardcoded in TSX components.
+- Public page copy should be centralized instead of hardcoded in TSX components.
 - Amenity labels and icons should be managed through the typed amenity catalog.
 - Guests must not modify confirmed reservation dates directly from the public website.
 - Date changes require admin authorization or cancellation and a new reservation according to the cancellation policy.
@@ -89,6 +89,7 @@ Max guests: 6
 - Availability ranges use date-only boundaries where `checkInDate` is inclusive and `checkOutDate` is exclusive.
 - Availability must account for composed listing dependencies and preparation buffer rules before payment or reservation confirmation.
 - Availability checks must ignore expired pending reservations, soft-deleted calendar blocks, and manually unlocked preparation buffer blocks.
+- Public availability UI must not create reservations, start checkout, or collect payments during Phase 6.
 
 ## Documentation
 
@@ -130,6 +131,7 @@ docs/
   31-phase-5-cloudinary-closure-review.md
   32-availability-strategy-and-calendar-rules.md
   33-availability-domain-service-foundation.md
+  34-public-availability-calendar-ui-foundation.md
 ```
 
 The assistant collaboration rules live in:
@@ -142,9 +144,9 @@ AGENTS.md
 
 ```text
 Current phase: Phase 6 — Availability Calendar Foundation
-Current subphase: 6.3 Public availability calendar UI foundation
+Current subphase: 6.4 Preparation buffer and blocked-date evaluation
 Last completed phase: Phase 5 — Cloudinary Integration
-Last completed subphase: 6.2 Availability domain service foundation
+Last completed subphase: 6.3 Public availability calendar UI foundation
 ```
 
-See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/32-availability-strategy-and-calendar-rules.md`, and `docs/33-availability-domain-service-foundation.md` for the official current tracker and availability rules.
+See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/32-availability-strategy-and-calendar-rules.md`, `docs/33-availability-domain-service-foundation.md`, and `docs/34-public-availability-calendar-ui-foundation.md` for the official current tracker and availability rules.

@@ -6,10 +6,10 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 6 — Availability Calendar Foundation
-Current subphase: 6.3 Public availability calendar UI foundation
+Current subphase: 6.4 Preparation buffer and blocked-date evaluation
 Last updated: 2026-07-08
 Last completed phase: Phase 5 — Cloudinary Integration
-Last completed subphase: 6.2 Availability domain service foundation
+Last completed subphase: 6.3 Public availability calendar UI foundation
 ```
 
 ## Completed Work
@@ -111,13 +111,6 @@ The minimal admin shell exists and remains intentionally safe.
 No booking, payment, calendar, image upload, email, iCal, or PMS functionality was added in Phase 4.
 ```
 
-Important correction completed during Phase 4.6:
-
-```text
-After /admin middleware and Auth.js routes were enabled, local development must use AUTH_TRUST_HOST=true to avoid Auth.js UntrustedHost errors.
-.env.example and docs/22-auth-environment-validation.md were corrected during Phase 4.6.
-```
-
 ### Phase 5 — Cloudinary Integration
 
 Status: **Completed**
@@ -190,6 +183,7 @@ docs/33-availability-domain-service-foundation.md added
 README.md updated with Phase 6.2 completion and Phase 6.3 current status
 docs/10-phases.md updated to mark 6.2 completed and 6.3 in progress
 docs/11-progress-log.md updated with Phase 6.2 completion
+package scripts corrected so Prisma Client generation runs before build/type checking
 ```
 
 Important decisions:
@@ -209,7 +203,41 @@ Unlocked preparation buffer blocks do not block availability.
 Important limitation:
 
 ```text
-Phase 6.2 does not create reservations, create pending holds, start checkout, integrate Tilopay, integrate Resend, import/export Airbnb iCal, add route handlers, add public calendar UI, write migrations, seed data, or add PMS features.
+Phase 6.2 does not create reservations, create pending holds, start checkout, integrate Tilopay, integrate Resend, import/export Airbnb iCal, add route handlers for checkout, add public booking UI, write migrations, seed data, or add PMS features.
+```
+
+### Phase 6.3 — Public Availability Calendar UI Foundation
+
+Status: **Completed**
+
+Completed deliverables:
+
+```text
+app/api/availability/route.ts added
+app/disponibilidad/page.tsx added
+features/availability/components/public-availability-calendar.tsx added
+features/availability/copy.ts added
+features/availability/index.ts added
+docs/34-public-availability-calendar-ui-foundation.md added
+README.md updated with Phase 6.3 completion and Phase 6.4 current status
+docs/10-phases.md updated to mark 6.3 completed and 6.4 in progress
+docs/11-progress-log.md updated with Phase 6.3 completion
+```
+
+Important decisions:
+
+```text
+Public availability data is loaded at runtime through /api/availability.
+The public calendar UI is intentionally non-booking and non-selecting during Phase 6.
+Unavailable dates are disabled/non-selectable visually.
+The API returns only availability-oriented blocking data and does not expose guest, payment, or admin details.
+The public /disponibilidad page shows availability for all initial accommodations.
+```
+
+Important limitation:
+
+```text
+Phase 6.3 does not create reservations, start checkout, integrate Tilopay, integrate Resend, import/export Airbnb iCal, add admin calendar UI, write migrations, seed data, or add PMS features.
 ```
 
 ## Current Work
@@ -221,17 +249,15 @@ Status: **In progress**
 Current subphase:
 
 ```text
-6.3 Public availability calendar UI foundation
+6.4 Preparation buffer and blocked-date evaluation
 ```
 
-Phase 6.3 goals:
+Phase 6.4 goals:
 
 ```text
-Add the first public availability calendar UI foundation.
-Use the Phase 6.2 server-side availability service as the data source.
-Show unavailable dates as disabled/non-selectable.
-Keep checkout and payment disabled.
-Do not create reservations yet.
+Strengthen preparation buffer and blocked-date evaluation around the public availability UI.
+Confirm source labeling and unavailable-day behavior for confirmed reservations, pending holds, manual blocks, maintenance blocks, Airbnb blocks, composed listing blocks, and preparation buffer blocks.
+Do not add booking checkout yet.
 Do not integrate Tilopay yet.
 Do not integrate Resend yet.
 Do not implement Airbnb iCal sync yet.
@@ -241,12 +267,14 @@ Do not add PMS features.
 ## Next Recommended Work
 
 ```text
-1. Apply Phase 6.2 files.
-2. Run npm run env:validate.
-3. Run npm run db:validate.
-4. Run npm run lint and npm run build.
-5. Commit Phase 6.2.
-6. Continue with Phase 6.3 Public availability calendar UI foundation.
+1. Apply Phase 6.3 files.
+2. Run npm run db:generate.
+3. Run npm run build.
+4. Run npm run env:validate.
+5. Run npm run db:validate.
+6. Run npm run lint.
+7. Commit Phase 6.3.
+8. Continue with Phase 6.4 Preparation buffer and blocked-date evaluation.
 ```
 
 ## Continuity Notes for New Conversations
@@ -265,6 +293,7 @@ docs/20-phase-3-database-closure-review.md
 docs/31-phase-5-cloudinary-closure-review.md
 docs/32-availability-strategy-and-calendar-rules.md
 docs/33-availability-domain-service-foundation.md
+docs/34-public-availability-calendar-ui-foundation.md
 lib/db/prisma.ts
 lib/availability/index.ts
 lib/env/server.ts
@@ -294,4 +323,5 @@ Do not commit secrets, provider keys, or real credentials.
 Keep Cloudinary API key and API secret server-side only.
 Public accommodation images should stay Cloudinary-backed after Phase 5.4.
 Phase 6 availability code must preserve composed listing and preparation buffer rules.
+Public availability UI must not create reservations or start checkout during Phase 6.
 ```

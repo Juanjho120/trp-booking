@@ -15,8 +15,8 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 6 — Availability Calendar Foundation
-Current subphase: 6.3 Public availability calendar UI foundation
-Current focus: add public date visibility using the Phase 6.2 availability service, without checkout, payment, email, or Airbnb iCal sync.
+Current subphase: 6.4 Preparation buffer and blocked-date evaluation
+Current focus: strengthen preparation buffer and blocked-date evaluation after the first public availability UI, without checkout, payment, email, or Airbnb iCal sync.
 ```
 
 ---
@@ -176,8 +176,8 @@ Subphase status:
 ```text
 6.1 Availability strategy and booking calendar rules — Completed
 6.2 Availability domain service foundation — Completed
-6.3 Public availability calendar UI foundation — In progress
-6.4 Preparation buffer and blocked-date evaluation — Not started
+6.3 Public availability calendar UI foundation — Completed
+6.4 Preparation buffer and blocked-date evaluation — In progress
 6.5 Phase 6 documentation update — Not started
 ```
 
@@ -218,7 +218,19 @@ Phase 6.2 result:
 - Soft-deleted calendar blocks are ignored.
 - Manually unlocked preparation buffer blocks are ignored.
 - The service returns typed availability results without creating reservations or writing to the database.
+- Prisma Client generation must run before build/type checking.
 - No checkout, payment, email, Airbnb iCal sync, migrations, seed data, admin calendar UI, or PMS features were added.
+```
+
+Phase 6.3 result:
+
+```text
+- A runtime `/api/availability` endpoint was added for public availability calendar data.
+- The endpoint uses the Phase 6.2 server-side availability service.
+- A public `/disponibilidad` page was added.
+- The page renders public availability calendar cards for each accommodation.
+- Unavailable dates are displayed as disabled/non-selectable.
+- Checkout, date selection, reservation creation, payment, email, Airbnb iCal sync, migrations, seed data, admin calendar UI, and PMS features remain out of scope.
 ```
 
 ---
