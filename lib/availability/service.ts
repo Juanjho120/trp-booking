@@ -1,14 +1,20 @@
-import type { PrismaClient } from "@prisma/client";
+import {
+  CalendarBlockSource,
+  ReservationStatus,
+  type Prisma,
+  type PrismaClient,
+} from "@prisma/client";
 
 import { getAccommodationById } from "@/config/accommodations";
 import { prisma } from "@/lib/db/prisma";
 import type { AccommodationId } from "@/types/accommodation";
 import type {
+  AvailabilityBlockSource,
   AvailabilityBlockingRecord,
   AvailabilityCheckInput,
   AvailabilityCheckResult,
   AvailabilityDateRange,
-  DateOnlyString,
+  ReservationAvailabilityStatus,
 } from "@/types/availability";
 
 import {
@@ -18,6 +24,43 @@ import {
   getAffectedAccommodationIds,
   getBlockingAccommodationIds,
 } from "./rules";
+
+const propertyAvailabilitySelect = {
+  id: true,
+  slug: true,
+} satisfies Prisma.PropertySelect;
+
+const reservationAvailabilitySelect = {
+  id: true,
+  propertyId: true,
+  checkInDate: true,
+  checkOutDate: true,
+  status: true,
+} satisfies Prisma.ReservationSelect;
+
+const calendarBlockAvailabilitySelect = {
+  id: true,
+  propertyId: true,
+  startDate: true,
+  endDate: true,
+  source: true,
+  reason: true,
+  reservationId: true,
+  externalCalendarEventId: true,
+  unlockedByAdminAt: true,
+} satisfies Prisma.CalendarBlockSelect;
+
+type PropertyAvailabilityRecord = Prisma.PropertyGetPayload<{
+  select: typeof propertyAvailabilitySelect;
+}>;
+
+type ReservationAvailabilityRecord = Prisma.ReservationGetPayload<{
+  select: typeof reservationAvailabilitySelect;
+}>;
+
+type CalendarBlockAvailabilityRecord = Prisma.CalendarBlockGetPayload<{
+  select: typeof calendarBlockAvailabilitySelect;
+}>;
 
 type AvailabilityServiceOptions = Readonly<{
   prismaClient?: PrismaClient;
@@ -68,17 +111,14 @@ async function resolvePropertyMappings(
   accommodationIds: readonly AccommodationId[],
 ): Promise<readonly PropertyAvailabilityMapping[]> {
   const expectedSlugs = accommodationIds.map(getAccommodationSlug);
-  const properties = await prismaClient.property.findMany({
+  const properties: PropertyAvailabilityRecord[] = await prismaClient.property.findMany({
     where: {
       deletedAt: null,
       slug: {
         in: expectedSlugs,
       },
     },
-    select: {
-      id: true,
-      slug: true,
-    },
+    select: propertyAvailabilitySelect,
   });
 
   const foundSlugs = new Set(properties.map((property) => property.slug));
@@ -86,7 +126,9 @@ async function resolvePropertyMappings(
 
   if (missingSlugs.length > 0) {
     throw new Error(
-      `Availability cannot be evaluated because property records are missing for: ${missingSlugs.join(", ")}.`,
+      `Availability cannot be evaluated because property records are missing for: ${missingSlugs.join(
+        ", ",
+      )}.`,
     );
   }
 
@@ -103,12 +145,68 @@ function toDateOnlyRange(startDate: Date, endDate: Date): AvailabilityDateRange 
   };
 }
 
-function shouldUseCalendarBlock(source: string, unlockedByAdminAt: Date | null): boolean {
-  if (source === "PREPARATION_BUFFER" && unlockedByAdminAt) {
+function shouldUseCalendarBlock(calendarBlock: CalendarBlockAvailabilityRecord): boolean {
+  if (
+    calendarBlock.source === CalendarBlockSource.PREPARATION_BUFFER &&
+    calendarBlock.unlockedByAdminAt
+  ) {
     return false;
   }
 
   return true;
+}
+
+function toReservationAvailabilityStatus(
+  status: ReservationAvailabilityRecord["status"],
+): ReservationAvailabilityStatus {
+  if (status === ReservationStatus.CONFIRMED) {
+    return ReservationStatus.CONFIRMED;
+  }
+
+  if (status === ReservationStatus.PENDING_PAYMENT) {
+    return ReservationStatus.PENDING_PAYMENT;
+  }
+
+  throw new Error(`Unsupported reservation availability status: ${status}.`);
+}
+
+function toAvailabilityBlockSource(
+  source: CalendarBlockAvailabilityRecord["source"],
+): AvailabilityBlockSource {
+  return source;
+}
+
+function toReservationBlockingRecord(
+  reservation: ReservationAvailabilityRecord,
+  propertyIdToAccommodationId: ReadonlyMap<string, AccommodationId>,
+  fallbackAccommodationId: AccommodationId,
+): AvailabilityBlockingRecord {
+  return {
+    accommodationId:
+      propertyIdToAccommodationId.get(reservation.propertyId) ?? fallbackAccommodationId,
+    ...toDateOnlyRange(reservation.checkInDate, reservation.checkOutDate),
+    source: CalendarBlockSource.DIRECT_RESERVATION,
+    reason: reservation.status,
+    reservationId: reservation.id,
+    reservationStatus: toReservationAvailabilityStatus(reservation.status),
+  };
+}
+
+function toCalendarBlockBlockingRecord(
+  calendarBlock: CalendarBlockAvailabilityRecord,
+  propertyIdToAccommodationId: ReadonlyMap<string, AccommodationId>,
+  fallbackAccommodationId: AccommodationId,
+): AvailabilityBlockingRecord {
+  return {
+    accommodationId:
+      propertyIdToAccommodationId.get(calendarBlock.propertyId) ?? fallbackAccommodationId,
+    ...toDateOnlyRange(calendarBlock.startDate, calendarBlock.endDate),
+    source: toAvailabilityBlockSource(calendarBlock.source),
+    reason: calendarBlock.reason ?? undefined,
+    reservationId: calendarBlock.reservationId ?? undefined,
+    calendarBlockId: calendarBlock.id,
+    externalCalendarEventId: calendarBlock.externalCalendarEventId ?? undefined,
+  };
 }
 
 export async function getAvailabilityBlockingRecords(
@@ -129,7 +227,10 @@ export async function getAvailabilityBlockingRecords(
   );
   const blockingPropertyIds = propertyMappings.map((mapping) => mapping.propertyId);
 
-  const [reservations, calendarBlocks] = await Promise.all([
+  const [reservations, calendarBlocks]: [
+    ReservationAvailabilityRecord[],
+    CalendarBlockAvailabilityRecord[],
+  ] = await Promise.all([
     prismaClient.reservation.findMany({
       where: {
         propertyId: {
@@ -143,10 +244,10 @@ export async function getAvailabilityBlockingRecords(
         },
         OR: [
           {
-            status: "CONFIRMED",
+            status: ReservationStatus.CONFIRMED,
           },
           {
-            status: "PENDING_PAYMENT",
+            status: ReservationStatus.PENDING_PAYMENT,
             OR: [
               {
                 expiresAt: null,
@@ -160,13 +261,7 @@ export async function getAvailabilityBlockingRecords(
           },
         ],
       },
-      select: {
-        id: true,
-        propertyId: true,
-        checkInDate: true,
-        checkOutDate: true,
-        status: true,
-      },
+      select: reservationAvailabilitySelect,
     }),
     prismaClient.calendarBlock.findMany({
       where: {
@@ -181,42 +276,23 @@ export async function getAvailabilityBlockingRecords(
           gt: requestedStartDate,
         },
       },
-      select: {
-        id: true,
-        propertyId: true,
-        startDate: true,
-        endDate: true,
-        source: true,
-        reason: true,
-        reservationId: true,
-        externalCalendarEventId: true,
-        unlockedByAdminAt: true,
-      },
+      select: calendarBlockAvailabilitySelect,
     }),
   ]);
 
-  const reservationBlockingRecords: AvailabilityBlockingRecord[] = reservations.map((reservation) => ({
-    accommodationId: propertyIdToAccommodationId.get(reservation.propertyId) ?? input.accommodationId,
-    ...toDateOnlyRange(reservation.checkInDate, reservation.checkOutDate),
-    source: "DIRECT_RESERVATION",
-    reason: reservation.status,
-    reservationId: reservation.id,
-    reservationStatus: reservation.status as AvailabilityBlockingRecord["reservationStatus"],
-  }));
+  const reservationBlockingRecords = reservations.map((reservation) =>
+    toReservationBlockingRecord(reservation, propertyIdToAccommodationId, input.accommodationId),
+  );
 
-  const calendarBlockBlockingRecords: AvailabilityBlockingRecord[] = calendarBlocks
-    .filter((calendarBlock) =>
-      shouldUseCalendarBlock(calendarBlock.source, calendarBlock.unlockedByAdminAt),
-    )
-    .map((calendarBlock) => ({
-      accommodationId: propertyIdToAccommodationId.get(calendarBlock.propertyId) ?? input.accommodationId,
-      ...toDateOnlyRange(calendarBlock.startDate, calendarBlock.endDate),
-      source: calendarBlock.source as AvailabilityBlockingRecord["source"],
-      reason: calendarBlock.reason ?? undefined,
-      reservationId: calendarBlock.reservationId ?? undefined,
-      calendarBlockId: calendarBlock.id,
-      externalCalendarEventId: calendarBlock.externalCalendarEventId ?? undefined,
-    }));
+  const calendarBlockBlockingRecords = calendarBlocks
+    .filter(shouldUseCalendarBlock)
+    .map((calendarBlock) =>
+      toCalendarBlockBlockingRecord(
+        calendarBlock,
+        propertyIdToAccommodationId,
+        input.accommodationId,
+      ),
+    );
 
   return [...reservationBlockingRecords, ...calendarBlockBlockingRecords];
 }

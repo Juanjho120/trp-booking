@@ -246,3 +246,28 @@ Phase 6.3 — Public availability calendar UI foundation
 ```
 
 The next subphase should use this service foundation to add public date visibility without creating reservations or starting checkout yet.
+
+## Build Correction — Prisma Client Generation
+
+The availability service imports Prisma enums and generated payload types directly from `@prisma/client`.
+
+Required build behavior:
+
+```text
+npm run build must generate Prisma Client before Next.js type checking.
+npm install should also generate Prisma Client after dependencies are installed.
+```
+
+The project scripts must therefore keep:
+
+```json
+"prebuild": "prisma generate",
+"postinstall": "prisma generate"
+```
+
+Reason:
+
+```text
+Using Prisma-generated enums is preferred over string literal workarounds.
+If Prisma Client is stale or missing, TypeScript can lose model-specific types and surface misleading errors such as implicit any in query result callbacks.
+```
