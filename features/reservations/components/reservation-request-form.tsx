@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarDays, ChevronDown, Search, X } from "lucide-react";
+import { CalendarDays, ChevronDown, Search } from "lucide-react";
 import { type FormEvent, useMemo, useState } from "react";
 import { DayPicker, type DateRange } from "react-day-picker";
 import type { Country } from "react-phone-number-input";
@@ -233,7 +233,6 @@ export function ReservationRequestForm({
         clearLabel={uxCopy.dateRange.clear}
         helper={uxCopy.dateRange.helper}
         label={uxCopy.dateRange.label}
-        locale={locale}
         onClear={() => {
           setDateRange(undefined);
           setQuote(null);
@@ -348,7 +347,6 @@ function DateRangeField({
   clearLabel,
   helper,
   label,
-  locale,
   onClear,
   onOpenChange,
   onSelect,
@@ -360,7 +358,6 @@ function DateRangeField({
   clearLabel: string;
   helper: string;
   label: string;
-  locale: string;
   onClear: () => void;
   onOpenChange: (open: boolean) => void;
   onSelect: (value: DateRange | undefined) => void;

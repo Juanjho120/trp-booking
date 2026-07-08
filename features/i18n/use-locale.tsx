@@ -8,7 +8,20 @@ import { defaultLocale, locales, type Locale } from "@/types/locale";
 const LOCALE_STORAGE_KEY = "trp-booking.locale";
 const LOCALE_CHANGE_EVENT = "trp-booking:locale-change";
 
-type LocaleMessages = typeof esMessages;
+type WidenMessageValues<T> =
+  T extends string
+    ? string
+    : T extends number
+      ? number
+      : T extends boolean
+        ? boolean
+        : T extends readonly (infer Item)[]
+          ? readonly WidenMessageValues<Item>[]
+          : T extends object
+            ? { readonly [Key in keyof T]: WidenMessageValues<T[Key]> }
+            : T;
+
+type LocaleMessages = WidenMessageValues<typeof esMessages>;
 
 type LocaleHookValue = Readonly<{
   locale: Locale;

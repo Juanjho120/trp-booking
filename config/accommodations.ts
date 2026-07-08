@@ -98,6 +98,7 @@ export const accommodations = [
       "shared-patio",
       "free-street-parking",
     ],
+    amenities: [],
     rules: {
       es: [
         "Máximo 2 huéspedes.",
@@ -215,6 +216,7 @@ export const accommodations = [
       "shared-patio",
       "luggage-drop-off",
     ],
+    amenities: [],
     rules: {
       es: [
         "Máximo 4 huéspedes.",
@@ -330,6 +332,7 @@ export const accommodations = [
       "free-street-parking",
       "family-groups",
     ],
+    amenities: [],
     rules: {
       es: [
         "Máximo 6 huéspedes.",
