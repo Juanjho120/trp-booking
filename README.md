@@ -88,6 +88,7 @@ Max guests: 6
 - Public accommodation images are delivered from Cloudinary after Phase 5.4; local files under `public/images/accommodations` remain only as upload sources or temporary rollback references until an admin image management flow replaces them.
 - Availability ranges use date-only boundaries where `checkInDate` is inclusive and `checkOutDate` is exclusive.
 - Availability must account for composed listing dependencies and preparation buffer rules before payment or reservation confirmation.
+- Availability checks must ignore expired pending reservations, soft-deleted calendar blocks, and manually unlocked preparation buffer blocks.
 
 ## Documentation
 
@@ -128,6 +129,7 @@ docs/
   30-public-accommodation-cloudinary-images.md
   31-phase-5-cloudinary-closure-review.md
   32-availability-strategy-and-calendar-rules.md
+  33-availability-domain-service-foundation.md
 ```
 
 The assistant collaboration rules live in:
@@ -140,9 +142,9 @@ AGENTS.md
 
 ```text
 Current phase: Phase 6 — Availability Calendar Foundation
-Current subphase: 6.2 Availability domain service foundation
+Current subphase: 6.3 Public availability calendar UI foundation
 Last completed phase: Phase 5 — Cloudinary Integration
-Last completed subphase: 6.1 Availability strategy and booking calendar rules
+Last completed subphase: 6.2 Availability domain service foundation
 ```
 
-See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/31-phase-5-cloudinary-closure-review.md`, and `docs/32-availability-strategy-and-calendar-rules.md` for the official current tracker and availability rules.
+See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/32-availability-strategy-and-calendar-rules.md`, and `docs/33-availability-domain-service-foundation.md` for the official current tracker and availability rules.

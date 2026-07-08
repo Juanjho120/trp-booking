@@ -15,6 +15,8 @@ export type AvailabilityBlockSource =
   | "COMPOSED_LISTING_DEPENDENCY"
   | "PREPARATION_BUFFER";
 
+export type ReservationAvailabilityStatus = "CONFIRMED" | "PENDING_PAYMENT";
+
 export type AvailabilityDependencyRule = Readonly<{
   accommodationId: AccommodationId;
   affectedAccommodationIds: readonly AccommodationId[];
@@ -29,8 +31,34 @@ export type PreparationBufferDateRange = AvailabilityDateRange &
     days: number;
   }>;
 
+export type AvailabilityBlockingRecord = AvailabilityDateRange &
+  Readonly<{
+    accommodationId: AccommodationId;
+    source: AvailabilityBlockSource;
+    reason?: string;
+    reservationId?: string;
+    reservationStatus?: ReservationAvailabilityStatus;
+    calendarBlockId?: string;
+    externalCalendarEventId?: string;
+  }>;
+
+export type AvailabilityCheckInput = AvailabilityDateRange &
+  Readonly<{
+    accommodationId: AccommodationId;
+  }>;
+
+export type AvailabilityCheckResult = Readonly<{
+  accommodationId: AccommodationId;
+  requestedRange: AvailabilityDateRange;
+  available: boolean;
+  affectedAccommodationIds: readonly AccommodationId[];
+  blockingAccommodationIds: readonly AccommodationId[];
+  blockingRecords: readonly AvailabilityBlockingRecord[];
+}>;
+
 export type AvailabilityRuleSummary = Readonly<{
   accommodationId: AccommodationId;
   affectedAccommodationIds: readonly AccommodationId[];
+  blockingAccommodationIds: readonly AccommodationId[];
   preparationBuffer: PreparationBufferPolicy;
 }>;

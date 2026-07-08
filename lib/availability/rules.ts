@@ -10,7 +10,7 @@ import type {
 
 const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
-export const availabilityDependencyRules = [
+export const availabilityDependencyRules: readonly AvailabilityDependencyRule[] = [
   {
     accommodationId: "black-white-apartment",
     affectedAccommodationIds: ["black-white-apartment", "complete-retreat"],
@@ -27,7 +27,7 @@ export const availabilityDependencyRules = [
       "perfect-retreat-bungalow",
     ],
   },
-] as const satisfies readonly AvailabilityDependencyRule[];
+];
 
 export function isDateOnlyString(value: string): value is DateOnlyString {
   if (!DATE_ONLY_PATTERN.test(value)) {
@@ -53,6 +53,18 @@ export function assertDateOnlyString(
   }
 }
 
+export function dateOnlyToUtcDate(date: DateOnlyString): Date {
+  assertDateOnlyString(date, "date");
+
+  const [year, month, day] = date.split("-").map(Number);
+
+  return new Date(Date.UTC(year, month - 1, day));
+}
+
+export function dateOnlyFromDate(date: Date): DateOnlyString {
+  return date.toISOString().slice(0, 10) as DateOnlyString;
+}
+
 export function addDaysToDateOnly(
   date: DateOnlyString,
   days: number,
@@ -61,11 +73,10 @@ export function addDaysToDateOnly(
     throw new Error("days must be an integer.");
   }
 
-  const [year, month, day] = date.split("-").map(Number);
-  const parsedDate = new Date(Date.UTC(year, month - 1, day));
+  const parsedDate = dateOnlyToUtcDate(date);
   parsedDate.setUTCDate(parsedDate.getUTCDate() + days);
 
-  return parsedDate.toISOString().slice(0, 10) as DateOnlyString;
+  return dateOnlyFromDate(parsedDate);
 }
 
 export function assertValidAvailabilityDateRange(
@@ -77,6 +88,16 @@ export function assertValidAvailabilityDateRange(
   if (range.startDate >= range.endDate) {
     throw new Error("Availability date ranges must end after they start.");
   }
+}
+
+export function availabilityDateRangesOverlap(
+  firstRange: AvailabilityDateRange,
+  secondRange: AvailabilityDateRange,
+): boolean {
+  assertValidAvailabilityDateRange(firstRange);
+  assertValidAvailabilityDateRange(secondRange);
+
+  return firstRange.startDate < secondRange.endDate && secondRange.startDate < firstRange.endDate;
 }
 
 export function getAffectedAccommodationIds(
@@ -93,6 +114,20 @@ export function getAffectedAccommodationIds(
   return rule.affectedAccommodationIds;
 }
 
+export function getBlockingAccommodationIds(
+  accommodationId: AccommodationId,
+): readonly AccommodationId[] {
+  const blockingAccommodationIds = availabilityDependencyRules
+    .filter((rule) => rule.affectedAccommodationIds.includes(accommodationId))
+    .map((rule) => rule.accommodationId);
+
+  if (blockingAccommodationIds.length === 0) {
+    throw new Error(`Blocking availability dependency rule not found for ${accommodationId}.`);
+  }
+
+  return blockingAccommodationIds;
+}
+
 export function getAvailabilityRuleSummary(
   accommodationId: AccommodationId,
 ): AvailabilityRuleSummary {
@@ -105,6 +140,7 @@ export function getAvailabilityRuleSummary(
   return {
     accommodationId,
     affectedAccommodationIds: getAffectedAccommodationIds(accommodationId),
+    blockingAccommodationIds: getBlockingAccommodationIds(accommodationId),
     preparationBuffer: accommodation.preparationBuffer,
   };
 }

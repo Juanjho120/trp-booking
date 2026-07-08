@@ -15,8 +15,8 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 6 — Availability Calendar Foundation
-Current subphase: 6.2 Availability domain service foundation
-Current focus: implement the server-side availability evaluation foundation using the Phase 6.1 rules, without checkout, payment, email, or Airbnb iCal sync.
+Current subphase: 6.3 Public availability calendar UI foundation
+Current focus: add public date visibility using the Phase 6.2 availability service, without checkout, payment, email, or Airbnb iCal sync.
 ```
 
 ---
@@ -175,8 +175,8 @@ Subphase status:
 
 ```text
 6.1 Availability strategy and booking calendar rules — Completed
-6.2 Availability domain service foundation — In progress
-6.3 Public availability calendar UI foundation — Not started
+6.2 Availability domain service foundation — Completed
+6.3 Public availability calendar UI foundation — In progress
 6.4 Preparation buffer and blocked-date evaluation — Not started
 6.5 Phase 6 documentation update — Not started
 ```
@@ -204,6 +204,21 @@ Phase 6.1 result:
 - Date-only helper functions were added for YYYY-MM-DD boundaries.
 - Preparation buffer range helpers were added for future service and UI work.
 - No checkout, payment, email, iCal sync, database writes, migrations, seed data, or PMS features were added.
+```
+
+Phase 6.2 result:
+
+```text
+- A reusable Prisma client helper was added under lib/db/prisma.ts.
+- A server-side availability service was added under lib/availability/service.ts.
+- The service reads overlapping reservations and calendar blocks through Prisma.
+- The service applies composed listing dependency rules before evaluating availability.
+- Active pending payment holds and confirmed reservations block availability.
+- Expired pending reservations are ignored.
+- Soft-deleted calendar blocks are ignored.
+- Manually unlocked preparation buffer blocks are ignored.
+- The service returns typed availability results without creating reservations or writing to the database.
+- No checkout, payment, email, Airbnb iCal sync, migrations, seed data, admin calendar UI, or PMS features were added.
 ```
 
 ---

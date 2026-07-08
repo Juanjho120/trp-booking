@@ -6,10 +6,10 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 6 — Availability Calendar Foundation
-Current subphase: 6.2 Availability domain service foundation
+Current subphase: 6.3 Public availability calendar UI foundation
 Last updated: 2026-07-08
 Last completed phase: Phase 5 — Cloudinary Integration
-Last completed subphase: 6.1 Availability strategy and booking calendar rules
+Last completed subphase: 6.2 Availability domain service foundation
 ```
 
 ## Completed Work
@@ -142,125 +142,6 @@ Local accommodation images remain only as upload source/rollback metadata throug
 No booking checkout, Tilopay, Resend, Airbnb iCal sync, PMS features, admin upload UI, database writes, migrations, or seed data were added in Phase 5.
 ```
 
-### Phase 5.1 — Cloudinary Strategy and Environment Foundation
-
-Status: **Completed**
-
-Completed deliverables:
-
-```text
-docs/27-cloudinary-strategy-and-environment.md added
-Cloudinary usage scope documented
-Cloudinary server-only credential rules documented
-Cloudinary placeholder variables added to .env.example
-Folder naming strategy documented
-Public ID strategy documented
-Public delivery strategy documented
-Database mapping expectations documented using existing PropertyImage fields
-Signed/admin-controlled upload direction selected for future implementation
-README.md updated with Phase 5.1 completion and Phase 5.2 current status
-docs/10-phases.md updated to mark 5.1 completed and 5.2 in progress
-docs/11-progress-log.md updated with Phase 5.1 completion
-```
-
-Important decisions:
-
-```text
-TRP Booking will use Cloudinary for accommodation image storage, delivery, and transformations.
-Cloudinary credentials must remain server-side only.
-Do not create NEXT_PUBLIC variables for API key or API secret.
-The project will use separate validated variables instead of a single CLOUDINARY_URL for clearer validation.
-Future admin uploads should prefer signed/admin-controlled uploads over unsigned public presets.
-Development and production assets must be separated by folder.
-```
-
-### Phase 5.2 — Cloudinary Environment Validation
-
-Status: **Completed**
-
-Completed deliverables:
-
-```text
-Cloudinary server-side env validation added to lib/env/server.ts
-CLOUDINARY_CLOUD_NAME validation added
-CLOUDINARY_API_KEY validation added
-CLOUDINARY_API_SECRET validation added
-CLOUDINARY_UPLOAD_FOLDER validation added
-CloudinaryEnv type added
-getCloudinaryEnv helper added
-.env.example updated to state Cloudinary variables are now validated
-README.md updated with Phase 5.2 completion and Phase 5.3 current status
-docs/28-cloudinary-environment-validation.md added
-docs/10-phases.md updated to mark 5.2 completed and 5.3 in progress
-docs/11-progress-log.md updated with Phase 5.2 completion
-```
-
-### Phase 5.3 — Cloudinary Service Foundation
-
-Status: **Completed**
-
-Completed deliverables:
-
-```text
-cloudinary dependency added to package.json
-lib/cloudinary/client.ts added
-lib/cloudinary/folders.ts added
-lib/cloudinary/delivery.ts added
-lib/cloudinary/index.ts added
-docs/29-cloudinary-service-foundation.md added
-README.md updated with Phase 5.3 completion and Phase 5.4 current status
-docs/10-phases.md updated to mark 5.3 completed and 5.4 in progress
-docs/11-progress-log.md updated with Phase 5.3 completion
-```
-
-### Phase 5.4 — Public Accommodation Images from Cloudinary
-
-Status: **Completed**
-
-Completed deliverables:
-
-```text
-lib/cloudinary/accommodation-images.ts added
-lib/cloudinary/index.ts updated to export the public accommodation image helper
-types/accommodation.ts updated with cloudinaryPublicId and fallbackSrc metadata
-config/accommodations.ts updated so coverImage.src and galleryImages[].src are generated from Cloudinary public IDs
-config/seo.ts updated so default Open Graph images can use Cloudinary delivery URLs
-next.config.ts updated to allow res.cloudinary.com for next/image
-docs/30-public-accommodation-cloudinary-images.md added
-README.md updated with Phase 5.4 completion and Phase 5.5 current status
-docs/10-phases.md updated to mark 5.4 completed and 5.5 in progress
-docs/11-progress-log.md updated with Phase 5.4 completion
-```
-
-Important decisions:
-
-```text
-Public accommodation images are rendered from Cloudinary after Phase 5.4.
-Local image files remain as fallbackSrc/upload source metadata only; they are no longer the primary rendered image src.
-Cloudinary public IDs remain deterministic and based on CLOUDINARY_UPLOAD_FOLDER, accommodation slug, sort order, and image purpose.
-The public listing and detail pages keep using the existing AccommodationImage shape, so UI changes are minimal.
-```
-
-### Phase 5.5 — Phase 5 Documentation Update
-
-Status: **Completed**
-
-Completed deliverables:
-
-```text
-docs/31-phase-5-cloudinary-closure-review.md added
-README.md updated to mark Phase 5 completed and Phase 6 current
-docs/10-phases.md updated to mark Phase 5 completed and Phase 6 in progress
-docs/11-progress-log.md updated with Phase 5 closure and Phase 6.1 current work
-```
-
-Important decision:
-
-```text
-Phase 5 is not considered complete merely because Cloudinary variables and services exist.
-Phase 5 is considered complete because public accommodation images are now rendered from Cloudinary delivery URLs.
-```
-
 ### Phase 6.1 — Availability Strategy and Booking Calendar Rules
 
 Status: **Completed**
@@ -293,6 +174,44 @@ Important limitation:
 Phase 6.1 does not query the database, create reservations, start checkout, integrate Tilopay, integrate Resend, import/export Airbnb iCal, write migrations, seed data, or add PMS features.
 ```
 
+### Phase 6.2 — Availability Domain Service Foundation
+
+Status: **Completed**
+
+Completed deliverables:
+
+```text
+lib/db/prisma.ts added
+lib/availability/service.ts added
+lib/availability/index.ts updated to export the availability service
+types/availability.ts updated with typed service inputs and results
+lib/availability/rules.ts updated with blocking dependency and date conversion helpers
+docs/33-availability-domain-service-foundation.md added
+README.md updated with Phase 6.2 completion and Phase 6.3 current status
+docs/10-phases.md updated to mark 6.2 completed and 6.3 in progress
+docs/11-progress-log.md updated with Phase 6.2 completion
+```
+
+Important decisions:
+
+```text
+Availability service code is server-side only.
+Property records are resolved by stable Property.slug values from the seed strategy.
+For a requested accommodation, the service queries all accommodations that can block it.
+Confirmed reservations block availability.
+Active PENDING_PAYMENT reservations block availability until they expire.
+PENDING_PAYMENT reservations without expiresAt are treated as active holds.
+Expired pending reservations do not block availability.
+Soft-deleted calendar blocks do not block availability.
+Unlocked preparation buffer blocks do not block availability.
+```
+
+Important limitation:
+
+```text
+Phase 6.2 does not create reservations, create pending holds, start checkout, integrate Tilopay, integrate Resend, import/export Airbnb iCal, add route handlers, add public calendar UI, write migrations, seed data, or add PMS features.
+```
+
 ## Current Work
 
 ### Phase 6 — Availability Calendar Foundation
@@ -302,19 +221,17 @@ Status: **In progress**
 Current subphase:
 
 ```text
-6.2 Availability domain service foundation
+6.3 Public availability calendar UI foundation
 ```
 
-Phase 6.2 goals:
+Phase 6.3 goals:
 
 ```text
-Implement the server-side availability evaluation foundation using the Phase 6.1 rules.
-Read relevant reservations and calendar blocks through Prisma.
-Apply composed listing dependency rules.
-Respect active pending reservation holds and confirmed reservations.
-Respect manual, maintenance, imported Airbnb, composed dependency, and preparation buffer blocks.
-Ignore expired pending reservations and soft-deleted calendar blocks.
-Do not add booking checkout yet.
+Add the first public availability calendar UI foundation.
+Use the Phase 6.2 server-side availability service as the data source.
+Show unavailable dates as disabled/non-selectable.
+Keep checkout and payment disabled.
+Do not create reservations yet.
 Do not integrate Tilopay yet.
 Do not integrate Resend yet.
 Do not implement Airbnb iCal sync yet.
@@ -324,12 +241,12 @@ Do not add PMS features.
 ## Next Recommended Work
 
 ```text
-1. Apply Phase 6.1 files.
+1. Apply Phase 6.2 files.
 2. Run npm run env:validate.
 3. Run npm run db:validate.
 4. Run npm run lint and npm run build.
-5. Commit Phase 6.1.
-6. Continue with Phase 6.2 Availability domain service foundation.
+5. Commit Phase 6.2.
+6. Continue with Phase 6.3 Public availability calendar UI foundation.
 ```
 
 ## Continuity Notes for New Conversations
@@ -347,6 +264,8 @@ docs/11-progress-log.md
 docs/20-phase-3-database-closure-review.md
 docs/31-phase-5-cloudinary-closure-review.md
 docs/32-availability-strategy-and-calendar-rules.md
+docs/33-availability-domain-service-foundation.md
+lib/db/prisma.ts
 lib/availability/index.ts
 lib/env/server.ts
 lib/cloudinary/index.ts
