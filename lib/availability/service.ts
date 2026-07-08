@@ -14,11 +14,15 @@ import type {
   AvailabilityCheckInput,
   AvailabilityCheckResult,
   AvailabilityDateRange,
+  PreparationBufferDateRange,
   ReservationAvailabilityStatus,
 } from "@/types/availability";
 
 import {
+  addDaysToDateOnly,
   assertValidAvailabilityDateRange,
+  availabilityDateRangesOverlap,
+  buildPreparationBufferRanges,
   dateOnlyFromDate,
   dateOnlyToUtcDate,
   getAffectedAccommodationIds,
@@ -70,6 +74,11 @@ type AvailabilityServiceOptions = Readonly<{
 type PropertyAvailabilityMapping = Readonly<{
   propertyId: string;
   accommodationId: AccommodationId;
+}>;
+
+type PreparationBufferLookupWindow = Readonly<{
+  startDate: AvailabilityDateRange["startDate"];
+  endDate: AvailabilityDateRange["endDate"];
 }>;
 
 function assertServerSideAvailabilityService(): void {
@@ -176,6 +185,35 @@ function toAvailabilityBlockSource(
   return source;
 }
 
+function getPreparationBufferLookupWindow(
+  requestedRange: AvailabilityDateRange,
+  accommodationIds: readonly AccommodationId[],
+): PreparationBufferLookupWindow {
+  const maxPreparationDays = accommodationIds.reduce(
+    (currentMax, accommodationId) => {
+      const accommodation = getAccommodationById(accommodationId);
+
+      if (!accommodation) {
+        throw new Error(`Accommodation not found for ${accommodationId}.`);
+      }
+
+      return {
+        daysBefore: Math.max(currentMax.daysBefore, accommodation.preparationBuffer.daysBefore),
+        daysAfter: Math.max(currentMax.daysAfter, accommodation.preparationBuffer.daysAfter),
+      };
+    },
+    {
+      daysBefore: 0,
+      daysAfter: 0,
+    },
+  );
+
+  return {
+    startDate: addDaysToDateOnly(requestedRange.startDate, -maxPreparationDays.daysAfter),
+    endDate: addDaysToDateOnly(requestedRange.endDate, maxPreparationDays.daysBefore),
+  };
+}
+
 function toReservationBlockingRecord(
   reservation: ReservationAvailabilityRecord,
   propertyIdToAccommodationId: ReadonlyMap<string, AccommodationId>,
@@ -209,6 +247,64 @@ function toCalendarBlockBlockingRecord(
   };
 }
 
+function hasPersistedPreparationBufferForRange(
+  reservation: ReservationAvailabilityRecord,
+  bufferRange: PreparationBufferDateRange,
+  calendarBlocks: readonly CalendarBlockAvailabilityRecord[],
+): boolean {
+  return calendarBlocks.some((calendarBlock) => {
+    if (calendarBlock.propertyId !== reservation.propertyId) {
+      return false;
+    }
+
+    if (calendarBlock.source !== CalendarBlockSource.PREPARATION_BUFFER) {
+      return false;
+    }
+
+    if (calendarBlock.reservationId && calendarBlock.reservationId !== reservation.id) {
+      return false;
+    }
+
+    return availabilityDateRangesOverlap(
+      bufferRange,
+      toDateOnlyRange(calendarBlock.startDate, calendarBlock.endDate),
+    );
+  });
+}
+
+function toDerivedPreparationBufferBlockingRecords(
+  reservation: ReservationAvailabilityRecord,
+  requestedRange: AvailabilityDateRange,
+  propertyIdToAccommodationId: ReadonlyMap<string, AccommodationId>,
+  fallbackAccommodationId: AccommodationId,
+  calendarBlocks: readonly CalendarBlockAvailabilityRecord[],
+): readonly AvailabilityBlockingRecord[] {
+  if (reservation.status !== ReservationStatus.CONFIRMED) {
+    return [];
+  }
+
+  const accommodationId =
+    propertyIdToAccommodationId.get(reservation.propertyId) ?? fallbackAccommodationId;
+  const stayRange = toDateOnlyRange(reservation.checkInDate, reservation.checkOutDate);
+
+  return buildPreparationBufferRanges(accommodationId, stayRange)
+    .filter((bufferRange) => availabilityDateRangesOverlap(requestedRange, bufferRange))
+    .filter(
+      (bufferRange) =>
+        !hasPersistedPreparationBufferForRange(reservation, bufferRange, calendarBlocks),
+    )
+    .map((bufferRange) => ({
+      accommodationId: bufferRange.accommodationId,
+      startDate: bufferRange.startDate,
+      endDate: bufferRange.endDate,
+      source: CalendarBlockSource.PREPARATION_BUFFER,
+      reason: `Derived ${bufferRange.kind} preparation buffer (${bufferRange.days} day${
+        bufferRange.days === 1 ? "" : "s"
+      }).`,
+      reservationId: reservation.id,
+    }));
+}
+
 export async function getAvailabilityBlockingRecords(
   input: AvailabilityCheckInput,
   options: AvailabilityServiceOptions = {},
@@ -218,6 +314,10 @@ export async function getAvailabilityBlockingRecords(
 
   const prismaClient = options.prismaClient ?? prisma;
   const now = options.now ?? new Date();
+  const requestedRange: AvailabilityDateRange = {
+    startDate: input.startDate,
+    endDate: input.endDate,
+  };
   const requestedStartDate = dateOnlyToUtcDate(input.startDate);
   const requestedEndDate = dateOnlyToUtcDate(input.endDate);
   const blockingAccommodationIds = getBlockingAccommodationIds(input.accommodationId);
@@ -226,6 +326,10 @@ export async function getAvailabilityBlockingRecords(
     propertyMappings.map((mapping) => [mapping.propertyId, mapping.accommodationId]),
   );
   const blockingPropertyIds = propertyMappings.map((mapping) => mapping.propertyId);
+  const preparationLookupWindow = getPreparationBufferLookupWindow(
+    requestedRange,
+    blockingAccommodationIds,
+  );
 
   const [reservations, calendarBlocks]: [
     ReservationAvailabilityRecord[],
@@ -237,10 +341,10 @@ export async function getAvailabilityBlockingRecords(
           in: blockingPropertyIds,
         },
         checkInDate: {
-          lt: requestedEndDate,
+          lt: dateOnlyToUtcDate(preparationLookupWindow.endDate),
         },
         checkOutDate: {
-          gt: requestedStartDate,
+          gt: dateOnlyToUtcDate(preparationLookupWindow.startDate),
         },
         OR: [
           {
@@ -280,8 +384,25 @@ export async function getAvailabilityBlockingRecords(
     }),
   ]);
 
-  const reservationBlockingRecords = reservations.map((reservation) =>
-    toReservationBlockingRecord(reservation, propertyIdToAccommodationId, input.accommodationId),
+  const reservationBlockingRecords = reservations
+    .filter((reservation) =>
+      availabilityDateRangesOverlap(
+        requestedRange,
+        toDateOnlyRange(reservation.checkInDate, reservation.checkOutDate),
+      ),
+    )
+    .map((reservation) =>
+      toReservationBlockingRecord(reservation, propertyIdToAccommodationId, input.accommodationId),
+    );
+
+  const derivedPreparationBufferBlockingRecords = reservations.flatMap((reservation) =>
+    toDerivedPreparationBufferBlockingRecords(
+      reservation,
+      requestedRange,
+      propertyIdToAccommodationId,
+      input.accommodationId,
+      calendarBlocks,
+    ),
   );
 
   const calendarBlockBlockingRecords = calendarBlocks
@@ -294,7 +415,11 @@ export async function getAvailabilityBlockingRecords(
       ),
     );
 
-  return [...reservationBlockingRecords, ...calendarBlockBlockingRecords];
+  return [
+    ...reservationBlockingRecords,
+    ...derivedPreparationBufferBlockingRecords,
+    ...calendarBlockBlockingRecords,
+  ];
 }
 
 export async function checkAccommodationAvailability(

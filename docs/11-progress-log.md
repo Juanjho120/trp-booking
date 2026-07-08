@@ -6,10 +6,10 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 6 — Availability Calendar Foundation
-Current subphase: 6.4 Preparation buffer and blocked-date evaluation
+Current subphase: 6.5 Phase 6 documentation update
 Last updated: 2026-07-08
 Last completed phase: Phase 5 — Cloudinary Integration
-Last completed subphase: 6.3 Public availability calendar UI foundation
+Last completed subphase: 6.4 Preparation buffer and blocked-date evaluation
 ```
 
 ## Completed Work
@@ -240,6 +240,37 @@ Important limitation:
 Phase 6.3 does not create reservations, start checkout, integrate Tilopay, integrate Resend, import/export Airbnb iCal, add admin calendar UI, write migrations, seed data, or add PMS features.
 ```
 
+### Phase 6.4 — Preparation Buffer and Blocked-Date Evaluation
+
+Status: **Completed**
+
+Completed deliverables:
+
+```text
+lib/availability/service.ts updated to derive preparation buffer blocking records from confirmed reservations
+docs/35-preparation-buffer-and-blocked-date-evaluation.md added
+README.md updated with Phase 6.4 completion and Phase 6.5 current status
+docs/10-phases.md updated to mark 6.4 completed and 6.5 in progress
+docs/11-progress-log.md updated with Phase 6.4 completion
+```
+
+Important decisions:
+
+```text
+Confirmed reservations derive preparation buffer blocking records at read time.
+Pending payment reservations block only their selected stay dates and do not derive preparation buffers.
+The service expands reservation lookup windows so before-check-in and after-check-out buffers are visible in availability even when the reservation stay itself is outside the requested range.
+Persisted PREPARATION_BUFFER calendar blocks take precedence over derived buffer records.
+Unlocked PREPARATION_BUFFER calendar blocks suppress derived preparation buffer records for the matching reservation/range.
+Manual, maintenance, Airbnb, composed dependency, direct reservation, and preparation buffer sources remain blocking sources for the public availability API.
+```
+
+Important limitation:
+
+```text
+Phase 6.4 does not create reservations, create pending holds, write preparation buffer blocks, add admin unlock UI, start checkout, integrate Tilopay, integrate Resend, import/export Airbnb iCal, write migrations, seed data, or add PMS features.
+```
+
 ## Current Work
 
 ### Phase 6 — Availability Calendar Foundation
@@ -249,14 +280,13 @@ Status: **In progress**
 Current subphase:
 
 ```text
-6.4 Preparation buffer and blocked-date evaluation
+6.5 Phase 6 documentation update
 ```
 
-Phase 6.4 goals:
+Phase 6.5 goals:
 
 ```text
-Strengthen preparation buffer and blocked-date evaluation around the public availability UI.
-Confirm source labeling and unavailable-day behavior for confirmed reservations, pending holds, manual blocks, maintenance blocks, Airbnb blocks, composed listing blocks, and preparation buffer blocks.
+Close Phase 6 after confirming the public availability foundation, runtime availability API, composed listing rules, and preparation buffer evaluation.
 Do not add booking checkout yet.
 Do not integrate Tilopay yet.
 Do not integrate Resend yet.
@@ -267,14 +297,14 @@ Do not add PMS features.
 ## Next Recommended Work
 
 ```text
-1. Apply Phase 6.3 files.
+1. Apply Phase 6.4 files.
 2. Run npm run db:generate.
 3. Run npm run build.
 4. Run npm run env:validate.
 5. Run npm run db:validate.
 6. Run npm run lint.
-7. Commit Phase 6.3.
-8. Continue with Phase 6.4 Preparation buffer and blocked-date evaluation.
+7. Commit Phase 6.4.
+8. Continue with Phase 6.5 Phase 6 documentation update.
 ```
 
 ## Continuity Notes for New Conversations
@@ -294,8 +324,10 @@ docs/31-phase-5-cloudinary-closure-review.md
 docs/32-availability-strategy-and-calendar-rules.md
 docs/33-availability-domain-service-foundation.md
 docs/34-public-availability-calendar-ui-foundation.md
+docs/35-preparation-buffer-and-blocked-date-evaluation.md
 lib/db/prisma.ts
 lib/availability/index.ts
+lib/availability/service.ts
 lib/env/server.ts
 lib/cloudinary/index.ts
 config/accommodations.ts

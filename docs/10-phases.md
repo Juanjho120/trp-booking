@@ -15,8 +15,8 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 6 — Availability Calendar Foundation
-Current subphase: 6.4 Preparation buffer and blocked-date evaluation
-Current focus: strengthen preparation buffer and blocked-date evaluation after the first public availability UI, without checkout, payment, email, or Airbnb iCal sync.
+Current subphase: 6.5 Phase 6 documentation update
+Current focus: close the availability calendar foundation after preparation buffer and blocked-date evaluation, without checkout, payment, email, or Airbnb iCal sync.
 ```
 
 ---
@@ -177,8 +177,8 @@ Subphase status:
 6.1 Availability strategy and booking calendar rules — Completed
 6.2 Availability domain service foundation — Completed
 6.3 Public availability calendar UI foundation — Completed
-6.4 Preparation buffer and blocked-date evaluation — In progress
-6.5 Phase 6 documentation update — Not started
+6.4 Preparation buffer and blocked-date evaluation — Completed
+6.5 Phase 6 documentation update — In progress
 ```
 
 Phase 6 rules:
@@ -231,6 +231,18 @@ Phase 6.3 result:
 - The page renders public availability calendar cards for each accommodation.
 - Unavailable dates are displayed as disabled/non-selectable.
 - Checkout, date selection, reservation creation, payment, email, Airbnb iCal sync, migrations, seed data, admin calendar UI, and PMS features remain out of scope.
+```
+
+Phase 6.4 result:
+
+```text
+- The availability service now expands reservation lookup ranges using accommodation preparation buffer policies.
+- Confirmed reservations derive preparation buffer blocking records at read time when no persisted preparation buffer block exists for the range.
+- Pending payment holds continue to block only their selected stay dates and do not derive preparation buffers.
+- Persisted preparation buffer calendar blocks still take precedence over derived buffers.
+- Manually unlocked preparation buffer calendar blocks suppress derived buffer blocking for the matching range.
+- Manual, maintenance, Airbnb, composed dependency, direct reservation, and preparation buffer sources remain visible to the public availability API as blocking sources.
+- No checkout, payment, email, Airbnb iCal sync, migrations, seed data, admin calendar UI, reservation creation, or PMS features were added.
 ```
 
 ---

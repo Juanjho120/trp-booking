@@ -90,6 +90,7 @@ Max guests: 6
 - Availability must account for composed listing dependencies and preparation buffer rules before payment or reservation confirmation.
 - Availability checks must ignore expired pending reservations, soft-deleted calendar blocks, and manually unlocked preparation buffer blocks.
 - Public availability UI must not create reservations, start checkout, or collect payments during Phase 6.
+- Confirmed reservations now derive preparation buffer blocking records at read time until a later write flow persists automatic buffer blocks.
 
 ## Documentation
 
@@ -132,6 +133,7 @@ docs/
   32-availability-strategy-and-calendar-rules.md
   33-availability-domain-service-foundation.md
   34-public-availability-calendar-ui-foundation.md
+  35-preparation-buffer-and-blocked-date-evaluation.md
 ```
 
 The assistant collaboration rules live in:
@@ -144,9 +146,9 @@ AGENTS.md
 
 ```text
 Current phase: Phase 6 — Availability Calendar Foundation
-Current subphase: 6.4 Preparation buffer and blocked-date evaluation
+Current subphase: 6.5 Phase 6 documentation update
 Last completed phase: Phase 5 — Cloudinary Integration
-Last completed subphase: 6.3 Public availability calendar UI foundation
+Last completed subphase: 6.4 Preparation buffer and blocked-date evaluation
 ```
 
-See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/32-availability-strategy-and-calendar-rules.md`, `docs/33-availability-domain-service-foundation.md`, and `docs/34-public-availability-calendar-ui-foundation.md` for the official current tracker and availability rules.
+See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/32-availability-strategy-and-calendar-rules.md`, `docs/33-availability-domain-service-foundation.md`, `docs/34-public-availability-calendar-ui-foundation.md`, and `docs/35-preparation-buffer-and-blocked-date-evaluation.md` for the official current tracker and availability rules.
