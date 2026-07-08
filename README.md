@@ -85,6 +85,7 @@ Max guests: 6
 - Seed data must be deterministic and idempotent; no seed script should create duplicate properties, amenities, rules, or relationships.
 - Admin access must be protected before any admin page exposes operational data or actions.
 - Provider secrets for Auth.js, Cloudinary, Tilopay, Resend, Airbnb iCal, and similar services must remain server-side only.
+- Public accommodation images should be delivered from Cloudinary after Phase 5.4; local files under `public/images/accommodations` remain only as upload sources or temporary rollback references until an admin image management flow replaces them.
 
 ## Documentation
 
@@ -122,6 +123,7 @@ docs/
   27-cloudinary-strategy-and-environment.md
   28-cloudinary-environment-validation.md
   29-cloudinary-service-foundation.md
+  30-public-accommodation-cloudinary-images.md
 ```
 
 The assistant collaboration rules live in:
@@ -134,9 +136,9 @@ AGENTS.md
 
 ```text
 Current phase: Phase 5 — Cloudinary Integration
-Current subphase: 5.4 Accommodation image data mapping review
+Current subphase: 5.5 Phase 5 documentation update
 Last completed phase: Phase 4 — Admin Authentication Foundation
-Last completed subphase: 5.3 Cloudinary service foundation
+Last completed subphase: 5.4 Public accommodation images from Cloudinary
 ```
 
-See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/26-phase-4-auth-closure-review.md`, `docs/27-cloudinary-strategy-and-environment.md`, and `docs/28-cloudinary-environment-validation.md`, and `docs/29-cloudinary-service-foundation.md` for the official current tracker and Phase 5 setup notes.
+See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/26-phase-4-auth-closure-review.md`, `docs/27-cloudinary-strategy-and-environment.md`, `docs/28-cloudinary-environment-validation.md`, `docs/29-cloudinary-service-foundation.md`, and `docs/30-public-accommodation-cloudinary-images.md` for the official current tracker and Phase 5 implementation notes.

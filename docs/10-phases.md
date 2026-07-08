@@ -15,8 +15,8 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 5 — Cloudinary Integration
-Current subphase: 5.4 Accommodation image data mapping review
-Current focus: review how Cloudinary-backed image metadata maps to accommodation image data before adding persistence or admin UI.
+Current subphase: 5.5 Phase 5 documentation update
+Current focus: close Phase 5 after the public accommodation pages were switched from local image paths to Cloudinary delivery URLs.
 ```
 
 ---
@@ -154,8 +154,8 @@ Subphase status:
 5.1 Cloudinary strategy and environment foundation — Completed
 5.2 Cloudinary environment validation — Completed
 5.3 Cloudinary service foundation — Completed
-5.4 Accommodation image data mapping review — In progress
-5.5 Phase 5 documentation update — Not started
+5.4 Public accommodation images from Cloudinary — Completed
+5.5 Phase 5 documentation update — In progress
 ```
 
 Phase 5 rules:
@@ -167,7 +167,6 @@ Phase 5 rules:
 - Do not implement Airbnb iCal sync in Phase 5.
 - Do not add PMS features.
 - Do not store provider secrets in client-side code.
-- Do not upload or persist images until the Cloudinary strategy and environment validation are documented.
 - Public pages must keep working during the image integration foundation.
 ```
 
@@ -202,6 +201,18 @@ Phase 5.3 result:
 - Folder and public ID helper functions were added for accommodation images.
 - A delivery URL helper was added for future public image rendering.
 - No upload route handlers, admin image UI, database writes, seed data, migrations, or operational booking features were added.
+```
+
+Phase 5.4 result:
+
+```text
+- Public accommodation image configuration now builds Cloudinary delivery URLs from deterministic public IDs.
+- The accommodation listing page now receives Cloudinary image URLs through the existing coverImage.src field.
+- Accommodation detail galleries now receive Cloudinary image URLs through coverImage and galleryImages.
+- SEO/Open Graph image metadata now supports Cloudinary URLs.
+- next/image is configured to allow res.cloudinary.com.
+- Existing local images remain only as fallbackSrc/upload source metadata, not as the primary rendered src.
+- No upload route handlers, admin image UI, database writes, migrations, seed data, booking checkout, Tilopay, Resend, Airbnb iCal sync, or PMS features were added.
 ```
 
 ---

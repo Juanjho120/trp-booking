@@ -28,7 +28,9 @@ export type ArrivalPolicy = Readonly<{
 }>;
 
 export type AccommodationImage = Readonly<{
+  cloudinaryPublicId: string;
   src: string;
+  fallbackSrc: string;
   alt: LocalizedText;
 }>;
 

@@ -1,8 +1,18 @@
 import type { Metadata } from "next";
 
+import { buildPublicAccommodationImage } from "@/lib/cloudinary";
 import { siteConfig } from "@/config/site";
 
-const defaultOpenGraphImage = "/images/accommodations/complete-retreat/cover.webp";
+const defaultOpenGraphImage = buildPublicAccommodationImage({
+  propertySlug: "complete-retreat",
+  sortOrder: 1,
+  imagePurpose: "cover",
+  fallbackSrc: "/images/accommodations/complete-retreat/cover.webp",
+  alt: {
+    es: "Patio exterior compartido de Tu Refugio Perfecto en Panajachel.",
+    en: "Shared exterior courtyard of Tu Refugio Perfecto in Panajachel.",
+  },
+}).src;
 
 type SeoMetadataInput = Readonly<{
   title: string;

@@ -13,3 +13,7 @@ export {
   buildCloudinaryImageUrl,
   type CloudinaryImageDeliveryOptions,
 } from "./delivery";
+export {
+  buildPublicAccommodationImage,
+  type PublicAccommodationImageInput,
+} from "./accommodation-images";

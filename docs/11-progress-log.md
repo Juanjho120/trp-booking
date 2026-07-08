@@ -6,10 +6,10 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 5 — Cloudinary Integration
-Current subphase: 5.4 Accommodation image data mapping review
+Current subphase: 5.5 Phase 5 documentation update
 Last updated: 2026-07-07
 Last completed phase: Phase 4 — Admin Authentication Foundation
-Last completed subphase: 5.3 Cloudinary service foundation
+Last completed subphase: 5.4 Public accommodation images from Cloudinary
 ```
 
 ## Completed Work
@@ -299,7 +299,6 @@ Important limitation:
 Phase 5.2 did not add the cloudinary npm package, SDK configuration code, upload route handlers, image upload server actions, admin image management UI, database migrations, database writes, seed data, or Cloudinary API calls.
 ```
 
-
 ### Phase 5.3 — Cloudinary Service Foundation
 
 Status: **Completed**
@@ -334,6 +333,41 @@ Important limitation:
 Phase 5.3 does not add upload route handlers, server actions for uploads, admin image management UI, image persistence, database migrations, seed data, Cloudinary asset deletion, booking checkout, Tilopay, Resend, Airbnb iCal sync, or PMS features.
 ```
 
+### Phase 5.4 — Public Accommodation Images from Cloudinary
+
+Status: **Completed**
+
+Completed deliverables:
+
+```text
+lib/cloudinary/accommodation-images.ts added
+lib/cloudinary/index.ts updated to export the public accommodation image helper
+types/accommodation.ts updated with cloudinaryPublicId and fallbackSrc metadata
+config/accommodations.ts updated so coverImage.src and galleryImages[].src are Cloudinary delivery URLs
+config/seo.ts updated so the default Open Graph image uses Cloudinary
+next.config.ts updated to allow res.cloudinary.com for next/image
+README.md updated with Phase 5.4 completion and Phase 5.5 current status
+docs/30-public-accommodation-cloudinary-images.md added
+docs/10-phases.md updated to mark 5.4 completed and 5.5 in progress
+docs/11-progress-log.md updated with Phase 5.4 completion
+```
+
+Important decisions:
+
+```text
+Public accommodation pages should now render Cloudinary delivery URLs as the primary image src.
+Local images under public/images/accommodations remain only as fallbackSrc metadata, upload source references, and rollback references.
+Cloudinary public IDs are deterministic and based on CLOUDINARY_UPLOAD_FOLDER, the accommodation slug, sort order, and image purpose.
+The public pages still use typed/static accommodation configuration until the database-backed image flow is introduced.
+```
+
+Important limitation:
+
+```text
+Phase 5.4 does not add upload route handlers, server actions for uploads, admin image management UI, image persistence, database migrations, seed data, Cloudinary asset deletion, booking checkout, Tilopay, Resend, Airbnb iCal sync, or PMS features.
+The Cloudinary assets must exist under the documented public IDs before visual QA can pass without missing images.
+```
+
 ## Current Work
 
 ### Phase 5 — Cloudinary Integration
@@ -343,29 +377,29 @@ Status: **In progress**
 Current subphase:
 
 ```text
-5.4 Accommodation image data mapping review
+5.5 Phase 5 documentation update
 ```
 
-Phase 5.4 goals:
+Phase 5.5 goals:
 
 ```text
-Review the current PropertyImage schema fields against Cloudinary-backed metadata.
-Confirm whether existing fields cover Cloudinary public IDs, secure URLs, alt text, ordering, and cover image behavior.
-Do not create migrations unless the review explicitly identifies a required schema change.
-Do not upload images or add admin image management UI yet.
+Close Phase 5 only after validating the public accommodation pages are using Cloudinary URLs.
+Confirm the public listing and accommodation detail pages no longer render local /images/accommodations paths as their primary image src.
+Document the manual Cloudinary asset upload requirement until admin image management is implemented.
 Do not add booking, payment, email, calendar, iCal, or PMS features.
 ```
 
 ## Next Recommended Work
 
 ```text
-1. Apply Phase 5.3 files.
-2. Run npm install to install the Cloudinary SDK and update package-lock.json.
+1. Apply Phase 5.4 files.
+2. Upload or verify the required Cloudinary assets under the documented public IDs.
 3. Run npm run env:validate.
 4. Run npm run db:validate.
 5. Run npm run lint and npm run build.
-6. Commit Phase 5.3, including the updated package-lock.json.
-7. Continue with Phase 5.4 Accommodation image data mapping review.
+6. Manually verify /alojamientos and each /alojamientos/[slug] page loads images from res.cloudinary.com.
+7. Commit Phase 5.4.
+8. Continue with Phase 5.5 Phase 5 documentation update.
 ```
 
 ## Continuity Notes for New Conversations
@@ -389,8 +423,11 @@ docs/26-phase-4-auth-closure-review.md
 docs/27-cloudinary-strategy-and-environment.md
 docs/28-cloudinary-environment-validation.md
 docs/29-cloudinary-service-foundation.md
+docs/30-public-accommodation-cloudinary-images.md
 lib/env/server.ts
 lib/cloudinary/index.ts
+config/accommodations.ts
+next.config.ts
 .env.example
 auth.ts
 middleware.ts
@@ -411,4 +448,5 @@ Keep phase/subphase tracking updated.
 Do not expose admin pages without route protection.
 Do not commit secrets, provider keys, or real credentials.
 Keep Cloudinary API key and API secret server-side only.
+Public accommodation images should be delivered from Cloudinary after Phase 5.4.
 ```
