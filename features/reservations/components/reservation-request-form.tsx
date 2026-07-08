@@ -237,11 +237,6 @@ export function ReservationRequestForm({
 
   return (
     <form className="space-y-5" onSubmit={handleQuoteRequest}>
-      <div className="rounded-2xl border border-border/70 bg-background p-4">
-        <p className="text-sm font-medium text-foreground">{requestMessages.title}</p>
-        <p className="mt-2 text-sm leading-6 text-muted-foreground">{requestMessages.description}</p>
-      </div>
-
       <DateRangeField
         clearLabel={uxCopy.dateRange.clear}
         doneLabel={uxCopy.dateRange.done}

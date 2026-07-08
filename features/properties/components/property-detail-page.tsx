@@ -9,7 +9,6 @@ import { SiteFooter, SiteHeader } from "@/components/layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { useLocale } from "@/features/i18n";
 import { ReservationRequestForm } from "@/features/reservations";
 import type { Accommodation, AccommodationImage } from "@/types/accommodation";
@@ -55,7 +54,7 @@ export function PropertyDetailPage({ accommodation }: PropertyDetailPageProps) {
     <div className="min-h-screen bg-background text-foreground">
       <SiteHeader />
       <main>
-        <section className="mx-auto grid max-w-7xl gap-8 px-6 py-10 lg:grid-cols-[minmax(0,1fr)_22rem] lg:px-8 lg:py-16">
+        <section className="mx-auto grid max-w-7xl gap-8 px-6 py-10 lg:grid-cols-2 lg:px-8 lg:py-16">
           <div>
             <Button asChild className="rounded-full" variant="ghost">
               <Link href="/alojamientos">{messages.properties.detail.backToAccommodations}</Link>
@@ -82,7 +81,7 @@ export function PropertyDetailPage({ accommodation }: PropertyDetailPageProps) {
           <SummaryCard accommodation={accommodation} />
         </section>
 
-        <section className="mx-auto grid max-w-7xl gap-8 px-6 pb-14 lg:grid-cols-[minmax(0,1fr)_24rem] lg:px-8 lg:pb-20">
+        <section className="mx-auto grid max-w-7xl items-start gap-8 px-6 pb-14 lg:grid-cols-2 lg:px-8 lg:pb-20">
           <AccommodationGalleryCarousel
             copy={galleryCopy}
             images={galleryImages}
@@ -91,7 +90,7 @@ export function PropertyDetailPage({ accommodation }: PropertyDetailPageProps) {
 
           <Card className="h-fit rounded-[2rem] border-border/70 bg-card shadow-lg lg:sticky lg:top-28">
             <CardHeader>
-              <CardTitle>{messages.properties.detail.priceTitle}</CardTitle>
+              <CardTitle>{messages.reservations.request.title}</CardTitle>
             </CardHeader>
             <CardContent>
               <ReservationRequestForm
@@ -169,9 +168,7 @@ function SummaryCard({ accommodation }: Readonly<{ accommodation: Accommodation 
           <DetailStat label={messages.properties.detail.bathrooms} value={`${accommodation.bathrooms}`} />
         </div>
 
-        <Separator />
-
-        <div className="space-y-3 text-sm leading-6 text-muted-foreground">
+        <div className="space-y-3 rounded-2xl border border-border/70 bg-background p-4 text-sm leading-6 text-muted-foreground">
           <p>
             <span className="font-medium text-foreground">
               {messages.properties.detail.checkIn}:
@@ -184,19 +181,6 @@ function SummaryCard({ accommodation }: Readonly<{ accommodation: Accommodation 
             </span>{" "}
             {accommodation.arrivalPolicy.earlyCheckInNote[locale]}
           </p>
-        </div>
-
-        <div className="rounded-2xl border border-border/70 bg-background p-4 text-sm leading-6 text-muted-foreground">
-          <p className="font-medium text-foreground">
-            {messages.properties.detail.preparationBuffer}
-          </p>
-          <p className="mt-2">
-            {accommodation.preparationBuffer.daysBefore} {" "}
-            {messages.properties.detail.preparationBufferBefore} · {" "}
-            {accommodation.preparationBuffer.daysAfter} {" "}
-            {messages.properties.detail.preparationBufferAfter}
-          </p>
-          <p className="mt-2">{messages.properties.detail.preparationBufferDescription}</p>
         </div>
       </CardContent>
     </Card>
@@ -254,7 +238,7 @@ function AccommodationGalleryCarousel({
             alt={activeImage.alt[locale]}
             className="object-cover transition duration-500 group-hover:scale-[1.02]"
             fill
-            sizes="(min-width: 1024px) 58vw, 100vw"
+            sizes="(min-width: 1024px) 50vw, 100vw"
             src={activeImage.src}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-black/5 to-transparent opacity-90" />
