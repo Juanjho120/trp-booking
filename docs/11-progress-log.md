@@ -6,10 +6,10 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 7 — Airbnb iCal Synchronization
-Current subphase: 7.3 Airbnb iCal import parser and sync service
+Current subphase: 7.4 Airbnb iCal export feed foundation
 Last updated: 2026-07-08
 Last completed phase: Phase 6 — Availability Calendar Foundation
-Last completed subphase: 7.2 Airbnb calendar configuration model
+Last completed subphase: 7.3 Airbnb iCal import parser and sync service
 ```
 
 ## Completed Work
@@ -221,6 +221,42 @@ Important limitation:
 Phase 7.2 does not add migration files, seed data, iCal parser dependency, fetch client, cron endpoint, manual sync action, export endpoint, admin calendar UI, reservation creation, checkout, Tilopay integration, Resend integration, or PMS features.
 ```
 
+### Phase 7.3 — Airbnb iCal Import Parser and Sync Service
+
+Status: **Completed**
+
+Completed deliverables:
+
+```text
+lib/airbnb-ical/types.ts added
+lib/airbnb-ical/parser.ts added
+lib/airbnb-ical/sync-service.ts added
+lib/airbnb-ical/index.ts added
+docs/39-airbnb-ical-import-parser-and-sync-service.md added
+README.md updated with Phase 7.3 completion and Phase 7.4 current status
+docs/10-phases.md updated to mark 7.3 completed and 7.4 in progress
+docs/11-progress-log.md updated with Phase 7.3 completion
+```
+
+Important decisions:
+
+```text
+The import parser is server-side foundation code and does not require a new dependency in 7.3.
+The parser supports folded iCal lines and Airbnb all-day VEVENT records.
+The sync service accepts a decrypted import URL at runtime and never stores or logs raw URLs.
+Imported Airbnb events are persisted as ExternalCalendarEvent records.
+Active imported events create or update AIRBNB CalendarBlock records for the affected composed-listing properties.
+Confirmed imported Airbnb events also create or update PREPARATION_BUFFER blocks for the source accommodation using Phase 6 preparation rules.
+Provider events missing from later imports are marked REMOVED and their active imported blocks are soft-deleted.
+Sync logs store redacted counters and error metadata only.
+```
+
+Important limitation:
+
+```text
+Phase 7.3 does not add cron scheduling, manual admin sync UI, export endpoints, migration files, seed data, checkout, payment, email, real Airbnb URLs, raw token storage, or PMS features.
+```
+
 ## Current Work
 
 ### Phase 7 — Airbnb iCal Synchronization
@@ -230,29 +266,28 @@ Status: **In progress**
 Current subphase:
 
 ```text
-7.3 Airbnb iCal import parser and sync service
+7.4 Airbnb iCal export feed foundation
 ```
 
-Phase 7.3 goals:
+Phase 7.4 goals:
 
 ```text
-Introduce the iCal import parser and server-side sync service using the Phase 7.2 calendar configuration model.
-Persist imported Airbnb events and AIRBNB CalendarBlock records safely.
-Reuse Phase 6 composed listing and preparation buffer rules.
-Do not add cron scheduling, manual admin sync UI, export endpoints, checkout, payment, email, or PMS features yet.
+Introduce the public-safe iCal export feed foundation using hashed export tokens and unavailable date ranges.
+Do not expose raw Airbnb import URLs or export token hashes.
+Do not add cron scheduling, manual admin sync UI, checkout, payment, email, or PMS features yet.
 ```
 
 ## Next Recommended Work
 
 ```text
-1. Apply Phase 7.2 files.
+1. Apply Phase 7.3 files.
 2. Run npm run db:generate.
 3. Run npm run db:validate.
 4. Run npm run build.
 5. Run npm run env:validate.
 6. Run npm run lint.
-7. Commit Phase 7.2.
-8. Continue with Phase 7.3 Airbnb iCal import parser and sync service.
+7. Commit Phase 7.3.
+8. Continue with Phase 7.4 Airbnb iCal export feed foundation.
 ```
 
 ## Continuity Notes for New Conversations
@@ -276,9 +311,13 @@ docs/35-preparation-buffer-and-blocked-date-evaluation.md
 docs/36-phase-6-availability-closure-review.md
 docs/37-airbnb-ical-strategy-and-environment-contract.md
 docs/38-airbnb-calendar-configuration-model.md
+docs/39-airbnb-ical-import-parser-and-sync-service.md
 lib/db/prisma.ts
 lib/availability/index.ts
 lib/availability/service.ts
+lib/airbnb-ical/index.ts
+lib/airbnb-ical/parser.ts
+lib/airbnb-ical/sync-service.ts
 lib/env/server.ts
 lib/cloudinary/index.ts
 config/accommodations.ts

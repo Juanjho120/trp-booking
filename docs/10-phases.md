@@ -15,8 +15,8 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 7 — Airbnb iCal Synchronization
-Current subphase: 7.3 Airbnb iCal import parser and sync service
-Current focus: implement the iCal import parser and server-side sync service on top of the secure calendar configuration model, without cron scheduling, manual admin sync UI, export endpoints, checkout, payment, email, or PMS features.
+Current subphase: 7.4 Airbnb iCal export feed foundation
+Current focus: add the public-safe TRP Booking iCal export feed foundation after the Airbnb import parser and sync service, without checkout, payment, email, admin sync UI, or PMS features.
 ```
 
 ---
@@ -202,8 +202,8 @@ Subphase status:
 ```text
 7.1 Airbnb iCal strategy and environment contract — Completed
 7.2 Airbnb calendar configuration model — Completed
-7.3 Airbnb iCal import parser and sync service — In progress
-7.4 Airbnb iCal export feed foundation — Not started
+7.3 Airbnb iCal import parser and sync service — Completed
+7.4 Airbnb iCal export feed foundation — In progress
 7.5 Scheduled sync and manual sync foundation — Not started
 7.6 Phase 7 documentation update — Not started
 ```
@@ -241,6 +241,18 @@ Phase 7.2 result:
 - docs/38-airbnb-calendar-configuration-model.md was added.
 - docs/04-database-model.md was updated to reflect the secure calendar configuration model.
 - No migration files, seed data, parser, fetch client, cron endpoint, export endpoint, admin calendar UI, checkout, payment, email, or PMS features were added.
+```
+
+Phase 7.3 result:
+
+```text
+- A server-side Airbnb iCal parser was added under lib/airbnb-ical/parser.ts.
+- The parser supports folded iCal lines and Airbnb all-day VEVENT ranges with UID, DTSTART, DTEND, SUMMARY, and STATUS.
+- A server-side Airbnb import sync service was added under lib/airbnb-ical/sync-service.ts.
+- The sync service can fetch iCal content from a decrypted runtime URL, parse events, upsert ExternalCalendarEvent records, create/update AIRBNB CalendarBlock records, create/update PREPARATION_BUFFER blocks for imported Airbnb bookings, and soft-delete blocks when provider events disappear.
+- Sync results are recorded through ExternalCalendarSyncLog with redacted error metadata.
+- The service reuses Phase 6 date-only, composed listing, and preparation buffer rules.
+- No cron endpoint, admin sync UI, export endpoint, migration files, seed data, checkout, payment, email, or PMS features were added.
 ```
 
 ---
