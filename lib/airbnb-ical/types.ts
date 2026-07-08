@@ -47,3 +47,19 @@ export type AirbnbIcalDateRange = Readonly<{
   startDate: DateOnlyString;
   endDate: DateOnlyString;
 }>;
+
+export type AirbnbIcalExportFeedInput = Readonly<{
+  token: string;
+  lookbackDays?: number;
+  lookaheadDays?: number;
+}>;
+
+export type AirbnbIcalExportUnavailableRange = AvailabilityDateRange;
+
+export type AirbnbIcalExportFeedResult = Readonly<{
+  externalCalendarId: string;
+  generatedAt: Date;
+  range: AvailabilityDateRange;
+  eventCount: number;
+  content: string;
+}>;

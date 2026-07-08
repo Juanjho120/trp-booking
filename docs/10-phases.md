@@ -15,8 +15,8 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 7 — Airbnb iCal Synchronization
-Current subphase: 7.4 Airbnb iCal export feed foundation
-Current focus: add the public-safe TRP Booking iCal export feed foundation after the Airbnb import parser and sync service, without checkout, payment, email, admin sync UI, or PMS features.
+Current subphase: 7.5 Scheduled sync and manual sync foundation
+Current focus: add scheduled and protected manual sync foundations after import and export feed foundations, without checkout, payment, email, or PMS features.
 ```
 
 ---
@@ -203,8 +203,8 @@ Subphase status:
 7.1 Airbnb iCal strategy and environment contract — Completed
 7.2 Airbnb calendar configuration model — Completed
 7.3 Airbnb iCal import parser and sync service — Completed
-7.4 Airbnb iCal export feed foundation — In progress
-7.5 Scheduled sync and manual sync foundation — Not started
+7.4 Airbnb iCal export feed foundation — Completed
+7.5 Scheduled sync and manual sync foundation — In progress
 7.6 Phase 7 documentation update — Not started
 ```
 
@@ -253,6 +253,18 @@ Phase 7.3 result:
 - Sync results are recorded through ExternalCalendarSyncLog with redacted error metadata.
 - The service reuses Phase 6 date-only, composed listing, and preparation buffer rules.
 - No cron endpoint, admin sync UI, export endpoint, migration files, seed data, checkout, payment, email, or PMS features were added.
+```
+
+Phase 7.4 result:
+
+```text
+- A public-safe Airbnb iCal export feed endpoint was added at GET /api/ical/[token].
+- The export feed service hashes runtime tokens and looks up ExternalCalendar.exportTokenHash without storing or exposing raw tokens.
+- The feed returns text/calendar content with generic unavailable all-day VEVENT records.
+- Exported unavailable ranges include confirmed reservations, derived direct reservation preparation buffers, active calendar blocks, imported Airbnb blocks, manual blocks, maintenance blocks, composed-listing dependency blocks, and active preparation buffer blocks.
+- Soft-deleted blocks, admin-unlocked preparation buffers, pending holds, and sensitive guest/payment/admin/provider data are excluded.
+- docs/40-airbnb-ical-export-feed-foundation.md was added.
+- No cron scheduling, manual admin sync UI, database migrations, seed data, checkout, payment, email, or PMS features were added.
 ```
 
 ---

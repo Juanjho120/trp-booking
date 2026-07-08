@@ -140,6 +140,7 @@ docs/
   37-airbnb-ical-strategy-and-environment-contract.md
   38-airbnb-calendar-configuration-model.md
   39-airbnb-ical-import-parser-and-sync-service.md
+  40-airbnb-ical-export-feed-foundation.md
 ```
 
 The assistant collaboration rules live in:
@@ -152,9 +153,9 @@ AGENTS.md
 
 ```text
 Current phase: Phase 7 — Airbnb iCal Synchronization
-Current subphase: 7.4 Airbnb iCal export feed foundation
+Current subphase: 7.5 Scheduled sync and manual sync foundation
 Last completed phase: Phase 6 — Availability Calendar Foundation
-Last completed subphase: 7.3 Airbnb iCal import parser and sync service
+Last completed subphase: 7.4 Airbnb iCal export feed foundation
 ```
 
-See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/07-airbnb-ical-sync.md`, `docs/36-phase-6-availability-closure-review.md`, `docs/37-airbnb-ical-strategy-and-environment-contract.md`, `docs/38-airbnb-calendar-configuration-model.md`, and `docs/39-airbnb-ical-import-parser-and-sync-service.md` for the official current tracker and iCal synchronization context.
+See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/07-airbnb-ical-sync.md`, `docs/36-phase-6-availability-closure-review.md`, `docs/37-airbnb-ical-strategy-and-environment-contract.md`, `docs/38-airbnb-calendar-configuration-model.md`, `docs/39-airbnb-ical-import-parser-and-sync-service.md`, and `docs/40-airbnb-ical-export-feed-foundation.md` for the official current tracker and iCal synchronization context.

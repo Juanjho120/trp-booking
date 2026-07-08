@@ -6,10 +6,10 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 7 — Airbnb iCal Synchronization
-Current subphase: 7.4 Airbnb iCal export feed foundation
+Current subphase: 7.5 Scheduled sync and manual sync foundation
 Last updated: 2026-07-08
 Last completed phase: Phase 6 — Availability Calendar Foundation
-Last completed subphase: 7.3 Airbnb iCal import parser and sync service
+Last completed subphase: 7.4 Airbnb iCal export feed foundation
 ```
 
 ## Completed Work
@@ -257,6 +257,41 @@ Important limitation:
 Phase 7.3 does not add cron scheduling, manual admin sync UI, export endpoints, migration files, seed data, checkout, payment, email, real Airbnb URLs, raw token storage, or PMS features.
 ```
 
+### Phase 7.4 — Airbnb iCal Export Feed Foundation
+
+Status: **Completed**
+
+Completed deliverables:
+
+```text
+app/api/ical/[token]/route.ts added
+lib/airbnb-ical/export-feed.ts added
+lib/airbnb-ical/types.ts updated with export feed types
+lib/airbnb-ical/index.ts updated with export feed exports
+docs/40-airbnb-ical-export-feed-foundation.md added
+README.md updated with Phase 7.4 completion and Phase 7.5 current status
+docs/10-phases.md updated to mark 7.4 completed and 7.5 in progress
+docs/11-progress-log.md updated with Phase 7.4 completion
+```
+
+Important decisions:
+
+```text
+The public export endpoint is GET /api/ical/[token].
+Runtime tokens are hashed and compared against ExternalCalendar.exportTokenHash.
+Raw export tokens are not stored, logged, returned, or included in the generated feed.
+Invalid or disabled feeds return a generic 404.
+The generated feed returns only generic unavailable all-day VEVENT records.
+Unavailable ranges are normalized before export.
+ExternalCalendar.lastExportGeneratedAt is updated when a valid feed is generated.
+```
+
+Important limitation:
+
+```text
+Phase 7.4 does not add cron scheduling, manual admin sync UI, admin token generation UI, export token rotation UI, migration files, seed data, checkout, payment, email, real Airbnb URLs, raw token storage, or PMS features.
+```
+
 ## Current Work
 
 ### Phase 7 — Airbnb iCal Synchronization
@@ -266,28 +301,29 @@ Status: **In progress**
 Current subphase:
 
 ```text
-7.4 Airbnb iCal export feed foundation
+7.5 Scheduled sync and manual sync foundation
 ```
 
-Phase 7.4 goals:
+Phase 7.5 goals:
 
 ```text
-Introduce the public-safe iCal export feed foundation using hashed export tokens and unavailable date ranges.
-Do not expose raw Airbnb import URLs or export token hashes.
-Do not add cron scheduling, manual admin sync UI, checkout, payment, email, or PMS features yet.
+Introduce the scheduled sync and protected manual sync foundations using the Phase 7.3 import service and Phase 7.4 export feed foundation.
+Protect scheduled sync with a server-only secret such as CRON_SECRET.
+Keep manual sync behind protected admin routes.
+Do not add checkout, payment, email, PMS features, or raw token exposure.
 ```
 
 ## Next Recommended Work
 
 ```text
-1. Apply Phase 7.3 files.
+1. Apply Phase 7.4 files.
 2. Run npm run db:generate.
 3. Run npm run db:validate.
 4. Run npm run build.
 5. Run npm run env:validate.
 6. Run npm run lint.
-7. Commit Phase 7.3.
-8. Continue with Phase 7.4 Airbnb iCal export feed foundation.
+7. Commit Phase 7.4.
+8. Continue with Phase 7.5 Scheduled sync and manual sync foundation.
 ```
 
 ## Continuity Notes for New Conversations
@@ -312,12 +348,11 @@ docs/36-phase-6-availability-closure-review.md
 docs/37-airbnb-ical-strategy-and-environment-contract.md
 docs/38-airbnb-calendar-configuration-model.md
 docs/39-airbnb-ical-import-parser-and-sync-service.md
+docs/40-airbnb-ical-export-feed-foundation.md
 lib/db/prisma.ts
 lib/availability/index.ts
 lib/availability/service.ts
 lib/airbnb-ical/index.ts
-lib/airbnb-ical/parser.ts
-lib/airbnb-ical/sync-service.ts
 lib/env/server.ts
 lib/cloudinary/index.ts
 config/accommodations.ts
@@ -347,4 +382,5 @@ Public accommodation images should stay Cloudinary-backed after Phase 5.4.
 Phase 6 availability code must preserve composed listing and preparation buffer rules.
 Public availability UI must not create reservations or start checkout during Phase 6.
 Phase 7 must not expose Airbnb iCal URLs or tokens in code, docs, logs, API responses, or public UI.
+Airbnb export feed tokens must be stored as hashes and raw tokens must not be returned after creation.
 ```
