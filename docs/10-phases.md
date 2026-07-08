@@ -15,8 +15,8 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 7 — Airbnb iCal Synchronization
-Current subphase: 7.1 Airbnb iCal strategy and environment contract
-Current focus: define the secure iCal import/export and sync contract before implementing calendar parsing, cron sync, admin sync, or export endpoints.
+Current subphase: 7.2 Airbnb calendar configuration model
+Current focus: introduce the database/configuration model for Airbnb calendar imports and export tokens without implementing parser, cron sync, admin sync, checkout, payment, email, or PMS features.
 ```
 
 ---
@@ -181,80 +181,6 @@ Completed subphases:
 6.5 Phase 6 documentation update — Completed
 ```
 
-Phase 6 rules:
-
-```text
-- Do not add booking checkout in Phase 6.
-- Do not integrate Tilopay in Phase 6.
-- Do not integrate Resend in Phase 6.
-- Do not implement Airbnb iCal import/export in Phase 6.
-- Do not add PMS features.
-- Guests must not be able to modify confirmed reservation dates directly.
-- Public availability must account for confirmed reservations, imported Airbnb bookings, manual blocks, and preparation buffer blocks.
-- Preparation buffer rules must preserve the documented policies for each accommodation.
-- Date ranges use lodging convention: check-in inclusive, check-out exclusive.
-```
-
-Phase 6.1 result:
-
-```text
-- Availability strategy and booking calendar rules were documented in docs/32-availability-strategy-and-calendar-rules.md.
-- Typed availability domain types were added in types/availability.ts.
-- Availability dependency rules were added for individual and composed accommodations.
-- Date-only helper functions were added for YYYY-MM-DD boundaries.
-- Preparation buffer range helpers were added for future service and UI work.
-- No checkout, payment, email, iCal sync, database writes, migrations, seed data, or PMS features were added.
-```
-
-Phase 6.2 result:
-
-```text
-- A reusable Prisma client helper was added under lib/db/prisma.ts.
-- A server-side availability service was added under lib/availability/service.ts.
-- The service reads overlapping reservations and calendar blocks through Prisma.
-- The service applies composed listing dependency rules before evaluating availability.
-- Active pending payment holds and confirmed reservations block availability.
-- Expired pending reservations are ignored.
-- Soft-deleted calendar blocks are ignored.
-- Manually unlocked preparation buffer blocks are ignored.
-- The service returns typed availability results without creating reservations or writing to the database.
-- Prisma Client generation must run before build/type checking.
-- No checkout, payment, email, Airbnb iCal sync, migrations, seed data, admin calendar UI, or PMS features were added.
-```
-
-Phase 6.3 result:
-
-```text
-- A runtime `/api/availability` endpoint was added for public availability calendar data.
-- The endpoint uses the Phase 6.2 server-side availability service.
-- A public `/disponibilidad` page was added.
-- The page renders public availability calendar cards for each accommodation.
-- Unavailable dates are displayed as disabled/non-selectable.
-- Checkout, date selection, reservation creation, payment, email, Airbnb iCal sync, migrations, seed data, admin calendar UI, and PMS features remain out of scope.
-```
-
-Phase 6.4 result:
-
-```text
-- The availability service now expands reservation lookup ranges using accommodation preparation buffer policies.
-- Confirmed reservations derive preparation buffer blocking records at read time when no persisted preparation buffer block exists for the range.
-- Pending payment holds continue to block only their selected stay dates and do not derive preparation buffers.
-- Persisted preparation buffer calendar blocks still take precedence over derived buffers.
-- Manually unlocked preparation buffer calendar blocks suppress derived buffer blocking for the matching range.
-- Manual, maintenance, Airbnb, composed dependency, direct reservation, and preparation buffer sources remain visible to the public availability API as blocking sources.
-- No checkout, payment, email, Airbnb iCal sync, migrations, seed data, admin calendar UI, reservation creation, or PMS features were added.
-```
-
-Phase 6.5 result:
-
-```text
-- docs/36-phase-6-availability-closure-review.md was added.
-- README.md was updated to close Phase 6 and open Phase 7.
-- docs/10-phases.md was updated to mark Phase 6 completed and Phase 7 in progress.
-- docs/11-progress-log.md was updated with Phase 6 closure and Phase 7.1 current work.
-- No code, checkout, payment, email, Airbnb iCal sync, migrations, seed data, admin calendar UI, reservation creation, or PMS features were added.
-```
-
 Phase 6 closure result:
 
 ```text
@@ -274,8 +200,8 @@ Goal: Add Airbnb iCal import/export synchronization without exposing private iCa
 Subphase status:
 
 ```text
-7.1 Airbnb iCal strategy and environment contract — In progress
-7.2 Airbnb calendar configuration model — Not started
+7.1 Airbnb iCal strategy and environment contract — Completed
+7.2 Airbnb calendar configuration model — In progress
 7.3 Airbnb iCal import parser and sync service — Not started
 7.4 Airbnb iCal export feed foundation — Not started
 7.5 Scheduled sync and manual sync foundation — Not started
@@ -291,6 +217,16 @@ Phase 7 rules:
 - Sync must respect composed listing dependencies and preparation buffer rules from Phase 6.
 - Export feeds must include direct reservation blocks and preparation buffer blocks when they become available.
 - Do not add booking checkout, Tilopay, Resend, or PMS features in Phase 7 unless a later documented subphase explicitly allows it.
+```
+
+Phase 7.1 result:
+
+```text
+- docs/37-airbnb-ical-strategy-and-environment-contract.md was added.
+- The secure handling contract for Airbnb import URLs and export tokens was documented.
+- The import, export, scheduled sync, manual sync, logging, and environment contracts were defined.
+- Reserved server-only configuration names were documented for later implementation.
+- No iCal parser, cron endpoint, export endpoint, admin sync UI, migrations, seed data, checkout, payment, email, or PMS features were added.
 ```
 
 ---

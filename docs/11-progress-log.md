@@ -6,10 +6,10 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 7 — Airbnb iCal Synchronization
-Current subphase: 7.1 Airbnb iCal strategy and environment contract
+Current subphase: 7.2 Airbnb calendar configuration model
 Last updated: 2026-07-08
 Last completed phase: Phase 6 — Availability Calendar Foundation
-Last completed subphase: 6.5 Phase 6 documentation update
+Last completed subphase: 7.1 Airbnb iCal strategy and environment contract
 ```
 
 ## Completed Work
@@ -135,153 +135,18 @@ Local accommodation images remain only as upload source/rollback metadata throug
 No booking checkout, Tilopay, Resend, Airbnb iCal sync, PMS features, admin upload UI, database writes, migrations, or seed data were added in Phase 5.
 ```
 
-### Phase 6.1 — Availability Strategy and Booking Calendar Rules
+### Phase 6 — Availability Calendar Foundation
 
 Status: **Completed**
 
-Completed deliverables:
+Completed subphases:
 
 ```text
-docs/32-availability-strategy-and-calendar-rules.md added
-types/availability.ts added
-lib/availability/rules.ts added
-lib/availability/index.ts added
-README.md updated with Phase 6.1 completion and Phase 6.2 current status
-docs/10-phases.md updated to mark 6.1 completed and 6.2 in progress
-docs/11-progress-log.md updated with Phase 6.1 completion
-```
-
-Important decisions:
-
-```text
-Availability date ranges use check-in inclusive and check-out exclusive boundaries.
-Date-only values must use YYYY-MM-DD format.
-Availability dependency rules must account for individual accommodations and Refugio Completo.
-Preparation buffer ranges are generated from the accommodation preparation buffer policies.
-Phase 6.1 creates a code-level rule foundation, not just documentation.
-```
-
-Important limitation:
-
-```text
-Phase 6.1 does not query the database, create reservations, start checkout, integrate Tilopay, integrate Resend, import/export Airbnb iCal, write migrations, seed data, or add PMS features.
-```
-
-### Phase 6.2 — Availability Domain Service Foundation
-
-Status: **Completed**
-
-Completed deliverables:
-
-```text
-lib/db/prisma.ts added
-lib/availability/service.ts added
-lib/availability/index.ts updated to export the availability service
-types/availability.ts updated with typed service inputs and results
-lib/availability/rules.ts updated with blocking dependency and date conversion helpers
-docs/33-availability-domain-service-foundation.md added
-README.md updated with Phase 6.2 completion and Phase 6.3 current status
-docs/10-phases.md updated to mark 6.2 completed and 6.3 in progress
-docs/11-progress-log.md updated with Phase 6.2 completion
-package scripts corrected so Prisma Client generation runs before build/type checking
-```
-
-Important decisions:
-
-```text
-Availability service code is server-side only.
-Property records are resolved by stable Property.slug values from the seed strategy.
-For a requested accommodation, the service queries all accommodations that can block it.
-Confirmed reservations block availability.
-Active PENDING_PAYMENT reservations block availability until they expire.
-PENDING_PAYMENT reservations without expiresAt are treated as active holds.
-Expired pending reservations do not block availability.
-Soft-deleted calendar blocks do not block availability.
-Unlocked preparation buffer blocks do not block availability.
-```
-
-Important limitation:
-
-```text
-Phase 6.2 does not create reservations, create pending holds, start checkout, integrate Tilopay, integrate Resend, import/export Airbnb iCal, add route handlers for checkout, add public booking UI, write migrations, seed data, or add PMS features.
-```
-
-### Phase 6.3 — Public Availability Calendar UI Foundation
-
-Status: **Completed**
-
-Completed deliverables:
-
-```text
-app/api/availability/route.ts added
-app/disponibilidad/page.tsx added
-features/availability/components/public-availability-calendar.tsx added
-features/availability/copy.ts added
-features/availability/index.ts added
-docs/34-public-availability-calendar-ui-foundation.md added
-README.md updated with Phase 6.3 completion and Phase 6.4 current status
-docs/10-phases.md updated to mark 6.3 completed and 6.4 in progress
-docs/11-progress-log.md updated with Phase 6.3 completion
-```
-
-Important decisions:
-
-```text
-Public availability data is loaded at runtime through /api/availability.
-The public calendar UI is intentionally non-booking and non-selecting during Phase 6.
-Unavailable dates are disabled/non-selectable visually.
-The API returns only availability-oriented blocking data and does not expose guest, payment, or admin details.
-The public /disponibilidad page shows availability for all initial accommodations.
-```
-
-Important limitation:
-
-```text
-Phase 6.3 does not create reservations, start checkout, integrate Tilopay, integrate Resend, import/export Airbnb iCal, add admin calendar UI, write migrations, seed data, or add PMS features.
-```
-
-### Phase 6.4 — Preparation Buffer and Blocked-Date Evaluation
-
-Status: **Completed**
-
-Completed deliverables:
-
-```text
-lib/availability/service.ts updated to derive preparation buffer blocking records from confirmed reservations
-docs/35-preparation-buffer-and-blocked-date-evaluation.md added
-README.md updated with Phase 6.4 completion and Phase 6.5 current status
-docs/10-phases.md updated to mark 6.4 completed and 6.5 in progress
-docs/11-progress-log.md updated with Phase 6.4 completion
-```
-
-Important decisions:
-
-```text
-Confirmed reservations derive preparation buffer blocking records at read time.
-Pending payment reservations block only their selected stay dates and do not derive preparation buffers.
-The service expands reservation lookup windows so before-check-in and after-check-out buffers are visible in availability even when the reservation stay itself is outside the requested range.
-Persisted PREPARATION_BUFFER calendar blocks take precedence over derived buffer records.
-Unlocked PREPARATION_BUFFER calendar blocks suppress derived preparation buffer records for the matching reservation/range.
-Manual, maintenance, Airbnb, composed dependency, direct reservation, and preparation buffer sources remain blocking sources for the public availability API.
-```
-
-Important limitation:
-
-```text
-Phase 6.4 does not create reservations, create pending holds, write preparation buffer blocks, add admin unlock UI, start checkout, integrate Tilopay, integrate Resend, import/export Airbnb iCal, write migrations, seed data, or add PMS features.
-```
-
-### Phase 6.5 — Phase 6 Documentation Update
-
-Status: **Completed**
-
-Completed deliverables:
-
-```text
-docs/36-phase-6-availability-closure-review.md added
-README.md updated with Phase 6 closure and Phase 7 current status
-docs/10-phases.md updated to mark Phase 6 completed and Phase 7 in progress
-docs/11-progress-log.md updated with Phase 6 closure and Phase 7.1 current work
+6.1 Availability strategy and booking calendar rules
+6.2 Availability domain service foundation
+6.3 Public availability calendar UI foundation
+6.4 Preparation buffer and blocked-date evaluation
+6.5 Phase 6 documentation update
 ```
 
 Closure result:
@@ -290,6 +155,37 @@ Closure result:
 Phase 6 is complete as the availability calendar foundation.
 The project now has typed availability rules, a server-side Prisma availability service, a runtime public availability API, a public non-booking availability page, and derived preparation buffer evaluation for confirmed reservations.
 Phase 6 did not add booking checkout, Tilopay, Resend, Airbnb iCal sync, migrations, seed data, admin calendar UI, reservation creation, or PMS features.
+```
+
+### Phase 7.1 — Airbnb iCal Strategy and Environment Contract
+
+Status: **Completed**
+
+Completed deliverables:
+
+```text
+docs/37-airbnb-ical-strategy-and-environment-contract.md added
+README.md updated with Phase 7.1 completion and Phase 7.2 current status
+docs/10-phases.md updated to mark 7.1 completed and 7.2 in progress
+docs/11-progress-log.md updated with Phase 7.1 completion
+```
+
+Important decisions:
+
+```text
+Airbnb import URLs and export tokens are secrets.
+Real Airbnb iCal URLs must never be committed or placed in documentation.
+Raw Airbnb iCal URLs and export tokens must not be logged, returned by public APIs, or exposed in public UI.
+Imported Airbnb events should become CalendarBlock records with source AIRBNB once the calendar configuration model exists.
+Airbnb imports must reuse Phase 6 composed listing and preparation buffer rules.
+Export feeds must include unavailable date ranges only and must not include guest, payment, admin, or provider-secret details.
+CRON_SECRET and future iCal sync settings are reserved as server-only configuration names, but are not required until sync implementation begins.
+```
+
+Important limitation:
+
+```text
+Phase 7.1 does not add an iCal parser dependency, iCal fetch client, calendar configuration database model, database migrations, seed data, cron endpoint, manual sync action, export endpoint, admin calendar UI, reservation creation, checkout, Tilopay integration, Resend integration, or PMS features.
 ```
 
 ## Current Work
@@ -301,30 +197,29 @@ Status: **In progress**
 Current subphase:
 
 ```text
-7.1 Airbnb iCal strategy and environment contract
+7.2 Airbnb calendar configuration model
 ```
 
-Phase 7.1 goals:
+Phase 7.2 goals:
 
 ```text
-Define secure handling for Airbnb import URLs and export tokens.
-Define how imported Airbnb events should become availability blocks without exposing private tokens.
-Define how TRP Booking should export unavailable dates later.
-Confirm how Phase 6 availability and preparation buffer rules are reused by Phase 7.
-Do not implement actual iCal parsing, cron sync, export endpoints, checkout, payment, email, or PMS features in 7.1.
+Introduce the database/configuration model for Airbnb import calendars and export tokens.
+Keep import URLs and export tokens server-side only.
+Preserve soft delete and audit conventions.
+Do not implement actual iCal parsing, cron sync, admin sync, export endpoints, checkout, payment, email, or PMS features yet.
 ```
 
 ## Next Recommended Work
 
 ```text
-1. Apply Phase 6.5 files.
+1. Apply Phase 7.1 files.
 2. Run npm run db:generate.
 3. Run npm run build.
 4. Run npm run env:validate.
 5. Run npm run db:validate.
 6. Run npm run lint.
-7. Commit Phase 6.5.
-8. Continue with Phase 7.1 Airbnb iCal strategy and environment contract.
+7. Commit Phase 7.1.
+8. Continue with Phase 7.2 Airbnb calendar configuration model.
 ```
 
 ## Continuity Notes for New Conversations
@@ -346,6 +241,7 @@ docs/33-availability-domain-service-foundation.md
 docs/34-public-availability-calendar-ui-foundation.md
 docs/35-preparation-buffer-and-blocked-date-evaluation.md
 docs/36-phase-6-availability-closure-review.md
+docs/37-airbnb-ical-strategy-and-environment-contract.md
 lib/db/prisma.ts
 lib/availability/index.ts
 lib/availability/service.ts

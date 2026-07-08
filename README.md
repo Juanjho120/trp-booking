@@ -91,6 +91,7 @@ Max guests: 6
 - Availability checks must ignore expired pending reservations, soft-deleted calendar blocks, and manually unlocked preparation buffer blocks.
 - Public availability UI must not create reservations, start checkout, or collect payments during Phase 6.
 - Confirmed reservations now derive preparation buffer blocking records at read time until a later write flow persists automatic buffer blocks.
+- Airbnb iCal import URLs and export tokens must never be committed, logged, exposed through API responses, or displayed in public UI.
 
 ## Documentation
 
@@ -135,6 +136,7 @@ docs/
   34-public-availability-calendar-ui-foundation.md
   35-preparation-buffer-and-blocked-date-evaluation.md
   36-phase-6-availability-closure-review.md
+  37-airbnb-ical-strategy-and-environment-contract.md
 ```
 
 The assistant collaboration rules live in:
@@ -147,9 +149,9 @@ AGENTS.md
 
 ```text
 Current phase: Phase 7 — Airbnb iCal Synchronization
-Current subphase: 7.1 Airbnb iCal strategy and environment contract
+Current subphase: 7.2 Airbnb calendar configuration model
 Last completed phase: Phase 6 — Availability Calendar Foundation
-Last completed subphase: 6.5 Phase 6 documentation update
+Last completed subphase: 7.1 Airbnb iCal strategy and environment contract
 ```
 
-See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/07-airbnb-ical-sync.md`, and `docs/36-phase-6-availability-closure-review.md` for the official current tracker and next iCal synchronization context.
+See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/07-airbnb-ical-sync.md`, `docs/36-phase-6-availability-closure-review.md`, and `docs/37-airbnb-ical-strategy-and-environment-contract.md` for the official current tracker and iCal synchronization context.
