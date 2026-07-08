@@ -14,9 +14,9 @@ Deferred — Intentionally postponed.
 ## Current Phase
 
 ```text
-Current phase: Phase 5 — Cloudinary Integration
-Current subphase: 5.5 Phase 5 documentation update
-Current focus: close Phase 5 after the public accommodation pages were switched from local image paths to Cloudinary delivery URLs.
+Current phase: Phase 6 — Availability Calendar Foundation
+Current subphase: 6.1 Availability strategy and booking calendar rules
+Current focus: define the availability calendar rules and implementation boundary before adding public date selection, reservation checkout, payment, email, or iCal sync.
 ```
 
 ---
@@ -144,74 +144,45 @@ Phase 4 rules preserved:
 
 ## Phase 5 — Cloudinary Integration
 
-Status: **In progress**
+Status: **Completed**
 
 Goal: Add the image storage, delivery, and transformation foundation for accommodation images without introducing reservation, payment, email, or iCal functionality.
 
-Subphase status:
+Completed subphases:
 
 ```text
 5.1 Cloudinary strategy and environment foundation — Completed
 5.2 Cloudinary environment validation — Completed
 5.3 Cloudinary service foundation — Completed
 5.4 Public accommodation images from Cloudinary — Completed
-5.5 Phase 5 documentation update — In progress
+5.5 Phase 5 documentation update — Completed
 ```
 
-Phase 5 rules:
+Phase 5 rules preserved:
 
 ```text
-- Do not add booking checkout in Phase 5.
-- Do not integrate Tilopay in Phase 5.
-- Do not integrate Resend in Phase 5.
-- Do not implement Airbnb iCal sync in Phase 5.
-- Do not add PMS features.
-- Do not store provider secrets in client-side code.
-- Public pages must keep working during the image integration foundation.
+- No booking checkout was added in Phase 5.
+- No Tilopay integration was added in Phase 5.
+- No Resend integration was added in Phase 5.
+- No Airbnb iCal sync was implemented in Phase 5.
+- No PMS features were added.
+- Provider secrets remain server-side only.
+- Public pages continue working while accommodation images are now delivered from Cloudinary.
 ```
 
-Phase 5.1 result:
+Phase 5 closure result:
 
 ```text
 - Cloudinary usage scope was documented.
-- Server-only credential handling rules were documented.
-- Placeholder Cloudinary variables were added to .env.example.
-- Folder naming, public delivery, and DB mapping expectations were documented.
-- No SDK, uploads, image UI, provider calls, migrations, or operational features were added.
-```
-
-Phase 5.2 result:
-
-```text
-- Server-side validation was added for CLOUDINARY_CLOUD_NAME.
-- Server-side validation was added for CLOUDINARY_API_KEY.
-- Server-side validation was added for CLOUDINARY_API_SECRET.
-- Server-side validation was added for CLOUDINARY_UPLOAD_FOLDER.
-- Placeholder values are rejected by env validation.
-- Cloudinary API key and API secret remain server-side only.
-- No Cloudinary SDK, provider calls, uploads, image UI, migrations, or database writes were added.
-```
-
-Phase 5.3 result:
-
-```text
-- The Cloudinary npm package was added to package.json.
-- A server-side Cloudinary client factory was added under lib/cloudinary.
-- Cloudinary SDK configuration uses validated environment variables from lib/env/server.ts.
-- Folder and public ID helper functions were added for accommodation images.
-- A delivery URL helper was added for future public image rendering.
-- No upload route handlers, admin image UI, database writes, seed data, migrations, or operational booking features were added.
-```
-
-Phase 5.4 result:
-
-```text
-- Public accommodation image configuration now builds Cloudinary delivery URLs from deterministic public IDs.
-- The accommodation listing page now receives Cloudinary image URLs through the existing coverImage.src field.
-- Accommodation detail galleries now receive Cloudinary image URLs through coverImage and galleryImages.
-- SEO/Open Graph image metadata now supports Cloudinary URLs.
+- Cloudinary environment variables are validated server-side.
+- The Cloudinary SDK dependency is installed.
+- A server-side Cloudinary client foundation exists under lib/cloudinary.
+- Accommodation image public IDs are deterministic and folder-based.
+- Public accommodation listing cards now receive Cloudinary delivery URLs through coverImage.src.
+- Public accommodation detail galleries now receive Cloudinary delivery URLs through coverImage and galleryImages.
+- SEO/Open Graph image metadata supports Cloudinary URLs.
 - next/image is configured to allow res.cloudinary.com.
-- Existing local images remain only as fallbackSrc/upload source metadata, not as the primary rendered src.
+- Local files under public/images/accommodations remain only as upload source/rollback metadata through fallbackSrc.
 - No upload route handlers, admin image UI, database writes, migrations, seed data, booking checkout, Tilopay, Resend, Airbnb iCal sync, or PMS features were added.
 ```
 
@@ -219,7 +190,32 @@ Phase 5.4 result:
 
 ## Phase 6 — Availability Calendar Foundation
 
-Status: **Not started**
+Status: **In progress**
+
+Goal: Add the first availability calendar foundation for public date visibility and future reservation validation without introducing checkout, payment, email, or Airbnb iCal sync yet.
+
+Subphase status:
+
+```text
+6.1 Availability strategy and booking calendar rules — In progress
+6.2 Availability domain service foundation — Not started
+6.3 Public availability calendar UI foundation — Not started
+6.4 Preparation buffer and blocked-date evaluation — Not started
+6.5 Phase 6 documentation update — Not started
+```
+
+Phase 6 rules:
+
+```text
+- Do not add booking checkout in Phase 6.
+- Do not integrate Tilopay in Phase 6.
+- Do not integrate Resend in Phase 6.
+- Do not implement Airbnb iCal import/export in Phase 6.
+- Do not add PMS features.
+- Guests must not be able to modify confirmed reservation dates directly.
+- Public availability must eventually account for confirmed reservations, imported Airbnb bookings, and preparation buffer blocks.
+- Preparation buffer rules must preserve the documented policies for each accommodation.
+```
 
 ---
 

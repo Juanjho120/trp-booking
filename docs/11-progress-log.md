@@ -5,11 +5,11 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 ## Current Status
 
 ```text
-Current phase: Phase 5 — Cloudinary Integration
-Current subphase: 5.5 Phase 5 documentation update
-Last updated: 2026-07-07
-Last completed phase: Phase 4 — Admin Authentication Foundation
-Last completed subphase: 5.4 Public accommodation images from Cloudinary
+Current phase: Phase 6 — Availability Calendar Foundation
+Current subphase: 6.1 Availability strategy and booking calendar rules
+Last updated: 2026-07-08
+Last completed phase: Phase 5 — Cloudinary Integration
+Last completed subphase: 5.5 Phase 5 documentation update
 ```
 
 ## Completed Work
@@ -21,6 +21,19 @@ Status: **Completed**
 ### Phase 1 — Repository and Next.js Setup
 
 Status: **Completed**
+
+Completed subphases:
+
+```text
+1.1 GitHub repository created
+1.2 Initial documentation committed
+1.3 Clean Next.js 15 setup
+1.4 TypeScript strict enabled
+1.5 ESLint configured
+1.6 shadcn/ui + Radix Luma design system foundation
+1.7 Base project folders created
+1.8 Initial site config, accommodation config, messages, and error keys
+```
 
 ### Phase 2 — Public Website Foundation
 
@@ -35,6 +48,20 @@ Local public pages
 /sitemap.xml
 /robots.txt
 Font configuration after SEO foundation fix
+```
+
+Completed subphases:
+
+```text
+2.1 Public layout foundation
+2.2 Initial marketing homepage shell
+2.3 Static accommodations listing
+2.4 Static accommodation detail pages
+2.5 Accommodation image foundation
+2.6 Centralized public page copy and amenity icons
+2.7 Public copy cleanup and visual QA
+2.8 Static SEO metadata and sitemap foundation
+2.9 Phase 2 closure review
 ```
 
 ### Phase 3 — Database Foundation
@@ -91,138 +118,28 @@ After /admin middleware and Auth.js routes were enabled, local development must 
 .env.example and docs/22-auth-environment-validation.md were corrected during Phase 4.6.
 ```
 
-### Phase 4.1 — Auth.js Strategy and Admin Access Foundation
+### Phase 5 — Cloudinary Integration
 
 Status: **Completed**
 
-Completed deliverables:
+Completed subphases:
 
 ```text
-Auth.js strategy documented in docs/21-auth-admin-strategy.md
-Initial admin authentication approach selected
-Admin access rules documented
-Route protection approach documented
-Session strategy documented
-Provider strategy documented
-Deferred auth database adapter decision documented
-Security guardrails documented before implementation
+5.1 Cloudinary strategy and environment foundation
+5.2 Cloudinary environment validation
+5.3 Cloudinary service foundation
+5.4 Public accommodation images from Cloudinary
+5.5 Phase 5 documentation update
 ```
 
-Important decision:
+Closure result:
 
 ```text
-TRP Booking starts with Auth.js / NextAuth using Google OAuth and a server-side admin allowlist.
-The initial implementation uses JWT sessions and does not introduce the Prisma adapter yet.
-```
-
-### Phase 4.2 — Auth Environment Variables and Validation
-
-Status: **Completed**
-
-Completed deliverables:
-
-```text
-Auth.js environment placeholders added to .env.example
-Server-side environment validation extended for Auth.js variables
-AUTH_SECRET validation added
-AUTH_TRUST_HOST validation added
-AUTH_GOOGLE_ID validation added
-AUTH_GOOGLE_SECRET validation added
-AUTH_ALLOWED_ADMIN_EMAILS validation added
-Optional AUTH_URL validation added
-getAllowedAdminEmails helper added
-docs/22-auth-environment-validation.md added
-```
-
-### Phase 4.3 — Auth.js Configuration
-
-Status: **Completed**
-
-Completed deliverables:
-
-```text
-next-auth dependency added to package.json
-Root auth.ts configuration added
-Google OAuth provider configured with validated server-side environment variables
-JWT session strategy configured
-Server-side admin allowlist enforced during Google sign-in
-Verified Google email check added during sign-in
-Auth.js route handler added at app/api/auth/[...nextauth]/route.ts
-Auth.js session/JWT type augmentation added
-docs/23-auth-js-configuration.md added
-```
-
-Important limitation:
-
-```text
-Phase 4.3 did not add middleware, admin route protection, admin pages, admin login UI, Prisma adapter, database migrations, Tilopay, Cloudinary, Resend, Airbnb iCal sync, or PMS features.
-```
-
-### Phase 4.4 — Admin Route Protection Foundation
-
-Status: **Completed**
-
-Completed deliverables:
-
-```text
-middleware.ts added for /admin route protection
-/admin route matcher added
-Unauthenticated admin access redirects to the Auth.js sign-in endpoint
-Authenticated users without ADMIN role redirect away from /admin
-Allowlisted admin sessions can continue to /admin routes
-JWT callback now clears stale ADMIN role when an email is no longer allowlisted
-Session callback now avoids exposing stale admin role values
-docs/24-admin-route-protection.md added
-```
-
-Important limitation:
-
-```text
-Phase 4.4 did not add admin pages, admin login UI, admin layout, Prisma adapter, database migrations, Tilopay, Cloudinary, Resend, Airbnb iCal sync, or PMS features.
-```
-
-### Phase 4.5 — Minimal Admin Shell
-
-Status: **Completed**
-
-Completed deliverables:
-
-```text
-Protected /admin page added
-Minimal admin shell component added under features/admin
-Admin session identity card added using Auth.js session data
-Server action sign-out button added using Auth.js signOut
-Admin module placeholder cards added for future documented phases
-Admin copy centralized in messages/es.ts and messages/en.ts
-Admin metadata added with noindex robots behavior
-docs/25-minimal-admin-shell.md added
-```
-
-Manual result confirmed:
-
-```text
-After setting AUTH_TRUST_HOST=true locally and restarting the dev server, /admin worked with the Auth.js protected admin flow.
-```
-
-Important limitation:
-
-```text
-Phase 4.5 did not add booking management, payment management, calendar management, image management, email sending, Airbnb iCal sync, Prisma adapter, database migrations, or PMS features.
-```
-
-### Phase 4.6 — Phase 4 Documentation Update
-
-Status: **Completed**
-
-Completed deliverables:
-
-```text
-docs/26-phase-4-auth-closure-review.md added
-README.md updated with Phase 4 closure and Phase 5 current status
-docs/10-phases.md updated to mark Phase 4 completed and Phase 5 in progress
-docs/11-progress-log.md updated to close Phase 4 and start Phase 5.1
-.env.example corrected to use AUTH_TRUST_HOST=true by default for local Auth.js admin routes
-docs/22-auth-environment-validation.md corrected with the AUTH_TRUST_HOST=true requirement after admin middleware is enabled
+Phase 5 is complete as a real Cloudinary integration phase.
+Cloudinary is not only documented; public accommodation images are rendered through Cloudinary delivery URLs.
+The public accommodation listing, accommodation detail galleries, and SEO/Open Graph images now use the Cloudinary image foundation.
+Local accommodation images remain only as upload source/rollback metadata through fallbackSrc.
+No booking checkout, Tilopay, Resend, Airbnb iCal sync, PMS features, admin upload UI, database writes, migrations, or seed data were added in Phase 5.
 ```
 
 ### Phase 5.1 — Cloudinary Strategy and Environment Foundation
@@ -343,11 +260,11 @@ Completed deliverables:
 lib/cloudinary/accommodation-images.ts added
 lib/cloudinary/index.ts updated to export the public accommodation image helper
 types/accommodation.ts updated with cloudinaryPublicId and fallbackSrc metadata
-config/accommodations.ts updated so coverImage.src and galleryImages[].src are Cloudinary delivery URLs
-config/seo.ts updated so the default Open Graph image uses Cloudinary
+config/accommodations.ts updated so coverImage.src and galleryImages[].src are generated from Cloudinary public IDs
+config/seo.ts updated so default Open Graph images can use Cloudinary delivery URLs
 next.config.ts updated to allow res.cloudinary.com for next/image
-README.md updated with Phase 5.4 completion and Phase 5.5 current status
 docs/30-public-accommodation-cloudinary-images.md added
+README.md updated with Phase 5.4 completion and Phase 5.5 current status
 docs/10-phases.md updated to mark 5.4 completed and 5.5 in progress
 docs/11-progress-log.md updated with Phase 5.4 completion
 ```
@@ -355,51 +272,72 @@ docs/11-progress-log.md updated with Phase 5.4 completion
 Important decisions:
 
 ```text
-Public accommodation pages should now render Cloudinary delivery URLs as the primary image src.
-Local images under public/images/accommodations remain only as fallbackSrc metadata, upload source references, and rollback references.
-Cloudinary public IDs are deterministic and based on CLOUDINARY_UPLOAD_FOLDER, the accommodation slug, sort order, and image purpose.
-The public pages still use typed/static accommodation configuration until the database-backed image flow is introduced.
+Public accommodation images are rendered from Cloudinary after Phase 5.4.
+Local image files remain as fallbackSrc/upload source metadata only; they are no longer the primary rendered image src.
+Cloudinary public IDs remain deterministic and based on CLOUDINARY_UPLOAD_FOLDER, accommodation slug, sort order, and image purpose.
+The public listing and detail pages keep using the existing AccommodationImage shape, so UI changes are minimal.
 ```
 
 Important limitation:
 
 ```text
 Phase 5.4 does not add upload route handlers, server actions for uploads, admin image management UI, image persistence, database migrations, seed data, Cloudinary asset deletion, booking checkout, Tilopay, Resend, Airbnb iCal sync, or PMS features.
-The Cloudinary assets must exist under the documented public IDs before visual QA can pass without missing images.
+```
+
+### Phase 5.5 — Phase 5 Documentation Update
+
+Status: **Completed**
+
+Completed deliverables:
+
+```text
+docs/31-phase-5-cloudinary-closure-review.md added
+README.md updated to mark Phase 5 completed and Phase 6 current
+docs/10-phases.md updated to mark Phase 5 completed and Phase 6 in progress
+docs/11-progress-log.md updated with Phase 5 closure and Phase 6.1 current work
+```
+
+Important decision:
+
+```text
+Phase 5 is not considered complete merely because Cloudinary variables and services exist.
+Phase 5 is considered complete because public accommodation images are now rendered from Cloudinary delivery URLs.
 ```
 
 ## Current Work
 
-### Phase 5 — Cloudinary Integration
+### Phase 6 — Availability Calendar Foundation
 
 Status: **In progress**
 
 Current subphase:
 
 ```text
-5.5 Phase 5 documentation update
+6.1 Availability strategy and booking calendar rules
 ```
 
-Phase 5.5 goals:
+Phase 6.1 goals:
 
 ```text
-Close Phase 5 only after validating the public accommodation pages are using Cloudinary URLs.
-Confirm the public listing and accommodation detail pages no longer render local /images/accommodations paths as their primary image src.
-Document the manual Cloudinary asset upload requirement until admin image management is implemented.
-Do not add booking, payment, email, calendar, iCal, or PMS features.
+Define the availability calendar rules before implementing date selection.
+Confirm how confirmed reservations, imported Airbnb bookings, manual blocks, and preparation buffers should affect availability.
+Document the booking calendar UI boundary before adding interactive public date selection.
+Do not add booking checkout yet.
+Do not integrate Tilopay yet.
+Do not integrate Resend yet.
+Do not implement Airbnb iCal sync yet.
+Do not add PMS features.
 ```
 
 ## Next Recommended Work
 
 ```text
-1. Apply Phase 5.4 files.
-2. Upload or verify the required Cloudinary assets under the documented public IDs.
-3. Run npm run env:validate.
-4. Run npm run db:validate.
-5. Run npm run lint and npm run build.
-6. Manually verify /alojamientos and each /alojamientos/[slug] page loads images from res.cloudinary.com.
-7. Commit Phase 5.4.
-8. Continue with Phase 5.5 Phase 5 documentation update.
+1. Apply Phase 5.5 closure documentation files.
+2. Run npm run env:validate.
+3. Run npm run db:validate.
+4. Run npm run lint and npm run build.
+5. Commit Phase 5.5.
+6. Continue with Phase 6.1 Availability strategy and booking calendar rules.
 ```
 
 ## Continuity Notes for New Conversations
@@ -424,9 +362,11 @@ docs/27-cloudinary-strategy-and-environment.md
 docs/28-cloudinary-environment-validation.md
 docs/29-cloudinary-service-foundation.md
 docs/30-public-accommodation-cloudinary-images.md
+docs/31-phase-5-cloudinary-closure-review.md
 lib/env/server.ts
 lib/cloudinary/index.ts
 config/accommodations.ts
+config/seo.ts
 next.config.ts
 .env.example
 auth.ts
@@ -448,5 +388,5 @@ Keep phase/subphase tracking updated.
 Do not expose admin pages without route protection.
 Do not commit secrets, provider keys, or real credentials.
 Keep Cloudinary API key and API secret server-side only.
-Public accommodation images should be delivered from Cloudinary after Phase 5.4.
+Public accommodation images should stay Cloudinary-backed after Phase 5.4.
 ```
