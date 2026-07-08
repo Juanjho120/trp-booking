@@ -1,4 +1,4 @@
-import type { AmenityDefinition, AmenityKey } from "@/types/amenity";
+import type { AmenityIconName, AmenityKey } from "@/types/amenity";
 
 export type AccommodationId =
   | "black-white-apartment"
@@ -30,8 +30,14 @@ export type ArrivalPolicy = Readonly<{
 export type AccommodationImage = Readonly<{
   cloudinaryPublicId?: string;
   src: string;
-  fallbackSrc: string;
+  fallbackSrc?: string;
   alt: LocalizedText;
+}>;
+
+export type AccommodationAmenity = Readonly<{
+  key: AmenityKey | string;
+  icon: AmenityIconName;
+  label: LocalizedText;
 }>;
 
 export type Accommodation = Readonly<{
@@ -50,8 +56,8 @@ export type Accommodation = Readonly<{
   coverImage: AccommodationImage;
   galleryImages: readonly AccommodationImage[];
   highlights: LocalizedList;
-  amenityKeys: readonly AmenityKey[];
-  amenities?: readonly AmenityDefinition[];
+  amenities: readonly AccommodationAmenity[];
+  amenityKeys?: readonly AmenityKey[];
   rules: LocalizedList;
   composedOf?: readonly AccommodationId[];
 }>;

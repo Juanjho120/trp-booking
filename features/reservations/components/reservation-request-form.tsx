@@ -1,11 +1,18 @@
 "use client";
 
-import { type FormEvent, useState } from "react";
+import { CalendarDays, ChevronDown, Search, X } from "lucide-react";
+import { type FormEvent, useMemo, useState } from "react";
+import { DayPicker, type DateRange } from "react-day-picker";
+import type { Country } from "react-phone-number-input";
 
 import { Button } from "@/components/ui/button";
-import { esMessages } from "@/messages";
+import { useLocale } from "@/features/i18n";
+import { getCountryOption, getCountryOptions, type CountryOption } from "@/lib/geo/countries";
 import type { AccommodationId } from "@/types/accommodation";
+import type { DateOnlyString } from "@/types/availability";
 import type { ReservationQuote } from "@/types/reservation-quote";
+
+import { getReservationRequestUxCopy } from "../reservation-request-copy";
 
 type ReservationRequestFormProps = Readonly<{
   accommodationId: AccommodationId;
@@ -27,10 +34,61 @@ type QuoteApiResponse = QuoteApiSuccessResponse | QuoteApiErrorResponse;
 
 type RequestStatus = "idle" | "loading" | "success" | "error";
 
-const messages = esMessages.reservations.request;
+type TimeOption = Readonly<{
+  value: string;
+  label: string;
+}>;
+
+const defaultCountry: Country = "GT";
+
+const dayPickerClassNames = {
+  months: "grid gap-4",
+  month: "space-y-4",
+  caption: "flex items-center justify-between px-1 text-sm font-medium text-foreground",
+  caption_label: "text-sm font-semibold",
+  nav: "flex items-center gap-2",
+  button_previous:
+    "inline-flex size-8 items-center justify-center rounded-full border border-border/70 bg-background text-muted-foreground transition hover:bg-muted hover:text-foreground",
+  button_next:
+    "inline-flex size-8 items-center justify-center rounded-full border border-border/70 bg-background text-muted-foreground transition hover:bg-muted hover:text-foreground",
+  month_grid: "w-full border-collapse space-y-1",
+  weekdays: "grid grid-cols-7 text-xs text-muted-foreground",
+  weekday: "flex h-8 items-center justify-center font-medium",
+  week: "grid grid-cols-7",
+  day: "relative flex size-10 items-center justify-center text-sm",
+  day_button:
+    "flex size-9 items-center justify-center rounded-full text-sm transition hover:bg-primary/10 hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/30",
+  selected: "text-primary-foreground",
+  range_start: "rounded-l-full bg-primary text-primary-foreground",
+  range_middle: "bg-primary/15 text-primary",
+  range_end: "rounded-r-full bg-primary text-primary-foreground",
+  today: "font-bold text-primary",
+  outside: "text-muted-foreground/40",
+  disabled: "pointer-events-none text-muted-foreground/30 line-through",
+};
 
 function isQuoteSuccessResponse(response: QuoteApiResponse): response is QuoteApiSuccessResponse {
   return "quote" in response;
+}
+
+function toDateOnlyString(date: Date): DateOnlyString {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}` as DateOnlyString;
+}
+
+function formatShortDate(date: Date | undefined, locale: string): string | null {
+  if (!date) {
+    return null;
+  }
+
+  return new Intl.DateTimeFormat(locale, {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(date);
 }
 
 function buildQuoteUrl(input: Readonly<{
@@ -38,33 +96,85 @@ function buildQuoteUrl(input: Readonly<{
   checkInDate: string;
   checkOutDate: string;
   guestCount: string;
+  locale: string;
 }>): string {
   const searchParams = new URLSearchParams({
     accommodationId: input.accommodationId,
     checkInDate: input.checkInDate.trim(),
     checkOutDate: input.checkOutDate.trim(),
     guestCount: input.guestCount.trim(),
-    locale: "es",
+    locale: input.locale,
   });
 
   return `/api/reservations/quote?${searchParams.toString()}`;
+}
+
+function buildTimeOptions(): readonly TimeOption[] {
+  const options: TimeOption[] = [];
+
+  for (let hour = 8; hour <= 22; hour += 1) {
+    for (const minute of [0, 30]) {
+      if (hour === 22 && minute === 30) {
+        continue;
+      }
+
+      const value = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+      options.push({
+        value,
+        label: value,
+      });
+    }
+  }
+
+  return options;
 }
 
 export function ReservationRequestForm({
   accommodationId,
   maxGuests,
 }: ReservationRequestFormProps) {
-  const [checkInDate, setCheckInDate] = useState("");
-  const [checkOutDate, setCheckOutDate] = useState("");
+  const { locale, messages } = useLocale();
+  const requestMessages = messages.reservations.request;
+  const uxCopy = getReservationRequestUxCopy(locale);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [guestCount, setGuestCount] = useState("1");
+  const [guestSelectorOpen, setGuestSelectorOpen] = useState(false);
   const [guestName, setGuestName] = useState("");
   const [guestEmail, setGuestEmail] = useState("");
-  const [guestPhone, setGuestPhone] = useState("");
-  const [guestCountry, setGuestCountry] = useState("");
+  const [guestPhoneLocal, setGuestPhoneLocal] = useState("");
+  const [guestCountry, setGuestCountry] = useState<Country>(defaultCountry);
+  const [countryOpen, setCountryOpen] = useState(false);
+  const [countrySearch, setCountrySearch] = useState("");
   const [arrivalTimeEstimate, setArrivalTimeEstimate] = useState("");
+  const [arrivalTimeOpen, setArrivalTimeOpen] = useState(false);
   const [quote, setQuote] = useState<ReservationQuote | null>(null);
   const [status, setStatus] = useState<RequestStatus>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const countryOptions = useMemo(() => getCountryOptions(locale), [locale]);
+  const selectedCountry = useMemo(
+    () => getCountryOption(guestCountry, locale),
+    [guestCountry, locale],
+  );
+  const timeOptions = useMemo(() => buildTimeOptions(), []);
+  const guestOptions = useMemo(
+    () => Array.from({ length: maxGuests }, (_, index) => String(index + 1)),
+    [maxGuests],
+  );
+  const checkInDate = dateRange?.from ? toDateOnlyString(dateRange.from) : "";
+  const checkOutDate = dateRange?.to ? toDateOnlyString(dateRange.to) : "";
+  const formattedCheckIn = formatShortDate(dateRange?.from, locale);
+  const formattedCheckOut = formatShortDate(dateRange?.to, locale);
+  const selectedDateRangeLabel =
+    formattedCheckIn && formattedCheckOut
+      ? `${formattedCheckIn} — ${formattedCheckOut}`
+      : uxCopy.dateRange.buttonPlaceholder;
+  const today = useMemo(() => {
+    const date = new Date();
+    date.setHours(0, 0, 0, 0);
+    return date;
+  }, []);
 
   async function handleQuoteRequest(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -79,6 +189,7 @@ export function ReservationRequestForm({
           checkInDate,
           checkOutDate,
           guestCount,
+          locale,
         }),
         {
           headers: {
@@ -90,7 +201,7 @@ export function ReservationRequestForm({
       const payload = (await response.json()) as QuoteApiResponse;
 
       if (!response.ok || !isQuoteSuccessResponse(payload)) {
-        const message = "error" in payload ? payload.error.message : messages.genericQuoteError;
+        const message = "error" in payload ? payload.error.message : requestMessages.genericQuoteError;
         throw new Error(message);
       }
 
@@ -98,87 +209,121 @@ export function ReservationRequestForm({
       setStatus("success");
     } catch (error) {
       setStatus("error");
-      setErrorMessage(error instanceof Error ? error.message : messages.genericQuoteError);
+      setErrorMessage(error instanceof Error ? error.message : requestMessages.genericQuoteError);
+    }
+  }
+
+  function handleDateRangeSelect(nextDateRange: DateRange | undefined): void {
+    setDateRange(nextDateRange);
+    setQuote(null);
+
+    if (nextDateRange?.from && nextDateRange.to) {
+      setDatePickerOpen(false);
     }
   }
 
   return (
     <form className="space-y-5" onSubmit={handleQuoteRequest}>
       <div className="rounded-2xl border border-border/70 bg-background p-4">
-        <p className="text-sm font-medium text-foreground">{messages.title}</p>
-        <p className="mt-2 text-sm leading-6 text-muted-foreground">{messages.description}</p>
+        <p className="text-sm font-medium text-foreground">{requestMessages.title}</p>
+        <p className="mt-2 text-sm leading-6 text-muted-foreground">{requestMessages.description}</p>
       </div>
 
+      <DateRangeField
+        clearLabel={uxCopy.dateRange.clear}
+        helper={uxCopy.dateRange.helper}
+        label={uxCopy.dateRange.label}
+        locale={locale}
+        onClear={() => {
+          setDateRange(undefined);
+          setQuote(null);
+        }}
+        onOpenChange={setDatePickerOpen}
+        onSelect={handleDateRangeSelect}
+        open={datePickerOpen}
+        selectedLabel={selectedDateRangeLabel}
+        today={today}
+        value={dateRange}
+      />
+
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field
-          autoComplete="off"
-          label={messages.fields.checkInDate}
-          onChange={setCheckInDate}
-          placeholder={messages.placeholders.date}
-          value={checkInDate}
-        />
-        <Field
-          autoComplete="off"
-          label={messages.fields.checkOutDate}
-          onChange={setCheckOutDate}
-          placeholder={messages.placeholders.date}
-          value={checkOutDate}
-        />
-        <Field
-          inputMode="numeric"
-          label={messages.fields.guestCount}
-          maxLength={2}
-          onChange={setGuestCount}
-          placeholder="1"
+        <OptionSelect
+          label={uxCopy.guests.label}
+          onOpenChange={setGuestSelectorOpen}
+          onSelect={(value) => {
+            setGuestCount(value);
+            setGuestSelectorOpen(false);
+            setQuote(null);
+          }}
+          open={guestSelectorOpen}
+          options={guestOptions.map((value) => ({ label: value, value }))}
+          placeholder={uxCopy.guests.placeholder}
           value={guestCount}
         />
         <div className="rounded-2xl bg-muted/40 p-4 text-sm leading-6 text-muted-foreground">
-          {messages.maxGuestsNote.replace("{maxGuests}", String(maxGuests))}
+          {requestMessages.maxGuestsNote.replace("{maxGuests}", String(maxGuests))}
         </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Field
           autoComplete="name"
-          label={messages.fields.guestName}
+          label={requestMessages.fields.guestName}
           onChange={setGuestName}
-          placeholder={messages.placeholders.guestName}
+          placeholder={requestMessages.placeholders.guestName}
           value={guestName}
         />
         <Field
           autoComplete="email"
           inputMode="email"
-          label={messages.fields.guestEmail}
+          label={requestMessages.fields.guestEmail}
           onChange={setGuestEmail}
-          placeholder={messages.placeholders.guestEmail}
+          placeholder={requestMessages.placeholders.guestEmail}
           value={guestEmail}
-        />
-        <Field
-          autoComplete="tel"
-          inputMode="tel"
-          label={messages.fields.guestPhone}
-          onChange={setGuestPhone}
-          placeholder={messages.placeholders.guestPhone}
-          value={guestPhone}
-        />
-        <Field
-          autoComplete="country-name"
-          label={messages.fields.guestCountry}
-          onChange={setGuestCountry}
-          placeholder={messages.placeholders.guestCountry}
-          value={guestCountry}
         />
       </div>
 
-      <Field
-        label={messages.fields.arrivalTimeEstimate}
-        onChange={setArrivalTimeEstimate}
-        placeholder={messages.placeholders.arrivalTimeEstimate}
+      <CountrySelect
+        countryOptions={countryOptions}
+        label={uxCopy.country.label}
+        noResultsLabel={uxCopy.country.noResults}
+        onOpenChange={setCountryOpen}
+        onSearchChange={setCountrySearch}
+        onSelect={(country) => {
+          setGuestCountry(country.iso2);
+          setCountryOpen(false);
+          setCountrySearch("");
+        }}
+        open={countryOpen}
+        placeholder={uxCopy.country.placeholder}
+        search={countrySearch}
+        searchPlaceholder={uxCopy.country.search}
+        value={selectedCountry}
+      />
+
+      <PhoneField
+        dialCode={selectedCountry.dialCode}
+        inputLabel={uxCopy.phone.localNumber}
+        label={uxCopy.phone.label}
+        onChange={setGuestPhoneLocal}
+        value={guestPhoneLocal}
+      />
+
+      <OptionSelect
+        label={uxCopy.arrivalTime.label}
+        onOpenChange={setArrivalTimeOpen}
+        onSelect={(value) => {
+          setArrivalTimeEstimate(value);
+          setArrivalTimeOpen(false);
+        }}
+        open={arrivalTimeOpen}
+        options={timeOptions}
+        placeholder={uxCopy.arrivalTime.placeholder}
         value={arrivalTimeEstimate}
       />
 
       <Button className="w-full rounded-full" disabled={status === "loading"} type="submit">
-        {status === "loading" ? messages.loadingQuote : messages.calculateQuote}
+        {status === "loading" ? requestMessages.loadingQuote : requestMessages.calculateQuote}
       </Button>
 
       {errorMessage ? (
@@ -190,10 +335,245 @@ export function ReservationRequestForm({
       {quote ? <QuoteSummary quote={quote} /> : null}
 
       <Button className="w-full rounded-full" disabled type="button" variant="secondary">
-        {messages.createHoldDisabled}
+        {requestMessages.createHoldDisabled}
       </Button>
-      <p className="text-center text-xs leading-5 text-muted-foreground">{messages.phaseBoundaryNote}</p>
+      <p className="text-center text-xs leading-5 text-muted-foreground">
+        {requestMessages.phaseBoundaryNote}
+      </p>
     </form>
+  );
+}
+
+function DateRangeField({
+  clearLabel,
+  helper,
+  label,
+  locale,
+  onClear,
+  onOpenChange,
+  onSelect,
+  open,
+  selectedLabel,
+  today,
+  value,
+}: Readonly<{
+  clearLabel: string;
+  helper: string;
+  label: string;
+  locale: string;
+  onClear: () => void;
+  onOpenChange: (open: boolean) => void;
+  onSelect: (value: DateRange | undefined) => void;
+  open: boolean;
+  selectedLabel: string;
+  today: Date;
+  value: DateRange | undefined;
+}>) {
+  return (
+    <div className="relative grid gap-2 text-sm font-medium text-foreground">
+      <span>{label}</span>
+      <button
+        className="flex min-h-12 w-full items-center justify-between gap-3 rounded-2xl border border-border/70 bg-background px-4 text-left text-sm text-foreground shadow-sm outline-none transition hover:border-primary/60 focus:border-primary focus:ring-2 focus:ring-primary/20"
+        onClick={() => onOpenChange(!open)}
+        type="button"
+      >
+        <span className={value?.from && value.to ? "text-foreground" : "text-muted-foreground"}>
+          {selectedLabel}
+        </span>
+        <CalendarDays aria-hidden="true" className="size-4 text-muted-foreground" />
+      </button>
+      <span className="text-xs leading-5 text-muted-foreground">{helper}</span>
+
+      {open ? (
+        <div className="absolute left-0 top-full z-30 mt-2 w-full rounded-[1.5rem] border border-border/70 bg-card p-4 shadow-2xl sm:w-[24rem]">
+          <DayPicker
+            classNames={dayPickerClassNames}
+            disabled={{ before: today }}
+            mode="range"
+            numberOfMonths={1}
+            onSelect={onSelect}
+            selected={value}
+            weekStartsOn={1}
+          />
+          <Button className="mt-3 w-full rounded-full" onClick={onClear} type="button" variant="ghost">
+            {clearLabel}
+          </Button>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function OptionSelect({
+  label,
+  onOpenChange,
+  onSelect,
+  open,
+  options,
+  placeholder,
+  value,
+}: Readonly<{
+  label: string;
+  onOpenChange: (open: boolean) => void;
+  onSelect: (value: string) => void;
+  open: boolean;
+  options: readonly TimeOption[];
+  placeholder: string;
+  value: string;
+}>) {
+  const selectedOption = options.find((option) => option.value === value);
+
+  return (
+    <div className="relative grid gap-2 text-sm font-medium text-foreground">
+      <span>{label}</span>
+      <button
+        className="flex h-11 items-center justify-between gap-3 rounded-2xl border border-border/70 bg-background px-4 text-left text-sm text-foreground shadow-sm outline-none transition hover:border-primary/60 focus:border-primary focus:ring-2 focus:ring-primary/20"
+        onClick={() => onOpenChange(!open)}
+        type="button"
+      >
+        <span className={selectedOption ? "text-foreground" : "text-muted-foreground"}>
+          {selectedOption?.label ?? placeholder}
+        </span>
+        <ChevronDown aria-hidden="true" className="size-4 text-muted-foreground" />
+      </button>
+      {open ? (
+        <div className="absolute left-0 top-full z-30 mt-2 max-h-64 w-full overflow-auto rounded-2xl border border-border/70 bg-card p-2 shadow-2xl">
+          {options.map((option) => (
+            <button
+              className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm transition hover:bg-muted"
+              key={option.value}
+              onClick={() => onSelect(option.value)}
+              type="button"
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function CountrySelect({
+  countryOptions,
+  label,
+  noResultsLabel,
+  onOpenChange,
+  onSearchChange,
+  onSelect,
+  open,
+  placeholder,
+  search,
+  searchPlaceholder,
+  value,
+}: Readonly<{
+  countryOptions: readonly CountryOption[];
+  label: string;
+  noResultsLabel: string;
+  onOpenChange: (open: boolean) => void;
+  onSearchChange: (value: string) => void;
+  onSelect: (country: CountryOption) => void;
+  open: boolean;
+  placeholder: string;
+  search: string;
+  searchPlaceholder: string;
+  value: CountryOption;
+}>) {
+  const filteredCountries = countryOptions.filter((country) => {
+    const searchValue = search.trim().toLowerCase();
+
+    if (!searchValue) {
+      return true;
+    }
+
+    return `${country.name} ${country.dialCode} ${country.iso2}`.toLowerCase().includes(searchValue);
+  });
+
+  return (
+    <div className="relative grid gap-2 text-sm font-medium text-foreground">
+      <span>{label}</span>
+      <button
+        className="flex h-11 items-center justify-between gap-3 rounded-2xl border border-border/70 bg-background px-4 text-left text-sm text-foreground shadow-sm outline-none transition hover:border-primary/60 focus:border-primary focus:ring-2 focus:ring-primary/20"
+        onClick={() => onOpenChange(!open)}
+        type="button"
+      >
+        <span className="flex items-center gap-2 truncate">
+          <span aria-hidden="true">{value.flag}</span>
+          <span className="truncate">{value.name}</span>
+          <span className="text-muted-foreground">{value.dialCode}</span>
+        </span>
+        <ChevronDown aria-hidden="true" className="size-4 text-muted-foreground" />
+      </button>
+      {open ? (
+        <div className="absolute left-0 top-full z-30 mt-2 w-full rounded-2xl border border-border/70 bg-card p-2 shadow-2xl">
+          <label className="flex items-center gap-2 rounded-xl border border-border/70 bg-background px-3 py-2 text-sm text-muted-foreground">
+            <Search aria-hidden="true" className="size-4" />
+            <input
+              className="w-full bg-transparent text-foreground outline-none placeholder:text-muted-foreground"
+              onChange={(event) => onSearchChange(event.target.value)}
+              placeholder={searchPlaceholder}
+              type="text"
+              value={search}
+            />
+          </label>
+          <div className="mt-2 max-h-72 overflow-auto pr-1">
+            {filteredCountries.length > 0 ? (
+              filteredCountries.map((country) => (
+                <button
+                  className="flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-left text-sm transition hover:bg-muted"
+                  key={country.iso2}
+                  onClick={() => onSelect(country)}
+                  type="button"
+                >
+                  <span className="flex min-w-0 items-center gap-2">
+                    <span aria-hidden="true">{country.flag}</span>
+                    <span className="truncate">{country.name}</span>
+                  </span>
+                  <span className="shrink-0 text-muted-foreground">{country.dialCode}</span>
+                </button>
+              ))
+            ) : (
+              <p className="px-3 py-4 text-sm text-muted-foreground">{noResultsLabel}</p>
+            )}
+          </div>
+        </div>
+      ) : null}
+      <span className="sr-only">{placeholder}</span>
+    </div>
+  );
+}
+
+function PhoneField({
+  dialCode,
+  inputLabel,
+  label,
+  onChange,
+  value,
+}: Readonly<{
+  dialCode: string;
+  inputLabel: string;
+  label: string;
+  onChange: (value: string) => void;
+  value: string;
+}>) {
+  return (
+    <label className="grid gap-2 text-sm font-medium text-foreground">
+      <span>{label}</span>
+      <span className="flex h-11 overflow-hidden rounded-2xl border border-border/70 bg-background text-sm shadow-sm transition focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
+        <span className="flex items-center border-r border-border/70 bg-muted/45 px-4 font-medium text-foreground">
+          {dialCode}
+        </span>
+        <input
+          autoComplete="tel-national"
+          className="min-w-0 flex-1 bg-background px-4 text-foreground outline-none placeholder:text-muted-foreground"
+          inputMode="tel"
+          onChange={(event) => onChange(event.target.value)}
+          placeholder={inputLabel}
+          type="text"
+          value={value}
+        />
+      </span>
+    </label>
   );
 }
 
@@ -234,19 +614,24 @@ function Field({
 }
 
 function QuoteSummary({ quote }: Readonly<{ quote: ReservationQuote }>) {
+  const { messages } = useLocale();
+  const requestMessages = messages.reservations.request;
+
   return (
     <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 text-sm leading-6">
-      <p className="font-medium text-foreground">{messages.quoteTitle}</p>
+      <p className="font-medium text-foreground">{requestMessages.quoteTitle}</p>
       <dl className="mt-3 grid gap-2 text-muted-foreground">
-        <QuoteRow label={messages.quoteRows.nights} value={String(quote.nights)} />
-        <QuoteRow label={messages.quoteRows.nightlyRate} value={`$${quote.nightlyRate.amount}`} />
-        <QuoteRow label={messages.quoteRows.subtotal} value={`$${quote.subtotal.amount}`} />
-        <QuoteRow label={messages.quoteRows.cleaningFee} value={`$${quote.cleaningFee.amount}`} />
-        <QuoteRow label={messages.quoteRows.taxes} value={`$${quote.taxes.amount}`} />
-        <QuoteRow label={messages.quoteRows.discounts} value={`$${quote.discounts.amount}`} />
-        <QuoteRow emphasize label={messages.quoteRows.total} value={`$${quote.total.amount} ${quote.currency}`} />
+        <QuoteRow label={requestMessages.quoteRows.nights} value={String(quote.nights)} />
+        <QuoteRow label={requestMessages.quoteRows.nightlyRate} value={`$${quote.nightlyRate.amount}`} />
+        <QuoteRow label={requestMessages.quoteRows.subtotal} value={`$${quote.subtotal.amount}`} />
+        <QuoteRow label={requestMessages.quoteRows.cleaningFee} value={`$${quote.cleaningFee.amount}`} />
+        <QuoteRow label={requestMessages.quoteRows.taxes} value={`$${quote.taxes.amount}`} />
+        <QuoteRow label={requestMessages.quoteRows.discounts} value={`$${quote.discounts.amount}`} />
+        <QuoteRow emphasize label={requestMessages.quoteRows.total} value={`$${quote.total.amount} ${quote.currency}`} />
       </dl>
-      <p className="mt-3 text-xs leading-5 text-muted-foreground">{messages.nonBindingQuoteNote}</p>
+      <p className="mt-3 text-xs leading-5 text-muted-foreground">
+        {requestMessages.nonBindingQuoteNote}
+      </p>
     </div>
   );
 }
