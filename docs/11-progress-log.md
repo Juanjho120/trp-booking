@@ -9,7 +9,7 @@ Current phase: Phase 8 — Reservation Flow
 Current subphase: 8.4 Pending reservation creation and expiration handling
 Last updated: 2026-07-08
 Last completed phase: Phase 7 — Airbnb iCal Synchronization
-Last completed subphase: 8.3.1 Initial seed and DB-backed accommodation source
+Last completed subphase: 8.3.2 Reservation form UX and manual locale switcher
 ```
 
 ## Completed Work
@@ -283,7 +283,7 @@ docs/11-progress-log.md updated with Phase 8.3 completion
 Important decisions:
 
 ```text
-The public form uses text-based YYYY-MM-DD fields instead of native browser date pickers.
+The public form initially used text-based YYYY-MM-DD fields instead of native browser date pickers.
 The form calculates a non-binding server-side quote through GET /api/reservations/quote.
 Guest details are captured in UI state only during 8.3.
 The final hold creation button remains disabled until 8.4 introduces server-side reservation creation.
@@ -368,6 +368,48 @@ Important limitation:
 Phase 8.3.1 does not create reservations, pending holds, checkout sessions, Tilopay payment intents, Tilopay redirects, Tilopay webhooks, Resend emails, external calendar configuration, admin calendar UI, deployment configuration, or PMS features.
 ```
 
+### Phase 8.3.2 — Reservation Form UX and Manual Locale Switcher
+
+Status: **Completed**
+
+Completed deliverables:
+
+```text
+react-day-picker added for styled range selection
+react-phone-number-input added for country phone metadata and dial codes
+features/i18n/use-locale.tsx added for client-side locale state and localStorage persistence
+features/i18n/locale-switcher.tsx added for the visible manual ES/EN switcher
+features/i18n/index.ts added as the i18n feature export boundary
+lib/geo/countries.ts added with country options, localized names, flags, and dial codes
+features/reservations/components/reservation-request-form.tsx upgraded to styled controlled booking inputs
+features/reservations/reservation-request-copy.ts added to centralize reservation form UX copy
+features/properties/components/accommodations-page.tsx updated to render public content using the selected locale
+features/properties/components/property-detail-page.tsx updated to render detail content and the reservation form using the selected locale
+types/accommodation.ts kept compatible with DB-backed amenities and transitional config fallback
+config/accommodations.ts kept build-compatible as transitional fallback/reference with empty amenities arrays
+features/i18n/use-locale.tsx widened locale message types so ES and EN message values can differ safely
+docs/48-reservation-form-ux-and-manual-locale-switcher.md added
+```
+
+Important decisions:
+
+```text
+The public reservation request form no longer relies on free-form date, guest count, country, phone, or arrival-time fields.
+Date selection uses a styled range picker instead of native date inputs.
+Guest count is limited to 1..maxGuests for the selected accommodation.
+Country selection shows localized country names, flags, and dial codes.
+The phone field derives the country calling code from the selected country and only asks the guest for the local number.
+Estimated arrival time uses controlled half-hour options instead of free text.
+The public language switcher is manual, visible, and persisted client-side through localStorage.
+The selected locale affects public listing, detail, reservation form labels, and quote request locale.
+```
+
+Important limitation:
+
+```text
+Phase 8.3.2 does not create reservations, pending holds, checkout sessions, Tilopay payment intents, Tilopay redirects, Tilopay webhooks, Resend emails, external calendar configuration, admin calendar UI, deployment configuration, or PMS features.
+```
+
 ## Current Work
 
 ### Phase 8 — Reservation Flow
@@ -384,6 +426,7 @@ Phase 8.4 goals:
 
 ```text
 Create server-side pending reservation holds using PENDING_PAYMENT and non-null expiresAt.
+Use the improved Phase 8.3.2 reservation form data shape as the client input source.
 Recalculate quote and recheck availability immediately before writing a pending reservation.
 Use seeded database properties, property components, images, amenities, and rules as the source of truth.
 Do not confirm reservations, start checkout, call Tilopay, send Resend emails, add admin reservation UI, or add PMS features in 8.4.
@@ -392,16 +435,14 @@ Do not confirm reservations, start checkout, call Tilopay, send Resend emails, a
 ## Next Recommended Work
 
 ```text
-1. Apply Phase 8.3.1 files.
-2. Run npm run db:generate.
-3. Run npm run db:validate.
-4. Run npm run db:migrate:status.
-5. Run npm run db:seed.
-6. Run npm run build.
-7. Run npm run env:validate.
-8. Run npm run lint.
-9. Commit Phase 8.3.1.
-10. Continue with Phase 8.4 Pending reservation creation and expiration handling.
+1. Continue with Phase 8.4 Pending reservation creation and expiration handling.
+2. Create the server-side pending reservation write flow.
+3. Validate guest details, date range, guest count, country, phone, and arrival time server-side.
+4. Recalculate quote on the server.
+5. Recheck availability immediately before writing the pending reservation.
+6. Write Reservation.status = PENDING_PAYMENT with a non-null expiresAt.
+7. Write the related ReservationGuest record.
+8. Do not call Tilopay, send Resend email, confirm reservations, or add PMS features in 8.4.
 ```
 
 ## Continuity Notes for New Conversations
@@ -426,6 +467,7 @@ docs/44-reservation-quote-and-server-side-pricing-foundation.md
 docs/45-public-guest-details-and-reservation-request-form.md
 docs/46-database-migration-bootstrap-correction.md
 docs/47-initial-seed-and-db-backed-accommodation-source.md
+docs/48-reservation-form-ux-and-manual-locale-switcher.md
 lib/db/prisma.ts
 lib/properties/index.ts
 lib/properties/public.ts
@@ -433,6 +475,9 @@ lib/availability/index.ts
 lib/availability/service.ts
 lib/reservations/index.ts
 lib/env/server.ts
+features/i18n/use-locale.tsx
+features/i18n/locale-switcher.tsx
+features/reservations/components/reservation-request-form.tsx
 prisma/schema.prisma
 prisma/seed.ts
 messages/es.ts
@@ -456,6 +501,6 @@ Phase 7 must not expose Airbnb iCal URLs or tokens in code, docs, logs, API resp
 Scheduled sync must validate CRON_SECRET and return redacted summaries only.
 Phase 8 reservation flow must re-check availability server-side and must not confirm reservations before payment validation.
 Server-side quote calculation is the source of truth for reservation totals.
-Phase 8.3 request form must not write reservations, block dates, or start checkout.
+Phase 8.3.2 request form UX must remain controlled and styled; do not return to free-form date, guest count, country, phone, or arrival-time inputs.
 Phase 8.3.1 seed data is required before Phase 8.4 writes pending reservations.
 ```

@@ -16,7 +16,7 @@ Deferred — Intentionally postponed.
 ```text
 Current phase: Phase 8 — Reservation Flow
 Current subphase: 8.4 Pending reservation creation and expiration handling
-Current focus: create server-side pending reservation holds using seeded, database-backed public accommodation records, without integrating Tilopay, sending Resend emails, confirming reservations, or adding PMS features.
+Current focus: create server-side pending reservation holds using seeded, database-backed public accommodation records and the improved reservation request UX, without integrating Tilopay, sending Resend emails, confirming reservations, or adding PMS features.
 ```
 
 ---
@@ -225,7 +225,7 @@ Phase 7 closure result:
 
 Status: **In progress**
 
-Goal: Add the public direct reservation flow foundation using server-side validation, pending holds, guest details, seeded accommodation records, and availability revalidation before any payment handoff.
+Goal: Add the public direct reservation flow foundation using server-side validation, pending holds, guest details, seeded accommodation records, improved booking UX, manual locale selection, and availability revalidation before any payment handoff.
 
 Subphase status:
 
@@ -234,6 +234,7 @@ Subphase status:
 8.2 Reservation quote and server-side pricing foundation — Completed
 8.3 Public guest details and reservation request form — Completed
 8.3.1 Initial seed and DB-backed accommodation source — Completed
+8.3.2 Reservation form UX and manual locale switcher — Completed
 8.4 Pending reservation creation and expiration handling — In progress
 8.5 Availability revalidation before payment handoff — Not started
 8.6 Phase 8 documentation update — Not started
@@ -250,6 +251,8 @@ Phase 8 rules:
 - Guest count, date ranges, and totals must be validated on the server.
 - Guests must not modify confirmed reservation dates directly from the public website.
 - Public accommodation listing, detail, quote, availability, and reservation creation must use seeded database property records as the source of truth.
+- Public reservation input must use controlled, styled inputs for date range, guest count, country, phone, and arrival time after Phase 8.3.2.
+- Public language selection must be manual and visible through the locale switcher after Phase 8.3.2.
 - Do not add PMS features.
 ```
 
@@ -301,6 +304,21 @@ Phase 8.3.1 result:
 - The availability service now resolves property IDs and preparation buffer policies from seeded database records.
 - docs/47-initial-seed-and-db-backed-accommodation-source.md was added.
 - Phase 8.3.1 does not create reservations, pending holds, checkout sessions, Tilopay payment intents, Resend emails, external calendar configuration, admin calendar UI, deployment configuration, or PMS features.
+```
+
+Phase 8.3.2 result:
+
+```text
+- react-day-picker was added for a styled public date range picker.
+- react-phone-number-input was added so country phone metadata and dial codes are not manually guessed.
+- features/i18n/use-locale.tsx was added as the client-side locale state and persistence hook.
+- features/i18n/locale-switcher.tsx was added as the visible manual ES/EN switcher.
+- lib/geo/countries.ts was added to expose localized country options with flags and dial codes.
+- features/reservations/components/reservation-request-form.tsx was upgraded from free-form fields to controlled, styled inputs for date range, guest count, country, phone, and estimated arrival time.
+- features/reservations/reservation-request-copy.ts was added to centralize reservation UX copy outside TSX components.
+- Listing/detail public components now use the selected locale for visible accommodation content.
+- docs/48-reservation-form-ux-and-manual-locale-switcher.md was added.
+- Phase 8.3.2 does not create reservations, pending holds, checkout sessions, Tilopay payment intents, Resend emails, external calendar configuration, admin calendar UI, deployment configuration, or PMS features.
 ```
 
 ---

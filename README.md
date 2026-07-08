@@ -98,6 +98,8 @@ Max guests: 6
 - Reservation flow must re-check availability server-side before creating pending holds or handing off to payment.
 - Pending reservation holds must use `PENDING_PAYMENT` with a non-null `expiresAt` and must never be confirmed before validated payment.
 - Public guest details forms may calculate quotes and collect client-side details before Phase 8.4, but must not create reservations or block dates.
+- After Phase 8.3.2, the public reservation request form must use styled, controlled booking inputs instead of free-form date, guest, country, phone, and arrival-time fields.
+- The public site must expose a manual ES/EN locale switcher and must persist the guest-selected locale client-side.
 
 ## Documentation
 
@@ -153,6 +155,7 @@ docs/
   45-public-guest-details-and-reservation-request-form.md
   46-database-migration-bootstrap-correction.md
   47-initial-seed-and-db-backed-accommodation-source.md
+  48-reservation-form-ux-and-manual-locale-switcher.md
 ```
 
 The assistant collaboration rules live in:
@@ -167,7 +170,7 @@ AGENTS.md
 Current phase: Phase 8 — Reservation Flow
 Current subphase: 8.4 Pending reservation creation and expiration handling
 Last completed phase: Phase 7 — Airbnb iCal Synchronization
-Last completed subphase: 8.3.1 Initial seed and DB-backed accommodation source
+Last completed subphase: 8.3.2 Reservation form UX and manual locale switcher
 ```
 
-See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/46-database-migration-bootstrap-correction.md`, and `docs/47-initial-seed-and-db-backed-accommodation-source.md` for the official current tracker and database-backed reservation flow context.
+See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/46-database-migration-bootstrap-correction.md`, `docs/47-initial-seed-and-db-backed-accommodation-source.md`, and `docs/48-reservation-form-ux-and-manual-locale-switcher.md` for the official current tracker and database-backed reservation flow context.
