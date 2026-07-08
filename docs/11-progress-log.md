@@ -6,10 +6,10 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 7 — Airbnb iCal Synchronization
-Current subphase: 7.5 Scheduled sync and manual sync foundation
+Current subphase: 7.6 Phase 7 documentation update
 Last updated: 2026-07-08
 Last completed phase: Phase 6 — Availability Calendar Foundation
-Last completed subphase: 7.4 Airbnb iCal export feed foundation
+Last completed subphase: 7.5 Scheduled sync and manual sync foundation
 ```
 
 ## Completed Work
@@ -277,19 +277,52 @@ docs/11-progress-log.md updated with Phase 7.4 completion
 Important decisions:
 
 ```text
-The public export endpoint is GET /api/ical/[token].
-Runtime tokens are hashed and compared against ExternalCalendar.exportTokenHash.
-Raw export tokens are not stored, logged, returned, or included in the generated feed.
-Invalid or disabled feeds return a generic 404.
-The generated feed returns only generic unavailable all-day VEVENT records.
-Unavailable ranges are normalized before export.
-ExternalCalendar.lastExportGeneratedAt is updated when a valid feed is generated.
+The export feed route returns text/calendar content only.
+Raw export tokens are accepted only in the URL and immediately hashed for lookup.
+ExternalCalendar.exportTokenHash is never returned to public clients.
+Exported VEVENT records use SUMMARY:Unavailable and do not include guest, payment, admin, provider-secret, or private import URL details.
+Exported ranges are normalized to reduce duplicate/overlapping unavailable events.
 ```
 
 Important limitation:
 
 ```text
-Phase 7.4 does not add cron scheduling, manual admin sync UI, admin token generation UI, export token rotation UI, migration files, seed data, checkout, payment, email, real Airbnb URLs, raw token storage, or PMS features.
+Phase 7.4 does not add cron scheduling, manual admin sync UI, migration files, seed data, checkout, payment, email, real Airbnb URLs, raw token storage, or PMS features.
+```
+
+### Phase 7.5 — Scheduled Sync and Manual Sync Foundation
+
+Status: **Completed**
+
+Completed deliverables:
+
+```text
+vercel.json added with a 30-minute cron schedule for /api/cron/sync-airbnb-calendars
+app/api/cron/sync-airbnb-calendars/route.ts added
+lib/airbnb-ical/scheduled-sync.ts added
+lib/airbnb-ical/types.ts updated with batch sync and URL resolver types
+lib/airbnb-ical/index.ts updated with scheduled/manual sync exports
+.env.example updated with CRON_SECRET and optional AIRBNB_ICAL_IMPORT_URLS_JSON fallback
+docs/41-scheduled-sync-and-manual-sync-foundation.md added
+README.md updated with Phase 7.5 completion and Phase 7.6 current status
+docs/10-phases.md updated to mark 7.5 completed and 7.6 in progress
+docs/11-progress-log.md updated with Phase 7.5 completion
+```
+
+Important decisions:
+
+```text
+The cron endpoint is protected by CRON_SECRET and supports Authorization: Bearer <secret> or x-cron-secret.
+The endpoint returns redacted operational summaries only.
+Batch sync resolves import URLs server-side and never returns raw Airbnb import URLs or tokens.
+The optional AIRBNB_ICAL_IMPORT_URLS_JSON environment fallback is an early-development bridge until encrypted DB-backed resolution/admin settings exist.
+Manual sync is introduced as a server-side service foundation through syncAirbnbIcalCalendarManually, without adding admin UI yet.
+```
+
+Important limitation:
+
+```text
+Phase 7.5 does not add admin sync UI, migration files, seed data, checkout, payment, email, real Airbnb URLs, raw token storage, or PMS features.
 ```
 
 ## Current Work
@@ -301,29 +334,29 @@ Status: **In progress**
 Current subphase:
 
 ```text
-7.5 Scheduled sync and manual sync foundation
+7.6 Phase 7 documentation update
 ```
 
-Phase 7.5 goals:
+Phase 7.6 goals:
 
 ```text
-Introduce the scheduled sync and protected manual sync foundations using the Phase 7.3 import service and Phase 7.4 export feed foundation.
-Protect scheduled sync with a server-only secret such as CRON_SECRET.
-Keep manual sync behind protected admin routes.
-Do not add checkout, payment, email, PMS features, or raw token exposure.
+Close Phase 7 after confirming the secure import contract, calendar configuration model, import parser/sync service, export feed foundation, and scheduled/manual sync foundation.
+Do not add checkout, payment, email, reservation flow, admin PMS features, or additional provider integrations in 7.6.
 ```
 
 ## Next Recommended Work
 
 ```text
-1. Apply Phase 7.4 files.
-2. Run npm run db:generate.
-3. Run npm run db:validate.
-4. Run npm run build.
-5. Run npm run env:validate.
-6. Run npm run lint.
-7. Commit Phase 7.4.
-8. Continue with Phase 7.5 Scheduled sync and manual sync foundation.
+1. Apply Phase 7.5 files.
+2. Add a real CRON_SECRET to local .env and Vercel environment variables before invoking the cron endpoint.
+3. Optionally configure AIRBNB_ICAL_IMPORT_URLS_JSON in server-side env for early import URL resolution.
+4. Run npm run db:generate.
+5. Run npm run db:validate.
+6. Run npm run build.
+7. Run npm run env:validate.
+8. Run npm run lint.
+9. Commit Phase 7.5.
+10. Continue with Phase 7.6 Phase 7 documentation update.
 ```
 
 ## Continuity Notes for New Conversations
@@ -349,6 +382,7 @@ docs/37-airbnb-ical-strategy-and-environment-contract.md
 docs/38-airbnb-calendar-configuration-model.md
 docs/39-airbnb-ical-import-parser-and-sync-service.md
 docs/40-airbnb-ical-export-feed-foundation.md
+docs/41-scheduled-sync-and-manual-sync-foundation.md
 lib/db/prisma.ts
 lib/availability/index.ts
 lib/availability/service.ts
@@ -358,6 +392,7 @@ lib/cloudinary/index.ts
 config/accommodations.ts
 config/seo.ts
 next.config.ts
+vercel.json
 .env.example
 auth.ts
 middleware.ts
@@ -382,5 +417,5 @@ Public accommodation images should stay Cloudinary-backed after Phase 5.4.
 Phase 6 availability code must preserve composed listing and preparation buffer rules.
 Public availability UI must not create reservations or start checkout during Phase 6.
 Phase 7 must not expose Airbnb iCal URLs or tokens in code, docs, logs, API responses, or public UI.
-Airbnb export feed tokens must be stored as hashes and raw tokens must not be returned after creation.
+Scheduled sync must validate CRON_SECRET and return redacted summaries only.
 ```

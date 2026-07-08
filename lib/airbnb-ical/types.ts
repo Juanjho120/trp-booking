@@ -63,3 +63,45 @@ export type AirbnbIcalExportFeedResult = Readonly<{
   eventCount: number;
   content: string;
 }>;
+
+export type AirbnbIcalImportUrlResolverCalendar = Readonly<{
+  id: string;
+  propertyId: string;
+  name: string;
+  importUrlEncrypted?: string | null;
+}>;
+
+export type AirbnbIcalImportUrlResolver = (
+  calendar: AirbnbIcalImportUrlResolverCalendar,
+) => string | null | undefined | Promise<string | null | undefined>;
+
+export type AirbnbIcalBatchSyncInput = Readonly<{
+  externalCalendarIds?: readonly string[];
+  triggeredBy?: CalendarSyncTriggeredBy;
+  timeoutMs?: number;
+}>;
+
+export type AirbnbIcalBatchSyncCalendarStatus = "SUCCESS" | "FAILED" | "SKIPPED";
+
+export type AirbnbIcalBatchSyncCalendarResult = Readonly<{
+  externalCalendarId: string;
+  syncLogId?: string;
+  status: AirbnbIcalBatchSyncCalendarStatus;
+  errorCode?: string;
+  errorMessage?: string;
+  eventsImported: number;
+  eventsUpdated: number;
+  eventsRemoved: number;
+  eventsSkipped: number;
+  blocksCreated: number;
+  blocksUpdated: number;
+}>;
+
+export type AirbnbIcalBatchSyncResult = Readonly<{
+  triggeredBy: CalendarSyncTriggeredBy;
+  calendarsFound: number;
+  calendarsSynced: number;
+  calendarsFailed: number;
+  calendarsSkipped: number;
+  results: readonly AirbnbIcalBatchSyncCalendarResult[];
+}>;
