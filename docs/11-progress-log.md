@@ -6,10 +6,10 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 8 — Reservation Flow
-Current subphase: 8.1 Reservation flow strategy and pending hold contract
+Current subphase: 8.2 Reservation quote and server-side pricing foundation
 Last updated: 2026-07-08
 Last completed phase: Phase 7 — Airbnb iCal Synchronization
-Last completed subphase: 7.6 Phase 7 documentation update
+Last completed subphase: 8.1 Reservation flow strategy and pending hold contract
 ```
 
 ## Completed Work
@@ -249,6 +249,38 @@ docs/11-progress-log.md updated with Phase 7 closure
 docs/42-phase-7-airbnb-ical-closure-review.md added
 ```
 
+### Phase 8.1 — Reservation Flow Strategy and Pending Hold Contract
+
+Status: **Completed**
+
+Completed deliverables:
+
+```text
+docs/43-reservation-flow-strategy-and-pending-hold-contract.md added
+README.md updated with Phase 8.1 completion and Phase 8.2 current status
+docs/10-phases.md updated to mark 8.1 completed and 8.2 in progress
+docs/11-progress-log.md updated with Phase 8.1 completion
+```
+
+Important decisions:
+
+```text
+The direct reservation flow must recheck availability server-side before creating a pending hold.
+Pending holds use Reservation.status = PENDING_PAYMENT with a required non-null expiresAt.
+Active pending holds block availability only until expiresAt.
+Expired pending holds must not block availability, reservation creation, or payment handoff.
+The initial MVP hold duration is 15 minutes.
+Reservations must not become CONFIRMED until a later Tilopay webhook validation succeeds.
+Reservation totals must be calculated server-side and must not trust client-provided totals.
+Tilopay remains Phase 9 and Resend remains Phase 10.
+```
+
+Important limitation:
+
+```text
+Phase 8.1 does not add reservation creation route handlers, pricing service code, guest form UI, checkout, Tilopay, Resend, migration files, seed data, admin reservation UI, deployment changes, or PMS features.
+```
+
 ## Current Work
 
 ### Phase 8 — Reservation Flow
@@ -258,30 +290,29 @@ Status: **In progress**
 Current subphase:
 
 ```text
-8.1 Reservation flow strategy and pending hold contract
+8.2 Reservation quote and server-side pricing foundation
 ```
 
-Phase 8.1 goals:
+Phase 8.2 goals:
 
 ```text
-Define the direct reservation flow before writing reservation creation code.
-Document pending hold behavior, expiration rules, server-side guest/date/price validation, and availability revalidation boundaries.
-Keep Tilopay payment processing in Phase 9 and Resend email delivery in Phase 10.
-Do not confirm reservations before payment validation.
-Do not add PMS features.
+Add the server-side quote foundation for direct reservations.
+Calculate number of nights, subtotal, fees, discounts, taxes, total, and currency on the server.
+Validate accommodation, date ranges, guest count, and availability before returning a quote.
+Do not create reservations, start checkout, call Tilopay, send Resend emails, add admin reservation UI, or add PMS features yet.
 ```
 
 ## Next Recommended Work
 
 ```text
-1. Apply Phase 7.6 files.
+1. Apply Phase 8.1 files.
 2. Run npm run db:generate.
 3. Run npm run db:validate.
 4. Run npm run build.
 5. Run npm run env:validate.
 6. Run npm run lint.
-7. Commit Phase 7.6.
-8. Continue with Phase 8.1 Reservation flow strategy and pending hold contract.
+7. Commit Phase 8.1.
+8. Continue with Phase 8.2 Reservation quote and server-side pricing foundation.
 ```
 
 ## Continuity Notes for New Conversations
@@ -307,6 +338,7 @@ docs/39-airbnb-ical-import-parser-and-sync-service.md
 docs/40-airbnb-ical-export-feed-foundation.md
 docs/41-scheduled-sync-and-manual-sync-foundation.md
 docs/42-phase-7-airbnb-ical-closure-review.md
+docs/43-reservation-flow-strategy-and-pending-hold-contract.md
 lib/db/prisma.ts
 lib/availability/index.ts
 lib/availability/service.ts
@@ -342,4 +374,5 @@ Phase 6 availability code must preserve composed listing and preparation buffer 
 Phase 7 must not expose Airbnb iCal URLs or tokens in code, docs, logs, API responses, or public UI.
 Scheduled sync must validate CRON_SECRET and return redacted summaries only.
 Phase 8 reservation flow must re-check availability server-side and must not confirm reservations before payment validation.
+Phase 8 pending holds must use PENDING_PAYMENT with non-null expiresAt and must not block availability after expiration.
 ```

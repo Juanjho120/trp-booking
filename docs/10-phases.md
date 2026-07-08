@@ -15,8 +15,8 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 8 — Reservation Flow
-Current subphase: 8.1 Reservation flow strategy and pending hold contract
-Current focus: define the reservation flow, pending hold rules, guest data boundary, and server-side validation contract before creating reservation records, starting Tilopay checkout, sending email, or adding PMS features.
+Current subphase: 8.2 Reservation quote and server-side pricing foundation
+Current focus: implement the server-side reservation quote and pricing foundation using the Phase 8.1 reservation hold contract, without creating reservations, checkout, payment processing, email delivery, or PMS features.
 ```
 
 ---
@@ -229,8 +229,8 @@ Goal: Add the public direct reservation flow foundation using server-side valida
 Subphase status:
 
 ```text
-8.1 Reservation flow strategy and pending hold contract — In progress
-8.2 Reservation quote and server-side pricing foundation — Not started
+8.1 Reservation flow strategy and pending hold contract — Completed
+8.2 Reservation quote and server-side pricing foundation — In progress
 8.3 Public guest details and reservation request form — Not started
 8.4 Pending reservation creation and expiration handling — Not started
 8.5 Availability revalidation before payment handoff — Not started
@@ -248,6 +248,17 @@ Phase 8 rules:
 - Guest count, date ranges, and totals must be validated on the server.
 - Guests must not modify confirmed reservation dates directly from the public website.
 - Do not add PMS features.
+```
+
+Phase 8.1 result:
+
+```text
+- docs/43-reservation-flow-strategy-and-pending-hold-contract.md was added.
+- The public direct reservation lifecycle was documented before writing reservation creation code.
+- The pending hold contract was defined using Reservation.status = PENDING_PAYMENT and a required non-null expiresAt value for future hold creation.
+- Server-side validation boundaries were documented for date ranges, guest capacity, availability, price calculation, currency, and expiration handling.
+- Phase 8.1 confirmed that reservations must not become CONFIRMED until payment is validated by a later Tilopay webhook phase.
+- Phase 8.1 did not add route handlers, form UI, reservation writes, checkout, Tilopay, Resend, migration files, seed data, deployment, admin reservation UI, or PMS features.
 ```
 
 ---
