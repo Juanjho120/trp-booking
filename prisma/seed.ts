@@ -22,16 +22,6 @@ type PropertySeed = Readonly<{
   preparationDaysAfter: number;
 }>;
 
-type ImageSeed = Readonly<{
-  id: string;
-  propertyId: string;
-  url: string;
-  altTextEs: string;
-  altTextEn: string;
-  sortOrder: number;
-  isCover: boolean;
-}>;
-
 type AmenitySeed = Readonly<{
   id: string;
   key: string;
@@ -135,117 +125,6 @@ const propertyComponents = [
     componentPropertyId: "perfect-retreat-bungalow",
   },
 ] as const;
-
-const propertyImages: readonly ImageSeed[] = [
-  {
-    id: "black-white-apartment_cover",
-    propertyId: "black-white-apartment",
-    url: "/images/accommodations/black-white-apartment/cover.webp",
-    altTextEs: "Patio exterior azul de Apartamento Blanco y Negro en Panajachel.",
-    altTextEn: "Blue exterior courtyard of Black & White Apartment in Panajachel.",
-    sortOrder: 1,
-    isCover: true,
-  },
-  {
-    id: "black-white-apartment_gallery_01",
-    propertyId: "black-white-apartment",
-    url: "/images/accommodations/black-white-apartment/gallery-01.webp",
-    altTextEs: "Dormitorio con decoración en blanco y negro del apartamento.",
-    altTextEn: "Bedroom with black and white decor in the apartment.",
-    sortOrder: 2,
-    isCover: false,
-  },
-  {
-    id: "black-white-apartment_gallery_02",
-    propertyId: "black-white-apartment",
-    url: "/images/accommodations/black-white-apartment/gallery-02.webp",
-    altTextEs: "Área interior funcional con cocina y mesa del apartamento.",
-    altTextEn: "Functional indoor area with kitchen and table in the apartment.",
-    sortOrder: 3,
-    isCover: false,
-  },
-  {
-    id: "black-white-apartment_gallery_03",
-    propertyId: "black-white-apartment",
-    url: "/images/accommodations/black-white-apartment/gallery-03.webp",
-    altTextEs: "Baño privado del Apartamento Blanco y Negro.",
-    altTextEn: "Private bathroom of Black & White Apartment.",
-    sortOrder: 4,
-    isCover: false,
-  },
-  {
-    id: "perfect-retreat-bungalow_cover",
-    propertyId: "perfect-retreat-bungalow",
-    url: "/images/accommodations/perfect-retreat-bungalow/cover.webp",
-    altTextEs: "Entrada del Bungalow Refugio Perfecto con patio exterior.",
-    altTextEn: "Entrance of Perfect Retreat Bungalow with exterior courtyard.",
-    sortOrder: 1,
-    isCover: true,
-  },
-  {
-    id: "perfect-retreat-bungalow_gallery_01",
-    propertyId: "perfect-retreat-bungalow",
-    url: "/images/accommodations/perfect-retreat-bungalow/gallery-01.webp",
-    altTextEs: "Dormitorio del Bungalow Refugio Perfecto con tonos crema y cortinas grises.",
-    altTextEn: "Bedroom of Perfect Retreat Bungalow with cream tones and gray curtains.",
-    sortOrder: 2,
-    isCover: false,
-  },
-  {
-    id: "perfect-retreat-bungalow_gallery_02",
-    propertyId: "perfect-retreat-bungalow",
-    url: "/images/accommodations/perfect-retreat-bungalow/gallery-02.webp",
-    altTextEs: "Área de comedor y cocina equipada del bungalow.",
-    altTextEn: "Dining area and equipped kitchen of the bungalow.",
-    sortOrder: 3,
-    isCover: false,
-  },
-  {
-    id: "perfect-retreat-bungalow_gallery_03",
-    propertyId: "perfect-retreat-bungalow",
-    url: "/images/accommodations/perfect-retreat-bungalow/gallery-03.webp",
-    altTextEs: "Baño completo del Bungalow Refugio Perfecto.",
-    altTextEn: "Full bathroom of Perfect Retreat Bungalow.",
-    sortOrder: 4,
-    isCover: false,
-  },
-  {
-    id: "complete-retreat_cover",
-    propertyId: "complete-retreat",
-    url: "/images/accommodations/complete-retreat/cover.webp",
-    altTextEs: "Patio exterior compartido de Tu Refugio Perfecto en Panajachel.",
-    altTextEn: "Shared exterior courtyard of Tu Refugio Perfecto in Panajachel.",
-    sortOrder: 1,
-    isCover: true,
-  },
-  {
-    id: "complete-retreat_gallery_01",
-    propertyId: "complete-retreat",
-    url: "/images/accommodations/complete-retreat/gallery-01.webp",
-    altTextEs: "Dormitorio de Apartamento Blanco y Negro incluido en Refugio Completo.",
-    altTextEn: "Bedroom of Black & White Apartment included in the complete retreat.",
-    sortOrder: 2,
-    isCover: false,
-  },
-  {
-    id: "complete-retreat_gallery_02",
-    propertyId: "complete-retreat",
-    url: "/images/accommodations/complete-retreat/gallery-02.webp",
-    altTextEs: "Comedor del Bungalow Refugio Perfecto incluido en Refugio Completo.",
-    altTextEn: "Dining area of Perfect Retreat Bungalow included in the complete retreat.",
-    sortOrder: 3,
-    isCover: false,
-  },
-  {
-    id: "complete-retreat_gallery_03",
-    propertyId: "complete-retreat",
-    url: "/images/accommodations/complete-retreat/gallery-03.webp",
-    altTextEs: "Baño completo disponible al reservar Refugio Completo.",
-    altTextEn: "Full bathroom available when booking the complete retreat.",
-    sortOrder: 4,
-    isCover: false,
-  },
-];
 
 const amenities: readonly AmenitySeed[] = [
   { id: "amenity_combined-access", key: "combined-access", icon: "home", category: "access", nameEs: "Acceso a ambos alojamientos", nameEn: "Access to both accommodations" },
@@ -417,34 +296,22 @@ async function seedPropertyComponents(): Promise<void> {
 }
 
 async function seedPropertyImages(): Promise<void> {
-  for (const image of propertyImages) {
-    await prisma.propertyImage.upsert({
-      where: { id: image.id },
-      update: {
-        propertyId: image.propertyId,
-        cloudinaryPublicId: null,
-        url: image.url,
-        secureUrl: null,
-        altTextEs: image.altTextEs,
-        altTextEn: image.altTextEn,
-        sortOrder: image.sortOrder,
-        isCover: image.isCover,
-        deletedAt: null,
-        deletedById: null,
-      },
-      create: {
-        id: image.id,
-        propertyId: image.propertyId,
-        cloudinaryPublicId: null,
-        url: image.url,
-        secureUrl: null,
-        altTextEs: image.altTextEs,
-        altTextEn: image.altTextEn,
-        sortOrder: image.sortOrder,
-        isCover: image.isCover,
-      },
-    });
-  }
+  // Public images are Cloudinary-owned data and must not be seeded with local placeholders.
+  // This cleanup only soft-deletes legacy local placeholder rows generated by older seeds.
+  await prisma.propertyImage.updateMany({
+    where: {
+      deletedAt: null,
+      cloudinaryPublicId: null,
+      OR: [
+        { url: { startsWith: "/images/accommodations/" } },
+        { secureUrl: { startsWith: "/images/accommodations/" } },
+      ],
+    },
+    data: {
+      deletedAt: new Date(),
+      deletedById: null,
+    },
+  });
 }
 
 async function seedAmenities(): Promise<void> {

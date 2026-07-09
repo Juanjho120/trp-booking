@@ -51,6 +51,8 @@ const ruleDisplayOrder = [
   "respect-both-listings",
 ] as const;
 
+const cloudinaryDeliveryUrlPrefix = "https://res.cloudinary.com/";
+
 const publicPropertySelect = {
   id: true,
   nameEs: true,
@@ -73,6 +75,11 @@ const publicPropertySelect = {
   images: {
     where: {
       deletedAt: null,
+      OR: [
+        { cloudinaryPublicId: { not: null } },
+        { secureUrl: { startsWith: cloudinaryDeliveryUrlPrefix } },
+        { url: { startsWith: cloudinaryDeliveryUrlPrefix } },
+      ],
     },
     orderBy: [
       {
@@ -212,24 +219,51 @@ function buildArrivalPolicy(property: PublicPropertyRecord): Accommodation["arri
   };
 }
 
+function isCloudinaryDeliveryUrl(value: string | null): value is string {
+  return value?.startsWith(cloudinaryDeliveryUrlPrefix) ?? false;
+}
+
 function toAccommodationImage(
   image: PublicPropertyRecord["images"][number],
-): AccommodationImage {
-  const fallbackSrc = image.url;
-  const src = image.cloudinaryPublicId
-    ? buildCloudinaryImageUrl(image.cloudinaryPublicId, {
-        width: 1600,
-        height: 1200,
-        crop: "fill",
-        quality: "auto",
-        format: "auto",
-      })
-    : image.secureUrl ?? image.url;
+): AccommodationImage | null {
+  if (image.cloudinaryPublicId) {
+    const src = buildCloudinaryImageUrl(image.cloudinaryPublicId, {
+      width: 1600,
+      height: 1200,
+      crop: "fill",
+      quality: "auto",
+      format: "auto",
+    });
+    const fallbackSrc = isCloudinaryDeliveryUrl(image.secureUrl)
+      ? image.secureUrl
+      : isCloudinaryDeliveryUrl(image.url)
+        ? image.url
+        : src;
+
+    return {
+      cloudinaryPublicId: image.cloudinaryPublicId,
+      src,
+      fallbackSrc,
+      alt: {
+        es: image.altTextEs,
+        en: image.altTextEn,
+      },
+    };
+  }
+
+  const cloudinaryUrl = isCloudinaryDeliveryUrl(image.secureUrl)
+    ? image.secureUrl
+    : isCloudinaryDeliveryUrl(image.url)
+      ? image.url
+      : null;
+
+  if (!cloudinaryUrl) {
+    return null;
+  }
 
   return {
-    cloudinaryPublicId: image.cloudinaryPublicId ?? undefined,
-    src,
-    fallbackSrc,
+    src: cloudinaryUrl,
+    fallbackSrc: cloudinaryUrl,
     alt: {
       es: image.altTextEs,
       en: image.altTextEn,
@@ -237,14 +271,27 @@ function toAccommodationImage(
   };
 }
 
-function getCoverImage(property: PublicPropertyRecord): AccommodationImage {
-  const coverImage = property.images.find((image) => image.isCover) ?? property.images[0];
+function getCloudinaryImages(property: PublicPropertyRecord): readonly AccommodationImage[] {
+  return property.images
+    .map(toAccommodationImage)
+    .filter((image): image is AccommodationImage => image !== null);
+}
 
-  if (!coverImage) {
-    throw new Error(`Public property ${property.id} does not have an active image.`);
+function getCoverImage(property: PublicPropertyRecord): AccommodationImage {
+  const cloudinaryImages = getCloudinaryImages(property);
+  const coverRecord = property.images.find((image) => image.isCover);
+  const coverImage = coverRecord ? toAccommodationImage(coverRecord) : null;
+
+  const image = coverImage ?? cloudinaryImages[0];
+
+  if (!image) {
+    throw new Error(
+      `Public property ${property.id} does not have active Cloudinary images. ` +
+        "Upload Cloudinary images in property_images before rendering the public gallery.",
+    );
   }
 
-  return toAccommodationImage(coverImage);
+  return image;
 }
 
 function getGalleryImages(property: PublicPropertyRecord): readonly AccommodationImage[] {
@@ -252,7 +299,8 @@ function getGalleryImages(property: PublicPropertyRecord): readonly Accommodatio
 
   return property.images
     .filter((image) => image.id !== coverImageId)
-    .map(toAccommodationImage);
+    .map(toAccommodationImage)
+    .filter((image): image is AccommodationImage => image !== null);
 }
 
 function getAmenities(property: PublicPropertyRecord): readonly AmenityDefinition[] {

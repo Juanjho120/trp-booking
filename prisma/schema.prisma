@@ -1,8 +1,7 @@
 // TRP Booking — Prisma core booking domain schema
 //
-// Phase 3.5 keeps the initial database model aligned with the seed strategy.
-// It does not create migrations, seed scripts, admin UI, payments integration,
-// Cloudinary integration, Resend integration, Airbnb iCal sync, or reservation checkout.
+// TypeScript/Prisma field names stay camelCase for application code.
+// Database table and column names are mapped to PostgreSQL snake_case with @map / @@map.
 //
 // Development database target:
 // - Supabase project: portfolio-lab
@@ -22,12 +21,16 @@ datasource db {
 
 enum UserRole {
   ADMIN
+
+  @@map("user_role")
 }
 
 enum PropertyStatus {
   DRAFT
   ACTIVE
   INACTIVE
+
+  @@map("property_status")
 }
 
 enum ReservationStatus {
@@ -38,10 +41,14 @@ enum ReservationStatus {
   PARTIALLY_REFUNDED
   EXPIRED
   BLOCKED
+
+  @@map("reservation_status")
 }
 
 enum PaymentProvider {
   TILOPAY
+
+  @@map("payment_provider")
 }
 
 enum PaymentStatus {
@@ -51,6 +58,8 @@ enum PaymentStatus {
   FAILED
   REFUNDED
   PARTIALLY_REFUNDED
+
+  @@map("payment_status")
 }
 
 enum RefundStatus {
@@ -58,6 +67,8 @@ enum RefundStatus {
   APPROVED
   FAILED
   MANUAL
+
+  @@map("refund_status")
 }
 
 enum CalendarBlockSource {
@@ -67,34 +78,46 @@ enum CalendarBlockSource {
   MAINTENANCE
   COMPOSED_LISTING_DEPENDENCY
   PREPARATION_BUFFER
+
+  @@map("calendar_block_source")
 }
 
 enum ExternalCalendarProvider {
   AIRBNB
+
+  @@map("external_calendar_provider")
 }
 
 enum ExternalCalendarStatus {
   ACTIVE
   INACTIVE
   ERROR
+
+  @@map("external_calendar_status")
 }
 
 enum ExternalCalendarDirection {
   IMPORT
   EXPORT
   BIDIRECTIONAL
+
+  @@map("external_calendar_direction")
 }
 
 enum ExternalCalendarEventStatus {
   ACTIVE
   REMOVED
   CANCELLED
+
+  @@map("external_calendar_event_status")
 }
 
 enum CalendarSyncTriggeredBy {
   CRON
   ADMIN
   SYSTEM
+
+  @@map("calendar_sync_triggered_by")
 }
 
 enum CalendarSyncStatus {
@@ -102,6 +125,8 @@ enum CalendarSyncStatus {
   SUCCESS
   FAILED
   PARTIAL_SUCCESS
+
+  @@map("calendar_sync_status")
 }
 
 enum EmailNotificationType {
@@ -114,6 +139,8 @@ enum EmailNotificationType {
   REFUND_PROCESSED
   ARRIVAL_INSTRUCTIONS
   ADMIN_NEW_RESERVATION
+
+  @@map("email_notification_type")
 }
 
 enum EmailNotificationStatus {
@@ -121,6 +148,8 @@ enum EmailNotificationStatus {
   SENT
   FAILED
   SKIPPED
+
+  @@map("email_notification_status")
 }
 
 model User {
@@ -128,8 +157,8 @@ model User {
   name      String?
   email     String   @unique
   role      UserRole @default(ADMIN)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   deletedProperties        Property[]         @relation("PropertyDeletedBy")
   deletedPropertyImages    PropertyImage[]    @relation("PropertyImageDeletedBy")
@@ -145,28 +174,28 @@ model User {
 
 model Property {
   id                    String         @id @default(cuid())
-  nameEs                String
-  nameEn                String
+  nameEs                String         @map("name_es")
+  nameEn                String         @map("name_en")
   slug                  String         @unique
-  shortDescriptionEs    String         @db.Text
-  shortDescriptionEn    String         @db.Text
-  longDescriptionEs     String         @db.Text
-  longDescriptionEn     String         @db.Text
-  maxGuests             Int
+  shortDescriptionEs    String         @map("short_description_es") @db.Text
+  shortDescriptionEn    String         @map("short_description_en") @db.Text
+  longDescriptionEs     String         @map("long_description_es") @db.Text
+  longDescriptionEn     String         @map("long_description_en") @db.Text
+  maxGuests             Int            @map("max_guests")
   bedrooms              Int
   bathrooms             Int
-  baseNightlyPrice      Decimal        @db.Decimal(10, 2)
+  baseNightlyPrice      Decimal        @map("base_nightly_price") @db.Decimal(10, 2)
   currency              String         @default("USD")
   status                PropertyStatus @default(DRAFT)
-  checkInTime           String
-  checkOutTime          String?
-  isComposed            Boolean        @default(false)
-  preparationDaysBefore Int            @default(0)
-  preparationDaysAfter  Int            @default(0)
-  createdAt             DateTime       @default(now())
-  updatedAt             DateTime       @updatedAt
-  deletedAt             DateTime?
-  deletedById           String?
+  checkInTime           String         @map("check_in_time")
+  checkOutTime          String?        @map("check_out_time")
+  isComposed            Boolean        @default(false) @map("is_composed")
+  preparationDaysBefore Int            @default(0) @map("preparation_days_before")
+  preparationDaysAfter  Int            @default(0) @map("preparation_days_after")
+  createdAt             DateTime       @default(now()) @map("created_at")
+  updatedAt             DateTime       @updatedAt @map("updated_at")
+  deletedAt             DateTime?      @map("deleted_at")
+  deletedById           String?        @map("deleted_by_id")
 
   deletedBy         User?               @relation("PropertyDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull)
   parentComponents  PropertyComponent[] @relation("ParentProperty")
@@ -185,9 +214,9 @@ model Property {
 
 model PropertyComponent {
   id                  String   @id @default(cuid())
-  parentPropertyId    String
-  componentPropertyId String
-  createdAt           DateTime @default(now())
+  parentPropertyId    String   @map("parent_property_id")
+  componentPropertyId String   @map("component_property_id")
+  createdAt           DateTime @default(now()) @map("created_at")
 
   parentProperty    Property @relation("ParentProperty", fields: [parentPropertyId], references: [id], onDelete: Cascade)
   componentProperty Property @relation("ComponentProperty", fields: [componentPropertyId], references: [id], onDelete: Restrict)
@@ -199,18 +228,18 @@ model PropertyComponent {
 
 model PropertyImage {
   id                 String   @id @default(cuid())
-  propertyId         String
-  cloudinaryPublicId String?
+  propertyId         String   @map("property_id")
+  cloudinaryPublicId String?  @map("cloudinary_public_id")
   url                String
-  secureUrl          String?
-  altTextEs          String
-  altTextEn          String
-  sortOrder          Int      @default(0)
-  isCover            Boolean  @default(false)
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-  deletedAt          DateTime?
-  deletedById        String?
+  secureUrl          String?  @map("secure_url")
+  altTextEs          String   @map("alt_text_es")
+  altTextEn          String   @map("alt_text_en")
+  sortOrder          Int      @default(0) @map("sort_order")
+  isCover            Boolean  @default(false) @map("is_cover")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+  deletedAt          DateTime? @map("deleted_at")
+  deletedById        String?  @map("deleted_by_id")
 
   property  Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   deletedBy User?    @relation("PropertyImageDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull)
@@ -223,14 +252,14 @@ model PropertyImage {
 model Amenity {
   id          String   @id @default(cuid())
   key         String   @unique
-  nameEs      String
-  nameEn      String
+  nameEs      String   @map("name_es")
+  nameEn      String   @map("name_en")
   icon        String
   category    String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  deletedAt   DateTime?
-  deletedById String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+  deletedById String?  @map("deleted_by_id")
 
   deletedBy  User?             @relation("AmenityDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull)
   properties PropertyAmenity[]
@@ -241,9 +270,9 @@ model Amenity {
 
 model PropertyAmenity {
   id         String   @id @default(cuid())
-  propertyId String
-  amenityId  String
-  createdAt  DateTime @default(now())
+  propertyId String   @map("property_id")
+  amenityId  String   @map("amenity_id")
+  createdAt  DateTime @default(now()) @map("created_at")
 
   property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   amenity  Amenity  @relation(fields: [amenityId], references: [id], onDelete: Restrict)
@@ -256,15 +285,15 @@ model PropertyAmenity {
 model HouseRule {
   id            String   @id @default(cuid())
   key           String   @unique
-  titleEs       String
-  titleEn       String
-  descriptionEs String   @db.Text
-  descriptionEn String   @db.Text
+  titleEs       String   @map("title_es")
+  titleEn       String   @map("title_en")
+  descriptionEs String   @map("description_es") @db.Text
+  descriptionEn String   @map("description_en") @db.Text
   category      String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  deletedAt     DateTime?
-  deletedById   String?
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  deletedAt     DateTime? @map("deleted_at")
+  deletedById   String?  @map("deleted_by_id")
 
   deletedBy  User?          @relation("HouseRuleDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull)
   properties PropertyRule[]
@@ -275,9 +304,9 @@ model HouseRule {
 
 model PropertyRule {
   id         String   @id @default(cuid())
-  propertyId String
-  ruleId     String
-  createdAt  DateTime @default(now())
+  propertyId String   @map("property_id")
+  ruleId     String   @map("rule_id")
+  createdAt  DateTime @default(now()) @map("created_at")
 
   property Property  @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   rule     HouseRule @relation(fields: [ruleId], references: [id], onDelete: Restrict)
@@ -289,27 +318,27 @@ model PropertyRule {
 
 model Reservation {
   id                  String            @id @default(cuid())
-  propertyId          String
-  guestName           String
-  guestEmail          String
-  guestPhone          String?
-  guestCountry        String?
-  checkInDate         DateTime          @db.Date
-  checkOutDate        DateTime          @db.Date
-  arrivalTimeEstimate String?
-  guestCount          Int
+  propertyId          String            @map("property_id")
+  guestName           String            @map("guest_name")
+  guestEmail          String            @map("guest_email")
+  guestPhone          String?           @map("guest_phone")
+  guestCountry        String?           @map("guest_country")
+  checkInDate         DateTime          @map("check_in_date") @db.Date
+  checkOutDate        DateTime          @map("check_out_date") @db.Date
+  arrivalTimeEstimate String?           @map("arrival_time_estimate")
+  guestCount          Int               @map("guest_count")
   status              ReservationStatus @default(PENDING_PAYMENT)
   subtotal            Decimal           @db.Decimal(10, 2)
-  cleaningFee         Decimal           @default(0) @db.Decimal(10, 2)
+  cleaningFee         Decimal           @default(0) @map("cleaning_fee") @db.Decimal(10, 2)
   taxes               Decimal           @default(0) @db.Decimal(10, 2)
   discounts           Decimal           @default(0) @db.Decimal(10, 2)
   total               Decimal           @db.Decimal(10, 2)
   currency            String            @default("USD")
-  expiresAt           DateTime?
-  confirmedAt         DateTime?
-  cancelledAt         DateTime?
-  createdAt           DateTime          @default(now())
-  updatedAt           DateTime          @updatedAt
+  expiresAt           DateTime?         @map("expires_at")
+  confirmedAt         DateTime?         @map("confirmed_at")
+  cancelledAt         DateTime?         @map("cancelled_at")
+  createdAt           DateTime          @default(now()) @map("created_at")
+  updatedAt           DateTime          @updatedAt @map("updated_at")
 
   property           Property            @relation(fields: [propertyId], references: [id], onDelete: Restrict)
   guests             ReservationGuest[]
@@ -325,12 +354,12 @@ model Reservation {
 
 model ReservationGuest {
   id            String   @id @default(cuid())
-  reservationId String
+  reservationId String   @map("reservation_id")
   name          String
   email         String?
   phone         String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
 
   reservation Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
 
@@ -340,18 +369,18 @@ model ReservationGuest {
 
 model Payment {
   id                    String          @id @default(cuid())
-  reservationId         String
+  reservationId         String          @map("reservation_id")
   provider              PaymentProvider @default(TILOPAY)
-  providerTransactionId String?
-  providerReference     String?
+  providerTransactionId String?         @map("provider_transaction_id")
+  providerReference     String?         @map("provider_reference")
   status                PaymentStatus   @default(PENDING)
   amount                Decimal         @db.Decimal(10, 2)
   currency              String          @default("USD")
-  paidAt                DateTime?
-  failedAt              DateTime?
-  rawPayload            Json?
-  createdAt             DateTime        @default(now())
-  updatedAt             DateTime        @updatedAt
+  paidAt                DateTime?       @map("paid_at")
+  failedAt              DateTime?       @map("failed_at")
+  rawPayload            Json?           @map("raw_payload")
+  createdAt             DateTime        @default(now()) @map("created_at")
+  updatedAt             DateTime        @updatedAt @map("updated_at")
 
   reservation Reservation @relation(fields: [reservationId], references: [id], onDelete: Restrict)
   refunds     Refund[]
@@ -364,15 +393,15 @@ model Payment {
 
 model Refund {
   id               String       @id @default(cuid())
-  paymentId        String
-  providerRefundId String?
+  paymentId        String       @map("payment_id")
+  providerRefundId String?      @map("provider_refund_id")
   amount           Decimal      @db.Decimal(10, 2)
   currency         String       @default("USD")
   reason           String?
   status           RefundStatus @default(PENDING)
-  rawPayload       Json?
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @updatedAt
+  rawPayload       Json?        @map("raw_payload")
+  createdAt        DateTime     @default(now()) @map("created_at")
+  updatedAt        DateTime     @updatedAt @map("updated_at")
 
   payment Payment @relation(fields: [paymentId], references: [id], onDelete: Restrict)
 
@@ -383,22 +412,22 @@ model Refund {
 
 model CalendarBlock {
   id                      String              @id @default(cuid())
-  propertyId              String
-  startDate               DateTime            @db.Date
-  endDate                 DateTime            @db.Date
+  propertyId              String              @map("property_id")
+  startDate               DateTime            @map("start_date") @db.Date
+  endDate                 DateTime            @map("end_date") @db.Date
   source                  CalendarBlockSource
   reason                  String?
-  reservationId           String?
-  externalCalendarEventId String?
-  parentBlockId           String?
-  isAdminOverrideAllowed  Boolean             @default(false)
-  unlockedByAdminAt       DateTime?
-  unlockedByAdminId       String?
-  adminOverrideReason     String?
-  createdAt               DateTime            @default(now())
-  updatedAt               DateTime            @updatedAt
-  deletedAt               DateTime?
-  deletedById             String?
+  reservationId           String?             @map("reservation_id")
+  externalCalendarEventId String?             @map("external_calendar_event_id")
+  parentBlockId           String?             @map("parent_block_id")
+  isAdminOverrideAllowed  Boolean             @default(false) @map("is_admin_override_allowed")
+  unlockedByAdminAt       DateTime?           @map("unlocked_by_admin_at")
+  unlockedByAdminId       String?             @map("unlocked_by_admin_id")
+  adminOverrideReason     String?             @map("admin_override_reason")
+  createdAt               DateTime            @default(now()) @map("created_at")
+  updatedAt               DateTime            @updatedAt @map("updated_at")
+  deletedAt               DateTime?           @map("deleted_at")
+  deletedById             String?             @map("deleted_by_id")
 
   property              Property               @relation(fields: [propertyId], references: [id], onDelete: Restrict)
   reservation           Reservation?            @relation(fields: [reservationId], references: [id], onDelete: SetNull)
@@ -417,29 +446,29 @@ model CalendarBlock {
 }
 
 model ExternalCalendar {
-  id                       String                   @id @default(cuid())
-  propertyId               String
-  provider                 ExternalCalendarProvider @default(AIRBNB)
+  id                       String                    @id @default(cuid())
+  propertyId               String                    @map("property_id")
+  provider                 ExternalCalendarProvider  @default(AIRBNB)
   direction                ExternalCalendarDirection @default(BIDIRECTIONAL)
   name                     String
-  importUrlEncrypted       String?                  @db.Text
-  exportTokenHash          String?                  @unique
-  exportTokenLastRotatedAt DateTime?
-  isImportEnabled          Boolean                  @default(true)
-  isExportEnabled          Boolean                  @default(true)
-  lastImportStartedAt      DateTime?
-  lastImportFinishedAt     DateTime?
-  lastExportGeneratedAt    DateTime?
-  lastFailureCode          String?
-  lastFailureMessage       String?                  @db.Text
-  status                   ExternalCalendarStatus   @default(ACTIVE)
-  createdAt                DateTime                 @default(now())
-  updatedAt                DateTime                 @updatedAt
-  deletedAt                DateTime?
-  deletedById              String?
+  importUrlEncrypted       String?                   @map("import_url_encrypted") @db.Text
+  exportTokenHash          String?                   @unique @map("export_token_hash")
+  exportTokenLastRotatedAt DateTime?                 @map("export_token_last_rotated_at")
+  isImportEnabled          Boolean                   @default(true) @map("is_import_enabled")
+  isExportEnabled          Boolean                   @default(true) @map("is_export_enabled")
+  lastImportStartedAt      DateTime?                 @map("last_import_started_at")
+  lastImportFinishedAt     DateTime?                 @map("last_import_finished_at")
+  lastExportGeneratedAt    DateTime?                 @map("last_export_generated_at")
+  lastFailureCode          String?                   @map("last_failure_code")
+  lastFailureMessage       String?                   @map("last_failure_message") @db.Text
+  status                   ExternalCalendarStatus    @default(ACTIVE)
+  createdAt                DateTime                  @default(now()) @map("created_at")
+  updatedAt                DateTime                  @updatedAt @map("updated_at")
+  deletedAt                DateTime?                 @map("deleted_at")
+  deletedById              String?                   @map("deleted_by_id")
 
-  property  Property                @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  deletedBy User?                   @relation("ExternalCalendarDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull)
+  property  Property                  @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  deletedBy User?                     @relation("ExternalCalendarDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull)
   events    ExternalCalendarEvent[]
   syncLogs  ExternalCalendarSyncLog[]
 
@@ -452,18 +481,18 @@ model ExternalCalendar {
 
 model ExternalCalendarEvent {
   id                 String                      @id @default(cuid())
-  externalCalendarId String
-  providerEventUid   String
+  externalCalendarId String                      @map("external_calendar_id")
+  providerEventUid   String                      @map("provider_event_uid")
   status             ExternalCalendarEventStatus @default(ACTIVE)
   summary            String?
-  startDate          DateTime                    @db.Date
-  endDate            DateTime                    @db.Date
-  firstSeenAt        DateTime                    @default(now())
-  lastSeenAt         DateTime                    @default(now())
-  removedAt          DateTime?
-  rawPayload         Json?
-  createdAt          DateTime                    @default(now())
-  updatedAt          DateTime                    @updatedAt
+  startDate          DateTime                    @map("start_date") @db.Date
+  endDate            DateTime                    @map("end_date") @db.Date
+  firstSeenAt        DateTime                    @default(now()) @map("first_seen_at")
+  lastSeenAt         DateTime                    @default(now()) @map("last_seen_at")
+  removedAt          DateTime?                   @map("removed_at")
+  rawPayload         Json?                       @map("raw_payload")
+  createdAt          DateTime                    @default(now()) @map("created_at")
+  updatedAt          DateTime                    @updatedAt @map("updated_at")
 
   externalCalendar ExternalCalendar @relation(fields: [externalCalendarId], references: [id], onDelete: Cascade)
   calendarBlocks    CalendarBlock[]
@@ -476,20 +505,20 @@ model ExternalCalendarEvent {
 
 model ExternalCalendarSyncLog {
   id                 String                  @id @default(cuid())
-  externalCalendarId String
-  triggeredBy        CalendarSyncTriggeredBy
+  externalCalendarId String                  @map("external_calendar_id")
+  triggeredBy        CalendarSyncTriggeredBy @map("triggered_by")
   status             CalendarSyncStatus      @default(STARTED)
-  startedAt          DateTime                @default(now())
-  finishedAt         DateTime?
-  eventsImported     Int                     @default(0)
-  eventsUpdated      Int                     @default(0)
-  eventsRemoved      Int                     @default(0)
-  eventsSkipped      Int                     @default(0)
-  blocksCreated      Int                     @default(0)
-  blocksUpdated      Int                     @default(0)
-  errorCode          String?
-  errorMessage       String?                 @db.Text
-  createdAt          DateTime                @default(now())
+  startedAt          DateTime                @default(now()) @map("started_at")
+  finishedAt         DateTime?               @map("finished_at")
+  eventsImported     Int                     @default(0) @map("events_imported")
+  eventsUpdated      Int                     @default(0) @map("events_updated")
+  eventsRemoved      Int                     @default(0) @map("events_removed")
+  eventsSkipped      Int                     @default(0) @map("events_skipped")
+  blocksCreated      Int                     @default(0) @map("blocks_created")
+  blocksUpdated      Int                     @default(0) @map("blocks_updated")
+  errorCode          String?                 @map("error_code")
+  errorMessage       String?                 @map("error_message") @db.Text
+  createdAt          DateTime                @default(now()) @map("created_at")
 
   externalCalendar ExternalCalendar @relation(fields: [externalCalendarId], references: [id], onDelete: Cascade)
 
@@ -501,16 +530,16 @@ model ExternalCalendarSyncLog {
 
 model EmailNotification {
   id                String                  @id @default(cuid())
-  reservationId     String
+  reservationId     String                  @map("reservation_id")
   type              EmailNotificationType
   recipient         String
   locale            String
   status            EmailNotificationStatus @default(PENDING)
-  providerMessageId String?
-  sentAt            DateTime?
-  errorMessage      String?
-  createdAt         DateTime                @default(now())
-  updatedAt         DateTime                @updatedAt
+  providerMessageId String?                 @map("provider_message_id")
+  sentAt            DateTime?               @map("sent_at")
+  errorMessage      String?                 @map("error_message")
+  createdAt         DateTime                @default(now()) @map("created_at")
+  updatedAt         DateTime                @updatedAt @map("updated_at")
 
   reservation Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
 
@@ -522,12 +551,12 @@ model EmailNotification {
 
 model AdminAuditLog {
   id         String   @id @default(cuid())
-  userId     String?
+  userId     String?  @map("user_id")
   action     String
-  entityType String
-  entityId   String?
+  entityType String   @map("entity_type")
+  entityId   String?  @map("entity_id")
   metadata   Json?
-  createdAt  DateTime @default(now())
+  createdAt  DateTime @default(now()) @map("created_at")
 
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
@@ -541,8 +570,8 @@ model Setting {
   id        String   @id @default(cuid())
   key       String   @unique
   value     Json
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("settings")
 }
