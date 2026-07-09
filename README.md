@@ -102,6 +102,7 @@ Max guests: 6
 - The public site must expose a manual ES/EN locale switcher and must persist the guest-selected locale client-side.
 - Phase 8.4 creates real `PENDING_PAYMENT` reservation holds and related `ReservationGuest` records, but does not create payments, send emails, confirm reservations, or create manual calendar blocks.
 - Phase 8.5 validates active pending holds before future payment handoff and must exclude the reservation itself from blocking records during that revalidation.
+- Phase 8.5.1 marks expired pending holds as `EXPIRED` through a protected cron route; availability is still released by `expiresAt <= now` even before the cleanup runs.
 - Tilopay payment processing belongs to Phase 9.
 - Resend email delivery belongs to Phase 10.
 
@@ -162,6 +163,7 @@ docs/
   48-reservation-form-ux-and-manual-locale-switcher.md
   49-pending-reservation-creation-and-expiration-handling.md
   50-availability-revalidation-before-payment-handoff.md
+  51-pending-hold-expiration-status-cleanup.md
 ```
 
 The assistant collaboration rules live in:
@@ -174,9 +176,9 @@ AGENTS.md
 
 ```text
 Current phase: Phase 8 — Reservation Flow
-Current subphase: 8.5 Availability revalidation before payment handoff
+Current subphase: 8.5.1 Pending hold expiration status cleanup
 Last completed phase: Phase 7 — Airbnb iCal Synchronization
-Last completed subphase: 8.4 Pending reservation creation and expiration handling
+Last completed subphase: 8.5 Availability revalidation before payment handoff
 ```
 
-See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/46-database-migration-bootstrap-correction.md`, `docs/47-initial-seed-and-db-backed-accommodation-source.md`, `docs/48-reservation-form-ux-and-manual-locale-switcher.md`, `docs/49-pending-reservation-creation-and-expiration-handling.md`, and `docs/50-availability-revalidation-before-payment-handoff.md` for the official current tracker and database-backed reservation flow context.
+See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/49-pending-reservation-creation-and-expiration-handling.md`, `docs/50-availability-revalidation-before-payment-handoff.md`, and `docs/51-pending-hold-expiration-status-cleanup.md` for the official current tracker and database-backed reservation flow context.

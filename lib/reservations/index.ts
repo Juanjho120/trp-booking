@@ -8,3 +8,8 @@ export {
   validatePaymentHandoff,
   PaymentHandoffValidationError,
 } from "./payment-handoff";
+export { expirePendingReservationHolds } from "./expiration";
+export type {
+  ExpirePendingReservationHoldsInput,
+  ExpirePendingReservationHoldsResult,
+} from "./expiration";

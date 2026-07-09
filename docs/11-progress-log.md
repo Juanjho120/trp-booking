@@ -6,10 +6,10 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 8 — Reservation Flow
-Current subphase: 8.5 Availability revalidation before payment handoff
+Current subphase: 8.5.1 Pending hold expiration status cleanup
 Last updated: 2026-07-09
 Last completed phase: Phase 7 — Airbnb iCal Synchronization
-Last completed subphase: 8.4 Pending reservation creation and expiration handling
+Last completed subphase: 8.5 Availability revalidation before payment handoff
 ```
 
 ## Completed Work
@@ -21,19 +21,6 @@ Status: **Completed**
 ### Phase 1 — Repository and Next.js Setup
 
 Status: **Completed**
-
-Completed subphases:
-
-```text
-1.1 GitHub repository created
-1.2 Initial documentation committed
-1.3 Clean Next.js 15 setup
-1.4 TypeScript strict enabled
-1.5 ESLint configured
-1.6 shadcn/ui + Radix Luma design system foundation
-1.7 Base project folders created
-1.8 Initial site config, accommodation config, messages, and error keys
-```
 
 ### Phase 2 — Public Website Foundation
 
@@ -56,26 +43,9 @@ This was corrected later through docs/46 and docs/47 before Phase 8.4 writes res
 
 Status: **Completed**
 
-Closure result:
-
-```text
-Phase 4 is complete as an admin authentication foundation phase.
-/admin is protected before exposing operational admin features.
-The minimal admin shell exists and remains intentionally safe.
-No booking, payment, calendar, image upload, email, iCal, or PMS functionality was added in Phase 4.
-```
-
 ### Phase 5 — Cloudinary Integration
 
 Status: **Completed**
-
-Closure result:
-
-```text
-Phase 5 is complete as a real Cloudinary integration phase.
-After Phase 8.3.1, public accommodation images are read from database property_images records and can use Cloudinary public IDs when those IDs are persisted.
-No booking checkout, Tilopay, Resend, Airbnb iCal sync, PMS features, admin upload UI, reservation writes, or seed data were added in Phase 5.
-```
 
 ### Phase 6 — Availability Calendar Foundation
 
@@ -107,15 +77,6 @@ Phase 7 did not add real Airbnb URLs, raw token storage, seed data, admin sync U
 
 Status: **Completed**
 
-Completed deliverables:
-
-```text
-docs/43-reservation-flow-strategy-and-pending-hold-contract.md added
-README.md updated with Phase 8.1 completion and Phase 8.2 current status
-docs/10-phases.md updated to mark 8.1 completed and 8.2 in progress
-docs/11-progress-log.md updated with Phase 8.1 completion
-```
-
 Important decisions:
 
 ```text
@@ -131,25 +92,9 @@ Phase 8 must keep Tilopay processing in Phase 9 and Resend email delivery in Pha
 
 Status: **Completed**
 
-Completed deliverables:
-
-```text
-types/reservation-quote.ts added
-lib/reservations/pricing.ts added
-lib/reservations/index.ts added
-app/api/reservations/quote/route.ts added
-messages/es.ts updated with centralized quote errors
-messages/en.ts updated with centralized quote errors
-docs/44-reservation-quote-and-server-side-pricing-foundation.md added
-README.md updated with Phase 8.2 completion and Phase 8.3 current status
-docs/10-phases.md updated to mark 8.2 completed and 8.3 in progress
-docs/11-progress-log.md updated with Phase 8.2 completion
-```
-
 Important decisions:
 
 ```text
-The quote service originally used server-controlled accommodation configuration only.
 After Phase 8.3.1, the quote service reads pricing and capacity from database properties.
 The client must never send trusted totals to the server.
 Monetary values are returned in USD cents and fixed decimal strings.
@@ -163,38 +108,15 @@ Availability must still be rechecked before creating a pending hold and before p
 
 Status: **Completed**
 
-Completed deliverables:
-
-```text
-features/reservations/components/reservation-request-form.tsx added
-features/reservations/index.ts added
-features/properties/components/property-detail-page.tsx updated to render the request form
-messages/es.ts updated with reservation request form copy
-messages/en.ts updated with reservation request form copy
-docs/45-public-guest-details-and-reservation-request-form.md added
-README.md updated with Phase 8.3 completion and Phase 8.4 current status
-docs/10-phases.md updated to mark 8.3 completed and 8.4 in progress
-docs/11-progress-log.md updated with Phase 8.3 completion
-```
-
 ### Phase 8 Corrective Task — Database Migration Bootstrap
 
 Status: **Completed**
-
-Completed deliverables:
-
-```text
-prisma/migrations/20260709000000_init_trp_booking_schema/migration.sql added as the clean snake_case baseline
-prisma/migrations/migration_lock.toml added
-package.json db:migrate:* scripts kept available
-docs/46-database-migration-bootstrap-correction.md added
-duplicate generated init migrations removed in follow-up commits
-```
 
 Important decisions:
 
 ```text
 The database bootstrap correction was required before Phase 8.4 can write PENDING_PAYMENT reservations.
+The clean baseline uses snake_case database tables/columns and camelCase Prisma fields.
 Future subphases that add or change persisted data must include the required Prisma migration unless no schema change is needed and that is explicitly documented.
 ```
 
@@ -202,48 +124,9 @@ Future subphases that add or change persisted data must include the required Pri
 
 Status: **Completed**
 
-Completed deliverables:
-
-```text
-prisma/seed.ts added with deterministic idempotent seeds
-package.json updated with db:seed and Prisma seed command
-lib/properties/public.ts added as the DB-backed public accommodation query service
-lib/properties/index.ts added as the public properties export boundary
-types/accommodation.ts updated so DB-backed amenities can be carried with the accommodation object
-app/alojamientos/page.tsx updated to load public accommodations from Prisma
-app/alojamientos/[slug]/page.tsx updated to load accommodation details and metadata from Prisma
-features/properties/components/accommodations-page.tsx updated to receive DB-backed accommodations
-features/properties/components/property-detail-page.tsx updated to render DB-backed amenities and rules
-lib/reservations/pricing.ts updated to calculate quotes from database properties
-app/api/reservations/quote/route.ts updated to await the DB-backed quote service
-lib/availability/rules.ts updated so preparation buffer ranges can receive DB-backed policies
-lib/availability/service.ts updated to resolve properties and preparation buffer policies from database records
-docs/47-initial-seed-and-db-backed-accommodation-source.md added
-README.md, docs/10-phases.md, and docs/11-progress-log.md updated
-```
-
 ### Phase 8.3.2 — Reservation Form UX and Manual Locale Switcher
 
 Status: **Completed**
-
-Completed deliverables:
-
-```text
-react-day-picker added for styled range selection
-react-phone-number-input added for country phone metadata and dial codes
-features/i18n/use-locale.tsx added for client-side locale state and localStorage persistence
-features/i18n/locale-switcher.tsx added for the visible manual ES/EN switcher
-features/i18n/index.ts added as the i18n feature export boundary
-lib/geo/countries.ts added with country options, localized names, flags, and dial codes
-features/reservations/components/reservation-request-form.tsx upgraded to styled controlled booking inputs
-features/reservations/reservation-request-copy.ts added to centralize reservation form UX copy
-features/properties/components/accommodations-page.tsx updated to render public content using the selected locale
-features/properties/components/property-detail-page.tsx updated to render detail content and the reservation form using the selected locale
-types/accommodation.ts kept compatible with DB-backed amenities and transitional config fallback
-config/accommodations.ts kept build-compatible as transitional fallback/reference with empty amenities arrays
-features/i18n/use-locale.tsx widened locale message types so ES and EN message values can differ safely
-docs/48-reservation-form-ux-and-manual-locale-switcher.md added
-```
 
 ### Phase 8.4 — Pending Reservation Creation and Expiration Handling
 
@@ -283,6 +166,45 @@ A PENDING_PAYMENT reservation was created successfully in the database.
 The related reservation guest data was validated through the pending hold flow.
 ```
 
+### Phase 8.5 — Availability Revalidation Before Payment Handoff
+
+Status: **Completed**
+
+Completed deliverables:
+
+```text
+app/api/reservations/payment-handoff/validate/route.ts added
+features/reservations/reservation-payment-handoff-copy.ts added
+lib/reservations/payment-handoff.ts added
+types/reservation-payment-handoff.ts added
+lib/reservations/index.ts updated with payment handoff exports
+docs/50-availability-revalidation-before-payment-handoff.md added
+README.md updated with Phase 8.5 context
+docs/10-phases.md updated with Phase 8.5 current scope
+docs/11-progress-log.md updated with Phase 8.5 current work
+```
+
+Important decisions:
+
+```text
+The payment handoff validation endpoint does not call Tilopay.
+The endpoint does not create Payment records.
+The endpoint requires an existing active PENDING_PAYMENT reservation.
+The endpoint requires expiresAt > now.
+The service recalculates quote and verifies stored amounts still match the recalculated quote.
+The service revalidates availability while excluding the pending reservation itself from blocking records.
+The endpoint returns readyForPayment only when the hold is still eligible.
+No Resend email, confirmation status, admin reservation UI, PMS behavior, Prisma schema change, or migration was added in 8.5.
+```
+
+Validated by user:
+
+```text
+A fresh PENDING_PAYMENT hold blocks duplicate holds in the same date range.
+No payments, email_notifications, or calendar_blocks are created.
+The user confirmed 8.5 behavior is correct and approved a small follow-up subphase for expiration status cleanup.
+```
+
 ## Current Work
 
 ### Phase 8 — Reservation Flow
@@ -292,33 +214,30 @@ Status: **In progress**
 Current subphase:
 
 ```text
-8.5 Availability revalidation before payment handoff
+8.5.1 Pending hold expiration status cleanup
 ```
 
-Phase 8.5 goals:
+Phase 8.5.1 goals:
 
 ```text
-Create a server-side validation endpoint for an existing pending reservation.
-Require status = PENDING_PAYMENT.
-Require expiresAt > now.
-Recalculate quote on the server.
-Verify the stored reservation amounts still match the recalculated quote.
-Recheck availability before future payment handoff.
-Exclude the reservation itself from blocking records during payment handoff validation.
-Return safe readyForPayment data only when the pending hold is still eligible.
-Do not call Tilopay, create Payment records, send Resend email, confirm reservations, add admin UI, or add PMS features in 8.5.
+Create a protected cron route to mark expired PENDING_PAYMENT holds as EXPIRED.
+Reuse the existing CRON_SECRET authorization pattern from the Airbnb iCal cron route.
+Register the new cleanup route in vercel.json.
+Keep availability release based on expiresAt <= now, not on cron execution timing.
+Do not hard-delete reservations.
+Do not create payments, email_notifications, calendar_blocks, confirmations, admin UI, PMS behavior, Prisma schema changes, migrations, or Tilopay integration.
 ```
 
 ## Next Recommended Work
 
 ```text
-1. Validate Phase 8.5 with npm run lint and npm run build.
-2. Create a fresh PENDING_PAYMENT reservation through the public form.
-3. Call POST /api/reservations/payment-handoff/validate with that reservation id.
-4. Confirm readyForPayment = true for a fresh, active, non-conflicting hold.
-5. Confirm expired holds return an error and do not become payable.
+1. Validate Phase 8.5.1 with npm run lint and npm run build.
+2. Create or reuse a PENDING_PAYMENT reservation.
+3. Force expires_at into the past in a local/staging database.
+4. Call GET /api/cron/expire-pending-reservation-holds with CRON_SECRET.
+5. Confirm the reservation status changes to EXPIRED.
 6. Confirm no payments, email_notifications, or calendar_blocks are created.
-7. After validation, close 8.5 and continue with 8.6 Phase 8 documentation update.
+7. After validation, close 8.5.1 and continue with 8.6 Phase 8 documentation update.
 ```
 
 ## Continuity Notes for New Conversations
@@ -346,6 +265,7 @@ docs/47-initial-seed-and-db-backed-accommodation-source.md
 docs/48-reservation-form-ux-and-manual-locale-switcher.md
 docs/49-pending-reservation-creation-and-expiration-handling.md
 docs/50-availability-revalidation-before-payment-handoff.md
+docs/51-pending-hold-expiration-status-cleanup.md
 lib/db/prisma.ts
 lib/properties/index.ts
 lib/properties/public.ts
@@ -354,6 +274,7 @@ lib/availability/service.ts
 lib/reservations/index.ts
 lib/reservations/pending-holds.ts
 lib/reservations/payment-handoff.ts
+lib/reservations/expiration.ts
 features/i18n/use-locale.tsx
 features/i18n/locale-switcher.tsx
 features/reservations/components/reservation-request-form.tsx
@@ -361,6 +282,7 @@ prisma/schema.prisma
 prisma/seed.ts
 messages/es.ts
 messages/en.ts
+vercel.json
 ```
 
 Important working rules:

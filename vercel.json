@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/sync-airbnb-calendars",
       "schedule": "*/30 * * * *"
+    },
+    {
+      "path": "/api/cron/expire-pending-reservation-holds",
+      "schedule": "*/5 * * * *"
     }
   ]
 }

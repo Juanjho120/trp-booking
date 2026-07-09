@@ -15,8 +15,8 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 8 — Reservation Flow
-Current subphase: 8.5 Availability revalidation before payment handoff
-Current focus: validate active PENDING_PAYMENT reservations server-side immediately before a future payment handoff, without integrating Tilopay, creating payment records, sending Resend emails, confirming reservations, or adding PMS features.
+Current subphase: 8.5.1 Pending hold expiration status cleanup
+Current focus: mark expired PENDING_PAYMENT reservation holds as EXPIRED through a protected cron cleanup route, without creating payments, emails, calendar blocks, confirmations, PMS behavior, migrations, or Tilopay integration.
 ```
 
 ---
@@ -87,16 +87,6 @@ Completed subphases:
 3.4 Soft delete and audit field conventions
 3.5 Initial seed strategy for accommodations, amenities, rules, and static content
 3.6 Database documentation update
-```
-
-Important Phase 3 closure notes:
-
-```text
-- Phase 3 created and validated the Prisma schema foundation.
-- Phase 3 did not create or apply migrations.
-- Phase 3 did not write records to Supabase.
-- Migration execution was later corrected in docs/46-database-migration-bootstrap-correction.md.
-- Initial seed execution and DB-backed public accommodation reads were later corrected in docs/47-initial-seed-and-db-backed-accommodation-source.md.
 ```
 
 ---
@@ -198,7 +188,7 @@ Phase 7 closure result:
 
 Status: **In progress**
 
-Goal: Add the public direct reservation flow foundation using server-side validation, pending holds, guest details, seeded accommodation records, improved booking UX, manual locale selection, and availability revalidation before any payment handoff.
+Goal: Add the public direct reservation flow foundation using server-side validation, pending holds, guest details, seeded accommodation records, improved booking UX, manual locale selection, availability revalidation, and expired hold cleanup before payment integration.
 
 Subphase status:
 
@@ -209,7 +199,8 @@ Subphase status:
 8.3.1 Initial seed and DB-backed accommodation source — Completed
 8.3.2 Reservation form UX and manual locale switcher — Completed
 8.4 Pending reservation creation and expiration handling — Completed
-8.5 Availability revalidation before payment handoff — In progress
+8.5 Availability revalidation before payment handoff — Completed
+8.5.1 Pending hold expiration status cleanup — In progress
 8.6 Phase 8 documentation update — Not started
 ```
 
@@ -229,90 +220,37 @@ Phase 8 rules:
 - Do not add PMS features.
 ```
 
-Phase 8.1 result:
-
-```text
-- docs/43-reservation-flow-strategy-and-pending-hold-contract.md was added.
-- The public direct reservation lifecycle was documented before writing reservation creation code.
-- The pending hold contract was defined using Reservation.status = PENDING_PAYMENT and a required non-null expiresAt value for future hold creation.
-- Server-side validation boundaries were documented for date ranges, guest capacity, availability, price calculation, currency, and expiration handling.
-- Phase 8.1 confirmed that reservations must not become CONFIRMED until payment is validated by a later Tilopay webhook phase.
-```
-
-Phase 8.2 result:
-
-```text
-- types/reservation-quote.ts was added with the public quote contract.
-- lib/reservations/pricing.ts was added with the server-side quote calculation service.
-- lib/reservations/index.ts was added as the reservation service export boundary.
-- GET /api/reservations/quote was added as a public-safe quote endpoint.
-- messages/es.ts and messages/en.ts were updated with centralized reservation quote errors.
-- docs/44-reservation-quote-and-server-side-pricing-foundation.md was added.
-- The quote foundation uses server-controlled accommodation prices, date-only night counting, capacity validation, USD cents, and fixed decimal output.
-```
-
-Phase 8.3 result:
-
-```text
-- features/reservations/components/reservation-request-form.tsx was added as a public client-side request form.
-- features/reservations/index.ts was added as the reservation feature export boundary.
-- The accommodation detail page now renders the reservation request form instead of a disabled coming-soon CTA.
-- The form collects date, guest count, guest contact, country, and estimated arrival time in the UI.
-- The form calculates a non-binding quote through GET /api/reservations/quote.
-- messages/es.ts and messages/en.ts were updated with centralized reservation request form copy.
-- docs/45-public-guest-details-and-reservation-request-form.md was added.
-```
-
-Phase 8.3.1 result:
-
-```text
-- prisma/seed.ts was added with deterministic, idempotent seed records.
-- package.json now includes db:seed and Prisma seed configuration.
-- lib/properties/public.ts was added as the server-side DB-backed public accommodation query service.
-- Public accommodations list and detail routes now read from Prisma instead of config/accommodations.ts.
-- The reservation quote service now reads pricing and capacity from seeded database properties.
-- The availability service now resolves property IDs and preparation buffer policies from seeded database records.
-- docs/47-initial-seed-and-db-backed-accommodation-source.md was added.
-```
-
-Phase 8.3.2 result:
-
-```text
-- react-day-picker was added for a styled public date range picker.
-- react-phone-number-input was added so country phone metadata and dial codes are not manually guessed.
-- features/i18n/use-locale.tsx was added as the client-side locale state and persistence hook.
-- features/i18n/locale-switcher.tsx was added as the visible manual ES/EN switcher.
-- lib/geo/countries.ts was added to expose localized country options with flags and dial codes.
-- features/reservations/components/reservation-request-form.tsx was upgraded to controlled, styled inputs for date range, guest count, country, phone, and estimated arrival time.
-- features/reservations/reservation-request-copy.ts was added to centralize reservation UX copy outside TSX components.
-- docs/48-reservation-form-ux-and-manual-locale-switcher.md was added.
-```
-
 Phase 8.4 result:
 
 ```text
 - POST /api/reservations/pending-hold was added.
-- lib/reservations/pending-holds.ts was added with the server-side pending reservation hold service.
-- types/reservation-pending-hold.ts was added with the public pending hold contract.
-- features/reservations/reservation-pending-hold-copy.ts was added with centralized bilingual pending hold copy.
-- features/reservations/components/reservation-request-form.tsx now creates a real PENDING_PAYMENT reservation hold after quote calculation and guest detail entry.
+- Pending holds create real Reservation records with status = PENDING_PAYMENT.
 - Pending holds set expiresAt = now + 15 minutes.
 - The server recalculates quote and revalidates availability immediately before writing the pending reservation.
 - ReservationGuest is created together with the Reservation record.
-- docs/49-pending-reservation-creation-and-expiration-handling.md was added.
 - Phase 8.4 does not integrate Tilopay, create payment records, confirm reservations, send Resend emails, create manual calendar blocks, add admin reservation UI, add PMS behavior, or add migrations.
 ```
 
-Phase 8.5 current scope:
+Phase 8.5 result:
 
 ```text
-- Add a public-safe server endpoint to validate an active PENDING_PAYMENT reservation before future payment handoff.
-- Require the hold to exist, remain PENDING_PAYMENT, and have expiresAt > now.
-- Recalculate quote server-side using DB-backed pricing.
-- Verify stored reservation amounts still match the recalculated quote.
-- Revalidate availability while excluding the reservation itself from blocking records.
-- Return readyForPayment only when the pending hold is still eligible.
-- Do not integrate Tilopay, create payment records, confirm reservations, send emails, add admin UI, add PMS behavior, or add migrations.
+- POST /api/reservations/payment-handoff/validate was added.
+- The endpoint validates that a pending reservation exists, remains PENDING_PAYMENT, has expiresAt > now, and is still eligible before future payment handoff.
+- The service recalculates quote server-side and compares stored reservation amounts against the recalculated quote.
+- The service revalidates availability while excluding the reservation itself from blocking records.
+- The endpoint returns readyForPayment only for active, non-conflicting pending reservations.
+- Phase 8.5 does not integrate Tilopay, create payment records, confirm reservations, send emails, add admin UI, add PMS behavior, or add migrations.
+```
+
+Phase 8.5.1 current scope:
+
+```text
+- Add a protected cron route to mark expired PENDING_PAYMENT reservations as EXPIRED.
+- Reuse the existing CRON_SECRET authorization pattern already used by the Airbnb iCal cron route.
+- Register the cleanup route in vercel.json.
+- Keep availability release tied to expiresAt <= now, not to the cleanup route schedule.
+- Do not hard-delete reservations.
+- Do not create payments, emails, calendar blocks, confirmations, PMS behavior, migrations, or Tilopay integration.
 ```
 
 ---
