@@ -15,8 +15,8 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 8 — Reservation Flow
-Current subphase: 8.4 Pending reservation creation and expiration handling
-Current focus: create server-side pending reservation holds using seeded, database-backed public accommodation records and the improved reservation request UX, without integrating Tilopay, sending Resend emails, confirming reservations, or adding PMS features.
+Current subphase: 8.5 Availability revalidation before payment handoff
+Current focus: validate active PENDING_PAYMENT reservations server-side immediately before a future payment handoff, without integrating Tilopay, creating payment records, sending Resend emails, confirming reservations, or adding PMS features.
 ```
 
 ---
@@ -118,18 +118,6 @@ Completed subphases:
 4.6 Phase 4 documentation update — Completed
 ```
 
-Phase 4 closure result:
-
-```text
-- Google OAuth admin authentication is configured through Auth.js / NextAuth.
-- JWT sessions are used without the Prisma adapter.
-- Admin access is controlled by the server-side AUTH_ALLOWED_ADMIN_EMAILS allowlist.
-- /admin routes are protected before exposing admin UI.
-- The first protected minimal admin shell exists.
-- Public routes remain accessible without login.
-- AUTH_TRUST_HOST=true is required for local/admin Auth.js routes after middleware is enabled.
-```
-
 ---
 
 ## Phase 5 — Cloudinary Integration
@@ -146,21 +134,6 @@ Completed subphases:
 5.3 Cloudinary service foundation — Completed
 5.4 Public accommodation images from Cloudinary — Completed
 5.5 Phase 5 documentation update — Completed
-```
-
-Phase 5 closure result:
-
-```text
-- Cloudinary usage scope was documented.
-- Cloudinary environment variables are validated server-side.
-- The Cloudinary SDK dependency is installed.
-- A server-side Cloudinary client foundation exists under lib/cloudinary.
-- Accommodation image public IDs are deterministic and folder-based.
-- Public accommodation listing cards now receive image URLs from database property_images records after Phase 8.3.1.
-- Public accommodation detail galleries now receive image URLs from database property_images records after Phase 8.3.1.
-- SEO/Open Graph image metadata supports the DB-backed public accommodation image URL.
-- next/image is configured to allow res.cloudinary.com.
-- Local files under public/images/accommodations may remain as fallback seed URLs until Cloudinary public IDs are persisted through the database/admin flow.
 ```
 
 ---
@@ -216,7 +189,7 @@ Phase 7 closure result:
 - Import URLs and raw export tokens remain secrets and must not be committed, logged, exposed through API responses, or displayed in public UI.
 - Export feed tokens are validated by hash through ExternalCalendar.exportTokenHash.
 - Scheduled sync is protected by CRON_SECRET and returns redacted summaries only.
-- Phase 7 intentionally stops before reservation checkout, Tilopay integration, Resend emails, admin calendar UI, real deployment configuration, production credentials, and PMS features.
+- Phase 7 intentionally stops before reservation checkout, Tilopay, Resend, production deployment, admin sync UI, and PMS features.
 ```
 
 ---
@@ -235,8 +208,8 @@ Subphase status:
 8.3 Public guest details and reservation request form — Completed
 8.3.1 Initial seed and DB-backed accommodation source — Completed
 8.3.2 Reservation form UX and manual locale switcher — Completed
-8.4 Pending reservation creation and expiration handling — In progress
-8.5 Availability revalidation before payment handoff — Not started
+8.4 Pending reservation creation and expiration handling — Completed
+8.5 Availability revalidation before payment handoff — In progress
 8.6 Phase 8 documentation update — Not started
 ```
 
@@ -264,7 +237,6 @@ Phase 8.1 result:
 - The pending hold contract was defined using Reservation.status = PENDING_PAYMENT and a required non-null expiresAt value for future hold creation.
 - Server-side validation boundaries were documented for date ranges, guest capacity, availability, price calculation, currency, and expiration handling.
 - Phase 8.1 confirmed that reservations must not become CONFIRMED until payment is validated by a later Tilopay webhook phase.
-- Phase 8.1 did not add route handlers, form UI, reservation writes, checkout, Tilopay, Resend, migration files, seed data, deployment, admin reservation UI, or PMS features.
 ```
 
 Phase 8.2 result:
@@ -277,7 +249,6 @@ Phase 8.2 result:
 - messages/es.ts and messages/en.ts were updated with centralized reservation quote errors.
 - docs/44-reservation-quote-and-server-side-pricing-foundation.md was added.
 - The quote foundation uses server-controlled accommodation prices, date-only night counting, capacity validation, USD cents, and fixed decimal output.
-- Phase 8.2 does not create reservations, pending holds, checkout sessions, Tilopay payment intents, Resend emails, migration files, seed data, admin reservation UI, deployment configuration, or PMS features.
 ```
 
 Phase 8.3 result:
@@ -290,20 +261,18 @@ Phase 8.3 result:
 - The form calculates a non-binding quote through GET /api/reservations/quote.
 - messages/es.ts and messages/en.ts were updated with centralized reservation request form copy.
 - docs/45-public-guest-details-and-reservation-request-form.md was added.
-- Phase 8.3 does not create reservations, pending holds, checkout sessions, Tilopay payment intents, Resend emails, migration files, seed data, admin reservation UI, deployment configuration, or PMS features.
 ```
 
 Phase 8.3.1 result:
 
 ```text
-- prisma/seed.ts was added with deterministic, idempotent seed records for properties, property_components, property_images, amenities, property_amenities, house_rules, and property_rules.
+- prisma/seed.ts was added with deterministic, idempotent seed records.
 - package.json now includes db:seed and Prisma seed configuration.
 - lib/properties/public.ts was added as the server-side DB-backed public accommodation query service.
 - Public accommodations list and detail routes now read from Prisma instead of config/accommodations.ts.
 - The reservation quote service now reads pricing and capacity from seeded database properties.
 - The availability service now resolves property IDs and preparation buffer policies from seeded database records.
 - docs/47-initial-seed-and-db-backed-accommodation-source.md was added.
-- Phase 8.3.1 does not create reservations, pending holds, checkout sessions, Tilopay payment intents, Resend emails, external calendar configuration, admin calendar UI, deployment configuration, or PMS features.
 ```
 
 Phase 8.3.2 result:
@@ -314,11 +283,36 @@ Phase 8.3.2 result:
 - features/i18n/use-locale.tsx was added as the client-side locale state and persistence hook.
 - features/i18n/locale-switcher.tsx was added as the visible manual ES/EN switcher.
 - lib/geo/countries.ts was added to expose localized country options with flags and dial codes.
-- features/reservations/components/reservation-request-form.tsx was upgraded from free-form fields to controlled, styled inputs for date range, guest count, country, phone, and estimated arrival time.
+- features/reservations/components/reservation-request-form.tsx was upgraded to controlled, styled inputs for date range, guest count, country, phone, and estimated arrival time.
 - features/reservations/reservation-request-copy.ts was added to centralize reservation UX copy outside TSX components.
-- Listing/detail public components now use the selected locale for visible accommodation content.
 - docs/48-reservation-form-ux-and-manual-locale-switcher.md was added.
-- Phase 8.3.2 does not create reservations, pending holds, checkout sessions, Tilopay payment intents, Resend emails, external calendar configuration, admin calendar UI, deployment configuration, or PMS features.
+```
+
+Phase 8.4 result:
+
+```text
+- POST /api/reservations/pending-hold was added.
+- lib/reservations/pending-holds.ts was added with the server-side pending reservation hold service.
+- types/reservation-pending-hold.ts was added with the public pending hold contract.
+- features/reservations/reservation-pending-hold-copy.ts was added with centralized bilingual pending hold copy.
+- features/reservations/components/reservation-request-form.tsx now creates a real PENDING_PAYMENT reservation hold after quote calculation and guest detail entry.
+- Pending holds set expiresAt = now + 15 minutes.
+- The server recalculates quote and revalidates availability immediately before writing the pending reservation.
+- ReservationGuest is created together with the Reservation record.
+- docs/49-pending-reservation-creation-and-expiration-handling.md was added.
+- Phase 8.4 does not integrate Tilopay, create payment records, confirm reservations, send Resend emails, create manual calendar blocks, add admin reservation UI, add PMS behavior, or add migrations.
+```
+
+Phase 8.5 current scope:
+
+```text
+- Add a public-safe server endpoint to validate an active PENDING_PAYMENT reservation before future payment handoff.
+- Require the hold to exist, remain PENDING_PAYMENT, and have expiresAt > now.
+- Recalculate quote server-side using DB-backed pricing.
+- Verify stored reservation amounts still match the recalculated quote.
+- Revalidate availability while excluding the reservation itself from blocking records.
+- Return readyForPayment only when the pending hold is still eligible.
+- Do not integrate Tilopay, create payment records, confirm reservations, send emails, add admin UI, add PMS behavior, or add migrations.
 ```
 
 ---
