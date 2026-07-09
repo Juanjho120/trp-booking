@@ -12,7 +12,12 @@ import { getCountryOption, getCountryOptions, type CountryOption } from "@/lib/g
 import type { AccommodationId } from "@/types/accommodation";
 import type { DateOnlyString } from "@/types/availability";
 import type { ReservationQuote } from "@/types/reservation-quote";
+import type {
+  PendingReservationHold,
+  PendingReservationHoldApiResponse,
+} from "@/types/reservation-pending-hold";
 
+import { getPendingHoldCopy } from "../reservation-pending-hold-copy";
 import { getReservationRequestUxCopy } from "../reservation-request-copy";
 
 type ReservationRequestFormProps = Readonly<{
@@ -77,6 +82,12 @@ function isQuoteSuccessResponse(response: QuoteApiResponse): response is QuoteAp
   return "quote" in response;
 }
 
+function isPendingHoldSuccessResponse(
+  response: PendingReservationHoldApiResponse,
+): response is { pendingHold: PendingReservationHold } {
+  return "pendingHold" in response;
+}
+
 function toDateOnlyString(date: Date): DateOnlyString {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -126,6 +137,33 @@ function buildQuoteUrl(input: Readonly<{
   return `/api/reservations/quote?${searchParams.toString()}`;
 }
 
+function buildPendingHoldPayload(input: Readonly<{
+  accommodationId: AccommodationId;
+  checkInDate: string;
+  checkOutDate: string;
+  guestCount: string;
+  guestName: string;
+  guestEmail: string;
+  guestCountry: CountryOption;
+  guestPhoneLocal: string;
+  arrivalTimeEstimate: string;
+  locale: string;
+}>): string {
+  return JSON.stringify({
+    accommodationId: input.accommodationId,
+    checkInDate: input.checkInDate.trim(),
+    checkOutDate: input.checkOutDate.trim(),
+    guestCount: Number(input.guestCount),
+    guestName: input.guestName.trim(),
+    guestEmail: input.guestEmail.trim(),
+    guestCountry: input.guestCountry.iso2,
+    countryDialCode: input.guestCountry.dialCode,
+    guestPhoneLocal: input.guestPhoneLocal.trim(),
+    arrivalTimeEstimate: input.arrivalTimeEstimate.trim(),
+    locale: input.locale,
+  });
+}
+
 function buildTimeOptions(): readonly SelectOption[] {
   const options: SelectOption[] = [];
 
@@ -146,6 +184,13 @@ function buildTimeOptions(): readonly SelectOption[] {
   return options;
 }
 
+function formatExpirationDateTime(value: string, locale: string): string {
+  return new Intl.DateTimeFormat(locale, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+}
+
 export function ReservationRequestForm({
   accommodationId,
   maxGuests,
@@ -153,6 +198,7 @@ export function ReservationRequestForm({
   const { locale, messages } = useLocale();
   const requestMessages = messages.reservations.request;
   const uxCopy = getReservationRequestUxCopy(locale);
+  const pendingHoldCopy = getPendingHoldCopy(locale);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [guestCount, setGuestCount] = useState("1");
@@ -166,8 +212,11 @@ export function ReservationRequestForm({
   const [arrivalTimeEstimate, setArrivalTimeEstimate] = useState("");
   const [arrivalTimeOpen, setArrivalTimeOpen] = useState(false);
   const [quote, setQuote] = useState<ReservationQuote | null>(null);
+  const [pendingHold, setPendingHold] = useState<PendingReservationHold | null>(null);
   const [status, setStatus] = useState<RequestStatus>("idle");
+  const [holdStatus, setHoldStatus] = useState<RequestStatus>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [holdErrorMessage, setHoldErrorMessage] = useState<string | null>(null);
 
   const countryOptions = useMemo(() => getCountryOptions(locale), [locale]);
   const selectedCountry = useMemo(
@@ -197,6 +246,8 @@ export function ReservationRequestForm({
     event.preventDefault();
     setStatus("loading");
     setErrorMessage(null);
+    setHoldErrorMessage(null);
+    setPendingHold(null);
     setQuote(null);
 
     try {
@@ -230,9 +281,56 @@ export function ReservationRequestForm({
     }
   }
 
+  async function handlePendingHoldRequest(): Promise<void> {
+    setHoldStatus("loading");
+    setHoldErrorMessage(null);
+    setPendingHold(null);
+
+    try {
+      const response = await fetch("/api/reservations/pending-hold", {
+        body: buildPendingHoldPayload({
+          accommodationId,
+          checkInDate,
+          checkOutDate,
+          guestCount,
+          guestName,
+          guestEmail,
+          guestCountry: selectedCountry,
+          guestPhoneLocal,
+          arrivalTimeEstimate,
+          locale,
+        }),
+        headers: {
+          accept: "application/json",
+          "content-type": "application/json",
+        },
+        method: "POST",
+      });
+      const payload = (await response.json()) as PendingReservationHoldApiResponse;
+
+      if (!response.ok || !isPendingHoldSuccessResponse(payload)) {
+        const message = "error" in payload
+          ? payload.error.message
+          : pendingHoldCopy.errors.PENDING_HOLD_UNEXPECTED_ERROR;
+        throw new Error(message);
+      }
+
+      setQuote(payload.pendingHold.quote);
+      setPendingHold(payload.pendingHold);
+      setHoldStatus("success");
+    } catch (error) {
+      setHoldStatus("error");
+      setHoldErrorMessage(
+        error instanceof Error ? error.message : pendingHoldCopy.errors.PENDING_HOLD_UNEXPECTED_ERROR,
+      );
+    }
+  }
+
   function handleDateRangeSelect(nextDateRange: DateRange | undefined): void {
     setDateRange(nextDateRange);
     setQuote(null);
+    setPendingHold(null);
+    setHoldErrorMessage(null);
   }
 
   return (
@@ -246,6 +344,8 @@ export function ReservationRequestForm({
             onClear={() => {
               setDateRange(undefined);
               setQuote(null);
+              setPendingHold(null);
+              setHoldErrorMessage(null);
             }}
             onDone={() => setDatePickerOpen(false)}
             onOpenChange={setDatePickerOpen}
@@ -263,6 +363,8 @@ export function ReservationRequestForm({
               setGuestCount(value);
               setGuestSelectorOpen(false);
               setQuote(null);
+              setPendingHold(null);
+              setHoldErrorMessage(null);
             }}
             open={guestSelectorOpen}
             options={guestOptions.map((value) => ({ label: value, value }))}
@@ -276,7 +378,11 @@ export function ReservationRequestForm({
       <Field
         autoComplete="name"
         label={requestMessages.fields.guestName}
-        onChange={setGuestName}
+        onChange={(value) => {
+          setGuestName(value);
+          setPendingHold(null);
+          setHoldErrorMessage(null);
+        }}
         placeholder={requestMessages.placeholders.guestName}
         value={guestName}
       />
@@ -284,7 +390,11 @@ export function ReservationRequestForm({
         autoComplete="email"
         inputMode="email"
         label={requestMessages.fields.guestEmail}
-        onChange={setGuestEmail}
+        onChange={(value) => {
+          setGuestEmail(value);
+          setPendingHold(null);
+          setHoldErrorMessage(null);
+        }}
         placeholder={requestMessages.placeholders.guestEmail}
         value={guestEmail}
       />
@@ -300,6 +410,8 @@ export function ReservationRequestForm({
             setGuestCountry(country.iso2);
             setCountryOpen(false);
             setCountrySearch("");
+            setPendingHold(null);
+            setHoldErrorMessage(null);
           }}
           open={countryOpen}
           placeholder={uxCopy.country.placeholder}
@@ -312,7 +424,11 @@ export function ReservationRequestForm({
           dialCode={selectedCountry.dialCode}
           inputLabel={uxCopy.phone.localNumber}
           label={uxCopy.phone.label}
-          onChange={setGuestPhoneLocal}
+          onChange={(value) => {
+            setGuestPhoneLocal(value);
+            setPendingHold(null);
+            setHoldErrorMessage(null);
+          }}
           value={guestPhoneLocal}
         />
       </div>
@@ -324,6 +440,8 @@ export function ReservationRequestForm({
         onSelect={(value) => {
           setArrivalTimeEstimate(value);
           setArrivalTimeOpen(false);
+          setPendingHold(null);
+          setHoldErrorMessage(null);
         }}
         open={arrivalTimeOpen}
         options={timeOptions}
@@ -343,11 +461,31 @@ export function ReservationRequestForm({
 
       {quote ? <QuoteSummary quote={quote} /> : null}
 
-      <Button className="w-full rounded-full" disabled type="button" variant="secondary">
-        {requestMessages.createHoldDisabled}
+      {holdErrorMessage ? (
+        <p className="rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm leading-6 text-destructive">
+          {holdErrorMessage}
+        </p>
+      ) : null}
+
+      {pendingHold ? (
+        <PendingHoldSummary
+          copy={pendingHoldCopy}
+          locale={locale}
+          pendingHold={pendingHold}
+        />
+      ) : null}
+
+      <Button
+        className="w-full rounded-full"
+        disabled={status === "loading" || holdStatus === "loading"}
+        onClick={handlePendingHoldRequest}
+        type="button"
+        variant="secondary"
+      >
+        {holdStatus === "loading" ? pendingHoldCopy.creatingHold : pendingHoldCopy.createHold}
       </Button>
       <p className="text-center text-xs leading-5 text-muted-foreground">
-        {requestMessages.phaseBoundaryNote}
+        {pendingHoldCopy.phaseBoundaryNote}
       </p>
     </form>
   );
@@ -651,6 +789,35 @@ function Field({
         value={value}
       />
     </label>
+  );
+}
+
+function PendingHoldSummary({
+  copy,
+  locale,
+  pendingHold,
+}: Readonly<{
+  copy: ReturnType<typeof getPendingHoldCopy>;
+  locale: string;
+  pendingHold: PendingReservationHold;
+}>) {
+  return (
+    <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 text-sm leading-6">
+      <p className="font-medium text-foreground">{copy.successTitle}</p>
+      <dl className="mt-3 grid gap-2 text-muted-foreground">
+        <QuoteRow label={copy.reservationId} value={pendingHold.reservationId} />
+        <QuoteRow label={copy.status} value={copy.pendingPayment} />
+        <QuoteRow label={copy.expiresAt} value={formatExpirationDateTime(pendingHold.expiresAt, locale)} />
+        <QuoteRow
+          emphasize
+          label={copy.total}
+          value={`$${pendingHold.total.amount} ${pendingHold.currency}`}
+        />
+      </dl>
+      <p className="mt-3 text-xs leading-5 text-muted-foreground">
+        {copy.paymentPendingNote}
+      </p>
+    </div>
   );
 }
 

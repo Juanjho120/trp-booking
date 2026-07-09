@@ -66,8 +66,10 @@ type CalendarBlockAvailabilityRecord = Prisma.CalendarBlockGetPayload<{
   select: typeof calendarBlockAvailabilitySelect;
 }>;
 
+type AvailabilityPrismaClient = PrismaClient | Prisma.TransactionClient;
+
 type AvailabilityServiceOptions = Readonly<{
-  prismaClient?: PrismaClient;
+  prismaClient?: AvailabilityPrismaClient;
   now?: Date;
 }>;
 
@@ -103,7 +105,7 @@ function toAccommodationId(value: string): AccommodationId {
 }
 
 async function resolvePropertyMappings(
-  prismaClient: PrismaClient,
+  prismaClient: AvailabilityPrismaClient,
   accommodationIds: readonly AccommodationId[],
 ): Promise<readonly PropertyAvailabilityMapping[]> {
   const properties: PropertyAvailabilityRecord[] = await prismaClient.property.findMany({
