@@ -14,9 +14,9 @@ Deferred — Intentionally postponed.
 ## Current Phase
 
 ```text
-Current phase: Phase 8 — Reservation Flow
-Current subphase: 8.5.1 Pending hold expiration status cleanup
-Current focus: mark expired PENDING_PAYMENT reservation holds as EXPIRED through a protected cron cleanup route, without creating payments, emails, calendar blocks, confirmations, PMS behavior, migrations, or Tilopay integration.
+Current phase: Phase 9 — Tilopay Sandbox Integration
+Current subphase: 9.1 Tilopay sandbox strategy and environment contract
+Current focus: start Tilopay sandbox integration from the completed Phase 8 reservation-flow foundation, without confirming reservations until payment validation is implemented.
 ```
 
 ---
@@ -87,6 +87,16 @@ Completed subphases:
 3.4 Soft delete and audit field conventions
 3.5 Initial seed strategy for accommodations, amenities, rules, and static content
 3.6 Database documentation update
+```
+
+Important Phase 3 closure notes:
+
+```text
+- Phase 3 created and validated the Prisma schema foundation.
+- Phase 3 did not create or apply migrations.
+- Phase 3 did not write records to Supabase.
+- Migration execution was later corrected in docs/46-database-migration-bootstrap-correction.md.
+- Initial seed execution and DB-backed public accommodation reads were later corrected in docs/47-initial-seed-and-db-backed-accommodation-source.md.
 ```
 
 ---
@@ -186,11 +196,11 @@ Phase 7 closure result:
 
 ## Phase 8 — Reservation Flow
 
-Status: **In progress**
+Status: **Completed**
 
 Goal: Add the public direct reservation flow foundation using server-side validation, pending holds, guest details, seeded accommodation records, improved booking UX, manual locale selection, availability revalidation, and expired hold cleanup before payment integration.
 
-Subphase status:
+Completed subphases:
 
 ```text
 8.1 Reservation flow strategy and pending hold contract — Completed
@@ -200,57 +210,50 @@ Subphase status:
 8.3.2 Reservation form UX and manual locale switcher — Completed
 8.4 Pending reservation creation and expiration handling — Completed
 8.5 Availability revalidation before payment handoff — Completed
-8.5.1 Pending hold expiration status cleanup — In progress
-8.6 Phase 8 documentation update — Not started
+8.5.1 Pending hold expiration status cleanup — Completed
+8.6 Phase 8 documentation update — Completed
 ```
 
-Phase 8 rules:
+Phase 8 rules preserved:
 
 ```text
-- Do not integrate Tilopay in Phase 8 unless a later documented subphase explicitly allows payment handoff preparation only.
-- Do not send Resend emails in Phase 8.
-- Do not confirm reservations before payment validation.
-- Pending reservations must expire if payment is not completed in time.
-- Availability must be rechecked server-side before creating a pending reservation and again before payment handoff.
-- Guest count, date ranges, and totals must be validated on the server.
-- Guests must not modify confirmed reservation dates directly from the public website.
-- Public accommodation listing, detail, quote, availability, and reservation creation must use seeded database property records as the source of truth.
-- Public reservation input must use controlled, styled inputs for date range, guest count, country, phone, and arrival time after Phase 8.3.2.
-- Public language selection must be manual and visible through the locale switcher after Phase 8.3.2.
-- Do not add PMS features.
+- Phase 8 did not integrate Tilopay.
+- Phase 8 did not send Resend emails.
+- Phase 8 did not confirm reservations before payment validation.
+- Phase 8 did not create Payment records.
+- Phase 8 did not add admin reservation UI.
+- Phase 8 did not add PMS features.
+- Public accommodation listing, detail, quote, availability, and reservation creation use seeded database property records as the source of truth.
+- Public reservation input uses controlled, styled inputs for date range, guest count, country, phone, and arrival time.
+- Public language selection is manual and visible through the locale switcher.
 ```
 
-Phase 8.4 result:
+Phase 8 closure result:
 
 ```text
-- POST /api/reservations/pending-hold was added.
-- Pending holds create real Reservation records with status = PENDING_PAYMENT.
-- Pending holds set expiresAt = now + 15 minutes.
-- The server recalculates quote and revalidates availability immediately before writing the pending reservation.
-- ReservationGuest is created together with the Reservation record.
-- Phase 8.4 does not integrate Tilopay, create payment records, confirm reservations, send Resend emails, create manual calendar blocks, add admin reservation UI, add PMS behavior, or add migrations.
+- The public reservation form can calculate a server-side quote.
+- The public reservation form can create real PENDING_PAYMENT reservation holds.
+- Pending holds use a non-null expiresAt value and initially last 15 minutes.
+- Availability blocks active pending holds while ignoring expired pending holds.
+- Payment handoff readiness can be validated server-side for an active pending hold.
+- Payment handoff validation recalculates quote, checks stored totals, and revalidates availability while excluding the reservation itself.
+- A protected cron route marks expired PENDING_PAYMENT holds as EXPIRED.
+- The reservation flow is ready for Phase 9 Tilopay sandbox integration.
 ```
 
-Phase 8.5 result:
+Phase 8 documentation:
 
 ```text
-- POST /api/reservations/payment-handoff/validate was added.
-- The endpoint validates that a pending reservation exists, remains PENDING_PAYMENT, has expiresAt > now, and is still eligible before future payment handoff.
-- The service recalculates quote server-side and compares stored reservation amounts against the recalculated quote.
-- The service revalidates availability while excluding the reservation itself from blocking records.
-- The endpoint returns readyForPayment only for active, non-conflicting pending reservations.
-- Phase 8.5 does not integrate Tilopay, create payment records, confirm reservations, send emails, add admin UI, add PMS behavior, or add migrations.
-```
-
-Phase 8.5.1 current scope:
-
-```text
-- Add a protected cron route to mark expired PENDING_PAYMENT reservations as EXPIRED.
-- Reuse the existing CRON_SECRET authorization pattern already used by the Airbnb iCal cron route.
-- Register the cleanup route in vercel.json.
-- Keep availability release tied to expiresAt <= now, not to the cleanup route schedule.
-- Do not hard-delete reservations.
-- Do not create payments, emails, calendar blocks, confirmations, PMS behavior, migrations, or Tilopay integration.
+docs/43-reservation-flow-strategy-and-pending-hold-contract.md
+docs/44-reservation-quote-and-server-side-pricing-foundation.md
+docs/45-public-guest-details-and-reservation-request-form.md
+docs/46-database-migration-bootstrap-correction.md
+docs/47-initial-seed-and-db-backed-accommodation-source.md
+docs/48-reservation-form-ux-and-manual-locale-switcher.md
+docs/49-pending-reservation-creation-and-expiration-handling.md
+docs/50-availability-revalidation-before-payment-handoff.md
+docs/51-pending-hold-expiration-status-cleanup.md
+docs/52-phase-8-reservation-flow-closure-review.md
 ```
 
 ---
@@ -258,6 +261,32 @@ Phase 8.5.1 current scope:
 ## Phase 9 — Tilopay Sandbox Integration
 
 Status: **Not started**
+
+Goal: Add the Tilopay sandbox payment foundation on top of the completed Phase 8 reservation-flow foundation.
+
+Planned subphases:
+
+```text
+9.1 Tilopay sandbox strategy and environment contract — Not started
+9.2 Tilopay environment validation — Not started
+9.3 Payment record creation for pending reservations — Not started
+9.4 Payment handoff redirect/session foundation — Not started
+9.5 Tilopay webhook validation foundation — Not started
+9.6 Confirm reservation only after validated payment — Not started
+9.7 Phase 9 documentation update — Not started
+```
+
+Phase 9 rules:
+
+```text
+- Do not store card data.
+- Keep all Tilopay credentials server-side only.
+- Do not expose raw provider payloads in public API responses.
+- Do not set status = CONFIRMED until payment validation succeeds.
+- Keep failed/rejected payment states auditable.
+- Do not send Resend emails in Phase 9 unless explicitly moved from Phase 10.
+- Do not add PMS features.
+```
 
 ---
 

@@ -74,7 +74,7 @@ Max guests: 6
 
 - User-facing error messages must be centralized, reusable, bilingual, and mapped by domain instead of hardcoded inside components or server handlers.
 - Public page copy should be centralized instead of hardcoded in TSX components.
-- Public accommodation content must be read from the database after Phase 8.3.1. Typed accommodation config may remain only as transitional fallback/reference until it is removed.
+- Public accommodation content must be read from the database after Phase 8.3.1.
 - Amenity labels and icons must come from seeded database records for public pages after Phase 8.3.1.
 - Guests must not modify confirmed reservation dates directly from the public website.
 - Date changes require admin authorization or cancellation and a new reservation according to the cancellation policy.
@@ -86,25 +86,52 @@ Max guests: 6
 - Seed data must be deterministic and idempotent; no seed script should create duplicate properties, amenities, rules, or relationships.
 - Admin access must be protected before any admin page exposes operational data or actions.
 - Provider secrets for Auth.js, Cloudinary, Tilopay, Resend, Airbnb iCal, and similar services must remain server-side only.
-- Public accommodation images are backed by database `property_images` records after Phase 8.3.1. Image records may point to local fallback URLs until Cloudinary public IDs are managed through the database/admin flow.
+- Public accommodation images are backed by database `property_images` records after Phase 8.3.1.
 - Availability ranges use date-only boundaries where `checkInDate` is inclusive and `checkOutDate` is exclusive.
 - Availability must account for composed listing dependencies and preparation buffer rules before payment or reservation confirmation.
 - Availability checks must ignore expired pending reservations, soft-deleted calendar blocks, and manually unlocked preparation buffer blocks.
-- Public availability UI must not create reservations, start checkout, or collect payments during Phase 6.
-- Confirmed reservations now derive preparation buffer blocking records at read time until a later write flow persists automatic buffer blocks.
 - Airbnb iCal import URLs and export tokens must never be committed, logged, exposed through API responses, or displayed in public UI.
 - Airbnb export feed tokens must be stored as hashes, not as raw reusable tokens.
 - Airbnb scheduled sync must be protected by `CRON_SECRET` and must return redacted operational summaries only.
 - Reservation flow must re-check availability server-side before creating pending holds or handing off to payment.
 - Pending reservation holds must use `PENDING_PAYMENT` with a non-null `expiresAt` and must never be confirmed before validated payment.
-- Public guest details forms may calculate quotes and collect client-side details before Phase 8.4, but must not create reservations or block dates.
-- After Phase 8.3.2, the public reservation request form must use styled, controlled booking inputs instead of free-form date, guest, country, phone, and arrival-time fields.
-- The public site must expose a manual ES/EN locale switcher and must persist the guest-selected locale client-side.
+- Phase 8 created the reservation-flow foundation only; Tilopay payment processing belongs to Phase 9.
 - Phase 8.4 creates real `PENDING_PAYMENT` reservation holds and related `ReservationGuest` records, but does not create payments, send emails, confirm reservations, or create manual calendar blocks.
-- Phase 8.5 validates active pending holds before future payment handoff and must exclude the reservation itself from blocking records during that revalidation.
+- Phase 8.5 validates active pending holds before future payment handoff and excludes the reservation itself from blocking records during that revalidation.
 - Phase 8.5.1 marks expired pending holds as `EXPIRED` through a protected cron route; availability is still released by `expiresAt <= now` even before the cleanup runs.
-- Tilopay payment processing belongs to Phase 9.
 - Resend email delivery belongs to Phase 10.
+
+## Phase 8 Closure Summary
+
+Phase 8 — Reservation Flow is complete as the pre-payment reservation foundation.
+
+Phase 8 completed:
+
+```text
+8.1 Reservation flow strategy and pending hold contract
+8.2 Reservation quote and server-side pricing foundation
+8.3 Public guest details and reservation request form
+8.3.1 Initial seed and DB-backed accommodation source
+8.3.2 Reservation form UX and manual locale switcher
+8.4 Pending reservation creation and expiration handling
+8.5 Availability revalidation before payment handoff
+8.5.1 Pending hold expiration status cleanup
+8.6 Phase 8 documentation update
+```
+
+Phase 8 intentionally did not add:
+
+```text
+Tilopay checkout
+Payment records
+Payment webhooks
+Reservation confirmation
+Resend emails
+Admin reservation UI
+PMS behavior
+```
+
+The next implementation phase is Phase 9 — Tilopay Sandbox Integration.
 
 ## Documentation
 
@@ -164,6 +191,7 @@ docs/
   49-pending-reservation-creation-and-expiration-handling.md
   50-availability-revalidation-before-payment-handoff.md
   51-pending-hold-expiration-status-cleanup.md
+  52-phase-8-reservation-flow-closure-review.md
 ```
 
 The assistant collaboration rules live in:
@@ -175,10 +203,10 @@ AGENTS.md
 ## Development Status
 
 ```text
-Current phase: Phase 8 — Reservation Flow
-Current subphase: 8.5.1 Pending hold expiration status cleanup
-Last completed phase: Phase 7 — Airbnb iCal Synchronization
-Last completed subphase: 8.5 Availability revalidation before payment handoff
+Current phase: Phase 9 — Tilopay Sandbox Integration
+Current subphase: 9.1 Tilopay sandbox strategy and environment contract
+Last completed phase: Phase 8 — Reservation Flow
+Last completed subphase: 8.6 Phase 8 documentation update
 ```
 
-See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/49-pending-reservation-creation-and-expiration-handling.md`, `docs/50-availability-revalidation-before-payment-handoff.md`, and `docs/51-pending-hold-expiration-status-cleanup.md` for the official current tracker and database-backed reservation flow context.
+See `docs/10-phases.md`, `docs/11-progress-log.md`, and `docs/52-phase-8-reservation-flow-closure-review.md` for the official current tracker and Phase 8 closure context.

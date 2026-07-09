@@ -5,11 +5,11 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 ## Current Status
 
 ```text
-Current phase: Phase 8 — Reservation Flow
-Current subphase: 8.5.1 Pending hold expiration status cleanup
+Current phase: Phase 9 — Tilopay Sandbox Integration
+Current subphase: 9.1 Tilopay sandbox strategy and environment contract
 Last updated: 2026-07-09
-Last completed phase: Phase 7 — Airbnb iCal Synchronization
-Last completed subphase: 8.5 Availability revalidation before payment handoff
+Last completed phase: Phase 8 — Reservation Flow
+Last completed subphase: 8.6 Phase 8 documentation update
 ```
 
 ## Completed Work
@@ -73,7 +73,31 @@ Airbnb import URLs and raw export tokens remain secrets.
 Phase 7 did not add real Airbnb URLs, raw token storage, seed data, admin sync UI, reservation checkout, Tilopay, Resend, production deployment, or PMS features.
 ```
 
-### Phase 8.1 — Reservation Flow Strategy and Pending Hold Contract
+### Phase 8 — Reservation Flow
+
+Status: **Completed**
+
+Closure document:
+
+```text
+docs/52-phase-8-reservation-flow-closure-review.md
+```
+
+Completed subphases:
+
+```text
+8.1 Reservation flow strategy and pending hold contract — Completed
+8.2 Reservation quote and server-side pricing foundation — Completed
+8.3 Public guest details and reservation request form — Completed
+8.3.1 Initial seed and DB-backed accommodation source — Completed
+8.3.2 Reservation form UX and manual locale switcher — Completed
+8.4 Pending reservation creation and expiration handling — Completed
+8.5 Availability revalidation before payment handoff — Completed
+8.5.1 Pending hold expiration status cleanup — Completed
+8.6 Phase 8 documentation update — Completed
+```
+
+#### Phase 8.1 — Reservation Flow Strategy and Pending Hold Contract
 
 Status: **Completed**
 
@@ -88,7 +112,7 @@ Reservations must not become CONFIRMED until payment validation exists and succe
 Phase 8 must keep Tilopay processing in Phase 9 and Resend email delivery in Phase 10.
 ```
 
-### Phase 8.2 — Reservation Quote and Server-side Pricing Foundation
+#### Phase 8.2 — Reservation Quote and Server-side Pricing Foundation
 
 Status: **Completed**
 
@@ -104,11 +128,22 @@ The quote endpoint is non-binding and does not guarantee final availability.
 Availability must still be rechecked before creating a pending hold and before payment handoff.
 ```
 
-### Phase 8.3 — Public Guest Details and Reservation Request Form
+#### Phase 8.3 — Public Guest Details and Reservation Request Form
 
 Status: **Completed**
 
-### Phase 8 Corrective Task — Database Migration Bootstrap
+Completed deliverables:
+
+```text
+features/reservations/components/reservation-request-form.tsx added
+features/reservations/index.ts added
+features/properties/components/property-detail-page.tsx updated to render the request form
+messages/es.ts updated with reservation request form copy
+messages/en.ts updated with reservation request form copy
+docs/45-public-guest-details-and-reservation-request-form.md added
+```
+
+#### Phase 8 Corrective Task — Database Migration Bootstrap
 
 Status: **Completed**
 
@@ -120,15 +155,28 @@ The clean baseline uses snake_case database tables/columns and camelCase Prisma 
 Future subphases that add or change persisted data must include the required Prisma migration unless no schema change is needed and that is explicitly documented.
 ```
 
-### Phase 8.3.1 — Initial Seed and DB-backed Accommodation Source
+#### Phase 8.3.1 — Initial Seed and DB-backed Accommodation Source
 
 Status: **Completed**
 
-### Phase 8.3.2 — Reservation Form UX and Manual Locale Switcher
+Completed result:
+
+```text
+Public accommodations, details, quotes, availability, and reservation creation now use seeded database property records as the source of truth.
+```
+
+#### Phase 8.3.2 — Reservation Form UX and Manual Locale Switcher
 
 Status: **Completed**
 
-### Phase 8.4 — Pending Reservation Creation and Expiration Handling
+Completed result:
+
+```text
+The public reservation request form uses controlled, styled booking inputs for date range, guest count, country, phone, and estimated arrival time.
+The public ES/EN locale switcher is visible and persisted client-side.
+```
+
+#### Phase 8.4 — Pending Reservation Creation and Expiration Handling
 
 Status: **Completed**
 
@@ -141,9 +189,6 @@ types/reservation-pending-hold.ts added
 features/reservations/reservation-pending-hold-copy.ts added
 features/reservations/components/reservation-request-form.tsx updated to create server-side pending holds
 docs/49-pending-reservation-creation-and-expiration-handling.md added
-README.md updated with Phase 8.4 completion and Phase 8.5 current status
-docs/10-phases.md updated to mark 8.4 completed and 8.5 in progress
-docs/11-progress-log.md updated with Phase 8.4 completion
 ```
 
 Important decisions:
@@ -166,7 +211,7 @@ A PENDING_PAYMENT reservation was created successfully in the database.
 The related reservation guest data was validated through the pending hold flow.
 ```
 
-### Phase 8.5 — Availability Revalidation Before Payment Handoff
+#### Phase 8.5 — Availability Revalidation Before Payment Handoff
 
 Status: **Completed**
 
@@ -179,9 +224,6 @@ lib/reservations/payment-handoff.ts added
 types/reservation-payment-handoff.ts added
 lib/reservations/index.ts updated with payment handoff exports
 docs/50-availability-revalidation-before-payment-handoff.md added
-README.md updated with Phase 8.5 context
-docs/10-phases.md updated with Phase 8.5 current scope
-docs/11-progress-log.md updated with Phase 8.5 current work
 ```
 
 Important decisions:
@@ -202,42 +244,94 @@ Validated by user:
 ```text
 A fresh PENDING_PAYMENT hold blocks duplicate holds in the same date range.
 No payments, email_notifications, or calendar_blocks are created.
-The user confirmed 8.5 behavior is correct and approved a small follow-up subphase for expiration status cleanup.
+The user confirmed 8.5 behavior is correct.
+```
+
+#### Phase 8.5.1 — Pending Hold Expiration Status Cleanup
+
+Status: **Completed**
+
+Completed deliverables:
+
+```text
+app/api/cron/expire-pending-reservation-holds/route.ts added
+lib/reservations/expiration.ts added
+lib/reservations/index.ts updated with expiration exports
+vercel.json updated with the pending hold expiration cron route
+docs/51-pending-hold-expiration-status-cleanup.md added
+```
+
+Important decisions:
+
+```text
+Expired pending holds are marked EXPIRED through a protected cron route.
+The route uses the same CRON_SECRET authorization pattern as the Airbnb iCal cron route.
+Availability release is still based on expiresAt <= now and does not depend on the cron schedule.
+No hard delete is performed.
+No Payment, Resend email, CalendarBlock, confirmation status, admin reservation UI, PMS behavior, Prisma schema change, migration, or Tilopay integration was added in 8.5.1.
+```
+
+Validated by user:
+
+```text
+The cron route was called successfully from PowerShell.
+The user committed the expiration cleanup change.
+```
+
+#### Phase 8.6 — Phase 8 Documentation Update
+
+Status: **Completed**
+
+Completed deliverables:
+
+```text
+README.md updated with Phase 8 closure and Phase 9 next status
+docs/10-phases.md updated to mark Phase 8 completed and Phase 9 next
+docs/11-progress-log.md updated with Phase 8 closure
+docs/52-phase-8-reservation-flow-closure-review.md added
+```
+
+Important decisions:
+
+```text
+Phase 8 is closed as the pre-payment reservation-flow foundation.
+Phase 9 is the next implementation phase.
+Tilopay checkout, payment records, payment webhooks, reservation confirmation, and payment provider behavior remain out of Phase 8.
 ```
 
 ## Current Work
 
-### Phase 8 — Reservation Flow
+### Phase 9 — Tilopay Sandbox Integration
 
-Status: **In progress**
+Status: **Not started**
 
 Current subphase:
 
 ```text
-8.5.1 Pending hold expiration status cleanup
+9.1 Tilopay sandbox strategy and environment contract
 ```
 
-Phase 8.5.1 goals:
+Phase 9 starting goals:
 
 ```text
-Create a protected cron route to mark expired PENDING_PAYMENT holds as EXPIRED.
-Reuse the existing CRON_SECRET authorization pattern from the Airbnb iCal cron route.
-Register the new cleanup route in vercel.json.
-Keep availability release based on expiresAt <= now, not on cron execution timing.
-Do not hard-delete reservations.
-Do not create payments, email_notifications, calendar_blocks, confirmations, admin UI, PMS behavior, Prisma schema changes, migrations, or Tilopay integration.
+Document Tilopay sandbox contract and environment variables.
+Keep Tilopay credentials server-side only.
+Create payment records only after the contract is defined.
+Do not store card data.
+Do not set Reservation.status = CONFIRMED until a payment webhook or equivalent validation succeeds.
+Do not send Resend emails in Phase 9 unless explicitly moved from Phase 10.
+Do not add PMS features.
 ```
 
 ## Next Recommended Work
 
 ```text
-1. Validate Phase 8.5.1 with npm run lint and npm run build.
-2. Create or reuse a PENDING_PAYMENT reservation.
-3. Force expires_at into the past in a local/staging database.
-4. Call GET /api/cron/expire-pending-reservation-holds with CRON_SECRET.
-5. Confirm the reservation status changes to EXPIRED.
-6. Confirm no payments, email_notifications, or calendar_blocks are created.
-7. After validation, close 8.5.1 and continue with 8.6 Phase 8 documentation update.
+1. Start Phase 9.1 Tilopay sandbox strategy and environment contract.
+2. Document required Tilopay sandbox credentials and callback URLs.
+3. Define server-side environment variable names.
+4. Define Payment record lifecycle for pending reservations.
+5. Define webhook validation requirements before any CONFIRMED reservation transition.
+6. Keep Resend email delivery for Phase 10 unless explicitly moved.
 ```
 
 ## Continuity Notes for New Conversations
@@ -249,39 +343,21 @@ README.md
 AGENTS.md
 docs/03-architecture.md
 docs/04-database-model.md
+docs/06-security-and-payments.md
 docs/10-phases.md
 docs/11-progress-log.md
-docs/32-availability-strategy-and-calendar-rules.md
-docs/33-availability-domain-service-foundation.md
-docs/34-public-availability-calendar-ui-foundation.md
-docs/35-preparation-buffer-and-blocked-date-evaluation.md
-docs/36-phase-6-availability-closure-review.md
-docs/42-phase-7-airbnb-ical-closure-review.md
 docs/43-reservation-flow-strategy-and-pending-hold-contract.md
 docs/44-reservation-quote-and-server-side-pricing-foundation.md
-docs/45-public-guest-details-and-reservation-request-form.md
-docs/46-database-migration-bootstrap-correction.md
-docs/47-initial-seed-and-db-backed-accommodation-source.md
-docs/48-reservation-form-ux-and-manual-locale-switcher.md
 docs/49-pending-reservation-creation-and-expiration-handling.md
 docs/50-availability-revalidation-before-payment-handoff.md
 docs/51-pending-hold-expiration-status-cleanup.md
+docs/52-phase-8-reservation-flow-closure-review.md
 lib/db/prisma.ts
-lib/properties/index.ts
-lib/properties/public.ts
-lib/availability/index.ts
-lib/availability/service.ts
 lib/reservations/index.ts
 lib/reservations/pending-holds.ts
 lib/reservations/payment-handoff.ts
 lib/reservations/expiration.ts
-features/i18n/use-locale.tsx
-features/i18n/locale-switcher.tsx
-features/reservations/components/reservation-request-form.tsx
 prisma/schema.prisma
-prisma/seed.ts
-messages/es.ts
-messages/en.ts
 vercel.json
 ```
 
@@ -291,12 +367,11 @@ Important working rules:
 Use ZIPs with real files for non-trivial changes.
 Do not hardcode public or admin UI copy in TSX components.
 Do not add PMS features.
-Do not integrate Resend, Tilopay, or Airbnb iCal before their documented phases.
+Do not integrate Resend before its documented phase unless explicitly approved.
 Keep phase/subphase tracking updated.
 Do not expose admin pages without route protection.
-Do not commit secrets, provider keys, or real credentials.
-Keep Cloudinary API key and API secret server-side only.
-Public accommodation images should be read from database property_images records after Phase 8.3.1.
-Phase 6 availability code must preserve composed listing and preparation buffer rules.
-Phase 7 must not expose Airbnb iCal URLs or tokens in code, docs, logs, API responses, or public UI.
+Do not commit secrets, provider keys, webhook secrets, or real credentials.
+Keep Tilopay credentials server-side only.
+Do not store card data.
+Confirm reservations only after validated payment.
 ```
