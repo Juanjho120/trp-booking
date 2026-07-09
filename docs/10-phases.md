@@ -15,8 +15,8 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 9 — Tilopay Sandbox Integration
-Current subphase: 9.1 Tilopay sandbox strategy and environment contract
-Current focus: start Tilopay sandbox integration from the completed Phase 8 reservation-flow foundation, without confirming reservations until payment validation is implemented.
+Current subphase: 9.2 Tilopay environment validation
+Current focus: implement server-side environment validation for the Tilopay sandbox contract defined in Phase 9.1, without creating payment records, checkout redirects, webhooks, confirmation transitions, emails, or PMS features yet.
 ```
 
 ---
@@ -154,15 +154,6 @@ Completed subphases:
 6.5 Phase 6 documentation update — Completed
 ```
 
-Phase 6 closure result:
-
-```text
-- Public availability now has a documented strategy, typed rules, a server-side Prisma service, a public runtime API, and a public non-booking calendar UI.
-- Availability evaluation covers composed listing dependencies, confirmed reservations, active pending holds, calendar blocks, and derived preparation buffers from confirmed reservations.
-- After Phase 8.3.1, availability resolves property records and preparation buffer policies from the database instead of static accommodation config.
-- Phase 6 intentionally stops before reservation creation, checkout, payment collection, email delivery, Airbnb iCal synchronization, and admin calendar management.
-```
-
 ---
 
 ## Phase 7 — Airbnb iCal Synchronization
@@ -214,20 +205,6 @@ Completed subphases:
 8.6 Phase 8 documentation update — Completed
 ```
 
-Phase 8 rules preserved:
-
-```text
-- Phase 8 did not integrate Tilopay.
-- Phase 8 did not send Resend emails.
-- Phase 8 did not confirm reservations before payment validation.
-- Phase 8 did not create Payment records.
-- Phase 8 did not add admin reservation UI.
-- Phase 8 did not add PMS features.
-- Public accommodation listing, detail, quote, availability, and reservation creation use seeded database property records as the source of truth.
-- Public reservation input uses controlled, styled inputs for date range, guest count, country, phone, and arrival time.
-- Public language selection is manual and visible through the locale switcher.
-```
-
 Phase 8 closure result:
 
 ```text
@@ -241,33 +218,18 @@ Phase 8 closure result:
 - The reservation flow is ready for Phase 9 Tilopay sandbox integration.
 ```
 
-Phase 8 documentation:
-
-```text
-docs/43-reservation-flow-strategy-and-pending-hold-contract.md
-docs/44-reservation-quote-and-server-side-pricing-foundation.md
-docs/45-public-guest-details-and-reservation-request-form.md
-docs/46-database-migration-bootstrap-correction.md
-docs/47-initial-seed-and-db-backed-accommodation-source.md
-docs/48-reservation-form-ux-and-manual-locale-switcher.md
-docs/49-pending-reservation-creation-and-expiration-handling.md
-docs/50-availability-revalidation-before-payment-handoff.md
-docs/51-pending-hold-expiration-status-cleanup.md
-docs/52-phase-8-reservation-flow-closure-review.md
-```
-
 ---
 
 ## Phase 9 — Tilopay Sandbox Integration
 
-Status: **Not started**
+Status: **In progress**
 
 Goal: Add the Tilopay sandbox payment foundation on top of the completed Phase 8 reservation-flow foundation.
 
-Planned subphases:
+Subphase status:
 
 ```text
-9.1 Tilopay sandbox strategy and environment contract — Not started
+9.1 Tilopay sandbox strategy and environment contract — Completed
 9.2 Tilopay environment validation — Not started
 9.3 Payment record creation for pending reservations — Not started
 9.4 Payment handoff redirect/session foundation — Not started
@@ -282,9 +244,36 @@ Phase 9 rules:
 - Do not store card data.
 - Keep all Tilopay credentials server-side only.
 - Do not expose raw provider payloads in public API responses.
-- Do not set status = CONFIRMED until payment validation succeeds.
+- Do not set Reservation.status = CONFIRMED until payment validation succeeds.
 - Keep failed/rejected payment states auditable.
 - Do not send Resend emails in Phase 9 unless explicitly moved from Phase 10.
+- Do not add PMS features.
+```
+
+Phase 9.1 result:
+
+```text
+- docs/53-tilopay-sandbox-strategy-and-environment-contract.md was added.
+- README.md was updated with Phase 9.1 completion and Phase 9 current status.
+- docs/10-phases.md was updated to mark Phase 9 in progress and 9.1 completed.
+- docs/11-progress-log.md was updated with Phase 9.1 completion.
+- The Tilopay sandbox environment variable contract was defined.
+- The expected callback and webhook URLs were documented.
+- The payment attempt lifecycle was documented before writing payment integration code.
+- Phase 9.1 intentionally did not add Tilopay API calls, payment records, checkout redirects, webhook handlers, reservation confirmation, Resend emails, PMS behavior, schema changes, or migrations.
+```
+
+Phase 9.2 current scope:
+
+```text
+- Add server-side environment validation for the Tilopay variables defined in Phase 9.1.
+- Keep credentials server-side only.
+- Do not call Tilopay yet.
+- Do not create Payment records yet.
+- Do not create checkout redirects yet.
+- Do not add webhook handlers yet.
+- Do not confirm reservations yet.
+- Do not send emails yet.
 - Do not add PMS features.
 ```
 

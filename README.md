@@ -96,10 +96,11 @@ Max guests: 6
 - Reservation flow must re-check availability server-side before creating pending holds or handing off to payment.
 - Pending reservation holds must use `PENDING_PAYMENT` with a non-null `expiresAt` and must never be confirmed before validated payment.
 - Phase 8 created the reservation-flow foundation only; Tilopay payment processing belongs to Phase 9.
-- Phase 8.4 creates real `PENDING_PAYMENT` reservation holds and related `ReservationGuest` records, but does not create payments, send emails, confirm reservations, or create manual calendar blocks.
-- Phase 8.5 validates active pending holds before future payment handoff and excludes the reservation itself from blocking records during that revalidation.
-- Phase 8.5.1 marks expired pending holds as `EXPIRED` through a protected cron route; availability is still released by `expiresAt <= now` even before the cleanup runs.
-- Resend email delivery belongs to Phase 10.
+- Phase 9 must keep all Tilopay credentials server-side only.
+- Phase 9 must not store card data.
+- Phase 9 must not set `Reservation.status = CONFIRMED` until a payment callback/webhook is validated.
+- Phase 9 must keep failed, rejected, expired, and successful payment attempts auditable.
+- Resend email delivery belongs to Phase 10 unless explicitly moved later.
 
 ## Phase 8 Closure Summary
 
@@ -119,19 +120,31 @@ Phase 8 completed:
 8.6 Phase 8 documentation update
 ```
 
-Phase 8 intentionally did not add:
+The next implementation phase is Phase 9 — Tilopay Sandbox Integration.
+
+## Phase 9 Start Summary
+
+Phase 9 starts with a documentation-only contract before adding Tilopay code.
+
+Phase 9.1 completed:
 
 ```text
-Tilopay checkout
-Payment records
-Payment webhooks
-Reservation confirmation
-Resend emails
-Admin reservation UI
-PMS behavior
+9.1 Tilopay sandbox strategy and environment contract
 ```
 
-The next implementation phase is Phase 9 — Tilopay Sandbox Integration.
+Phase 9.1 defines:
+
+```text
+- Server-side Tilopay environment variable names.
+- Local, preview, and production callback URL expectations.
+- Payment attempt lifecycle.
+- Payment handoff contract from PENDING_PAYMENT reservations.
+- Webhook/callback validation rules.
+- Reservation confirmation rules.
+- Out-of-scope items before implementation.
+```
+
+No Tilopay checkout, Payment record creation, webhook handler, confirmation transition, or Resend email delivery is implemented in 9.1.
 
 ## Documentation
 
@@ -192,6 +205,7 @@ docs/
   50-availability-revalidation-before-payment-handoff.md
   51-pending-hold-expiration-status-cleanup.md
   52-phase-8-reservation-flow-closure-review.md
+  53-tilopay-sandbox-strategy-and-environment-contract.md
 ```
 
 The assistant collaboration rules live in:
@@ -204,9 +218,9 @@ AGENTS.md
 
 ```text
 Current phase: Phase 9 — Tilopay Sandbox Integration
-Current subphase: 9.1 Tilopay sandbox strategy and environment contract
+Current subphase: 9.2 Tilopay environment validation
 Last completed phase: Phase 8 — Reservation Flow
-Last completed subphase: 8.6 Phase 8 documentation update
+Last completed subphase: 9.1 Tilopay sandbox strategy and environment contract
 ```
 
-See `docs/10-phases.md`, `docs/11-progress-log.md`, and `docs/52-phase-8-reservation-flow-closure-review.md` for the official current tracker and Phase 8 closure context.
+See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/52-phase-8-reservation-flow-closure-review.md`, and `docs/53-tilopay-sandbox-strategy-and-environment-contract.md` for the official current tracker and payment integration context.
