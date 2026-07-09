@@ -281,7 +281,6 @@ function getCoverImage(property: PublicPropertyRecord): AccommodationImage {
   const cloudinaryImages = getCloudinaryImages(property);
   const coverRecord = property.images.find((image) => image.isCover);
   const coverImage = coverRecord ? toAccommodationImage(coverRecord) : null;
-
   const image = coverImage ?? cloudinaryImages[0];
 
   if (!image) {

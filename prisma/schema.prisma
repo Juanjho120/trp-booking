@@ -1,15 +1,10 @@
 // TRP Booking — Prisma core booking domain schema
 //
-// TypeScript/Prisma field names stay camelCase for application code.
-// Database table and column names are mapped to PostgreSQL snake_case with @map / @@map.
-//
-// Development database target:
-// - Supabase project: portfolio-lab
-// - PostgreSQL schema: trp_booking
-//
-// Keep DATABASE_URL and DIRECT_URL private.
+// Clean database baseline.
+// TypeScript/Prisma field names stay camelCase for code ergonomics.
+// PostgreSQL tables, columns, and enum type names are mapped to snake_case.
 
-generator client {
+ generator client {
   provider = "prisma-client-js"
 }
 
