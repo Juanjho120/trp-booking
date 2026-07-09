@@ -22,6 +22,17 @@ type PropertySeed = Readonly<{
   preparationDaysAfter: number;
 }>;
 
+type PropertyImageSeed = Readonly<{
+  id: string;
+  propertyId: string;
+  propertySlug: string;
+  imagePurpose: string;
+  altTextEs: string;
+  altTextEn: string;
+  sortOrder: number;
+  isCover: boolean;
+}>;
+
 type AmenitySeed = Readonly<{
   id: string;
   key: string;
@@ -124,7 +135,192 @@ const propertyComponents = [
     parentPropertyId: "complete-retreat",
     componentPropertyId: "perfect-retreat-bungalow",
   },
-] as const;
+ ] as const;
+
+const IMAGE_PUBLIC_ID_PURPOSE_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const CLOUDINARY_FOLDER_SEGMENT_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+const propertyImages: readonly PropertyImageSeed[] = [
+  {
+    id: "black-white-apartment_cover",
+    propertyId: "black-white-apartment",
+    propertySlug: "black-white-apartment",
+    imagePurpose: "cover",
+    altTextEs: "Patio exterior azul de Apartamento Blanco y Negro en Panajachel.",
+    altTextEn: "Blue exterior courtyard of Black & White Apartment in Panajachel.",
+    sortOrder: 1,
+    isCover: true,
+  },
+  {
+    id: "black-white-apartment_gallery_01",
+    propertyId: "black-white-apartment",
+    propertySlug: "black-white-apartment",
+    imagePurpose: "gallery-01",
+    altTextEs: "Dormitorio con decoración en blanco y negro del apartamento.",
+    altTextEn: "Bedroom with black and white decor in the apartment.",
+    sortOrder: 2,
+    isCover: false,
+  },
+  {
+    id: "black-white-apartment_gallery_02",
+    propertyId: "black-white-apartment",
+    propertySlug: "black-white-apartment",
+    imagePurpose: "gallery-02",
+    altTextEs: "Área interior funcional con cocina y mesa del apartamento.",
+    altTextEn: "Functional indoor area with kitchen and table in the apartment.",
+    sortOrder: 3,
+    isCover: false,
+  },
+  {
+    id: "black-white-apartment_gallery_03",
+    propertyId: "black-white-apartment",
+    propertySlug: "black-white-apartment",
+    imagePurpose: "gallery-03",
+    altTextEs: "Baño privado del Apartamento Blanco y Negro.",
+    altTextEn: "Private bathroom of Black & White Apartment.",
+    sortOrder: 4,
+    isCover: false,
+  },
+  {
+    id: "perfect-retreat-bungalow_cover",
+    propertyId: "perfect-retreat-bungalow",
+    propertySlug: "perfect-retreat-bungalow",
+    imagePurpose: "cover",
+    altTextEs: "Entrada del Bungalow Refugio Perfecto con patio exterior.",
+    altTextEn: "Entrance of Perfect Retreat Bungalow with exterior courtyard.",
+    sortOrder: 1,
+    isCover: true,
+  },
+  {
+    id: "perfect-retreat-bungalow_gallery_01",
+    propertyId: "perfect-retreat-bungalow",
+    propertySlug: "perfect-retreat-bungalow",
+    imagePurpose: "gallery-01",
+    altTextEs: "Dormitorio del Bungalow Refugio Perfecto con tonos crema y cortinas grises.",
+    altTextEn: "Bedroom of Perfect Retreat Bungalow with cream tones and gray curtains.",
+    sortOrder: 2,
+    isCover: false,
+  },
+  {
+    id: "perfect-retreat-bungalow_gallery_02",
+    propertyId: "perfect-retreat-bungalow",
+    propertySlug: "perfect-retreat-bungalow",
+    imagePurpose: "gallery-02",
+    altTextEs: "Área de comedor y cocina equipada del bungalow.",
+    altTextEn: "Dining area and equipped kitchen of the bungalow.",
+    sortOrder: 3,
+    isCover: false,
+  },
+  {
+    id: "perfect-retreat-bungalow_gallery_03",
+    propertyId: "perfect-retreat-bungalow",
+    propertySlug: "perfect-retreat-bungalow",
+    imagePurpose: "gallery-03",
+    altTextEs: "Baño completo del Bungalow Refugio Perfecto.",
+    altTextEn: "Full bathroom of Perfect Retreat Bungalow.",
+    sortOrder: 4,
+    isCover: false,
+  },
+  {
+    id: "complete-retreat_cover",
+    propertyId: "complete-retreat",
+    propertySlug: "complete-retreat",
+    imagePurpose: "cover",
+    altTextEs: "Patio exterior compartido de Tu Refugio Perfecto en Panajachel.",
+    altTextEn: "Shared exterior courtyard of Tu Refugio Perfecto in Panajachel.",
+    sortOrder: 1,
+    isCover: true,
+  },
+  {
+    id: "complete-retreat_gallery_01",
+    propertyId: "complete-retreat",
+    propertySlug: "complete-retreat",
+    imagePurpose: "gallery-01",
+    altTextEs: "Dormitorio de Apartamento Blanco y Negro incluido en Refugio Completo.",
+    altTextEn: "Bedroom of Black & White Apartment included in the complete retreat.",
+    sortOrder: 2,
+    isCover: false,
+  },
+  {
+    id: "complete-retreat_gallery_02",
+    propertyId: "complete-retreat",
+    propertySlug: "complete-retreat",
+    imagePurpose: "gallery-02",
+    altTextEs: "Comedor del Bungalow Refugio Perfecto incluido en Refugio Completo.",
+    altTextEn: "Dining area of Perfect Retreat Bungalow included in the complete retreat.",
+    sortOrder: 3,
+    isCover: false,
+  },
+  {
+    id: "complete-retreat_gallery_03",
+    propertyId: "complete-retreat",
+    propertySlug: "complete-retreat",
+    imagePurpose: "gallery-03",
+    altTextEs: "Baño completo disponible al reservar Refugio Completo.",
+    altTextEn: "Full bathroom available when booking the complete retreat.",
+    sortOrder: 4,
+    isCover: false,
+  },
+];
+
+function getRequiredSeedEnv(name: string): string {
+  const value = process.env[name]?.trim();
+
+  if (!value) {
+    throw new Error(`${name} is required to seed Cloudinary property images.`);
+  }
+
+  return value;
+}
+
+function normalizeCloudinaryFolder(folder: string): string {
+  return folder.trim().replace(/^\/+|\/+$/g, "").replace(/\/+/g, "/");
+}
+
+function assertFolderSegment(value: string, label: string): void {
+  if (!CLOUDINARY_FOLDER_SEGMENT_PATTERN.test(value)) {
+    throw new Error(`${label} must use lowercase slug format.`);
+  }
+}
+
+function assertImagePurpose(value: string): void {
+  if (!IMAGE_PUBLIC_ID_PURPOSE_PATTERN.test(value)) {
+    throw new Error("imagePurpose must use lowercase slug format.");
+  }
+}
+
+function getCloudinaryUploadFolder(): string {
+  const folder = normalizeCloudinaryFolder(getRequiredSeedEnv("CLOUDINARY_UPLOAD_FOLDER"));
+
+  if (!folder.startsWith("trp-booking/")) {
+    throw new Error("CLOUDINARY_UPLOAD_FOLDER must stay under trp-booking/.");
+  }
+
+  return folder;
+}
+
+function buildSeedAccommodationImagePublicId(image: PropertyImageSeed): string {
+  assertFolderSegment(image.propertySlug, "propertySlug");
+  assertImagePurpose(image.imagePurpose);
+
+  if (!Number.isInteger(image.sortOrder) || image.sortOrder < 1 || image.sortOrder > 99) {
+    throw new Error("sortOrder must be an integer between 1 and 99.");
+  }
+
+  const paddedSortOrder = image.sortOrder.toString().padStart(2, "0");
+
+  return `${getCloudinaryUploadFolder()}/accommodations/${image.propertySlug}/${paddedSortOrder}-${image.imagePurpose}`;
+}
+
+function buildSeedCloudinaryDeliveryUrl(publicId: string): string {
+  const cloudName = getRequiredSeedEnv("CLOUDINARY_CLOUD_NAME");
+  const encodedPublicId = publicId
+    .split("/")
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
+
+  return `https://res.cloudinary.com/${cloudName}/image/upload/f_auto,q_auto,c_fill,w_1600,h_1200/${encodedPublicId}`;
+}
 
 const amenities: readonly AmenitySeed[] = [
   { id: "amenity_combined-access", key: "combined-access", icon: "home", category: "access", nameEs: "Acceso a ambos alojamientos", nameEn: "Access to both accommodations" },
@@ -295,6 +491,40 @@ async function seedPropertyComponents(): Promise<void> {
   }
 }
 
+async function seedPropertyImages(): Promise<void> {
+  for (const image of propertyImages) {
+    const cloudinaryPublicId = buildSeedAccommodationImagePublicId(image);
+    const cloudinaryDeliveryUrl = buildSeedCloudinaryDeliveryUrl(cloudinaryPublicId);
+
+    await prisma.propertyImage.upsert({
+      where: { id: image.id },
+      update: {
+        propertyId: image.propertyId,
+        cloudinaryPublicId,
+        url: cloudinaryDeliveryUrl,
+        secureUrl: cloudinaryDeliveryUrl,
+        altTextEs: image.altTextEs,
+        altTextEn: image.altTextEn,
+        sortOrder: image.sortOrder,
+        isCover: image.isCover,
+        deletedAt: null,
+        deletedById: null,
+      },
+      create: {
+        id: image.id,
+        propertyId: image.propertyId,
+        cloudinaryPublicId,
+        url: cloudinaryDeliveryUrl,
+        secureUrl: cloudinaryDeliveryUrl,
+        altTextEs: image.altTextEs,
+        altTextEn: image.altTextEn,
+        sortOrder: image.sortOrder,
+        isCover: image.isCover,
+      },
+    });
+  }
+}
+
 async function seedAmenities(): Promise<void> {
   for (const amenity of amenities) {
     await prisma.amenity.upsert({
@@ -381,6 +611,7 @@ async function seedHouseRules(): Promise<void> {
 async function main(): Promise<void> {
   await seedProperties();
   await seedPropertyComponents();
+  await seedPropertyImages();
   await seedAmenities();
   await seedHouseRules();
 }
