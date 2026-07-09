@@ -237,38 +237,40 @@ export function ReservationRequestForm({
 
   return (
     <form className="space-y-4" onSubmit={handleQuoteRequest}>
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)]">
-        <DateRangeField
-          clearLabel={uxCopy.dateRange.clear}
-          doneLabel={uxCopy.dateRange.done}
-          helper={uxCopy.dateRange.helper}
-          label={uxCopy.dateRange.label}
-          onClear={() => {
-            setDateRange(undefined);
-            setQuote(null);
-          }}
-          onDone={() => setDatePickerOpen(false)}
-          onOpenChange={setDatePickerOpen}
-          onSelect={handleDateRangeSelect}
-          open={datePickerOpen}
-          selectedLabel={selectedDateRangeLabel}
-          today={today}
-          value={dateRange}
-        />
+      <div className="space-y-2">
+        <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)]">
+          <DateRangeField
+            clearLabel={uxCopy.dateRange.clear}
+            doneLabel={uxCopy.dateRange.done}
+            label={uxCopy.dateRange.label}
+            onClear={() => {
+              setDateRange(undefined);
+              setQuote(null);
+            }}
+            onDone={() => setDatePickerOpen(false)}
+            onOpenChange={setDatePickerOpen}
+            onSelect={handleDateRangeSelect}
+            open={datePickerOpen}
+            selectedLabel={selectedDateRangeLabel}
+            today={today}
+            value={dateRange}
+          />
 
-        <OptionSelect
-          label={uxCopy.guests.label}
-          onOpenChange={setGuestSelectorOpen}
-          onSelect={(value) => {
-            setGuestCount(value);
-            setGuestSelectorOpen(false);
-            setQuote(null);
-          }}
-          open={guestSelectorOpen}
-          options={guestOptions.map((value) => ({ label: value, value }))}
-          placeholder={uxCopy.guests.placeholder}
-          value={guestCount}
-        />
+          <OptionSelect
+            label={uxCopy.guests.label}
+            onOpenChange={setGuestSelectorOpen}
+            onSelect={(value) => {
+              setGuestCount(value);
+              setGuestSelectorOpen(false);
+              setQuote(null);
+            }}
+            open={guestSelectorOpen}
+            options={guestOptions.map((value) => ({ label: value, value }))}
+            placeholder={uxCopy.guests.placeholder}
+            value={guestCount}
+          />
+        </div>
+        <p className="text-xs leading-5 text-muted-foreground">{uxCopy.dateRange.helper}</p>
       </div>
 
       <Field
@@ -354,7 +356,6 @@ export function ReservationRequestForm({
 function DateRangeField({
   clearLabel,
   doneLabel,
-  helper,
   label,
   onClear,
   onDone,
@@ -367,7 +368,6 @@ function DateRangeField({
 }: Readonly<{
   clearLabel: string;
   doneLabel: string;
-  helper: string;
   label: string;
   onClear: () => void;
   onDone: () => void;
@@ -387,7 +387,7 @@ function DateRangeField({
     <div className="relative grid gap-2 text-sm font-medium text-foreground">
       <span>{label}</span>
       <button
-        className="flex min-h-12 w-full items-center justify-between gap-3 rounded-2xl border border-border/70 bg-background px-4 text-left text-sm text-foreground shadow-sm outline-none transition hover:border-primary/60 focus:border-primary focus:ring-2 focus:ring-primary/20"
+        className="flex h-11 w-full items-center justify-between gap-3 rounded-2xl border border-border/70 bg-background px-4 text-left text-sm text-foreground shadow-sm outline-none transition hover:border-primary/60 focus:border-primary focus:ring-2 focus:ring-primary/20"
         onClick={() => onOpenChange(!open)}
         type="button"
       >
@@ -396,7 +396,6 @@ function DateRangeField({
         </span>
         <CalendarDays aria-hidden="true" className="size-4 text-muted-foreground" />
       </button>
-      <span className="text-xs leading-5 text-muted-foreground">{helper}</span>
 
       {open ? (
         <div

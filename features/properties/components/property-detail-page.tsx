@@ -54,7 +54,7 @@ export function PropertyDetailPage({ accommodation }: PropertyDetailPageProps) {
     <div className="min-h-screen bg-background text-foreground">
       <SiteHeader />
       <main>
-        <section className="mx-auto grid max-w-7xl gap-8 px-6 py-10 lg:grid-cols-2 lg:px-8 lg:py-16">
+        <section className="mx-auto grid max-w-7xl items-start gap-8 px-6 py-10 lg:grid-cols-2 lg:px-8 lg:py-16">
           <div>
             <Button asChild className="rounded-full" variant="ghost">
               <Link href="/alojamientos">{messages.properties.detail.backToAccommodations}</Link>
@@ -78,21 +78,21 @@ export function PropertyDetailPage({ accommodation }: PropertyDetailPageProps) {
             </div>
           </div>
 
-          <SummaryCard accommodation={accommodation} />
-        </section>
-
-        <section className="mx-auto grid max-w-7xl items-start gap-8 px-6 pb-14 lg:grid-cols-2 lg:px-8 lg:pb-20">
           <AccommodationGalleryCarousel
             copy={galleryCopy}
             images={galleryImages}
             title={messages.properties.detail.galleryTitle}
           />
+        </section>
 
-          <Card className="h-fit rounded-[2rem] border-border/70 bg-card shadow-lg lg:sticky lg:top-28">
+        <section className="mx-auto grid max-w-7xl items-stretch gap-8 px-6 pb-14 lg:grid-cols-2 lg:px-8 lg:pb-20">
+          <SummaryCard accommodation={accommodation} />
+
+          <Card className="flex h-full flex-col rounded-[2rem] border-border/70 bg-card shadow-lg">
             <CardHeader>
               <CardTitle>{messages.reservations.request.title}</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex-1">
               <ReservationRequestForm
                 accommodationId={accommodation.id}
                 maxGuests={accommodation.maxGuests}
@@ -145,11 +145,11 @@ function SummaryCard({ accommodation }: Readonly<{ accommodation: Accommodation 
   const { locale, messages } = useLocale();
 
   return (
-    <Card className="h-fit rounded-[2rem] border-border/70 bg-card shadow-lg lg:sticky lg:top-28">
+    <Card className="flex h-full flex-col rounded-[2rem] border-border/70 bg-card shadow-lg">
       <CardHeader>
         <CardTitle>{messages.properties.detail.priceTitle}</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-5">
+      <CardContent className="flex-1 space-y-5">
         <div className="rounded-2xl bg-muted/45 p-5">
           <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
             {messages.properties.detail.from}
