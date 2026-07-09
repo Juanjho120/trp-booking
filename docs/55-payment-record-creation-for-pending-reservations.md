@@ -139,11 +139,14 @@ Provider identifiers stay null because Phase 9.3 does not call Tilopay.
 
 ## Error handling
 
-User-facing error messages are centralized in:
+User-facing payment attempt error messages are centralized in:
 
 ```text
-features/payments/payment-attempt-copy.ts
+messages/es.ts
+messages/en.ts
 ```
+
+Route handlers must read the localized copy from those files instead of creating feature-specific copy files.
 
 Supported error codes:
 
@@ -210,6 +213,12 @@ Expected result when called again for the same pending reservation:
 HTTP 201
 paymentAttempt.existing = true
 ```
+
+## Corrective note
+
+The initial 9.3 package introduced `features/payments/payment-attempt-copy.ts`.
+
+That file is not part of the final intended structure and must be removed. Payment attempt user-facing messages belong in `messages/es.ts` and `messages/en.ts`.
 
 ## Next subphase
 

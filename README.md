@@ -64,7 +64,7 @@ Phase 9.3 added:
 - Internal Payment record creation for active PENDING_PAYMENT reservations.
 - Reuse of payment handoff readiness validation before creating a Payment.
 - Idempotent reuse of an existing pending Tilopay Payment for the same reservation when the amount still matches.
-- Centralized bilingual payment-attempt error copy.
+- Payment attempt error messages under messages/es.ts and messages/en.ts.
 ```
 
 No Tilopay checkout, redirect, webhook handler, reservation confirmation, or Resend email delivery is implemented in 9.3.

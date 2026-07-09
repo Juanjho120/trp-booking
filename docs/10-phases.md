@@ -92,7 +92,7 @@ Phase 9.3 result:
 - POST /api/payments/attempts was added.
 - lib/payments/payment-attempts.ts was added.
 - types/payment-attempt.ts was added.
-- features/payments/payment-attempt-copy.ts was added.
+- Payment attempt error messages were added under messages/es.ts and messages/en.ts.
 - The service validates payment handoff readiness before creating any Payment record.
 - The service creates a Payment with provider = TILOPAY, status = PENDING, amount = validated reservation total, and currency = USD.
 - The service reuses an existing pending Tilopay Payment for the same reservation when the amount and currency still match.

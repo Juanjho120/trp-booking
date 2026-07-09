@@ -1,14 +1,13 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import {
-  getPaymentAttemptErrorMessage,
-  type PaymentAttemptErrorCode,
-} from "@/features/payments/payment-attempt-copy";
+import { enMessages } from "@/messages/en";
+import { esMessages } from "@/messages/es";
 import {
   createPaymentAttemptForPendingReservation,
   PaymentAttemptCreationError,
 } from "@/lib/payments/payment-attempts";
+import type { PaymentAttemptErrorCode } from "@/types/payment-attempt";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,6 +18,15 @@ const createPaymentAttemptRequestSchema = z.object({
   reservationId: z.string().trim().min(1).max(120),
   locale: localeSchema,
 });
+
+function getPaymentAttemptErrorMessage(
+  code: PaymentAttemptErrorCode,
+  locale: "es" | "en",
+): string {
+  const messages = locale === "en" ? enMessages : esMessages;
+
+  return messages.errors.payment.attempt[code];
+}
 
 function toErrorResponse(
   code: PaymentAttemptErrorCode,

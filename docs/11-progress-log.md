@@ -71,10 +71,11 @@ Completed deliverables:
 
 ```text
 app/api/payments/attempts/route.ts added
-features/payments/payment-attempt-copy.ts added
 lib/payments/index.ts added
 lib/payments/payment-attempts.ts added
 types/payment-attempt.ts added
+messages/es.ts updated with payment attempt errors
+messages/en.ts updated with payment attempt errors
 docs/55-payment-record-creation-for-pending-reservations.md added
 README.md updated with Phase 9.3 completion
 docs/10-phases.md updated to mark 9.3 completed and 9.4 next
@@ -91,6 +92,7 @@ The Payment record uses provider = TILOPAY and status = PENDING.
 The Payment amount is the validated reservation total.
 If a matching PENDING Tilopay Payment already exists for the reservation, the service returns it instead of creating another record.
 If an existing pending payment amount does not match the current reservation total, the service rejects the request.
+Payment attempt user-facing error messages live in messages/es.ts and messages/en.ts.
 No Tilopay API call is made in 9.3.
 No checkout redirect is created in 9.3.
 No webhook handler is added in 9.3.

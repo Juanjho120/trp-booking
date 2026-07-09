@@ -305,6 +305,24 @@ export const enMessages = {
     payment: {
       failed:
         "We could not complete the payment. Please try again or contact us for help.",
+      attempt: {
+        INVALID_PAYMENT_HANDOFF_REQUEST:
+          "We could not prepare the payment attempt. Please try again.",
+        PENDING_HOLD_NOT_FOUND: "We could not find this pending reservation.",
+        PENDING_HOLD_NOT_PAYABLE: "This reservation is no longer available for payment.",
+        PENDING_HOLD_EXPIRED:
+          "The payment window for this pending reservation expired. Create a new reservation.",
+        PAYMENT_HANDOFF_UNAVAILABLE_DATES:
+          "These dates are no longer available before payment. Create a new reservation with a different date range.",
+        PAYMENT_HANDOFF_QUOTE_CHANGED:
+          "The reservation total changed before payment. Please calculate the reservation again.",
+        PAYMENT_HANDOFF_UNEXPECTED_ERROR:
+          "We could not validate the reservation before payment. Please try again.",
+        PAYMENT_ATTEMPT_AMOUNT_MISMATCH:
+          "A pending payment attempt already exists and does not match the current total. Create a new reservation or contact the property.",
+        PAYMENT_ATTEMPT_UNEXPECTED_ERROR:
+          "We could not prepare the payment attempt. Please try again.",
+      },
     },
   },
 } as const;

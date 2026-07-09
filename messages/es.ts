@@ -305,6 +305,24 @@ export const esMessages = {
     payment: {
       failed:
         "No pudimos completar el pago. Intenta nuevamente o contáctanos para recibir ayuda.",
+      attempt: {
+        INVALID_PAYMENT_HANDOFF_REQUEST:
+          "No pudimos preparar el intento de pago. Inténtalo de nuevo.",
+        PENDING_HOLD_NOT_FOUND: "No encontramos esta reserva pendiente.",
+        PENDING_HOLD_NOT_PAYABLE: "Esta reserva ya no está disponible para pago.",
+        PENDING_HOLD_EXPIRED:
+          "El tiempo para pagar esta reserva pendiente expiró. Crea una nueva reserva.",
+        PAYMENT_HANDOFF_UNAVAILABLE_DATES:
+          "Estas fechas ya no están disponibles antes del pago. Crea una nueva reserva con otro rango de fechas.",
+        PAYMENT_HANDOFF_QUOTE_CHANGED:
+          "El total de esta reserva cambió antes del pago. Calcula nuevamente la reserva.",
+        PAYMENT_HANDOFF_UNEXPECTED_ERROR:
+          "No pudimos validar la reserva antes del pago. Inténtalo de nuevo.",
+        PAYMENT_ATTEMPT_AMOUNT_MISMATCH:
+          "Ya existe un intento de pago pendiente que no coincide con el total actual. Crea una nueva reserva o contacta al alojamiento.",
+        PAYMENT_ATTEMPT_UNEXPECTED_ERROR:
+          "No pudimos preparar el intento de pago. Inténtalo de nuevo.",
+      },
     },
   },
 } as const;
