@@ -6,54 +6,13 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 9 — Tilopay Sandbox Integration
-Current subphase: 9.3 Payment record creation for pending reservations
+Current subphase: 9.4 Payment handoff redirect/session foundation
 Last updated: 2026-07-09
 Last completed phase: Phase 8 — Reservation Flow
-Last completed subphase: 9.2 Tilopay environment validation
+Last completed subphase: 9.3 Payment record creation for pending reservations
 ```
 
 ## Completed Work
-
-### Phase 0 — Project Definition and Technical Documentation
-
-Status: **Completed**
-
-### Phase 1 — Repository and Next.js Setup
-
-Status: **Completed**
-
-### Phase 2 — Public Website Foundation
-
-Status: **Completed**
-
-### Phase 3 — Database Foundation
-
-Status: **Completed**
-
-Important Phase 3 closure result:
-
-```text
-Phase 3 is complete as a database foundation phase.
-No migrations were created or applied in Phase 3.
-No Supabase data was written in Phase 3.
-This was corrected later through docs/46 and docs/47 before Phase 8.4 writes reservations.
-```
-
-### Phase 4 — Admin Authentication Foundation
-
-Status: **Completed**
-
-### Phase 5 — Cloudinary Integration
-
-Status: **Completed**
-
-### Phase 6 — Availability Calendar Foundation
-
-Status: **Completed**
-
-### Phase 7 — Airbnb iCal Synchronization
-
-Status: **Completed**
 
 ### Phase 8 — Reservation Flow
 
@@ -63,20 +22,6 @@ Closure document:
 
 ```text
 docs/52-phase-8-reservation-flow-closure-review.md
-```
-
-Completed subphases:
-
-```text
-8.1 Reservation flow strategy and pending hold contract — Completed
-8.2 Reservation quote and server-side pricing foundation — Completed
-8.3 Public guest details and reservation request form — Completed
-8.3.1 Initial seed and DB-backed accommodation source — Completed
-8.3.2 Reservation form UX and manual locale switcher — Completed
-8.4 Pending reservation creation and expiration handling — Completed
-8.5 Availability revalidation before payment handoff — Completed
-8.5.1 Pending hold expiration status cleanup — Completed
-8.6 Phase 8 documentation update — Completed
 ```
 
 Phase 8 closure result:
@@ -90,45 +35,21 @@ Phase 8 intentionally did not add Tilopay checkout, Payment records, payment web
 
 Status: **Completed**
 
-Completed deliverables:
-
-```text
-docs/53-tilopay-sandbox-strategy-and-environment-contract.md added and corrected for sandbox credential names
-README.md updated with Phase 9.1 completion and Phase 9 current status
-docs/10-phases.md updated to mark Phase 9 in progress and 9.1 completed
-docs/11-progress-log.md updated with Phase 9.1 completion
-```
-
 Important decisions:
 
 ```text
 Tilopay sandbox exposes Api Key, Api User, and Api Password.
 Those values map to TILOPAY_API_KEY, TILOPAY_API_USER, and TILOPAY_API_PASSWORD.
-TILOPAY_MERCHANT_ID, TILOPAY_API_SECRET, and TILOPAY_WEBHOOK_SECRET are not required until Tilopay documentation or support confirms them.
 TRP Booking must not store card data.
 Payment must start from an active PENDING_PAYMENT reservation.
 Payment handoff must revalidate the reservation before creating a payment attempt.
 Reservation.status must not become CONFIRMED until a payment callback/webhook is validated.
-Rejected, failed, expired, and successful payment attempts must remain auditable.
-Resend email delivery remains in Phase 10 unless explicitly moved later.
 No PMS behavior is introduced in Phase 9.
 ```
 
 ### Phase 9.2 — Tilopay Environment Validation
 
 Status: **Completed**
-
-Completed deliverables:
-
-```text
-.env.example updated with the Tilopay sandbox variables
-lib/env/server.ts updated with TILOPAY_* validation
-getTilopayEnv() added as a typed server-side helper
-docs/54-tilopay-environment-validation.md added
-README.md updated with Phase 9.2 completion and Phase 9 current status
-docs/10-phases.md updated to mark 9.2 completed and 9.3 next
-docs/11-progress-log.md updated with Phase 9.2 completion
-```
 
 Important decisions:
 
@@ -142,19 +63,40 @@ Callback URLs must use HTTPS outside local development.
 Tilopay secrets remain server-side only.
 ```
 
-Out of scope for 9.2:
+### Phase 9.3 — Payment Record Creation for Pending Reservations
+
+Status: **Completed**
+
+Completed deliverables:
 
 ```text
-Tilopay API calls
-Payment record creation
-Checkout redirect/session creation
-Webhook route implementation
-Reservation CONFIRMED transition
-Resend emails
-Prisma schema changes
-Migrations
-Admin reservation UI
-PMS behavior
+app/api/payments/attempts/route.ts added
+features/payments/payment-attempt-copy.ts added
+lib/payments/index.ts added
+lib/payments/payment-attempts.ts added
+types/payment-attempt.ts added
+docs/55-payment-record-creation-for-pending-reservations.md added
+README.md updated with Phase 9.3 completion
+docs/10-phases.md updated to mark 9.3 completed and 9.4 next
+docs/11-progress-log.md updated with Phase 9.3 completion
+```
+
+Important decisions:
+
+```text
+Payment attempts are internal Payment records.
+Payment attempts require an active payable PENDING_PAYMENT reservation.
+The service reuses Phase 8.5 payment handoff readiness validation before creating the Payment.
+The Payment record uses provider = TILOPAY and status = PENDING.
+The Payment amount is the validated reservation total.
+If a matching PENDING Tilopay Payment already exists for the reservation, the service returns it instead of creating another record.
+If an existing pending payment amount does not match the current reservation total, the service rejects the request.
+No Tilopay API call is made in 9.3.
+No checkout redirect is created in 9.3.
+No webhook handler is added in 9.3.
+No reservation is confirmed in 9.3.
+No Resend email is sent in 9.3.
+No Prisma schema change or migration is required in 9.3 because the Payment model already exists.
 ```
 
 ## Current Work
@@ -166,18 +108,15 @@ Status: **In progress**
 Current subphase:
 
 ```text
-9.3 Payment record creation for pending reservations
+9.4 Payment handoff redirect/session foundation
 ```
 
-Phase 9.3 goals:
+Phase 9.4 goals:
 
 ```text
-Create the internal Payment record foundation for active PENDING_PAYMENT reservations.
-Reuse payment handoff readiness validation before creating a payment attempt.
-Keep payment attempt creation auditable.
-Do not call Tilopay yet.
-Do not redirect to checkout yet.
-Do not implement webhook handlers yet.
+Prepare the checkout handoff/session boundary after a Payment record exists.
+Keep provider credentials server-side only.
+Do not store card data.
 Do not confirm reservations yet.
 Do not send emails yet.
 Do not add PMS features.
@@ -186,12 +125,10 @@ Do not add PMS features.
 ## Next Recommended Work
 
 ```text
-1. Review the existing Prisma Payment model and PaymentStatus enum.
-2. Define the internal payment attempt creation service.
-3. Validate the pending reservation through Phase 8.5 payment handoff readiness.
-4. Create a Payment record only for an active payable reservation.
-5. Avoid duplicate active Payment records for the same pending reservation.
-6. Keep provider-specific Tilopay calls for Phase 9.4+.
+1. Confirm the Tilopay checkout/session endpoint contract from sandbox documentation or support.
+2. Decide which field will be sent to Tilopay as the internal order/payment reference.
+3. Add a server-side Tilopay adapter only after the endpoint contract is confirmed.
+4. Keep reservation confirmation deferred until webhook/payment validation exists.
 ```
 
 ## Continuity Notes for New Conversations
@@ -202,38 +139,13 @@ Minimum context files to review before continuing:
 README.md
 AGENTS.md
 .env.example
-docs/03-architecture.md
-docs/04-database-model.md
-docs/06-security-and-payments.md
 docs/10-phases.md
 docs/11-progress-log.md
-docs/43-reservation-flow-strategy-and-pending-hold-contract.md
-docs/49-pending-reservation-creation-and-expiration-handling.md
-docs/50-availability-revalidation-before-payment-handoff.md
-docs/51-pending-hold-expiration-status-cleanup.md
-docs/52-phase-8-reservation-flow-closure-review.md
 docs/53-tilopay-sandbox-strategy-and-environment-contract.md
 docs/54-tilopay-environment-validation.md
+docs/55-payment-record-creation-for-pending-reservations.md
 lib/env/server.ts
-lib/db/prisma.ts
-lib/reservations/index.ts
-lib/reservations/pending-holds.ts
+lib/payments/payment-attempts.ts
 lib/reservations/payment-handoff.ts
 prisma/schema.prisma
-vercel.json
-```
-
-Important working rules:
-
-```text
-Use ZIPs with real files for non-trivial changes.
-Do not hardcode public or admin UI copy in TSX components.
-Do not add PMS features.
-Do not integrate Resend before its documented phase unless explicitly approved.
-Keep phase/subphase tracking updated.
-Do not expose admin pages without route protection.
-Do not commit secrets, provider keys, webhook secrets, or real credentials.
-Keep Tilopay credentials server-side only.
-Do not store card data.
-Confirm reservations only after validated payment.
 ```
