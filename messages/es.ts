@@ -37,7 +37,6 @@ export const esMessages = {
         "Panel privado mínimo para administrar la base de autenticación de TRP Booking.",
     },
   },
-
   navigation: {
     mainAriaLabel: "Navegación principal",
     homeAriaLabel: "Ir a la página de inicio",
@@ -228,6 +227,51 @@ export const esMessages = {
       phaseBoundaryNote:
         "Phase 8.3 solo captura datos y calcula cotización. No guarda reservaciones, no bloquea fechas y no procesa pagos.",
     },
+    requestUx: {
+      dateRange: {
+        label: "Fechas de estadía",
+        buttonPlaceholder: "Selecciona fecha de entrada y salida",
+        helper:
+          "Selecciona la fecha de entrada y luego la fecha de salida. La salida no cuenta como noche reservada.",
+        clear: "Limpiar fechas",
+        done: "Listo",
+      },
+      guests: {
+        label: "Huéspedes",
+        placeholder: "Selecciona huéspedes",
+      },
+      country: {
+        label: "País",
+        placeholder: "Selecciona tu país",
+        search: "Buscar país...",
+        noResults: "No encontramos ese país.",
+      },
+      phone: {
+        label: "Teléfono",
+        localNumber: "Número local",
+      },
+      arrivalTime: {
+        label: "Hora estimada de llegada",
+        placeholder: "Selecciona una hora",
+      },
+      locale: {
+        label: "Idioma",
+      },
+    },
+    pendingHold: {
+      createHold: "Crear reserva pendiente",
+      creatingHold: "Creando reserva pendiente...",
+      successTitle: "Reserva pendiente creada",
+      reservationId: "Reserva",
+      status: "Estado",
+      expiresAt: "Expira",
+      total: "Total",
+      pendingPayment: "Pendiente de pago",
+      paymentPendingNote:
+        "Tu reserva quedó apartada temporalmente. El pago directo se integrará en la siguiente subfase; por ahora este hold expira automáticamente.",
+      phaseBoundaryNote:
+        "Subfase 8.4 crea una reserva pendiente por 15 minutos. Todavía no confirma pago, no envía correos y no crea bloques manuales de calendario.",
+    },
   },
   admin: {
     shell: {
@@ -301,6 +345,31 @@ export const esMessages = {
       invalidAccommodation: "El alojamiento solicitado no está disponible para cotizar.",
       invalidDateRange: "Las fechas de la cotización no son válidas.",
       invalidQuoteRequest: "No pudimos calcular la cotización con la información enviada.",
+      pendingHold: {
+        INVALID_PENDING_HOLD_REQUEST: "Revisa los datos de la reserva e inténtalo de nuevo.",
+        INVALID_ACCOMMODATION: "No pudimos encontrar este alojamiento.",
+        INVALID_DATE_RANGE: "Selecciona una fecha de entrada y una fecha de salida válidas.",
+        INVALID_GUEST_COUNT: "La cantidad de huéspedes no es válida para este alojamiento.",
+        UNAVAILABLE_DATES: "Estas fechas ya no están disponibles. Selecciona otro rango de fechas.",
+        PENDING_HOLD_CONFLICT:
+          "Alguien más tomó estas fechas al mismo tiempo. Selecciona otro rango de fechas.",
+        PENDING_HOLD_UNEXPECTED_ERROR:
+          "No pudimos crear la reserva pendiente. Inténtalo de nuevo.",
+      },
+      paymentHandoff: {
+        INVALID_PAYMENT_HANDOFF_REQUEST:
+          "No pudimos validar esta reserva pendiente. Inténtalo de nuevo.",
+        PENDING_HOLD_NOT_FOUND: "No encontramos esta reserva pendiente.",
+        PENDING_HOLD_NOT_PAYABLE: "Esta reserva ya no está disponible para pago.",
+        PENDING_HOLD_EXPIRED:
+          "El tiempo para pagar esta reserva pendiente expiró. Crea una nueva reserva.",
+        PAYMENT_HANDOFF_UNAVAILABLE_DATES:
+          "Estas fechas ya no están disponibles antes del pago. Crea una nueva reserva con otro rango de fechas.",
+        PAYMENT_HANDOFF_QUOTE_CHANGED:
+          "El total de esta reserva cambió antes del pago. Calcula nuevamente la reserva.",
+        PAYMENT_HANDOFF_UNEXPECTED_ERROR:
+          "No pudimos validar la reserva antes del pago. Inténtalo de nuevo.",
+      },
     },
     payment: {
       failed:

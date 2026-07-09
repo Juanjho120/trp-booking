@@ -4,6 +4,15 @@ import type { ReservationQuote, ReservationQuoteAmount } from "@/types/reservati
 
 export type PendingReservationHoldStatus = "PENDING_PAYMENT";
 
+export type PendingHoldErrorCode =
+  | "INVALID_PENDING_HOLD_REQUEST"
+  | "INVALID_ACCOMMODATION"
+  | "INVALID_DATE_RANGE"
+  | "INVALID_GUEST_COUNT"
+  | "UNAVAILABLE_DATES"
+  | "PENDING_HOLD_CONFLICT"
+  | "PENDING_HOLD_UNEXPECTED_ERROR";
+
 export type CreatePendingReservationHoldInput = Readonly<{
   accommodationId: AccommodationId;
   checkInDate: DateOnlyString;
@@ -38,7 +47,7 @@ export type PendingReservationHoldApiSuccessResponse = Readonly<{
 
 export type PendingReservationHoldApiErrorResponse = Readonly<{
   error: Readonly<{
-    code: string;
+    code: PendingHoldErrorCode;
     message: string;
   }>;
 }>;

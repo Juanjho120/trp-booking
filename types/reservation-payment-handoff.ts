@@ -4,6 +4,15 @@ import type { ReservationQuote, ReservationQuoteAmount } from "@/types/reservati
 
 export type PaymentHandoffValidationStatus = "READY_FOR_PAYMENT";
 
+export type PaymentHandoffErrorCode =
+  | "INVALID_PAYMENT_HANDOFF_REQUEST"
+  | "PENDING_HOLD_NOT_FOUND"
+  | "PENDING_HOLD_NOT_PAYABLE"
+  | "PENDING_HOLD_EXPIRED"
+  | "PAYMENT_HANDOFF_UNAVAILABLE_DATES"
+  | "PAYMENT_HANDOFF_QUOTE_CHANGED"
+  | "PAYMENT_HANDOFF_UNEXPECTED_ERROR";
+
 export type ValidatePaymentHandoffInput = Readonly<{
   reservationId: string;
   locale: "es" | "en";
@@ -33,7 +42,7 @@ export type PaymentHandoffValidationApiSuccessResponse = Readonly<{
 
 export type PaymentHandoffValidationApiErrorResponse = Readonly<{
   error: Readonly<{
-    code: string;
+    code: PaymentHandoffErrorCode;
     message: string;
   }>;
 }>;

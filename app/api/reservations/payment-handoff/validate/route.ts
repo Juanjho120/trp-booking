@@ -2,13 +2,12 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import {
-  getPaymentHandoffErrorMessage,
-  type PaymentHandoffErrorCode,
-} from "@/features/reservations/reservation-payment-handoff-copy";
-import {
   PaymentHandoffValidationError,
   validatePaymentHandoff,
 } from "@/lib/reservations/payment-handoff";
+import { enMessages } from "@/messages/en";
+import { esMessages } from "@/messages/es";
+import type { PaymentHandoffErrorCode } from "@/types/reservation-payment-handoff";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,6 +18,15 @@ const paymentHandoffValidationRequestSchema = z.object({
   reservationId: z.string().trim().min(1).max(120),
   locale: localeSchema,
 });
+
+function getPaymentHandoffErrorMessage(
+  code: PaymentHandoffErrorCode,
+  locale: "es" | "en",
+): string {
+  const messages = locale === "en" ? enMessages : esMessages;
+
+  return messages.errors.reservation.paymentHandoff[code];
+}
 
 function toErrorResponse(
   code: PaymentHandoffErrorCode,

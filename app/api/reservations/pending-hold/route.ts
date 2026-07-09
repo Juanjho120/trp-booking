@@ -6,10 +6,9 @@ import {
   createPendingReservationHold,
   PendingReservationHoldError,
 } from "@/lib/reservations/pending-holds";
-import {
-  getPendingHoldErrorMessage,
-  type PendingHoldErrorCode,
-} from "@/features/reservations/reservation-pending-hold-copy";
+import { enMessages } from "@/messages/en";
+import { esMessages } from "@/messages/es";
+import type { PendingHoldErrorCode } from "@/types/reservation-pending-hold";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -35,6 +34,15 @@ const pendingHoldRequestSchema = z.object({
   arrivalTimeEstimate: z.string().trim().regex(/^([01]\d|2[0-2]):(00|30)$/),
   locale: localeSchema,
 });
+
+function getPendingHoldErrorMessage(
+  code: PendingHoldErrorCode,
+  locale: "es" | "en",
+): string {
+  const messages = locale === "en" ? enMessages : esMessages;
+
+  return messages.errors.reservation.pendingHold[code];
+}
 
 function toErrorResponse(
   code: PendingHoldErrorCode,

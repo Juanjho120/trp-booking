@@ -17,9 +17,6 @@ import type {
   PendingReservationHoldApiResponse,
 } from "@/types/reservation-pending-hold";
 
-import { getPendingHoldCopy } from "../reservation-pending-hold-copy";
-import { getReservationRequestUxCopy } from "../reservation-request-copy";
-
 type ReservationRequestFormProps = Readonly<{
   accommodationId: AccommodationId;
   maxGuests: number;
@@ -47,6 +44,16 @@ type SelectOption = Readonly<{
 
 type FlagComponentProps = Readonly<{
   title?: string;
+}>;
+
+type PendingHoldSummaryCopy = Readonly<{
+  successTitle: string;
+  reservationId: string;
+  status: string;
+  expiresAt: string;
+  total: string;
+  pendingPayment: string;
+  paymentPendingNote: string;
 }>;
 
 const defaultCountry: Country = "GT";
@@ -197,8 +204,9 @@ export function ReservationRequestForm({
 }: ReservationRequestFormProps) {
   const { locale, messages } = useLocale();
   const requestMessages = messages.reservations.request;
-  const uxCopy = getReservationRequestUxCopy(locale);
-  const pendingHoldCopy = getPendingHoldCopy(locale);
+  const uxCopy = messages.reservations.requestUx;
+  const pendingHoldCopy = messages.reservations.pendingHold;
+  const pendingHoldErrorMessages = messages.errors.reservation.pendingHold;
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [guestCount, setGuestCount] = useState("1");
@@ -311,7 +319,7 @@ export function ReservationRequestForm({
       if (!response.ok || !isPendingHoldSuccessResponse(payload)) {
         const message = "error" in payload
           ? payload.error.message
-          : pendingHoldCopy.errors.PENDING_HOLD_UNEXPECTED_ERROR;
+          : pendingHoldErrorMessages.PENDING_HOLD_UNEXPECTED_ERROR;
         throw new Error(message);
       }
 
@@ -321,7 +329,7 @@ export function ReservationRequestForm({
     } catch (error) {
       setHoldStatus("error");
       setHoldErrorMessage(
-        error instanceof Error ? error.message : pendingHoldCopy.errors.PENDING_HOLD_UNEXPECTED_ERROR,
+        error instanceof Error ? error.message : pendingHoldErrorMessages.PENDING_HOLD_UNEXPECTED_ERROR,
       );
     }
   }
@@ -797,7 +805,7 @@ function PendingHoldSummary({
   locale,
   pendingHold,
 }: Readonly<{
-  copy: ReturnType<typeof getPendingHoldCopy>;
+  copy: PendingHoldSummaryCopy;
   locale: string;
   pendingHold: PendingReservationHold;
 }>) {

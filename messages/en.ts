@@ -37,7 +37,6 @@ export const enMessages = {
         "Minimal private panel to manage the TRP Booking authentication foundation.",
     },
   },
-
   navigation: {
     mainAriaLabel: "Main navigation",
     homeAriaLabel: "Go to homepage",
@@ -228,6 +227,51 @@ export const enMessages = {
       phaseBoundaryNote:
         "Phase 8.3 only collects details and calculates a quote. It does not save reservations, block dates, or process payments.",
     },
+    requestUx: {
+      dateRange: {
+        label: "Stay dates",
+        buttonPlaceholder: "Select check-in and check-out",
+        helper:
+          "Select the check-in date and then the check-out date. Check-out is not counted as a reserved night.",
+        clear: "Clear dates",
+        done: "Done",
+      },
+      guests: {
+        label: "Guests",
+        placeholder: "Select guests",
+      },
+      country: {
+        label: "Country",
+        placeholder: "Select your country",
+        search: "Search country...",
+        noResults: "No matching country found.",
+      },
+      phone: {
+        label: "Phone",
+        localNumber: "Local number",
+      },
+      arrivalTime: {
+        label: "Estimated arrival time",
+        placeholder: "Select a time",
+      },
+      locale: {
+        label: "Language",
+      },
+    },
+    pendingHold: {
+      createHold: "Create pending reservation",
+      creatingHold: "Creating pending reservation...",
+      successTitle: "Pending reservation created",
+      reservationId: "Reservation",
+      status: "Status",
+      expiresAt: "Expires",
+      total: "Total",
+      pendingPayment: "Pending payment",
+      paymentPendingNote:
+        "Your reservation was temporarily held. Direct payment will be added in the next subphase; for now this hold expires automatically.",
+      phaseBoundaryNote:
+        "Subphase 8.4 creates a pending reservation for 15 minutes. It still does not confirm payment, send emails, or create manual calendar blocks.",
+    },
   },
   admin: {
     shell: {
@@ -301,6 +345,31 @@ export const enMessages = {
       invalidAccommodation: "The requested accommodation is not available for quoting.",
       invalidDateRange: "The quote dates are not valid.",
       invalidQuoteRequest: "We could not calculate a quote with the submitted information.",
+      pendingHold: {
+        INVALID_PENDING_HOLD_REQUEST: "Review the reservation details and try again.",
+        INVALID_ACCOMMODATION: "We could not find this accommodation.",
+        INVALID_DATE_RANGE: "Select a valid check-in and check-out date.",
+        INVALID_GUEST_COUNT: "The guest count is not valid for this accommodation.",
+        UNAVAILABLE_DATES: "These dates are no longer available. Select a different date range.",
+        PENDING_HOLD_CONFLICT:
+          "Someone else took these dates at the same time. Select a different date range.",
+        PENDING_HOLD_UNEXPECTED_ERROR:
+          "We could not create the pending reservation. Please try again.",
+      },
+      paymentHandoff: {
+        INVALID_PAYMENT_HANDOFF_REQUEST:
+          "We could not validate this pending reservation. Please try again.",
+        PENDING_HOLD_NOT_FOUND: "We could not find this pending reservation.",
+        PENDING_HOLD_NOT_PAYABLE: "This reservation is no longer available for payment.",
+        PENDING_HOLD_EXPIRED:
+          "The payment window for this pending reservation expired. Create a new reservation.",
+        PAYMENT_HANDOFF_UNAVAILABLE_DATES:
+          "These dates are no longer available before payment. Create a new reservation with a different date range.",
+        PAYMENT_HANDOFF_QUOTE_CHANGED:
+          "The reservation total changed before payment. Please calculate the reservation again.",
+        PAYMENT_HANDOFF_UNEXPECTED_ERROR:
+          "We could not validate the reservation before payment. Please try again.",
+      },
     },
     payment: {
       failed:
