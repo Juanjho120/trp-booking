@@ -106,45 +106,31 @@ Max guests: 6
 
 Phase 8 — Reservation Flow is complete as the pre-payment reservation foundation.
 
-Phase 8 completed:
-
-```text
-8.1 Reservation flow strategy and pending hold contract
-8.2 Reservation quote and server-side pricing foundation
-8.3 Public guest details and reservation request form
-8.3.1 Initial seed and DB-backed accommodation source
-8.3.2 Reservation form UX and manual locale switcher
-8.4 Pending reservation creation and expiration handling
-8.5 Availability revalidation before payment handoff
-8.5.1 Pending hold expiration status cleanup
-8.6 Phase 8 documentation update
-```
-
 The next implementation phase is Phase 9 — Tilopay Sandbox Integration.
 
 ## Phase 9 Start Summary
 
-Phase 9 starts with a documentation-only contract before adding Tilopay code.
+Phase 9 starts from the completed Phase 8 reservation-flow foundation.
 
-Phase 9.1 completed:
+Phase 9 completed so far:
 
 ```text
 9.1 Tilopay sandbox strategy and environment contract
+9.2 Tilopay environment validation
 ```
 
-Phase 9.1 defines:
+Phase 9.2 added:
 
 ```text
-- Server-side Tilopay environment variable names.
-- Local, preview, and production callback URL expectations.
-- Payment attempt lifecycle.
-- Payment handoff contract from PENDING_PAYMENT reservations.
-- Webhook/callback validation rules.
-- Reservation confirmation rules.
-- Out-of-scope items before implementation.
+- Required server-side Tilopay environment validation.
+- TILOPAY_ENVIRONMENT validation for sandbox/production.
+- Direct mapping for Tilopay sandbox Api Key, Api User, and Api Password.
+- Local-development exception for callback URLs.
+- Server-only getTilopayEnv() helper.
+- Documentation for local/Vercel environment setup.
 ```
 
-No Tilopay checkout, Payment record creation, webhook handler, confirmation transition, or Resend email delivery is implemented in 9.1.
+No Tilopay checkout, Payment record creation, webhook handler, confirmation transition, or Resend email delivery is implemented in 9.2.
 
 ## Documentation
 
@@ -206,6 +192,7 @@ docs/
   51-pending-hold-expiration-status-cleanup.md
   52-phase-8-reservation-flow-closure-review.md
   53-tilopay-sandbox-strategy-and-environment-contract.md
+  54-tilopay-environment-validation.md
 ```
 
 The assistant collaboration rules live in:
@@ -218,9 +205,9 @@ AGENTS.md
 
 ```text
 Current phase: Phase 9 — Tilopay Sandbox Integration
-Current subphase: 9.2 Tilopay environment validation
+Current subphase: 9.3 Payment record creation for pending reservations
 Last completed phase: Phase 8 — Reservation Flow
-Last completed subphase: 9.1 Tilopay sandbox strategy and environment contract
+Last completed subphase: 9.2 Tilopay environment validation
 ```
 
-See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/52-phase-8-reservation-flow-closure-review.md`, and `docs/53-tilopay-sandbox-strategy-and-environment-contract.md` for the official current tracker and payment integration context.
+See `docs/10-phases.md`, `docs/11-progress-log.md`, `docs/53-tilopay-sandbox-strategy-and-environment-contract.md`, and `docs/54-tilopay-environment-validation.md` for the official current tracker and payment integration context.

@@ -4,6 +4,8 @@
 
 Completed as part of Phase 9.1.
 
+Corrected during Phase 9.2 to align the internal environment contract with the values exposed by the Tilopay sandbox panel.
+
 ## Purpose
 
 This document starts Phase 9 — Tilopay Sandbox Integration.
@@ -42,32 +44,59 @@ payment handoff validation succeeds
 
 A reservation must not become `CONFIRMED` until payment validation succeeds through a trusted server-side provider callback/webhook flow.
 
+## Sandbox credential mapping
+
+The Tilopay sandbox panel currently exposes these values under Platform Integrations:
+
+```text
+Api Key
+Api User
+Api Password
+```
+
+TRP Booking maps them to these server-side environment variable names:
+
+```text
+Api Key      -> TILOPAY_API_KEY
+Api User     -> TILOPAY_API_USER
+Api Password -> TILOPAY_API_PASSWORD
+```
+
+Do not use client-exposed environment variables for these values.
+
 ## Environment variable contract
 
-The project will use server-side environment variables for Tilopay.
+The project uses server-side environment variables for Tilopay.
 
-Proposed variable names:
+Required variables for Phase 9.2:
 
 ```text
 TILOPAY_ENVIRONMENT=sandbox
-TILOPAY_BASE_URL=<provider sandbox API/base URL>
-TILOPAY_MERCHANT_ID=<sandbox merchant identifier>
-TILOPAY_API_KEY=<sandbox API key or equivalent credential>
-TILOPAY_API_SECRET=<sandbox API secret or equivalent credential>
-TILOPAY_WEBHOOK_SECRET=<shared callback/webhook validation secret if provided by Tilopay>
+TILOPAY_API_KEY=<sandbox Api Key>
+TILOPAY_API_USER=<sandbox Api User>
+TILOPAY_API_PASSWORD=<sandbox Api Password>
 TILOPAY_SUCCESS_URL=https://<app-domain>/reservas/pago/exitoso
 TILOPAY_CANCEL_URL=https://<app-domain>/reservas/pago/cancelado
 TILOPAY_ERROR_URL=https://<app-domain>/reservas/pago/error
 TILOPAY_WEBHOOK_URL=https://<app-domain>/api/payments/tilopay/webhook
 ```
 
-Notes:
+Variables intentionally not required yet:
 
 ```text
-- The exact Tilopay credential labels must be confirmed against the sandbox account/onboarding material before 9.2/9.4 implementation.
-- The variable names above are the internal TRP Booking names.
-- Provider-specific request field names must be mapped inside a server-side adapter later.
-- No real credential values should be committed.
+TILOPAY_BASE_URL
+TILOPAY_MERCHANT_ID
+TILOPAY_API_SECRET
+TILOPAY_WEBHOOK_SECRET
+```
+
+Reason:
+
+```text
+- TILOPAY_BASE_URL should be introduced only after the real Tilopay checkout/API endpoint is confirmed.
+- TILOPAY_MERCHANT_ID is not visible in the sandbox panel described by the current account.
+- TILOPAY_API_SECRET is represented by Api Password in the sandbox panel.
+- TILOPAY_WEBHOOK_SECRET should be introduced only if Tilopay documentation or support confirms webhook signature/shared-secret validation.
 ```
 
 ## Environment validation expectations
@@ -80,40 +109,32 @@ TILOPAY_ENVIRONMENT
 - Allowed values: sandbox, production.
 - Phase 9 should use sandbox.
 
-TILOPAY_BASE_URL
-- Required.
-- Must be HTTPS.
-- Must not be a placeholder value.
-- Must not be exposed to the client as NEXT_PUBLIC.
-
-TILOPAY_MERCHANT_ID
-- Required.
-- Must not be empty.
-- Must not be a placeholder value.
-
 TILOPAY_API_KEY
 - Required.
+- Maps to Api Key in Tilopay sandbox.
 - Must not be empty.
 - Must not be a placeholder value.
 
-TILOPAY_API_SECRET
+TILOPAY_API_USER
 - Required.
+- Maps to Api User in Tilopay sandbox.
+- Must not be empty.
+- Must not be a placeholder value.
+
+TILOPAY_API_PASSWORD
+- Required.
+- Maps to Api Password in Tilopay sandbox.
 - Must not be empty.
 - Must not be a placeholder value.
 - Must not be logged.
-
-TILOPAY_WEBHOOK_SECRET
-- Required when callback validation depends on a shared secret.
-- Must not be logged.
-- Must not be exposed to public responses.
 
 TILOPAY_SUCCESS_URL
 TILOPAY_CANCEL_URL
 TILOPAY_ERROR_URL
 TILOPAY_WEBHOOK_URL
 - Required.
+- Must be valid URLs.
 - Must be HTTPS outside local development.
-- Must belong to the expected app domain in production.
 ```
 
 ## Local development URLs
@@ -150,7 +171,7 @@ The intended Phase 9 lifecycle is:
 1. Guest creates a PENDING_PAYMENT reservation hold through Phase 8.
 2. Server validates payment handoff readiness.
 3. Server creates an internal Payment record for the pending reservation.
-4. Server sends a server-side request to Tilopay to create/start checkout.
+4. Server sends a server-side request to Tilopay to create/start checkout once the real endpoint contract is confirmed.
 5. Server redirects or hands the guest off to the provider-approved checkout flow.
 6. Tilopay redirects the guest back to a success, cancel, or error page.
 7. Tilopay sends or supports a server-side callback/webhook/confirmation flow.
@@ -209,9 +230,9 @@ Phase 9 must follow these rules:
 
 ```text
 - Do not store card data.
-- Do not log Tilopay API keys, secrets, tokens, signatures, or raw sensitive payloads.
+- Do not log Tilopay API keys, users, passwords, tokens, signatures, or raw sensitive payloads.
 - Do not expose Tilopay credentials to the browser.
-- Do not use NEXT_PUBLIC for Tilopay secrets.
+- Do not use NEXT_PUBLIC for Tilopay credentials.
 - Do not trust client-submitted totals.
 - Recalculate and validate reservation totals server-side.
 - Revalidate availability before payment handoff.
@@ -234,8 +255,7 @@ Public payment endpoints should return safe data only:
 Public payment endpoints must not return:
 
 ```text
-- Tilopay API credentials.
-- Webhook secrets.
+- Tilopay credentials.
 - Raw provider payloads.
 - Raw provider error bodies.
 - Internal admin notes.
@@ -265,7 +285,7 @@ POST /api/payments/tilopay/webhook
 Expected behavior:
 
 ```text
-- Accept provider callback payload.
+- Accept provider callback payload if Tilopay supports server-side callbacks/webhooks.
 - Validate authenticity according to Tilopay sandbox documentation/account settings.
 - Match the callback to an internal Payment record.
 - Be idempotent.
@@ -339,5 +359,3 @@ Manual review checklist:
 ```text
 9.2 Tilopay environment validation
 ```
-
-Phase 9.2 should implement the server-side validation helpers for the environment variables defined in this contract before any Tilopay API call is introduced.

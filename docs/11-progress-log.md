@@ -6,10 +6,10 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 9 — Tilopay Sandbox Integration
-Current subphase: 9.2 Tilopay environment validation
+Current subphase: 9.3 Payment record creation for pending reservations
 Last updated: 2026-07-09
 Last completed phase: Phase 8 — Reservation Flow
-Last completed subphase: 9.1 Tilopay sandbox strategy and environment contract
+Last completed subphase: 9.2 Tilopay environment validation
 ```
 
 ## Completed Work
@@ -55,15 +55,6 @@ Status: **Completed**
 
 Status: **Completed**
 
-Closure result:
-
-```text
-Phase 7 is complete as the Airbnb iCal synchronization foundation.
-The project now has a secure iCal import/export contract, hardened external calendar configuration model, parser, import sync service, export feed endpoint, scheduled sync foundation, and manual sync service foundation.
-Airbnb import URLs and raw export tokens remain secrets.
-Phase 7 did not add real Airbnb URLs, raw token storage, seed data, admin sync UI, reservation checkout, Tilopay, Resend, production deployment, or PMS features.
-```
-
 ### Phase 8 — Reservation Flow
 
 Status: **Completed**
@@ -102,7 +93,7 @@ Status: **Completed**
 Completed deliverables:
 
 ```text
-docs/53-tilopay-sandbox-strategy-and-environment-contract.md added
+docs/53-tilopay-sandbox-strategy-and-environment-contract.md added and corrected for sandbox credential names
 README.md updated with Phase 9.1 completion and Phase 9 current status
 docs/10-phases.md updated to mark Phase 9 in progress and 9.1 completed
 docs/11-progress-log.md updated with Phase 9.1 completion
@@ -111,18 +102,47 @@ docs/11-progress-log.md updated with Phase 9.1 completion
 Important decisions:
 
 ```text
-Tilopay credentials must remain server-side only.
+Tilopay sandbox exposes Api Key, Api User, and Api Password.
+Those values map to TILOPAY_API_KEY, TILOPAY_API_USER, and TILOPAY_API_PASSWORD.
+TILOPAY_MERCHANT_ID, TILOPAY_API_SECRET, and TILOPAY_WEBHOOK_SECRET are not required until Tilopay documentation or support confirms them.
 TRP Booking must not store card data.
 Payment must start from an active PENDING_PAYMENT reservation.
 Payment handoff must revalidate the reservation before creating a payment attempt.
-Payment records must be created only after the environment contract and validation are implemented.
 Reservation.status must not become CONFIRMED until a payment callback/webhook is validated.
 Rejected, failed, expired, and successful payment attempts must remain auditable.
 Resend email delivery remains in Phase 10 unless explicitly moved later.
 No PMS behavior is introduced in Phase 9.
 ```
 
-Out of scope for 9.1:
+### Phase 9.2 — Tilopay Environment Validation
+
+Status: **Completed**
+
+Completed deliverables:
+
+```text
+.env.example updated with the Tilopay sandbox variables
+lib/env/server.ts updated with TILOPAY_* validation
+getTilopayEnv() added as a typed server-side helper
+docs/54-tilopay-environment-validation.md added
+README.md updated with Phase 9.2 completion and Phase 9 current status
+docs/10-phases.md updated to mark 9.2 completed and 9.3 next
+docs/11-progress-log.md updated with Phase 9.2 completion
+```
+
+Important decisions:
+
+```text
+TILOPAY_ENVIRONMENT is required and must be sandbox or production.
+TILOPAY_API_KEY is required and maps to Api Key in the Tilopay sandbox panel.
+TILOPAY_API_USER is required and maps to Api User in the Tilopay sandbox panel.
+TILOPAY_API_PASSWORD is required and maps to Api Password in the Tilopay sandbox panel.
+TILOPAY_SUCCESS_URL, TILOPAY_CANCEL_URL, TILOPAY_ERROR_URL, and TILOPAY_WEBHOOK_URL are required.
+Callback URLs must use HTTPS outside local development.
+Tilopay secrets remain server-side only.
+```
+
+Out of scope for 9.2:
 
 ```text
 Tilopay API calls
@@ -146,21 +166,18 @@ Status: **In progress**
 Current subphase:
 
 ```text
-9.2 Tilopay environment validation
+9.3 Payment record creation for pending reservations
 ```
 
-Phase 9.2 goals:
+Phase 9.3 goals:
 
 ```text
-Add server-side environment validation for the Tilopay sandbox variables defined in 9.1.
-Reject placeholder values.
-Validate sandbox/production environment selection.
-Validate provider URLs.
-Validate secret-like values without logging them.
-Expose a typed server-only Tilopay env helper.
+Create the internal Payment record foundation for active PENDING_PAYMENT reservations.
+Reuse payment handoff readiness validation before creating a payment attempt.
+Keep payment attempt creation auditable.
 Do not call Tilopay yet.
-Do not create Payment records yet.
-Do not add checkout redirects or webhook handlers yet.
+Do not redirect to checkout yet.
+Do not implement webhook handlers yet.
 Do not confirm reservations yet.
 Do not send emails yet.
 Do not add PMS features.
@@ -169,12 +186,12 @@ Do not add PMS features.
 ## Next Recommended Work
 
 ```text
-1. Implement Phase 9.2 Tilopay environment validation.
-2. Update lib/env/server.ts with the Tilopay server-side variables.
-3. Add a server-only getter for Tilopay env values.
-4. Update validation docs.
-5. Run npm run env:validate, npm run lint, and npm run build.
-6. Continue with 9.3 Payment record creation for pending reservations after 9.2 is validated.
+1. Review the existing Prisma Payment model and PaymentStatus enum.
+2. Define the internal payment attempt creation service.
+3. Validate the pending reservation through Phase 8.5 payment handoff readiness.
+4. Create a Payment record only for an active payable reservation.
+5. Avoid duplicate active Payment records for the same pending reservation.
+6. Keep provider-specific Tilopay calls for Phase 9.4+.
 ```
 
 ## Continuity Notes for New Conversations
@@ -184,6 +201,7 @@ Minimum context files to review before continuing:
 ```text
 README.md
 AGENTS.md
+.env.example
 docs/03-architecture.md
 docs/04-database-model.md
 docs/06-security-and-payments.md
@@ -195,6 +213,7 @@ docs/50-availability-revalidation-before-payment-handoff.md
 docs/51-pending-hold-expiration-status-cleanup.md
 docs/52-phase-8-reservation-flow-closure-review.md
 docs/53-tilopay-sandbox-strategy-and-environment-contract.md
+docs/54-tilopay-environment-validation.md
 lib/env/server.ts
 lib/db/prisma.ts
 lib/reservations/index.ts

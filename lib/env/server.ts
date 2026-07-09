@@ -8,7 +8,10 @@ const placeholderValueSchema = z
   .trim()
   .min(1, "Required")
   .refine(
-    (value) => !/CHANGE_ME|REPLACE_ME|YOUR_/i.test(value),
+    (value) =>
+      !/CHANGE_ME|REPLACE_ME|REPLACE_WITH|REPLACE-WITH|YOUR_|PLACEHOLDER|EXAMPLE/i.test(
+        value,
+      ),
     "Replace the placeholder value with a real environment value.",
   );
 
@@ -46,6 +49,22 @@ const optionalUrlSchema = z.preprocess(
   },
   z.string().url("Must be a valid URL.").optional(),
 );
+
+const requiredUrlSchema = placeholderValueSchema.refine(
+  (value) => z.string().url().safeParse(value).success,
+  "Must be a valid URL.",
+);
+
+const providerCredentialValueSchema = placeholderValueSchema.refine(
+  (value) => /^[^\s]+$/.test(value),
+  "Must not contain whitespace.",
+);
+
+const vercelEnvironmentSchema = z
+  .enum(["development", "preview", "production"], {
+    message: "Must be development, preview, or production.",
+  })
+  .optional();
 
 const adminEmailListSchema = z
   .string()
@@ -103,12 +122,10 @@ const cloudinaryApiKeySchema = placeholderValueSchema.refine(
   "Must be a valid Cloudinary API key value.",
 );
 
-const cloudinaryApiSecretSchema = placeholderValueSchema
-  .min(8, "Must be at least 8 characters long.")
-  .refine(
-    (value) => /^[^\s]+$/.test(value),
-    "Must not contain whitespace.",
-  );
+const cloudinaryApiSecretSchema = providerCredentialValueSchema.min(
+  8,
+  "Must be at least 8 characters long.",
+);
 
 const cloudinaryUploadFolderSchema = placeholderValueSchema
   .refine(
@@ -125,7 +142,27 @@ const cloudinaryUploadFolderSchema = placeholderValueSchema
     "Must use lowercase letters, numbers, hyphens, and slashes only.",
   );
 
-const serverEnvSchema = z.object({
+const tilopayCallbackUrlKeys = [
+  "TILOPAY_SUCCESS_URL",
+  "TILOPAY_CANCEL_URL",
+  "TILOPAY_ERROR_URL",
+  "TILOPAY_WEBHOOK_URL",
+] as const;
+
+function isLocalDevelopmentUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+
+    return (
+      (url.protocol === "http:" || url.protocol === "https:") &&
+      ["localhost", "127.0.0.1", "::1"].includes(url.hostname)
+    );
+  } catch {
+    return false;
+  }
+}
+
+const rawServerEnvSchema = z.object({
   DATABASE_URL: postgresConnectionStringSchema,
   DIRECT_URL: postgresConnectionStringSchema,
   AUTH_SECRET: authSecretSchema,
@@ -138,9 +175,50 @@ const serverEnvSchema = z.object({
   CLOUDINARY_API_KEY: cloudinaryApiKeySchema,
   CLOUDINARY_API_SECRET: cloudinaryApiSecretSchema,
   CLOUDINARY_UPLOAD_FOLDER: cloudinaryUploadFolderSchema,
+  TILOPAY_ENVIRONMENT: z.enum(["sandbox", "production"], {
+    message: "Must be either sandbox or production.",
+  }),
+  TILOPAY_API_KEY: providerCredentialValueSchema,
+  TILOPAY_API_USER: providerCredentialValueSchema,
+  TILOPAY_API_PASSWORD: providerCredentialValueSchema,
+  TILOPAY_SUCCESS_URL: requiredUrlSchema,
+  TILOPAY_CANCEL_URL: requiredUrlSchema,
+  TILOPAY_ERROR_URL: requiredUrlSchema,
+  TILOPAY_WEBHOOK_URL: requiredUrlSchema,
+  VERCEL_ENV: vercelEnvironmentSchema,
   NODE_ENV: z
     .enum(["development", "test", "production"])
     .default("development"),
+});
+
+const serverEnvSchema = rawServerEnvSchema.superRefine((env, context) => {
+  const isVercelProductionDeployment = env.VERCEL_ENV === "production";
+
+  for (const key of tilopayCallbackUrlKeys) {
+    const value = env[key];
+
+    if (value.startsWith("https://")) {
+      continue;
+    }
+
+    if (!isVercelProductionDeployment && isLocalDevelopmentUrl(value)) {
+      continue;
+    }
+
+    context.addIssue({
+      code: "custom",
+      path: [key],
+      message: "Must use HTTPS outside local development.",
+    });
+  }
+
+  if (isVercelProductionDeployment && env.TILOPAY_ENVIRONMENT !== "production") {
+    context.addIssue({
+      code: "custom",
+      path: ["TILOPAY_ENVIRONMENT"],
+      message: "Production deployments must use TILOPAY_ENVIRONMENT=production.",
+    });
+  }
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
@@ -151,6 +229,18 @@ export type CloudinaryEnv = Pick<
   | "CLOUDINARY_API_KEY"
   | "CLOUDINARY_API_SECRET"
   | "CLOUDINARY_UPLOAD_FOLDER"
+>;
+
+export type TilopayEnv = Pick<
+  ServerEnv,
+  | "TILOPAY_ENVIRONMENT"
+  | "TILOPAY_API_KEY"
+  | "TILOPAY_API_USER"
+  | "TILOPAY_API_PASSWORD"
+  | "TILOPAY_SUCCESS_URL"
+  | "TILOPAY_CANCEL_URL"
+  | "TILOPAY_ERROR_URL"
+  | "TILOPAY_WEBHOOK_URL"
 >;
 
 export function validateServerEnv(
@@ -169,6 +259,15 @@ export function validateServerEnv(
     CLOUDINARY_API_KEY: source.CLOUDINARY_API_KEY,
     CLOUDINARY_API_SECRET: source.CLOUDINARY_API_SECRET,
     CLOUDINARY_UPLOAD_FOLDER: source.CLOUDINARY_UPLOAD_FOLDER,
+    TILOPAY_ENVIRONMENT: source.TILOPAY_ENVIRONMENT,
+    TILOPAY_API_KEY: source.TILOPAY_API_KEY,
+    TILOPAY_API_USER: source.TILOPAY_API_USER,
+    TILOPAY_API_PASSWORD: source.TILOPAY_API_PASSWORD,
+    TILOPAY_SUCCESS_URL: source.TILOPAY_SUCCESS_URL,
+    TILOPAY_CANCEL_URL: source.TILOPAY_CANCEL_URL,
+    TILOPAY_ERROR_URL: source.TILOPAY_ERROR_URL,
+    TILOPAY_WEBHOOK_URL: source.TILOPAY_WEBHOOK_URL,
+    VERCEL_ENV: source.VERCEL_ENV,
     NODE_ENV: source.NODE_ENV,
   });
 }
@@ -189,6 +288,23 @@ export function getCloudinaryEnv(
     CLOUDINARY_API_KEY: env.CLOUDINARY_API_KEY,
     CLOUDINARY_API_SECRET: env.CLOUDINARY_API_SECRET,
     CLOUDINARY_UPLOAD_FOLDER: env.CLOUDINARY_UPLOAD_FOLDER,
+  };
+}
+
+export function getTilopayEnv(
+  source: NodeJS.ProcessEnv = process.env,
+): TilopayEnv {
+  const env = validateServerEnv(source);
+
+  return {
+    TILOPAY_ENVIRONMENT: env.TILOPAY_ENVIRONMENT,
+    TILOPAY_API_KEY: env.TILOPAY_API_KEY,
+    TILOPAY_API_USER: env.TILOPAY_API_USER,
+    TILOPAY_API_PASSWORD: env.TILOPAY_API_PASSWORD,
+    TILOPAY_SUCCESS_URL: env.TILOPAY_SUCCESS_URL,
+    TILOPAY_CANCEL_URL: env.TILOPAY_CANCEL_URL,
+    TILOPAY_ERROR_URL: env.TILOPAY_ERROR_URL,
+    TILOPAY_WEBHOOK_URL: env.TILOPAY_WEBHOOK_URL,
   };
 }
 

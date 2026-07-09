@@ -15,8 +15,8 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 9 — Tilopay Sandbox Integration
-Current subphase: 9.2 Tilopay environment validation
-Current focus: implement server-side environment validation for the Tilopay sandbox contract defined in Phase 9.1, without creating payment records, checkout redirects, webhooks, confirmation transitions, emails, or PMS features yet.
+Current subphase: 9.3 Payment record creation for pending reservations
+Current focus: add the internal Payment record foundation for active PENDING_PAYMENT reservations, without calling Tilopay, redirecting to checkout, handling webhooks, confirming reservations, sending emails, or adding PMS features yet.
 ```
 
 ---
@@ -87,16 +87,6 @@ Completed subphases:
 3.4 Soft delete and audit field conventions
 3.5 Initial seed strategy for accommodations, amenities, rules, and static content
 3.6 Database documentation update
-```
-
-Important Phase 3 closure notes:
-
-```text
-- Phase 3 created and validated the Prisma schema foundation.
-- Phase 3 did not create or apply migrations.
-- Phase 3 did not write records to Supabase.
-- Migration execution was later corrected in docs/46-database-migration-bootstrap-correction.md.
-- Initial seed execution and DB-backed public accommodation reads were later corrected in docs/47-initial-seed-and-db-backed-accommodation-source.md.
 ```
 
 ---
@@ -173,16 +163,6 @@ Completed subphases:
 7.6 Phase 7 documentation update — Completed
 ```
 
-Phase 7 closure result:
-
-```text
-- Airbnb iCal synchronization now has a secure import/export contract, hardened calendar configuration model, parser, import sync service, export feed endpoint, scheduled sync foundation, and manual sync service foundation.
-- Import URLs and raw export tokens remain secrets and must not be committed, logged, exposed through API responses, or displayed in public UI.
-- Export feed tokens are validated by hash through ExternalCalendar.exportTokenHash.
-- Scheduled sync is protected by CRON_SECRET and returns redacted summaries only.
-- Phase 7 intentionally stops before reservation checkout, Tilopay, Resend, production deployment, admin sync UI, and PMS features.
-```
-
 ---
 
 ## Phase 8 — Reservation Flow
@@ -230,7 +210,7 @@ Subphase status:
 
 ```text
 9.1 Tilopay sandbox strategy and environment contract — Completed
-9.2 Tilopay environment validation — Not started
+9.2 Tilopay environment validation — Completed
 9.3 Payment record creation for pending reservations — Not started
 9.4 Payment handoff redirect/session foundation — Not started
 9.5 Tilopay webhook validation foundation — Not started
@@ -254,24 +234,33 @@ Phase 9.1 result:
 
 ```text
 - docs/53-tilopay-sandbox-strategy-and-environment-contract.md was added.
-- README.md was updated with Phase 9.1 completion and Phase 9 current status.
-- docs/10-phases.md was updated to mark Phase 9 in progress and 9.1 completed.
-- docs/11-progress-log.md was updated with Phase 9.1 completion.
-- The Tilopay sandbox environment variable contract was defined.
+- The Tilopay sandbox environment variable contract was corrected to match the sandbox panel values: Api Key, Api User, and Api Password.
 - The expected callback and webhook URLs were documented.
 - The payment attempt lifecycle was documented before writing payment integration code.
 - Phase 9.1 intentionally did not add Tilopay API calls, payment records, checkout redirects, webhook handlers, reservation confirmation, Resend emails, PMS behavior, schema changes, or migrations.
 ```
 
-Phase 9.2 current scope:
+Phase 9.2 result:
 
 ```text
-- Add server-side environment validation for the Tilopay variables defined in Phase 9.1.
-- Keep credentials server-side only.
+- .env.example was updated with the Tilopay sandbox variables.
+- lib/env/server.ts was updated with required TILOPAY_* variables.
+- TILOPAY_ENVIRONMENT is validated as sandbox or production.
+- TILOPAY_API_KEY, TILOPAY_API_USER, and TILOPAY_API_PASSWORD are required and map directly to the sandbox panel values.
+- TILOPAY_SUCCESS_URL, TILOPAY_CANCEL_URL, TILOPAY_ERROR_URL, and TILOPAY_WEBHOOK_URL are validated as URLs and must use HTTPS outside local development.
+- getTilopayEnv() was added as a server-only typed helper.
+- docs/54-tilopay-environment-validation.md was added.
+- Phase 9.2 intentionally did not call Tilopay, create payment records, redirect to checkout, add webhook handlers, confirm reservations, send emails, add PMS behavior, or add migrations.
+```
+
+Phase 9.3 current scope:
+
+```text
+- Add the internal Payment record creation foundation for active PENDING_PAYMENT reservations.
+- Reuse Phase 8 payment handoff readiness validation before creating a payment attempt.
 - Do not call Tilopay yet.
-- Do not create Payment records yet.
-- Do not create checkout redirects yet.
-- Do not add webhook handlers yet.
+- Do not redirect to checkout yet.
+- Do not implement webhooks yet.
 - Do not confirm reservations yet.
 - Do not send emails yet.
 - Do not add PMS features.
