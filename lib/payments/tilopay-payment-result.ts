@@ -443,12 +443,17 @@ export async function processTilopayPaymentRedirect(
   const auth = redirect.auth ?? consult.auth ?? "";
   const orderHash = redirect.orderHash;
 
-  if (!orderHash || !transactionId || !responseCode || !amount || !currency || !email) {
+    if (!orderHash || !transactionId || !responseCode || !amount || !currency || !email) {
     await markPaymentFailed(payment, {
       code: "TILOPAY_ORDER_HASH_INVALID",
       redirect,
       consult: consult.rawPayload,
       transactionId,
+    });
+
+    throw new TilopayPaymentResultError("TILOPAY_ORDER_HASH_INVALID", {
+      paymentId: payment.id,
+      reservationId: payment.reservationId,
     });
   }
 
