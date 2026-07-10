@@ -142,11 +142,12 @@ export function TilopaySdkCheckout({ reservationId }: TilopaySdkCheckoutProps) {
     }
   }
 
-  useEffect(() => {
+    useEffect(() => {
     if (!session) {
       return;
     }
 
+    const activeSession = session;
     let cancelled = false;
 
     async function initializeTilopaySdk(): Promise<void> {
@@ -154,13 +155,13 @@ export function TilopaySdkCheckout({ reservationId }: TilopaySdkCheckoutProps) {
       setErrorMessage(null);
 
       try {
-        await loadTilopaySdkScript(session.sdkScriptUrl);
+        await loadTilopaySdkScript(activeSession.sdkScriptUrl);
 
         if (!window.Tilopay) {
           throw new Error("TILOPAY_SDK_UNAVAILABLE");
         }
 
-        const initResponse = await window.Tilopay.Init(session.initConfig);
+        const initResponse = await window.Tilopay.Init(activeSession.initConfig);
 
         if (!isSuccessMessage(initResponse.message)) {
           throw new Error("TILOPAY_SDK_INIT_ERROR");
