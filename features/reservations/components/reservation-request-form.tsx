@@ -1,7 +1,7 @@
 "use client";
 
 import { CalendarDays, ChevronDown, Search } from "lucide-react";
-import { type ComponentType, type FormEvent, useMemo, useState } from "react";
+import { type ComponentType, type FormEvent, useMemo, useState, useEffect } from "react";
 import { DayPicker, type DateRange } from "react-day-picker";
 import type { Country } from "react-phone-number-input";
 import flagComponents from "react-phone-number-input/flags";
@@ -17,6 +17,7 @@ import type {
   PendingReservationHold,
   PendingReservationHoldApiResponse,
 } from "@/types/reservation-pending-hold";
+import type { BlockedDatesApiResponse } from "@/types/availability-blocked-dates";
 
 type ReservationRequestFormProps = Readonly<{
   accommodationId: AccommodationId;
@@ -102,6 +103,33 @@ function toDateOnlyString(date: Date): DateOnlyString {
   const day = String(date.getDate()).padStart(2, "0");
 
   return `${year}-${month}-${day}` as DateOnlyString;
+}
+
+function toMonthStartDateOnlyString(date: Date): DateOnlyString {
+  return toDateOnlyString(new Date(date.getFullYear(), date.getMonth(), 1));
+}
+
+function toNextMonthStartDateOnlyString(date: Date): DateOnlyString {
+  return toDateOnlyString(new Date(date.getFullYear(), date.getMonth() + 1, 1));
+}
+
+function dateOnlyStringToLocalDate(value: DateOnlyString): Date {
+  const [year, month, day] = value.split("-").map(Number);
+
+  return new Date(year, month - 1, day);
+}
+
+function buildBlockedDatesUrl(input: Readonly<{
+  accommodationId: AccommodationId;
+  month: Date;
+}>): string {
+  const searchParams = new URLSearchParams({
+    accommodationId: input.accommodationId,
+    startDate: toMonthStartDateOnlyString(input.month),
+    endDate: toNextMonthStartDateOnlyString(input.month),
+  });
+
+  return `/api/availability/blocked-dates?${searchParams.toString()}`;
 }
 
 function formatShortDate(date: Date | undefined, locale: string): string | null {
@@ -226,6 +254,8 @@ export function ReservationRequestForm({
   const [holdStatus, setHoldStatus] = useState<RequestStatus>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [holdErrorMessage, setHoldErrorMessage] = useState<string | null>(null);
+  const [visibleMonth, setVisibleMonth] = useState(() => new Date());
+  const [blockedDates, setBlockedDates] = useState<readonly Date[]>([]);
 
   const countryOptions = useMemo(() => getCountryOptions(locale), [locale]);
   const selectedCountry = useMemo(
@@ -250,6 +280,46 @@ export function ReservationRequestForm({
     date.setHours(0, 0, 0, 0);
     return date;
   }, []);
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadBlockedDates(): Promise<void> {
+      try {
+        const response = await fetch(
+          buildBlockedDatesUrl({
+            accommodationId,
+            month: visibleMonth,
+          }),
+          {
+            headers: {
+              accept: "application/json",
+            },
+            method: "GET",
+          },
+        );
+
+        if (!response.ok) {
+          return;
+        }
+
+        const payload = (await response.json()) as BlockedDatesApiResponse;
+
+        if (!cancelled) {
+          setBlockedDates(payload.blockedDates.map(dateOnlyStringToLocalDate));
+        }
+      } catch {
+        if (!cancelled) {
+          setBlockedDates([]);
+        }
+      }
+    }
+
+    void loadBlockedDates();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [accommodationId, visibleMonth]);
 
   async function handleQuoteRequest(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -363,6 +433,9 @@ export function ReservationRequestForm({
             selectedLabel={selectedDateRangeLabel}
             today={today}
             value={dateRange}
+            blockedDates={blockedDates}
+            month={visibleMonth}
+            onMonthChange={setVisibleMonth}
           />
 
           <OptionSelect
@@ -514,6 +587,9 @@ function DateRangeField({
   selectedLabel,
   today,
   value,
+  blockedDates,
+  month,
+  onMonthChange,
 }: Readonly<{
   clearLabel: string;
   doneLabel: string;
@@ -526,6 +602,9 @@ function DateRangeField({
   selectedLabel: string;
   today: Date;
   value: DateRange | undefined;
+  blockedDates: readonly Date[];
+  month: Date;
+  onMonthChange: (month: Date) => void;
 }>) {
   const [hoveredDate, setHoveredDate] = useState<Date | undefined>();
   const previewRange = value?.from && !value.to && hoveredDate && startOfDate(hoveredDate) > startOfDate(value.from)
@@ -553,14 +632,16 @@ function DateRangeField({
         >
           <DayPicker
             classNames={dayPickerClassNames}
-            disabled={{ before: today }}
+            disabled={[{ before: today }, ...blockedDates]}
             excludeDisabled
             mode="range"
             modifiers={{
+              blocked: blockedDates,
               preview_range: (date) =>
                 previewRange ? isDateInRange(date, previewRange.from, previewRange.to) : false,
             }}
             modifiersClassNames={{
+              blocked: "pointer-events-none text-muted-foreground/30 line-through",
               preview_range: "bg-primary/10 text-primary",
             }}
             numberOfMonths={1}
@@ -568,6 +649,8 @@ function DateRangeField({
             onSelect={onSelect}
             selected={value}
             weekStartsOn={1}
+            month={month}
+            onMonthChange={onMonthChange}
           />
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
             <Button className="rounded-full" onClick={onClear} type="button" variant="ghost">

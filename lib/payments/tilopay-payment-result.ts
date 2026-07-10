@@ -239,23 +239,27 @@ function assertConsultMatchesPayment(input: Readonly<{
   consultOrderNumber: string | null;
   consultEmail: string | null;
 }>): void {
-  const paymentAmountCents = toAmountCents(input.payment.amount);
-  const providerAmountCents = toAmountCents(input.consultAmount ?? input.redirect.amount);
+  const providerAmount = input.consultAmount ?? input.redirect.amount;
 
-  if (
-    paymentAmountCents === null ||
-    providerAmountCents === null ||
-    paymentAmountCents !== providerAmountCents
-  ) {
-    throw new TilopayPaymentResultError("TILOPAY_CONSULT_MISMATCH", {
-      paymentId: input.payment.id,
-      reservationId: input.payment.reservationId,
-    });
+  if (providerAmount) {
+    const paymentAmountCents = toAmountCents(input.payment.amount);
+    const providerAmountCents = toAmountCents(providerAmount);
+
+    if (
+      paymentAmountCents === null ||
+      providerAmountCents === null ||
+      paymentAmountCents !== providerAmountCents
+    ) {
+      throw new TilopayPaymentResultError("TILOPAY_CONSULT_MISMATCH", {
+        paymentId: input.payment.id,
+        reservationId: input.payment.reservationId,
+      });
+    }
   }
 
   const providerCurrency = input.consultCurrency ?? input.redirect.currency;
 
-  if (!providerCurrency || providerCurrency !== input.payment.currency) {
+  if (providerCurrency && providerCurrency !== input.payment.currency) {
     throw new TilopayPaymentResultError("TILOPAY_CONSULT_MISMATCH", {
       paymentId: input.payment.id,
       reservationId: input.payment.reservationId,
@@ -302,20 +306,6 @@ async function mapExistingResult(
       reservationConfirmed: true,
       redirectTarget: "success",
       phaseBoundary: "PAYMENT_VALIDATED_RESERVATION_CONFIRMED",
-    };
-  }
-
-  if (payment.status === PaymentStatus.REJECTED || payment.status === PaymentStatus.FAILED) {
-    return {
-      paymentId: payment.id,
-      reservationId: payment.reservationId,
-      providerReference: payment.providerReference ?? "",
-      providerTransactionId: payment.providerTransactionId,
-      paymentStatus: payment.status === PaymentStatus.REJECTED ? "REJECTED" : "FAILED",
-      reservationStatus: payment.reservation.status,
-      reservationConfirmed: payment.reservation.status === ReservationStatus.CONFIRMED,
-      redirectTarget: payment.status === PaymentStatus.REJECTED ? "cancel" : "error",
-      phaseBoundary: "PAYMENT_VALIDATED_RESERVATION_NOT_CONFIRMED",
     };
   }
 
@@ -437,7 +427,7 @@ export async function processTilopayPaymentRedirect(
 
   const responseCode = redirect.responseCode ?? consult.responseCode;
   const transactionId = redirect.transactionId ?? consult.transactionId;
-  const amount = normalizeAmount(consult.amount ?? redirect.amount);
+  const amount = normalizeAmount(consult.amount ?? redirect.amount ?? payment.amount);
   const currency = consult.currency ?? redirect.currency ?? payment.currency;
   const email = consult.email ?? redirect.email ?? payment.reservation.guestEmail;
   const auth = redirect.auth ?? consult.auth ?? "";
