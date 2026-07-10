@@ -3,7 +3,7 @@ import { Prisma, ReservationStatus } from "@prisma/client";
 import { checkAccommodationAvailability } from "@/lib/availability/service";
 import { prisma } from "@/lib/db/prisma";
 import { calculateReservationQuote, ReservationQuoteError } from "@/lib/reservations/pricing";
-import type { AccommodationId } from "@/types/accommodation";
+import type { AccommodationId, LocalizedText } from "@/types/accommodation";
 import type { DateOnlyString } from "@/types/availability";
 import type {
   ReservationQuote,
@@ -167,6 +167,10 @@ function toReservationQuoteAmount(
   };
 }
 
+function getLocalizedValue(value: string | LocalizedText, locale: "es" | "en"): string {
+  return typeof value === "string" ? value : value[locale];
+}
+
 function withStoredReservationAmounts(
   quote: ReservationQuote,
   reservation: ReusablePendingReservation,
@@ -206,7 +210,7 @@ async function buildPendingReservationHoldFromReservation(
     status: "PENDING_PAYMENT",
     expiresAt: reservation.expiresAt.toISOString(),
     accommodationId,
-    accommodationSlug: quote.accommodationSlug.en,
+    accommodationSlug: getLocalizedValue(quote.accommodationSlug, "en"),
     checkInDate: quoteWithStoredAmounts.checkInDate,
     checkOutDate: quoteWithStoredAmounts.checkOutDate,
     guestCount: reservation.guestCount,
@@ -214,6 +218,28 @@ async function buildPendingReservationHoldFromReservation(
     currency: quoteWithStoredAmounts.currency,
     quote: quoteWithStoredAmounts,
   };
+}
+
+async function expireMatchingStalePendingReservationHolds(
+  tx: PendingHoldTransactionClient,
+  input: CreatePendingReservationHoldInput,
+  now: Date,
+): Promise<void> {
+  await tx.reservation.updateMany({
+    where: {
+      propertyId: input.accommodationId,
+      guestEmail: normalizeEmail(input.guestEmail),
+      checkInDate: toDateOnlyDate(input.checkInDate),
+      checkOutDate: toDateOnlyDate(input.checkOutDate),
+      status: ReservationStatus.PENDING_PAYMENT,
+      expiresAt: {
+        lte: now,
+      },
+    },
+    data: {
+      status: ReservationStatus.EXPIRED,
+    },
+  });
 }
 
 async function findReusableActivePendingReservationHold(
@@ -270,6 +296,9 @@ async function createPendingReservationHoldAttempt(
       }
 
       const now = new Date();
+
+      await expireMatchingStalePendingReservationHolds(tx, input, now);
+
       const reusablePendingHold = await findReusableActivePendingReservationHold(tx, input, now);
 
       if (reusablePendingHold) {
@@ -338,14 +367,12 @@ async function createPendingReservationHoldAttempt(
         throw new PendingReservationHoldError("INVALID_PENDING_HOLD_REQUEST");
       }
 
-      const quoteWithSlug = quote as ReservationQuote & { accommodationSlug?: string; slug?: string };
-
       return {
         reservationId: reservation.id,
         status: "PENDING_PAYMENT",
         expiresAt: reservation.expiresAt.toISOString(),
         accommodationId: input.accommodationId,
-        accommodationSlug: quoteWithSlug.accommodationSlug ?? quoteWithSlug.slug ?? input.accommodationId,
+        accommodationSlug: getLocalizedValue(quote.accommodationSlug, "en"),
         checkInDate: input.checkInDate,
         checkOutDate: input.checkOutDate,
         guestCount: input.guestCount,

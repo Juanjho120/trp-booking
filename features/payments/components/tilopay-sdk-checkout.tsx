@@ -24,6 +24,8 @@ type CheckoutStatus =
   | "processed"
   | "error";
 
+type CardBrand = "visa" | "mastercard" | "amex" | "discover" | "diners" | "unknown" | null;
+
 type TilopayInitResponse = Readonly<{
   message?: string;
   methods?: TilopaySdkPaymentMethod[];
@@ -34,10 +36,16 @@ type TilopayStartPaymentResponse = Readonly<{
   message?: string;
 }>;
 
+type TilopayCardTypeResponse = Readonly<{
+  message?: string;
+  type?: string;
+  brand?: string;
+}>;
+
 type TilopayGlobal = Readonly<{
   Init: (config: TilopaySdkSession["initConfig"]) => Promise<TilopayInitResponse>;
   startPayment: () => Promise<TilopayStartPaymentResponse>;
-  getCardType: () => Promise<Readonly<{ message?: string }> | string>;
+  getCardType: () => Promise<TilopayCardTypeResponse | string>;
 }>;
 
 declare global {
@@ -82,6 +90,60 @@ function getPaymentMethodLabel(
   return locale === "en" ? "Credit / Debit Card" : "Tarjeta de crédito / débito";
 }
 
+function normalizeCardBrand(value: string | undefined): CardBrand {
+  const normalizedValue = (value ?? "").toLowerCase();
+
+  if (normalizedValue.includes("visa")) {
+    return "visa";
+  }
+
+  if (normalizedValue.includes("master")) {
+    return "mastercard";
+  }
+
+  if (normalizedValue.includes("american") || normalizedValue.includes("amex")) {
+    return "amex";
+  }
+
+  if (normalizedValue.includes("discover")) {
+    return "discover";
+  }
+
+  if (normalizedValue.includes("diners")) {
+    return "diners";
+  }
+
+  return normalizedValue ? "unknown" : null;
+}
+
+function getCardBrandLabel(cardBrand: CardBrand): string {
+  switch (cardBrand) {
+    case "visa":
+      return "VISA";
+    case "mastercard":
+      return "MC";
+    case "amex":
+      return "AMEX";
+    case "discover":
+      return "DISC";
+    case "diners":
+      return "DINERS";
+    case "unknown":
+      return "CARD";
+    case null:
+    default:
+      return "";
+  }
+}
+
+function getCardTypeRawValue(response: TilopayCardTypeResponse | string): string | undefined {
+  if (typeof response === "string") {
+    return response;
+  }
+
+  return response.brand ?? response.type ?? response.message;
+}
+
 function loadTilopaySdkScript(src: string): Promise<void> {
   if (typeof window === "undefined") {
     return Promise.resolve();
@@ -118,10 +180,12 @@ export function TilopaySdkCheckout({ reservationId }: TilopaySdkCheckoutProps) {
   const [session, setSession] = useState<TilopaySdkSession | null>(null);
   const [paymentMethods, setPaymentMethods] = useState<readonly TilopaySdkPaymentMethod[]>([]);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
+  const [cardBrand, setCardBrand] = useState<CardBrand>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   async function handlePreparePayment(): Promise<void> {
     setStatus("loading");
+    setCardBrand(null);
     setErrorMessage(null);
 
     try {
@@ -204,6 +268,20 @@ export function TilopaySdkCheckout({ reservationId }: TilopaySdkCheckoutProps) {
     };
   }, [copy.sdkError, session]);
 
+  async function handleCardNumberInput(): Promise<void> {
+    if (!window.Tilopay) {
+      setCardBrand(null);
+      return;
+    }
+
+    try {
+      const cardType = await window.Tilopay.getCardType();
+      setCardBrand(normalizeCardBrand(getCardTypeRawValue(cardType)));
+    } catch {
+      setCardBrand(null);
+    }
+  }
+
   async function handleStartPayment(): Promise<void> {
     if (!window.Tilopay) {
       setStatus("error");
@@ -230,6 +308,7 @@ export function TilopaySdkCheckout({ reservationId }: TilopaySdkCheckoutProps) {
 
   const isPreparing = status === "loading" || status === "initializing";
   const isReady = status === "ready" || status === "processing" || status === "processed";
+  const cardBrandLabel = getCardBrandLabel(cardBrand);
 
   return (
     <section className="space-y-4 rounded-3xl border border-primary/20 bg-card p-4 shadow-sm">
@@ -295,16 +374,31 @@ export function TilopaySdkCheckout({ reservationId }: TilopaySdkCheckoutProps) {
           <div className="space-y-4" id="tlpy_card_payment_div">
             <label className="grid min-w-0 gap-2 text-sm font-medium text-foreground">
               <span>{copy.cardNumber}</span>
-              <input
-                autoComplete="off"
-                autoCorrect="off"
-                className="h-11 w-full min-w-0 rounded-2xl border border-border/70 bg-background px-4 text-sm text-foreground shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                id="tlpy_cc_number"
-                inputMode="numeric"
-                name="tlpy_cc_number"
-                spellCheck={false}
-                type="text"
-              />
+              <span className="relative block min-w-0">
+                <input
+                  autoComplete="off"
+                  autoCorrect="off"
+                  className="h-11 w-full min-w-0 rounded-2xl border border-border/70 bg-background px-4 pr-20 text-sm text-foreground shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  id="tlpy_cc_number"
+                  inputMode="numeric"
+                  name="tlpy_cc_number"
+                  onInput={() => {
+                    void handleCardNumberInput();
+                  }}
+                  spellCheck={false}
+                  type="text"
+                />
+                {cardBrandLabel ? (
+                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 rounded-md border border-border/70 bg-muted px-2 py-1 text-[0.65rem] font-bold leading-none text-muted-foreground">
+                    {cardBrandLabel}
+                  </span>
+                ) : (
+                  <CreditCard
+                    aria-hidden="true"
+                    className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/70"
+                  />
+                )}
+              </span>
             </label>
 
             <div className="grid min-w-0 gap-4 sm:grid-cols-2">
