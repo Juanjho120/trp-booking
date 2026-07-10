@@ -234,7 +234,7 @@ export async function createTilopaySdkSession(
     guestPhone: payment.reservation.guestPhone,
     locale: input.locale,
     orderNumber: providerReference,
-    redirectUrl: env.TILOPAY_SUCCESS_URL,
+    redirectUrl: env.TILOPAY_REDIRECT_URL,
     returnData,
     token,
   });

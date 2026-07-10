@@ -15,8 +15,8 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 9 — Tilopay Sandbox Integration
-Current subphase: 9.5 Tilopay redirect, consult, and OrderHash V2 validation foundation
-Current focus: validate the Tilopay payment result after the SDK checkout flow without confirming reservations until server-side validation succeeds.
+Current subphase: 9.6 Confirm reservation only after validated payment
+Current focus: move a reservation from PENDING_PAYMENT to CONFIRMED only after Payment.status is APPROVED through validated Tilopay redirect, consult, and OrderHash V2 checks.
 ```
 
 ---
@@ -41,19 +41,6 @@ Completed subphases:
 8.6 Phase 8 documentation update — Completed
 ```
 
-Phase 8 closure result:
-
-```text
-- The public reservation form can calculate a server-side quote.
-- The public reservation form can create real PENDING_PAYMENT reservation holds.
-- Pending holds use a non-null expiresAt value and initially last 15 minutes.
-- Availability blocks active pending holds while ignoring expired pending holds.
-- Payment handoff readiness can be validated server-side for an active pending hold.
-- Payment handoff validation recalculates quote, checks stored totals, and revalidates availability while excluding the reservation itself.
-- A protected cron route marks expired PENDING_PAYMENT holds as EXPIRED.
-- The reservation flow is ready for Phase 9 Tilopay sandbox integration.
-```
-
 ---
 
 ## Phase 9 — Tilopay Sandbox Integration
@@ -69,7 +56,7 @@ Subphase status:
 9.2 Tilopay environment validation — Completed
 9.3 Payment record creation for pending reservations — Completed
 9.4 Tilopay SDK V2 checkout foundation — Completed
-9.5 Tilopay redirect, consult, and OrderHash V2 validation foundation — Not started
+9.5 Tilopay redirect, consult, and OrderHash V2 validation foundation — Completed
 9.6 Confirm reservation only after validated payment — Not started
 9.7 Phase 9 documentation update — Not started
 ```
@@ -96,6 +83,18 @@ Phase 9.4 result:
 - The backend calls /loginSdk server-side and returns safe SDK init configuration.
 - The payment form fields required by Tilopay are rendered in the browser but are not stored or sent to the TRP Booking backend.
 - Phase 9.4 does not confirm reservations, send emails, add Prisma migrations, or add PMS behavior.
+```
+
+Phase 9.5 result:
+
+```text
+- TILOPAY_REDIRECT_URL was introduced as the SDK callback URL.
+- GET /api/payments/tilopay/redirect was added.
+- Tilopay /consult is called server-side after the redirect.
+- OrderHash V2 HMAC-SHA256 validation was added.
+- Payment.status can move from PENDING to APPROVED, REJECTED, or FAILED.
+- Reservation.status remains PENDING_PAYMENT in this subphase.
+- No emails, migrations, admin UI, refunds, or PMS behavior were added.
 ```
 
 ---

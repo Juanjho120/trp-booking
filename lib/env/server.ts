@@ -143,6 +143,7 @@ const cloudinaryUploadFolderSchema = placeholderValueSchema
   );
 
 const tilopayCallbackUrlKeys = [
+  "TILOPAY_REDIRECT_URL",
   "TILOPAY_SUCCESS_URL",
   "TILOPAY_CANCEL_URL",
   "TILOPAY_ERROR_URL",
@@ -181,6 +182,7 @@ const rawServerEnvSchema = z.object({
   TILOPAY_API_KEY: providerCredentialValueSchema,
   TILOPAY_API_USER: providerCredentialValueSchema,
   TILOPAY_API_PASSWORD: providerCredentialValueSchema,
+  TILOPAY_REDIRECT_URL: requiredUrlSchema,
   TILOPAY_SUCCESS_URL: requiredUrlSchema,
   TILOPAY_CANCEL_URL: requiredUrlSchema,
   TILOPAY_ERROR_URL: requiredUrlSchema,
@@ -237,6 +239,7 @@ export type TilopayEnv = Pick<
   | "TILOPAY_API_KEY"
   | "TILOPAY_API_USER"
   | "TILOPAY_API_PASSWORD"
+  | "TILOPAY_REDIRECT_URL"
   | "TILOPAY_SUCCESS_URL"
   | "TILOPAY_CANCEL_URL"
   | "TILOPAY_ERROR_URL"
@@ -263,6 +266,7 @@ export function validateServerEnv(
     TILOPAY_API_KEY: source.TILOPAY_API_KEY,
     TILOPAY_API_USER: source.TILOPAY_API_USER,
     TILOPAY_API_PASSWORD: source.TILOPAY_API_PASSWORD,
+    TILOPAY_REDIRECT_URL: source.TILOPAY_REDIRECT_URL,
     TILOPAY_SUCCESS_URL: source.TILOPAY_SUCCESS_URL,
     TILOPAY_CANCEL_URL: source.TILOPAY_CANCEL_URL,
     TILOPAY_ERROR_URL: source.TILOPAY_ERROR_URL,
@@ -301,6 +305,7 @@ export function getTilopayEnv(
     TILOPAY_API_KEY: env.TILOPAY_API_KEY,
     TILOPAY_API_USER: env.TILOPAY_API_USER,
     TILOPAY_API_PASSWORD: env.TILOPAY_API_PASSWORD,
+    TILOPAY_REDIRECT_URL: env.TILOPAY_REDIRECT_URL,
     TILOPAY_SUCCESS_URL: env.TILOPAY_SUCCESS_URL,
     TILOPAY_CANCEL_URL: env.TILOPAY_CANCEL_URL,
     TILOPAY_ERROR_URL: env.TILOPAY_ERROR_URL,
