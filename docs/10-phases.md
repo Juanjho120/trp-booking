@@ -15,8 +15,8 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 9 — Tilopay Sandbox Integration
-Current subphase: 9.4 Payment handoff redirect/session foundation
-Current focus: prepare the checkout handoff/session boundary after an internal Payment record exists, without confirming reservations, sending emails, or adding PMS features.
+Current subphase: 9.5 Tilopay redirect, consult, and OrderHash V2 validation foundation
+Current focus: validate the Tilopay payment result after the SDK checkout flow without confirming reservations until server-side validation succeeds.
 ```
 
 ---
@@ -68,8 +68,8 @@ Subphase status:
 9.1 Tilopay sandbox strategy and environment contract — Completed
 9.2 Tilopay environment validation — Completed
 9.3 Payment record creation for pending reservations — Completed
-9.4 Payment handoff redirect/session foundation — Not started
-9.5 Tilopay webhook validation foundation — Not started
+9.4 Tilopay SDK V2 checkout foundation — Completed
+9.5 Tilopay redirect, consult, and OrderHash V2 validation foundation — Not started
 9.6 Confirm reservation only after validated payment — Not started
 9.7 Phase 9 documentation update — Not started
 ```
@@ -86,28 +86,16 @@ Phase 9 rules:
 - Do not add PMS features.
 ```
 
-Phase 9.3 result:
+Phase 9.4 result:
 
 ```text
-- POST /api/payments/attempts was added.
-- lib/payments/payment-attempts.ts was added.
-- types/payment-attempt.ts was added.
-- Payment attempt error messages were added under messages/es.ts and messages/en.ts.
-- The service validates payment handoff readiness before creating any Payment record.
-- The service creates a Payment with provider = TILOPAY, status = PENDING, amount = validated reservation total, and currency = USD.
-- The service reuses an existing pending Tilopay Payment for the same reservation when the amount and currency still match.
-- Phase 9.3 does not call Tilopay, redirect to checkout, add webhooks, confirm reservations, send emails, add PMS behavior, or add migrations.
-```
-
-Phase 9.4 current scope:
-
-```text
-- Prepare the handoff/session boundary after a Payment record exists.
-- Keep provider credentials server-side only.
-- Do not store card data.
-- Do not confirm reservations yet.
-- Do not send emails yet.
-- Do not add PMS features.
+- Tilopay SDK V2 is the preferred checkout foundation.
+- POST /api/payments/tilopay/sdk-session was added.
+- The public reservation flow can prepare a Tilopay SDK session after a pending reservation hold exists.
+- The SDK is rendered inside the TRP Booking experience.
+- The backend calls /loginSdk server-side and returns safe SDK init configuration.
+- The payment form fields required by Tilopay are rendered in the browser but are not stored or sent to the TRP Booking backend.
+- Phase 9.4 does not confirm reservations, send emails, add Prisma migrations, or add PMS behavior.
 ```
 
 ---

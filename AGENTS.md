@@ -53,7 +53,7 @@ This file defines the working rules for TRP Booking.
 - Do not hardcode Airbnb iCal URLs in code or docs.
 - Keep sensitive operational configuration in environment variables, secure database configuration, or admin-managed private settings.
 - Do not store card data.
-- Confirm reservations only after a validated payment webhook.
+- Confirm reservations only after a provider payment result is validated server-side.
 - Validate prices, availability, and guest counts on the server.
 
 ## Deletion Rules

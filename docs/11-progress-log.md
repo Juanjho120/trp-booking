@@ -6,10 +6,10 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 9 — Tilopay Sandbox Integration
-Current subphase: 9.4 Payment handoff redirect/session foundation
-Last updated: 2026-07-09
+Current subphase: 9.5 Tilopay redirect, consult, and OrderHash V2 validation foundation
+Last updated: 2026-07-10
 Last completed phase: Phase 8 — Reservation Flow
-Last completed subphase: 9.3 Payment record creation for pending reservations
+Last completed subphase: 9.4 Tilopay SDK V2 checkout foundation
 ```
 
 ## Completed Work
@@ -43,7 +43,7 @@ Those values map to TILOPAY_API_KEY, TILOPAY_API_USER, and TILOPAY_API_PASSWORD.
 TRP Booking must not store card data.
 Payment must start from an active PENDING_PAYMENT reservation.
 Payment handoff must revalidate the reservation before creating a payment attempt.
-Reservation.status must not become CONFIRMED until a payment callback/webhook is validated.
+Reservation.status must not become CONFIRMED until a provider result is validated server-side.
 No PMS behavior is introduced in Phase 9.
 ```
 
@@ -58,7 +58,7 @@ TILOPAY_ENVIRONMENT is required and must be sandbox or production.
 TILOPAY_API_KEY is required and maps to Api Key in the Tilopay sandbox panel.
 TILOPAY_API_USER is required and maps to Api User in the Tilopay sandbox panel.
 TILOPAY_API_PASSWORD is required and maps to Api Password in the Tilopay sandbox panel.
-TILOPAY_SUCCESS_URL, TILOPAY_CANCEL_URL, TILOPAY_ERROR_URL, and TILOPAY_WEBHOOK_URL are required.
+TILOPAY_SUCCESS_URL, TILOPAY_CANCEL_URL, TILOPAY_ERROR_URL, and TILOPAY_WEBHOOK_URL are currently validated from the previous environment contract.
 Callback URLs must use HTTPS outside local development.
 Tilopay secrets remain server-side only.
 ```
@@ -66,21 +66,6 @@ Tilopay secrets remain server-side only.
 ### Phase 9.3 — Payment Record Creation for Pending Reservations
 
 Status: **Completed**
-
-Completed deliverables:
-
-```text
-app/api/payments/attempts/route.ts added
-lib/payments/index.ts added
-lib/payments/payment-attempts.ts added
-types/payment-attempt.ts added
-messages/es.ts updated with payment attempt errors
-messages/en.ts updated with payment attempt errors
-docs/55-payment-record-creation-for-pending-reservations.md added
-README.md updated with Phase 9.3 completion
-docs/10-phases.md updated to mark 9.3 completed and 9.4 next
-docs/11-progress-log.md updated with Phase 9.3 completion
-```
 
 Important decisions:
 
@@ -101,6 +86,39 @@ No Resend email is sent in 9.3.
 No Prisma schema change or migration is required in 9.3 because the Payment model already exists.
 ```
 
+### Phase 9.4 — Tilopay SDK V2 Checkout Foundation
+
+Status: **Completed**
+
+Completed deliverables:
+
+```text
+app/api/payments/tilopay/sdk-session/route.ts added
+features/payments/components/tilopay-sdk-checkout.tsx added
+lib/payments/tilopay-sdk-session.ts added
+types/tilopay-sdk-session.ts added
+lib/payments/index.ts updated
+docs/56-tilopay-sdk-v2-contract-for-trp-booking.md added
+docs/10-phases.md updated to mark 9.4 completed and 9.5 next
+docs/11-progress-log.md updated with Phase 9.4 completion
+```
+
+Important decisions:
+
+```text
+TRP Booking uses Tilopay SDK V2 as the preferred checkout foundation.
+The guest should not leave the TRP Booking experience as the main payment flow.
+The SDK is loaded from https://app.tilopay.com/sdk/v2/sdk_tpay.min.js.
+The backend calls /loginSdk server-side with apiuser, password, and key.
+The frontend receives only the SDK access token and safe init configuration.
+Payment.providerReference stores the unique orderNumber sent to Tilopay.
+The SDK form fields are rendered in the browser but TRP Booking does not read, store, log, or send card number, CVV, expiration, or tokens to its backend.
+No regular-payment webhook is assumed because Tilopay support confirmed non-recurrent hosted payments do not currently have webhooks.
+No reservation is confirmed in 9.4.
+No Resend email is sent in 9.4.
+No Prisma schema change or migration is required in 9.4.
+```
+
 ## Current Work
 
 ### Phase 9 — Tilopay Sandbox Integration
@@ -110,16 +128,17 @@ Status: **In progress**
 Current subphase:
 
 ```text
-9.4 Payment handoff redirect/session foundation
+9.5 Tilopay redirect, consult, and OrderHash V2 validation foundation
 ```
 
-Phase 9.4 goals:
+Phase 9.5 goals:
 
 ```text
-Prepare the checkout handoff/session boundary after a Payment record exists.
-Keep provider credentials server-side only.
-Do not store card data.
-Do not confirm reservations yet.
+Read the Tilopay redirect result.
+Validate OrderHash V2.
+Consult the transaction server-side.
+Update Payment status according to the validated provider result.
+Do not confirm reservations yet unless the phase explicitly reaches the documented confirmation transition.
 Do not send emails yet.
 Do not add PMS features.
 ```
@@ -127,10 +146,11 @@ Do not add PMS features.
 ## Next Recommended Work
 
 ```text
-1. Confirm the Tilopay checkout/session endpoint contract from sandbox documentation or support.
-2. Decide which field will be sent to Tilopay as the internal order/payment reference.
-3. Add a server-side Tilopay adapter only after the endpoint contract is confirmed.
-4. Keep reservation confirmation deferred until webhook/payment validation exists.
+1. Implement the same-domain Tilopay redirect result route/page.
+2. Validate OrderHash V2 against sandbox.
+3. Use /api/v1/consult server-side to verify amount, currency, orderNumber, and status.
+4. Update Payment status only after provider validation.
+5. Keep Reservation.status = PENDING_PAYMENT until the documented confirmation subphase.
 ```
 
 ## Continuity Notes for New Conversations
@@ -146,8 +166,10 @@ docs/11-progress-log.md
 docs/53-tilopay-sandbox-strategy-and-environment-contract.md
 docs/54-tilopay-environment-validation.md
 docs/55-payment-record-creation-for-pending-reservations.md
+docs/56-tilopay-sdk-v2-contract-for-trp-booking.md
 lib/env/server.ts
 lib/payments/payment-attempts.ts
+lib/payments/tilopay-sdk-session.ts
 lib/reservations/payment-handoff.ts
 prisma/schema.prisma
 ```

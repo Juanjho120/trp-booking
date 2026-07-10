@@ -7,6 +7,7 @@ import type { Country } from "react-phone-number-input";
 import flagComponents from "react-phone-number-input/flags";
 
 import { Button } from "@/components/ui/button";
+import { TilopaySdkCheckout } from "@/features/payments/components/tilopay-sdk-checkout";
 import { useLocale } from "@/features/i18n";
 import { getCountryOption, getCountryOptions, type CountryOption } from "@/lib/geo/countries";
 import type { AccommodationId } from "@/types/accommodation";
@@ -483,9 +484,11 @@ export function ReservationRequestForm({
         />
       ) : null}
 
+      {pendingHold ? <TilopaySdkCheckout reservationId={pendingHold.reservationId} /> : null}
+
       <Button
         className="w-full rounded-full"
-        disabled={status === "loading" || holdStatus === "loading"}
+        disabled={status === "loading" || holdStatus === "loading" || Boolean(pendingHold)}
         onClick={handlePendingHoldRequest}
         type="button"
         variant="secondary"

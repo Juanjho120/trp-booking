@@ -273,6 +273,32 @@ export const esMessages = {
         "Subfase 8.4 crea una reserva pendiente por 15 minutos. Todavía no confirma pago, no envía correos y no crea bloques manuales de calendario.",
     },
   },
+    payments: {
+    tilopaySdk: {
+      title: "Pago seguro con Tilopay",
+      description:
+        "Completa el pago dentro de esta página usando el formulario seguro de Tilopay. No guardamos los datos de tu tarjeta.",
+      preparePayment: "Preparar pago seguro",
+      preparingPayment: "Preparando pago seguro...",
+      initializingPayment: "Inicializando formulario seguro de Tilopay...",
+      cardSectionTitle: "Datos de tarjeta",
+      secureFieldsNote:
+        "Estos campos son procesados por Tilopay SDK. TRP Booking no almacena número de tarjeta, CVV ni fecha de expiración.",
+      paymentMethod: "Método de pago",
+      cardNumber: "Número de tarjeta",
+      cardExpiration: "Vencimiento",
+      cardCvv: "CVV",
+      pay: "Pagar reserva",
+      processingPayment: "Procesando pago...",
+      paymentSubmitted:
+        "El pago fue enviado a Tilopay. Espera la respuesta del formulario seguro antes de cerrar esta página.",
+      providerNote:
+        "La reserva se confirmará únicamente después de validar el resultado del pago en el servidor.",
+      sessionError: "No pudimos preparar el formulario de pago. Inténtalo de nuevo.",
+      sdkError: "No pudimos inicializar el formulario seguro de Tilopay. Inténtalo de nuevo.",
+      paymentError: "No pudimos enviar el pago a Tilopay. Revisa los datos e inténtalo de nuevo.",
+    },
+  },
   admin: {
     shell: {
       brandLabel: "Administración privada",
@@ -374,7 +400,7 @@ export const esMessages = {
     payment: {
       failed:
         "No pudimos completar el pago. Intenta nuevamente o contáctanos para recibir ayuda.",
-      attempt: {
+            attempt: {
         INVALID_PAYMENT_HANDOFF_REQUEST:
           "No pudimos preparar el intento de pago. Inténtalo de nuevo.",
         PENDING_HOLD_NOT_FOUND: "No encontramos esta reserva pendiente.",
@@ -391,6 +417,28 @@ export const esMessages = {
           "Ya existe un intento de pago pendiente que no coincide con el total actual. Crea una nueva reserva o contacta al alojamiento.",
         PAYMENT_ATTEMPT_UNEXPECTED_ERROR:
           "No pudimos preparar el intento de pago. Inténtalo de nuevo.",
+      },
+      tilopaySdk: {
+        INVALID_PAYMENT_HANDOFF_REQUEST:
+          "No pudimos preparar el pago. Inténtalo de nuevo.",
+        PENDING_HOLD_NOT_FOUND: "No encontramos esta reserva pendiente.",
+        PENDING_HOLD_NOT_PAYABLE: "Esta reserva ya no está disponible para pago.",
+        PENDING_HOLD_EXPIRED:
+          "El tiempo para pagar esta reserva pendiente expiró. Crea una nueva reserva.",
+        PAYMENT_HANDOFF_UNAVAILABLE_DATES:
+          "Estas fechas ya no están disponibles antes del pago. Crea una nueva reserva con otro rango de fechas.",
+        PAYMENT_HANDOFF_QUOTE_CHANGED:
+          "El total de esta reserva cambió antes del pago. Calcula nuevamente la reserva.",
+        PAYMENT_HANDOFF_UNEXPECTED_ERROR:
+          "No pudimos validar la reserva antes del pago. Inténtalo de nuevo.",
+        PAYMENT_ATTEMPT_AMOUNT_MISMATCH:
+          "Ya existe un intento de pago pendiente que no coincide con el total actual. Crea una nueva reserva o contacta al alojamiento.",
+        PAYMENT_ATTEMPT_UNEXPECTED_ERROR:
+          "No pudimos preparar el intento de pago. Inténtalo de nuevo.",
+        TILOPAY_SDK_TOKEN_UNAVAILABLE:
+          "No pudimos conectar con Tilopay para preparar el pago. Inténtalo de nuevo.",
+        TILOPAY_SDK_SESSION_UNEXPECTED_ERROR:
+          "No pudimos preparar el formulario de pago. Inténtalo de nuevo.",
       },
     },
   },

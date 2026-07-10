@@ -41,9 +41,10 @@ TRP Booking is focused only on the public booking experience, direct reservation
 - Pending reservation holds must use `PENDING_PAYMENT` with a non-null `expiresAt` and must never be confirmed before validated payment.
 - Phase 9 must keep all Tilopay credentials server-side only.
 - Phase 9 must not store card data.
-- Phase 9 must not set `Reservation.status = CONFIRMED` until a payment callback/webhook is validated.
+- Phase 9 must not set `Reservation.status = CONFIRMED` until a provider payment result is validated server-side.
 - Phase 9 must keep failed, rejected, expired, and successful payment attempts auditable.
 - Resend email delivery belongs to Phase 10 unless explicitly moved later.
+- User-facing public copy must be centralized in `messages/es.ts` and `messages/en.ts`.
 
 ## Phase 9 Start Summary
 
@@ -55,19 +56,21 @@ Phase 9 completed so far:
 9.1 Tilopay sandbox strategy and environment contract
 9.2 Tilopay environment validation
 9.3 Payment record creation for pending reservations
+9.4 Tilopay SDK V2 checkout foundation
 ```
 
-Phase 9.3 added:
+Phase 9.4 added:
 
 ```text
-- POST /api/payments/attempts
-- Internal Payment record creation for active PENDING_PAYMENT reservations.
-- Reuse of payment handoff readiness validation before creating a Payment.
-- Idempotent reuse of an existing pending Tilopay Payment for the same reservation when the amount still matches.
-- Payment attempt error messages under messages/es.ts and messages/en.ts.
+- POST /api/payments/tilopay/sdk-session
+- Tilopay SDK V2 checkout foundation inside the TRP Booking experience.
+- Server-side /loginSdk token request.
+- Safe SDK initialization config for the frontend.
+- Internal Payment.providerReference orderNumber handling.
+- Internal Tilopay SDK contract documentation.
 ```
 
-No Tilopay checkout, redirect, webhook handler, reservation confirmation, or Resend email delivery is implemented in 9.3.
+No reservation confirmation, Resend email delivery, Prisma migration, or PMS behavior is implemented in 9.4.
 
 ## Documentation
 
@@ -83,13 +86,14 @@ docs/11-progress-log.md
 docs/53-tilopay-sandbox-strategy-and-environment-contract.md
 docs/54-tilopay-environment-validation.md
 docs/55-payment-record-creation-for-pending-reservations.md
+docs/56-tilopay-sdk-v2-contract-for-trp-booking.md
 ```
 
 ## Development Status
 
 ```text
 Current phase: Phase 9 — Tilopay Sandbox Integration
-Current subphase: 9.4 Payment handoff redirect/session foundation
+Current subphase: 9.5 Tilopay redirect, consult, and OrderHash V2 validation foundation
 Last completed phase: Phase 8 — Reservation Flow
-Last completed subphase: 9.3 Payment record creation for pending reservations
+Last completed subphase: 9.4 Tilopay SDK V2 checkout foundation
 ```

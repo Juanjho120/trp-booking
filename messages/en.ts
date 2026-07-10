@@ -273,6 +273,32 @@ export const enMessages = {
         "Subphase 8.4 creates a pending reservation for 15 minutes. It still does not confirm payment, send emails, or create manual calendar blocks.",
     },
   },
+    payments: {
+    tilopaySdk: {
+      title: "Secure payment with Tilopay",
+      description:
+        "Complete payment inside this page using Tilopay's secure form. We do not store your card details.",
+      preparePayment: "Prepare secure payment",
+      preparingPayment: "Preparing secure payment...",
+      initializingPayment: "Initializing Tilopay secure form...",
+      cardSectionTitle: "Card details",
+      secureFieldsNote:
+        "These fields are processed by Tilopay SDK. TRP Booking does not store card number, CVV, or expiration date.",
+      paymentMethod: "Payment method",
+      cardNumber: "Card number",
+      cardExpiration: "Expiration",
+      cardCvv: "CVV",
+      pay: "Pay reservation",
+      processingPayment: "Processing payment...",
+      paymentSubmitted:
+        "The payment was sent to Tilopay. Wait for the secure form response before closing this page.",
+      providerNote:
+        "The reservation will only be confirmed after the payment result is validated on the server.",
+      sessionError: "We could not prepare the payment form. Please try again.",
+      sdkError: "We could not initialize the Tilopay secure form. Please try again.",
+      paymentError: "We could not send the payment to Tilopay. Review the details and try again.",
+    },
+  },
   admin: {
     shell: {
       brandLabel: "Private administration",
@@ -392,6 +418,28 @@ export const enMessages = {
         PAYMENT_ATTEMPT_UNEXPECTED_ERROR:
           "We could not prepare the payment attempt. Please try again.",
       },
+      tilopaySdk: {
+        INVALID_PAYMENT_HANDOFF_REQUEST:
+          "We could not prepare the payment. Please try again.",
+        PENDING_HOLD_NOT_FOUND: "We could not find this pending reservation.",
+        PENDING_HOLD_NOT_PAYABLE: "This reservation is no longer available for payment.",
+        PENDING_HOLD_EXPIRED:
+          "The payment window for this pending reservation expired. Create a new reservation.",
+        PAYMENT_HANDOFF_UNAVAILABLE_DATES:
+          "These dates are no longer available before payment. Create a new reservation with a different date range.",
+        PAYMENT_HANDOFF_QUOTE_CHANGED:
+          "The reservation total changed before payment. Please calculate the reservation again.",
+        PAYMENT_HANDOFF_UNEXPECTED_ERROR:
+          "We could not validate the reservation before payment. Please try again.",
+        PAYMENT_ATTEMPT_AMOUNT_MISMATCH:
+          "A pending payment attempt already exists and does not match the current total. Create a new reservation or contact the property.",
+        PAYMENT_ATTEMPT_UNEXPECTED_ERROR:
+          "We could not prepare the payment attempt. Please try again.",
+        TILOPAY_SDK_TOKEN_UNAVAILABLE:
+          "We could not connect to Tilopay to prepare payment. Please try again.",
+        TILOPAY_SDK_SESSION_UNEXPECTED_ERROR:
+          "We could not prepare the payment form. Please try again.",
+      }
     },
   },
 } as const;
