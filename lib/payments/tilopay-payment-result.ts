@@ -135,7 +135,7 @@ function isApprovedResponseCode(value: string | null): boolean {
   return value === "1" || value === "00";
 }
 
-function toInputJson(value: Record<string, unknown> | null): Prisma.InputJsonValue {
+function toInputJson(value: Record<string, unknown> | null): Prisma.InputJsonValue | null {
   return value ? JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue : null;
 }
 
