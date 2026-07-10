@@ -71,6 +71,17 @@ function getSupportedCardMethods(
   return standardCardMethods.length > 0 ? standardCardMethods : cardMethods;
 }
 
+function getPaymentMethodLabel(
+  method: TilopaySdkPaymentMethod,
+  locale: "es" | "en",
+): string {
+  if (method.type.toLowerCase() !== "card") {
+    return method.name;
+  }
+
+  return locale === "en" ? "Credit / Debit Card" : "Tarjeta de crédito / débito";
+}
+
 function loadTilopaySdkScript(src: string): Promise<void> {
   if (typeof window === "undefined") {
     return Promise.resolve();
@@ -142,7 +153,7 @@ export function TilopaySdkCheckout({ reservationId }: TilopaySdkCheckoutProps) {
     }
   }
 
-    useEffect(() => {
+  useEffect(() => {
     if (!session) {
       return;
     }
@@ -253,10 +264,10 @@ export function TilopaySdkCheckout({ reservationId }: TilopaySdkCheckoutProps) {
             <p className="mt-2 text-xs leading-5 text-muted-foreground">{copy.secureFieldsNote}</p>
           </div>
 
-          <label className="grid gap-2 text-sm font-medium text-foreground">
+          <label className="grid min-w-0 gap-2 text-sm font-medium text-foreground">
             <span>{copy.paymentMethod}</span>
             <select
-              className="h-11 rounded-2xl border border-border/70 bg-background px-4 text-sm text-foreground shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+              className="h-11 w-full min-w-0 rounded-2xl border border-border/70 bg-background px-4 text-sm text-foreground shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
               id="tlpy_payment_method"
               name="tlpy_payment_method"
               onChange={(event) => setSelectedPaymentMethod(event.target.value)}
@@ -264,7 +275,7 @@ export function TilopaySdkCheckout({ reservationId }: TilopaySdkCheckoutProps) {
             >
               {paymentMethods.map((method) => (
                 <option key={method.id} value={method.id}>
-                  {method.name}
+                  {getPaymentMethodLabel(method, locale)}
                 </option>
               ))}
             </select>
@@ -282,40 +293,46 @@ export function TilopaySdkCheckout({ reservationId }: TilopaySdkCheckoutProps) {
           </select>
 
           <div className="space-y-4" id="tlpy_card_payment_div">
-            <label className="grid gap-2 text-sm font-medium text-foreground">
+            <label className="grid min-w-0 gap-2 text-sm font-medium text-foreground">
               <span>{copy.cardNumber}</span>
               <input
-                autoComplete="cc-number"
-                className="h-11 rounded-2xl border border-border/70 bg-background px-4 text-sm text-foreground shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                autoComplete="off"
+                autoCorrect="off"
+                className="h-11 w-full min-w-0 rounded-2xl border border-border/70 bg-background px-4 text-sm text-foreground shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                 id="tlpy_cc_number"
                 inputMode="numeric"
                 name="tlpy_cc_number"
+                spellCheck={false}
                 type="text"
               />
             </label>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <label className="grid gap-2 text-sm font-medium text-foreground">
+            <div className="grid min-w-0 gap-4 sm:grid-cols-2">
+              <label className="grid min-w-0 gap-2 text-sm font-medium text-foreground">
                 <span>{copy.cardExpiration}</span>
                 <input
-                  autoComplete="cc-exp"
-                  className="h-11 rounded-2xl border border-border/70 bg-background px-4 text-sm text-foreground shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  autoComplete="off"
+                  autoCorrect="off"
+                  className="h-11 w-full min-w-0 rounded-2xl border border-border/70 bg-background px-4 text-sm text-foreground shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                   id="tlpy_cc_expiration_date"
                   inputMode="numeric"
                   name="tlpy_cc_expiration_date"
                   placeholder="MM/YY"
+                  spellCheck={false}
                   type="text"
                 />
               </label>
 
-              <label className="grid gap-2 text-sm font-medium text-foreground">
+              <label className="grid min-w-0 gap-2 text-sm font-medium text-foreground">
                 <span>{copy.cardCvv}</span>
                 <input
-                  autoComplete="cc-csc"
-                  className="h-11 rounded-2xl border border-border/70 bg-background px-4 text-sm text-foreground shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  autoComplete="off"
+                  autoCorrect="off"
+                  className="h-11 w-full min-w-0 rounded-2xl border border-border/70 bg-background px-4 text-sm text-foreground shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                   id="tlpy_cvv"
                   inputMode="numeric"
                   name="tlpy_cvv"
+                  spellCheck={false}
                   type="text"
                 />
               </label>

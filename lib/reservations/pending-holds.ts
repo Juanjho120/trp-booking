@@ -5,7 +5,11 @@ import { prisma } from "@/lib/db/prisma";
 import { calculateReservationQuote, ReservationQuoteError } from "@/lib/reservations/pricing";
 import type { AccommodationId } from "@/types/accommodation";
 import type { DateOnlyString } from "@/types/availability";
-import type { ReservationQuote } from "@/types/reservation-quote";
+import type {
+  ReservationQuote,
+  ReservationQuoteAmount,
+  ReservationQuoteCurrency,
+} from "@/types/reservation-quote";
 import type {
   CreatePendingReservationHoldInput,
   PendingReservationHold,
@@ -31,8 +35,34 @@ export class PendingReservationHoldError extends Error {
   }
 }
 
+const reusablePendingReservationSelect = {
+  id: true,
+  propertyId: true,
+  checkInDate: true,
+  checkOutDate: true,
+  guestCount: true,
+  status: true,
+  subtotal: true,
+  cleaningFee: true,
+  taxes: true,
+  discounts: true,
+  total: true,
+  currency: true,
+  expiresAt: true,
+} satisfies Prisma.ReservationSelect;
+
+type ReusablePendingReservation = Prisma.ReservationGetPayload<{
+  select: typeof reusablePendingReservationSelect;
+}>;
+
+type PendingHoldTransactionClient = Prisma.TransactionClient;
+
 function toDateOnlyDate(date: DateOnlyString): Date {
   return new Date(`${date}T00:00:00.000Z`);
+}
+
+function toDateOnlyString(date: Date): DateOnlyString {
+  return date.toISOString().slice(0, 10) as DateOnlyString;
 }
 
 function normalizeEmail(email: string): string {
@@ -115,6 +145,106 @@ function isSerializableTransactionConflict(error: unknown): boolean {
   return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2034";
 }
 
+function toQuoteCurrency(value: string): ReservationQuoteCurrency {
+  return value === "USD" ? "USD" : "USD";
+}
+
+function toReservationQuoteAmount(
+  value: Readonly<{ toString: () => string }>,
+  currency: string,
+): ReservationQuoteAmount {
+  const normalizedCurrency = toQuoteCurrency(currency);
+  const numericValue = Number(value.toString());
+
+  if (!Number.isFinite(numericValue) || numericValue < 0) {
+    throw new PendingReservationHoldError("INVALID_PENDING_HOLD_REQUEST");
+  }
+
+  return {
+    currency: normalizedCurrency,
+    amountCents: Math.round(numericValue * 100),
+    amount: numericValue.toFixed(2),
+  };
+}
+
+function withStoredReservationAmounts(
+  quote: ReservationQuote,
+  reservation: ReusablePendingReservation,
+): ReservationQuote {
+  return {
+    ...quote,
+    checkInDate: toDateOnlyString(reservation.checkInDate),
+    checkOutDate: toDateOnlyString(reservation.checkOutDate),
+    guestCount: reservation.guestCount,
+    subtotal: toReservationQuoteAmount(reservation.subtotal, reservation.currency),
+    cleaningFee: toReservationQuoteAmount(reservation.cleaningFee, reservation.currency),
+    taxes: toReservationQuoteAmount(reservation.taxes, reservation.currency),
+    discounts: toReservationQuoteAmount(reservation.discounts, reservation.currency),
+    total: toReservationQuoteAmount(reservation.total, reservation.currency),
+    currency: toQuoteCurrency(reservation.currency),
+  };
+}
+
+async function buildPendingReservationHoldFromReservation(
+  reservation: ReusablePendingReservation,
+): Promise<PendingReservationHold> {
+  if (!reservation.expiresAt || reservation.status !== ReservationStatus.PENDING_PAYMENT) {
+    throw new PendingReservationHoldError("INVALID_PENDING_HOLD_REQUEST");
+  }
+
+  const accommodationId = reservation.propertyId as AccommodationId;
+  const quote = await calculateReservationQuote({
+    accommodationId,
+    checkInDate: toDateOnlyString(reservation.checkInDate),
+    checkOutDate: toDateOnlyString(reservation.checkOutDate),
+    guestCount: reservation.guestCount,
+  });
+  const quoteWithStoredAmounts = withStoredReservationAmounts(quote, reservation);
+
+  return {
+    reservationId: reservation.id,
+    status: "PENDING_PAYMENT",
+    expiresAt: reservation.expiresAt.toISOString(),
+    accommodationId,
+    accommodationSlug: quote.accommodationSlug.en,
+    checkInDate: quoteWithStoredAmounts.checkInDate,
+    checkOutDate: quoteWithStoredAmounts.checkOutDate,
+    guestCount: reservation.guestCount,
+    total: quoteWithStoredAmounts.total,
+    currency: quoteWithStoredAmounts.currency,
+    quote: quoteWithStoredAmounts,
+  };
+}
+
+async function findReusableActivePendingReservationHold(
+  tx: PendingHoldTransactionClient,
+  input: CreatePendingReservationHoldInput,
+  now: Date,
+): Promise<PendingReservationHold | null> {
+  const reservation = await tx.reservation.findFirst({
+    where: {
+      propertyId: input.accommodationId,
+      guestEmail: normalizeEmail(input.guestEmail),
+      checkInDate: toDateOnlyDate(input.checkInDate),
+      checkOutDate: toDateOnlyDate(input.checkOutDate),
+      status: ReservationStatus.PENDING_PAYMENT,
+      expiresAt: {
+        gt: now,
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    select: reusablePendingReservationSelect,
+  });
+
+  if (!reservation) {
+    return null;
+  }
+
+  return buildPendingReservationHoldFromReservation(reservation);
+}
+
 async function createPendingReservationHoldAttempt(
   input: CreatePendingReservationHoldInput,
 ): Promise<PendingReservationHold> {
@@ -140,6 +270,11 @@ async function createPendingReservationHoldAttempt(
       }
 
       const now = new Date();
+      const reusablePendingHold = await findReusableActivePendingReservationHold(tx, input, now);
+
+      if (reusablePendingHold) {
+        return reusablePendingHold;
+      }
 
       const availability = await checkAccommodationAvailability(
         {
