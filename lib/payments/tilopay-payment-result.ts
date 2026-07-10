@@ -369,24 +369,30 @@ export async function processTilopayPaymentRedirect(
     throw error;
   }
 
-  const responseCode = redirect.responseCode ?? consult.responseCode;
+    const responseCode = redirect.responseCode ?? consult.responseCode;
   const transactionId = redirect.transactionId ?? consult.transactionId;
   const amount = normalizeAmount(consult.amount ?? redirect.amount);
   const currency = consult.currency ?? redirect.currency ?? payment.currency;
   const email = consult.email ?? redirect.email ?? payment.reservation.guestEmail;
   const auth = redirect.auth ?? consult.auth ?? "";
+  const orderHash = redirect.orderHash;
 
-  if (!redirect.orderHash || !transactionId || !responseCode || !amount || !currency || !email) {
+  if (!orderHash || !transactionId || !responseCode || !amount || !currency || !email) {
     await markPaymentFailed(payment, {
       code: "TILOPAY_ORDER_HASH_INVALID",
       redirect,
       consult: consult.rawPayload,
       transactionId,
     });
+
+    throw new TilopayPaymentResultError("TILOPAY_ORDER_HASH_INVALID", {
+      paymentId: payment.id,
+      reservationId: payment.reservationId,
+    });
   }
 
   const orderHashValid = verifyTilopayOrderHash({
-    orderHash: redirect.orderHash,
+    orderHash,
     orderId: transactionId,
     externalOrderId: payment.providerReference,
     amount,
