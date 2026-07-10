@@ -19,6 +19,8 @@ function buildResultRedirectUrl(
   url.searchParams.set("paymentId", result.paymentId);
   url.searchParams.set("reservationId", result.reservationId);
   url.searchParams.set("paymentStatus", result.paymentStatus.toLowerCase());
+  url.searchParams.set("reservationStatus", result.reservationStatus.toLowerCase());
+  url.searchParams.set("reservationConfirmed", String(result.reservationConfirmed));
   url.searchParams.set("phaseBoundary", result.phaseBoundary);
 
   return url;
@@ -28,6 +30,7 @@ function buildErrorRedirectUrl(baseUrl: string, code: string, error: unknown): U
   const url = new URL(baseUrl);
 
   url.searchParams.set("paymentStatus", "failed");
+  url.searchParams.set("reservationConfirmed", "false");
   url.searchParams.set("code", code);
 
   if (error instanceof TilopayPaymentResultError) {

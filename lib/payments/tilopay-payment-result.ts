@@ -1,8 +1,12 @@
-import { PaymentProvider, PaymentStatus, Prisma } from "@prisma/client";
+import { PaymentProvider, PaymentStatus, Prisma, ReservationStatus } from "@prisma/client";
 
 import { prisma } from "@/lib/db/prisma";
 import { consultTilopayTransaction, TilopayApiClientError } from "@/lib/payments/tilopay-api-client";
 import { verifyTilopayOrderHash } from "@/lib/payments/tilopay-order-hash";
+import {
+  confirmReservationAfterApprovedPayment,
+  ReservationConfirmationError,
+} from "@/lib/reservations/confirmation";
 import type {
   ProcessedTilopayPaymentResult,
   TilopayPaymentResultErrorCode,
@@ -24,6 +28,7 @@ type PaymentForValidation = Readonly<{
   currency: string;
   reservation: Readonly<{
     guestEmail: string;
+    status: ReservationStatus;
   }>;
 }>;
 
@@ -184,6 +189,7 @@ async function findPaymentByProviderReference(
       reservation: {
         select: {
           guestEmail: true,
+          status: true,
         },
       },
     },
@@ -209,6 +215,7 @@ async function markPaymentFailed(
         validation: {
           status: "FAILED",
           code: input.code,
+          reservationConfirmation: "not_attempted",
         },
       }),
       status: PaymentStatus.FAILED,
@@ -279,16 +286,22 @@ function assertConsultMatchesPayment(input: Readonly<{
   }
 }
 
-function mapExistingResult(payment: PaymentForValidation): ProcessedTilopayPaymentResult | null {
+async function mapExistingResult(
+  payment: PaymentForValidation,
+): Promise<ProcessedTilopayPaymentResult | null> {
   if (payment.status === PaymentStatus.APPROVED) {
+    const confirmedReservation = await confirmReservationAfterApprovedPayment(payment.id);
+
     return {
       paymentId: payment.id,
       reservationId: payment.reservationId,
       providerReference: payment.providerReference ?? "",
       providerTransactionId: payment.providerTransactionId,
       paymentStatus: "APPROVED",
+      reservationStatus: confirmedReservation.reservationStatus,
+      reservationConfirmed: true,
       redirectTarget: "success",
-      phaseBoundary: "PAYMENT_VALIDATED_RESERVATION_NOT_CONFIRMED",
+      phaseBoundary: "PAYMENT_VALIDATED_RESERVATION_CONFIRMED",
     };
   }
 
@@ -299,12 +312,65 @@ function mapExistingResult(payment: PaymentForValidation): ProcessedTilopayPayme
       providerReference: payment.providerReference ?? "",
       providerTransactionId: payment.providerTransactionId,
       paymentStatus: payment.status === PaymentStatus.REJECTED ? "REJECTED" : "FAILED",
+      reservationStatus: payment.reservation.status,
+      reservationConfirmed: payment.reservation.status === ReservationStatus.CONFIRMED,
       redirectTarget: payment.status === PaymentStatus.REJECTED ? "cancel" : "error",
       phaseBoundary: "PAYMENT_VALIDATED_RESERVATION_NOT_CONFIRMED",
     };
   }
 
   return null;
+}
+
+async function confirmReservationForApprovedPayment(input: Readonly<{
+  paymentId: string;
+  payment: PaymentForValidation;
+  redirect: TilopayRedirectParams;
+  consult: Record<string, unknown>;
+  transactionId: string;
+}>): Promise<Readonly<{
+  reservationStatus: ProcessedTilopayPaymentResult["reservationStatus"];
+  reservationConfirmed: boolean;
+  phaseBoundary: ProcessedTilopayPaymentResult["phaseBoundary"];
+}>> {
+  try {
+    const confirmedReservation = await confirmReservationAfterApprovedPayment(input.paymentId);
+
+    return {
+      reservationStatus: confirmedReservation.reservationStatus,
+      reservationConfirmed: true,
+      phaseBoundary: "PAYMENT_VALIDATED_RESERVATION_CONFIRMED",
+    };
+  } catch (error) {
+    if (error instanceof ReservationConfirmationError) {
+      await prisma.payment.update({
+        data: {
+          rawPayload: buildRawPayload({
+            redirect: input.redirect,
+            consult: input.consult,
+            validation: {
+              status: "APPROVED",
+              amountMatched: true,
+              currencyMatched: true,
+              orderHash: "valid",
+              reservationConfirmation: "failed",
+              reservationConfirmationErrorCode: error.code,
+            },
+          }),
+        },
+        where: {
+          id: input.payment.id,
+        },
+      });
+
+      throw new TilopayPaymentResultError("RESERVATION_CONFIRMATION_FAILED", {
+        paymentId: input.payment.id,
+        reservationId: input.payment.reservationId,
+      });
+    }
+
+    throw error;
+  }
 }
 
 export async function processTilopayPaymentRedirect(
@@ -324,7 +390,7 @@ export async function processTilopayPaymentRedirect(
     throw new TilopayPaymentResultError("TILOPAY_PAYMENT_NOT_FOUND");
   }
 
-  const existingResult = mapExistingResult(payment);
+  const existingResult = await mapExistingResult(payment);
 
   if (existingResult) {
     return existingResult;
@@ -369,7 +435,7 @@ export async function processTilopayPaymentRedirect(
     throw error;
   }
 
-    const responseCode = redirect.responseCode ?? consult.responseCode;
+  const responseCode = redirect.responseCode ?? consult.responseCode;
   const transactionId = redirect.transactionId ?? consult.transactionId;
   const amount = normalizeAmount(consult.amount ?? redirect.amount);
   const currency = consult.currency ?? redirect.currency ?? payment.currency;
@@ -383,11 +449,6 @@ export async function processTilopayPaymentRedirect(
       redirect,
       consult: consult.rawPayload,
       transactionId,
-    });
-
-    throw new TilopayPaymentResultError("TILOPAY_ORDER_HASH_INVALID", {
-      paymentId: payment.id,
-      reservationId: payment.reservationId,
     });
   }
 
@@ -426,7 +487,9 @@ export async function processTilopayPaymentRedirect(
           amountMatched: true,
           currencyMatched: true,
           orderHash: "valid",
-          reservationConfirmation: "deferred_to_phase_9_6",
+          reservationConfirmation: paymentApproved
+            ? "pending_phase_9_6_transition"
+            : "not_attempted",
         },
       }),
       status: nextStatus,
@@ -443,13 +506,37 @@ export async function processTilopayPaymentRedirect(
     },
   });
 
+  if (updatedPayment.status === PaymentStatus.APPROVED) {
+    const confirmation = await confirmReservationForApprovedPayment({
+      paymentId: updatedPayment.id,
+      payment,
+      redirect,
+      consult: consult.rawPayload,
+      transactionId,
+    });
+
+    return {
+      paymentId: updatedPayment.id,
+      reservationId: updatedPayment.reservationId,
+      providerReference: updatedPayment.providerReference ?? payment.providerReference,
+      providerTransactionId: updatedPayment.providerTransactionId,
+      paymentStatus: "APPROVED",
+      reservationStatus: confirmation.reservationStatus,
+      reservationConfirmed: confirmation.reservationConfirmed,
+      redirectTarget: "success",
+      phaseBoundary: confirmation.phaseBoundary,
+    };
+  }
+
   return {
     paymentId: updatedPayment.id,
     reservationId: updatedPayment.reservationId,
     providerReference: updatedPayment.providerReference ?? payment.providerReference,
     providerTransactionId: updatedPayment.providerTransactionId,
-    paymentStatus: updatedPayment.status === PaymentStatus.APPROVED ? "APPROVED" : "REJECTED",
-    redirectTarget: updatedPayment.status === PaymentStatus.APPROVED ? "success" : "cancel",
+    paymentStatus: "REJECTED",
+    reservationStatus: payment.reservation.status,
+    reservationConfirmed: payment.reservation.status === ReservationStatus.CONFIRMED,
+    redirectTarget: "cancel",
     phaseBoundary: "PAYMENT_VALIDATED_RESERVATION_NOT_CONFIRMED",
   };
 }

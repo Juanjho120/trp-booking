@@ -15,8 +15,8 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 9 — Tilopay Sandbox Integration
-Current subphase: 9.6 Confirm reservation only after validated payment
-Current focus: move a reservation from PENDING_PAYMENT to CONFIRMED only after Payment.status is APPROVED through validated Tilopay redirect, consult, and OrderHash V2 checks.
+Current subphase: 9.7 Phase 9 documentation update
+Current focus: close Phase 9 documentation after SDK checkout, redirect validation, consult validation, OrderHash V2 validation, and reservation confirmation after approved payment.
 ```
 
 ---
@@ -57,7 +57,7 @@ Subphase status:
 9.3 Payment record creation for pending reservations — Completed
 9.4 Tilopay SDK V2 checkout foundation — Completed
 9.5 Tilopay redirect, consult, and OrderHash V2 validation foundation — Completed
-9.6 Confirm reservation only after validated payment — Not started
+9.6 Confirm reservation only after validated payment — Completed
 9.7 Phase 9 documentation update — Not started
 ```
 
@@ -73,27 +73,15 @@ Phase 9 rules:
 - Do not add PMS features.
 ```
 
-Phase 9.4 result:
+Phase 9.6 result:
 
 ```text
-- Tilopay SDK V2 is the preferred checkout foundation.
-- POST /api/payments/tilopay/sdk-session was added.
-- The public reservation flow can prepare a Tilopay SDK session after a pending reservation hold exists.
-- The SDK is rendered inside the TRP Booking experience.
-- The backend calls /loginSdk server-side and returns safe SDK init configuration.
-- The payment form fields required by Tilopay are rendered in the browser but are not stored or sent to the TRP Booking backend.
-- Phase 9.4 does not confirm reservations, send emails, add Prisma migrations, or add PMS behavior.
-```
-
-Phase 9.5 result:
-
-```text
-- TILOPAY_REDIRECT_URL was introduced as the SDK callback URL.
-- GET /api/payments/tilopay/redirect was added.
-- Tilopay /consult is called server-side after the redirect.
-- OrderHash V2 HMAC-SHA256 validation was added.
-- Payment.status can move from PENDING to APPROVED, REJECTED, or FAILED.
-- Reservation.status remains PENDING_PAYMENT in this subphase.
+- A payment-driven reservation confirmation service was added.
+- Reservation.status becomes CONFIRMED only after Payment.status is APPROVED.
+- Confirmation is idempotent when the reservation is already CONFIRMED.
+- Reservation.confirmedAt is set.
+- Reservation.expiresAt is cleared after confirmation.
+- Rejected and failed payments do not confirm reservations.
 - No emails, migrations, admin UI, refunds, or PMS behavior were added.
 ```
 

@@ -13,3 +13,7 @@ export type {
   ExpirePendingReservationHoldsInput,
   ExpirePendingReservationHoldsResult,
 } from "./expiration";
+export {
+  confirmReservationAfterApprovedPayment,
+  ReservationConfirmationError,
+} from "./confirmation";

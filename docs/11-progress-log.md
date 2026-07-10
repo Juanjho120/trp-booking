@@ -6,55 +6,37 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 9 — Tilopay Sandbox Integration
-Current subphase: 9.6 Confirm reservation only after validated payment
+Current subphase: 9.7 Phase 9 documentation update
 Last updated: 2026-07-10
 Last completed phase: Phase 8 — Reservation Flow
-Last completed subphase: 9.5 Tilopay redirect, consult, and OrderHash V2 validation foundation
+Last completed subphase: 9.6 Confirm reservation only after validated payment
 ```
 
 ## Completed Work
-
-### Phase 8 — Reservation Flow
-
-Status: **Completed**
-
-### Phase 9.1 — Tilopay Sandbox Strategy and Environment Contract
-
-Status: **Completed**
-
-### Phase 9.2 — Tilopay Environment Validation
-
-Status: **Completed**
-
-### Phase 9.3 — Payment Record Creation for Pending Reservations
-
-Status: **Completed**
 
 ### Phase 9.4 — Tilopay SDK V2 Checkout Foundation
 
 Status: **Completed**
 
+Important decisions:
+
+```text
+TRP Booking uses Tilopay SDK V2 as the preferred checkout foundation.
+The guest should not leave the TRP Booking experience as the main payment flow.
+The SDK is loaded from https://app.tilopay.com/sdk/v2/sdk_tpay.min.js.
+The backend calls /loginSdk server-side with apiuser, password, and key.
+The frontend receives only the SDK access token and safe init configuration.
+Payment.providerReference stores the unique orderNumber sent to Tilopay.
+The SDK form fields are rendered in the browser but TRP Booking does not read, store, log, or send card number, CVV, expiration, or tokens to its backend.
+No regular-payment webhook is assumed because Tilopay support confirmed non-recurrent hosted payments do not currently have webhooks.
+No reservation is confirmed in 9.4.
+No Resend email is sent in 9.4.
+No Prisma schema change or migration is required in 9.4.
+```
+
 ### Phase 9.5 — Tilopay Redirect, Consult, and OrderHash V2 Validation Foundation
 
 Status: **Completed**
-
-Completed deliverables:
-
-```text
-app/api/payments/tilopay/redirect/route.ts added
-lib/payments/tilopay-api-client.ts added
-lib/payments/tilopay-order-hash.ts added
-lib/payments/tilopay-payment-result.ts added
-types/tilopay-payment-result.ts added
-lib/payments/tilopay-sdk-session.ts updated to use TILOPAY_REDIRECT_URL
-lib/payments/index.ts updated
-lib/env/server.ts updated
-.env.example updated
-docs/57-tilopay-redirect-consult-and-orderhash-validation.md added
-docs/10-phases.md updated
-docs/11-progress-log.md updated
-README.md updated
-```
 
 Important decisions:
 
@@ -71,6 +53,41 @@ No Prisma schema change or migration is required in 9.5.
 No PMS behavior is added.
 ```
 
+### Phase 9.6 — Confirm Reservation Only After Validated Payment
+
+Status: **Completed**
+
+Completed deliverables:
+
+```text
+lib/reservations/confirmation.ts added
+lib/reservations/index.ts added
+types/reservation-confirmation.ts added
+types/tilopay-payment-result.ts updated
+lib/payments/tilopay-payment-result.ts updated
+lib/payments/index.ts updated
+app/api/payments/tilopay/redirect/route.ts updated
+docs/58-confirm-reservation-after-validated-payment.md added
+docs/10-phases.md updated
+docs/11-progress-log.md updated
+README.md updated
+```
+
+Important decisions:
+
+```text
+Reservation confirmation is payment-driven.
+Only APPROVED payments can confirm a reservation.
+Rejected and failed payments never confirm reservations.
+The confirmation service is idempotent.
+PENDING_PAYMENT and EXPIRED reservations can become CONFIRMED after a validated APPROVED payment.
+Reservation.confirmedAt is set during confirmation.
+Reservation.expiresAt is cleared during confirmation.
+No Resend email is sent in 9.6.
+No Prisma schema change or migration is required in 9.6.
+No PMS behavior is added.
+```
+
 ## Current Work
 
 ### Phase 9 — Tilopay Sandbox Integration
@@ -80,17 +97,26 @@ Status: **In progress**
 Current subphase:
 
 ```text
-9.6 Confirm reservation only after validated payment
+9.7 Phase 9 documentation update
+```
+
+Phase 9.7 goals:
+
+```text
+Close Phase 9 documentation.
+Review the Tilopay sandbox integration end-to-end.
+Document manual sandbox testing.
+Document known limitations before Phase 10 emails.
 ```
 
 ## Next Recommended Work
 
 ```text
-1. Confirm Reservation only after a validated APPROVED Payment.
-2. Ensure the confirmation transition is idempotent.
-3. Ensure rejected/failed payments do not confirm the reservation.
-4. Decide whether confirmed direct reservations should create calendar blocks now or remain for a later subphase.
-5. Keep email delivery out until Phase 10 unless explicitly moved.
+1. Run an end-to-end Tilopay sandbox payment.
+2. Confirm Payment.status becomes APPROVED.
+3. Confirm Reservation.status becomes CONFIRMED.
+4. Confirm failed/rejected payments do not confirm reservations.
+5. Close Phase 9 documentation before starting Phase 10 emails.
 ```
 
 ## Continuity Notes for New Conversations
@@ -103,15 +129,10 @@ AGENTS.md
 .env.example
 docs/10-phases.md
 docs/11-progress-log.md
-docs/53-tilopay-sandbox-strategy-and-environment-contract.md
-docs/54-tilopay-environment-validation.md
-docs/55-payment-record-creation-for-pending-reservations.md
 docs/56-tilopay-sdk-v2-contract-for-trp-booking.md
 docs/57-tilopay-redirect-consult-and-orderhash-validation.md
-lib/env/server.ts
-lib/payments/payment-attempts.ts
-lib/payments/tilopay-sdk-session.ts
+docs/58-confirm-reservation-after-validated-payment.md
 lib/payments/tilopay-payment-result.ts
-lib/reservations/payment-handoff.ts
+lib/reservations/confirmation.ts
 prisma/schema.prisma
 ```

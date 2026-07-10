@@ -1,3 +1,5 @@
+import type { ReservationConfirmationStatus } from "@/types/reservation-confirmation";
+
 export type TilopayPaymentResultStatus = "APPROVED" | "REJECTED" | "FAILED";
 
 export type TilopayPaymentResultErrorCode =
@@ -6,7 +8,8 @@ export type TilopayPaymentResultErrorCode =
   | "TILOPAY_ORDER_HASH_INVALID"
   | "TILOPAY_CONSULT_UNAVAILABLE"
   | "TILOPAY_CONSULT_MISMATCH"
-  | "TILOPAY_PAYMENT_RESULT_UNEXPECTED_ERROR";
+  | "TILOPAY_PAYMENT_RESULT_UNEXPECTED_ERROR"
+  | "RESERVATION_CONFIRMATION_FAILED";
 
 export type TilopayRedirectTarget = "success" | "cancel" | "error";
 
@@ -37,6 +40,10 @@ export type ProcessedTilopayPaymentResult = Readonly<{
   providerReference: string;
   providerTransactionId: string | null;
   paymentStatus: TilopayPaymentResultStatus;
+  reservationStatus: ReservationConfirmationStatus;
+  reservationConfirmed: boolean;
   redirectTarget: TilopayRedirectTarget;
-  phaseBoundary: "PAYMENT_VALIDATED_RESERVATION_NOT_CONFIRMED";
+  phaseBoundary:
+    | "PAYMENT_VALIDATED_RESERVATION_CONFIRMED"
+    | "PAYMENT_VALIDATED_RESERVATION_NOT_CONFIRMED";
 }>;

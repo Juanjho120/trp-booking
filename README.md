@@ -26,14 +26,20 @@ TRP Booking is a public website and booking engine for direct reservations. It a
 - Pay online through Tilopay.
 - Receive confirmation and arrival instructions by email.
 
+It also includes a private admin area to manage the minimum operational features needed for direct reservations.
+
 ## Important Scope Boundary
 
 This project is not intended to become a PMS. TAMIAS is the internal PMS / operational system for property management.
 
+TRP Booking is focused only on the public booking experience, direct reservations, payments, Airbnb iCal synchronization, and a minimal admin panel for that flow.
+
 ## Key Operational Rules
 
-- Provider secrets must remain server-side only.
-- Pending reservation holds must never be confirmed before validated payment.
+- Provider secrets for Auth.js, Cloudinary, Tilopay, Resend, Airbnb iCal, and similar services must remain server-side only.
+- Reservation flow must re-check availability server-side before creating pending holds or handing off to payment.
+- Pending reservation holds must use `PENDING_PAYMENT` with a non-null `expiresAt` and must never be confirmed before validated payment.
+- Phase 9 must keep all Tilopay credentials server-side only.
 - Phase 9 must not store card data.
 - Phase 9 must not set `Reservation.status = CONFIRMED` until a provider payment result is validated server-side.
 - Phase 9 must keep failed, rejected, expired, and successful payment attempts auditable.
@@ -50,21 +56,24 @@ Phase 9 completed so far:
 9.3 Payment record creation for pending reservations
 9.4 Tilopay SDK V2 checkout foundation
 9.5 Tilopay redirect, consult, and OrderHash V2 validation foundation
+9.6 Confirm reservation only after validated payment
 ```
 
-Phase 9.5 added:
+Phase 9.6 added:
 
 ```text
-- TILOPAY_REDIRECT_URL as the SDK callback URL.
-- GET /api/payments/tilopay/redirect
-- Server-side Tilopay /login and /consult.
-- OrderHash V2 HMAC-SHA256 validation.
-- Payment.status updates to APPROVED, REJECTED, or FAILED.
+- Payment-driven reservation confirmation.
+- Reservation.status changes to CONFIRMED only after Payment.status = APPROVED.
+- Reservation.confirmedAt is set.
+- Reservation.expiresAt is cleared.
+- Rejected and failed payments do not confirm reservations.
 ```
 
-No reservation confirmation, Resend email delivery, Prisma migration, admin payment UI, refund handling, or PMS behavior is implemented in 9.5.
+No Resend email delivery, Prisma migration, admin payment UI, refund handling, or PMS behavior is implemented in 9.6.
 
 ## Documentation
+
+The project documentation lives under `/docs`.
 
 Important current tracker files:
 
@@ -73,18 +82,16 @@ AGENTS.md
 README.md
 docs/10-phases.md
 docs/11-progress-log.md
-docs/53-tilopay-sandbox-strategy-and-environment-contract.md
-docs/54-tilopay-environment-validation.md
-docs/55-payment-record-creation-for-pending-reservations.md
 docs/56-tilopay-sdk-v2-contract-for-trp-booking.md
 docs/57-tilopay-redirect-consult-and-orderhash-validation.md
+docs/58-confirm-reservation-after-validated-payment.md
 ```
 
 ## Development Status
 
 ```text
 Current phase: Phase 9 — Tilopay Sandbox Integration
-Current subphase: 9.6 Confirm reservation only after validated payment
+Current subphase: 9.7 Phase 9 documentation update
 Last completed phase: Phase 8 — Reservation Flow
-Last completed subphase: 9.5 Tilopay redirect, consult, and OrderHash V2 validation foundation
+Last completed subphase: 9.6 Confirm reservation only after validated payment
 ```
