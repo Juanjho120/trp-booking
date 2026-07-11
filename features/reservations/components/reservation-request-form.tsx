@@ -610,6 +610,7 @@ function DateRangeField({
   const previewRange = value?.from && !value.to && hoveredDate && startOfDate(hoveredDate) > startOfDate(value.from)
     ? { from: value.from, to: hoveredDate }
     : null;
+  const blockedDateMatchers = [...blockedDates];
 
   return (
     <div className="relative grid gap-2 text-sm font-medium text-foreground">
@@ -632,11 +633,11 @@ function DateRangeField({
         >
           <DayPicker
             classNames={dayPickerClassNames}
-            disabled={[{ before: today }, ...blockedDates]}
+            disabled={[{ before: today }, ...blockedDateMatchers]}
             excludeDisabled
             mode="range"
             modifiers={{
-              blocked: blockedDates,
+              blocked: blockedDateMatchers,
               preview_range: (date) =>
                 previewRange ? isDateInRange(date, previewRange.from, previewRange.to) : false,
             }}
