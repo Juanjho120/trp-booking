@@ -57,6 +57,13 @@ enum PaymentStatus {
   @@map("payment_status")
 }
 
+enum PaymentClientEventType {
+  TILOPAY_SDK_START_PAYMENT_FAILED
+  TILOPAY_SDK_START_PAYMENT_NON_SUCCESS
+
+  @@map("payment_client_event_type")
+}
+
 enum RefundStatus {
   PENDING
   APPROVED
@@ -335,11 +342,12 @@ model Reservation {
   createdAt           DateTime          @default(now()) @map("created_at")
   updatedAt           DateTime          @updatedAt @map("updated_at")
 
-  property           Property            @relation(fields: [propertyId], references: [id], onDelete: Restrict)
-  guests             ReservationGuest[]
-  payments           Payment[]
-  calendarBlocks     CalendarBlock[]
-  emailNotifications EmailNotification[]
+  property            Property             @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  guests              ReservationGuest[]
+  payments            Payment[]
+  paymentClientEvents PaymentClientEvent[]
+  calendarBlocks      CalendarBlock[]
+  emailNotifications  EmailNotification[]
 
   @@index([propertyId, checkInDate, checkOutDate])
   @@index([status])
@@ -377,13 +385,42 @@ model Payment {
   createdAt             DateTime        @default(now()) @map("created_at")
   updatedAt             DateTime        @updatedAt @map("updated_at")
 
-  reservation Reservation @relation(fields: [reservationId], references: [id], onDelete: Restrict)
-  refunds     Refund[]
+  reservation  Reservation          @relation(fields: [reservationId], references: [id], onDelete: Restrict)
+  refunds      Refund[]
+  clientEvents PaymentClientEvent[]
 
   @@index([reservationId])
   @@index([provider, providerReference])
   @@index([status])
   @@map("payments")
+}
+
+model PaymentClientEvent {
+  id                 String                 @id @default(cuid())
+  paymentId          String                 @map("payment_id")
+  reservationId      String                 @map("reservation_id")
+  provider           PaymentProvider        @default(TILOPAY)
+  eventType          PaymentClientEventType @map("event_type")
+  environment        String?
+  locale             String?
+  paymentMethodId    String?                @map("payment_method_id")
+  paymentMethodName  String?                @map("payment_method_name")
+  paymentMethodType  String?                @map("payment_method_type")
+  detectedCardBrand  String?                @map("detected_card_brand")
+  sdkMessage         String?                @map("sdk_message") @db.Text
+  sdkPayload         Json?                  @map("sdk_payload")
+  preflightStatus    String?                @map("preflight_status")
+  preflightExpiresAt DateTime?              @map("preflight_expires_at")
+  createdAt          DateTime               @default(now()) @map("created_at")
+
+  payment     Payment     @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+  reservation Reservation @relation(fields: [reservationId], references: [id], onDelete: Restrict)
+
+  @@index([paymentId])
+  @@index([reservationId])
+  @@index([eventType])
+  @@index([createdAt])
+  @@map("payment_client_events")
 }
 
 model Refund {

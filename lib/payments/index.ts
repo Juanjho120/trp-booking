@@ -16,6 +16,10 @@ export {
   TilopayPaymentPreflightError,
 } from "./tilopay-payment-preflight";
 export {
+  recordTilopaySdkClientEvent,
+  TilopaySdkClientEventError,
+} from "./tilopay-sdk-client-events";
+export {
   createTilopaySdkSession,
   TilopaySdkSessionError,
 } from "./tilopay-sdk-session";

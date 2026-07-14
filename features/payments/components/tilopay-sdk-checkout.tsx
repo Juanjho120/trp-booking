@@ -11,9 +11,14 @@ import type {
   TilopaySdkSession,
 } from "@/types/tilopay-sdk-session";
 import type {
+  TilopayPaymentPreflight,
   TilopayPaymentPreflightApiResponse,
   TilopayPaymentPreflightApiSuccessResponse,
 } from "@/types/tilopay-payment-preflight";
+import type {
+  TilopaySdkClientEventRequest,
+  TilopaySdkClientEventType,
+} from "@/types/tilopay-sdk-client-event";
 
 type TilopaySdkCheckoutProps = Readonly<{
   reservationId: string;
@@ -201,6 +206,35 @@ function getCardTypeRawValue(response: TilopayCardTypeResponse | string): string
   return response.brand ?? response.type ?? response.message;
 }
 
+function toSdkPayload(value: unknown): Record<string, unknown> | null {
+  if (!value) {
+    return null;
+  }
+
+  if (value instanceof Error) {
+    return {
+      name: value.name,
+      message: value.message,
+    };
+  }
+
+  if (typeof value === "object" && !Array.isArray(value)) {
+    const record = value as Record<string, unknown>;
+
+    return {
+      message: typeof record.message === "string" ? record.message : undefined,
+    };
+  }
+
+  if (typeof value === "string") {
+    return {
+      message: value,
+    };
+  }
+
+  return null;
+}
+
 function loadTilopaySdkScript(src: string): Promise<void> {
   if (typeof window === "undefined") {
     return Promise.resolve();
@@ -239,6 +273,10 @@ export function TilopaySdkCheckout({ reservationId }: TilopaySdkCheckoutProps) {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
   const [cardBrand, setCardBrand] = useState<CardBrand>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  function getSelectedPaymentMethod(): TilopaySdkPaymentMethod | null {
+    return paymentMethods.find((method) => method.id === selectedPaymentMethod) ?? null;
+  }
 
   async function handlePreparePayment(): Promise<void> {
     setStatus("loading");
@@ -339,7 +377,9 @@ export function TilopaySdkCheckout({ reservationId }: TilopaySdkCheckoutProps) {
     }
   }
 
-  async function validatePaymentPreflight(activeSession: TilopaySdkSession): Promise<void> {
+  async function validatePaymentPreflight(
+    activeSession: TilopaySdkSession,
+  ): Promise<TilopayPaymentPreflight> {
     const response = await fetch("/api/payments/tilopay/preflight", {
       body: JSON.stringify({
         reservationId: activeSession.reservationId,
@@ -357,6 +397,49 @@ export function TilopaySdkCheckout({ reservationId }: TilopaySdkCheckoutProps) {
     if (!response.ok || !isTilopayPaymentPreflightSuccessResponse(payload)) {
       const message = "error" in payload ? payload.error.message : copy.sessionError;
       throw new Error(message);
+    }
+
+    return payload.tilopayPaymentPreflight;
+  }
+
+  async function recordSdkClientEvent(input: Readonly<{
+    eventType: TilopaySdkClientEventType;
+    preflight: TilopayPaymentPreflight;
+    sdkMessage?: string | null;
+    sdkPayload?: unknown;
+  }>): Promise<void> {
+    if (!session) {
+      return;
+    }
+
+    const selectedMethod = getSelectedPaymentMethod();
+    const request: TilopaySdkClientEventRequest = {
+      paymentId: session.paymentId,
+      reservationId: session.reservationId,
+      eventType: input.eventType,
+      environment: session.environment,
+      locale,
+      paymentMethodId: selectedMethod?.id ?? null,
+      paymentMethodName: selectedMethod?.name ?? null,
+      paymentMethodType: selectedMethod?.type ?? null,
+      detectedCardBrand: cardBrand,
+      sdkMessage: input.sdkMessage ?? null,
+      sdkPayload: toSdkPayload(input.sdkPayload),
+      preflightStatus: input.preflight.status,
+      preflightExpiresAt: input.preflight.expiresAt,
+    };
+
+    try {
+      await fetch("/api/payments/tilopay/sdk-client-events", {
+        body: JSON.stringify(request),
+        headers: {
+          accept: "application/json",
+          "content-type": "application/json",
+        },
+        method: "POST",
+      });
+    } catch {
+      // Client telemetry must never block or change the guest-facing payment flow.
     }
   }
 
@@ -382,19 +465,41 @@ export function TilopaySdkCheckout({ reservationId }: TilopaySdkCheckoutProps) {
     setStatus("processing");
     setErrorMessage(null);
 
-    try {
-      await validatePaymentPreflight(session);
+    let preflight: TilopayPaymentPreflight;
 
+    try {
+      preflight = await validatePaymentPreflight(session);
+    } catch (error) {
+      setStatus("ready");
+      setErrorMessage(error instanceof Error ? error.message : copy.paymentError);
+      return;
+    }
+
+    try {
       const payment = await window.Tilopay.startPayment();
 
       if (payment.message && !isSuccessMessage(payment.message)) {
-        throw new Error(copy.paymentError);
+        await recordSdkClientEvent({
+          eventType: "TILOPAY_SDK_START_PAYMENT_NON_SUCCESS",
+          preflight,
+          sdkMessage: payment.message,
+          sdkPayload: payment,
+        });
+        setStatus("ready");
+        setErrorMessage(copy.paymentError);
+        return;
       }
 
       setStatus("processed");
     } catch (error) {
+      await recordSdkClientEvent({
+        eventType: "TILOPAY_SDK_START_PAYMENT_FAILED",
+        preflight,
+        sdkMessage: error instanceof Error ? error.message : null,
+        sdkPayload: error,
+      });
       setStatus("ready");
-      setErrorMessage(error instanceof Error ? error.message : copy.paymentError);
+      setErrorMessage(copy.paymentError);
     }
   }
 
