@@ -116,24 +116,76 @@ function normalizeCardBrand(value: string | undefined): CardBrand {
   return normalizedValue ? "unknown" : null;
 }
 
-function getCardBrandLabel(cardBrand: CardBrand): string {
-  switch (cardBrand) {
-    case "visa":
-      return "VISA";
-    case "mastercard":
-      return "MC";
-    case "amex":
-      return "AMEX";
-    case "discover":
-      return "DISC";
-    case "diners":
-      return "DINERS";
-    case "unknown":
-      return "CARD";
-    case null:
-    default:
-      return "";
+function CardBrandLogo({ cardBrand }: Readonly<{ cardBrand: CardBrand }>) {
+  if (!cardBrand) {
+    return <CreditCard aria-hidden="true" className="size-4 text-muted-foreground/70" />;
   }
+
+  if (cardBrand === "visa") {
+    return (
+      <span className="rounded-md border border-border/70 bg-white px-2 py-1 text-[0.65rem] font-black italic leading-none tracking-tight text-blue-700">
+        VISA
+      </span>
+    );
+  }
+
+  if (cardBrand === "mastercard") {
+    return (
+      <span className="relative inline-flex h-5 w-8 items-center justify-center">
+        <span className="absolute left-1 h-4 w-4 rounded-full bg-red-500 opacity-90" />
+        <span className="absolute right-1 h-4 w-4 rounded-full bg-yellow-400 opacity-90" />
+      </span>
+    );
+  }
+
+  if (cardBrand === "amex") {
+    return (
+      <span className="rounded-md bg-blue-600 px-2 py-1 text-[0.6rem] font-black leading-none text-white">
+        AMEX
+      </span>
+    );
+  }
+
+  if (cardBrand === "discover") {
+    return (
+      <span className="rounded-md border border-orange-300 bg-white px-2 py-1 text-[0.55rem] font-black leading-none text-orange-600">
+        DISC
+      </span>
+    );
+  }
+
+  if (cardBrand === "diners") {
+    return (
+      <span className="rounded-md border border-blue-300 bg-white px-2 py-1 text-[0.55rem] font-black leading-none text-blue-600">
+        DC
+      </span>
+    );
+  }
+
+  return <CreditCard aria-hidden="true" className="size-4 text-muted-foreground/70" />;
+}
+
+function getCvvPattern(cardBrand: CardBrand): string {
+  return cardBrand === "amex" ? "\\d{4}" : "\\d{3}";
+}
+
+function getCvvMaxLength(cardBrand: CardBrand): number {
+  return cardBrand === "amex" ? 4 : 3;
+}
+
+function validateTilopayFields(): boolean {
+  const invalidField = document.querySelector<HTMLInputElement | HTMLSelectElement>(
+    ".payFormTilopay input:invalid, .payFormTilopay select:invalid",
+  );
+
+  if (!invalidField) {
+    return true;
+  }
+
+  invalidField.reportValidity();
+  invalidField.focus();
+
+  return false;
 }
 
 function getCardTypeRawValue(response: TilopayCardTypeResponse | string): string | undefined {
@@ -289,6 +341,12 @@ export function TilopaySdkCheckout({ reservationId }: TilopaySdkCheckoutProps) {
       return;
     }
 
+    if (!validateTilopayFields()) {
+      setStatus("ready");
+      setErrorMessage(null);
+      return;
+    }
+
     setStatus("processing");
     setErrorMessage(null);
 
@@ -308,7 +366,6 @@ export function TilopaySdkCheckout({ reservationId }: TilopaySdkCheckoutProps) {
 
   const isPreparing = status === "loading" || status === "initializing";
   const isReady = status === "ready" || status === "processing" || status === "processed";
-  const cardBrandLabel = getCardBrandLabel(cardBrand);
 
   return (
     <section className="space-y-4 rounded-3xl border border-primary/20 bg-card p-4 shadow-sm">
@@ -378,26 +435,20 @@ export function TilopaySdkCheckout({ reservationId }: TilopaySdkCheckoutProps) {
                 <input
                   autoComplete="off"
                   autoCorrect="off"
-                  className="h-11 w-full min-w-0 rounded-2xl border border-border/70 bg-background px-4 pr-20 text-sm text-foreground shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  className="h-11 w-full min-w-0 rounded-2xl border border-border/70 bg-background px-4 pr-20 text-sm text-foreground shadow-sm outline-none transition invalid:border-destructive invalid:ring-2 invalid:ring-destructive/20 focus:border-primary focus:ring-2 focus:ring-primary/20"
                   id="tlpy_cc_number"
                   inputMode="numeric"
                   name="tlpy_cc_number"
                   onInput={() => {
                     void handleCardNumberInput();
                   }}
+                  required
                   spellCheck={false}
                   type="text"
                 />
-                {cardBrandLabel ? (
-                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 rounded-md border border-border/70 bg-muted px-2 py-1 text-[0.65rem] font-bold leading-none text-muted-foreground">
-                    {cardBrandLabel}
-                  </span>
-                ) : (
-                  <CreditCard
-                    aria-hidden="true"
-                    className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/70"
-                  />
-                )}
+                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
+                  <CardBrandLogo cardBrand={cardBrand} />
+                </span>
               </span>
             </label>
 
@@ -407,11 +458,13 @@ export function TilopaySdkCheckout({ reservationId }: TilopaySdkCheckoutProps) {
                 <input
                   autoComplete="off"
                   autoCorrect="off"
-                  className="h-11 w-full min-w-0 rounded-2xl border border-border/70 bg-background px-4 text-sm text-foreground shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  className="h-11 w-full min-w-0 rounded-2xl border border-border/70 bg-background px-4 text-sm text-foreground shadow-sm outline-none transition invalid:border-destructive invalid:ring-2 invalid:ring-destructive/20 focus:border-primary focus:ring-2 focus:ring-primary/20"
                   id="tlpy_cc_expiration_date"
                   inputMode="numeric"
                   name="tlpy_cc_expiration_date"
+                  pattern="(0[1-9]|1[0-2])/?[0-9]{2}"
                   placeholder="MM/YY"
+                  required
                   spellCheck={false}
                   type="text"
                 />
@@ -422,10 +475,12 @@ export function TilopaySdkCheckout({ reservationId }: TilopaySdkCheckoutProps) {
                 <input
                   autoComplete="off"
                   autoCorrect="off"
-                  className="h-11 w-full min-w-0 rounded-2xl border border-border/70 bg-background px-4 text-sm text-foreground shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  className="h-11 w-full min-w-0 rounded-2xl border border-border/70 bg-background px-4 text-sm text-foreground shadow-sm outline-none transition invalid:border-destructive invalid:ring-2 invalid:ring-destructive/20 focus:border-primary focus:ring-2 focus:ring-primary/20"
                   id="tlpy_cvv"
                   inputMode="numeric"
                   name="tlpy_cvv"
+                  pattern={getCvvPattern(cardBrand)}
+                  required
                   spellCheck={false}
                   type="text"
                 />

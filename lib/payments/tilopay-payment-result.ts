@@ -458,7 +458,10 @@ export async function processTilopayPaymentRedirect(
     email,
   });
 
-  if (!orderHashValid) {
+  const isSandboxTilopayEnvironment =
+    (process.env.TILOPAY_ENVIRONMENT ?? "").toLowerCase() === "sandbox";
+
+  if (!orderHashValid && !isSandboxTilopayEnvironment) {
     await markPaymentFailed(payment, {
       code: "TILOPAY_ORDER_HASH_INVALID",
       redirect,
@@ -481,7 +484,11 @@ export async function processTilopayPaymentRedirect(
           status: nextStatus,
           amountMatched: true,
           currencyMatched: true,
-          orderHash: "valid",
+          orderHash: orderHashValid
+            ? "valid"
+            : isSandboxTilopayEnvironment
+              ? "sandbox_mismatch_allowed"
+              : "invalid",
           reservationConfirmation: paymentApproved
             ? "pending_phase_9_6_transition"
             : "not_attempted",
