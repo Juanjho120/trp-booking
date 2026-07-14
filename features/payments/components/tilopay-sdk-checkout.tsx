@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useLocale } from "@/features/i18n";
+import { getPaymentRetryErrorMessage } from "@/messages/payment-retry";
 import type {
   CreateTilopaySdkSessionApiResponse,
   TilopaySdkPaymentMethod,
@@ -16,12 +17,17 @@ import type {
   TilopayPaymentPreflightApiSuccessResponse,
 } from "@/types/tilopay-payment-preflight";
 import type {
+  TilopayRetryPaymentFieldIssue,
+  TilopayRetryPaymentIssue,
+} from "@/types/tilopay-retry-payment";
+import type {
   TilopaySdkClientEventRequest,
   TilopaySdkClientEventType,
 } from "@/types/tilopay-sdk-client-event";
 
 type TilopaySdkCheckoutProps = Readonly<{
   reservationId: string;
+  initialIssue?: TilopayRetryPaymentIssue | null;
 }>;
 
 type CheckoutStatus =
@@ -62,6 +68,11 @@ declare global {
     Tilopay?: TilopayGlobal;
   }
 }
+
+const CARD_NUMBER_INVALID_SDK_MESSAGE = "please enter a valid card number";
+const CARD_INPUT_BASE_CLASS_NAME =
+  "h-11 w-full min-w-0 rounded-2xl border border-border/70 bg-background px-4 text-sm text-foreground shadow-sm outline-none transition invalid:border-destructive invalid:ring-2 invalid:ring-destructive/20 focus:border-primary focus:ring-2 focus:ring-primary/20";
+const FLAGGED_FIELD_CLASS_NAME = "border-destructive ring-2 ring-destructive/20";
 
 function isTilopaySdkSessionSuccessResponse(
   payload: CreateTilopaySdkSessionApiResponse,
@@ -184,6 +195,32 @@ function getCvvPattern(cardBrand: CardBrand): string {
   return cardBrand === "amex" ? "\\d{4}" : "\\d{3}";
 }
 
+function getFieldIssueForPaymentIssue(
+  issue: TilopayRetryPaymentIssue | null | undefined,
+): TilopayRetryPaymentFieldIssue {
+  if (issue === "invalid_card_number") {
+    return "card_details";
+  }
+
+  if (issue === "invalid_cvv") {
+    return "cvv";
+  }
+
+  return null;
+}
+
+function getInputClassName(inputClassName: string, flagged: boolean): string {
+  return flagged ? `${inputClassName} ${FLAGGED_FIELD_CLASS_NAME}` : inputClassName;
+}
+
+function getSdkRetryPaymentIssue(message: string | undefined): TilopayRetryPaymentIssue | null {
+  if (message?.trim().toLowerCase() === CARD_NUMBER_INVALID_SDK_MESSAGE) {
+    return "invalid_card_number";
+  }
+
+  return null;
+}
+
 function validateTilopayFields(): boolean {
   const invalidField = document.querySelector<HTMLInputElement | HTMLSelectElement>(
     ".payFormTilopay input:invalid, .payFormTilopay select:invalid",
@@ -204,6 +241,25 @@ function getCardTypeRawValue(response: TilopayCardTypeResponse | string): string
   }
 
   return response.brand ?? response.type ?? response.message;
+}
+
+
+function getSdkMessage(value: unknown): string | null {
+  if (value instanceof Error) {
+    return value.message;
+  }
+
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+    const record = value as Record<string, unknown>;
+
+    return typeof record.message === "string" ? record.message : null;
+  }
+
+  return null;
 }
 
 function toSdkPayload(value: unknown): Record<string, unknown> | null {
@@ -264,7 +320,7 @@ function loadTilopaySdkScript(src: string): Promise<void> {
   });
 }
 
-export function TilopaySdkCheckout({ reservationId }: TilopaySdkCheckoutProps) {
+export function TilopaySdkCheckout({ reservationId, initialIssue = null }: TilopaySdkCheckoutProps) {
   const { locale, messages } = useLocale();
   const copy = messages.payments.tilopaySdk;
   const [status, setStatus] = useState<CheckoutStatus>("idle");
@@ -272,16 +328,41 @@ export function TilopaySdkCheckout({ reservationId }: TilopaySdkCheckoutProps) {
   const [paymentMethods, setPaymentMethods] = useState<readonly TilopaySdkPaymentMethod[]>([]);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
   const [cardBrand, setCardBrand] = useState<CardBrand>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [paymentIssue, setPaymentIssue] = useState<TilopayRetryPaymentIssue | null>(initialIssue);
+  const [fieldIssue, setFieldIssue] = useState<TilopayRetryPaymentFieldIssue>(
+    getFieldIssueForPaymentIssue(initialIssue),
+  );
+  const [errorMessage, setErrorMessage] = useState<string | null>(
+    initialIssue ? getPaymentRetryErrorMessage(locale, initialIssue) : null,
+  );
 
   function getSelectedPaymentMethod(): TilopaySdkPaymentMethod | null {
     return paymentMethods.find((method) => method.id === selectedPaymentMethod) ?? null;
   }
 
+  function applyPaymentIssue(issue: TilopayRetryPaymentIssue): void {
+    setPaymentIssue(issue);
+    setFieldIssue(getFieldIssueForPaymentIssue(issue));
+    setErrorMessage(getPaymentRetryErrorMessage(locale, issue));
+  }
+
+  function clearPaymentFieldIssue(changedField: Exclude<TilopayRetryPaymentFieldIssue, null>): void {
+    if (fieldIssue !== changedField) {
+      return;
+    }
+
+    setPaymentIssue(null);
+    setFieldIssue(null);
+    setErrorMessage(null);
+  }
+
   async function handlePreparePayment(): Promise<void> {
     setStatus("loading");
     setCardBrand(null);
-    setErrorMessage(null);
+
+    if (!paymentIssue) {
+      setErrorMessage(null);
+    }
 
     try {
       const response = await fetch("/api/payments/tilopay/sdk-session", {
@@ -322,7 +403,6 @@ export function TilopaySdkCheckout({ reservationId }: TilopaySdkCheckoutProps) {
 
     async function initializeTilopaySdk(): Promise<void> {
       setStatus("initializing");
-      setErrorMessage(null);
 
       try {
         await loadTilopaySdkScript(activeSession.sdkScriptUrl);
@@ -364,6 +444,8 @@ export function TilopaySdkCheckout({ reservationId }: TilopaySdkCheckoutProps) {
   }, [copy.sdkError, session]);
 
   async function handleCardNumberInput(): Promise<void> {
+    clearPaymentFieldIssue("card_details");
+
     if (!window.Tilopay) {
       setCardBrand(null);
       return;
@@ -479,32 +561,51 @@ export function TilopaySdkCheckout({ reservationId }: TilopaySdkCheckoutProps) {
       const payment = await window.Tilopay.startPayment();
 
       if (payment.message && !isSuccessMessage(payment.message)) {
+        const retryIssue = getSdkRetryPaymentIssue(payment.message);
+
         await recordSdkClientEvent({
           eventType: "TILOPAY_SDK_START_PAYMENT_NON_SUCCESS",
           preflight,
           sdkMessage: payment.message,
           sdkPayload: payment,
         });
+
+        if (retryIssue) {
+          applyPaymentIssue(retryIssue);
+        } else {
+          setErrorMessage(copy.paymentError);
+        }
+
         setStatus("ready");
-        setErrorMessage(copy.paymentError);
         return;
       }
 
       setStatus("processed");
     } catch (error) {
+      const sdkMessage = getSdkMessage(error);
+      const retryIssue = getSdkRetryPaymentIssue(sdkMessage ?? undefined);
+
       await recordSdkClientEvent({
         eventType: "TILOPAY_SDK_START_PAYMENT_FAILED",
         preflight,
-        sdkMessage: error instanceof Error ? error.message : null,
+        sdkMessage,
         sdkPayload: error,
       });
+
+      if (retryIssue) {
+        applyPaymentIssue(retryIssue);
+      } else {
+        setErrorMessage(copy.paymentError);
+      }
+
       setStatus("ready");
-      setErrorMessage(copy.paymentError);
     }
   }
 
   const isPreparing = status === "loading" || status === "initializing";
   const isReady = status === "ready" || status === "processing" || status === "processed";
+  const cardDetailsFlagged = fieldIssue === "card_details";
+  const cvvFlagged = fieldIssue === "cvv";
 
   return (
     <section className="space-y-4 rounded-3xl border border-primary/20 bg-card p-4 shadow-sm">
@@ -572,9 +673,10 @@ export function TilopaySdkCheckout({ reservationId }: TilopaySdkCheckoutProps) {
               <span>{copy.cardNumber}</span>
               <span className="relative block min-w-0">
                 <input
+                  aria-invalid={cardDetailsFlagged}
                   autoComplete="off"
                   autoCorrect="off"
-                  className="h-11 w-full min-w-0 rounded-2xl border border-border/70 bg-background px-4 pr-20 text-sm text-foreground shadow-sm outline-none transition invalid:border-destructive invalid:ring-2 invalid:ring-destructive/20 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  className={getInputClassName(`${CARD_INPUT_BASE_CLASS_NAME} pr-20`, cardDetailsFlagged)}
                   id="tlpy_cc_number"
                   inputMode="numeric"
                   name="tlpy_cc_number"
@@ -595,12 +697,14 @@ export function TilopaySdkCheckout({ reservationId }: TilopaySdkCheckoutProps) {
               <label className="grid min-w-0 gap-2 text-sm font-medium text-foreground">
                 <span>{copy.cardExpiration}</span>
                 <input
+                  aria-invalid={cardDetailsFlagged}
                   autoComplete="off"
                   autoCorrect="off"
-                  className="h-11 w-full min-w-0 rounded-2xl border border-border/70 bg-background px-4 text-sm text-foreground shadow-sm outline-none transition invalid:border-destructive invalid:ring-2 invalid:ring-destructive/20 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  className={getInputClassName(CARD_INPUT_BASE_CLASS_NAME, cardDetailsFlagged)}
                   id="tlpy_cc_expiration_date"
                   inputMode="numeric"
                   name="tlpy_cc_expiration_date"
+                  onInput={() => clearPaymentFieldIssue("card_details")}
                   placeholder="MM/YY"
                   required
                   spellCheck={false}
@@ -611,12 +715,14 @@ export function TilopaySdkCheckout({ reservationId }: TilopaySdkCheckoutProps) {
               <label className="grid min-w-0 gap-2 text-sm font-medium text-foreground">
                 <span>{copy.cardCvv}</span>
                 <input
+                  aria-invalid={cvvFlagged}
                   autoComplete="off"
                   autoCorrect="off"
-                  className="h-11 w-full min-w-0 rounded-2xl border border-border/70 bg-background px-4 text-sm text-foreground shadow-sm outline-none transition invalid:border-destructive invalid:ring-2 invalid:ring-destructive/20 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  className={getInputClassName(CARD_INPUT_BASE_CLASS_NAME, cvvFlagged)}
                   id="tlpy_cvv"
                   inputMode="numeric"
                   name="tlpy_cvv"
+                  onInput={() => clearPaymentFieldIssue("cvv")}
                   pattern={getCvvPattern(cardBrand)}
                   required
                   spellCheck={false}

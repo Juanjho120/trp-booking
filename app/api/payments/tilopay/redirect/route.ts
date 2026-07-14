@@ -23,6 +23,10 @@ function buildResultRedirectUrl(
   url.searchParams.set("reservationConfirmed", String(result.reservationConfirmed));
   url.searchParams.set("phaseBoundary", result.phaseBoundary);
 
+  if (result.paymentIssue) {
+    url.searchParams.set("paymentIssue", result.paymentIssue);
+  }
+
   return url;
 }
 
@@ -46,14 +50,28 @@ function buildErrorRedirectUrl(baseUrl: string, code: string, error: unknown): U
   return url;
 }
 
+function resolveResultTargetUrl(
+  requestUrl: string,
+  env: ReturnType<typeof getTilopayEnv>,
+  result: ProcessedTilopayPaymentResult,
+): string {
+  if (result.redirectTarget === "success") {
+    return env.TILOPAY_SUCCESS_URL;
+  }
+
+  if (result.redirectTarget === "retry") {
+    return new URL("/reservas/pago/reintentar", requestUrl).toString();
+  }
+
+  return env.TILOPAY_CANCEL_URL;
+}
+
 export async function GET(request: Request) {
   const env = getTilopayEnv();
 
   try {
     const result = await processTilopayPaymentRedirect(request.url);
-    const targetUrl = result.redirectTarget === "success"
-      ? env.TILOPAY_SUCCESS_URL
-      : env.TILOPAY_CANCEL_URL;
+    const targetUrl = resolveResultTargetUrl(request.url, env, result);
 
     return NextResponse.redirect(buildResultRedirectUrl(targetUrl, result));
   } catch (error) {

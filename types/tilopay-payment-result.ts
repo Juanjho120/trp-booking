@@ -1,4 +1,5 @@
 import type { ReservationConfirmationStatus } from "@/types/reservation-confirmation";
+import type { TilopayRetryPaymentIssue } from "@/types/tilopay-retry-payment";
 
 export type TilopayPaymentResultStatus = "APPROVED" | "REJECTED" | "FAILED";
 
@@ -11,7 +12,7 @@ export type TilopayPaymentResultErrorCode =
   | "TILOPAY_PAYMENT_RESULT_UNEXPECTED_ERROR"
   | "RESERVATION_CONFIRMATION_FAILED";
 
-export type TilopayRedirectTarget = "success" | "cancel" | "error";
+export type TilopayRedirectTarget = "success" | "cancel" | "retry" | "error";
 
 export type TilopayRedirectParams = Readonly<{
   responseCode: string | null;
@@ -42,6 +43,7 @@ export type ProcessedTilopayPaymentResult = Readonly<{
   paymentStatus: TilopayPaymentResultStatus;
   reservationStatus: ReservationConfirmationStatus;
   reservationConfirmed: boolean;
+  paymentIssue?: TilopayRetryPaymentIssue | null;
   redirectTarget: TilopayRedirectTarget;
   phaseBoundary:
     | "PAYMENT_VALIDATED_RESERVATION_CONFIRMED"

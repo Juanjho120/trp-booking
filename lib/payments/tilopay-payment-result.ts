@@ -13,6 +13,7 @@ import type {
   TilopayRedirectParams,
   TilopayReturnData,
 } from "@/types/tilopay-payment-result";
+import type { TilopayRetryPaymentIssue } from "@/types/tilopay-retry-payment";
 
 type StoredPaymentAmount = Readonly<{
   toString: () => string;
@@ -144,6 +145,19 @@ function isApprovedResponseCode(value: string | null): boolean {
 
 function toInputJson(value: Record<string, unknown> | null): Prisma.InputJsonValue | null {
   return value ? JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue : null;
+}
+
+function getRetryPaymentIssue(responseCode: string | null): TilopayRetryPaymentIssue | null {
+  switch (responseCode) {
+    case "82":
+      return "invalid_cvv";
+    case "51":
+      return "insufficient_funds";
+    case "43":
+      return "card_not_allowed";
+    default:
+      return null;
+  }
 }
 
 function buildRawPayload(input: Readonly<{
@@ -342,6 +356,7 @@ async function mapExistingResult(
       paymentStatus: "APPROVED",
       reservationStatus: confirmedReservation.reservationStatus,
       reservationConfirmed: true,
+      paymentIssue: null,
       redirectTarget: "success",
       phaseBoundary: "PAYMENT_VALIDATED_RESERVATION_CONFIRMED",
     };
@@ -538,6 +553,7 @@ export async function processTilopayPaymentRedirect(
   }
 
   const paymentApproved = isApprovedResponseCode(responseCode);
+  const retryPaymentIssue = paymentApproved ? null : getRetryPaymentIssue(responseCodeValue);
   const nextStatus = paymentApproved ? PaymentStatus.APPROVED : PaymentStatus.REJECTED;
   const updatedPayment = await prisma.payment.update({
     data: {
@@ -556,6 +572,7 @@ export async function processTilopayPaymentRedirect(
           orderHash: orderHashValidation,
           orderHashMatchedVariant: orderHashDiagnosis.matchedVariant,
           orderHashAttemptedVariants: orderHashDiagnosis.attemptedVariants,
+          retryPaymentIssue,
           reservationConfirmation: paymentApproved
             ? "pending_phase_9_6_transition"
             : "not_attempted",
@@ -595,6 +612,7 @@ export async function processTilopayPaymentRedirect(
       paymentStatus: "APPROVED",
       reservationStatus: confirmation.reservationStatus,
       reservationConfirmed: confirmation.reservationConfirmed,
+      paymentIssue: null,
       redirectTarget: "success",
       phaseBoundary: confirmation.phaseBoundary,
     };
@@ -608,7 +626,8 @@ export async function processTilopayPaymentRedirect(
     paymentStatus: "REJECTED",
     reservationStatus: payment.reservation.status,
     reservationConfirmed: payment.reservation.status === ReservationStatus.CONFIRMED,
-    redirectTarget: "cancel",
+    paymentIssue: retryPaymentIssue,
+    redirectTarget: retryPaymentIssue ? "retry" : "cancel",
     phaseBoundary: "PAYMENT_VALIDATED_RESERVATION_NOT_CONFIRMED",
   };
 }
