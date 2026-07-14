@@ -43,17 +43,19 @@ function buildSigningMessage(input: Readonly<{
   auth: string;
   email: string;
 }>): string {
-  return [
-    input.apiKey,
-    input.apiUser,
-    input.orderId,
-    input.externalOrderId,
-    input.amount,
-    input.currency,
-    input.responseCode,
-    input.auth,
-    input.email,
-  ].join("|");
+  const params = new URLSearchParams();
+
+  params.append("api_Key", input.apiKey);
+  params.append("api_user", input.apiUser);
+  params.append("orderId", input.orderId);
+  params.append("external_orden_id", input.externalOrderId);
+  params.append("amount", input.amount);
+  params.append("currency", input.currency);
+  params.append("responseCode", input.responseCode);
+  params.append("auth", input.auth);
+  params.append("email", input.email);
+
+  return params.toString();
 }
 
 function safeCompare(left: string, right: string): boolean {
@@ -151,10 +153,7 @@ export function diagnoseTilopayOrderHash(input: Readonly<{
       email: input.email,
     });
 
-    if (
-      safeCompare(received.toLowerCase(), expected.hex.toLowerCase()) ||
-      safeCompare(received, expected.base64)
-    ) {
+    if (safeCompare(received.toLowerCase(), expected.hex.toLowerCase())) {
       return {
         valid: true,
         matchedVariant: candidate.name,

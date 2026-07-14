@@ -32,7 +32,7 @@ type PaymentForValidation = Readonly<{
   }>;
 }>;
 
-type OrderHashValidationStatus = "valid" | "sandbox_mismatch_allowed" | "invalid";
+type OrderHashValidationStatus = "valid" | "invalid";
 
 export class TilopayPaymentResultError extends Error {
   readonly code: TilopayPaymentResultErrorCode;
@@ -521,23 +521,16 @@ export async function processTilopayPaymentRedirect(
     email: emailValue,
   });
 
-  const isSandboxTilopayEnvironment =
-    (process.env.TILOPAY_ENVIRONMENT ?? "").toLowerCase() === "sandbox";
+  const orderHashValidation: OrderHashValidationStatus = orderHashDiagnosis.valid ? "valid" : "invalid";
 
-  const orderHashValidation: OrderHashValidationStatus = orderHashDiagnosis.valid
-    ? "valid"
-    : isSandboxTilopayEnvironment
-      ? "sandbox_mismatch_allowed"
-      : "invalid";
-
-  if (!orderHashDiagnosis.valid && !isSandboxTilopayEnvironment) {
+  if (!orderHashDiagnosis.valid) {
     await markPaymentFailed(payment, {
       code: "TILOPAY_ORDER_HASH_INVALID",
       redirect,
       consult: consult.rawPayload,
       transactionId: transactionIdValue,
       validation: {
-        orderHash: "invalid",
+        orderHash: orderHashValidation,
         orderHashMatchedVariant: orderHashDiagnosis.matchedVariant,
         orderHashAttemptedVariants: orderHashDiagnosis.attemptedVariants,
       },
