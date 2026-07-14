@@ -176,7 +176,7 @@ function CardBrandLogo({ cardBrand }: Readonly<{ cardBrand: CardBrand }>) {
 }
 
 function getCvvPattern(cardBrand: CardBrand): string {
-  return cardBrand === "amex" ? "\d{4}" : "\d{3}";
+  return cardBrand === "amex" ? "\\d{4}" : "\\d{3}";
 }
 
 function validateTilopayFields(): boolean {
