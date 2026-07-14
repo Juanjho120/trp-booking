@@ -182,7 +182,6 @@ function validateTilopayFields(): boolean {
     return true;
   }
 
-  invalidField.reportValidity();
   invalidField.focus();
 
   return false;
@@ -462,7 +461,6 @@ export function TilopaySdkCheckout({ reservationId }: TilopaySdkCheckoutProps) {
                   id="tlpy_cc_expiration_date"
                   inputMode="numeric"
                   name="tlpy_cc_expiration_date"
-                  pattern="(0[1-9]|1[0-2])/?[0-9]{2}"
                   placeholder="MM/YY"
                   required
                   spellCheck={false}

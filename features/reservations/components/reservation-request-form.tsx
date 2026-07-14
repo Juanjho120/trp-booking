@@ -568,9 +568,6 @@ export function ReservationRequestForm({
       >
         {holdStatus === "loading" ? pendingHoldCopy.creatingHold : pendingHoldCopy.createHold}
       </Button>
-      <p className="text-center text-xs leading-5 text-muted-foreground">
-        {pendingHoldCopy.phaseBoundaryNote}
-      </p>
     </form>
   );
 }
