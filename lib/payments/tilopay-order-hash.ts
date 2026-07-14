@@ -13,6 +13,17 @@ export type TilopayOrderHashInput = Readonly<{
   email: string;
 }>;
 
+export type TilopayOrderHashCandidate = Readonly<{
+  name: string;
+  externalOrderId: string | null | undefined;
+}>;
+
+export type TilopayOrderHashDiagnosis = Readonly<{
+  valid: boolean;
+  matchedVariant: string | null;
+  attemptedVariants: readonly string[];
+}>;
+
 function buildSigningKey(input: Readonly<{
   orderId: string;
   apiKey: string;
@@ -52,6 +63,39 @@ function safeCompare(left: string, right: string): boolean {
   return leftBuffer.length === rightBuffer.length && timingSafeEqual(leftBuffer, rightBuffer);
 }
 
+function normalizeCandidate(candidate: TilopayOrderHashCandidate): TilopayOrderHashCandidate | null {
+  const externalOrderId = candidate.externalOrderId?.trim();
+
+  if (!externalOrderId) {
+    return null;
+  }
+
+  return {
+    name: candidate.name,
+    externalOrderId,
+  };
+}
+
+function uniqueCandidates(
+  candidates: readonly TilopayOrderHashCandidate[],
+): TilopayOrderHashCandidate[] {
+  const seen = new Set<string>();
+  const result: TilopayOrderHashCandidate[] = [];
+
+  for (const candidate of candidates) {
+    const normalizedCandidate = normalizeCandidate(candidate);
+
+    if (!normalizedCandidate || seen.has(normalizedCandidate.externalOrderId ?? "")) {
+      continue;
+    }
+
+    seen.add(normalizedCandidate.externalOrderId ?? "");
+    result.push(normalizedCandidate);
+  }
+
+  return result;
+}
+
 export function createTilopayOrderHash(input: TilopayOrderHashInput): Readonly<{
   hex: string;
   base64: string;
@@ -81,12 +125,65 @@ export function createTilopayOrderHash(input: TilopayOrderHashInput): Readonly<{
   };
 }
 
-export function verifyTilopayOrderHash(input: TilopayOrderHashInput): boolean {
-  const expected = createTilopayOrderHash(input);
+export function diagnoseTilopayOrderHash(input: Readonly<{
+  orderHash: string;
+  orderId: string;
+  externalOrderIds: readonly TilopayOrderHashCandidate[];
+  amount: string;
+  currency: string;
+  responseCode: string;
+  auth: string;
+  email: string;
+}>): TilopayOrderHashDiagnosis {
   const received = input.orderHash.trim();
+  const candidates = uniqueCandidates(input.externalOrderIds);
+  const attemptedVariants = candidates.map((candidate) => candidate.name);
 
-  return (
-    safeCompare(received.toLowerCase(), expected.hex.toLowerCase()) ||
-    safeCompare(received, expected.base64)
-  );
+  for (const candidate of candidates) {
+    const expected = createTilopayOrderHash({
+      orderHash: input.orderHash,
+      orderId: input.orderId,
+      externalOrderId: candidate.externalOrderId ?? "",
+      amount: input.amount,
+      currency: input.currency,
+      responseCode: input.responseCode,
+      auth: input.auth,
+      email: input.email,
+    });
+
+    if (
+      safeCompare(received.toLowerCase(), expected.hex.toLowerCase()) ||
+      safeCompare(received, expected.base64)
+    ) {
+      return {
+        valid: true,
+        matchedVariant: candidate.name,
+        attemptedVariants,
+      };
+    }
+  }
+
+  return {
+    valid: false,
+    matchedVariant: null,
+    attemptedVariants,
+  };
+}
+
+export function verifyTilopayOrderHash(input: TilopayOrderHashInput): boolean {
+  return diagnoseTilopayOrderHash({
+    orderHash: input.orderHash,
+    orderId: input.orderId,
+    externalOrderIds: [
+      {
+        name: "external_order_id",
+        externalOrderId: input.externalOrderId,
+      },
+    ],
+    amount: input.amount,
+    currency: input.currency,
+    responseCode: input.responseCode,
+    auth: input.auth,
+    email: input.email,
+  }).valid;
 }

@@ -64,6 +64,16 @@ function getAmount(payload: JsonRecord): string | null {
   return numericValue.toFixed(2);
 }
 
+function getConsultRecord(payload: JsonRecord): JsonRecord {
+  const response = payload.response;
+
+  if (Array.isArray(response) && response.length > 0 && isJsonRecord(response[0])) {
+    return response[0];
+  }
+
+  return payload;
+}
+
 async function requestTilopayApiToken(): Promise<TilopayApiToken> {
   const env = getTilopayEnv();
   const response = await fetch(`${TILOPAY_API_BASE_URL}/login`, {
@@ -129,15 +139,17 @@ export async function consultTilopayTransaction(orderNumber: string): Promise<Ti
     throw new TilopayApiClientError("TILOPAY_CONSULT_INVALID_RESPONSE");
   }
 
+  const consultRecord = getConsultRecord(payload);
+
   return {
-    responseCode: getString(payload, ["responseCode", "code", "statusCode"]),
-    description: getString(payload, ["description", "message", "responseMessage"]),
-    auth: getString(payload, ["auth", "authorization", "authorizationCode"]),
-    orderNumber: getString(payload, ["external_order_id", "orderNumber", "order"]),
-    transactionId: getString(payload, ["orderId", "tpt", "transactionId", "tilopay-transaction"]),
-    amount: getAmount(payload),
-    currency: getString(payload, ["currency"]),
-    email: getString(payload, ["email", "billToEmail", "customerEmail"]),
+    responseCode: getString(consultRecord, ["responseCode", "code", "statusCode"]),
+    description: getString(consultRecord, ["description", "message", "responseMessage", "response"]),
+    auth: getString(consultRecord, ["auth", "authorization", "authorizationCode"]),
+    orderNumber: getString(consultRecord, ["external_order_id", "orderNumber", "order"]),
+    transactionId: getString(consultRecord, ["orderId", "tpt", "id_tilopay", "transactionId", "tilopay-transaction"]),
+    amount: getAmount(consultRecord),
+    currency: getString(consultRecord, ["currency"]),
+    email: getString(consultRecord, ["email", "billToEmail", "customerEmail"]),
     rawPayload: payload,
   };
 }

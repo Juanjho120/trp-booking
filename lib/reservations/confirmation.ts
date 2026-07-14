@@ -26,14 +26,33 @@ export class ReservationConfirmationError extends Error {
   }
 }
 
-function canConfirmReservation(status: ReservationStatus): boolean {
-  return status === ReservationStatus.PENDING_PAYMENT || status === ReservationStatus.EXPIRED;
+function assertReservationCanBeConfirmed(input: Readonly<{
+  paymentId: string;
+  reservationId: string;
+  status: ReservationStatus;
+  expiresAt: Date | null;
+  now: Date;
+}>): void {
+  if (input.status !== ReservationStatus.PENDING_PAYMENT) {
+    throw new ReservationConfirmationError("RESERVATION_NOT_CONFIRMABLE", {
+      paymentId: input.paymentId,
+      reservationId: input.reservationId,
+    });
+  }
+
+  if (!input.expiresAt || input.expiresAt <= input.now) {
+    throw new ReservationConfirmationError("RESERVATION_EXPIRED_BEFORE_CONFIRMATION", {
+      paymentId: input.paymentId,
+      reservationId: input.reservationId,
+    });
+  }
 }
 
 export async function confirmReservationAfterApprovedPayment(
   paymentId: string,
 ): Promise<ConfirmedReservationAfterPayment> {
   return prisma.$transaction(async (tx) => {
+    const now = new Date();
     const payment = await tx.payment.findUnique({
       where: {
         id: paymentId,
@@ -47,6 +66,7 @@ export async function confirmReservationAfterApprovedPayment(
             id: true,
             status: true,
             confirmedAt: true,
+            expiresAt: true,
           },
         },
       },
@@ -76,14 +96,15 @@ export async function confirmReservationAfterApprovedPayment(
       };
     }
 
-    if (!canConfirmReservation(payment.reservation.status)) {
-      throw new ReservationConfirmationError("RESERVATION_NOT_CONFIRMABLE", {
-        paymentId: payment.id,
-        reservationId: payment.reservation.id,
-      });
-    }
+    assertReservationCanBeConfirmed({
+      paymentId: payment.id,
+      reservationId: payment.reservation.id,
+      status: payment.reservation.status,
+      expiresAt: payment.reservation.expiresAt,
+      now,
+    });
 
-    const confirmedAt = payment.paidAt ?? new Date();
+    const confirmedAt = payment.paidAt ?? now;
     const reservation = await tx.reservation.update({
       where: {
         id: payment.reservation.id,

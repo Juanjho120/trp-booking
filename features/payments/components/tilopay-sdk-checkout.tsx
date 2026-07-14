@@ -10,6 +10,10 @@ import type {
   TilopaySdkPaymentMethod,
   TilopaySdkSession,
 } from "@/types/tilopay-sdk-session";
+import type {
+  TilopayPaymentPreflightApiResponse,
+  TilopayPaymentPreflightApiSuccessResponse,
+} from "@/types/tilopay-payment-preflight";
 
 type TilopaySdkCheckoutProps = Readonly<{
   reservationId: string;
@@ -58,6 +62,12 @@ function isTilopaySdkSessionSuccessResponse(
   payload: CreateTilopaySdkSessionApiResponse,
 ): payload is { tilopaySdkSession: TilopaySdkSession } {
   return "tilopaySdkSession" in payload;
+}
+
+function isTilopayPaymentPreflightSuccessResponse(
+  payload: TilopayPaymentPreflightApiResponse,
+): payload is TilopayPaymentPreflightApiSuccessResponse {
+  return "tilopayPaymentPreflight" in payload;
 }
 
 function isSuccessMessage(value: string | undefined): boolean {
@@ -166,7 +176,7 @@ function CardBrandLogo({ cardBrand }: Readonly<{ cardBrand: CardBrand }>) {
 }
 
 function getCvvPattern(cardBrand: CardBrand): string {
-  return cardBrand === "amex" ? "\\d{4}" : "\\d{3}";
+  return cardBrand === "amex" ? "\d{4}" : "\d{3}";
 }
 
 function validateTilopayFields(): boolean {
@@ -329,10 +339,37 @@ export function TilopaySdkCheckout({ reservationId }: TilopaySdkCheckoutProps) {
     }
   }
 
+  async function validatePaymentPreflight(activeSession: TilopaySdkSession): Promise<void> {
+    const response = await fetch("/api/payments/tilopay/preflight", {
+      body: JSON.stringify({
+        reservationId: activeSession.reservationId,
+        paymentId: activeSession.paymentId,
+        locale,
+      }),
+      headers: {
+        accept: "application/json",
+        "content-type": "application/json",
+      },
+      method: "POST",
+    });
+    const payload = (await response.json()) as TilopayPaymentPreflightApiResponse;
+
+    if (!response.ok || !isTilopayPaymentPreflightSuccessResponse(payload)) {
+      const message = "error" in payload ? payload.error.message : copy.sessionError;
+      throw new Error(message);
+    }
+  }
+
   async function handleStartPayment(): Promise<void> {
     if (!window.Tilopay) {
       setStatus("error");
       setErrorMessage(copy.sdkError);
+      return;
+    }
+
+    if (!session) {
+      setStatus("error");
+      setErrorMessage(copy.sessionError);
       return;
     }
 
@@ -346,16 +383,18 @@ export function TilopaySdkCheckout({ reservationId }: TilopaySdkCheckoutProps) {
     setErrorMessage(null);
 
     try {
+      await validatePaymentPreflight(session);
+
       const payment = await window.Tilopay.startPayment();
 
       if (payment.message && !isSuccessMessage(payment.message)) {
-        throw new Error("TILOPAY_SDK_PAYMENT_ERROR");
+        throw new Error(copy.paymentError);
       }
 
       setStatus("processed");
-    } catch {
+    } catch (error) {
       setStatus("ready");
-      setErrorMessage(copy.paymentError);
+      setErrorMessage(error instanceof Error ? error.message : copy.paymentError);
     }
   }
 

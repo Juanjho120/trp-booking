@@ -4,12 +4,17 @@ export {
 } from "./tilopay-api-client";
 export {
   createTilopayOrderHash,
+  diagnoseTilopayOrderHash,
   verifyTilopayOrderHash,
 } from "./tilopay-order-hash";
 export {
   processTilopayPaymentRedirect,
   TilopayPaymentResultError,
 } from "./tilopay-payment-result";
+export {
+  validateTilopayPaymentPreflight,
+  TilopayPaymentPreflightError,
+} from "./tilopay-payment-preflight";
 export {
   createTilopaySdkSession,
   TilopaySdkSessionError,

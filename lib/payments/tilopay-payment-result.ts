@@ -2,7 +2,7 @@ import { PaymentProvider, PaymentStatus, Prisma, ReservationStatus } from "@pris
 
 import { prisma } from "@/lib/db/prisma";
 import { consultTilopayTransaction, TilopayApiClientError } from "@/lib/payments/tilopay-api-client";
-import { verifyTilopayOrderHash } from "@/lib/payments/tilopay-order-hash";
+import { diagnoseTilopayOrderHash } from "@/lib/payments/tilopay-order-hash";
 import {
   confirmReservationAfterApprovedPayment,
   ReservationConfirmationError,
@@ -31,6 +31,8 @@ type PaymentForValidation = Readonly<{
     status: ReservationStatus;
   }>;
 }>;
+
+type OrderHashValidationStatus = "valid" | "sandbox_mismatch_allowed" | "invalid";
 
 export class TilopayPaymentResultError extends Error {
   readonly code: TilopayPaymentResultErrorCode;
@@ -170,13 +172,31 @@ function buildRawPayload(input: Readonly<{
   };
 }
 
-async function findPaymentByProviderReference(
-  providerReference: string,
+function buildProviderReferenceCandidates(value: string | null | undefined): string[] {
+  const rawValue = value?.trim();
+
+  if (!rawValue) {
+    return [];
+  }
+
+  const matches = rawValue.match(/TRP-[A-Za-z0-9]+/g) ?? [];
+
+  return Array.from(new Set([rawValue, ...matches]));
+}
+
+async function findPaymentByProviderReferences(
+  providerReferences: readonly string[],
 ): Promise<PaymentForValidation | null> {
+  if (providerReferences.length === 0) {
+    return null;
+  }
+
   return prisma.payment.findFirst({
     where: {
       provider: PaymentProvider.TILOPAY,
-      providerReference,
+      providerReference: {
+        in: [...providerReferences],
+      },
     },
     select: {
       id: true,
@@ -203,6 +223,7 @@ async function markPaymentFailed(
     redirect: TilopayRedirectParams;
     consult: Record<string, unknown> | null;
     transactionId: string | null;
+    validation?: Record<string, unknown>;
   }>,
 ): Promise<never> {
   await prisma.payment.update({
@@ -216,6 +237,7 @@ async function markPaymentFailed(
           status: "FAILED",
           code: input.code,
           reservationConfirmation: "not_attempted",
+          ...(input.validation ?? {}),
         },
       }),
       status: PaymentStatus.FAILED,
@@ -229,6 +251,19 @@ async function markPaymentFailed(
     paymentId: payment.id,
     reservationId: payment.reservationId,
   });
+}
+
+function providerOrderNumberMatches(input: Readonly<{
+  providerOrderNumber: string;
+  providerReference: string;
+}>): boolean {
+  const providerOrderNumber = input.providerOrderNumber.trim();
+  const providerReference = input.providerReference.trim();
+
+  return (
+    providerOrderNumber === providerReference ||
+    providerOrderNumber.endsWith(`-${providerReference}`)
+  );
 }
 
 function assertConsultMatchesPayment(input: Readonly<{
@@ -271,7 +306,10 @@ function assertConsultMatchesPayment(input: Readonly<{
   if (
     providerOrderNumber &&
     input.payment.providerReference &&
-    providerOrderNumber !== input.payment.providerReference
+    !providerOrderNumberMatches({
+      providerOrderNumber,
+      providerReference: input.payment.providerReference,
+    })
   ) {
     throw new TilopayPaymentResultError("TILOPAY_CONSULT_MISMATCH", {
       paymentId: input.payment.id,
@@ -318,6 +356,9 @@ async function confirmReservationForApprovedPayment(input: Readonly<{
   redirect: TilopayRedirectParams;
   consult: Record<string, unknown>;
   transactionId: string;
+  orderHashValidation: OrderHashValidationStatus;
+  orderHashMatchedVariant: string | null;
+  orderHashAttemptedVariants: readonly string[];
 }>): Promise<Readonly<{
   reservationStatus: ProcessedTilopayPaymentResult["reservationStatus"];
   reservationConfirmed: boolean;
@@ -342,7 +383,9 @@ async function confirmReservationForApprovedPayment(input: Readonly<{
               status: "APPROVED",
               amountMatched: true,
               currencyMatched: true,
-              orderHash: "valid",
+              orderHash: input.orderHashValidation,
+              orderHashMatchedVariant: input.orderHashMatchedVariant,
+              orderHashAttemptedVariants: input.orderHashAttemptedVariants,
               reservationConfirmation: "failed",
               reservationConfirmationErrorCode: error.code,
             },
@@ -368,17 +411,22 @@ export async function processTilopayPaymentRedirect(
 ): Promise<ProcessedTilopayPaymentResult> {
   const redirect = parseRedirectParams(requestUrl);
   const returnData = decodeReturnData(redirect.returnData);
-  const providerReference = redirect.orderNumber ?? returnData?.orderNumber;
+  const providerReferenceCandidates = [
+    ...buildProviderReferenceCandidates(redirect.orderNumber),
+    ...buildProviderReferenceCandidates(returnData?.orderNumber),
+  ];
 
-  if (!providerReference) {
+  if (providerReferenceCandidates.length === 0) {
     throw new TilopayPaymentResultError("INVALID_TILOPAY_REDIRECT_REQUEST");
   }
 
-  const payment = await findPaymentByProviderReference(providerReference);
+  const payment = await findPaymentByProviderReferences(providerReferenceCandidates);
 
   if (!payment || !payment.providerReference) {
     throw new TilopayPaymentResultError("TILOPAY_PAYMENT_NOT_FOUND");
   }
+
+  const providerReference = payment.providerReference;
 
   const existingResult = await mapExistingResult(payment);
 
@@ -389,7 +437,7 @@ export async function processTilopayPaymentRedirect(
   let consult;
 
   try {
-    consult = await consultTilopayTransaction(payment.providerReference);
+    consult = await consultTilopayTransaction(providerReference);
   } catch (error) {
     if (error instanceof TilopayApiClientError) {
       await markPaymentFailed(payment, {
@@ -433,40 +481,66 @@ export async function processTilopayPaymentRedirect(
   const auth = redirect.auth ?? consult.auth ?? "";
   const orderHash = redirect.orderHash;
 
-    if (!orderHash || !transactionId || !responseCode || !amount || !currency || !email) {
+  if (!orderHash || !transactionId || !responseCode || !amount || !currency || !email) {
     await markPaymentFailed(payment, {
       code: "TILOPAY_ORDER_HASH_INVALID",
       redirect,
       consult: consult.rawPayload,
       transactionId,
     });
-
-    throw new TilopayPaymentResultError("TILOPAY_ORDER_HASH_INVALID", {
-      paymentId: payment.id,
-      reservationId: payment.reservationId,
-    });
   }
 
-  const orderHashValid = verifyTilopayOrderHash({
-    orderHash,
-    orderId: transactionId,
-    externalOrderId: payment.providerReference,
-    amount,
-    currency,
-    responseCode,
+  const orderHashValue = orderHash as string;
+  const transactionIdValue = transactionId as string;
+  const responseCodeValue = responseCode as string;
+  const amountValue = amount as string;
+  const currencyValue = currency as string;
+  const emailValue = email as string;
+
+  const orderHashDiagnosis = diagnoseTilopayOrderHash({
+    orderHash: orderHashValue,
+    orderId: transactionIdValue,
+    externalOrderIds: [
+      {
+        name: "payment_provider_reference",
+        externalOrderId: providerReference,
+      },
+      {
+        name: "redirect_order_number",
+        externalOrderId: redirect.orderNumber,
+      },
+      {
+        name: "consult_order_number",
+        externalOrderId: consult.orderNumber,
+      },
+    ],
+    amount: amountValue,
+    currency: currencyValue,
+    responseCode: responseCodeValue,
     auth,
-    email,
+    email: emailValue,
   });
 
   const isSandboxTilopayEnvironment =
     (process.env.TILOPAY_ENVIRONMENT ?? "").toLowerCase() === "sandbox";
 
-  if (!orderHashValid && !isSandboxTilopayEnvironment) {
+  const orderHashValidation: OrderHashValidationStatus = orderHashDiagnosis.valid
+    ? "valid"
+    : isSandboxTilopayEnvironment
+      ? "sandbox_mismatch_allowed"
+      : "invalid";
+
+  if (!orderHashDiagnosis.valid && !isSandboxTilopayEnvironment) {
     await markPaymentFailed(payment, {
       code: "TILOPAY_ORDER_HASH_INVALID",
       redirect,
       consult: consult.rawPayload,
-      transactionId,
+      transactionId: transactionIdValue,
+      validation: {
+        orderHash: "invalid",
+        orderHashMatchedVariant: orderHashDiagnosis.matchedVariant,
+        orderHashAttemptedVariants: orderHashDiagnosis.attemptedVariants,
+      },
     });
   }
 
@@ -476,7 +550,7 @@ export async function processTilopayPaymentRedirect(
     data: {
       failedAt: paymentApproved ? null : new Date(),
       paidAt: paymentApproved ? new Date() : null,
-      providerTransactionId: transactionId,
+      providerTransactionId: transactionIdValue,
       rawPayload: buildRawPayload({
         redirect,
         consult: consult.rawPayload,
@@ -484,11 +558,11 @@ export async function processTilopayPaymentRedirect(
           status: nextStatus,
           amountMatched: true,
           currencyMatched: true,
-          orderHash: orderHashValid
-            ? "valid"
-            : isSandboxTilopayEnvironment
-              ? "sandbox_mismatch_allowed"
-              : "invalid",
+          providerOrderNumberMatched: true,
+          consultOrderNumber: consult.orderNumber,
+          orderHash: orderHashValidation,
+          orderHashMatchedVariant: orderHashDiagnosis.matchedVariant,
+          orderHashAttemptedVariants: orderHashDiagnosis.attemptedVariants,
           reservationConfirmation: paymentApproved
             ? "pending_phase_9_6_transition"
             : "not_attempted",
@@ -514,13 +588,16 @@ export async function processTilopayPaymentRedirect(
       payment,
       redirect,
       consult: consult.rawPayload,
-      transactionId,
+      transactionId: transactionIdValue,
+      orderHashValidation,
+      orderHashMatchedVariant: orderHashDiagnosis.matchedVariant,
+      orderHashAttemptedVariants: orderHashDiagnosis.attemptedVariants,
     });
 
     return {
       paymentId: updatedPayment.id,
       reservationId: updatedPayment.reservationId,
-      providerReference: updatedPayment.providerReference ?? payment.providerReference,
+      providerReference: updatedPayment.providerReference ?? providerReference,
       providerTransactionId: updatedPayment.providerTransactionId,
       paymentStatus: "APPROVED",
       reservationStatus: confirmation.reservationStatus,
@@ -533,7 +610,7 @@ export async function processTilopayPaymentRedirect(
   return {
     paymentId: updatedPayment.id,
     reservationId: updatedPayment.reservationId,
-    providerReference: updatedPayment.providerReference ?? payment.providerReference,
+    providerReference: updatedPayment.providerReference ?? providerReference,
     providerTransactionId: updatedPayment.providerTransactionId,
     paymentStatus: "REJECTED",
     reservationStatus: payment.reservation.status,

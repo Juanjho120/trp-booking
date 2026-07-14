@@ -2,6 +2,7 @@ export type ReservationConfirmationErrorCode =
   | "PAYMENT_NOT_FOUND"
   | "PAYMENT_NOT_APPROVED"
   | "RESERVATION_NOT_CONFIRMABLE"
+  | "RESERVATION_EXPIRED_BEFORE_CONFIRMATION"
   | "RESERVATION_CONFIRMATION_UNEXPECTED_ERROR";
 
 export type ReservationConfirmationStatus =
