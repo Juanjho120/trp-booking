@@ -169,10 +169,6 @@ function getCvvPattern(cardBrand: CardBrand): string {
   return cardBrand === "amex" ? "\\d{4}" : "\\d{3}";
 }
 
-function getCvvMaxLength(cardBrand: CardBrand): number {
-  return cardBrand === "amex" ? 4 : 3;
-}
-
 function validateTilopayFields(): boolean {
   const invalidField = document.querySelector<HTMLInputElement | HTMLSelectElement>(
     ".payFormTilopay input:invalid, .payFormTilopay select:invalid",
