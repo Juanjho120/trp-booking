@@ -127,14 +127,17 @@ Completed deliverables:
 ```text
 app/admin/page.tsx updated
 features/admin/components/admin-reservation-payment-review-shell.tsx added
-features/admin/admin-review-copy.ts added
+features/admin/admin-review-copy.ts cleared of visible copy after i18n fix
 features/admin/index.ts updated
 lib/admin/reservation-payment-review.ts added
 lib/admin/index.ts added
 types/admin-reservation-payment-review.ts added
+messages/es.ts updated
+messages/en.ts updated
 docs/69-admin-reservation-payment-review.md added
 docs/10-phases.md updated
 docs/11-progress-log.md updated
+AGENTS.md updated with ZIP Delivery Gate
 ```
 
 Important decisions:
@@ -144,6 +147,8 @@ The admin review page is read-only.
 The admin review page shows recent direct reservations and their latest payment status.
 The admin review page shows recent payments and safe Tilopay diagnostic summaries.
 The admin review page shows recent Tilopay SDK client events for operational troubleshooting.
+Admin review copy is centralized in messages/es.ts and messages/en.ts.
+Reservation and payment statuses shown in admin are localized.
 The admin review page does not include manual confirmation, cancellation, refund, date-change, calendar, or email actions.
 Payment-driven reservation confirmation remains the only confirmation path.
 No card number, CVV, expiration date, or tokenized card data is shown.

@@ -22,6 +22,26 @@ This file defines the working rules for TRP Booking.
 - Do not invent fields, database columns, components, or services that are not documented or explicitly proposed.
 - Do not move the project toward PMS features unless explicitly requested.
 
+## ZIP Delivery Gate
+
+Before preparing any ZIP delivery for this repository, the implementation must pass this gate:
+
+```text
+- AGENTS.md reviewed.
+- docs/10-phases.md reviewed.
+- docs/11-progress-log.md reviewed.
+- Current phase/subphase confirmed.
+- Public-facing and admin-facing copy reviewed.
+- New visible copy is centralized in messages/es.ts and messages/en.ts.
+- No new visible strings are introduced through feature-local copy files.
+- No visible TSX labels, section titles, CTA copy, empty states, guardrails, or helper text are hardcoded directly in components.
+- Visible reservation/payment statuses and event labels are localized when shown to users or admins.
+- No .ps1 or .sh files are used as the main delivery method.
+- ZIP contains real files respecting the repository folder structure.
+```
+
+If any gate item cannot be satisfied, the ZIP must not be delivered until the issue is fixed or explicitly documented.
+
 ## Phase and Progress Tracking
 
 - `docs/10-phases.md` is the official phase plan.
@@ -41,7 +61,9 @@ This file defines the working rules for TRP Booking.
 ## Copy, i18n, and Error Message Rules
 
 - User-facing public copy must be centralized in `messages/es.ts` and `messages/en.ts`.
+- Admin-facing copy must also be centralized in `messages/es.ts` and `messages/en.ts`.
 - Avoid hardcoding user-facing labels, section titles, CTA copy, and page text directly inside TSX components.
+- Do not introduce feature-local visible copy files for public or admin UI.
 - Accommodation content may remain in typed configuration until it moves to the database.
 - Error messages must be centralized, reusable, bilingual, and grouped by domain.
 - Do not show raw provider errors from Prisma, Tilopay, Resend, Cloudinary, Airbnb iCal, or other services directly to users.

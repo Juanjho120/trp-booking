@@ -21,7 +21,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { siteConfig } from "@/config/site";
-import { adminReviewCopy as copy } from "@/features/admin/admin-review-copy";
 import { esMessages } from "@/messages";
 import type {
   AdminPaymentClientEventSummary,
@@ -32,6 +31,7 @@ import type {
 } from "@/types/admin-reservation-payment-review";
 
 const messages = esMessages;
+const copy = messages.admin.review;
 
 type AdminReservationPaymentReviewShellProps = Readonly<{
   adminName: string;
@@ -40,6 +40,7 @@ type AdminReservationPaymentReviewShellProps = Readonly<{
 }>;
 
 type BadgeVariant = "default" | "secondary" | "destructive" | "outline";
+type StatusDomain = "reservation" | "payment";
 
 async function signOutFromAdmin() {
   "use server";
@@ -96,11 +97,51 @@ function displayValue(value: string | null | undefined): string {
   return value?.trim() ? value : copy.labels.unavailable;
 }
 
-function StatusBadge({ status }: Readonly<{ status: string | null }>) {
-  return <Badge variant={getStatusVariant(status)}>{displayValue(status)}</Badge>;
+function translateReservationStatus(status: string | null): string {
+  if (!status) {
+    return copy.labels.unavailable;
+  }
+
+  return copy.statuses.reservation[status as keyof typeof copy.statuses.reservation] ?? status;
 }
 
-function StatusCounts({ counts }: Readonly<{ counts: readonly AdminStatusCount[] }>) {
+function translatePaymentStatus(status: string | null): string {
+  if (!status) {
+    return copy.labels.unavailable;
+  }
+
+  return copy.statuses.payment[status as keyof typeof copy.statuses.payment] ?? status;
+}
+
+function translateStatus(status: string | null, domain: StatusDomain): string {
+  return domain === "reservation" ? translateReservationStatus(status) : translatePaymentStatus(status);
+}
+
+function translateClientEventType(eventType: string): string {
+  return (
+    copy.statuses.paymentClientEvent[
+      eventType as keyof typeof copy.statuses.paymentClientEvent
+    ] ?? eventType
+  );
+}
+
+function StatusBadge({
+  domain,
+  status,
+}: Readonly<{
+  domain: StatusDomain;
+  status: string | null;
+}>) {
+  return <Badge variant={getStatusVariant(status)}>{translateStatus(status, domain)}</Badge>;
+}
+
+function StatusCounts({
+  counts,
+  domain,
+}: Readonly<{
+  counts: readonly AdminStatusCount[];
+  domain: StatusDomain;
+}>) {
   if (counts.length === 0) {
     return <p className="text-xs text-muted-foreground">{copy.labels.unavailable}</p>;
   }
@@ -109,7 +150,7 @@ function StatusCounts({ counts }: Readonly<{ counts: readonly AdminStatusCount[]
     <div className="flex flex-wrap gap-2">
       {counts.map((item) => (
         <Badge key={item.status} variant={getStatusVariant(item.status)}>
-          {item.status}: {item.count}
+          {translateStatus(item.status, domain)}: {item.count}
         </Badge>
       ))}
     </div>
@@ -165,7 +206,7 @@ function ReservationCard({ reservation }: Readonly<{ reservation: AdminReservati
               {copy.labels.reservation}: {reservation.id}
             </CardDescription>
           </div>
-          <StatusBadge status={reservation.status} />
+          <StatusBadge domain="reservation" status={reservation.status} />
         </div>
       </CardHeader>
       <CardContent>
@@ -185,7 +226,7 @@ function ReservationCard({ reservation }: Readonly<{ reservation: AdminReservati
           />
           <InfoRow
             label={copy.labels.latestPaymentStatus}
-            value={<StatusBadge status={reservation.latestPaymentStatus} />}
+            value={<StatusBadge domain="payment" status={reservation.latestPaymentStatus} />}
           />
           <InfoRow label={copy.labels.expiresAt} value={formatDateTime(reservation.expiresAt)} />
           <InfoRow label={copy.labels.confirmedAt} value={formatDateTime(reservation.confirmedAt)} />
@@ -209,7 +250,7 @@ function PaymentCard({ payment }: Readonly<{ payment: AdminPaymentSummary }>) {
               {copy.labels.payment}: {payment.id}
             </CardDescription>
           </div>
-          <StatusBadge status={payment.status} />
+          <StatusBadge domain="payment" status={payment.status} />
         </div>
       </CardHeader>
       <CardContent>
@@ -260,7 +301,7 @@ function ClientEventCard({ event }: Readonly<{ event: AdminPaymentClientEventSum
       <CardHeader>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <CardTitle>{event.eventType}</CardTitle>
+            <CardTitle>{translateClientEventType(event.eventType)}</CardTitle>
             <CardDescription className="mt-1 break-all">
               {copy.labels.payment}: {event.paymentId}
             </CardDescription>
@@ -390,10 +431,10 @@ export function AdminReservationPaymentReviewShell({
                 label={copy.labels.totalReservations}
                 value={review.stats.totalReservations}
               >
-                <StatusCounts counts={review.stats.reservationStatuses} />
+                <StatusCounts counts={review.stats.reservationStatuses} domain="reservation" />
               </StatCard>
               <StatCard icon={CreditCard} label={copy.labels.totalPayments} value={review.stats.totalPayments}>
-                <StatusCounts counts={review.stats.paymentStatuses} />
+                <StatusCounts counts={review.stats.paymentStatuses} domain="payment" />
               </StatCard>
               <StatCard
                 icon={DatabaseZap}

@@ -31,24 +31,43 @@ Phase 9.6.1 then hardened the sandbox payment flow with:
 
 After those changes, the admin area still only had the minimal protected shell. Phase 9.7 closes that operational visibility gap without adding actions.
 
-## What was added
+## What was added or updated
 
 ```text
 app/admin/page.tsx
 features/admin/components/admin-reservation-payment-review-shell.tsx
-features/admin/admin-review-copy.ts
+features/admin/admin-review-copy.ts cleared of visible copy after i18n fix
 lib/admin/reservation-payment-review.ts
 lib/admin/index.ts
 types/admin-reservation-payment-review.ts
+messages/es.ts
+messages/en.ts
 ```
 
 The `/admin` route now loads a server-side review snapshot and renders it inside the protected admin page.
+
+## Copy and i18n boundary
+
+Admin-facing copy for this review must be centralized in:
+
+```text
+messages/es.ts
+messages/en.ts
+```
+
+The admin review component must read copy from:
+
+```text
+messages.admin.review
+```
+
+Feature-local visible copy files are not allowed for public or admin UI. The previous `features/admin/admin-review-copy.ts` was cleared of visible copy and kept only as a non-user-facing placeholder for ZIP copy-paste cleanup. It should not be imported by new code.
 
 ## Visible information
 
 ### Reservations
 
-The admin review shows recent direct reservations with:
+The admin review shows recent direct reservations with localized labels:
 
 ```text
 Reservation ID
@@ -60,8 +79,8 @@ Guest country, when present
 Check-in date
 Check-out date
 Guest count
-Reservation.status
-Latest payment status
+Reservation.status as a localized label
+Latest payment status as a localized label
 Total and currency
 expiresAt
 confirmedAt
@@ -70,7 +89,7 @@ createdAt
 
 ### Payments
 
-The admin review shows recent payments with:
+The admin review shows recent payments with localized labels:
 
 ```text
 Payment ID
@@ -80,7 +99,7 @@ Guest name
 Provider
 providerReference / orderNumber
 providerTransactionId
-Payment.status
+Payment.status as a localized label
 Amount and currency
 paidAt
 failedAt
@@ -105,7 +124,7 @@ This is intentionally a summary, not a raw JSON viewer.
 
 ### Tilopay SDK client events
 
-The admin review shows recent `payment_client_events` rows with:
+The admin review shows recent `payment_client_events` rows with localized event labels when the event type is known:
 
 ```text
 eventType
@@ -212,8 +231,10 @@ Manual check:
 4. Confirm recent reservations are visible when data exists.
 5. Confirm recent payments are visible when data exists.
 6. Confirm recent SDK client events are visible when data exists.
-7. Confirm no card number, CVV, expiration, or tokenized card data is shown.
-8. Confirm there are no admin buttons/actions to confirm, cancel, refund, or modify reservations.
+7. Confirm visible admin copy comes from messages/es.ts and messages/en.ts.
+8. Confirm reservation and payment statuses are localized in the admin dashboard.
+9. Confirm no card number, CVV, expiration, or tokenized card data is shown.
+10. Confirm there are no admin buttons/actions to confirm, cancel, refund, or modify reservations.
 ```
 
 ## Next subphase
