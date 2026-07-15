@@ -273,7 +273,7 @@ export const enMessages = {
         "Subphase 8.4 creates a pending reservation for 15 minutes. It still does not confirm payment, send emails, or create manual calendar blocks.",
     },
   },
-    payments: {
+  payments: {
     tilopaySdk: {
       title: "Secure payment with Tilopay",
       description:
@@ -297,6 +297,38 @@ export const enMessages = {
       sessionError: "We could not prepare the payment form. Please try again.",
       sdkError: "We could not initialize the Tilopay secure form. Please try again.",
       paymentError: "We could not send the payment to Tilopay. Review the details and try again.",
+      errors: {
+        invalidCardNumber: "Please enter a valid card number.",
+        invalidCvv: "The CVV is invalid. Review the security code and try again.",
+        insufficientFunds:
+          "The card has insufficient funds. Use another card or contact your bank.",
+        cardNotAllowed:
+          "This card cannot be used to complete the payment. Use another card or contact your bank.",
+      },
+    },
+    retry: {
+      page: {
+        title: "Retry payment",
+        description:
+          "Your reservation is still pending payment. You can try completing the payment again while the hold is still active.",
+        missingReservationTitle: "Reservation not found",
+        missingReservationDescription:
+          "This payment link does not include a valid reservation. Review the link or choose your accommodation again.",
+        supportNote:
+          "If the problem continues, contact us so we can help you complete your reservation.",
+      },
+    },
+    result: {
+      success: {
+        title: "Payment completed",
+        description:
+          "Your payment was approved and the reservation was confirmed successfully.",
+      },
+      cancelled: {
+        title: "Payment not completed",
+        description:
+          "We could not complete the reservation payment. Review the information and try again.",
+      },
     },
   },
   admin: {

@@ -5,7 +5,6 @@ import Link from "next/link";
 import { SiteFooter, SiteHeader } from "@/components/layout";
 import { useLocale } from "@/features/i18n";
 import { TilopaySdkCheckout } from "@/features/payments/components/tilopay-sdk-checkout";
-import { getPaymentRetryMessages } from "@/messages/payment-retry";
 import type { TilopayRetryPaymentIssue } from "@/types/tilopay-retry-payment";
 
 type PaymentRetryPageProps = Readonly<{
@@ -14,8 +13,8 @@ type PaymentRetryPageProps = Readonly<{
 }>;
 
 export function PaymentRetryPage({ reservationId, paymentIssue }: PaymentRetryPageProps) {
-  const { locale, messages } = useLocale();
-  const copy = getPaymentRetryMessages(locale);
+  const { messages } = useLocale();
+  const copy = messages.payments.tilopaySdk.retryPage;
 
   return (
     <div className="min-h-screen bg-background text-foreground">

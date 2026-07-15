@@ -273,7 +273,7 @@ export const esMessages = {
         "Subfase 8.4 crea una reserva pendiente por 15 minutos. Todavía no confirma pago, no envía correos y no crea bloques manuales de calendario.",
     },
   },
-    payments: {
+  payments: {
     tilopaySdk: {
       title: "Pago seguro con Tilopay",
       description:
@@ -297,6 +297,38 @@ export const esMessages = {
       sessionError: "No pudimos preparar el formulario de pago. Inténtalo de nuevo.",
       sdkError: "No pudimos inicializar el formulario seguro de Tilopay. Inténtalo de nuevo.",
       paymentError: "No pudimos enviar el pago a Tilopay. Revisa los datos e inténtalo de nuevo.",
+      errors: {
+        invalidCardNumber: "Ingresa un número de tarjeta válido.",
+        invalidCvv: "El CVV no es válido. Revisa el código de seguridad e inténtalo de nuevo.",
+        insufficientFunds:
+          "La tarjeta no tiene fondos suficientes. Usa otra tarjeta o contacta a tu banco.",
+        cardNotAllowed:
+          "Esta tarjeta no puede utilizarse para completar el pago. Usa otra tarjeta o contacta a tu banco.",
+      },
+    },
+    retry: {
+      page: {
+        title: "Reintentar pago",
+        description:
+          "Tu reserva sigue pendiente de pago. Puedes intentar completar el pago nuevamente mientras el hold siga vigente.",
+        missingReservationTitle: "No encontramos la reserva",
+        missingReservationDescription:
+          "El enlace de pago no incluye una reserva válida. Revisa el enlace o vuelve a seleccionar tu alojamiento.",
+        supportNote:
+          "Si el problema continúa, contáctanos para ayudarte a completar tu reserva.",
+      },
+    },
+    result: {
+      success: {
+        title: "Pago completado",
+        description:
+          "Tu pago fue aprobado y la reserva quedó confirmada correctamente.",
+      },
+      cancelled: {
+        title: "Pago no completado",
+        description:
+          "No pudimos completar el pago de la reserva. Revisa la información e inténtalo nuevamente.",
+      },
     },
   },
   admin: {

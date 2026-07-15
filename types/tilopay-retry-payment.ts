@@ -2,7 +2,7 @@ export type TilopayRetryPaymentIssue =
   | "invalid_card_number"
   | "invalid_cvv"
   | "insufficient_funds"
-  | "card_not_allowed";
+  | "card_not_allowed_sensitive";
 
 export type TilopayRetryPaymentFieldIssue = "card_details" | "cvv" | null;
 
@@ -11,6 +11,6 @@ export function isTilopayRetryPaymentIssue(value: string | null | undefined): va
     value === "invalid_card_number" ||
     value === "invalid_cvv" ||
     value === "insufficient_funds" ||
-    value === "card_not_allowed"
+    value === "card_not_allowed_sensitive"
   );
 }

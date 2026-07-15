@@ -2,7 +2,7 @@
 
 ## Status
 
-Prepared during Phase 9 sandbox testing after strict OrderHash V2 validation was confirmed working.
+Prepared during Phase 9 sandbox testing after strict OrderHash V2 validation was confirmed working. Updated to keep retry copy centralized in messages/es.ts and messages/en.ts.
 
 ## Context
 
@@ -97,7 +97,7 @@ Tilopay can return code `43` with description similar to `Pick up card stolen ca
 TRP Booking maps this to a safe public message:
 
 ```text
-paymentIssue = card_not_allowed
+paymentIssue = card_not_allowed_sensitive
 fieldIssue = null
 ```
 
@@ -125,7 +125,7 @@ Any other validated `REJECTED` payment remains routed to:
 - No CVV is stored.
 - No expiration date is stored.
 - Raw Tilopay descriptions remain in payments.raw_payload for admin/debugging.
-- Guest-facing copy is mapped to localized TRP Booking messages.
+- Guest-facing copy is mapped to localized TRP Booking messages in messages/es.ts and messages/en.ts.
 ```
 
 ## Future admin usage

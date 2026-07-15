@@ -154,7 +154,7 @@ function getRetryPaymentIssue(responseCode: string | null): TilopayRetryPaymentI
     case "51":
       return "insufficient_funds";
     case "43":
-      return "card_not_allowed";
+      return "card_not_allowed_sensitive";
     default:
       return null;
   }

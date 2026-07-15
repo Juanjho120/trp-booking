@@ -46,6 +46,44 @@ function normalizeDisplayValue(value: string | null): string | null {
   return value?.trim() ? value.trim() : null;
 }
 
+function getResultTitle(
+  resultType: PaymentResultType,
+  copy: Readonly<{
+    successTitle: string;
+    cancelTitle: string;
+    errorTitle: string;
+  }>,
+): string {
+  if (resultType === "success") {
+    return copy.successTitle;
+  }
+
+  if (resultType === "cancel") {
+    return copy.cancelTitle;
+  }
+
+  return copy.errorTitle;
+}
+
+function getResultDescription(
+  resultType: PaymentResultType,
+  copy: Readonly<{
+    successDescription: string;
+    cancelDescription: string;
+    errorDescription: string;
+  }>,
+): string {
+  if (resultType === "success") {
+    return copy.successDescription;
+  }
+
+  if (resultType === "cancel") {
+    return copy.cancelDescription;
+  }
+
+  return copy.errorDescription;
+}
+
 export function PaymentResultPage({
   resultType,
   reservationId,
@@ -56,17 +94,14 @@ export function PaymentResultPage({
   code,
 }: PaymentResultPageProps) {
   const { messages } = useLocale();
+  const resultCopy = messages.payments.tilopaySdk.result;
   const isSuccess = resultType === "success";
   const normalizedPaymentStatus = normalizeDisplayValue(paymentStatus);
   const normalizedReservationStatus = normalizeDisplayValue(reservationStatus);
   const normalizedCode = normalizeDisplayValue(code);
 
-  const title = isSuccess
-    ? messages.payments.tilopaySdk.title
-    : messages.errors.payment.failed;
-  const description = isSuccess
-    ? messages.payments.tilopaySdk.paymentSubmitted
-    : messages.payments.tilopaySdk.providerNote;
+  const title = getResultTitle(resultType, resultCopy);
+  const description = getResultDescription(resultType, resultCopy);
   const borderClassName = isSuccess ? "border-primary/20" : "border-destructive/30";
 
   return (

@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useLocale } from "@/features/i18n";
-import { getPaymentRetryErrorMessage } from "@/messages/payment-retry";
 import type {
   CreateTilopaySdkSessionApiResponse,
   TilopaySdkPaymentMethod,
@@ -71,7 +70,8 @@ declare global {
 
 const CARD_NUMBER_INVALID_SDK_MESSAGE = "please enter a valid card number";
 const CARD_INPUT_BASE_CLASS_NAME =
-  "h-11 w-full min-w-0 rounded-2xl border border-border/70 bg-background px-4 text-sm text-foreground shadow-sm outline-none transition invalid:border-destructive invalid:ring-2 invalid:ring-destructive/20 focus:border-primary focus:ring-2 focus:ring-primary/20";
+  "h-11 w-full min-w-0 rounded-2xl border bg-background px-4 text-sm text-foreground shadow-sm outline-none transition invalid:border-destructive invalid:ring-2 invalid:ring-destructive/20 focus:border-primary focus:ring-2 focus:ring-primary/20";
+const DEFAULT_FIELD_BORDER_CLASS_NAME = "border-border/70";
 const FLAGGED_FIELD_CLASS_NAME = "border-destructive ring-2 ring-destructive/20";
 
 function isTilopaySdkSessionSuccessResponse(
@@ -107,13 +107,13 @@ function getSupportedCardMethods(
 
 function getPaymentMethodLabel(
   method: TilopaySdkPaymentMethod,
-  locale: "es" | "en",
+  cardMethodLabel: string,
 ): string {
   if (method.type.toLowerCase() !== "card") {
     return method.name;
   }
 
-  return locale === "en" ? "Credit / Debit Card" : "Tarjeta de crédito / débito";
+  return cardMethodLabel;
 }
 
 function normalizeCardBrand(value: string | undefined): CardBrand {
@@ -210,7 +210,9 @@ function getFieldIssueForPaymentIssue(
 }
 
 function getInputClassName(inputClassName: string, flagged: boolean): string {
-  return flagged ? `${inputClassName} ${FLAGGED_FIELD_CLASS_NAME}` : inputClassName;
+  const borderClassName = flagged ? FLAGGED_FIELD_CLASS_NAME : DEFAULT_FIELD_BORDER_CLASS_NAME;
+
+  return `${inputClassName} ${borderClassName}`;
 }
 
 function getSdkRetryPaymentIssue(message: string | undefined): TilopayRetryPaymentIssue | null {
@@ -219,6 +221,13 @@ function getSdkRetryPaymentIssue(message: string | undefined): TilopayRetryPayme
   }
 
   return null;
+}
+
+function getPaymentRetryErrorMessage(
+  retryErrors: Readonly<Record<TilopayRetryPaymentIssue, string>>,
+  issue: TilopayRetryPaymentIssue,
+): string {
+  return retryErrors[issue];
 }
 
 function validateTilopayFields(): boolean {
@@ -323,6 +332,7 @@ function loadTilopaySdkScript(src: string): Promise<void> {
 export function TilopaySdkCheckout({ reservationId, initialIssue = null }: TilopaySdkCheckoutProps) {
   const { locale, messages } = useLocale();
   const copy = messages.payments.tilopaySdk;
+  const retryErrors = copy.retryErrors;
   const [status, setStatus] = useState<CheckoutStatus>("idle");
   const [session, setSession] = useState<TilopaySdkSession | null>(null);
   const [paymentMethods, setPaymentMethods] = useState<readonly TilopaySdkPaymentMethod[]>([]);
@@ -333,8 +343,16 @@ export function TilopaySdkCheckout({ reservationId, initialIssue = null }: Tilop
     getFieldIssueForPaymentIssue(initialIssue),
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(
-    initialIssue ? getPaymentRetryErrorMessage(locale, initialIssue) : null,
+    initialIssue ? getPaymentRetryErrorMessage(retryErrors, initialIssue) : null,
   );
+
+  useEffect(() => {
+    if (!paymentIssue) {
+      return;
+    }
+
+    setErrorMessage(getPaymentRetryErrorMessage(retryErrors, paymentIssue));
+  }, [paymentIssue, retryErrors]);
 
   function getSelectedPaymentMethod(): TilopaySdkPaymentMethod | null {
     return paymentMethods.find((method) => method.id === selectedPaymentMethod) ?? null;
@@ -343,7 +361,7 @@ export function TilopaySdkCheckout({ reservationId, initialIssue = null }: Tilop
   function applyPaymentIssue(issue: TilopayRetryPaymentIssue): void {
     setPaymentIssue(issue);
     setFieldIssue(getFieldIssueForPaymentIssue(issue));
-    setErrorMessage(getPaymentRetryErrorMessage(locale, issue));
+    setErrorMessage(getPaymentRetryErrorMessage(retryErrors, issue));
   }
 
   function clearPaymentFieldIssue(changedField: Exclude<TilopayRetryPaymentFieldIssue, null>): void {
@@ -651,7 +669,7 @@ export function TilopaySdkCheckout({ reservationId, initialIssue = null }: Tilop
             >
               {paymentMethods.map((method) => (
                 <option key={method.id} value={method.id}>
-                  {getPaymentMethodLabel(method, locale)}
+                  {getPaymentMethodLabel(method, copy.paymentMethodCard)}
                 </option>
               ))}
             </select>
