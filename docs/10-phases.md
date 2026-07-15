@@ -15,8 +15,8 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 9 — Tilopay Sandbox Integration
-Current subphase: 9.8 Automatic preparation buffers in availability
-Current focus: make availability evaluate preparation buffers for CONFIRMED reservations and active PENDING_PAYMENT holds without adding admin buffer configuration yet.
+Current subphase: 9.9 Admin preparation buffer settings and manual unlock behavior
+Current focus: decide and implement auditable admin buffer configuration and manual unlock behavior after dynamic availability buffers were completed in 9.8.
 ```
 
 ---
@@ -60,8 +60,8 @@ Subphase status:
 9.6 Confirm reservation only after validated payment — Completed
 9.6.1 Tilopay sandbox hardening, retryable payment errors, status localization, and checkout UX — Completed
 9.7 Admin reservation and payment review — Completed
-9.8 Automatic preparation buffers in availability — Not started
-9.9 Admin preparation buffer settings and manual unlock behavior — Not started
+9.8 Automatic preparation buffers in availability — Completed
+9.9 Admin preparation buffer settings and manual unlock behavior — In progress
 9.10 Phase 9 documentation update and closure — Not started
 ```
 
@@ -95,19 +95,17 @@ Phase 9.6.1 result:
 - Tilopay sandbox hardening continued after the initial 9.6 confirmation service.
 - Retryable Tilopay payment issues were mapped to safe public messages.
 - The payment retry page was aligned with centralized i18n messages.
-- Payment result pages now distinguish payment status from reservation status.
+- Payment result pages distinguish payment status from reservation status.
 - Payment and reservation statuses are localized.
-- The public reservation flow now auto-scrolls to the relevant quote, pending reservation, and payment areas.
+- The public reservation flow auto-scrolls to the relevant quote, pending reservation, and payment areas.
 - This subphase still does not send Resend emails or add PMS behavior.
 ```
 
 Phase 9.7 result:
 
 ```text
-- The protected admin page now shows read-only operational visibility for direct reservations.
-- The protected admin page now shows read-only operational visibility for payments.
-- Safe Tilopay diagnostics are summarized without exposing card data.
-- Tilopay SDK client events are visible for operational debugging.
+- The protected admin page shows read-only operational visibility for direct reservations and payments.
+- Safe Tilopay diagnostics and SDK client events are available without exposing card data.
 - Admin review copy is centralized in messages/es.ts and messages/en.ts.
 - Reservation and payment statuses shown in admin are localized.
 - The admin dashboard uses the shared client locale switcher so ES/EN admin copy changes in place.
@@ -122,19 +120,24 @@ Phase 9.8 goal:
 Make availability evaluate automatic preparation buffers for CONFIRMED reservations and active PENDING_PAYMENT holds without requiring admin configuration yet.
 ```
 
-Phase 9.8 strategy:
+Phase 9.8 result:
 
 ```text
-Use dynamic availability calculation first.
-Do not materialize PENDING_PAYMENT preparation buffers into calendar_blocks yet.
-Expired holds must not block stay dates or preparation buffers.
-Document any decision before materializing confirmed buffers.
+- CONFIRMED reservations dynamically block stay dates plus preparation buffers.
+- PENDING_PAYMENT reservations dynamically block stay dates plus preparation buffers only while expiresAt > now.
+- PENDING_PAYMENT rows with expiresAt = null are not active holds and do not block availability.
+- EXPIRED reservations and expired pending holds do not block stay dates or preparation buffers.
+- Buffer values are read from Property.preparationDaysBefore and Property.preparationDaysAfter.
+- Composed-listing dependency rules remain active for stay and buffer ranges.
+- Pending and confirmed direct-reservation buffers are not materialized into calendar_blocks in 9.8.
+- Confirmed buffers continue to be represented in Airbnb iCal exports, including buffers that intersect the export-window boundary while the stay itself falls outside it.
+- No admin buffer configuration, new manual unlock behavior, migration, visible copy, email, or PMS behavior was added.
 ```
 
 Phase 9.9 goal:
 
 ```text
-Add admin preparation buffer settings and manual unlock behavior after the dynamic buffer rules are correct.
+Add the admin layer that makes preparation buffers configurable and manually unlockable after the dynamic buffer rules are correct.
 ```
 
 Phase 9.9 boundaries:
@@ -142,7 +145,7 @@ Phase 9.9 boundaries:
 ```text
 - Configure daysBefore/daysAfter per accommodation.
 - Keep current defaults: 1/1 for Apartamento Blanco y Negro, 2/2 for Bungalow Refugio Perfecto, 2/2 for Refugio Completo.
-- Allow manual unlock of preparation-buffer blocks without releasing the reservation itself.
+- Allow manual unlock of preparation-buffer days without releasing the reservation itself.
 - Preserve auditability.
 - Decide and document whether confirmed buffers become calendar_blocks or whether unlocks are stored as overrides.
 ```

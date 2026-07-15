@@ -2,45 +2,11 @@
 
 ## Status
 
-Planning document added before continuing Phase 9.
+Roadmap updated after completing Phase 9.8.
 
 ## Purpose
 
-This document fixes the Phase 9 roadmap gap that appeared after payment validation, retry handling, localized payment result pages, and booking-flow UX improvements were implemented.
-
-The project should not continue by memory. This document defines the next Phase 9 subphases before starting admin review, automatic preparation buffers, admin buffer settings, or Phase 10 email notifications.
-
-## Current Repository Contrast
-
-### Current official phase docs before this update
-
-The existing phase plan still points to:
-
-```text
-Current phase: Phase 9 — Tilopay Sandbox Integration
-Current subphase: 9.7 Phase 9 documentation update
-```
-
-It only lists Phase 9.1 through Phase 9.7, where 9.7 is documentation closure.
-
-The existing progress log also still treats 9.7 as documentation closure and recommends closing Phase 9 documentation before Phase 10 emails.
-
-### What changed after 9.6
-
-After 9.6, the codebase continued hardening the sandbox payment flow:
-
-```text
-- strict Tilopay OrderHash validation
-- Tilopay preflight validation
-- expired-confirmation prevention
-- Tilopay SDK client failure tracking
-- retryable payment error routing
-- centralized retry copy and field feedback
-- localized payment/reservation statuses on payment result pages
-- auto-scroll UX for quote, pending reservation, and payment sections
-```
-
-Those changes are part of Phase 9 payment hardening and should be documented before Phase 10.
+This document defines the Phase 9 work that follows payment validation and keeps admin visibility, dynamic preparation buffers, admin overrides, and Phase 10 emails separated into explicit subphases.
 
 ## Corrected Phase 9 Roadmap
 
@@ -52,68 +18,21 @@ Those changes are part of Phase 9 payment hardening and should be documented bef
 9.5 Tilopay redirect, consult, and OrderHash V2 validation foundation — Completed
 9.6 Confirm reservation only after validated payment — Completed
 9.6.1 Tilopay sandbox hardening, retryable payment errors, status localization, and checkout UX — Completed
-9.7 Admin reservation and payment review — Not started
-9.8 Automatic preparation buffers in availability — Not started
-9.9 Admin preparation buffer settings and manual unlock behavior — Not started
+9.7 Admin reservation and payment review — Completed
+9.8 Automatic preparation buffers in availability — Completed
+9.9 Admin preparation buffer settings and manual unlock behavior — In progress
 9.10 Phase 9 documentation update and closure — Not started
 ```
 
 ## Phase 9.7 — Admin Reservation and Payment Review
 
-### Goal
+### Result
 
-Review the current admin foundation after the public payment flow and confirm what minimal operational visibility is needed before adding preparation-buffer behavior.
+The protected admin dashboard provides read-only visibility into reservations, payments, safe Tilopay diagnostics, and SDK client events.
 
-### Scope
+It does not provide manual confirmation, cancellation, refund, date-change, calendar-editing, email, or PMS actions.
 
-```text
-- Review direct reservations in admin.
-- Review payment records in admin.
-- Review safe Tilopay diagnostics.
-- Confirm payment-driven reservation confirmation remains the only confirmation path.
-- Confirm admin does not expose card data.
-```
-
-### Reservation visibility checklist
-
-```text
-Reservation ID
-Accommodation
-Guest details already collected by the public flow
-Check-in date
-Check-out date
-Guest count
-Total and currency
-Reservation.status
-expiresAt
-confirmedAt
-createdAt
-updatedAt
-```
-
-### Payment visibility checklist
-
-```text
-Payment ID
-Reservation ID
-provider
-providerReference / orderNumber
-Payment.status
-amount and currency
-safe Tilopay diagnostic payload
-createdAt
-updatedAt
-```
-
-### Not allowed
-
-```text
-Manual confirmation that bypasses server-side payment validation
-Card number, CVV, expiration date, or token storage
-PMS features
-Email sending
-Refund workflows unless explicitly planned later
-```
+Admin copy and visible statuses are localized through `messages/es.ts` and `messages/en.ts`.
 
 ## Phase 9.8 — Automatic Preparation Buffers in Availability
 
@@ -121,9 +40,7 @@ Refund workflows unless explicitly planned later
 
 Make availability block preparation buffers automatically for reservations that currently block public availability.
 
-### Existing documented rules
-
-Preparation buffer defaults:
+### Preparation buffer defaults
 
 ```text
 Apartamento Blanco y Negro: 1 day before and 1 day after
@@ -131,14 +48,14 @@ Bungalow Refugio Perfecto: 2 days before and 2 days after
 Refugio Completo: 2 days before and 2 days after
 ```
 
-Range convention:
+### Range convention
 
 ```text
 Before check-in buffer: [checkInDate - daysBefore, checkInDate)
 After check-out buffer: [checkOutDate, checkOutDate + daysAfter)
 ```
 
-### Required behavior
+### Implemented behavior
 
 ```text
 1. Active PENDING_PAYMENT reservation with expiresAt > now:
@@ -149,48 +66,44 @@ After check-out buffer: [checkOutDate, checkOutDate + daysAfter)
    - Does not block stay dates.
    - Does not block preparation buffers.
 
-3. CONFIRMED reservation:
-   - Blocks stay dates.
-   - Blocks preparation buffers in a stable way.
+3. PENDING_PAYMENT reservation with expiresAt = null:
+   - Is not a valid active hold.
+   - Does not block stay dates.
+   - Does not block preparation buffers.
 
-4. EXPIRED reservation:
+4. CONFIRMED reservation:
+   - Blocks stay dates.
+   - Blocks preparation buffers dynamically.
+
+5. EXPIRED reservation:
    - Does not block stay dates.
    - Does not block preparation buffers.
 ```
 
-### Technical recommendation for 9.8
-
-Use dynamic availability calculation first.
-
-Do not materialize PENDING_PAYMENT preparation buffers into `calendar_blocks` yet.
-
-Reason:
+### Technical decisions
 
 ```text
-PENDING_PAYMENT holds expire automatically.
-If temporary buffers are materialized in calendar_blocks, the system also needs cleanup/unlock logic for expired holds.
-Dynamic calculation keeps Phase 9.8 smaller and safer.
-```
-
-Expected availability approach:
-
-```text
-- Read CONFIRMED reservations.
-- Read active PENDING_PAYMENT reservations where expiresAt > now.
-- Ignore expired holds.
-- Use buildPreparationBufferRanges() or equivalent availability rule helpers.
-- Merge stay blocks and preparation-buffer blocks into blocked dates.
-- Keep composed listing dependency rules active.
+- Dynamic availability calculation remains the Phase 9.8 strategy.
+- PENDING_PAYMENT buffers are not materialized in calendar_blocks.
+- CONFIRMED direct-reservation buffers are also left dynamic until Phase 9.9 chooses an auditable unlock strategy.
+- Buffer values are read from Property.preparationDaysBefore and Property.preparationDaysAfter.
+- The composed-listing dependency graph remains active.
+- Persisted PREPARATION_BUFFER rows suppress a direct dynamic buffer only when linked to the same reservation.
+- Airbnb iCal exports continue to exclude pending holds.
+- Airbnb iCal exports include confirmed buffers, including export-window boundary cases.
 ```
 
 ### Not included in 9.8
 
 ```text
 Admin configuration for daysBefore/daysAfter
-Manual unlock of a buffer
-Persistent buffer block materialization for pending holds
+New manual unlock behavior
+Persistent buffer materialization for pending holds
+Persistent direct-reservation buffer materialization
 Email notifications
+Guest date changes
 PMS behavior
+Prisma schema changes or migrations
 ```
 
 ## Phase 9.9 — Admin Preparation Buffer Settings and Manual Unlock Behavior
@@ -207,6 +120,7 @@ Add the admin layer that makes preparation buffers configurable and manually unl
 - Allow admin to unlock only preparation-buffer days.
 - Do not unlock the reservation itself.
 - Preserve auditability of admin changes.
+- Keep public availability and iCal exports consistent.
 ```
 
 ### Default settings
@@ -217,23 +131,23 @@ Bungalow Refugio Perfecto: before=2, after=2
 Refugio Completo: before=2, after=2
 ```
 
-### Design decision needed before implementation
+### Design decision required before implementation
 
-9.9 must decide whether confirmed buffers are represented as:
+9.9 must explicitly decide whether confirmed direct-reservation buffers use:
 
 ```text
 Option A — materialized calendar_blocks
 - Useful for manual unlock.
 - Closer to admin calendar behavior.
-- Requires idempotent creation and soft-unlock logic.
+- Requires idempotent creation, update, cancellation reconciliation, and soft-unlock logic.
 
-Option B — dynamic buffers plus admin override records
-- Avoids creating extra blocks for every reservation.
-- Requires a dedicated override model or equivalent rule table.
-- Must still be auditable.
+Option B — dynamic buffers plus auditable override records
+- Avoids creating buffer rows for every reservation.
+- Requires a dedicated override model or an equivalent auditable representation.
+- Public availability and iCal export must apply the same override.
 ```
 
-No implementation should start until this decision is explicitly documented.
+No 9.9 implementation should begin until this decision is documented.
 
 ## Phase 9.10 — Phase 9 Documentation Update and Closure
 
@@ -242,9 +156,9 @@ No implementation should start until this decision is explicitly documented.
 Close Phase 9 only after:
 
 ```text
-- 9.7 admin review is completed or explicitly deferred.
-- 9.8 dynamic preparation buffers are implemented and validated.
-- 9.9 admin buffer settings/unlock behavior is implemented or explicitly moved to a later phase.
+- 9.7 admin review is completed.
+- 9.8 dynamic preparation buffers are completed and validated.
+- 9.9 admin buffer settings/unlock behavior is implemented or explicitly deferred.
 - Phase 9 docs reflect the final payment, retry, admin, and buffer behavior.
 ```
 
@@ -253,32 +167,26 @@ Close Phase 9 only after:
 ```text
 docs/10-phases.md
 docs/11-progress-log.md
-README.md, if it contains phase/status continuity notes
+README.md
 Any Phase 9 payment/admin/buffer docs added during implementation
 ```
 
 ## Validation Notes
 
-After applying documentation-only changes:
+Before closing 9.8:
 
-```text
-No build is required for Markdown-only changes, but npm run build may still be run for confidence.
-```
-
-Before implementing 9.8:
-
-```text
-Review docs/32-availability-strategy-and-calendar-rules.md.
-Review lib/availability/rules.ts.
-Review the current availability service.
-Review reservation status and expiration handling.
+```powershell
+npm run db:validate
+npm run lint
+npm run build
 ```
 
 Before implementing 9.9:
 
 ```text
 Review admin architecture.
-Review calendar_blocks schema and soft-delete/unlock behavior.
-Decide between materialized blocks and dynamic overrides.
+Review calendar_blocks schema and existing soft-delete/unlock fields.
+Review dynamic direct-reservation buffer behavior.
+Decide between materialized blocks and dynamic auditable overrides.
 Document the decision before writing code.
 ```

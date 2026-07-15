@@ -24,9 +24,9 @@ TRP Booking is a public website and booking engine for direct reservations. It a
 - Check availability.
 - Reserve available dates.
 - Pay online through Tilopay.
-- Receive confirmation and arrival instructions by email.
+- Receive confirmation and arrival instructions by email when Phase 10 is implemented.
 
-It also includes a private admin area to manage the minimum operational features needed for direct reservations.
+It also includes a private admin area for the minimum operational features required by the direct-booking flow.
 
 ## Important Scope Boundary
 
@@ -39,16 +39,21 @@ TRP Booking is focused only on the public booking experience, direct reservation
 - Provider secrets for Auth.js, Cloudinary, Tilopay, Resend, Airbnb iCal, and similar services must remain server-side only.
 - Reservation flow must re-check availability server-side before creating pending holds or handing off to payment.
 - Pending reservation holds must use `PENDING_PAYMENT` with a non-null `expiresAt` and must never be confirmed before validated payment.
-- Phase 9 must keep all Tilopay credentials server-side only.
-- Phase 9 must not store card data.
+- `CONFIRMED` reservations block their stay dates and preparation buffers.
+- Active `PENDING_PAYMENT` holds with `expiresAt > now` temporarily block their stay dates and preparation buffers.
+- Expired pending holds and `EXPIRED` reservations do not block stay dates or preparation buffers.
+- Preparation buffers use the values stored in `Property.preparationDaysBefore` and `Property.preparationDaysAfter`.
+- Composed-listing dependency rules apply to stay dates and preparation buffers.
+- Guests cannot modify confirmed dates directly from the public website.
+- Phase 9 must keep all Tilopay credentials server-side only and must not store card data.
 - Phase 9 must not set `Reservation.status = CONFIRMED` until a provider payment result is validated server-side.
 - Phase 9 must keep failed, rejected, expired, and successful payment attempts auditable.
 - Resend email delivery belongs to Phase 10 unless explicitly moved later.
-- User-facing public copy must be centralized in `messages/es.ts` and `messages/en.ts`.
+- Public-facing and admin-facing copy must be centralized in `messages/es.ts` and `messages/en.ts`.
 
 ## Phase 9 Summary
 
-Phase 9 completed so far:
+Completed Phase 9 work:
 
 ```text
 9.1 Tilopay sandbox strategy and environment contract
@@ -57,41 +62,45 @@ Phase 9 completed so far:
 9.4 Tilopay SDK V2 checkout foundation
 9.5 Tilopay redirect, consult, and OrderHash V2 validation foundation
 9.6 Confirm reservation only after validated payment
+9.6.1 Tilopay sandbox hardening, retryable payment errors, status localization, and checkout UX
+9.7 Admin reservation and payment review
+9.8 Automatic preparation buffers in availability
 ```
 
-Phase 9.6 added:
+Phase 9.8 added:
 
 ```text
-- Payment-driven reservation confirmation.
-- Reservation.status changes to CONFIRMED only after Payment.status = APPROVED.
-- Reservation.confirmedAt is set.
-- Reservation.expiresAt is cleared.
-- Rejected and failed payments do not confirm reservations.
+- Dynamic preparation buffers for CONFIRMED reservations.
+- Temporary dynamic preparation buffers for active PENDING_PAYMENT holds.
+- Strict pending-hold eligibility using expiresAt > now.
+- Continued composed-listing dependency behavior.
+- iCal export lookup coverage for confirmed buffers that intersect an export-window boundary.
+- No Prisma migration, admin buffer configuration, manual unlock UI, emails, or PMS behavior.
 ```
-
-No Resend email delivery, Prisma migration, admin payment UI, refund handling, or PMS behavior is implemented in 9.6.
 
 ## Documentation
 
 The project documentation lives under `/docs`.
 
-Important current tracker files:
+Important current tracker and continuity files:
 
 ```text
 AGENTS.md
 README.md
 docs/10-phases.md
 docs/11-progress-log.md
-docs/56-tilopay-sdk-v2-contract-for-trp-booking.md
-docs/57-tilopay-redirect-consult-and-orderhash-validation.md
-docs/58-confirm-reservation-after-validated-payment.md
+docs/32-availability-strategy-and-calendar-rules.md
+docs/35-preparation-buffer-and-blocked-date-evaluation.md
+docs/68-phase-9-admin-and-preparation-buffers-roadmap.md
+docs/69-admin-reservation-payment-review.md
+docs/70-automatic-preparation-buffers-in-availability.md
 ```
 
 ## Development Status
 
 ```text
 Current phase: Phase 9 — Tilopay Sandbox Integration
-Current subphase: 9.7 Phase 9 documentation update
+Current subphase: 9.9 Admin preparation buffer settings and manual unlock behavior
 Last completed phase: Phase 8 — Reservation Flow
-Last completed subphase: 9.6 Confirm reservation only after validated payment
+Last completed subphase: 9.8 Automatic preparation buffers in availability
 ```

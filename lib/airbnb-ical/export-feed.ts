@@ -21,7 +21,7 @@ import {
   getBlockingAccommodationIds,
 } from "@/lib/availability/rules";
 import { prisma } from "@/lib/db/prisma";
-import type { AccommodationId } from "@/types/accommodation";
+import type { AccommodationId, PreparationBufferPolicy } from "@/types/accommodation";
 import type { AvailabilityDateRange, DateOnlyString } from "@/types/availability";
 
 import type {
@@ -59,6 +59,8 @@ const externalCalendarExportSelect = {
 const propertyExportSelect = {
   id: true,
   slug: true,
+  preparationDaysBefore: true,
+  preparationDaysAfter: true,
 } satisfies Prisma.PropertySelect;
 
 const reservationExportSelect = {
@@ -102,6 +104,12 @@ type AirbnbIcalExportFeedOptions = Readonly<{
 type PropertyMapping = Readonly<{
   propertyId: string;
   accommodationId: AccommodationId;
+  preparationBuffer: PreparationBufferPolicy;
+}>;
+
+type ReservationLookupWindow = Readonly<{
+  startDate: AvailabilityDateRange["startDate"];
+  endDate: AvailabilityDateRange["endDate"];
 }>;
 
 function assertServerSideAirbnbIcalExport(): void {
@@ -233,6 +241,10 @@ async function resolvePropertyMappings(
   return properties.map((property) => ({
     propertyId: property.id,
     accommodationId: getAccommodationIdBySlug(property.slug),
+    preparationBuffer: {
+      daysBefore: property.preparationDaysBefore,
+      daysAfter: property.preparationDaysAfter,
+    },
   }));
 }
 
@@ -240,6 +252,27 @@ function toDateOnlyRange(startDate: Date, endDate: Date): AvailabilityDateRange 
   return {
     startDate: dateOnlyFromDate(startDate),
     endDate: dateOnlyFromDate(endDate),
+  };
+}
+
+function getReservationLookupWindow(
+  exportWindow: AvailabilityDateRange,
+  propertyMappings: readonly PropertyMapping[],
+): ReservationLookupWindow {
+  const maxPreparationDays = propertyMappings.reduce(
+    (currentMax, mapping) => ({
+      daysBefore: Math.max(currentMax.daysBefore, mapping.preparationBuffer.daysBefore),
+      daysAfter: Math.max(currentMax.daysAfter, mapping.preparationBuffer.daysAfter),
+    }),
+    {
+      daysBefore: 0,
+      daysAfter: 0,
+    },
+  );
+
+  return {
+    startDate: addDaysToDateOnly(exportWindow.startDate, -maxPreparationDays.daysAfter),
+    endDate: addDaysToDateOnly(exportWindow.endDate, maxPreparationDays.daysBefore),
   };
 }
 
@@ -278,6 +311,7 @@ function buildReservationUnavailableRanges(
   input: Readonly<{
     reservations: readonly ReservationExportRecord[];
     propertyIdToAccommodationId: ReadonlyMap<string, AccommodationId>;
+    propertyIdToPreparationBuffer: ReadonlyMap<string, PreparationBufferPolicy>;
     exportWindow: AvailabilityDateRange;
   }>,
 ): readonly AirbnbIcalExportUnavailableRange[] {
@@ -298,14 +332,19 @@ function buildReservationUnavailableRanges(
     }
 
     const accommodationId = input.propertyIdToAccommodationId.get(reservation.propertyId);
+    const preparationBuffer = input.propertyIdToPreparationBuffer.get(reservation.propertyId);
 
-    if (!accommodationId) {
+    if (!accommodationId || !preparationBuffer) {
       continue;
     }
 
     const reservationRange = toDateOnlyRange(reservation.checkInDate, reservation.checkOutDate);
 
-    for (const bufferRange of buildPreparationBufferRanges(accommodationId, reservationRange)) {
+    for (const bufferRange of buildPreparationBufferRanges(
+      accommodationId,
+      reservationRange,
+      preparationBuffer,
+    )) {
       const exportRange = toExportRange(bufferRange, input.exportWindow);
 
       if (exportRange) {
@@ -455,7 +494,11 @@ export async function generateAirbnbIcalExportFeed(
   const propertyIdToAccommodationId = new Map(
     propertyMappings.map((mapping) => [mapping.propertyId, mapping.accommodationId]),
   );
+  const propertyIdToPreparationBuffer = new Map(
+    propertyMappings.map((mapping) => [mapping.propertyId, mapping.preparationBuffer]),
+  );
   const blockingPropertyIds = propertyMappings.map((mapping) => mapping.propertyId);
+  const reservationLookupWindow = getReservationLookupWindow(exportWindow, propertyMappings);
 
   const [reservations, calendarBlocks]: [ReservationExportRecord[], CalendarBlockExportRecord[]] =
     await Promise.all([
@@ -466,10 +509,10 @@ export async function generateAirbnbIcalExportFeed(
           },
           status: ReservationStatus.CONFIRMED,
           checkInDate: {
-            lt: dateOnlyToUtcDate(exportWindow.endDate),
+            lt: dateOnlyToUtcDate(reservationLookupWindow.endDate),
           },
           checkOutDate: {
-            gt: dateOnlyToUtcDate(exportWindow.startDate),
+            gt: dateOnlyToUtcDate(reservationLookupWindow.startDate),
           },
         },
         select: reservationExportSelect,
@@ -495,6 +538,7 @@ export async function generateAirbnbIcalExportFeed(
     ...buildReservationUnavailableRanges({
       reservations,
       propertyIdToAccommodationId,
+      propertyIdToPreparationBuffer,
       exportWindow,
     }),
     ...buildCalendarBlockUnavailableRanges({

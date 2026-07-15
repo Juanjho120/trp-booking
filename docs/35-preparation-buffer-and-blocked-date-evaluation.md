@@ -1,39 +1,35 @@
 # 35 — Preparation Buffer and Blocked-Date Evaluation
 
-This document completes Phase 6.4 and records how TRP Booking evaluates preparation buffers and blocked dates in the public availability foundation.
+This document records the Phase 6.4 preparation-buffer foundation and the later Phase 9.8 rule that supersedes its original pending-hold limitation.
 
-## Phase
+## Original Phase 6 Context
 
 ```text
 Phase: Phase 6 — Availability Calendar Foundation
-Subphase completed by this document: 6.4 Preparation buffer and blocked-date evaluation
-Next subphase: 6.5 Phase 6 documentation update
+Original subphase: 6.4 Preparation buffer and blocked-date evaluation
+Later rule update: 9.8 Automatic preparation buffers in availability
 ```
 
-## Goal
+Phase 6.4 introduced dynamic preparation buffers for confirmed reservations before the real pending-payment flow existed.
 
-Phase 6.4 strengthens the availability service after the first public calendar UI.
+Phase 9.8 updates that behavior now that active payment holds are part of the production booking flow.
 
-The goal is to make availability evaluation closer to real lodging operations without introducing booking checkout, payments, email, Airbnb iCal sync, migrations, seed data, or PMS behavior.
+## Blocking Sources
 
-## Implemented Behavior
-
-The availability service now evaluates these blocking sources:
+The availability service evaluates:
 
 ```text
 CONFIRMED direct reservations
-Active PENDING_PAYMENT holds
+Active PENDING_PAYMENT holds with expiresAt > now
 Manual calendar blocks
 Maintenance calendar blocks
-Airbnb calendar blocks when present as CalendarBlock records
-Composed listing dependency blocks when present as CalendarBlock records
+Airbnb calendar blocks
+Composed-listing dependency blocks
 Persisted preparation buffer blocks
-Derived preparation buffer blocks from confirmed reservations
+Dynamic preparation buffer ranges from blocking direct reservations
 ```
 
-## Preparation Buffer Rules
-
-TRP Booking keeps the documented buffer policies:
+## Preparation Buffer Defaults
 
 ```text
 Apartamento Blanco y Negro: 1 day before check-in and 1 day after check-out
@@ -41,99 +37,122 @@ Bungalow Refugio Perfecto: 2 days before check-in and 2 days after check-out
 Refugio Completo: 2 days before check-in and 2 days after check-out
 ```
 
-The service derives preparation buffer blocking records from confirmed reservations at read time.
+Runtime availability reads the values from:
 
-This is intentional because Phase 6 does not yet create reservations or persist automatic preparation buffer blocks.
+```text
+Property.preparationDaysBefore
+Property.preparationDaysAfter
+```
+
+## Range Convention
+
+```text
+Stay: [checkInDate, checkOutDate)
+Before buffer: [checkInDate - daysBefore, checkInDate)
+After buffer: [checkOutDate, checkOutDate + daysAfter)
+```
 
 ## Expanded Reservation Lookup Window
 
-Preparation buffers may fall outside the reservation stay range.
+Preparation buffers may overlap a requested availability range even when the reservation stay itself does not.
 
-Example:
+The service expands reservation lookup using the maximum relevant `daysBefore` and `daysAfter` values for all accommodations that can block the requested listing.
+
+This preserves buffer visibility at both sides of a requested date range.
+
+## Phase 9.8 Pending-Hold Rule
+
+The Phase 6 statement that pending holds block only their selected stay dates is superseded.
+
+The current rule is:
 
 ```text
-Reservation: July 10 to July 12
-Before check-in buffer: July 8 to July 10 for a 2-day buffer accommodation
-After check-out buffer: July 12 to July 14 for a 2-day buffer accommodation
+PENDING_PAYMENT with expiresAt > now
+-> blocks stay dates
+-> blocks preparation buffers temporarily
+
+PENDING_PAYMENT with expiresAt <= now
+-> blocks neither stay dates nor preparation buffers
+
+PENDING_PAYMENT with expiresAt = null
+-> is not a valid active hold
+-> blocks neither stay dates nor preparation buffers
+
+EXPIRED
+-> blocks neither stay dates nor preparation buffers
 ```
 
-If the public API asks only for July 8 or July 13, a simple reservation overlap query would miss the reservation because the stay itself does not overlap the requested date.
+Temporary pending buffers are calculated dynamically. They are not written to `calendar_blocks`.
 
-Phase 6.4 fixes that by expanding the reservation lookup window using the maximum preparation buffer policies for the accommodations that can block the requested listing.
+## Confirmed Reservation Rule
+
+```text
+CONFIRMED
+-> blocks stay dates
+-> blocks preparation buffers dynamically
+```
+
+Phase 9.8 does not materialize confirmed direct-reservation buffers into `calendar_blocks`. Phase 9.9 must decide the persistence or override strategy before implementing manual unlock behavior for those dynamic buffers.
 
 ## Derived vs Persisted Preparation Buffers
 
-The service follows this precedence:
+For direct reservations:
 
 ```text
-1. Persisted CalendarBlock records remain authoritative when they exist.
-2. Unlocked PREPARATION_BUFFER CalendarBlock records suppress derived buffer records for the matching range.
-3. If no persisted preparation buffer block exists for the matching range, the service derives the buffer from the confirmed reservation.
+1. A persisted PREPARATION_BUFFER linked to the same reservation remains authoritative.
+2. If that same-reservation buffer was unlocked, the dynamic equivalent is suppressed.
+3. A PREPARATION_BUFFER belonging to another reservation or an imported calendar event does not suppress the direct reservation's dynamic buffer.
+4. If no same-reservation persisted block exists, the service derives the buffer dynamically.
 ```
 
-This allows public availability to be correct now while leaving room for a later admin/reservation flow to persist real preparation buffer blocks.
+This prevents an unrelated or unlocked imported buffer from accidentally removing a direct reservation's buffer.
 
-## Pending Payment Holds
+## Composed Listing Rules
 
-Pending payment holds continue to block the selected stay dates only.
-
-They do not derive preparation buffer blocks because the operational buffer should apply to confirmed reservations and imported bookings, not abandoned payment attempts.
-
-## Blocked-Date Evaluation
-
-The service still ignores:
+The same dependency graph applies to stay and buffer ranges:
 
 ```text
-Expired PENDING_PAYMENT reservations
-Soft-deleted CalendarBlock records
-Manually unlocked PREPARATION_BUFFER CalendarBlock records
+Apartamento Blanco y Negro blocks itself and Refugio Completo.
+Bungalow Refugio Perfecto blocks itself and Refugio Completo.
+Refugio Completo blocks itself and both individual accommodations.
 ```
 
-The public availability API receives blocking records and marks unavailable days as disabled/non-selectable.
+## Airbnb iCal Export
 
-## Out of Scope
-
-Phase 6.4 intentionally does not add:
+Airbnb iCal exports include:
 
 ```text
-Reservation creation
-Pending hold creation
-Checkout
-Tilopay integration
-Resend integration
-Airbnb iCal import/export
-Database migrations
-Seed data
-Admin calendar UI
-Admin preparation buffer unlock UI
-Persistence of automatic preparation buffer blocks
-PMS features
+CONFIRMED stay ranges
+CONFIRMED preparation-buffer ranges
+Active persisted calendar blocks
 ```
 
-## Validation Checklist
+Pending payment holds remain excluded because they are short-lived payment holds.
+
+The confirmed-reservation lookup window is expanded so a buffer is exported when it intersects the export window even if the reservation stay itself is immediately outside that window.
+
+## Out of Scope for Phase 9.8
+
+```text
+Admin buffer configuration
+Manual unlock UI or new unlock actions
+Persistent direct-reservation buffer creation
+Pending-payment buffer persistence
+Email delivery
+Guest date modification
+Stay-extension workflows
+PMS behavior
+Prisma schema changes or migrations
+```
+
+## Validation
 
 Run:
 
-```bash
-npm run db:generate
-npm run build
-npm run env:validate
+```powershell
 npm run db:validate
 npm run lint
+npm run build
 ```
 
-Manual checks:
-
-```text
-Open /disponibilidad.
-Confirm the page still renders all 3 accommodations.
-Create or use a confirmed reservation in local/dev data if available.
-Check dates immediately before and after the reservation.
-Confirm preparation buffer dates are shown as unavailable.
-Confirm pending payment holds block only their stay dates.
-Confirm unlocked PREPARATION_BUFFER calendar blocks do not block availability.
-```
-
-## Completion Decision
-
-Phase 6.4 is complete when the service can show unavailable dates from confirmed reservations, active pending holds, persisted calendar blocks, and derived preparation buffers without creating reservations or introducing checkout.
+Manual checks are documented in `docs/70-automatic-preparation-buffers-in-availability.md`.

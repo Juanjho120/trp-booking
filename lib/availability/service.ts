@@ -40,6 +40,7 @@ const reservationAvailabilitySelect = {
   checkInDate: true,
   checkOutDate: true,
   status: true,
+  expiresAt: true,
 } satisfies Prisma.ReservationSelect;
 
 const calendarBlockAvailabilitySelect = {
@@ -159,6 +160,20 @@ function shouldUseCalendarBlock(calendarBlock: CalendarBlockAvailabilityRecord):
   return true;
 }
 
+function isReservationBlockingAvailability(
+  reservation: ReservationAvailabilityRecord,
+  now: Date,
+): boolean {
+  if (reservation.status === ReservationStatus.CONFIRMED) {
+    return true;
+  }
+
+  return (
+    reservation.status === ReservationStatus.PENDING_PAYMENT &&
+    Boolean(reservation.expiresAt && reservation.expiresAt > now)
+  );
+}
+
 function toReservationAvailabilityStatus(
   status: ReservationAvailabilityRecord["status"],
 ): ReservationAvailabilityStatus {
@@ -247,7 +262,7 @@ function hasPersistedPreparationBufferForRange(
       return false;
     }
 
-    if (calendarBlock.reservationId && calendarBlock.reservationId !== reservation.id) {
+    if (calendarBlock.reservationId !== reservation.id) {
       return false;
     }
 
@@ -266,10 +281,6 @@ function toDerivedPreparationBufferBlockingRecords(
   fallbackAccommodationId: AccommodationId,
   calendarBlocks: readonly CalendarBlockAvailabilityRecord[],
 ): readonly AvailabilityBlockingRecord[] {
-  if (reservation.status !== ReservationStatus.CONFIRMED) {
-    return [];
-  }
-
   const accommodationId =
     propertyIdToAccommodationId.get(reservation.propertyId) ?? fallbackAccommodationId;
   const preparationBuffer = propertyIdToPreparationBuffer.get(reservation.propertyId);
@@ -295,6 +306,7 @@ function toDerivedPreparationBufferBlockingRecords(
         bufferRange.days === 1 ? "" : "s"
       }).`,
       reservationId: reservation.id,
+      reservationStatus: toReservationAvailabilityStatus(reservation.status),
     }));
 }
 
@@ -348,16 +360,9 @@ export async function getAvailabilityBlockingRecords(
           },
           {
             status: ReservationStatus.PENDING_PAYMENT,
-            OR: [
-              {
-                expiresAt: null,
-              },
-              {
-                expiresAt: {
-                  gt: now,
-                },
-              },
-            ],
+            expiresAt: {
+              gt: now,
+            },
           },
         ],
       },
@@ -380,7 +385,11 @@ export async function getAvailabilityBlockingRecords(
     }),
   ]);
 
-  const reservationBlockingRecords = reservations
+  const blockingReservations = reservations.filter((reservation) =>
+    isReservationBlockingAvailability(reservation, now),
+  );
+
+  const reservationBlockingRecords = blockingReservations
     .filter((reservation) =>
       availabilityDateRangesOverlap(
         requestedRange,
@@ -391,7 +400,7 @@ export async function getAvailabilityBlockingRecords(
       toReservationBlockingRecord(reservation, propertyIdToAccommodationId, input.accommodationId),
     );
 
-  const derivedPreparationBufferBlockingRecords = reservations.flatMap((reservation) =>
+  const derivedPreparationBufferBlockingRecords = blockingReservations.flatMap((reservation) =>
     toDerivedPreparationBufferBlockingRecords(
       reservation,
       requestedRange,

@@ -6,10 +6,10 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 9 — Tilopay Sandbox Integration
-Current subphase: 9.8 Automatic preparation buffers in availability
+Current subphase: 9.9 Admin preparation buffer settings and manual unlock behavior
 Last updated: 2026-07-15
 Last completed phase: Phase 8 — Reservation Flow
-Last completed subphase: 9.7 Admin reservation and payment review
+Last completed subphase: 9.8 Automatic preparation buffers in availability
 ```
 
 ## Completed Work
@@ -61,11 +61,8 @@ Completed deliverables:
 
 ```text
 lib/reservations/confirmation.ts added
-lib/reservations/index.ts added
 types/reservation-confirmation.ts added
-types/tilopay-payment-result.ts updated
 lib/payments/tilopay-payment-result.ts updated
-lib/payments/index.ts updated
 app/api/payments/tilopay/redirect/route.ts updated
 docs/58-confirm-reservation-after-validated-payment.md added
 docs/10-phases.md updated
@@ -80,7 +77,7 @@ Reservation confirmation is payment-driven.
 Only APPROVED payments can confirm a reservation.
 Rejected and failed payments never confirm reservations.
 The confirmation service is idempotent.
-PENDING_PAYMENT and EXPIRED reservations can become CONFIRMED after a validated APPROVED payment.
+Only an active PENDING_PAYMENT reservation can become CONFIRMED after a validated APPROVED payment.
 Reservation.confirmedAt is set during confirmation.
 Reservation.expiresAt is cleared during confirmation.
 No Resend email is sent in 9.6.
@@ -127,7 +124,6 @@ Completed deliverables:
 ```text
 app/admin/page.tsx updated
 features/admin/components/admin-reservation-payment-review-shell.tsx added
-features/admin/admin-review-copy.ts cleared of visible copy after i18n fix
 features/admin/index.ts updated
 lib/admin/reservation-payment-review.ts added
 lib/admin/index.ts added
@@ -158,40 +154,70 @@ No Phase 10 emails are sent in 9.7.
 No PMS behavior is added.
 ```
 
-## Current Work
-
 ### Phase 9.8 — Automatic Preparation Buffers in Availability
 
-Status: **Not started**
+Status: **Completed**
+
+Completed deliverables:
+
+```text
+lib/availability/service.ts updated
+lib/airbnb-ical/export-feed.ts updated
+docs/70-automatic-preparation-buffers-in-availability.md added
+docs/35-preparation-buffer-and-blocked-date-evaluation.md updated
+docs/68-phase-9-admin-and-preparation-buffers-roadmap.md updated
+docs/10-phases.md updated
+docs/11-progress-log.md updated
+README.md updated
+```
+
+Important decisions:
+
+```text
+CONFIRMED reservations dynamically block their stay and preparation-buffer ranges.
+PENDING_PAYMENT reservations dynamically block their stay and preparation-buffer ranges only when expiresAt > now.
+PENDING_PAYMENT rows with expiresAt = null are not treated as active holds.
+EXPIRED reservations and expired pending holds do not block stay or buffer ranges.
+Preparation buffer values are read from Property.preparationDaysBefore and Property.preparationDaysAfter.
+The documented composed-listing dependency rules continue to apply.
+Direct-reservation buffers are calculated dynamically in 9.8 and are not materialized into calendar_blocks.
+Pending holds remain excluded from Airbnb iCal export because they are short-lived payment holds.
+Confirmed reservation buffers remain included in Airbnb iCal export, including export-window boundary cases.
+No Prisma schema change, migration, visible copy, admin configuration, new manual unlock behavior, email, or PMS behavior was added.
+```
+
+## Current Work
+
+### Phase 9.9 — Admin Preparation Buffer Settings and Manual Unlock Behavior
+
+Status: **In progress**
 
 Goals:
 
 ```text
-Make CONFIRMED reservations block their stay dates and preparation buffers.
-Make active PENDING_PAYMENT reservations with expiresAt > now block their stay dates and preparation buffers temporarily.
-Ensure EXPIRED reservations do not block stay dates or preparation buffers.
-Use dynamic availability calculation first instead of materializing pending-payment buffers into calendar_blocks.
-Keep admin buffer settings and manual unlock behavior for Phase 9.9.
+Decide and document whether confirmed direct-reservation buffers are materialized calendar_blocks or dynamic buffers with auditable override records.
+Add protected admin configuration for daysBefore/daysAfter per accommodation.
+Allow admin to unlock only preparation-buffer ranges without releasing the reservation stay.
+Preserve auditability and composed-listing behavior.
+Do not add guest date modification, email delivery, or PMS behavior.
 ```
 
 Expected review checklist:
 
 ```text
-- Apartamento Blanco y Negro uses the documented 1/1 buffer default.
-- Bungalow Refugio Perfecto uses the documented 2/2 buffer default.
-- Refugio Completo uses the documented 2/2 buffer default.
-- Composed-listing dependency rules still apply.
-- Expired pending holds do not affect public availability.
-- No admin buffer configuration is added in 9.8.
+- Existing defaults remain 1/1, 2/2, and 2/2 unless admin changes them.
+- Manual unlock does not release the reservation stay.
+- Unlock records remain auditable.
+- Public availability and iCal exports reflect the same effective buffer rules.
+- Admin-facing copy is centralized and localized.
 ```
 
 ## Next Recommended Work
 
 ```text
-1. Implement 9.8 Automatic preparation buffers in availability.
-2. Implement 9.9 Admin preparation buffer settings and manual unlock behavior.
-3. Close Phase 9 with 9.10 documentation update and closure.
-4. Start Phase 10 — Email Notifications.
+1. Implement 9.9 Admin preparation buffer settings and manual unlock behavior.
+2. Close Phase 9 with 9.10 documentation update and closure.
+3. Start Phase 10 — Email Notifications.
 ```
 
 ## Continuity Notes for New Conversations
@@ -205,13 +231,13 @@ AGENTS.md
 docs/10-phases.md
 docs/11-progress-log.md
 docs/32-availability-strategy-and-calendar-rules.md
-docs/56-tilopay-sdk-v2-contract-for-trp-booking.md
-docs/57-tilopay-redirect-consult-and-orderhash-validation.md
-docs/58-confirm-reservation-after-validated-payment.md
+docs/35-preparation-buffer-and-blocked-date-evaluation.md
 docs/68-phase-9-admin-and-preparation-buffers-roadmap.md
 docs/69-admin-reservation-payment-review.md
-lib/payments/tilopay-payment-result.ts
-lib/reservations/confirmation.ts
+docs/70-automatic-preparation-buffers-in-availability.md
 lib/availability/rules.ts
+lib/availability/service.ts
+lib/airbnb-ical/export-feed.ts
+lib/reservations/confirmation.ts
 prisma/schema.prisma
 ```
