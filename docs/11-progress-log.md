@@ -6,10 +6,10 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 9 — Tilopay Sandbox Integration
-Current subphase: 9.7 Phase 9 documentation update
-Last updated: 2026-07-10
+Current subphase: 9.7 Admin reservation and payment review
+Last updated: 2026-07-15
 Last completed phase: Phase 8 — Reservation Flow
-Last completed subphase: 9.6 Confirm reservation only after validated payment
+Last completed subphase: 9.6.1 Tilopay sandbox hardening, retryable payment errors, status localization, and checkout UX
 ```
 
 ## Completed Work
@@ -88,35 +88,89 @@ No Prisma schema change or migration is required in 9.6.
 No PMS behavior is added.
 ```
 
-## Current Work
+### Phase 9.6.1 — Tilopay Sandbox Hardening, Retryable Payment Errors, Status Localization, and Checkout UX
 
-### Phase 9 — Tilopay Sandbox Integration
+Status: **Completed**
 
-Status: **In progress**
-
-Current subphase:
+Completed deliverables:
 
 ```text
-9.7 Phase 9 documentation update
+Strict Tilopay OrderHash validation was hardened.
+Tilopay preflight validation was added before starting payment.
+Expired reservation confirmations were prevented.
+Tilopay SDK client failures are tracked for safe operational diagnostics.
+Retryable payment errors were mapped to safe localized issues.
+The retry page was added for retryable payment failures.
+Payment retry copy was centralized in messages/es.ts and messages/en.ts.
+Payment result labels distinguish payment status from reservation status.
+Payment and reservation statuses are localized.
+The reservation flow auto-scrolls to quote, pending reservation, and payment areas.
 ```
 
-Phase 9.7 goals:
+Important decisions:
 
 ```text
-Close Phase 9 documentation.
-Review the Tilopay sandbox integration end-to-end.
-Document manual sandbox testing.
-Document known limitations before Phase 10 emails.
+Do not show raw Tilopay provider descriptions to guests.
+Do not store card number, CVV, expiration, or tokenized card data.
+Retryable failures should preserve guest-friendly messaging while keeping operational diagnostics auditable.
+The public payment result pages should not claim success until server-side payment validation has completed.
+Payment retry and payment result copy must stay centralized in messages/es.ts and messages/en.ts.
+The UX auto-scroll improvements are visual guidance only; they do not change reservation or payment state.
+```
+
+## Current Work
+
+### Phase 9.7 — Admin Reservation and Payment Review
+
+Status: **Not started**
+
+Goals:
+
+```text
+Review the admin foundation after the public payment flow.
+Confirm what operational information is visible for direct reservations.
+Confirm what operational information is visible for payments.
+Confirm safe Tilopay diagnostics are available without exposing card data.
+Confirm admin cannot manually bypass payment-driven reservation confirmation.
+Keep Phase 9 boundaries before adding buffer behavior.
+```
+
+Expected review checklist:
+
+```text
+Reservations:
+- Reservation ID
+- Accommodation
+- Guest name/email/phone/country when available
+- Check-in and check-out dates
+- Guest count
+- Total and currency
+- Reservation.status
+- expiresAt and confirmedAt
+
+Payments:
+- Payment ID
+- providerReference/orderNumber
+- Payment.status
+- amount and currency
+- safe Tilopay diagnostic fields
+- createdAt and updatedAt
+
+Guardrails:
+- No card data
+- No raw provider errors in public UI
+- No manual confirmation path that bypasses server-side payment validation
+- No PMS behavior
 ```
 
 ## Next Recommended Work
 
 ```text
-1. Run an end-to-end Tilopay sandbox payment.
-2. Confirm Payment.status becomes APPROVED.
-3. Confirm Reservation.status becomes CONFIRMED.
-4. Confirm failed/rejected payments do not confirm reservations.
-5. Close Phase 9 documentation before starting Phase 10 emails.
+1. Complete 9.7 Admin reservation and payment review.
+2. Implement 9.8 Automatic preparation buffers in availability.
+3. Implement 9.9 Admin preparation buffer settings and manual unlock behavior.
+4. Close Phase 9 with 9.10 documentation update and closure.
+5. Start Phase 10 — Email Notifications.
 ```
 
 ## Continuity Notes for New Conversations
@@ -129,10 +183,13 @@ AGENTS.md
 .env.example
 docs/10-phases.md
 docs/11-progress-log.md
+docs/32-availability-strategy-and-calendar-rules.md
 docs/56-tilopay-sdk-v2-contract-for-trp-booking.md
 docs/57-tilopay-redirect-consult-and-orderhash-validation.md
 docs/58-confirm-reservation-after-validated-payment.md
+docs/68-phase-9-admin-and-preparation-buffers-roadmap.md
 lib/payments/tilopay-payment-result.ts
 lib/reservations/confirmation.ts
+lib/availability/rules.ts
 prisma/schema.prisma
 ```
