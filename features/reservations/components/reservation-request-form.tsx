@@ -251,6 +251,21 @@ function scrollElementToViewportCenter(element: HTMLElement | null): void {
   });
 }
 
+function scrollElementToViewportCenterImmediately(element: HTMLElement | null): void {
+  if (!element) {
+    return;
+  }
+
+  const rect = element.getBoundingClientRect();
+  const absoluteTop = rect.top + window.scrollY;
+  const centeredTop = absoluteTop - (window.innerHeight - rect.height) / 2;
+
+  window.scrollTo({
+    behavior: "smooth",
+    top: Math.max(centeredTop, 0),
+  });
+}
+
 export function ReservationRequestForm({
   accommodationId,
   maxGuests,
@@ -625,7 +640,7 @@ export function ReservationRequestForm({
       {pendingHold ? (
         <div className="scroll-mt-24" ref={paymentSectionRef}>
           <TilopaySdkCheckout
-            onPaymentFormReady={() => scrollElementToViewportCenter(paymentSectionRef.current)}
+            onPaymentFormReady={() => scrollElementToViewportCenterImmediately(paymentSectionRef.current)}
             reservationId={pendingHold.reservationId}
           />
         </div>

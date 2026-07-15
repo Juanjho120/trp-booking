@@ -1,7 +1,7 @@
 "use client";
 
 import { CreditCard, ShieldCheck } from "lucide-react";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useLayoutEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useLocale } from "@/features/i18n";
@@ -352,7 +352,7 @@ export function TilopaySdkCheckout({
   );
   const paymentFormReadyNotifiedRef = useRef(false);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (status !== "ready" || !session || paymentFormReadyNotifiedRef.current) {
       return;
     }
