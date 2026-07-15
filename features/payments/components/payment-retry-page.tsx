@@ -14,7 +14,7 @@ type PaymentRetryPageProps = Readonly<{
 
 export function PaymentRetryPage({ reservationId, paymentIssue }: PaymentRetryPageProps) {
   const { messages } = useLocale();
-  const copy = messages.payments.tilopaySdk.retryPage;
+  const copy = messages.payments.retry.page;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -23,10 +23,10 @@ export function PaymentRetryPage({ reservationId, paymentIssue }: PaymentRetryPa
         <section className="mx-auto grid max-w-2xl gap-6 rounded-[2rem] border border-primary/20 bg-card p-6 shadow-sm sm:p-8">
           <div className="grid gap-3 text-center">
             <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-              {reservationId ? copy.page.title : copy.page.missingReservationTitle}
+              {reservationId ? copy.title : copy.missingReservationTitle}
             </h1>
             <p className="text-sm leading-6 text-muted-foreground sm:text-base">
-              {reservationId ? copy.page.description : copy.page.missingReservationDescription}
+              {reservationId ? copy.description : copy.missingReservationDescription}
             </p>
           </div>
 
@@ -44,7 +44,7 @@ export function PaymentRetryPage({ reservationId, paymentIssue }: PaymentRetryPa
               <TilopaySdkCheckout initialIssue={paymentIssue} reservationId={reservationId} />
 
               <p className="text-center text-xs leading-5 text-muted-foreground">
-                {copy.page.supportNote}
+                {copy.supportNote}
               </p>
             </>
           ) : (

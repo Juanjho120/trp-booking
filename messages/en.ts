@@ -285,6 +285,7 @@ export const enMessages = {
       secureFieldsNote:
         "These fields are processed by Tilopay SDK. TRP Booking does not store card number, CVV, or expiration date.",
       paymentMethod: "Payment method",
+      paymentMethodCard: "Credit / Debit Card",
       cardNumber: "Card number",
       cardExpiration: "Expiration",
       cardCvv: "CVV",
@@ -297,14 +298,6 @@ export const enMessages = {
       sessionError: "We could not prepare the payment form. Please try again.",
       sdkError: "We could not initialize the Tilopay secure form. Please try again.",
       paymentError: "We could not send the payment to Tilopay. Review the details and try again.",
-      errors: {
-        invalidCardNumber: "Please enter a valid card number.",
-        invalidCvv: "The CVV is invalid. Review the security code and try again.",
-        insufficientFunds:
-          "The card has insufficient funds. Use another card or contact your bank.",
-        cardNotAllowed:
-          "This card cannot be used to complete the payment. Use another card or contact your bank.",
-      },
     },
     retry: {
       page: {
@@ -317,6 +310,14 @@ export const enMessages = {
         supportNote:
           "If the problem continues, contact us so we can help you complete your reservation.",
       },
+      errors: {
+        invalid_card_number: "Please enter a valid card number.",
+        invalid_cvv: "The CVV is invalid. Review the security code and try again.",
+        insufficient_funds:
+          "The card has insufficient funds. Use another card or contact your bank.",
+        card_not_allowed_sensitive:
+          "This card cannot be used to complete the payment. Use another card or contact your bank.",
+      },
     },
     result: {
       success: {
@@ -324,10 +325,15 @@ export const enMessages = {
         description:
           "Your payment was approved and the reservation was confirmed successfully.",
       },
-      cancelled: {
+      cancel: {
         title: "Payment not completed",
         description:
           "We could not complete the reservation payment. Review the information and try again.",
+      },
+      error: {
+        title: "Payment verification error",
+        description:
+          "We could not verify the payment result. Please contact us before trying again.",
       },
     },
   },

@@ -46,42 +46,34 @@ function normalizeDisplayValue(value: string | null): string | null {
   return value?.trim() ? value.trim() : null;
 }
 
-function getResultTitle(
+type PaymentResultCopy = Readonly<{
+  success: Readonly<{
+    title: string;
+    description: string;
+  }>;
+  cancel: Readonly<{
+    title: string;
+    description: string;
+  }>;
+  error: Readonly<{
+    title: string;
+    description: string;
+  }>;
+}>;
+
+function getResultCopy(
   resultType: PaymentResultType,
-  copy: Readonly<{
-    successTitle: string;
-    cancelTitle: string;
-    errorTitle: string;
-  }>,
-): string {
+  copy: PaymentResultCopy,
+): PaymentResultCopy["success"] {
   if (resultType === "success") {
-    return copy.successTitle;
+    return copy.success;
   }
 
   if (resultType === "cancel") {
-    return copy.cancelTitle;
+    return copy.cancel;
   }
 
-  return copy.errorTitle;
-}
-
-function getResultDescription(
-  resultType: PaymentResultType,
-  copy: Readonly<{
-    successDescription: string;
-    cancelDescription: string;
-    errorDescription: string;
-  }>,
-): string {
-  if (resultType === "success") {
-    return copy.successDescription;
-  }
-
-  if (resultType === "cancel") {
-    return copy.cancelDescription;
-  }
-
-  return copy.errorDescription;
+  return copy.error;
 }
 
 export function PaymentResultPage({
@@ -94,14 +86,14 @@ export function PaymentResultPage({
   code,
 }: PaymentResultPageProps) {
   const { messages } = useLocale();
-  const resultCopy = messages.payments.tilopaySdk.result;
+  const resultCopy = getResultCopy(resultType, messages.payments.result);
   const isSuccess = resultType === "success";
   const normalizedPaymentStatus = normalizeDisplayValue(paymentStatus);
   const normalizedReservationStatus = normalizeDisplayValue(reservationStatus);
   const normalizedCode = normalizeDisplayValue(code);
 
-  const title = getResultTitle(resultType, resultCopy);
-  const description = getResultDescription(resultType, resultCopy);
+  const title = resultCopy.title;
+  const description = resultCopy.description;
   const borderClassName = isSuccess ? "border-primary/20" : "border-destructive/30";
 
   return (

@@ -285,6 +285,7 @@ export const esMessages = {
       secureFieldsNote:
         "Estos campos son procesados por Tilopay SDK. TRP Booking no almacena número de tarjeta, CVV ni fecha de expiración.",
       paymentMethod: "Método de pago",
+      paymentMethodCard: "Tarjeta de crédito / débito",
       cardNumber: "Número de tarjeta",
       cardExpiration: "Vencimiento",
       cardCvv: "CVV",
@@ -297,14 +298,6 @@ export const esMessages = {
       sessionError: "No pudimos preparar el formulario de pago. Inténtalo de nuevo.",
       sdkError: "No pudimos inicializar el formulario seguro de Tilopay. Inténtalo de nuevo.",
       paymentError: "No pudimos enviar el pago a Tilopay. Revisa los datos e inténtalo de nuevo.",
-      errors: {
-        invalidCardNumber: "Ingresa un número de tarjeta válido.",
-        invalidCvv: "El CVV no es válido. Revisa el código de seguridad e inténtalo de nuevo.",
-        insufficientFunds:
-          "La tarjeta no tiene fondos suficientes. Usa otra tarjeta o contacta a tu banco.",
-        cardNotAllowed:
-          "Esta tarjeta no puede utilizarse para completar el pago. Usa otra tarjeta o contacta a tu banco.",
-      },
     },
     retry: {
       page: {
@@ -317,6 +310,14 @@ export const esMessages = {
         supportNote:
           "Si el problema continúa, contáctanos para ayudarte a completar tu reserva.",
       },
+      errors: {
+        invalid_card_number: "Ingresa un número de tarjeta válido.",
+        invalid_cvv: "El CVV no es válido. Revisa el código de seguridad e inténtalo de nuevo.",
+        insufficient_funds:
+          "La tarjeta no tiene fondos suficientes. Usa otra tarjeta o contacta a tu banco.",
+        card_not_allowed_sensitive:
+          "Esta tarjeta no puede utilizarse para completar el pago. Usa otra tarjeta o contacta a tu banco.",
+      },
     },
     result: {
       success: {
@@ -324,10 +325,15 @@ export const esMessages = {
         description:
           "Tu pago fue aprobado y la reserva quedó confirmada correctamente.",
       },
-      cancelled: {
+      cancel: {
         title: "Pago no completado",
         description:
           "No pudimos completar el pago de la reserva. Revisa la información e inténtalo nuevamente.",
+      },
+      error: {
+        title: "Error al verificar el pago",
+        description:
+          "No pudimos verificar el resultado del pago. Contáctanos antes de intentarlo nuevamente.",
       },
     },
   },

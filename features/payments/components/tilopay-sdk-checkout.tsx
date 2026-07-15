@@ -332,7 +332,7 @@ function loadTilopaySdkScript(src: string): Promise<void> {
 export function TilopaySdkCheckout({ reservationId, initialIssue = null }: TilopaySdkCheckoutProps) {
   const { locale, messages } = useLocale();
   const copy = messages.payments.tilopaySdk;
-  const retryErrors = copy.retryErrors;
+  const retryErrors = messages.payments.retry.errors;
   const [status, setStatus] = useState<CheckoutStatus>("idle");
   const [session, setSession] = useState<TilopaySdkSession | null>(null);
   const [paymentMethods, setPaymentMethods] = useState<readonly TilopaySdkPaymentMethod[]>([]);
