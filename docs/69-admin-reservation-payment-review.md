@@ -31,12 +31,11 @@ Phase 9.6.1 then hardened the sandbox payment flow with:
 
 After those changes, the admin area still only had the minimal protected shell. Phase 9.7 closes that operational visibility gap without adding actions.
 
-## What was added or updated
+## What was added
 
 ```text
 app/admin/page.tsx
 features/admin/components/admin-reservation-payment-review-shell.tsx
-features/admin/admin-review-copy.ts cleared of visible copy after i18n fix
 lib/admin/reservation-payment-review.ts
 lib/admin/index.ts
 types/admin-reservation-payment-review.ts
@@ -46,28 +45,13 @@ messages/en.ts
 
 The `/admin` route now loads a server-side review snapshot and renders it inside the protected admin page.
 
-## Copy and i18n boundary
-
-Admin-facing copy for this review must be centralized in:
-
-```text
-messages/es.ts
-messages/en.ts
-```
-
-The admin review component must read copy from:
-
-```text
-messages.admin.review
-```
-
-Feature-local visible copy files are not allowed for public or admin UI. The previous `features/admin/admin-review-copy.ts` was cleared of visible copy and kept only as a non-user-facing placeholder for ZIP copy-paste cleanup. It should not be imported by new code.
+The admin dashboard consumes `messages.admin.review` through the shared client `useLocale()` hook. The header includes the shared `LocaleSwitcher`, so the admin page can change between Spanish and English without adding feature-local copy.
 
 ## Visible information
 
 ### Reservations
 
-The admin review shows recent direct reservations with localized labels:
+The admin review shows recent direct reservations with:
 
 ```text
 Reservation ID
@@ -79,8 +63,8 @@ Guest country, when present
 Check-in date
 Check-out date
 Guest count
-Reservation.status as a localized label
-Latest payment status as a localized label
+Reservation.status, localized for admin display
+Latest payment status, localized for admin display
 Total and currency
 expiresAt
 confirmedAt
@@ -89,7 +73,7 @@ createdAt
 
 ### Payments
 
-The admin review shows recent payments with localized labels:
+The admin review shows recent payments with:
 
 ```text
 Payment ID
@@ -99,7 +83,7 @@ Guest name
 Provider
 providerReference / orderNumber
 providerTransactionId
-Payment.status as a localized label
+Payment.status, localized for admin display
 Amount and currency
 paidAt
 failedAt
@@ -124,10 +108,10 @@ This is intentionally a summary, not a raw JSON viewer.
 
 ### Tilopay SDK client events
 
-The admin review shows recent `payment_client_events` rows with localized event labels when the event type is known:
+The admin review shows recent `payment_client_events` rows with:
 
 ```text
-eventType
+eventType, localized for known SDK event types
 paymentId
 reservationId
 environment
@@ -139,6 +123,26 @@ preflightStatus
 preflightExpiresAt
 createdAt
 ```
+
+## Copy and i18n boundary
+
+Admin-facing copy must stay centralized in:
+
+```text
+messages/es.ts
+messages/en.ts
+```
+
+The admin review dashboard must not introduce feature-local visible copy files. It uses:
+
+```text
+messages.admin.review
+messages.admin.shell
+features/i18n/LocaleSwitcher
+features/i18n/use-locale.tsx
+```
+
+The dashboard may show operational data values from the database or Tilopay diagnostics, but labels, titles, notes, guardrails, empty states, and known status/event display text must remain localized.
 
 ## Security and privacy rules
 
@@ -228,13 +232,14 @@ Manual check:
 1. Sign in with an allowed admin email.
 2. Open /admin.
 3. Confirm the page loads without exposing public access.
-4. Confirm recent reservations are visible when data exists.
-5. Confirm recent payments are visible when data exists.
-6. Confirm recent SDK client events are visible when data exists.
-7. Confirm visible admin copy comes from messages/es.ts and messages/en.ts.
-8. Confirm reservation and payment statuses are localized in the admin dashboard.
-9. Confirm no card number, CVV, expiration, or tokenized card data is shown.
-10. Confirm there are no admin buttons/actions to confirm, cancel, refund, or modify reservations.
+4. Confirm the ES/EN locale switcher is visible in the admin header.
+5. Switch to EN and confirm section titles, labels, notes, guardrails, statuses, and known SDK event names change to English.
+6. Switch back to ES and confirm the same UI text returns to Spanish.
+7. Confirm recent reservations are visible when data exists.
+8. Confirm recent payments are visible when data exists.
+9. Confirm recent SDK client events are visible when data exists.
+10. Confirm no card number, CVV, expiration, or tokenized card data is shown.
+11. Confirm there are no admin buttons/actions to confirm, cancel, refund, or modify reservations.
 ```
 
 ## Next subphase

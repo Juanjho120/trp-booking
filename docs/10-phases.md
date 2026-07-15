@@ -108,10 +108,11 @@ Phase 9.7 result:
 - The protected admin page now shows read-only operational visibility for payments.
 - Safe Tilopay diagnostics are summarized without exposing card data.
 - Tilopay SDK client events are visible for operational debugging.
-- The admin page does not include actions to manually confirm, cancel, refund, or modify reservations.
-- Payment-driven confirmation remains the only confirmation path.
 - Admin review copy is centralized in messages/es.ts and messages/en.ts.
 - Reservation and payment statuses shown in admin are localized.
+- The admin dashboard uses the shared client locale switcher so ES/EN admin copy changes in place.
+- The admin page does not include actions to manually confirm, cancel, refund, or modify reservations.
+- Payment-driven confirmation remains the only confirmation path.
 - No migrations, emails, PMS behavior, or preparation-buffer changes were added.
 ```
 

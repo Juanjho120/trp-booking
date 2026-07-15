@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { signOut } from "next-auth/react";
 import type { ReactNode } from "react";
 import {
   AlertTriangle,
@@ -10,7 +13,6 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
-import { signOut } from "@/auth";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,7 +23,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { siteConfig } from "@/config/site";
-import { esMessages } from "@/messages";
+import { LocaleSwitcher, useLocale } from "@/features/i18n";
+import type { Locale } from "@/types/locale";
 import type {
   AdminPaymentClientEventSummary,
   AdminPaymentSummary,
@@ -30,8 +33,6 @@ import type {
   AdminStatusCount,
 } from "@/types/admin-reservation-payment-review";
 
-const messages = esMessages;
-const copy = messages.admin.review;
 
 type AdminReservationPaymentReviewShellProps = Readonly<{
   adminName: string;
@@ -42,35 +43,15 @@ type AdminReservationPaymentReviewShellProps = Readonly<{
 type BadgeVariant = "default" | "secondary" | "destructive" | "outline";
 type StatusDomain = "reservation" | "payment";
 
-async function signOutFromAdmin() {
-  "use server";
+type StatCardProps = Readonly<{
+  icon: typeof CalendarDays;
+  label: string;
+  value: number;
+  children?: ReactNode;
+}>;
 
-  await signOut({ redirectTo: "/" });
-}
-
-function formatDateTime(value: string | null): string {
-  if (!value) {
-    return copy.labels.unavailable;
-  }
-
-  return new Intl.DateTimeFormat("es-GT", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value));
-}
-
-function formatDate(value: string): string {
-  return new Intl.DateTimeFormat("es-GT", {
-    dateStyle: "medium",
-    timeZone: "UTC",
-  }).format(new Date(`${value}T00:00:00.000Z`));
-}
-
-function formatMoney(amount: string, currency: string): string {
-  return new Intl.NumberFormat("es-GT", {
-    style: "currency",
-    currency,
-  }).format(Number(amount));
+function getIntlLocale(locale: Locale): string {
+  return locale === "en" ? "en-US" : "es-GT";
 }
 
 function getStatusVariant(status: string | null): BadgeVariant {
@@ -93,81 +74,7 @@ function getStatusVariant(status: string | null): BadgeVariant {
   return "outline";
 }
 
-function displayValue(value: string | null | undefined): string {
-  return value?.trim() ? value : copy.labels.unavailable;
-}
-
-function translateReservationStatus(status: string | null): string {
-  if (!status) {
-    return copy.labels.unavailable;
-  }
-
-  return copy.statuses.reservation[status as keyof typeof copy.statuses.reservation] ?? status;
-}
-
-function translatePaymentStatus(status: string | null): string {
-  if (!status) {
-    return copy.labels.unavailable;
-  }
-
-  return copy.statuses.payment[status as keyof typeof copy.statuses.payment] ?? status;
-}
-
-function translateStatus(status: string | null, domain: StatusDomain): string {
-  return domain === "reservation" ? translateReservationStatus(status) : translatePaymentStatus(status);
-}
-
-function translateClientEventType(eventType: string): string {
-  return (
-    copy.statuses.paymentClientEvent[
-      eventType as keyof typeof copy.statuses.paymentClientEvent
-    ] ?? eventType
-  );
-}
-
-function StatusBadge({
-  domain,
-  status,
-}: Readonly<{
-  domain: StatusDomain;
-  status: string | null;
-}>) {
-  return <Badge variant={getStatusVariant(status)}>{translateStatus(status, domain)}</Badge>;
-}
-
-function StatusCounts({
-  counts,
-  domain,
-}: Readonly<{
-  counts: readonly AdminStatusCount[];
-  domain: StatusDomain;
-}>) {
-  if (counts.length === 0) {
-    return <p className="text-xs text-muted-foreground">{copy.labels.unavailable}</p>;
-  }
-
-  return (
-    <div className="flex flex-wrap gap-2">
-      {counts.map((item) => (
-        <Badge key={item.status} variant={getStatusVariant(item.status)}>
-          {translateStatus(item.status, domain)}: {item.count}
-        </Badge>
-      ))}
-    </div>
-  );
-}
-
-function StatCard({
-  icon: Icon,
-  label,
-  value,
-  children,
-}: Readonly<{
-  icon: typeof CalendarDays;
-  label: string;
-  value: number;
-  children?: ReactNode;
-}>) {
+function StatCard({ icon: Icon, label, value, children }: StatCardProps) {
   return (
     <Card className="border-border/70 bg-card shadow-sm">
       <CardHeader>
@@ -184,7 +91,7 @@ function StatCard({
   );
 }
 
-function InfoRow({ label, value }: Readonly<{ label: string; value: React.ReactNode }>) {
+function InfoRow({ label, value }: Readonly<{ label: string; value: ReactNode }>) {
   return (
     <div className="grid gap-1">
       <dt className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
@@ -195,155 +102,249 @@ function InfoRow({ label, value }: Readonly<{ label: string; value: React.ReactN
   );
 }
 
-function ReservationCard({ reservation }: Readonly<{ reservation: AdminReservationSummary }>) {
-  return (
-    <Card className="border-border/70 bg-card shadow-sm" size="sm">
-      <CardHeader>
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <CardTitle>{reservation.propertyName}</CardTitle>
-            <CardDescription className="mt-1 break-all">
-              {copy.labels.reservation}: {reservation.id}
-            </CardDescription>
-          </div>
-          <StatusBadge domain="reservation" status={reservation.status} />
-        </div>
-      </CardHeader>
-      <CardContent>
-        <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <InfoRow label={copy.labels.guest} value={reservation.guestName} />
-          <InfoRow label={copy.labels.guestEmail} value={reservation.guestEmail} />
-          <InfoRow label={copy.labels.guestPhone} value={displayValue(reservation.guestPhone)} />
-          <InfoRow label={copy.labels.guestCountry} value={displayValue(reservation.guestCountry)} />
-          <InfoRow
-            label={copy.labels.dates}
-            value={`${formatDate(reservation.checkInDate)} — ${formatDate(reservation.checkOutDate)}`}
-          />
-          <InfoRow label={copy.labels.guestCount} value={reservation.guestCount} />
-          <InfoRow
-            label={copy.labels.total}
-            value={formatMoney(reservation.total, reservation.currency)}
-          />
-          <InfoRow
-            label={copy.labels.latestPaymentStatus}
-            value={<StatusBadge domain="payment" status={reservation.latestPaymentStatus} />}
-          />
-          <InfoRow label={copy.labels.expiresAt} value={formatDateTime(reservation.expiresAt)} />
-          <InfoRow label={copy.labels.confirmedAt} value={formatDateTime(reservation.confirmedAt)} />
-          <InfoRow label={copy.labels.createdAt} value={formatDateTime(reservation.createdAt)} />
-        </dl>
-      </CardContent>
-    </Card>
-  );
-}
-
-function PaymentCard({ payment }: Readonly<{ payment: AdminPaymentSummary }>) {
-  const diagnostics = payment.diagnostics;
-
-  return (
-    <Card className="border-border/70 bg-card shadow-sm" size="sm">
-      <CardHeader>
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <CardTitle>{payment.propertyName}</CardTitle>
-            <CardDescription className="mt-1 break-all">
-              {copy.labels.payment}: {payment.id}
-            </CardDescription>
-          </div>
-          <StatusBadge domain="payment" status={payment.status} />
-        </div>
-      </CardHeader>
-      <CardContent>
-        <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <InfoRow label={copy.labels.reservation} value={payment.reservationId} />
-          <InfoRow label={copy.labels.guest} value={payment.guestName} />
-          <InfoRow label={copy.labels.provider} value={payment.provider} />
-          <InfoRow label={copy.labels.providerReference} value={displayValue(payment.providerReference)} />
-          <InfoRow
-            label={copy.labels.providerTransactionId}
-            value={displayValue(payment.providerTransactionId)}
-          />
-          <InfoRow label={copy.labels.total} value={formatMoney(payment.amount, payment.currency)} />
-          <InfoRow label={copy.labels.paidAt} value={formatDateTime(payment.paidAt)} />
-          <InfoRow label={copy.labels.failedAt} value={formatDateTime(payment.failedAt)} />
-          <InfoRow label={copy.labels.createdAt} value={formatDateTime(payment.createdAt)} />
-          <InfoRow label={copy.labels.updatedAt} value={formatDateTime(payment.updatedAt)} />
-        </dl>
-
-        <div className="mt-5 rounded-3xl border border-border bg-muted/30 p-4">
-          <p className="text-sm font-medium text-foreground">{copy.labels.diagnostics}</p>
-          <dl className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <InfoRow label={copy.labels.providerCode} value={displayValue(diagnostics.providerCode)} />
-            <InfoRow
-              label={copy.labels.providerMessage}
-              value={displayValue(diagnostics.providerMessage)}
-            />
-            <InfoRow label={copy.labels.authorization} value={displayValue(diagnostics.authorization)} />
-            <InfoRow label={copy.labels.providerOrder} value={displayValue(diagnostics.providerOrder)} />
-            <InfoRow
-              label={copy.labels.tilopayTransaction}
-              value={displayValue(diagnostics.tilopayTransaction)}
-            />
-            <InfoRow
-              label={copy.labels.orderHashStatus}
-              value={displayValue(diagnostics.orderHashStatus)}
-            />
-          </dl>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function ClientEventCard({ event }: Readonly<{ event: AdminPaymentClientEventSummary }>) {
-  return (
-    <Card className="border-border/70 bg-card shadow-sm" size="sm">
-      <CardHeader>
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <CardTitle>{translateClientEventType(event.eventType)}</CardTitle>
-            <CardDescription className="mt-1 break-all">
-              {copy.labels.payment}: {event.paymentId}
-            </CardDescription>
-          </div>
-          <Badge variant="outline">{formatDateTime(event.createdAt)}</Badge>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <InfoRow label={copy.labels.reservation} value={event.reservationId} />
-          <InfoRow label={copy.labels.environment} value={displayValue(event.environment)} />
-          <InfoRow label={copy.labels.locale} value={displayValue(event.locale)} />
-          <InfoRow
-            label={copy.labels.paymentMethod}
-            value={displayValue(event.paymentMethodName ?? event.paymentMethodType)}
-          />
-          <InfoRow label={copy.labels.cardBrand} value={displayValue(event.detectedCardBrand)} />
-          <InfoRow label={copy.labels.sdkMessage} value={displayValue(event.sdkMessage)} />
-          <InfoRow label={copy.labels.preflightStatus} value={displayValue(event.preflightStatus)} />
-          <InfoRow
-            label={copy.labels.preflightExpiresAt}
-            value={formatDateTime(event.preflightExpiresAt)}
-          />
-        </dl>
-      </CardContent>
-    </Card>
-  );
-}
-
-function EmptyState({ message }: Readonly<{ message: string }>) {
-  return (
-    <Card className="border-dashed border-border/70 bg-muted/20 shadow-none" size="sm">
-      <CardContent className="py-8 text-center text-sm text-muted-foreground">{message}</CardContent>
-    </Card>
-  );
-}
-
 export function AdminReservationPaymentReviewShell({
   adminName,
   adminEmail,
   review,
 }: AdminReservationPaymentReviewShellProps) {
+  const { locale, messages } = useLocale();
+  const copy = messages.admin.review;
+  const shellCopy = messages.admin.shell;
+  const intlLocale = getIntlLocale(locale);
+
+  function formatDateTime(value: string | null): string {
+    if (!value) {
+      return copy.labels.unavailable;
+    }
+
+    return new Intl.DateTimeFormat(intlLocale, {
+      dateStyle: "medium",
+      timeStyle: "short",
+    }).format(new Date(value));
+  }
+
+  function formatDate(value: string): string {
+    return new Intl.DateTimeFormat(intlLocale, {
+      dateStyle: "medium",
+      timeZone: "UTC",
+    }).format(new Date(`${value}T00:00:00.000Z`));
+  }
+
+  function formatMoney(amount: string, currency: string): string {
+    return new Intl.NumberFormat(intlLocale, {
+      style: "currency",
+      currency,
+    }).format(Number(amount));
+  }
+
+  function displayValue(value: string | null | undefined): string {
+    return value?.trim() ? value : copy.labels.unavailable;
+  }
+
+  function translateReservationStatus(status: string | null): string {
+    if (!status) {
+      return copy.labels.unavailable;
+    }
+
+    return copy.statuses.reservation[status as keyof typeof copy.statuses.reservation] ?? status;
+  }
+
+  function translatePaymentStatus(status: string | null): string {
+    if (!status) {
+      return copy.labels.unavailable;
+    }
+
+    return copy.statuses.payment[status as keyof typeof copy.statuses.payment] ?? status;
+  }
+
+  function translateStatus(status: string | null, domain: StatusDomain): string {
+    return domain === "reservation" ? translateReservationStatus(status) : translatePaymentStatus(status);
+  }
+
+  function translateClientEventType(eventType: string): string {
+    return (
+      copy.statuses.paymentClientEvent[
+        eventType as keyof typeof copy.statuses.paymentClientEvent
+      ] ?? eventType
+    );
+  }
+
+  function StatusBadge({
+    domain,
+    status,
+  }: Readonly<{
+    domain: StatusDomain;
+    status: string | null;
+  }>) {
+    return <Badge variant={getStatusVariant(status)}>{translateStatus(status, domain)}</Badge>;
+  }
+
+  function StatusCounts({
+    counts,
+    domain,
+  }: Readonly<{
+    counts: readonly AdminStatusCount[];
+    domain: StatusDomain;
+  }>) {
+    if (counts.length === 0) {
+      return <p className="text-xs text-muted-foreground">{copy.labels.unavailable}</p>;
+    }
+
+    return (
+      <div className="flex flex-wrap gap-2">
+        {counts.map((item) => (
+          <Badge key={item.status} variant={getStatusVariant(item.status)}>
+            {translateStatus(item.status, domain)}: {item.count}
+          </Badge>
+        ))}
+      </div>
+    );
+  }
+
+  function ReservationCard({ reservation }: Readonly<{ reservation: AdminReservationSummary }>) {
+    return (
+      <Card className="border-border/70 bg-card shadow-sm" size="sm">
+        <CardHeader>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <CardTitle>{reservation.propertyName}</CardTitle>
+              <CardDescription className="mt-1 break-all">
+                {copy.labels.reservation}: {reservation.id}
+              </CardDescription>
+            </div>
+            <StatusBadge domain="reservation" status={reservation.status} />
+          </div>
+        </CardHeader>
+        <CardContent>
+          <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <InfoRow label={copy.labels.guest} value={reservation.guestName} />
+            <InfoRow label={copy.labels.guestEmail} value={reservation.guestEmail} />
+            <InfoRow label={copy.labels.guestPhone} value={displayValue(reservation.guestPhone)} />
+            <InfoRow label={copy.labels.guestCountry} value={displayValue(reservation.guestCountry)} />
+            <InfoRow
+              label={copy.labels.dates}
+              value={`${formatDate(reservation.checkInDate)} — ${formatDate(reservation.checkOutDate)}`}
+            />
+            <InfoRow label={copy.labels.guestCount} value={reservation.guestCount} />
+            <InfoRow
+              label={copy.labels.total}
+              value={formatMoney(reservation.total, reservation.currency)}
+            />
+            <InfoRow
+              label={copy.labels.latestPaymentStatus}
+              value={<StatusBadge domain="payment" status={reservation.latestPaymentStatus} />}
+            />
+            <InfoRow label={copy.labels.expiresAt} value={formatDateTime(reservation.expiresAt)} />
+            <InfoRow label={copy.labels.confirmedAt} value={formatDateTime(reservation.confirmedAt)} />
+            <InfoRow label={copy.labels.createdAt} value={formatDateTime(reservation.createdAt)} />
+          </dl>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  function PaymentCard({ payment }: Readonly<{ payment: AdminPaymentSummary }>) {
+    const diagnostics = payment.diagnostics;
+
+    return (
+      <Card className="border-border/70 bg-card shadow-sm" size="sm">
+        <CardHeader>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <CardTitle>{payment.propertyName}</CardTitle>
+              <CardDescription className="mt-1 break-all">
+                {copy.labels.payment}: {payment.id}
+              </CardDescription>
+            </div>
+            <StatusBadge domain="payment" status={payment.status} />
+          </div>
+        </CardHeader>
+        <CardContent>
+          <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <InfoRow label={copy.labels.reservation} value={payment.reservationId} />
+            <InfoRow label={copy.labels.guest} value={payment.guestName} />
+            <InfoRow label={copy.labels.provider} value={payment.provider} />
+            <InfoRow label={copy.labels.providerReference} value={displayValue(payment.providerReference)} />
+            <InfoRow
+              label={copy.labels.providerTransactionId}
+              value={displayValue(payment.providerTransactionId)}
+            />
+            <InfoRow label={copy.labels.total} value={formatMoney(payment.amount, payment.currency)} />
+            <InfoRow label={copy.labels.paidAt} value={formatDateTime(payment.paidAt)} />
+            <InfoRow label={copy.labels.failedAt} value={formatDateTime(payment.failedAt)} />
+            <InfoRow label={copy.labels.createdAt} value={formatDateTime(payment.createdAt)} />
+            <InfoRow label={copy.labels.updatedAt} value={formatDateTime(payment.updatedAt)} />
+          </dl>
+
+          <div className="mt-5 rounded-3xl border border-border bg-muted/30 p-4">
+            <p className="text-sm font-medium text-foreground">{copy.labels.diagnostics}</p>
+            <dl className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <InfoRow label={copy.labels.providerCode} value={displayValue(diagnostics.providerCode)} />
+              <InfoRow
+                label={copy.labels.providerMessage}
+                value={displayValue(diagnostics.providerMessage)}
+              />
+              <InfoRow label={copy.labels.authorization} value={displayValue(diagnostics.authorization)} />
+              <InfoRow label={copy.labels.providerOrder} value={displayValue(diagnostics.providerOrder)} />
+              <InfoRow
+                label={copy.labels.tilopayTransaction}
+                value={displayValue(diagnostics.tilopayTransaction)}
+              />
+              <InfoRow
+                label={copy.labels.orderHashStatus}
+                value={displayValue(diagnostics.orderHashStatus)}
+              />
+            </dl>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  function ClientEventCard({ event }: Readonly<{ event: AdminPaymentClientEventSummary }>) {
+    return (
+      <Card className="border-border/70 bg-card shadow-sm" size="sm">
+        <CardHeader>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <CardTitle>{translateClientEventType(event.eventType)}</CardTitle>
+              <CardDescription className="mt-1 break-all">
+                {copy.labels.payment}: {event.paymentId}
+              </CardDescription>
+            </div>
+            <Badge variant="outline">{formatDateTime(event.createdAt)}</Badge>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <InfoRow label={copy.labels.reservation} value={event.reservationId} />
+            <InfoRow label={copy.labels.environment} value={displayValue(event.environment)} />
+            <InfoRow label={copy.labels.locale} value={displayValue(event.locale)} />
+            <InfoRow
+              label={copy.labels.paymentMethod}
+              value={displayValue(event.paymentMethodName ?? event.paymentMethodType)}
+            />
+            <InfoRow label={copy.labels.cardBrand} value={displayValue(event.detectedCardBrand)} />
+            <InfoRow label={copy.labels.sdkMessage} value={displayValue(event.sdkMessage)} />
+            <InfoRow label={copy.labels.preflightStatus} value={displayValue(event.preflightStatus)} />
+            <InfoRow
+              label={copy.labels.preflightExpiresAt}
+              value={formatDateTime(event.preflightExpiresAt)}
+            />
+          </dl>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  function EmptyState({ message }: Readonly<{ message: string }>) {
+    return (
+      <Card className="border-dashed border-border/70 bg-muted/20 shadow-none" size="sm">
+        <CardContent className="py-8 text-center text-sm text-muted-foreground">{message}</CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border/70 bg-background/95 backdrop-blur-xl">
@@ -354,25 +355,31 @@ export function AdminReservationPaymentReviewShell({
             </div>
             <div>
               <p className="text-sm font-semibold text-foreground">
-                {messages.admin.shell.brandLabel}
+                {shellCopy.brandLabel}
               </p>
               <p className="text-xs text-muted-foreground">{siteConfig.internalName}</p>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
+            <LocaleSwitcher />
             <Button asChild className="rounded-full" variant="outline">
               <Link href="/">
                 <Home aria-hidden="true" />
                 {copy.labels.publicSite}
               </Link>
             </Button>
-            <form action={signOutFromAdmin}>
-              <Button className="rounded-full" type="submit" variant="secondary">
-                <LogOut aria-hidden="true" />
-                {copy.labels.signOut}
-              </Button>
-            </form>
+            <Button
+              className="rounded-full"
+              onClick={() => {
+                void signOut({ redirectTo: "/" });
+              }}
+              type="button"
+              variant="secondary"
+            >
+              <LogOut aria-hidden="true" />
+              {copy.labels.signOut}
+            </Button>
           </div>
         </div>
       </header>
@@ -398,7 +405,7 @@ export function AdminReservationPaymentReviewShell({
 
               <Card className="border-border/70 bg-card/95 shadow-sm">
                 <CardHeader>
-                  <CardTitle>{messages.admin.shell.sessionCard.title}</CardTitle>
+                  <CardTitle>{shellCopy.sessionCard.title}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
@@ -411,7 +418,7 @@ export function AdminReservationPaymentReviewShell({
                     ) : null}
                   </div>
                   <div className="rounded-2xl border border-border bg-muted/35 p-4 text-sm leading-6 text-muted-foreground">
-                    {messages.admin.shell.sessionCard.protectionNote}
+                    {shellCopy.sessionCard.protectionNote}
                   </div>
                 </CardContent>
               </Card>

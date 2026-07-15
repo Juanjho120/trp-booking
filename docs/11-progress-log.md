@@ -149,6 +149,7 @@ The admin review page shows recent payments and safe Tilopay diagnostic summarie
 The admin review page shows recent Tilopay SDK client events for operational troubleshooting.
 Admin review copy is centralized in messages/es.ts and messages/en.ts.
 Reservation and payment statuses shown in admin are localized.
+The admin dashboard uses the shared LocaleSwitcher and useLocale so ES/EN copy changes in place.
 The admin review page does not include manual confirmation, cancellation, refund, date-change, calendar, or email actions.
 Payment-driven reservation confirmation remains the only confirmation path.
 No card number, CVV, expiration date, or tokenized card data is shown.
