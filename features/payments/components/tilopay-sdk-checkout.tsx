@@ -1,7 +1,7 @@
 "use client";
 
 import { CreditCard, ShieldCheck } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useLocale } from "@/features/i18n";
@@ -27,6 +27,7 @@ import type {
 type TilopaySdkCheckoutProps = Readonly<{
   reservationId: string;
   initialIssue?: TilopayRetryPaymentIssue | null;
+  onPaymentFormReady?: () => void;
 }>;
 
 type CheckoutStatus =
@@ -329,7 +330,11 @@ function loadTilopaySdkScript(src: string): Promise<void> {
   });
 }
 
-export function TilopaySdkCheckout({ reservationId, initialIssue = null }: TilopaySdkCheckoutProps) {
+export function TilopaySdkCheckout({
+  reservationId,
+  initialIssue = null,
+  onPaymentFormReady,
+}: TilopaySdkCheckoutProps) {
   const { locale, messages } = useLocale();
   const copy = messages.payments.tilopaySdk;
   const retryErrors = messages.payments.retry.errors;
@@ -345,6 +350,16 @@ export function TilopaySdkCheckout({ reservationId, initialIssue = null }: Tilop
   const [errorMessage, setErrorMessage] = useState<string | null>(
     initialIssue ? getPaymentRetryErrorMessage(retryErrors, initialIssue) : null,
   );
+  const paymentFormReadyNotifiedRef = useRef(false);
+
+  useEffect(() => {
+    if (status !== "ready" || !session || paymentFormReadyNotifiedRef.current) {
+      return;
+    }
+
+    paymentFormReadyNotifiedRef.current = true;
+    onPaymentFormReady?.();
+  }, [onPaymentFormReady, session, status]);
 
   useEffect(() => {
     if (!paymentIssue) {
@@ -376,6 +391,7 @@ export function TilopaySdkCheckout({ reservationId, initialIssue = null }: Tilop
 
   async function handlePreparePayment(): Promise<void> {
     setStatus("loading");
+    paymentFormReadyNotifiedRef.current = false;
     setCardBrand(null);
 
     if (!paymentIssue) {

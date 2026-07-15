@@ -234,15 +234,19 @@ function formatExpirationDateTime(value: string, locale: string): string {
   }).format(new Date(value));
 }
 
-function scrollElementIntoView(element: HTMLElement | null): void {
+function scrollElementToViewportCenter(element: HTMLElement | null): void {
   if (!element) {
     return;
   }
 
   window.requestAnimationFrame(() => {
-    element.scrollIntoView({
+    const rect = element.getBoundingClientRect();
+    const absoluteTop = rect.top + window.scrollY;
+    const centeredTop = absoluteTop - (window.innerHeight - rect.height) / 2;
+
+    window.scrollTo({
       behavior: "smooth",
-      block: "start",
+      top: Math.max(centeredTop, 0),
     });
   });
 }
@@ -276,6 +280,7 @@ export function ReservationRequestForm({
   const [holdErrorMessage, setHoldErrorMessage] = useState<string | null>(null);
   const quoteSummaryRef = useRef<HTMLDivElement | null>(null);
   const quoteErrorRef = useRef<HTMLParagraphElement | null>(null);
+  const pendingHoldSummaryRef = useRef<HTMLDivElement | null>(null);
   const pendingHoldErrorRef = useRef<HTMLParagraphElement | null>(null);
   const paymentSectionRef = useRef<HTMLDivElement | null>(null);
   const [visibleMonth, setVisibleMonth] = useState(() => new Date());
@@ -347,25 +352,25 @@ export function ReservationRequestForm({
 
   useEffect(() => {
     if (status === "success" && quote && !pendingHold) {
-      scrollElementIntoView(quoteSummaryRef.current);
+      scrollElementToViewportCenter(quoteSummaryRef.current);
     }
   }, [status, quote, pendingHold]);
 
   useEffect(() => {
     if (status === "error" && errorMessage) {
-      scrollElementIntoView(quoteErrorRef.current);
+      scrollElementToViewportCenter(quoteErrorRef.current);
     }
   }, [status, errorMessage]);
 
   useEffect(() => {
     if (pendingHold) {
-      scrollElementIntoView(paymentSectionRef.current);
+      scrollElementToViewportCenter(pendingHoldSummaryRef.current);
     }
   }, [pendingHold]);
 
   useEffect(() => {
     if (holdStatus === "error" && holdErrorMessage) {
-      scrollElementIntoView(pendingHoldErrorRef.current);
+      scrollElementToViewportCenter(pendingHoldErrorRef.current);
     }
   }, [holdStatus, holdErrorMessage]);
 
@@ -608,16 +613,21 @@ export function ReservationRequestForm({
       ) : null}
 
       {pendingHold ? (
-        <PendingHoldSummary
-          copy={pendingHoldCopy}
-          locale={locale}
-          pendingHold={pendingHold}
-        />
+        <div className="scroll-mt-24" ref={pendingHoldSummaryRef}>
+          <PendingHoldSummary
+            copy={pendingHoldCopy}
+            locale={locale}
+            pendingHold={pendingHold}
+          />
+        </div>
       ) : null}
 
       {pendingHold ? (
         <div className="scroll-mt-24" ref={paymentSectionRef}>
-          <TilopaySdkCheckout reservationId={pendingHold.reservationId} />
+          <TilopaySdkCheckout
+            onPaymentFormReady={() => scrollElementToViewportCenter(paymentSectionRef.current)}
+            reservationId={pendingHold.reservationId}
+          />
         </div>
       ) : null}
 
