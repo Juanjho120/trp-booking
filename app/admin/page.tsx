@@ -2,11 +2,14 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
+import { AdminReservationPaymentReviewShell } from "@/features/admin";
 import { ADMIN_ROLE } from "@/lib/auth/admin-access";
+import { getAdminReservationPaymentReview } from "@/lib/admin";
 import { esMessages } from "@/messages";
-import { MinimalAdminShell } from "@/features/admin";
 
 const messages = esMessages;
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: messages.seo.admin.title,
@@ -25,12 +28,15 @@ export default async function AdminPage() {
     redirect("/");
   }
 
+  const review = await getAdminReservationPaymentReview();
+
   return (
-    <MinimalAdminShell
+    <AdminReservationPaymentReviewShell
       adminEmail={adminUser.email ?? null}
       adminName={
         adminUser.name ?? adminUser.email ?? messages.admin.shell.fallbackUserName
       }
+      review={review}
     />
   );
 }

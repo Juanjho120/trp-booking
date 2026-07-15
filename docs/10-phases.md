@@ -15,8 +15,8 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 9 — Tilopay Sandbox Integration
-Current subphase: 9.7 Admin reservation and payment review
-Current focus: review minimal admin visibility for direct reservations, payment states, safe Tilopay diagnostics, and operational guardrails before adding preparation-buffer behavior.
+Current subphase: 9.8 Automatic preparation buffers in availability
+Current focus: make availability evaluate preparation buffers for CONFIRMED reservations and active PENDING_PAYMENT holds without adding admin buffer configuration yet.
 ```
 
 ---
@@ -59,7 +59,7 @@ Subphase status:
 9.5 Tilopay redirect, consult, and OrderHash V2 validation foundation — Completed
 9.6 Confirm reservation only after validated payment — Completed
 9.6.1 Tilopay sandbox hardening, retryable payment errors, status localization, and checkout UX — Completed
-9.7 Admin reservation and payment review — Not started
+9.7 Admin reservation and payment review — Completed
 9.8 Automatic preparation buffers in availability — Not started
 9.9 Admin preparation buffer settings and manual unlock behavior — Not started
 9.10 Phase 9 documentation update and closure — Not started
@@ -101,25 +101,16 @@ Phase 9.6.1 result:
 - This subphase still does not send Resend emails or add PMS behavior.
 ```
 
-Phase 9.7 goal:
+Phase 9.7 result:
 
 ```text
-Review the existing admin foundation for safe operational visibility into direct reservations and payments before changing buffer behavior.
-```
-
-Phase 9.7 boundaries:
-
-```text
-Allowed:
-- Show direct reservations and payment status visibility needed for support/debugging.
-- Show safe Tilopay references and operational diagnostics.
-- Preserve payment-driven confirmation as the only confirmation path.
-
-Not allowed:
-- Confirm reservations manually by bypassing payment validation.
-- Store or expose card data.
-- Add PMS behavior.
-- Send Phase 10 emails.
+- The protected admin page now shows read-only operational visibility for direct reservations.
+- The protected admin page now shows read-only operational visibility for payments.
+- Safe Tilopay diagnostics are summarized without exposing card data.
+- Tilopay SDK client events are visible for operational debugging.
+- The admin page does not include actions to manually confirm, cancel, refund, or modify reservations.
+- Payment-driven confirmation remains the only confirmation path.
+- No migrations, emails, PMS behavior, or preparation-buffer changes were added.
 ```
 
 Phase 9.8 goal:
