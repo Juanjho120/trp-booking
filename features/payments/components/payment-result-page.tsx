@@ -46,25 +46,30 @@ function normalizeDisplayValue(value: string | null): string | null {
   return value?.trim() ? value.trim() : null;
 }
 
-type PaymentResultCopy = Readonly<{
-  success: Readonly<{
-    title: string;
-    description: string;
+type PaymentResultContentCopy = Readonly<{
+  title: string;
+  description: string;
+}>;
+
+type PaymentResultMessages = Readonly<{
+  success: PaymentResultContentCopy;
+  cancel: PaymentResultContentCopy;
+  error: PaymentResultContentCopy;
+  labels: Readonly<{
+    reservationId: string;
+    paymentId: string;
+    paymentStatus: string;
+    reservationStatus: string;
+    providerCode: string;
   }>;
-  cancel: Readonly<{
-    title: string;
-    description: string;
-  }>;
-  error: Readonly<{
-    title: string;
-    description: string;
-  }>;
+  paymentStatuses: Readonly<Record<string, string>>;
+  reservationStatuses: Readonly<Record<string, string>>;
 }>;
 
 function getResultCopy(
   resultType: PaymentResultType,
-  copy: PaymentResultCopy,
-): PaymentResultCopy["success"] {
+  copy: PaymentResultMessages,
+): PaymentResultContentCopy {
   if (resultType === "success") {
     return copy.success;
   }
@@ -74,6 +79,23 @@ function getResultCopy(
   }
 
   return copy.error;
+}
+
+function normalizeStatusKey(value: string): string {
+  return value.trim().toUpperCase().replace(/[\s-]+/g, "_");
+}
+
+function translateDisplayValue(
+  value: string | null,
+  translations: Readonly<Record<string, string>>,
+): string | null {
+  const normalizedValue = normalizeDisplayValue(value);
+
+  if (!normalizedValue) {
+    return null;
+  }
+
+  return translations[normalizeStatusKey(normalizedValue)] ?? normalizedValue;
 }
 
 export function PaymentResultPage({
@@ -86,10 +108,17 @@ export function PaymentResultPage({
   code,
 }: PaymentResultPageProps) {
   const { messages } = useLocale();
-  const resultCopy = getResultCopy(resultType, messages.payments.result);
+  const resultMessages = messages.payments.result;
+  const resultCopy = getResultCopy(resultType, resultMessages);
   const isSuccess = resultType === "success";
-  const normalizedPaymentStatus = normalizeDisplayValue(paymentStatus);
-  const normalizedReservationStatus = normalizeDisplayValue(reservationStatus);
+  const normalizedPaymentStatus = translateDisplayValue(
+    paymentStatus,
+    resultMessages.paymentStatuses,
+  );
+  const normalizedReservationStatus = translateDisplayValue(
+    reservationStatus,
+    resultMessages.reservationStatuses,
+  );
   const normalizedCode = normalizeDisplayValue(code);
 
   const title = resultCopy.title;
@@ -118,7 +147,7 @@ export function PaymentResultPage({
             {reservationId ? (
               <div className="grid gap-1">
                 <dt className="font-medium text-foreground">
-                  {messages.reservations.pendingHold.reservationId}
+                  {resultMessages.labels.reservationId}
                 </dt>
                 <dd className="break-all text-muted-foreground">{reservationId}</dd>
               </div>
@@ -127,7 +156,7 @@ export function PaymentResultPage({
             {paymentId ? (
               <div className="grid gap-1">
                 <dt className="font-medium text-foreground">
-                  {messages.payments.tilopaySdk.paymentMethod}
+                  {resultMessages.labels.paymentId}
                 </dt>
                 <dd className="break-all text-muted-foreground">{paymentId}</dd>
               </div>
@@ -136,7 +165,7 @@ export function PaymentResultPage({
             {normalizedPaymentStatus ? (
               <div className="grid gap-1">
                 <dt className="font-medium text-foreground">
-                  {messages.reservations.pendingHold.status}
+                  {resultMessages.labels.paymentStatus}
                 </dt>
                 <dd className="text-muted-foreground">{normalizedPaymentStatus}</dd>
               </div>
@@ -145,7 +174,7 @@ export function PaymentResultPage({
             {normalizedReservationStatus ? (
               <div className="grid gap-1">
                 <dt className="font-medium text-foreground">
-                  {messages.reservations.pendingHold.status}
+                  {resultMessages.labels.reservationStatus}
                 </dt>
                 <dd className="text-muted-foreground">
                   {normalizedReservationStatus}
@@ -157,7 +186,7 @@ export function PaymentResultPage({
             {normalizedCode ? (
               <div className="grid gap-1">
                 <dt className="font-medium text-foreground">
-                  {messages.reservations.pendingHold.status}
+                  {resultMessages.labels.providerCode}
                 </dt>
                 <dd className="break-all text-muted-foreground">{normalizedCode}</dd>
               </div>

@@ -335,6 +335,30 @@ export const enMessages = {
         description:
           "We could not verify the payment result. Please contact us before trying again.",
       },
+      labels: {
+        reservationId: "Reservation",
+        paymentId: "Payment ID",
+        paymentStatus: "Payment status",
+        reservationStatus: "Reservation status",
+        providerCode: "Provider code",
+      },
+      paymentStatuses: {
+        PENDING: "Pending",
+        APPROVED: "Approved",
+        REJECTED: "Rejected",
+        FAILED: "Failed",
+        REFUNDED: "Refunded",
+        PARTIALLY_REFUNDED: "Partially refunded",
+      },
+      reservationStatuses: {
+        PENDING_PAYMENT: "Pending payment",
+        CONFIRMED: "Confirmed",
+        CANCELLED: "Cancelled",
+        REFUNDED: "Refunded",
+        PARTIALLY_REFUNDED: "Partially refunded",
+        EXPIRED: "Expired",
+        BLOCKED: "Blocked",
+      },
     },
   },
   admin: {

@@ -335,6 +335,30 @@ export const esMessages = {
         description:
           "No pudimos verificar el resultado del pago. Contáctanos antes de intentarlo nuevamente.",
       },
+      labels: {
+        reservationId: "Reserva",
+        paymentId: "ID de pago",
+        paymentStatus: "Estado del pago",
+        reservationStatus: "Estado de la reserva",
+        providerCode: "Código del proveedor",
+      },
+      paymentStatuses: {
+        PENDING: "Pendiente",
+        APPROVED: "Aprobado",
+        REJECTED: "Rechazado",
+        FAILED: "Fallido",
+        REFUNDED: "Reembolsado",
+        PARTIALLY_REFUNDED: "Parcialmente reembolsado",
+      },
+      reservationStatuses: {
+        PENDING_PAYMENT: "Pendiente de pago",
+        CONFIRMED: "Confirmada",
+        CANCELLED: "Cancelada",
+        REFUNDED: "Reembolsada",
+        PARTIALLY_REFUNDED: "Parcialmente reembolsada",
+        EXPIRED: "Expirada",
+        BLOCKED: "Bloqueada",
+      },
     },
   },
   admin: {

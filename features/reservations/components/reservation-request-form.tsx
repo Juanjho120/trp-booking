@@ -1,7 +1,14 @@
 "use client";
 
 import { CalendarDays, ChevronDown, Search } from "lucide-react";
-import { type ComponentType, type FormEvent, useMemo, useState, useEffect } from "react";
+import {
+  type ComponentType,
+  type FormEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { DayPicker, type DateRange } from "react-day-picker";
 import type { Country } from "react-phone-number-input";
 import flagComponents from "react-phone-number-input/flags";
@@ -227,6 +234,19 @@ function formatExpirationDateTime(value: string, locale: string): string {
   }).format(new Date(value));
 }
 
+function scrollElementIntoView(element: HTMLElement | null): void {
+  if (!element) {
+    return;
+  }
+
+  window.requestAnimationFrame(() => {
+    element.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  });
+}
+
 export function ReservationRequestForm({
   accommodationId,
   maxGuests,
@@ -254,6 +274,10 @@ export function ReservationRequestForm({
   const [holdStatus, setHoldStatus] = useState<RequestStatus>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [holdErrorMessage, setHoldErrorMessage] = useState<string | null>(null);
+  const quoteSummaryRef = useRef<HTMLDivElement | null>(null);
+  const quoteErrorRef = useRef<HTMLParagraphElement | null>(null);
+  const pendingHoldErrorRef = useRef<HTMLParagraphElement | null>(null);
+  const paymentSectionRef = useRef<HTMLDivElement | null>(null);
   const [visibleMonth, setVisibleMonth] = useState(() => new Date());
   const [blockedDates, setBlockedDates] = useState<readonly Date[]>([]);
 
@@ -320,6 +344,30 @@ export function ReservationRequestForm({
       cancelled = true;
     };
   }, [accommodationId, visibleMonth]);
+
+  useEffect(() => {
+    if (status === "success" && quote && !pendingHold) {
+      scrollElementIntoView(quoteSummaryRef.current);
+    }
+  }, [status, quote, pendingHold]);
+
+  useEffect(() => {
+    if (status === "error" && errorMessage) {
+      scrollElementIntoView(quoteErrorRef.current);
+    }
+  }, [status, errorMessage]);
+
+  useEffect(() => {
+    if (pendingHold) {
+      scrollElementIntoView(paymentSectionRef.current);
+    }
+  }, [pendingHold]);
+
+  useEffect(() => {
+    if (holdStatus === "error" && holdErrorMessage) {
+      scrollElementIntoView(pendingHoldErrorRef.current);
+    }
+  }, [holdStatus, holdErrorMessage]);
 
   async function handleQuoteRequest(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -536,15 +584,25 @@ export function ReservationRequestForm({
       </Button>
 
       {errorMessage ? (
-        <p className="rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm leading-6 text-destructive">
+        <p
+          className="scroll-mt-24 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm leading-6 text-destructive"
+          ref={quoteErrorRef}
+        >
           {errorMessage}
         </p>
       ) : null}
 
-      {quote ? <QuoteSummary quote={quote} /> : null}
+      {quote ? (
+        <div className="scroll-mt-24" ref={quoteSummaryRef}>
+          <QuoteSummary quote={quote} />
+        </div>
+      ) : null}
 
       {holdErrorMessage ? (
-        <p className="rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm leading-6 text-destructive">
+        <p
+          className="scroll-mt-24 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm leading-6 text-destructive"
+          ref={pendingHoldErrorRef}
+        >
           {holdErrorMessage}
         </p>
       ) : null}
@@ -557,7 +615,11 @@ export function ReservationRequestForm({
         />
       ) : null}
 
-      {pendingHold ? <TilopaySdkCheckout reservationId={pendingHold.reservationId} /> : null}
+      {pendingHold ? (
+        <div className="scroll-mt-24" ref={paymentSectionRef}>
+          <TilopaySdkCheckout reservationId={pendingHold.reservationId} />
+        </div>
+      ) : null}
 
       <Button
         className="w-full rounded-full"
