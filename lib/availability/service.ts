@@ -13,7 +13,6 @@ import type {
   AvailabilityCheckInput,
   AvailabilityCheckResult,
   AvailabilityDateRange,
-  PreparationBufferDateRange,
   ReservationAvailabilityStatus,
 } from "@/types/availability";
 
@@ -26,6 +25,7 @@ import {
   dateOnlyToUtcDate,
   getAffectedAccommodationIds,
   getBlockingAccommodationIds,
+  subtractAvailabilityDateRanges,
 } from "./rules";
 
 const propertyAvailabilitySelect = {
@@ -248,29 +248,20 @@ function toCalendarBlockBlockingRecord(
   };
 }
 
-function hasPersistedPreparationBufferForRange(
+function getPreparationBufferSuppressionRanges(
   reservation: ReservationAvailabilityRecord,
-  bufferRange: PreparationBufferDateRange,
   calendarBlocks: readonly CalendarBlockAvailabilityRecord[],
-): boolean {
-  return calendarBlocks.some((calendarBlock) => {
-    if (calendarBlock.propertyId !== reservation.propertyId) {
-      return false;
-    }
-
-    if (calendarBlock.source !== CalendarBlockSource.PREPARATION_BUFFER) {
-      return false;
-    }
-
-    if (calendarBlock.reservationId !== reservation.id) {
-      return false;
-    }
-
-    return availabilityDateRangesOverlap(
-      bufferRange,
+): readonly AvailabilityDateRange[] {
+  return calendarBlocks
+    .filter(
+      (calendarBlock) =>
+        calendarBlock.propertyId === reservation.propertyId &&
+        calendarBlock.source === CalendarBlockSource.PREPARATION_BUFFER &&
+        calendarBlock.reservationId === reservation.id,
+    )
+    .map((calendarBlock) =>
       toDateOnlyRange(calendarBlock.startDate, calendarBlock.endDate),
     );
-  });
 }
 
 function toDerivedPreparationBufferBlockingRecords(
@@ -290,24 +281,29 @@ function toDerivedPreparationBufferBlockingRecords(
   }
 
   const stayRange = toDateOnlyRange(reservation.checkInDate, reservation.checkOutDate);
+  const suppressionRanges = getPreparationBufferSuppressionRanges(
+    reservation,
+    calendarBlocks,
+  );
 
-  return buildPreparationBufferRanges(accommodationId, stayRange, preparationBuffer)
-    .filter((bufferRange) => availabilityDateRangesOverlap(requestedRange, bufferRange))
-    .filter(
-      (bufferRange) =>
-        !hasPersistedPreparationBufferForRange(reservation, bufferRange, calendarBlocks),
-    )
-    .map((bufferRange) => ({
-      accommodationId: bufferRange.accommodationId,
-      startDate: bufferRange.startDate,
-      endDate: bufferRange.endDate,
-      source: CalendarBlockSource.PREPARATION_BUFFER,
-      reason: `Derived ${bufferRange.kind} preparation buffer (${bufferRange.days} day${
-        bufferRange.days === 1 ? "" : "s"
-      }).`,
-      reservationId: reservation.id,
-      reservationStatus: toReservationAvailabilityStatus(reservation.status),
-    }));
+  return buildPreparationBufferRanges(accommodationId, stayRange, preparationBuffer).flatMap(
+    (bufferRange) =>
+      subtractAvailabilityDateRanges(bufferRange, suppressionRanges)
+        .filter((effectiveRange) =>
+          availabilityDateRangesOverlap(requestedRange, effectiveRange),
+        )
+        .map((effectiveRange) => ({
+          accommodationId: bufferRange.accommodationId,
+          startDate: effectiveRange.startDate,
+          endDate: effectiveRange.endDate,
+          source: CalendarBlockSource.PREPARATION_BUFFER,
+          reason: `Derived ${bufferRange.kind} preparation buffer (${bufferRange.days} day${
+            bufferRange.days === 1 ? "" : "s"
+          }).`,
+          reservationId: reservation.id,
+          reservationStatus: toReservationAvailabilityStatus(reservation.status),
+        })),
+  );
 }
 
 export async function getAvailabilityBlockingRecords(

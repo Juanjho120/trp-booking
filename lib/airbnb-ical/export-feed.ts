@@ -19,6 +19,7 @@ import {
   dateOnlyFromDate,
   dateOnlyToUtcDate,
   getBlockingAccommodationIds,
+  subtractAvailabilityDateRanges,
 } from "@/lib/availability/rules";
 import { prisma } from "@/lib/db/prisma";
 import type { AccommodationId, PreparationBufferPolicy } from "@/types/accommodation";
@@ -74,6 +75,7 @@ const reservationExportSelect = {
 const calendarBlockExportSelect = {
   id: true,
   propertyId: true,
+  reservationId: true,
   source: true,
   startDate: true,
   endDate: true,
@@ -307,9 +309,26 @@ function toExportRange(
   return clippedRange;
 }
 
+function getReservationPreparationBufferSuppressions(
+  reservation: ReservationExportRecord,
+  calendarBlocks: readonly CalendarBlockExportRecord[],
+): readonly AvailabilityDateRange[] {
+  return calendarBlocks
+    .filter(
+      (calendarBlock) =>
+        calendarBlock.propertyId === reservation.propertyId &&
+        calendarBlock.reservationId === reservation.id &&
+        calendarBlock.source === CalendarBlockSource.PREPARATION_BUFFER,
+    )
+    .map((calendarBlock) =>
+      toDateOnlyRange(calendarBlock.startDate, calendarBlock.endDate),
+    );
+}
+
 function buildReservationUnavailableRanges(
   input: Readonly<{
     reservations: readonly ReservationExportRecord[];
+    calendarBlocks: readonly CalendarBlockExportRecord[];
     propertyIdToAccommodationId: ReadonlyMap<string, AccommodationId>;
     propertyIdToPreparationBuffer: ReadonlyMap<string, PreparationBufferPolicy>;
     exportWindow: AvailabilityDateRange;
@@ -339,16 +358,25 @@ function buildReservationUnavailableRanges(
     }
 
     const reservationRange = toDateOnlyRange(reservation.checkInDate, reservation.checkOutDate);
+    const suppressionRanges = getReservationPreparationBufferSuppressions(
+      reservation,
+      input.calendarBlocks,
+    );
 
     for (const bufferRange of buildPreparationBufferRanges(
       accommodationId,
       reservationRange,
       preparationBuffer,
     )) {
-      const exportRange = toExportRange(bufferRange, input.exportWindow);
+      for (const effectiveRange of subtractAvailabilityDateRanges(
+        bufferRange,
+        suppressionRanges,
+      )) {
+        const exportRange = toExportRange(effectiveRange, input.exportWindow);
 
-      if (exportRange) {
-        ranges.push(exportRange);
+        if (exportRange) {
+          ranges.push(exportRange);
+        }
       }
     }
   }
@@ -537,6 +565,7 @@ export async function generateAirbnbIcalExportFeed(
   const unavailableRanges = normalizeUnavailableRanges([
     ...buildReservationUnavailableRanges({
       reservations,
+      calendarBlocks,
       propertyIdToAccommodationId,
       propertyIdToPreparationBuffer,
       exportWindow,

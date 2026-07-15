@@ -34,7 +34,7 @@ export const enMessages = {
     admin: {
       title: "Admin | Tu Refugio Perfecto",
       description:
-        "Minimal private panel to manage the TRP Booking authentication foundation.",
+        "Private panel to review reservations and payments and manage auditable preparation buffers.",
     },
   },
   navigation: {
@@ -425,16 +425,16 @@ export const enMessages = {
       },
     },
     review: {
-      badge: "Phase 9.7",
-      title: "Operational reservation and payment review.",
+      badge: "Phase 9.9",
+      title: "Reservation, payment, and buffer operations.",
       description:
-        "Minimal view to review direct reservations, payment states, and safe Tilopay diagnostics without adding actions that alter reservations or payments.",
+        "Protected panel to review reservations and payments and manage auditable preparation settings and overrides without releasing stays.",
       sections: {
         stats: "Operational summary",
         reservations: "Recent direct reservations",
         payments: "Recent payments",
         clientEvents: "Safe Tilopay client events",
-        guardrails: "9.7 boundaries",
+        guardrails: "Operational boundaries",
       },
       labels: {
         generatedAt: "Data generated",
@@ -511,7 +511,7 @@ export const enMessages = {
       },
       notes: {
         readOnly:
-          "This view is read-only. It does not confirm reservations, cancel reservations, process refunds, or modify calendars.",
+          "Reservation and payment sections are read-only. Buffer administration changes only preparation settings and auditable overrides.",
         paymentDrivenConfirmation:
           "The reservation remains payment-driven: only a server-side validated approved payment can confirm a reservation.",
         safeDiagnostics:
@@ -520,9 +520,82 @@ export const enMessages = {
       guardrails: [
         "Do not show or store card data.",
         "Do not add manual confirmation that bypasses server-side payment validation.",
+        "Do not release stay dates when unlocking a preparation day.",
         "Do not add PMS behavior or replace TAMIAS.",
         "Do not send Phase 10 emails from this subphase.",
       ],
+    },
+    preparationBuffers: {
+      badge: "Phase 9.9",
+      title: "Preparation settings and unlocks.",
+      description:
+        "Adjust automatic preparation days per accommodation and unlock individual days for confirmed reservations without releasing the stay.",
+      sections: {
+        settings: "Settings by accommodation",
+        unlocks: "Confirmed reservation preparation days",
+      },
+      labels: {
+        lastUpdated: "Last updated",
+        daysBefore: "Days before check-in",
+        daysAfter: "Days after check-out",
+        reservation: "Reservation",
+        guest: "Guest",
+        bufferDay: "Preparation day",
+        bufferType: "Buffer type",
+        reason: "Unlock reason",
+        unlocked: "Unlocked by administration",
+        availableByOverride: "Available by override",
+        unavailable: "Unavailable",
+      },
+      actions: {
+        saveSettings: "Save settings",
+        saving: "Saving...",
+        unlockDay: "Unlock day",
+        unlocking: "Unlocking...",
+      },
+      kinds: {
+        beforeCheckIn: "Before check-in",
+        afterCheckOut: "After check-out",
+      },
+      placeholders: {
+        reason: "Explain why this preparation day can be released.",
+      },
+      notes: {
+        settingsImpact:
+          "Changes apply dynamically to confirmed reservations and active holds. They will also be used by iCal feeds when operational configuration exists.",
+        allowedRange: "Allowed values: 0 to 30 days.",
+        unlockScope:
+          "Each unlock applies only to one preparation-buffer day for a confirmed reservation. Stay dates remain blocked.",
+        otherBlocksMayStillApply:
+          "An override removes this dynamic buffer, but the date may remain unavailable because of another reservation, an Airbnb block, maintenance, or a composed-listing dependency.",
+      },
+      empty: {
+        noConfirmedBuffers:
+          "There are no future confirmed-reservation preparation days to manage.",
+      },
+      success: {
+        settingsSaved: "Preparation settings were saved successfully.",
+        dayUnlocked: "The preparation day was unlocked successfully.",
+      },
+      errors: {
+        ADMIN_UNAUTHORIZED: "Your session is not authorized for administration.",
+        INVALID_PREPARATION_BUFFER_REQUEST:
+          "Review the preparation-day settings and try again.",
+        PREPARATION_BUFFER_PROPERTY_NOT_FOUND:
+          "We could not find the requested accommodation.",
+        PREPARATION_BUFFER_RESERVATION_NOT_FOUND:
+          "We could not find the selected reservation.",
+        PREPARATION_BUFFER_RESERVATION_NOT_CONFIRMED:
+          "Only confirmed reservation buffers can be unlocked.",
+        PREPARATION_BUFFER_DATE_IN_PAST:
+          "A past preparation day cannot be unlocked.",
+        PREPARATION_BUFFER_DATE_NOT_UNLOCKABLE:
+          "This date is no longer part of the reservation's current buffer.",
+        PREPARATION_BUFFER_REASON_REQUIRED:
+          "Enter a reason to record the unlock.",
+        PREPARATION_BUFFER_UNEXPECTED_ERROR:
+          "We could not update preparation buffers. Please try again.",
+      },
     },
   },
   errors: {

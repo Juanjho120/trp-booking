@@ -114,6 +114,52 @@ export function availabilityDateRangesOverlap(
   return firstRange.startDate < secondRange.endDate && secondRange.startDate < firstRange.endDate;
 }
 
+export function subtractAvailabilityDateRanges(
+  sourceRange: AvailabilityDateRange,
+  excludedRanges: readonly AvailabilityDateRange[],
+): readonly AvailabilityDateRange[] {
+  assertValidAvailabilityDateRange(sourceRange);
+
+  return excludedRanges.reduce<readonly AvailabilityDateRange[]>(
+    (segments, excludedRange) => {
+      assertValidAvailabilityDateRange(excludedRange);
+
+      return segments.flatMap((segment) => {
+        if (!availabilityDateRangesOverlap(segment, excludedRange)) {
+          return [segment];
+        }
+
+        const overlapStart =
+          segment.startDate > excludedRange.startDate
+            ? segment.startDate
+            : excludedRange.startDate;
+        const overlapEnd =
+          segment.endDate < excludedRange.endDate
+            ? segment.endDate
+            : excludedRange.endDate;
+        const remainingSegments: AvailabilityDateRange[] = [];
+
+        if (segment.startDate < overlapStart) {
+          remainingSegments.push({
+            startDate: segment.startDate,
+            endDate: overlapStart,
+          });
+        }
+
+        if (overlapEnd < segment.endDate) {
+          remainingSegments.push({
+            startDate: overlapEnd,
+            endDate: segment.endDate,
+          });
+        }
+
+        return remainingSegments;
+      });
+    },
+    [sourceRange],
+  );
+}
+
 export function getAffectedAccommodationIds(
   accommodationId: AccommodationId,
 ): readonly AccommodationId[] {

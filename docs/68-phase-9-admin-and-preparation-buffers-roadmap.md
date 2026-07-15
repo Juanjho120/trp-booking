@@ -2,7 +2,7 @@
 
 ## Status
 
-Roadmap updated after completing Phase 9.8.
+Roadmap updated after completing Phase 9.9.
 
 ## Purpose
 
@@ -20,8 +20,8 @@ This document defines the Phase 9 work that follows payment validation and keeps
 9.6.1 Tilopay sandbox hardening, retryable payment errors, status localization, and checkout UX — Completed
 9.7 Admin reservation and payment review — Completed
 9.8 Automatic preparation buffers in availability — Completed
-9.9 Admin preparation buffer settings and manual unlock behavior — In progress
-9.10 Phase 9 documentation update and closure — Not started
+9.9 Admin preparation buffer settings and manual unlock behavior — Completed
+9.10 Phase 9 documentation update and closure — In progress
 ```
 
 ## Phase 9.7 — Admin Reservation and Payment Review
@@ -85,7 +85,7 @@ After check-out buffer: [checkOutDate, checkOutDate + daysAfter)
 ```text
 - Dynamic availability calculation remains the Phase 9.8 strategy.
 - PENDING_PAYMENT buffers are not materialized in calendar_blocks.
-- CONFIRMED direct-reservation buffers are also left dynamic until Phase 9.9 chooses an auditable unlock strategy.
+- CONFIRMED direct-reservation buffers remain dynamic; Phase 9.9 selected auditable one-day override rows.
 - Buffer values are read from Property.preparationDaysBefore and Property.preparationDaysAfter.
 - The composed-listing dependency graph remains active.
 - Persisted PREPARATION_BUFFER rows suppress a direct dynamic buffer only when linked to the same reservation.
@@ -108,46 +108,61 @@ Prisma schema changes or migrations
 
 ## Phase 9.9 — Admin Preparation Buffer Settings and Manual Unlock Behavior
 
-### Goal
+### Result
 
-Add the admin layer that makes preparation buffers configurable and manually unlockable after the dynamic buffer rules are correct.
-
-### Scope
+Phase 9.9 selected Option B:
 
 ```text
-- Configure daysBefore/daysAfter per accommodation.
-- Keep current defaults for existing accommodations.
-- Allow admin to unlock only preparation-buffer days.
-- Do not unlock the reservation itself.
-- Preserve auditability of admin changes.
-- Keep public availability and iCal exports consistent.
+Dynamic direct-reservation buffers plus auditable override records
 ```
 
-### Default settings
+Implemented behavior:
 
 ```text
-Apartamento Blanco y Negro: before=1, after=1
-Bungalow Refugio Perfecto: before=2, after=2
-Refugio Completo: before=2, after=2
+- Admin can configure daysBefore/daysAfter per accommodation from 0 through 30.
+- Existing defaults remain 1/1, 2/2, and 2/2 until changed.
+- Confirmed direct-reservation buffers are still calculated dynamically.
+- A one-day PREPARATION_BUFFER CalendarBlock records each manual unlock.
+- The row is linked to the reservation and records admin, timestamp, and required reason.
+- Availability subtracts only the override range from the dynamic buffer.
+- The reservation stay remains blocked.
+- Composed-listing behavior remains active.
+- iCal export applies the same override subtraction when an operational feed exists.
+- Airbnb import sync reads current Property values when materializing imported preparation buffers.
+- Property changes and unlock actions create AdminAuditLog entries.
 ```
 
-### Design decision required before implementation
+### Persistence decision
 
-9.9 must explicitly decide whether confirmed direct-reservation buffers use:
+No dedicated override model was required because the existing CalendarBlock schema already contains:
 
 ```text
-Option A — materialized calendar_blocks
-- Useful for manual unlock.
-- Closer to admin calendar behavior.
-- Requires idempotent creation, update, cancellation reconciliation, and soft-unlock logic.
-
-Option B — dynamic buffers plus auditable override records
-- Avoids creating buffer rows for every reservation.
-- Requires a dedicated override model or an equivalent auditable representation.
-- Public availability and iCal export must apply the same override.
+reservationId
+isAdminOverrideAllowed
+unlockedByAdminAt
+unlockedByAdminId
+adminOverrideReason
+soft-delete fields
 ```
 
-No 9.9 implementation should begin until this decision is documented.
+The normal direct buffer is not materialized. Only the exception is persisted.
+
+### Boundaries preserved
+
+```text
+No pending-hold override rows
+No release of reservation stay dates
+No guest date changes
+No confirmation/cancellation/refund actions
+No emails
+No PMS behavior
+No external_calendars seed or real Airbnb connection
+No Prisma migration
+```
+
+### Operational iCal note
+
+The calculation path is consistent now, but the real iCal end-to-end test remains deferred because the project intentionally has no operational ExternalCalendar rows, raw export tokens, or real Airbnb import URLs yet.
 
 ## Phase 9.10 — Phase 9 Documentation Update and Closure
 
@@ -181,12 +196,13 @@ npm run lint
 npm run build
 ```
 
-Before implementing 9.9:
+Phase 9.9 implementation validation:
 
-```text
-Review admin architecture.
-Review calendar_blocks schema and existing soft-delete/unlock fields.
-Review dynamic direct-reservation buffer behavior.
-Decide between materialized blocks and dynamic auditable overrides.
-Document the decision before writing code.
+```powershell
+npm run db:generate
+npm run db:validate
+npm run lint
+npm run build
 ```
+
+Manual validation is documented in `docs/71-admin-preparation-buffer-settings-and-overrides.md`.

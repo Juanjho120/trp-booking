@@ -65,17 +65,19 @@ Completed Phase 9 work:
 9.6.1 Tilopay sandbox hardening, retryable payment errors, status localization, and checkout UX
 9.7 Admin reservation and payment review
 9.8 Automatic preparation buffers in availability
+9.9 Admin preparation buffer settings and auditable overrides
 ```
 
-Phase 9.8 added:
+Phase 9.9 added:
 
 ```text
-- Dynamic preparation buffers for CONFIRMED reservations.
-- Temporary dynamic preparation buffers for active PENDING_PAYMENT holds.
-- Strict pending-hold eligibility using expiresAt > now.
-- Continued composed-listing dependency behavior.
-- iCal export lookup coverage for confirmed buffers that intersect an export-window boundary.
-- No Prisma migration, admin buffer configuration, manual unlock UI, emails, or PMS behavior.
+- Protected admin configuration for preparation days per accommodation.
+- Dynamic direct-reservation buffers remain the source of truth.
+- One-day PREPARATION_BUFFER override rows record manual unlocks without releasing stay dates.
+- AdminAuditLog records configuration changes and day unlocks.
+- Availability and future iCal exports apply the same override subtraction.
+- Airbnb import sync reads the current Property preparation settings when it materializes imported buffers.
+- No Prisma migration, pending-hold persistence, emails, guest date changes, or PMS behavior.
 ```
 
 ## Documentation
@@ -94,13 +96,14 @@ docs/35-preparation-buffer-and-blocked-date-evaluation.md
 docs/68-phase-9-admin-and-preparation-buffers-roadmap.md
 docs/69-admin-reservation-payment-review.md
 docs/70-automatic-preparation-buffers-in-availability.md
+docs/71-admin-preparation-buffer-settings-and-overrides.md
 ```
 
 ## Development Status
 
 ```text
 Current phase: Phase 9 — Tilopay Sandbox Integration
-Current subphase: 9.9 Admin preparation buffer settings and manual unlock behavior
+Current subphase: 9.10 Phase 9 documentation update and closure
 Last completed phase: Phase 8 — Reservation Flow
-Last completed subphase: 9.8 Automatic preparation buffers in availability
+Last completed subphase: 9.9 Admin preparation buffer settings and auditable overrides
 ```

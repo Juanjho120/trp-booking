@@ -6,10 +6,10 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 9 — Tilopay Sandbox Integration
-Current subphase: 9.9 Admin preparation buffer settings and manual unlock behavior
+Current subphase: 9.10 Phase 9 documentation update and closure
 Last updated: 2026-07-15
 Last completed phase: Phase 8 — Reservation Flow
-Last completed subphase: 9.8 Automatic preparation buffers in availability
+Last completed subphase: 9.9 Admin preparation buffer settings and auditable overrides
 ```
 
 ## Completed Work
@@ -186,37 +186,72 @@ Confirmed reservation buffers remain included in Airbnb iCal export, including e
 No Prisma schema change, migration, visible copy, admin configuration, new manual unlock behavior, email, or PMS behavior was added.
 ```
 
+### Phase 9.9 — Admin Preparation Buffer Settings and Manual Unlock Behavior
+
+Status: **Completed**
+
+Completed deliverables:
+
+```text
+types/admin-preparation-buffer-management.ts added
+lib/admin/preparation-buffer-management.ts added
+lib/admin/index.ts updated
+lib/availability/rules.ts updated
+lib/availability/service.ts updated
+lib/airbnb-ical/export-feed.ts updated
+lib/airbnb-ical/sync-service.ts updated
+app/api/admin/preparation-buffers/route.ts added
+app/api/admin/preparation-buffers/unlock/route.ts added
+app/admin/page.tsx updated
+features/admin/components/admin-preparation-buffer-management.tsx added
+features/admin/components/admin-reservation-payment-review-shell.tsx updated
+features/admin/index.ts updated
+messages/es.ts updated
+messages/en.ts updated
+docs/71-admin-preparation-buffer-settings-and-overrides.md added
+docs/35-preparation-buffer-and-blocked-date-evaluation.md updated
+docs/68-phase-9-admin-and-preparation-buffers-roadmap.md updated
+docs/70-automatic-preparation-buffers-in-availability.md updated
+docs/10-phases.md updated
+docs/11-progress-log.md updated
+README.md updated
+```
+
+Important decisions:
+
+```text
+Option B was selected: direct-reservation buffers remain dynamic and admin unlocks are persisted as auditable override rows.
+A one-day PREPARATION_BUFFER CalendarBlock with unlockedByAdminAt records each override.
+The override is linked to the confirmed reservation and retains the admin user and required reason.
+Availability subtracts override ranges from the dynamic buffer instead of suppressing the complete buffer side.
+iCal export applies the same subtraction for confirmed direct reservations.
+Airbnb import sync reads current Property buffer values when creating or refreshing imported preparation blocks.
+Property preparation settings are editable from 0 through 30 and are audited through AdminAuditLog.
+Unlocking a preparation day never releases reservation stay dates.
+Pending holds remain dynamic and do not receive persisted override rows.
+No Prisma migration, Resend email, guest date modification, external-calendar operational setup, or PMS behavior was added.
+The real iCal end-to-end test remains deferred until external_calendars configuration exists.
+```
+
 ## Current Work
 
-### Phase 9.9 — Admin Preparation Buffer Settings and Manual Unlock Behavior
+### Phase 9.10 — Phase 9 Documentation Update and Closure
 
 Status: **In progress**
 
 Goals:
 
 ```text
-Decide and document whether confirmed direct-reservation buffers are materialized calendar_blocks or dynamic buffers with auditable override records.
-Add protected admin configuration for daysBefore/daysAfter per accommodation.
-Allow admin to unlock only preparation-buffer ranges without releasing the reservation stay.
-Preserve auditability and composed-listing behavior.
-Do not add guest date modification, email delivery, or PMS behavior.
-```
-
-Expected review checklist:
-
-```text
-- Existing defaults remain 1/1, 2/2, and 2/2 unless admin changes them.
-- Manual unlock does not release the reservation stay.
-- Unlock records remain auditable.
-- Public availability and iCal exports reflect the same effective buffer rules.
-- Admin-facing copy is centralized and localized.
+Review the complete Phase 9 payment, retry, admin, preparation-buffer, and audit behavior.
+Record deferred operational iCal configuration and end-to-end validation explicitly.
+Confirm Phase 10 email notifications can begin without carrying undocumented Phase 9 work.
 ```
 
 ## Next Recommended Work
 
 ```text
-1. Implement 9.9 Admin preparation buffer settings and manual unlock behavior.
-2. Close Phase 9 with 9.10 documentation update and closure.
+1. Close Phase 9 with 9.10 documentation update and closure.
+2. Record operational Airbnb iCal configuration and E2E validation as deferred production-readiness work.
 3. Start Phase 10 — Email Notifications.
 ```
 
@@ -235,9 +270,12 @@ docs/35-preparation-buffer-and-blocked-date-evaluation.md
 docs/68-phase-9-admin-and-preparation-buffers-roadmap.md
 docs/69-admin-reservation-payment-review.md
 docs/70-automatic-preparation-buffers-in-availability.md
+docs/71-admin-preparation-buffer-settings-and-overrides.md
+lib/admin/preparation-buffer-management.ts
 lib/availability/rules.ts
 lib/availability/service.ts
 lib/airbnb-ical/export-feed.ts
+lib/airbnb-ical/sync-service.ts
 lib/reservations/confirmation.ts
 prisma/schema.prisma
 ```

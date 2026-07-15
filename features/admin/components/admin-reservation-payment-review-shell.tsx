@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/card";
 import { siteConfig } from "@/config/site";
 import { LocaleSwitcher, useLocale } from "@/features/i18n";
+import type { AdminPreparationBufferManagement as AdminPreparationBufferManagementData } from "@/types/admin-preparation-buffer-management";
 import type { Locale } from "@/types/locale";
 import type {
   AdminPaymentClientEventSummary,
@@ -33,10 +34,12 @@ import type {
   AdminStatusCount,
 } from "@/types/admin-reservation-payment-review";
 
+import { AdminPreparationBufferManagement } from "./admin-preparation-buffer-management";
 
 type AdminReservationPaymentReviewShellProps = Readonly<{
   adminName: string;
   adminEmail: string | null;
+  preparationBuffers: AdminPreparationBufferManagementData;
   review: AdminReservationPaymentReview;
 }>;
 
@@ -105,6 +108,7 @@ function InfoRow({ label, value }: Readonly<{ label: string; value: ReactNode }>
 export function AdminReservationPaymentReviewShell({
   adminName,
   adminEmail,
+  preparationBuffers,
   review,
 }: AdminReservationPaymentReviewShellProps) {
   const { locale, messages } = useLocale();
@@ -451,6 +455,10 @@ export function AdminReservationPaymentReviewShell({
             </div>
           </div>
         </section>
+
+        <AdminPreparationBufferManagement
+          initialManagement={preparationBuffers}
+        />
 
         <section className="pb-12">
           <div className="mx-auto max-w-7xl space-y-6 px-6 lg:px-8">

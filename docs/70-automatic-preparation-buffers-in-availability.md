@@ -6,7 +6,7 @@
 Phase: Phase 9 — Tilopay Sandbox Integration
 Subphase: 9.8 Automatic preparation buffers in availability
 Status: Completed
-Next subphase: 9.9 Admin preparation buffer settings and manual unlock behavior
+Follow-up completed: 9.9 Admin preparation buffer settings and auditable overrides
 ```
 
 ## Goal
@@ -48,7 +48,7 @@ No pending hold creates PREPARATION_BUFFER calendar_blocks.
 No confirmed direct reservation creates PREPARATION_BUFFER calendar_blocks in 9.8.
 ```
 
-This keeps temporary holds self-expiring and avoids adding persistence or cleanup behavior before the Phase 9.9 override strategy is selected.
+This keeps temporary holds self-expiring. Phase 9.9 later selected dynamic confirmed buffers plus persisted one-day override records.
 
 ## Buffer Values
 
@@ -93,7 +93,7 @@ A persisted `PREPARATION_BUFFER` can suppress a dynamic direct-reservation buffe
 
 This prevents an imported Airbnb buffer or another reservation's buffer from suppressing an unrelated direct-reservation buffer.
 
-Existing unlocked same-reservation buffer rows remain capable of suppressing the dynamic equivalent. Phase 9.8 does not add a new unlock action or admin UI.
+Phase 9.9 refines this precedence: same-reservation persisted ranges are subtracted from the dynamic buffer. A one-day unlocked override therefore removes only the selected day instead of suppressing an entire before/after buffer side.
 
 ## Payment Handoff Compatibility
 
@@ -133,7 +133,15 @@ No feature-local copy file added
 No visible status or enum localization change required
 ```
 
-## Out of Scope
+## Phase 9.9 Follow-up
+
+The admin configuration and auditable override behavior deferred by this document is implemented in `docs/71-admin-preparation-buffer-settings-and-overrides.md`.
+
+Airbnb import sync now reads current Property preparation values when materializing imported buffer blocks.
+
+The real iCal end-to-end test remains deferred until operational external-calendar configuration exists.
+
+## Original 9.8 Out of Scope
 
 ```text
 Admin buffer configuration

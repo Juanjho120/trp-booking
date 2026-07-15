@@ -34,7 +34,7 @@ export const esMessages = {
     admin: {
       title: "Admin | Tu Refugio Perfecto",
       description:
-        "Panel privado mínimo para administrar la base de autenticación de TRP Booking.",
+        "Panel privado para revisar reservas y pagos, y administrar buffers de preparación auditables.",
     },
   },
   navigation: {
@@ -425,16 +425,16 @@ export const esMessages = {
       },
     },
     review: {
-      badge: "Fase 9.7",
-      title: "Revisión operativa de reservas y pagos.",
+      badge: "Fase 9.9",
+      title: "Operación de reservas, pagos y buffers.",
       description:
-        "Vista mínima para revisar reservas directas, estados de pago y diagnósticos seguros de Tilopay sin agregar acciones que alteren reservas o pagos.",
+        "Panel protegido para revisar reservas y pagos, y administrar configuración y overrides auditables de preparación sin liberar estadías.",
       sections: {
         stats: "Resumen operativo",
         reservations: "Reservas directas recientes",
         payments: "Pagos recientes",
         clientEvents: "Eventos seguros del cliente Tilopay",
-        guardrails: "Límites de 9.7",
+        guardrails: "Límites operativos",
       },
       labels: {
         generatedAt: "Datos generados",
@@ -511,7 +511,7 @@ export const esMessages = {
       },
       notes: {
         readOnly:
-          "Esta vista es solo lectura. No confirma reservas, no cancela reservas, no procesa reembolsos y no modifica calendarios.",
+          "Las secciones de reservas y pagos son solo lectura. La administración de buffers solo cambia días de preparación y overrides auditables.",
         paymentDrivenConfirmation:
           "La reserva se mantiene payment-driven: solo un pago aprobado validado server-side puede confirmar una reserva.",
         safeDiagnostics:
@@ -520,9 +520,82 @@ export const esMessages = {
       guardrails: [
         "No mostrar ni almacenar datos de tarjeta.",
         "No agregar confirmación manual que salte la validación server-side del pago.",
+        "No liberar las fechas de estadía al desbloquear un día de preparación.",
         "No agregar comportamiento PMS ni reemplazar TAMIAS.",
         "No enviar emails de Phase 10 desde esta subfase.",
       ],
+    },
+    preparationBuffers: {
+      badge: "Fase 9.9",
+      title: "Configuración y desbloqueo de preparación.",
+      description:
+        "Ajusta los días automáticos de preparación por alojamiento y desbloquea días específicos de reservas confirmadas sin liberar la estadía.",
+      sections: {
+        settings: "Configuración por alojamiento",
+        unlocks: "Días de preparación de reservas confirmadas",
+      },
+      labels: {
+        lastUpdated: "Última actualización",
+        daysBefore: "Días antes del check-in",
+        daysAfter: "Días después del check-out",
+        reservation: "Reserva",
+        guest: "Huésped",
+        bufferDay: "Día de preparación",
+        bufferType: "Tipo de buffer",
+        reason: "Motivo del desbloqueo",
+        unlocked: "Desbloqueado por administración",
+        availableByOverride: "Disponible por override",
+        unavailable: "No disponible",
+      },
+      actions: {
+        saveSettings: "Guardar configuración",
+        saving: "Guardando...",
+        unlockDay: "Desbloquear día",
+        unlocking: "Desbloqueando...",
+      },
+      kinds: {
+        beforeCheckIn: "Antes del check-in",
+        afterCheckOut: "Después del check-out",
+      },
+      placeholders: {
+        reason: "Describe por qué este día puede liberarse.",
+      },
+      notes: {
+        settingsImpact:
+          "Los cambios se aplican dinámicamente a reservas confirmadas y holds activos. También serán usados por los feeds iCal cuando exista configuración operativa.",
+        allowedRange: "Valores permitidos: de 0 a 30 días.",
+        unlockScope:
+          "Cada desbloqueo aplica únicamente a un día del buffer de una reserva confirmada. La estadía continúa bloqueada.",
+        otherBlocksMayStillApply:
+          "Un override elimina este buffer dinámico, pero la fecha puede seguir no disponible por otra reserva, un bloqueo de Airbnb, mantenimiento o una dependencia del alojamiento combinado.",
+      },
+      empty: {
+        noConfirmedBuffers:
+          "No hay días futuros de preparación de reservas confirmadas para administrar.",
+      },
+      success: {
+        settingsSaved: "La configuración de preparación se guardó correctamente.",
+        dayUnlocked: "El día de preparación se desbloqueó correctamente.",
+      },
+      errors: {
+        ADMIN_UNAUTHORIZED: "Tu sesión no tiene autorización administrativa.",
+        INVALID_PREPARATION_BUFFER_REQUEST:
+          "Revisa la configuración de días de preparación e inténtalo de nuevo.",
+        PREPARATION_BUFFER_PROPERTY_NOT_FOUND:
+          "No encontramos el alojamiento solicitado.",
+        PREPARATION_BUFFER_RESERVATION_NOT_FOUND:
+          "No encontramos la reserva seleccionada.",
+        PREPARATION_BUFFER_RESERVATION_NOT_CONFIRMED:
+          "Solo se pueden desbloquear buffers de reservas confirmadas.",
+        PREPARATION_BUFFER_DATE_IN_PAST:
+          "No se puede desbloquear un día de preparación que ya pasó.",
+        PREPARATION_BUFFER_DATE_NOT_UNLOCKABLE:
+          "La fecha ya no pertenece al buffer actual de esta reserva.",
+        PREPARATION_BUFFER_REASON_REQUIRED:
+          "Escribe un motivo para registrar el desbloqueo.",
+        PREPARATION_BUFFER_UNEXPECTED_ERROR:
+          "No pudimos actualizar los buffers de preparación. Inténtalo de nuevo.",
+      },
     },
   },
   errors: {

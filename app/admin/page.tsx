@@ -4,7 +4,10 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { AdminReservationPaymentReviewShell } from "@/features/admin";
 import { ADMIN_ROLE } from "@/lib/auth/admin-access";
-import { getAdminReservationPaymentReview } from "@/lib/admin";
+import {
+  getAdminPreparationBufferManagement,
+  getAdminReservationPaymentReview,
+} from "@/lib/admin";
 import { esMessages } from "@/messages";
 
 const messages = esMessages;
@@ -28,7 +31,10 @@ export default async function AdminPage() {
     redirect("/");
   }
 
-  const review = await getAdminReservationPaymentReview();
+  const [review, preparationBuffers] = await Promise.all([
+    getAdminReservationPaymentReview(),
+    getAdminPreparationBufferManagement(),
+  ]);
 
   return (
     <AdminReservationPaymentReviewShell
@@ -36,6 +42,7 @@ export default async function AdminPage() {
       adminName={
         adminUser.name ?? adminUser.email ?? messages.admin.shell.fallbackUserName
       }
+      preparationBuffers={preparationBuffers}
       review={review}
     />
   );

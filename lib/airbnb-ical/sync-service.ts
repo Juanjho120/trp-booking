@@ -17,7 +17,10 @@ import {
   getAffectedAccommodationIds,
 } from "@/lib/availability/rules";
 import { prisma } from "@/lib/db/prisma";
-import type { AccommodationId } from "@/types/accommodation";
+import type {
+  AccommodationId,
+  PreparationBufferPolicy,
+} from "@/types/accommodation";
 import type { AvailabilityDateRange } from "@/types/availability";
 
 import { parseAirbnbIcalContent } from "./parser";
@@ -30,7 +33,8 @@ import type {
 
 const DEFAULT_IMPORT_TIMEOUT_MS = 10_000;
 const AIRBNB_BLOCK_REASON = "Airbnb imported booking";
-const PREPARATION_BUFFER_REASON = "Airbnb imported booking preparation buffer";
+const PREPARATION_BUFFER_REASON =
+  "Airbnb imported booking preparation buffer";
 
 const externalCalendarImportSelect = {
   id: true,
@@ -52,6 +56,8 @@ const externalCalendarImportSelect = {
 const propertySyncSelect = {
   id: true,
   slug: true,
+  preparationDaysBefore: true,
+  preparationDaysAfter: true,
 } satisfies Prisma.PropertySelect;
 
 const externalCalendarEventSyncSelect = {
@@ -111,6 +117,7 @@ type SyncCounters = {
 type PropertyMapping = Readonly<{
   propertyId: string;
   accommodationId: AccommodationId;
+  preparationBuffer: PreparationBufferPolicy;
 }>;
 
 type EnsuredCalendarBlock = Readonly<{
@@ -149,13 +156,14 @@ function getAccommodationIdBySlug(slug: string): AccommodationId {
     "perfect-retreat-bungalow",
     "complete-retreat",
   ];
-
   const accommodation = accommodationIds
     .map((candidateId) => getAccommodationById(candidateId))
     .find((candidate) => candidate?.slug.es === slug);
 
   if (!accommodation) {
-    throw new Error(`Accommodation config not found for property slug ${slug}.`);
+    throw new Error(
+      `Accommodation config not found for property slug ${slug}.`,
+    );
   }
 
   return accommodation.id;
@@ -164,14 +172,14 @@ function getAccommodationIdBySlug(slug: string): AccommodationId {
 function toEventStatus(
   event: AirbnbIcalImportedEvent,
 ): ExternalCalendarEventStatus {
-  if (event.status === "CANCELLED") {
-    return ExternalCalendarEventStatus.CANCELLED;
-  }
-
-  return ExternalCalendarEventStatus.ACTIVE;
+  return event.status === "CANCELLED"
+    ? ExternalCalendarEventStatus.CANCELLED
+    : ExternalCalendarEventStatus.ACTIVE;
 }
 
-function toDateRange(event: AirbnbIcalImportedEvent): AvailabilityDateRange {
+function toDateRange(
+  event: AirbnbIcalImportedEvent,
+): AvailabilityDateRange {
   return {
     startDate: event.startDate,
     endDate: event.endDate,
@@ -179,7 +187,9 @@ function toDateRange(event: AirbnbIcalImportedEvent): AvailabilityDateRange {
 }
 
 function buildAirbnbBlockReason(event: AirbnbIcalImportedEvent): string {
-  return event.summary ? `${AIRBNB_BLOCK_REASON}: ${event.summary}` : AIRBNB_BLOCK_REASON;
+  return event.summary
+    ? `${AIRBNB_BLOCK_REASON}: ${event.summary}`
+    : AIRBNB_BLOCK_REASON;
 }
 
 function toSafeErrorMessage(error: unknown): string {
@@ -231,7 +241,9 @@ async function getImportCalendar(
   }
 
   if (externalCalendar.provider !== ExternalCalendarProvider.AIRBNB) {
-    throw new Error("External calendar provider is not supported for Airbnb import sync.");
+    throw new Error(
+      "External calendar provider is not supported for Airbnb import sync.",
+    );
   }
 
   if (externalCalendar.direction === ExternalCalendarDirection.EXPORT) {
@@ -263,17 +275,22 @@ async function resolvePropertyMappings(
     },
     select: propertySyncSelect,
   });
-
   const foundSlugs = new Set(properties.map((property) => property.slug));
   const missingSlugs = expectedSlugs.filter((slug) => !foundSlugs.has(slug));
 
   if (missingSlugs.length > 0) {
-    throw new Error(`Missing property records for Airbnb sync: ${missingSlugs.join(", ")}.`);
+    throw new Error(
+      `Missing property records for Airbnb sync: ${missingSlugs.join(", ")}.`,
+    );
   }
 
   return properties.map((property) => ({
     propertyId: property.id,
     accommodationId: getAccommodationIdBySlug(property.slug),
+    preparationBuffer: {
+      daysBefore: property.preparationDaysBefore,
+      daysAfter: property.preparationDaysAfter,
+    },
   }));
 }
 
@@ -290,27 +307,33 @@ async function ensureCalendarBlock(
     now: Date;
   }>,
 ): Promise<EnsuredCalendarBlock> {
-  const existingBlock: CalendarBlockSyncRecord | null = await prismaClient.calendarBlock.findFirst({
-    where: {
-      propertyId: input.propertyId,
-      externalCalendarEventId: input.eventRecordId,
-      source: input.source,
-      parentBlockId: input.parentBlockId ?? null,
-    },
-    orderBy: {
-      updatedAt: "desc",
-    },
-    select: calendarBlockSyncSelect,
-  });
+  const existingBlock: CalendarBlockSyncRecord | null =
+    await prismaClient.calendarBlock.findFirst({
+      where: {
+        propertyId: input.propertyId,
+        externalCalendarEventId: input.eventRecordId,
+        source: input.source,
+        parentBlockId: input.parentBlockId ?? null,
+        reason:
+          input.source === CalendarBlockSource.PREPARATION_BUFFER
+            ? input.reason
+            : undefined,
+      },
+      orderBy: {
+        updatedAt: "desc",
+      },
+      select: calendarBlockSyncSelect,
+    });
 
-  if (existingBlock?.source === CalendarBlockSource.PREPARATION_BUFFER) {
-    if (existingBlock.unlockedByAdminAt) {
-      return {
-        id: existingBlock.id,
-        wasCreated: false,
-        wasUpdated: false,
-      };
-    }
+  if (
+    existingBlock?.source === CalendarBlockSource.PREPARATION_BUFFER &&
+    existingBlock.unlockedByAdminAt
+  ) {
+    return {
+      id: existingBlock.id,
+      wasCreated: false,
+      wasUpdated: false,
+    };
   }
 
   if (existingBlock) {
@@ -359,7 +382,10 @@ async function ensureCalendarBlock(
   };
 }
 
-function applyBlockCounter(counters: SyncCounters, ensuredBlock: EnsuredCalendarBlock): void {
+function applyBlockCounter(
+  counters: SyncCounters,
+  ensuredBlock: EnsuredCalendarBlock,
+): void {
   if (ensuredBlock.wasCreated) {
     counters.blocksCreated += 1;
   }
@@ -384,7 +410,10 @@ async function softDeleteImportedBlocksForEvents(
         in: [...eventRecordIds],
       },
       source: {
-        in: [CalendarBlockSource.AIRBNB, CalendarBlockSource.PREPARATION_BUFFER],
+        in: [
+          CalendarBlockSource.AIRBNB,
+          CalendarBlockSource.PREPARATION_BUFFER,
+        ],
       },
       deletedAt: null,
     },
@@ -401,8 +430,7 @@ async function syncBlocksForActiveEvent(
   input: Readonly<{
     event: AirbnbIcalImportedEvent;
     eventRecord: ExternalCalendarEventSyncRecord;
-    sourcePropertyId: string;
-    sourceAccommodationId: AccommodationId;
+    sourcePropertyMapping: PropertyMapping;
     affectedPropertyMappings: readonly PropertyMapping[];
     counters: SyncCounters;
     now: Date;
@@ -423,18 +451,28 @@ async function syncBlocksForActiveEvent(
 
     applyBlockCounter(input.counters, airbnbBlock);
 
-    if (mapping.propertyId === input.sourcePropertyId) {
+    if (mapping.propertyId === input.sourcePropertyMapping.propertyId) {
       sourceAirbnbBlockId = airbnbBlock.id;
     }
   }
 
   if (!sourceAirbnbBlockId) {
-    throw new Error("Source Airbnb calendar block was not created for preparation buffers.");
+    throw new Error(
+      "Source Airbnb calendar block was not created for preparation buffers.",
+    );
   }
 
-  for (const bufferRange of buildPreparationBufferRanges(input.sourceAccommodationId, eventRange)) {
+  const bufferRanges = buildPreparationBufferRanges(
+    input.sourcePropertyMapping.accommodationId,
+    eventRange,
+    input.sourcePropertyMapping.preparationBuffer,
+  );
+
+  const desiredPreparationBufferIds: string[] = [];
+
+  for (const bufferRange of bufferRanges) {
     const preparationBufferBlock = await ensureCalendarBlock(prismaClient, {
-      propertyId: input.sourcePropertyId,
+      propertyId: input.sourcePropertyMapping.propertyId,
       eventRecordId: input.eventRecord.id,
       source: CalendarBlockSource.PREPARATION_BUFFER,
       range: bufferRange,
@@ -444,8 +482,30 @@ async function syncBlocksForActiveEvent(
       now: input.now,
     });
 
+    desiredPreparationBufferIds.push(preparationBufferBlock.id);
     applyBlockCounter(input.counters, preparationBufferBlock);
   }
+
+  const obsoleteBufferResult = await prismaClient.calendarBlock.updateMany({
+    where: {
+      propertyId: input.sourcePropertyMapping.propertyId,
+      externalCalendarEventId: input.eventRecord.id,
+      parentBlockId: sourceAirbnbBlockId,
+      source: CalendarBlockSource.PREPARATION_BUFFER,
+      deletedAt: null,
+      id:
+        desiredPreparationBufferIds.length > 0
+          ? {
+              notIn: desiredPreparationBufferIds,
+            }
+          : undefined,
+    },
+    data: {
+      deletedAt: input.now,
+    },
+  });
+
+  input.counters.blocksUpdated += obsoleteBufferResult.count;
 }
 
 async function upsertImportedEvent(
@@ -470,7 +530,10 @@ async function upsertImportedEvent(
         startDate: dateOnlyToUtcDate(input.event.startDate),
         endDate: dateOnlyToUtcDate(input.event.endDate),
         lastSeenAt: input.now,
-        removedAt: eventStatus === ExternalCalendarEventStatus.ACTIVE ? null : input.now,
+        removedAt:
+          eventStatus === ExternalCalendarEventStatus.ACTIVE
+            ? null
+            : input.now,
       },
       select: externalCalendarEventSyncSelect,
     });
@@ -486,7 +549,8 @@ async function upsertImportedEvent(
       endDate: dateOnlyToUtcDate(input.event.endDate),
       firstSeenAt: input.now,
       lastSeenAt: input.now,
-      removedAt: eventStatus === ExternalCalendarEventStatus.ACTIVE ? null : input.now,
+      removedAt:
+        eventStatus === ExternalCalendarEventStatus.ACTIVE ? null : input.now,
     },
     select: externalCalendarEventSyncSelect,
   });
@@ -509,8 +573,12 @@ async function reconcileImportedEvents(
     blocksCreated: 0,
     blocksUpdated: 0,
   };
-  const sourceAccommodationId = getAccommodationIdBySlug(input.calendar.property.slug);
-  const affectedAccommodationIds = getAffectedAccommodationIds(sourceAccommodationId);
+  const sourceAccommodationId = getAccommodationIdBySlug(
+    input.calendar.property.slug,
+  );
+  const affectedAccommodationIds = getAffectedAccommodationIds(
+    sourceAccommodationId,
+  );
   const affectedPropertyMappings = await resolvePropertyMappings(
     prismaClient,
     affectedAccommodationIds,
@@ -520,7 +588,9 @@ async function reconcileImportedEvents(
   );
 
   if (!sourcePropertyMapping) {
-    throw new Error("Source property mapping was not found for Airbnb import sync.");
+    throw new Error(
+      "Source property mapping was not found for Airbnb import sync.",
+    );
   }
 
   const existingEvents: ExternalCalendarEventSyncRecord[] =
@@ -531,9 +601,14 @@ async function reconcileImportedEvents(
       select: externalCalendarEventSyncSelect,
     });
   const existingEventsByUid = new Map(
-    existingEvents.map((eventRecord) => [eventRecord.providerEventUid, eventRecord]),
+    existingEvents.map((eventRecord) => [
+      eventRecord.providerEventUid,
+      eventRecord,
+    ]),
   );
-  const parsedEventUids = new Set(input.events.map((event) => event.providerEventUid));
+  const parsedEventUids = new Set(
+    input.events.map((event) => event.providerEventUid),
+  );
 
   for (const event of input.events) {
     const existingEvent = existingEventsByUid.get(event.providerEventUid);
@@ -554,8 +629,7 @@ async function reconcileImportedEvents(
       await syncBlocksForActiveEvent(prismaClient, {
         event,
         eventRecord,
-        sourcePropertyId: sourcePropertyMapping.propertyId,
-        sourceAccommodationId,
+        sourcePropertyMapping,
         affectedPropertyMappings,
         counters,
         now: input.now,
@@ -608,7 +682,10 @@ export async function syncAirbnbIcalImport(
   const now = options.now ?? new Date();
   const timeoutMs = input.timeoutMs ?? DEFAULT_IMPORT_TIMEOUT_MS;
   const fetchIcalText = options.fetchIcalText ?? defaultFetchIcalText;
-  const calendar = await getImportCalendar(prismaClient, input.externalCalendarId);
+  const calendar = await getImportCalendar(
+    prismaClient,
+    input.externalCalendarId,
+  );
   const syncLog = await prismaClient.externalCalendarSyncLog.create({
     data: {
       externalCalendarId: calendar.id,
@@ -643,7 +720,9 @@ export async function syncAirbnbIcalImport(
     });
     const finishedAt = new Date();
     const status =
-      counters.eventsSkipped > 0 ? CalendarSyncStatus.PARTIAL_SUCCESS : CalendarSyncStatus.SUCCESS;
+      counters.eventsSkipped > 0
+        ? CalendarSyncStatus.PARTIAL_SUCCESS
+        : CalendarSyncStatus.SUCCESS;
 
     await prismaClient.externalCalendarSyncLog.update({
       where: {
@@ -689,7 +768,8 @@ export async function syncAirbnbIcalImport(
       data: {
         status: CalendarSyncStatus.FAILED,
         finishedAt,
-        errorCode: error instanceof Error ? error.name : "ICAL_IMPORT_ERROR",
+        errorCode:
+          error instanceof Error ? error.name : "ICAL_IMPORT_ERROR",
         errorMessage,
       },
     });
@@ -700,7 +780,8 @@ export async function syncAirbnbIcalImport(
       },
       data: {
         lastImportFinishedAt: finishedAt,
-        lastFailureCode: error instanceof Error ? error.name : "ICAL_IMPORT_ERROR",
+        lastFailureCode:
+          error instanceof Error ? error.name : "ICAL_IMPORT_ERROR",
         lastFailureMessage: errorMessage,
         status: ExternalCalendarStatus.ERROR,
       },

@@ -1,13 +1,13 @@
 # 35 — Preparation Buffer and Blocked-Date Evaluation
 
-This document records the Phase 6.4 preparation-buffer foundation and the later Phase 9.8 rule that supersedes its original pending-hold limitation.
+This document records the Phase 6.4 preparation-buffer foundation, the Phase 9.8 pending-hold update, and the Phase 9.9 auditable override strategy.
 
 ## Original Phase 6 Context
 
 ```text
 Phase: Phase 6 — Availability Calendar Foundation
 Original subphase: 6.4 Preparation buffer and blocked-date evaluation
-Later rule update: 9.8 Automatic preparation buffers in availability
+Later rule updates: 9.8 Automatic preparation buffers in availability; 9.9 Admin settings and auditable overrides
 ```
 
 Phase 6.4 introduced dynamic preparation buffers for confirmed reservations before the real pending-payment flow existed.
@@ -92,17 +92,18 @@ CONFIRMED
 -> blocks preparation buffers dynamically
 ```
 
-Phase 9.8 does not materialize confirmed direct-reservation buffers into `calendar_blocks`. Phase 9.9 must decide the persistence or override strategy before implementing manual unlock behavior for those dynamic buffers.
+Phase 9.9 keeps confirmed direct-reservation buffers dynamic. A manually unlocked day is persisted as a one-day, same-reservation `PREPARATION_BUFFER` CalendarBlock with unlock audit fields populated.
 
 ## Derived vs Persisted Preparation Buffers
 
 For direct reservations:
 
 ```text
-1. A persisted PREPARATION_BUFFER linked to the same reservation remains authoritative.
-2. If that same-reservation buffer was unlocked, the dynamic equivalent is suppressed.
-3. A PREPARATION_BUFFER belonging to another reservation or an imported calendar event does not suppress the direct reservation's dynamic buffer.
-4. If no same-reservation persisted block exists, the service derives the buffer dynamically.
+1. The service derives the complete buffer from the current Property settings.
+2. Same-reservation PREPARATION_BUFFER ranges are subtracted from that dynamic buffer.
+3. An unlocked one-day override therefore removes only that day, not the complete before/after side.
+4. Active same-reservation persisted buffer ranges remain authoritative blockers and suppress the overlapping dynamic portion to avoid duplication.
+5. A PREPARATION_BUFFER belonging to another reservation or an imported calendar event does not suppress this direct reservation's dynamic buffer.
 ```
 
 This prevents an unrelated or unlocked imported buffer from accidentally removing a direct reservation's buffer.
@@ -129,15 +130,31 @@ Active persisted calendar blocks
 
 Pending payment holds remain excluded because they are short-lived payment holds.
 
-The confirmed-reservation lookup window is expanded so a buffer is exported when it intersects the export window even if the reservation stay itself is immediately outside that window.
+Confirmed direct-reservation exports subtract the same auditable override ranges used by public availability. The confirmed-reservation lookup window is expanded so a buffer is exported when it intersects the export window even if the reservation stay itself is immediately outside that window.
 
-## Out of Scope for Phase 9.8
+Airbnb import sync also reads the current Property preparation values when it creates or refreshes imported buffer blocks.
+
+The real iCal end-to-end test remains deferred until an operational ExternalCalendar configuration exists.
+
+## Phase 9.9 Admin Overrides
 
 ```text
-Admin buffer configuration
-Manual unlock UI or new unlock actions
-Persistent direct-reservation buffer creation
+Configuration changes update Property.preparationDaysBefore/After.
+One-day unlocks are allowed only for future buffer days of CONFIRMED reservations.
+Each unlock requires a reason and records the authenticated admin and timestamp.
+AdminAuditLog records settings changes and unlock actions.
+The reservation stay is never released by a buffer override.
+```
+
+See `docs/71-admin-preparation-buffer-settings-and-overrides.md` for the complete contract.
+
+## Out of Scope After Phase 9.9
+
+```text
+Materializing every direct-reservation buffer
 Pending-payment buffer persistence
+Relocking/undo workflow beyond preserving audit history
+Operational external-calendar setup and real Airbnb E2E validation
 Email delivery
 Guest date modification
 Stay-extension workflows

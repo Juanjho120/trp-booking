@@ -15,8 +15,8 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 9 — Tilopay Sandbox Integration
-Current subphase: 9.9 Admin preparation buffer settings and manual unlock behavior
-Current focus: decide and implement auditable admin buffer configuration and manual unlock behavior after dynamic availability buffers were completed in 9.8.
+Current subphase: 9.10 Phase 9 documentation update and closure
+Current focus: close Phase 9 after admin review, dynamic preparation buffers, and auditable admin override behavior were implemented.
 ```
 
 ---
@@ -61,8 +61,8 @@ Subphase status:
 9.6.1 Tilopay sandbox hardening, retryable payment errors, status localization, and checkout UX — Completed
 9.7 Admin reservation and payment review — Completed
 9.8 Automatic preparation buffers in availability — Completed
-9.9 Admin preparation buffer settings and manual unlock behavior — In progress
-9.10 Phase 9 documentation update and closure — Not started
+9.9 Admin preparation buffer settings and manual unlock behavior — Completed
+9.10 Phase 9 documentation update and closure — In progress
 ```
 
 Phase 9 rules:
@@ -140,14 +140,19 @@ Phase 9.9 goal:
 Add the admin layer that makes preparation buffers configurable and manually unlockable after the dynamic buffer rules are correct.
 ```
 
-Phase 9.9 boundaries:
+Phase 9.9 result:
 
 ```text
-- Configure daysBefore/daysAfter per accommodation.
-- Keep current defaults: 1/1 for Apartamento Blanco y Negro, 2/2 for Bungalow Refugio Perfecto, 2/2 for Refugio Completo.
-- Allow manual unlock of preparation-buffer days without releasing the reservation itself.
-- Preserve auditability.
-- Decide and document whether confirmed buffers become calendar_blocks or whether unlocks are stored as overrides.
+- Option B was selected: dynamic direct-reservation buffers plus auditable override records.
+- Admin can configure Property.preparationDaysBefore and Property.preparationDaysAfter from 0 through 30.
+- Current defaults remain 1/1, 2/2, and 2/2 until changed by admin.
+- A one-day unlocked PREPARATION_BUFFER CalendarBlock records the reservation, date, admin, timestamp, and reason.
+- Partial overrides subtract only the selected day from the dynamic buffer.
+- Reservation stay dates remain blocked.
+- AdminAuditLog records configuration changes and unlock actions.
+- Public availability and iCal export use the same effective-buffer subtraction.
+- Airbnb import sync reads current Property buffer values when it creates or refreshes imported preparation blocks.
+- No Prisma migration, email, guest date modification, pending-buffer persistence, or PMS behavior was added.
 ```
 
 Phase 9.10 goal:
