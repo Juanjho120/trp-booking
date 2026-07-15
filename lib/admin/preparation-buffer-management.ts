@@ -252,8 +252,10 @@ export async function getAdminPreparationBufferManagement(
     },
     select: propertyManagementSelect,
   });
-  const propertyOrder = new Map(
-    SUPPORTED_ACCOMMODATION_IDS.map((propertyId, index) => [propertyId, index]),
+  const propertyOrder = new Map<string, number>(
+    SUPPORTED_ACCOMMODATION_IDS.map(
+      (propertyId, index) => [propertyId, index] as const,
+    ),
   );
   const orderedProperties = [...properties].sort(
     (left, right) =>
