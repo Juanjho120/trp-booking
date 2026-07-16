@@ -6,8 +6,8 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 9 — Tilopay Sandbox Integration
-Current subphase: 9.10 Phase 9 documentation update and closure
-Last updated: 2026-07-15
+Current subphase: 9.9.1 Admin navigation and property calendar operations
+Last updated: 2026-07-16
 Last completed phase: Phase 8 — Reservation Flow
 Last completed subphase: 9.9 Admin preparation buffer settings and auditable overrides
 ```
@@ -222,7 +222,7 @@ Important decisions:
 ```text
 Option B was selected: direct-reservation buffers remain dynamic and admin unlocks are persisted as auditable override rows.
 A one-day PREPARATION_BUFFER CalendarBlock with unlockedByAdminAt records each override.
-The override is linked to the confirmed reservation and retains the admin user and required reason.
+The override is linked to its source relation and retains the admin user, timestamp, and optional internal note.
 Availability subtracts override ranges from the dynamic buffer instead of suppressing the complete buffer side.
 iCal export applies the same subtraction for confirmed direct reservations.
 Airbnb import sync reads current Property buffer values when creating or refreshing imported preparation blocks.
@@ -235,24 +235,44 @@ The real iCal end-to-end test remains deferred until external_calendars configur
 
 ## Current Work
 
-### Phase 9.10 — Phase 9 Documentation Update and Closure
+### Phase 9.9.1 — Admin Navigation and Property Calendar Operations
 
 Status: **In progress**
 
-Goals:
+Implementation scope:
 
 ```text
-Review the complete Phase 9 payment, retry, admin, preparation-buffer, and audit behavior.
-Record deferred operational iCal configuration and end-to-end validation explicitly.
-Confirm Phase 10 email notifications can begin without carrying undocumented Phase 9 work.
+app/admin/layout.tsx adds the shared protected shell.
+/app/admin remains a compact dashboard.
+/app/admin/reservations provides search, property/status filters, and pagination.
+/app/admin/payments separates payments and SDK events with search, filters, and pagination.
+/app/admin/accommodations contains property-level preparation settings.
+/app/admin/calendar provides property tabs, month navigation, search, effective blockers, manual range blocking, manual day release, preparation unlock, and preparation restore.
+CalendarBlock.source = MANUAL_BLOCK persists admin-created availability blocks.
+Manual blocks and preparation overrides use audit logs and soft deletion.
+Notes are optional.
+Reservation stays, active pending holds, and Airbnb booking blocks remain read-only.
+Composed-listing inheritance remains visible and effective.
+No Prisma migration, email delivery, guest date change, manual confirmation, refund action, or PMS behavior is added.
+```
+
+Validation still required before completion:
+
+```text
+npm run db:generate
+npm run db:validate
+npm run lint
+npm run build
+Manual admin navigation, search/filter/pagination, property calendar, manual block, release, buffer unlock, restore, and composed-listing checks
 ```
 
 ## Next Recommended Work
 
 ```text
-1. Close Phase 9 with 9.10 documentation update and closure.
-2. Record operational Airbnb iCal configuration and E2E validation as deferred production-readiness work.
-3. Start Phase 10 — Email Notifications.
+1. Validate and commit 9.9.1 admin navigation and property calendar operations.
+2. Complete 9.10 Phase 9 documentation update and closure.
+3. Record operational Airbnb iCal configuration and E2E validation as deferred production-readiness work.
+4. Start Phase 10 — Email Notifications.
 ```
 
 ## Continuity Notes for New Conversations
@@ -271,6 +291,7 @@ docs/68-phase-9-admin-and-preparation-buffers-roadmap.md
 docs/69-admin-reservation-payment-review.md
 docs/70-automatic-preparation-buffers-in-availability.md
 docs/71-admin-preparation-buffer-settings-and-overrides.md
+docs/72-admin-navigation-and-property-calendar-operations.md
 lib/admin/preparation-buffer-management.ts
 lib/availability/rules.ts
 lib/availability/service.ts

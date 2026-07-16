@@ -1,6 +1,6 @@
 # 35 — Preparation Buffer and Blocked-Date Evaluation
 
-This document records the Phase 6.4 preparation-buffer foundation, the Phase 9.8 pending-hold update, and the Phase 9.9 auditable override strategy.
+This document records the Phase 6.4 preparation-buffer foundation, the Phase 9.8 pending-hold update, and the Phase 9.9 auditable override strategy, and the Phase 9.9.1 property-calendar operations.
 
 ## Original Phase 6 Context
 
@@ -140,20 +140,30 @@ The real iCal end-to-end test remains deferred until an operational ExternalCale
 
 ```text
 Configuration changes update Property.preparationDaysBefore/After.
-One-day unlocks are allowed only for future buffer days of CONFIRMED reservations.
-Each unlock requires a reason and records the authenticated admin and timestamp.
+One-day unlocks are allowed for future direct dynamic buffers and admin-unlockable persisted preparation buffers.
+An internal note is optional; the authenticated admin and timestamp are always recorded.
+Overrides can be restored through audited soft deletion.
 AdminAuditLog records settings changes and unlock actions.
 The reservation stay is never released by a buffer override.
 ```
 
 See `docs/71-admin-preparation-buffer-settings-and-overrides.md` for the complete contract.
 
-## Out of Scope After Phase 9.9
+## Phase 9.9.1 Manual Calendar Operations
+
+```text
+MANUAL_BLOCK records may cover any future date range for one property.
+A manual block can overlap reservations, Airbnb dates, or buffers as an independent reason to remain unavailable.
+Releasing one day soft-deletes the original range and creates left/right replacement ranges when needed.
+Composed-listing dependency rules apply to manual blocks exactly as they apply to reservations and buffers.
+Reservation stays, active pending holds, and Airbnb booking blocks remain read-only.
+```
+
+## Out of Scope After Phase 9.9.1
 
 ```text
 Materializing every direct-reservation buffer
 Pending-payment buffer persistence
-Relocking/undo workflow beyond preserving audit history
 Operational external-calendar setup and real Airbnb E2E validation
 Email delivery
 Guest date modification
@@ -172,4 +182,4 @@ npm run lint
 npm run build
 ```
 
-Manual checks are documented in `docs/70-automatic-preparation-buffers-in-availability.md`.
+Manual checks for the admin calendar follow-up are documented in `docs/72-admin-navigation-and-property-calendar-operations.md`.

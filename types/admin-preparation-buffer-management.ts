@@ -1,4 +1,5 @@
-import type { DateOnlyString, PreparationBufferRangeKind } from "@/types/availability";
+import type { AdminActor } from "@/types/admin";
+import type { DateOnlyString } from "@/types/availability";
 
 export type AdminPreparationBufferProperty = Readonly<{
   id: string;
@@ -9,38 +10,12 @@ export type AdminPreparationBufferProperty = Readonly<{
   updatedAt: string;
 }>;
 
-export type AdminPreparationBufferDay = Readonly<{
-  date: DateOnlyString;
-  kind: PreparationBufferRangeKind;
-  isUnlocked: boolean;
-  overrideId: string | null;
-  overrideReason: string | null;
-  unlockedAt: string | null;
-  unlockedByName: string | null;
-  unlockedByEmail: string | null;
-}>;
-
-export type AdminPreparationBufferReservation = Readonly<{
-  id: string;
-  propertyId: string;
-  propertyNameEs: string;
-  propertyNameEn: string;
-  guestName: string;
-  checkInDate: DateOnlyString;
-  checkOutDate: DateOnlyString;
-  bufferDays: readonly AdminPreparationBufferDay[];
-}>;
-
-export type AdminPreparationBufferManagement = Readonly<{
+export type AdminPreparationBufferSettings = Readonly<{
   generatedAt: string;
   properties: readonly AdminPreparationBufferProperty[];
-  reservations: readonly AdminPreparationBufferReservation[];
 }>;
 
-export type AdminPreparationBufferActor = Readonly<{
-  email: string;
-  name?: string | null;
-}>;
+export type AdminPreparationBufferActor = AdminActor;
 
 export type UpdateAdminPreparationBufferSettingsInput = Readonly<{
   propertyId: string;
@@ -49,9 +24,18 @@ export type UpdateAdminPreparationBufferSettingsInput = Readonly<{
 }>;
 
 export type UnlockAdminPreparationBufferDayInput = Readonly<{
-  reservationId: string;
+  reservationId?: string | null;
+  calendarBlockId?: string | null;
   date: DateOnlyString;
-  reason: string;
+  reason?: string | null;
+}>;
+
+export type RestoreAdminPreparationBufferDayInput = Readonly<{
+  overrideId: string;
+}>;
+
+export type AdminPreparationBufferMutationResult = Readonly<{
+  calendarBlockId: string;
 }>;
 
 export const adminPreparationBufferErrorCodes = [
@@ -62,7 +46,7 @@ export const adminPreparationBufferErrorCodes = [
   "PREPARATION_BUFFER_RESERVATION_NOT_CONFIRMED",
   "PREPARATION_BUFFER_DATE_NOT_UNLOCKABLE",
   "PREPARATION_BUFFER_DATE_IN_PAST",
-  "PREPARATION_BUFFER_REASON_REQUIRED",
+  "PREPARATION_BUFFER_OVERRIDE_NOT_FOUND",
   "PREPARATION_BUFFER_UNEXPECTED_ERROR",
 ] as const;
 

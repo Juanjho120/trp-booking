@@ -34,7 +34,7 @@ export const esMessages = {
     admin: {
       title: "Admin | Tu Refugio Perfecto",
       description:
-        "Panel privado para revisar reservas y pagos, y administrar buffers de preparación auditables.",
+        "Panel privado para administrar reservas, pagos, alojamientos y disponibilidad de Tu Refugio Perfecto.",
     },
   },
   navigation: {
@@ -362,220 +362,200 @@ export const esMessages = {
     },
   },
   admin: {
-    shell: {
-      brandLabel: "Administración privada",
-      badge: "Admin protegido",
-      title: "Panel mínimo de TRP Booking.",
-      description:
-        "Esta primera shell confirma que el acceso privado ya está protegido antes de agregar herramientas operativas de reservas directas.",
+    navigation: {
+      brandMark: "TRP",
       fallbackUserName: "Administrador",
-      viewPublicSite: "Ver sitio público",
+      brandLabel: "Administración privada",
+      ariaLabel: "Navegación administrativa",
+      openMenu: "Abrir menú administrativo",
+      closeMenu: "Cerrar menú administrativo",
+      publicSite: "Ver sitio público",
       signOut: "Cerrar sesión",
-      sessionCard: {
-        title: "Sesión admin",
-        signedInAs: "Sesión iniciada como",
-        protectionNote:
-          "Solo correos autorizados por el allowlist server-side pueden entrar a este espacio.",
-      },
-      modules: [
-        {
-          title: "Alojamientos",
-          description:
-            "Base futura para revisar alojamientos, contenido y configuración visible del sitio.",
-          status: "Próximamente",
-        },
-        {
-          title: "Reservas directas",
-          description:
-            "Espacio reservado para revisar reservaciones directas cuando el flujo de booking exista.",
-          status: "Pendiente",
-        },
-        {
-          title: "Pagos y reembolsos",
-          description:
-            "Área futura para seguimiento operativo de pagos validados y reembolsos documentados.",
-          status: "Pendiente",
-        },
-        {
-          title: "Imágenes",
-          description:
-            "Se integrará cuando la fase de Cloudinary esté documentada e implementada.",
-          status: "Diferido",
-        },
-        {
-          title: "Emails",
-          description:
-            "Se agregará cuando la fase de Resend esté habilitada para notificaciones oficiales.",
-          status: "Diferido",
-        },
-        {
-          title: "Sincronización iCal",
-          description:
-            "Se mantiene fuera de esta fase hasta la integración documentada de Airbnb iCal.",
-          status: "Diferido",
-        },
-      ],
-      guardrails: {
-        title: "Límites de esta fase",
-        items: [
-          "No administra reservas, pagos, calendarios ni imágenes todavía.",
-          "No reemplaza TAMIAS ni agrega funciones de PMS.",
-          "Mantiene las páginas públicas accesibles sin login.",
-        ],
+      items: {
+        dashboard: "Resumen",
+        reservations: "Reservas",
+        payments: "Pagos",
+        calendar: "Calendario",
+        accommodations: "Alojamientos",
       },
     },
-    review: {
-      badge: "Fase 9.9",
-      title: "Operación de reservas, pagos y buffers.",
+    statuses: {
+      reservation: {
+        PENDING_PAYMENT: "Pendiente de pago",
+        CONFIRMED: "Confirmada",
+        CANCELLED: "Cancelada",
+        REFUNDED: "Reembolsada",
+        PARTIALLY_REFUNDED: "Parcialmente reembolsada",
+        EXPIRED: "Expirada",
+        BLOCKED: "Bloqueada",
+      },
+      payment: {
+        PENDING: "Pendiente",
+        APPROVED: "Aprobado",
+        REJECTED: "Rechazado",
+        FAILED: "Fallido",
+        REFUNDED: "Reembolsado",
+        PARTIALLY_REFUNDED: "Parcialmente reembolsado",
+      },
+      paymentClientEvent: {
+        TILOPAY_SDK_START_PAYMENT_FAILED: "Inicio de pago SDK fallido",
+        TILOPAY_SDK_START_PAYMENT_NON_SUCCESS: "Inicio de pago SDK no exitoso",
+      },
+    },
+    dashboard: {
+      badge: "Operación diaria",
+      title: "Resumen administrativo",
       description:
-        "Panel protegido para revisar reservas y pagos, y administrar configuración y overrides auditables de preparación sin liberar estadías.",
+        "Revisa lo que requiere atención y entra al módulo correspondiente sin recorrer una página interminable.",
       sections: {
-        stats: "Resumen operativo",
-        reservations: "Reservas directas recientes",
-        payments: "Pagos recientes",
-        clientEvents: "Eventos seguros del cliente Tilopay",
-        guardrails: "Límites operativos",
+        summary: "Resumen operativo",
+        upcomingArrivals: "Próximas llegadas",
+      },
+      stats: {
+        confirmed: {
+          label: "Reservas confirmadas próximas",
+          description: "Estadías confirmadas que todavía no han finalizado.",
+        },
+        pending: {
+          label: "Reservas pendientes activas",
+          description: "Holds que aún se encuentran dentro de su ventana de pago.",
+        },
+        paymentIssues: {
+          label: "Pagos con incidencias",
+          description: "Intentos rechazados o fallidos disponibles para revisión.",
+        },
+        manualBlocks: {
+          label: "Bloqueos manuales activos",
+          description: "Rangos cerrados directamente desde el calendario administrativo.",
+        },
       },
       labels: {
-        generatedAt: "Datos generados",
-        signedInAs: "Sesión iniciada como",
-        publicSite: "Ver sitio público",
-        signOut: "Cerrar sesión",
-        totalReservations: "Reservas",
-        totalPayments: "Pagos",
-        totalClientEvents: "Eventos SDK",
-        statusBreakdown: "Distribución por estado",
+        guests: "Huéspedes",
+      },
+      actions: {
+        review: "Revisar",
+        viewAll: "Ver todas",
+      },
+      upcomingArrivalsDescription:
+        "Las cinco próximas reservas confirmadas, ordenadas por fecha de entrada.",
+      empty: {
+        upcomingArrivals: "No hay llegadas confirmadas próximas.",
+      },
+    },
+    reservationsPage: {
+      seoTitle: "Reservas | Admin | Tu Refugio Perfecto",
+      badge: "Reservas directas",
+      title: "Reservas",
+      description:
+        "Busca y filtra reservas sin cargar pagos, eventos ni configuración de calendario en la misma página.",
+      labels: {
+        search: "Buscar reservas",
+        propertyFilter: "Alojamiento",
+        statusFilter: "Estado",
+        results: "Resultados",
+        page: "Página",
+        of: "de",
+        dates: "Fechas",
+        contact: "Contacto",
+        total: "Total",
+        guests: "Huéspedes",
+        reservation: "Reserva",
+        latestPayment: "Último pago",
+        unavailable: "No disponible",
+      },
+      placeholders: {
+        search: "Buscar por huésped, correo o ID de reserva",
+      },
+      filters: {
+        allProperties: "Todos los alojamientos",
+        allStatuses: "Todos los estados",
+      },
+      actions: {
+        search: "Buscar",
+        clear: "Limpiar",
+        previous: "Anterior",
+        next: "Siguiente",
+      },
+      empty: {
+        noResults: "No encontramos reservas con estos filtros.",
+      },
+    },
+    paymentsPage: {
+      seoTitle: "Pagos | Admin | Tu Refugio Perfecto",
+      badge: "Tilopay",
+      title: "Pagos y diagnóstico",
+      description:
+        "Revisa pagos o eventos seguros del SDK desde vistas separadas, con búsqueda, filtros y paginación.",
+      tabs: {
+        payments: "Pagos",
+        events: "Eventos SDK",
+      },
+      labels: {
+        search: "Buscar pagos",
+        propertyFilter: "Alojamiento",
+        statusFilter: "Estado",
+        results: "Resultados",
+        page: "Página",
+        of: "de",
+        amount: "Monto",
+        order: "Orden",
         reservation: "Reserva",
         payment: "Pago",
-        property: "Alojamiento",
-        guest: "Huésped",
-        guestEmail: "Correo",
-        guestPhone: "Teléfono",
-        guestCountry: "País",
-        dates: "Fechas",
-        guestCount: "Huéspedes",
-        total: "Total",
-        status: "Estado",
-        latestPaymentStatus: "Último pago",
-        expiresAt: "Expira",
-        confirmedAt: "Confirmada",
-        createdAt: "Creada",
-        updatedAt: "Actualizada",
-        provider: "Proveedor",
-        providerReference: "Número de orden",
-        providerTransactionId: "Transacción del proveedor",
-        paidAt: "Pagado",
-        failedAt: "Falló",
-        diagnostics: "Diagnóstico seguro",
+        createdAt: "Creado",
+        safeDiagnostics: "Diagnóstico seguro",
+        environment: "Ambiente",
+        sdkMessage: "Mensaje SDK",
+        unavailable: "No disponible",
+      },
+      placeholders: {
+        payments: "Buscar por orden, transacción, reserva o huésped",
+        events: "Buscar por pago, reserva, huésped o mensaje SDK",
+      },
+      filters: {
+        allProperties: "Todos los alojamientos",
+        allStatuses: "Todos los estados",
+      },
+      actions: {
+        search: "Buscar",
+        clear: "Limpiar",
+        previous: "Anterior",
+        next: "Siguiente",
+      },
+      diagnostics: {
         providerCode: "Código del proveedor",
         providerMessage: "Mensaje del proveedor",
         authorization: "Autorización",
         providerOrder: "Orden del proveedor",
         tilopayTransaction: "Transacción Tilopay",
         orderHashStatus: "Validación OrderHash",
-        eventType: "Evento",
-        environment: "Ambiente",
-        locale: "Idioma",
-        paymentMethod: "Método",
-        cardBrand: "Marca detectada",
-        sdkMessage: "Mensaje SDK",
-        preflightStatus: "Estado preflight",
-        preflightExpiresAt: "Preflight expira",
-        noReservations: "Todavía no hay reservas directas para mostrar.",
-        noPayments: "Todavía no hay pagos para mostrar.",
-        noClientEvents: "Todavía no hay eventos SDK registrados.",
-        unavailable: "No disponible",
       },
-      statuses: {
-        reservation: {
-          PENDING_PAYMENT: "Pendiente de pago",
-          CONFIRMED: "Confirmada",
-          CANCELLED: "Cancelada",
-          REFUNDED: "Reembolsada",
-          PARTIALLY_REFUNDED: "Parcialmente reembolsada",
-          EXPIRED: "Expirada",
-          BLOCKED: "Bloqueada",
-        },
-        payment: {
-          PENDING: "Pendiente",
-          APPROVED: "Aprobado",
-          REJECTED: "Rechazado",
-          FAILED: "Fallido",
-          REFUNDED: "Reembolsado",
-          PARTIALLY_REFUNDED: "Parcialmente reembolsado",
-        },
-        paymentClientEvent: {
-          TILOPAY_SDK_START_PAYMENT_FAILED: "Inicio de pago SDK fallido",
-          TILOPAY_SDK_START_PAYMENT_NON_SUCCESS: "Inicio de pago SDK no exitoso",
-        },
+      empty: {
+        noPayments: "No encontramos pagos con estos filtros.",
+        noEvents: "No encontramos eventos SDK con estos filtros.",
       },
-      notes: {
-        readOnly:
-          "Las secciones de reservas y pagos son solo lectura. La administración de buffers solo cambia días de preparación y overrides auditables.",
-        paymentDrivenConfirmation:
-          "La reserva se mantiene payment-driven: solo un pago aprobado validado server-side puede confirmar una reserva.",
-        safeDiagnostics:
-          "Los diagnósticos excluyen número de tarjeta, CVV, fecha de expiración y tokenización de tarjeta.",
-      },
-      guardrails: [
-        "No mostrar ni almacenar datos de tarjeta.",
-        "No agregar confirmación manual que salte la validación server-side del pago.",
-        "No liberar las fechas de estadía al desbloquear un día de preparación.",
-        "No agregar comportamiento PMS ni reemplazar TAMIAS.",
-        "No enviar emails de Phase 10 desde esta subfase.",
-      ],
     },
-    preparationBuffers: {
-      badge: "Fase 9.9",
-      title: "Configuración y desbloqueo de preparación.",
+    accommodations: {
+      seoTitle: "Alojamientos | Admin | Tu Refugio Perfecto",
+      badge: "Configuración por alojamiento",
+      title: "Alojamientos",
       description:
-        "Ajusta los días automáticos de preparación por alojamiento y desbloquea días específicos de reservas confirmadas sin liberar la estadía.",
-      sections: {
-        settings: "Configuración por alojamiento",
-        unlocks: "Días de preparación de reservas confirmadas",
-      },
+        "Administra la política automática de preparación de cada alojamiento sin mezclarla con reservas o bloqueos diarios.",
       labels: {
         lastUpdated: "Última actualización",
         daysBefore: "Días antes del check-in",
         daysAfter: "Días después del check-out",
-        reservation: "Reserva",
-        guest: "Huésped",
-        bufferDay: "Día de preparación",
-        bufferType: "Tipo de buffer",
-        reason: "Motivo del desbloqueo",
-        unlocked: "Desbloqueado por administración",
-        availableByOverride: "Disponible por override",
-        unavailable: "No disponible",
       },
       actions: {
         saveSettings: "Guardar configuración",
         saving: "Guardando...",
-        unlockDay: "Desbloquear día",
-        unlocking: "Desbloqueando...",
-      },
-      kinds: {
-        beforeCheckIn: "Antes del check-in",
-        afterCheckOut: "Después del check-out",
-      },
-      placeholders: {
-        reason: "Describe por qué este día puede liberarse.",
       },
       notes: {
-        settingsImpact:
-          "Los cambios se aplican dinámicamente a reservas confirmadas y holds activos. También serán usados por los feeds iCal cuando exista configuración operativa.",
         allowedRange: "Valores permitidos: de 0 a 30 días.",
-        unlockScope:
-          "Cada desbloqueo aplica únicamente a un día del buffer de una reserva confirmada. La estadía continúa bloqueada.",
-        otherBlocksMayStillApply:
-          "Un override elimina este buffer dinámico, pero la fecha puede seguir no disponible por otra reserva, un bloqueo de Airbnb, mantenimiento o una dependencia del alojamiento combinado.",
-      },
-      empty: {
-        noConfirmedBuffers:
-          "No hay días futuros de preparación de reservas confirmadas para administrar.",
+        settingsImpact:
+          "Los cambios se aplican a reservas confirmadas, holds activos, disponibilidad pública y futuros feeds iCal. Los desbloqueos individuales se administran desde Calendario.",
       },
       success: {
         settingsSaved: "La configuración de preparación se guardó correctamente.",
-        dayUnlocked: "El día de preparación se desbloqueó correctamente.",
       },
       errors: {
         ADMIN_UNAUTHORIZED: "Tu sesión no tiene autorización administrativa.",
@@ -588,13 +568,111 @@ export const esMessages = {
         PREPARATION_BUFFER_RESERVATION_NOT_CONFIRMED:
           "Solo se pueden desbloquear buffers de reservas confirmadas.",
         PREPARATION_BUFFER_DATE_IN_PAST:
-          "No se puede desbloquear un día de preparación que ya pasó.",
+          "No se puede modificar un día de preparación que ya pasó.",
         PREPARATION_BUFFER_DATE_NOT_UNLOCKABLE:
-          "La fecha ya no pertenece al buffer actual de esta reserva.",
-        PREPARATION_BUFFER_REASON_REQUIRED:
-          "Escribe un motivo para registrar el desbloqueo.",
+          "La fecha ya no pertenece al buffer de preparación seleccionado.",
+        PREPARATION_BUFFER_OVERRIDE_NOT_FOUND:
+          "No encontramos el desbloqueo de preparación que deseas restaurar.",
         PREPARATION_BUFFER_UNEXPECTED_ERROR:
-          "No pudimos actualizar los buffers de preparación. Inténtalo de nuevo.",
+          "No pudimos actualizar la configuración de preparación. Inténtalo de nuevo.",
+      },
+    },
+    calendar: {
+      seoTitle: "Calendario | Admin | Tu Refugio Perfecto",
+      badge: "Disponibilidad operativa",
+      title: "Calendario por alojamiento",
+      description:
+        "Consulta ocupación efectiva, bloquea rangos manualmente y habilita únicamente las fuentes que permiten intervención administrativa.",
+      weekdays: ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"],
+      sources: {
+        DIRECT_RESERVATION: "Reserva directa",
+        PENDING_PAYMENT: "Pendiente de pago",
+        AIRBNB: "Airbnb",
+        MANUAL_BLOCK: "Bloqueo manual",
+        MAINTENANCE: "Mantenimiento",
+        COMPOSED_LISTING_DEPENDENCY: "Dependencia combinada",
+        PREPARATION_BUFFER: "Preparación",
+        PREPARATION_BUFFER_OVERRIDE: "Preparación habilitada",
+      },
+      legend: [
+        { source: "DIRECT_RESERVATION" },
+        { source: "PENDING_PAYMENT" },
+        { source: "AIRBNB" },
+        { source: "MANUAL_BLOCK" },
+        { source: "PREPARATION_BUFFER" },
+        { source: "PREPARATION_BUFFER_OVERRIDE" },
+      ],
+      labels: {
+        search: "Buscar en el calendario",
+        selectedRange: "Rango seleccionado",
+        optionalNote: "Nota opcional",
+        more: "más",
+        inherited: "Heredado",
+        guest: "Huésped",
+        reservation: "Reserva",
+        note: "Nota",
+      },
+      placeholders: {
+        search: "Buscar por huésped, reserva o alojamiento",
+        optionalNote: "Agrega una nota interna solo cuando sea útil.",
+      },
+      actions: {
+        blockDates: "Bloquear fechas",
+        cancelSelection: "Cancelar selección",
+        confirmBlock: "Confirmar bloqueo",
+        previousMonth: "Mes anterior",
+        nextMonth: "Mes siguiente",
+        today: "Hoy",
+        close: "Cerrar",
+        blockThisDay: "Bloquear este día",
+        releaseDay: "Habilitar este día",
+        unlockBuffer: "Habilitar buffer",
+        restoreBuffer: "Restaurar buffer",
+      },
+      states: {
+        selectStart: "Selecciona la primera fecha en el calendario.",
+        blocked: "La fecha tiene una o más fuentes de bloqueo.",
+        available: "La fecha está disponible para este alojamiento.",
+      },
+      success: {
+        datesBlocked: "Las fechas se bloquearon correctamente.",
+        dateReleased: "El bloqueo manual se retiró de ese día.",
+        bufferUnlocked: "El día de preparación se habilitó correctamente.",
+        bufferRestored: "El bloqueo de preparación se restauró correctamente.",
+      },
+      empty: {
+        noBlocks: "Esta fecha no tiene bloqueos ni overrides administrativos.",
+      },
+      errors: {
+        ADMIN_UNAUTHORIZED: "Tu sesión no tiene autorización administrativa.",
+        INVALID_ADMIN_CALENDAR_REQUEST:
+          "Revisa las fechas seleccionadas e inténtalo de nuevo.",
+        ADMIN_CALENDAR_PROPERTY_NOT_FOUND:
+          "No encontramos el alojamiento solicitado.",
+        ADMIN_CALENDAR_DATE_IN_PAST:
+          "No se pueden modificar fechas que ya pasaron.",
+        ADMIN_CALENDAR_MANUAL_BLOCK_NOT_FOUND:
+          "No encontramos el bloqueo manual seleccionado.",
+        ADMIN_CALENDAR_DAY_NOT_IN_BLOCK:
+          "La fecha ya no pertenece a este bloqueo manual.",
+        ADMIN_CALENDAR_UNEXPECTED_ERROR:
+          "No pudimos actualizar el calendario. Inténtalo de nuevo.",
+        INVALID_PREPARATION_BUFFER_REQUEST:
+          "No pudimos procesar el cambio del buffer de preparación.",
+        PREPARATION_BUFFER_PROPERTY_NOT_FOUND:
+          "No encontramos el alojamiento solicitado.",
+        PREPARATION_BUFFER_RESERVATION_NOT_FOUND:
+          "No encontramos la reserva seleccionada.",
+        PREPARATION_BUFFER_RESERVATION_NOT_CONFIRMED:
+          "Solo se pueden habilitar buffers de reservas confirmadas.",
+        PREPARATION_BUFFER_DATE_IN_PAST:
+          "No se puede modificar un día de preparación que ya pasó.",
+        PREPARATION_BUFFER_DATE_NOT_UNLOCKABLE:
+          "La fecha ya no pertenece al buffer de preparación seleccionado.",
+        PREPARATION_BUFFER_OVERRIDE_NOT_FOUND:
+          "No encontramos el desbloqueo que deseas restaurar.",
+        PREPARATION_BUFFER_UNEXPECTED_ERROR:
+          "No pudimos actualizar el buffer de preparación. Inténtalo de nuevo.",
       },
     },
   },

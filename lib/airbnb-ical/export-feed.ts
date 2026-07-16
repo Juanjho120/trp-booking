@@ -76,6 +76,8 @@ const calendarBlockExportSelect = {
   id: true,
   propertyId: true,
   reservationId: true,
+  externalCalendarEventId: true,
+  parentBlockId: true,
   source: true,
   startDate: true,
   endDate: true,
@@ -278,15 +280,39 @@ function getReservationLookupWindow(
   };
 }
 
-function shouldExportCalendarBlock(calendarBlock: CalendarBlockExportRecord): boolean {
-  if (
+function isPreparationBufferOverride(
+  calendarBlock: CalendarBlockExportRecord,
+): boolean {
+  return (
     calendarBlock.source === CalendarBlockSource.PREPARATION_BUFFER &&
-    calendarBlock.unlockedByAdminAt
-  ) {
+    Boolean(calendarBlock.unlockedByAdminAt)
+  );
+}
+
+function isOverrideForPersistedPreparationBuffer(
+  override: CalendarBlockExportRecord,
+  persistedBuffer: CalendarBlockExportRecord,
+): boolean {
+  if (!isPreparationBufferOverride(override)) {
     return false;
   }
 
-  return true;
+  if (override.propertyId !== persistedBuffer.propertyId) {
+    return false;
+  }
+
+  if (persistedBuffer.reservationId) {
+    return override.reservationId === persistedBuffer.reservationId;
+  }
+
+  if (persistedBuffer.externalCalendarEventId) {
+    return (
+      override.externalCalendarEventId === persistedBuffer.externalCalendarEventId &&
+      override.parentBlockId === persistedBuffer.parentBlockId
+    );
+  }
+
+  return false;
 }
 
 function toExportRange(
@@ -390,15 +416,40 @@ function buildCalendarBlockUnavailableRanges(
     exportWindow: AvailabilityDateRange;
   }>,
 ): readonly AirbnbIcalExportUnavailableRange[] {
-  return input.calendarBlocks
-    .filter(shouldExportCalendarBlock)
-    .map((calendarBlock) =>
-      toExportRange(
-        toDateOnlyRange(calendarBlock.startDate, calendarBlock.endDate),
-        input.exportWindow,
-      ),
-    )
-    .filter((range): range is AirbnbIcalExportUnavailableRange => Boolean(range));
+  return input.calendarBlocks.flatMap((calendarBlock) => {
+    if (isPreparationBufferOverride(calendarBlock)) {
+      return [];
+    }
+
+    const sourceRange = toDateOnlyRange(
+      calendarBlock.startDate,
+      calendarBlock.endDate,
+    );
+    const effectiveRanges =
+      calendarBlock.source === CalendarBlockSource.PREPARATION_BUFFER
+        ? subtractAvailabilityDateRanges(
+            sourceRange,
+            input.calendarBlocks
+              .filter((candidate) =>
+                isOverrideForPersistedPreparationBuffer(
+                  candidate,
+                  calendarBlock,
+                ),
+              )
+              .map((override) =>
+                toDateOnlyRange(override.startDate, override.endDate),
+              ),
+          )
+        : [sourceRange];
+
+    return effectiveRanges
+      .map((effectiveRange) =>
+        toExportRange(effectiveRange, input.exportWindow),
+      )
+      .filter(
+        (range): range is AirbnbIcalExportUnavailableRange => Boolean(range),
+      );
+  });
 }
 
 function normalizeUnavailableRanges(

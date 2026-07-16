@@ -50,6 +50,9 @@ TRP Booking is focused only on the public booking experience, direct reservation
 - Phase 9 must keep failed, rejected, expired, and successful payment attempts auditable.
 - Resend email delivery belongs to Phase 10 unless explicitly moved later.
 - Public-facing and admin-facing copy must be centralized in `messages/es.ts` and `messages/en.ts`.
+- Admin modules use dedicated routes under `/admin`; the dashboard must remain a compact summary instead of accumulating full operational sections.
+- Manual availability blocks use `CalendarBlock.source = MANUAL_BLOCK`, optional internal notes, soft deletion, and audit logs.
+- Reservation stays and active Airbnb booking blocks remain read-only in the property calendar; only manual blocks and preparation buffers support admin release actions.
 
 ## Phase 9 Summary
 
@@ -68,16 +71,19 @@ Completed Phase 9 work:
 9.9 Admin preparation buffer settings and auditable overrides
 ```
 
-Phase 9.9 added:
+Phase 9.9 added configurable dynamic preparation buffers and auditable one-day overrides.
+
+Phase 9.9.1 is now implementing the scalable admin experience:
 
 ```text
-- Protected admin configuration for preparation days per accommodation.
-- Dynamic direct-reservation buffers remain the source of truth.
-- One-day PREPARATION_BUFFER override rows record manual unlocks without releasing stay dates.
-- AdminAuditLog records configuration changes and day unlocks.
-- Availability and future iCal exports apply the same override subtraction.
-- Airbnb import sync reads the current Property preparation settings when it materializes imported buffers.
-- No Prisma migration, pending-hold persistence, emails, guest date changes, or PMS behavior.
+- Shared protected admin layout with responsive sidebar navigation.
+- Compact dashboard plus dedicated reservations, payments, accommodations, and calendar routes.
+- Search, filters, and pagination in data-heavy modules.
+- Property calendar with effective occupancy sources and composed-listing inheritance.
+- Manual date-range blocking with optional notes and auditable soft-delete release.
+- Preparation-buffer unlock and restore actions from the calendar.
+- The same override subtraction for dynamic direct buffers, persisted imported buffers, public availability, and future iCal export.
+- No Prisma migration, email delivery, guest date changes, manual reservation confirmation, or PMS behavior.
 ```
 
 ## Documentation
@@ -97,13 +103,14 @@ docs/68-phase-9-admin-and-preparation-buffers-roadmap.md
 docs/69-admin-reservation-payment-review.md
 docs/70-automatic-preparation-buffers-in-availability.md
 docs/71-admin-preparation-buffer-settings-and-overrides.md
+docs/72-admin-navigation-and-property-calendar-operations.md
 ```
 
 ## Development Status
 
 ```text
 Current phase: Phase 9 — Tilopay Sandbox Integration
-Current subphase: 9.10 Phase 9 documentation update and closure
+Current subphase: 9.9.1 Admin navigation and property calendar operations
 Last completed phase: Phase 8 — Reservation Flow
 Last completed subphase: 9.9 Admin preparation buffer settings and auditable overrides
 ```

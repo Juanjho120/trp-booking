@@ -7,6 +7,7 @@ Phase: Phase 9 — Tilopay Sandbox Integration
 Subphase: 9.8 Automatic preparation buffers in availability
 Status: Completed
 Follow-up completed: 9.9 Admin preparation buffer settings and auditable overrides
+Follow-up in progress: 9.9.1 Admin navigation and property calendar operations
 ```
 
 ## Goal
@@ -140,6 +141,8 @@ The admin configuration and auditable override behavior deferred by this documen
 Airbnb import sync now reads current Property preparation values when materializing imported buffer blocks.
 
 The real iCal end-to-end test remains deferred until operational external-calendar configuration exists.
+
+Phase 9.9.1 does not change the 9.8 status matrix. It exposes effective blockers in a property calendar, adds independent `MANUAL_BLOCK` ranges, and extends the same override subtraction to admin-unlockable persisted preparation buffers.
 
 ## Original 9.8 Out of Scope
 

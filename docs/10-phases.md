@@ -15,8 +15,8 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 9 — Tilopay Sandbox Integration
-Current subphase: 9.10 Phase 9 documentation update and closure
-Current focus: close Phase 9 after admin review, dynamic preparation buffers, and auditable admin override behavior were implemented.
+Current subphase: 9.9.1 Admin navigation and property calendar operations
+Current focus: replace the vertically growing admin page with scalable module routes and add property-level calendar operations before closing Phase 9.
 ```
 
 ---
@@ -62,7 +62,8 @@ Subphase status:
 9.7 Admin reservation and payment review — Completed
 9.8 Automatic preparation buffers in availability — Completed
 9.9 Admin preparation buffer settings and manual unlock behavior — Completed
-9.10 Phase 9 documentation update and closure — In progress
+9.9.1 Admin navigation and property calendar operations — In progress
+9.10 Phase 9 documentation update and closure — Not started
 ```
 
 Phase 9 rules:
@@ -146,7 +147,7 @@ Phase 9.9 result:
 - Option B was selected: dynamic direct-reservation buffers plus auditable override records.
 - Admin can configure Property.preparationDaysBefore and Property.preparationDaysAfter from 0 through 30.
 - Current defaults remain 1/1, 2/2, and 2/2 until changed by admin.
-- A one-day unlocked PREPARATION_BUFFER CalendarBlock records the reservation, date, admin, timestamp, and reason.
+- A one-day unlocked PREPARATION_BUFFER CalendarBlock records the reservation, date, admin, timestamp, and optional internal note.
 - Partial overrides subtract only the selected day from the dynamic buffer.
 - Reservation stay dates remain blocked.
 - AdminAuditLog records configuration changes and unlock actions.
@@ -155,10 +156,33 @@ Phase 9.9 result:
 - No Prisma migration, email, guest date modification, pending-buffer persistence, or PMS behavior was added.
 ```
 
+Phase 9.9.1 goal:
+
+```text
+Replace the single vertically growing admin page with dedicated operational routes and provide an Airbnb-style property calendar for manual availability management.
+```
+
+Phase 9.9.1 implementation scope:
+
+```text
+- Add a shared protected admin layout with responsive sidebar navigation.
+- Keep /admin as a compact operational dashboard.
+- Move reservations and payments to searchable, filterable, paginated routes.
+- Move preparation settings to a dedicated accommodations route.
+- Add a property calendar that shows direct reservations, active pending holds, Airbnb blocks, manual blocks, preparation buffers, overrides, and composed-listing inheritance.
+- Allow future manual date-range blocks with an optional internal note.
+- Allow one-day release of manual blocks through auditable soft deletion and range splitting.
+- Allow preparation-buffer unlock and restore actions directly from the calendar.
+- Keep reservation stays, active pending holds, and Airbnb booking blocks read-only.
+- Preserve public availability and future iCal consistency.
+- Remove superseded admin shells, list-based buffer UI, and the old combined review service.
+- Do not add Prisma migrations, email delivery, manual reservation confirmation, guest date changes, or PMS behavior.
+```
+
 Phase 9.10 goal:
 
 ```text
-Close Phase 9 documentation after admin review, dynamic preparation buffers, and admin buffer-setting decisions are documented.
+Close Phase 9 documentation only after 9.9.1 is validated and the final admin/calendar behavior is documented.
 ```
 
 ---

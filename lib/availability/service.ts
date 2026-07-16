@@ -52,6 +52,7 @@ const calendarBlockAvailabilitySelect = {
   reason: true,
   reservationId: true,
   externalCalendarEventId: true,
+  parentBlockId: true,
   unlockedByAdminAt: true,
 } satisfies Prisma.CalendarBlockSelect;
 
@@ -149,15 +150,39 @@ function toDateOnlyRange(startDate: Date, endDate: Date): AvailabilityDateRange 
   };
 }
 
-function shouldUseCalendarBlock(calendarBlock: CalendarBlockAvailabilityRecord): boolean {
-  if (
+function isPreparationBufferOverride(
+  calendarBlock: CalendarBlockAvailabilityRecord,
+): boolean {
+  return (
     calendarBlock.source === CalendarBlockSource.PREPARATION_BUFFER &&
-    calendarBlock.unlockedByAdminAt
-  ) {
+    Boolean(calendarBlock.unlockedByAdminAt)
+  );
+}
+
+function isOverrideForPersistedPreparationBuffer(
+  override: CalendarBlockAvailabilityRecord,
+  persistedBuffer: CalendarBlockAvailabilityRecord,
+): boolean {
+  if (!isPreparationBufferOverride(override)) {
     return false;
   }
 
-  return true;
+  if (override.propertyId !== persistedBuffer.propertyId) {
+    return false;
+  }
+
+  if (persistedBuffer.reservationId) {
+    return override.reservationId === persistedBuffer.reservationId;
+  }
+
+  if (persistedBuffer.externalCalendarEventId) {
+    return (
+      override.externalCalendarEventId === persistedBuffer.externalCalendarEventId &&
+      override.parentBlockId === persistedBuffer.parentBlockId
+    );
+  }
+
+  return false;
 }
 
 function isReservationBlockingAvailability(
@@ -233,19 +258,65 @@ function toReservationBlockingRecord(
 
 function toCalendarBlockBlockingRecord(
   calendarBlock: CalendarBlockAvailabilityRecord,
+  effectiveRange: AvailabilityDateRange,
   propertyIdToAccommodationId: ReadonlyMap<string, AccommodationId>,
   fallbackAccommodationId: AccommodationId,
 ): AvailabilityBlockingRecord {
   return {
     accommodationId:
       propertyIdToAccommodationId.get(calendarBlock.propertyId) ?? fallbackAccommodationId,
-    ...toDateOnlyRange(calendarBlock.startDate, calendarBlock.endDate),
+    ...effectiveRange,
     source: toAvailabilityBlockSource(calendarBlock.source),
     reason: calendarBlock.reason ?? undefined,
     reservationId: calendarBlock.reservationId ?? undefined,
     calendarBlockId: calendarBlock.id,
     externalCalendarEventId: calendarBlock.externalCalendarEventId ?? undefined,
   };
+}
+
+function toEffectiveCalendarBlockBlockingRecords(
+  calendarBlock: CalendarBlockAvailabilityRecord,
+  calendarBlocks: readonly CalendarBlockAvailabilityRecord[],
+  propertyIdToAccommodationId: ReadonlyMap<string, AccommodationId>,
+  fallbackAccommodationId: AccommodationId,
+): readonly AvailabilityBlockingRecord[] {
+  if (isPreparationBufferOverride(calendarBlock)) {
+    return [];
+  }
+
+  const sourceRange = toDateOnlyRange(
+    calendarBlock.startDate,
+    calendarBlock.endDate,
+  );
+
+  if (calendarBlock.source !== CalendarBlockSource.PREPARATION_BUFFER) {
+    return [
+      toCalendarBlockBlockingRecord(
+        calendarBlock,
+        sourceRange,
+        propertyIdToAccommodationId,
+        fallbackAccommodationId,
+      ),
+    ];
+  }
+
+  const suppressionRanges = calendarBlocks
+    .filter((candidate) =>
+      isOverrideForPersistedPreparationBuffer(candidate, calendarBlock),
+    )
+    .map((override) =>
+      toDateOnlyRange(override.startDate, override.endDate),
+    );
+
+  return subtractAvailabilityDateRanges(sourceRange, suppressionRanges).map(
+    (effectiveRange) =>
+      toCalendarBlockBlockingRecord(
+        calendarBlock,
+        effectiveRange,
+        propertyIdToAccommodationId,
+        fallbackAccommodationId,
+      ),
+  );
 }
 
 function getPreparationBufferSuppressionRanges(
@@ -407,15 +478,15 @@ export async function getAvailabilityBlockingRecords(
     ),
   );
 
-  const calendarBlockBlockingRecords = calendarBlocks
-    .filter(shouldUseCalendarBlock)
-    .map((calendarBlock) =>
-      toCalendarBlockBlockingRecord(
+  const calendarBlockBlockingRecords = calendarBlocks.flatMap(
+    (calendarBlock) =>
+      toEffectiveCalendarBlockBlockingRecords(
         calendarBlock,
+        calendarBlocks,
         propertyIdToAccommodationId,
         input.accommodationId,
       ),
-    );
+  );
 
   return [
     ...reservationBlockingRecords,

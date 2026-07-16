@@ -2,7 +2,7 @@
 
 ## Status
 
-Roadmap updated after completing Phase 9.9.
+Roadmap corrected for the Phase 9.9.1 admin navigation and property calendar follow-up.
 
 ## Purpose
 
@@ -21,7 +21,8 @@ This document defines the Phase 9 work that follows payment validation and keeps
 9.7 Admin reservation and payment review — Completed
 9.8 Automatic preparation buffers in availability — Completed
 9.9 Admin preparation buffer settings and manual unlock behavior — Completed
-9.10 Phase 9 documentation update and closure — In progress
+9.9.1 Admin navigation and property calendar operations — In progress
+9.10 Phase 9 documentation update and closure — Not started
 ```
 
 ## Phase 9.7 — Admin Reservation and Payment Review
@@ -123,7 +124,7 @@ Implemented behavior:
 - Existing defaults remain 1/1, 2/2, and 2/2 until changed.
 - Confirmed direct-reservation buffers are still calculated dynamically.
 - A one-day PREPARATION_BUFFER CalendarBlock records each manual unlock.
-- The row is linked to the reservation and records admin, timestamp, and required reason.
+- The row is linked to its source relation and records admin, timestamp, and an optional internal note.
 - Availability subtracts only the override range from the dynamic buffer.
 - The reservation stay remains blocked.
 - Composed-listing behavior remains active.
@@ -164,6 +165,51 @@ No Prisma migration
 
 The calculation path is consistent now, but the real iCal end-to-end test remains deferred because the project intentionally has no operational ExternalCalendar rows, raw export tokens, or real Airbnb import URLs yet.
 
+## Phase 9.9.1 — Admin Navigation and Property Calendar Operations
+
+### Reason for the follow-up
+
+The 9.7–9.9 features were initially accumulated on one vertically growing `/admin` page. That layout did not scale for future modules and the buffer list did not match the host-oriented calendar workflow required for day-to-day operations.
+
+### Implementation direction
+
+```text
+- Shared protected admin layout with responsive sidebar.
+- Compact dashboard with links to dedicated modules.
+- Reservations and payments use their own searchable, filterable, paginated pages.
+- Preparation settings are grouped by accommodation.
+- Calendar always operates with one selected accommodation.
+- Effective blockers show origin accommodation and composed-listing inheritance.
+- Admin may add MANUAL_BLOCK ranges for any future dates, even when another source already blocks them.
+- Manual block note is optional.
+- Releasing one day soft-deletes the original manual block and preserves the remaining left/right ranges.
+- Direct dynamic buffers and persisted imported buffers support one-day unlock overrides.
+- Overrides can be restored from the calendar.
+- Reservation stays, active pending holds, and Airbnb booking blocks remain read-only.
+- All writes create AdminAuditLog entries.
+```
+
+### Persistence and debt-control decisions
+
+```text
+- Reuse CalendarBlock for MANUAL_BLOCK records and PREPARATION_BUFFER overrides.
+- Do not add a duplicate availability model.
+- Do not materialize every direct-reservation buffer.
+- Do not keep the old combined shell or list-based buffer component alongside the new architecture.
+- Remove superseded admin files after copying the 9.9.1 delivery.
+- No Prisma migration or new dependency is required.
+```
+
+### Boundaries
+
+```text
+No manual confirmation/cancellation/refund actions
+No guest date modification
+No email delivery
+No operational Airbnb connection setup
+No PMS behavior
+```
+
 ## Phase 9.10 — Phase 9 Documentation Update and Closure
 
 ### Goal
@@ -173,7 +219,8 @@ Close Phase 9 only after:
 ```text
 - 9.7 admin review is completed.
 - 9.8 dynamic preparation buffers are completed and validated.
-- 9.9 admin buffer settings/unlock behavior is implemented or explicitly deferred.
+- 9.9 admin buffer settings/unlock behavior is implemented.
+- 9.9.1 scalable admin navigation and calendar operations are validated.
 - Phase 9 docs reflect the final payment, retry, admin, and buffer behavior.
 ```
 
@@ -196,7 +243,7 @@ npm run lint
 npm run build
 ```
 
-Phase 9.9 implementation validation:
+Phase 9.9 and 9.9.1 implementation validation:
 
 ```powershell
 npm run db:generate
@@ -205,4 +252,4 @@ npm run lint
 npm run build
 ```
 
-Manual validation is documented in `docs/71-admin-preparation-buffer-settings-and-overrides.md`.
+Manual validation for 9.9.1 is documented in `docs/72-admin-navigation-and-property-calendar-operations.md`.

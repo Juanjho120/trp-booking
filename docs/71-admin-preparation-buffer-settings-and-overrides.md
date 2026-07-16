@@ -6,7 +6,7 @@
 Phase: Phase 9 — Tilopay Sandbox Integration
 Subphase: 9.9 Admin preparation buffer settings and manual unlock behavior
 Status: Completed
-Next subphase: 9.10 Phase 9 documentation update and closure
+Follow-up subphase: 9.9.1 Admin navigation and property calendar operations
 ```
 
 ## Goal
@@ -47,7 +47,7 @@ endDate = unlocked date + 1 day
 isAdminOverrideAllowed = true
 unlockedByAdminAt = unlock timestamp
 unlockedByAdminId = authenticated admin user id
-adminOverrideReason = required admin reason
+adminOverrideReason = optional internal note
 ```
 
 This row represents an exception to a dynamic buffer. It is not an active blocking range.
@@ -145,10 +145,10 @@ Day unlocks create an `AdminAuditLog` entry:
 action = PREPARATION_BUFFER_DAY_UNLOCKED
 entityType = CalendarBlock
 entityId = override row id
-metadata = reservation, property, date, buffer kind, reason, actor email
+metadata = source relation, property, date, optional note, actor email
 ```
 
-The override row also retains the unlock timestamp, admin user, and reason.
+The override row always retains the unlock timestamp and admin user; its internal note is optional.
 
 ## Protected API
 
@@ -156,35 +156,25 @@ The override row also retains the unlock timestamp, admin user, and reason.
 GET   /api/admin/preparation-buffers
 PATCH /api/admin/preparation-buffers
 POST  /api/admin/preparation-buffers/unlock
+DELETE /api/admin/preparation-buffers/unlock
 ```
 
 All routes require an authenticated session with role `ADMIN`.
 
 Requests are validated with Zod. API responses return safe error codes; localized UI text comes from `messages/es.ts` and `messages/en.ts`.
 
-## UI Boundaries
+## UI Follow-up
 
-The admin UI can:
-
-```text
-Review and update preparation days per accommodation.
-Review future preparation days for confirmed direct reservations.
-Enter a required reason and unlock one preparation day.
-See who unlocked a day, when, and why.
-```
-
-The admin UI cannot:
+The original 9.9 delivery exposed settings and future buffer days inside the combined `/admin` page. Phase 9.9.1 supersedes that presentation with:
 
 ```text
-Confirm or cancel a reservation.
-Release reservation stay dates.
-Change guest reservation dates.
-Create pending-hold overrides.
-Process refunds.
-Send emails.
-Configure real Airbnb iCal connections.
-Perform PMS operations.
+/admin/accommodations for preparation settings
+/admin/calendar for buffer unlock and restore operations
+Optional internal notes instead of a required reason
+Property tabs and calendar cells instead of reservation-by-reservation buffer lists
 ```
+
+The domain decisions from this document remain valid: direct buffers stay dynamic, exceptions are persisted, reservation stay dates are never released, and all writes remain auditable.
 
 ## Implemented Files
 
@@ -207,11 +197,13 @@ messages/en.ts
 docs/71-admin-preparation-buffer-settings-and-overrides.md
 ```
 
+The two combined-page components listed above are superseded and removed by Phase 9.9.1. See `docs/72-admin-navigation-and-property-calendar-operations.md`.
+
 ## Manual Validation
 
 ### Settings
 
-1. Open `/admin` with an authorized account.
+1. Open `/admin/accommodations` with an authorized account.
 2. Change one accommodation from its current values to another valid 0–30 combination.
 3. Confirm the public calendar immediately reflects the new buffer range.
 4. Confirm a `PROPERTY_PREPARATION_BUFFER_UPDATED` audit entry contains before/after values.
@@ -220,11 +212,11 @@ docs/71-admin-preparation-buffer-settings-and-overrides.md
 ### One-day override
 
 1. Use a future `CONFIRMED` reservation with at least two buffer days on one side.
-2. Unlock only one displayed preparation day and enter a reason.
+2. Open `/admin/calendar`, select the accommodation and day, then unlock only one preparation day; the internal note is optional.
 3. Confirm the selected day disappears from that reservation's effective buffer.
 4. Confirm the other buffer day remains unavailable.
 5. Confirm the reservation stay dates remain unavailable.
-6. Confirm the override row contains `reservation_id`, `unlocked_by_admin_at`, `unlocked_by_admin_id`, and `admin_override_reason`.
+6. Confirm the override row contains `reservation_id`, `unlocked_by_admin_at`, `unlocked_by_admin_id`, and, when supplied, `admin_override_reason`.
 7. Confirm an audit entry with action `PREPARATION_BUFFER_DAY_UNLOCKED` exists.
 
 ### Composed listing
@@ -235,7 +227,7 @@ docs/71-admin-preparation-buffer-settings-and-overrides.md
 
 ### iCal
 
-Do not create temporary `external_calendars` rows only for this phase. Validate the shared subtraction logic now and perform the real iCal end-to-end test when external-calendar operational configuration is implemented.
+Do not create temporary `external_calendars` rows only for this phase or its 9.9.1 follow-up. Validate the shared subtraction logic now and perform the real iCal end-to-end test when external-calendar operational configuration is implemented.
 
 ## Commands
 

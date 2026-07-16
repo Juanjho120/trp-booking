@@ -314,6 +314,7 @@ async function ensureCalendarBlock(
         externalCalendarEventId: input.eventRecordId,
         source: input.source,
         parentBlockId: input.parentBlockId ?? null,
+        unlockedByAdminAt: null,
         reason:
           input.source === CalendarBlockSource.PREPARATION_BUFFER
             ? input.reason
@@ -324,17 +325,6 @@ async function ensureCalendarBlock(
       },
       select: calendarBlockSyncSelect,
     });
-
-  if (
-    existingBlock?.source === CalendarBlockSource.PREPARATION_BUFFER &&
-    existingBlock.unlockedByAdminAt
-  ) {
-    return {
-      id: existingBlock.id,
-      wasCreated: false,
-      wasUpdated: false,
-    };
-  }
 
   if (existingBlock) {
     await prismaClient.calendarBlock.update({
