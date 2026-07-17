@@ -287,6 +287,7 @@ export const esMessages = {
       paymentMethod: "Método de pago",
       paymentMethodCard: "Tarjeta de crédito / débito",
       cardNumber: "Número de tarjeta",
+      acceptedCards: "Tarjetas aceptadas: Visa, Mastercard y American Express",
       cardExpiration: "Vencimiento",
       cardCvv: "CVV",
       pay: "Pagar reserva",

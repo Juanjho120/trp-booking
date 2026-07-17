@@ -287,6 +287,7 @@ export const enMessages = {
       paymentMethod: "Payment method",
       paymentMethodCard: "Credit / Debit Card",
       cardNumber: "Card number",
+      acceptedCards: "Accepted cards: Visa, Mastercard, and American Express",
       cardExpiration: "Expiration",
       cardCvv: "CVV",
       pay: "Pay reservation",

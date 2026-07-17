@@ -81,6 +81,7 @@ const CARD_INPUT_BASE_CLASS_NAME =
   "h-11 w-full min-w-0 rounded-2xl border bg-background px-4 text-sm text-foreground shadow-sm outline-none transition invalid:border-destructive invalid:ring-2 invalid:ring-destructive/20 focus:border-primary focus:ring-2 focus:ring-primary/20";
 const DEFAULT_FIELD_BORDER_CLASS_NAME = "border-border/70";
 const FLAGGED_FIELD_CLASS_NAME = "border-destructive ring-2 ring-destructive/20";
+const ACCEPTED_CARD_BRANDS = ["visa", "mastercard", "amex"] as const;
 
 function isTilopaySdkSessionSuccessResponse(
   payload: CreateTilopaySdkSessionApiResponse,
@@ -197,6 +198,30 @@ function CardBrandLogo({ cardBrand }: Readonly<{ cardBrand: CardBrand }>) {
   }
 
   return <CreditCard aria-hidden="true" className="size-4 text-muted-foreground/70" />;
+}
+
+function AcceptedCardBrandLogos({
+  label,
+}: Readonly<{
+  label: string;
+}>) {
+  return (
+    <span
+      aria-label={label}
+      className="flex w-fit max-w-full flex-wrap items-center gap-3 rounded-xl border border-border/60 bg-muted/30 px-3 py-2"
+      role="img"
+    >
+      {ACCEPTED_CARD_BRANDS.map((brand) => (
+        <span
+          aria-hidden="true"
+          className="flex h-7 min-w-12 items-center justify-center"
+          key={brand}
+        >
+          <CardBrandLogo cardBrand={brand} />
+        </span>
+      ))}
+    </span>
+  );
 }
 
 function getCvvPattern(cardBrand: CardBrand): string {
@@ -784,6 +809,8 @@ export function TilopaySdkCheckout({
                   <CardBrandLogo cardBrand={cardBrand} />
                 </span>
               </span>
+
+              <AcceptedCardBrandLogos label={copy.acceptedCards} />
             </label>
 
             <div className="grid min-w-0 gap-4 sm:grid-cols-2">
