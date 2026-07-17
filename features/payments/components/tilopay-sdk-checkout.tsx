@@ -4,6 +4,13 @@ import { CreditCard, ShieldCheck } from "lucide-react";
 import { useEffect, useState, useRef, useLayoutEffect } from "react";
 
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useLocale } from "@/features/i18n";
 import type {
   CreateTilopaySdkSessionApiResponse,
@@ -351,6 +358,7 @@ export function TilopaySdkCheckout({
     initialIssue ? getPaymentRetryErrorMessage(retryErrors, initialIssue) : null,
   );
   const paymentFormReadyNotifiedRef = useRef(false);
+  const paymentMethodSelectRef = useRef<HTMLSelectElement>(null);
 
   useLayoutEffect(() => {
     if (status !== "ready" || !session || paymentFormReadyNotifiedRef.current) {
@@ -371,6 +379,19 @@ export function TilopaySdkCheckout({
 
   function getSelectedPaymentMethod(): TilopaySdkPaymentMethod | null {
     return paymentMethods.find((method) => method.id === selectedPaymentMethod) ?? null;
+  }
+
+  function handlePaymentMethodChange(value: string): void {
+    setSelectedPaymentMethod(value);
+
+    const technicalSelect = paymentMethodSelectRef.current;
+
+    if (!technicalSelect) {
+      return;
+    }
+
+    technicalSelect.value = value;
+    technicalSelect.dispatchEvent(new Event("change", { bubbles: true }));
   }
 
   function applyPaymentIssue(issue: TilopayRetryPaymentIssue): void {
@@ -674,22 +695,42 @@ export function TilopaySdkCheckout({
             <p className="mt-2 text-xs leading-5 text-muted-foreground">{copy.secureFieldsNote}</p>
           </div>
 
-          <label className="grid min-w-0 gap-2 text-sm font-medium text-foreground">
-            <span>{copy.paymentMethod}</span>
-            <select
-              className="h-11 w-full min-w-0 rounded-2xl border border-border/70 bg-background px-4 text-sm text-foreground shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-              id="tlpy_payment_method"
-              name="tlpy_payment_method"
-              onChange={(event) => setSelectedPaymentMethod(event.target.value)}
+          <div className="grid min-w-0 gap-2 text-sm font-medium text-foreground">
+            <span id="tilopay-payment-method-label">{copy.paymentMethod}</span>
+            <Select
+              disabled={!selectedPaymentMethod || status === "processing" || status === "processed"}
+              onValueChange={handlePaymentMethodChange}
               value={selectedPaymentMethod}
             >
-              {paymentMethods.map((method) => (
-                <option key={method.id} value={method.id}>
-                  {getPaymentMethodLabel(method, copy.paymentMethodCard)}
-                </option>
-              ))}
-            </select>
-          </label>
+              <SelectTrigger aria-labelledby="tilopay-payment-method-label">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {paymentMethods.map((method) => (
+                  <SelectItem key={method.id} value={method.id}>
+                    {getPaymentMethodLabel(method, copy.paymentMethodCard)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <select
+            aria-hidden="true"
+            className="hidden"
+            id="tlpy_payment_method"
+            name="tlpy_payment_method"
+            onChange={(event) => setSelectedPaymentMethod(event.target.value)}
+            ref={paymentMethodSelectRef}
+            tabIndex={-1}
+            value={selectedPaymentMethod}
+          >
+            {paymentMethods.map((method) => (
+              <option key={method.id} value={method.id}>
+                {getPaymentMethodLabel(method, copy.paymentMethodCard)}
+              </option>
+            ))}
+          </select>
 
           <select
             aria-hidden="true"

@@ -167,13 +167,14 @@ Phase 9.9.1 implementation scope:
 ```text
 - Add a shared protected admin layout with responsive sidebar navigation, optimistic active state, and route loading feedback.
 - Keep /admin as a compact operational dashboard.
-- Move reservations and payments to searchable, filterable, paginated routes with property/status selects in one filter row.
+- Move reservations and payments to searchable, filterable, paginated routes with fully styled Radix property/status selects in one filter row.
 - Move preparation settings to a dedicated accommodations route.
 - Add a property calendar that shows direct reservations, active pending holds, Airbnb blocks, manual blocks, preparation buffers, overrides, and composed-listing inheritance.
 - Allow future manual date-range blocks only when every selected date is currently available; the internal note remains optional.
 - Allow one-day release of manual blocks through auditable soft deletion and range splitting.
 - Allow preparation-buffer unlock and restore actions directly from the calendar.
 - Show successful admin mutations as auto-dismissing snackbars while preserving persistent inline errors.
+- Replace visible native select menus with the shared Radix design-system select; keep the Tilopay SDK-required `tlpy_payment_method` field hidden and synchronized for checkout and retry compatibility.
 - Keep reservation stays, active pending holds, and Airbnb booking blocks read-only.
 - Preserve public availability and future iCal consistency.
 - Remove superseded admin shells, list-based buffer UI, and the old combined review service.

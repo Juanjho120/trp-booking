@@ -78,11 +78,12 @@ Phase 9.9.1 is now implementing the scalable admin experience:
 ```text
 - Shared protected admin layout with responsive sidebar navigation, optimistic active state, and content loading skeletons.
 - Compact dashboard plus dedicated reservations, payments, accommodations, and calendar routes.
-- Search, compact accommodation/status selects, and pagination in data-heavy modules.
+- Search, fully styled Radix accommodation/status selects, and pagination in data-heavy modules.
 - Property calendar with effective occupancy sources and composed-listing inheritance.
 - Manual date-range blocking only across fully available dates, with optional notes and auditable soft-delete release.
 - Preparation-buffer unlock and restore actions from the calendar.
 - Successful admin mutations use auto-dismissing snackbars; errors remain persistent inline.
+- Visible select menus use the shared Radix design-system component, including the Tilopay payment-method selector while its SDK-required technical field remains hidden and synchronized.
 - The same override subtraction for dynamic direct buffers, persisted imported buffers, public availability, and future iCal export.
 - No Prisma migration, email delivery, guest date changes, manual reservation confirmation, or PMS behavior.
 ```

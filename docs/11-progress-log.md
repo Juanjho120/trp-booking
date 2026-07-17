@@ -244,13 +244,14 @@ Implementation scope:
 ```text
 app/admin/layout.tsx adds the shared protected shell.
 /app/admin remains a compact dashboard.
-/app/admin/reservations provides search plus property/status selects in one row and pagination.
-/app/admin/payments separates payments and SDK events with search, compact selects, and pagination.
+/app/admin/reservations provides search plus fully styled Radix property/status selects in one row and pagination.
+/app/admin/payments separates payments and SDK events with search, fully styled Radix selects, and pagination.
 /app/admin/accommodations contains property-level preparation settings.
 /app/admin/calendar provides property tabs, month navigation, search, effective blockers, available-only manual range selection, manual day release, preparation unlock, and preparation restore.
 CalendarBlock.source = MANUAL_BLOCK persists admin-created availability blocks only after server-side availability revalidation.
 Manual blocks and preparation overrides use audit logs and soft deletion.
 Notes are optional. Successful mutations use auto-dismissing admin snackbars; errors remain visible inline.
+Visible select menus use the shared Radix design-system component. Tilopay checkout and retry keep the SDK-required `tlpy_payment_method` native field hidden and synchronized behind the styled selector.
 Reservation stays, active pending holds, Airbnb booking blocks, preparation buffers, and all other effective blockers are excluded from manual-block selection.
 Composed-listing inheritance remains visible and effective. Sidebar navigation highlights the target immediately and the content area renders a route skeleton while dynamic queries finish.
 No Prisma migration, email delivery, guest date change, manual confirmation, refund action, or PMS behavior is added.
@@ -263,7 +264,7 @@ npm run db:generate
 npm run db:validate
 npm run lint
 npm run build
-Manual admin navigation, search/filter/pagination, property calendar, manual block, release, buffer unlock, restore, and composed-listing checks
+Manual admin navigation, styled select/search/filter/pagination, Tilopay checkout/retry selector synchronization, property calendar, manual block, release, buffer unlock, restore, and composed-listing checks
 ```
 
 ## Next Recommended Work

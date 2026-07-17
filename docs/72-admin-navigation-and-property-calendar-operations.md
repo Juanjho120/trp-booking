@@ -6,13 +6,13 @@
 Phase: Phase 9 — Tilopay Sandbox Integration
 Subphase: 9.9.1 Admin navigation and property calendar operations
 Status: In progress until local build and manual validation pass
-Base commit: 88aeae3596f2a511acf3125773089b20055e53ff
+Base commit: 575ff8c2d9438e289b606c5099b5d7ea198d58ec
 Next subphase: 9.10 Phase 9 documentation update and closure
 ```
 
 ## Goal
 
-Replace the vertically growing combined admin page with scalable module routes and provide a host-oriented property calendar for reviewing effective occupancy, adding independent manual blocks, releasing manual dates, and managing preparation-buffer exceptions.
+Replace the vertically growing combined admin page with scalable module routes and provide a host-oriented property calendar for reviewing effective occupancy, adding manual blocks only on available ranges, releasing manual dates, and managing preparation-buffer exceptions.
 
 The implementation must remain a direct-booking admin, not a PMS.
 
@@ -136,7 +136,28 @@ SDK events: payment ID, reservation ID, guest, safe SDK message, property
 Calendar: guest, reservation, note, origin accommodation
 ```
 
-Reservation and payment pages use server-side pagination with 20 records per page. Search, accommodation, and status controls share one responsive filter row; accommodation and status use styled design-system selects.
+Reservation and payment pages use server-side pagination with 20 records per page. Search, accommodation, and status controls share one responsive filter row; accommodation and status use the shared Radix design-system select so both the closed control and opened option panel are consistently styled.
+
+## Select Component Contract
+
+Visible select menus use `components/ui/select.tsx`, built on the already installed Radix UI package and the project Tailwind tokens.
+
+```text
+Admin reservation/payment filters:
+- Keep server-rendered GET filtering and shareable URLs.
+- Keep Radix uncontrolled with the applied query value as its keyed default.
+- Synchronize changes into hidden form inputs so the existing GET contract and shareable URLs remain unchanged.
+- Use a non-empty internal all-options sentinel because Radix reserves the empty string for clearing selection.
+
+Tilopay checkout and retry:
+- Render the Radix selector as the only visible payment-method control.
+- Preserve the SDK-required native field with id/name tlpy_payment_method inside payFormTilopay.
+- Keep that technical field hidden, controlled, and synchronized with the visible selector.
+- Dispatch a bubbling change event when the visible selection changes so provider listeners remain compatible.
+- The retry flow receives the same behavior automatically because it reuses TilopaySdkCheckout.
+```
+
+`components/ui/native-select.tsx` is superseded and must be removed rather than retained as an unused parallel component. No new dependency is required.
 
 ## Superseded Files
 
@@ -183,8 +204,9 @@ Visible copy remains centralized in messages/es.ts and messages/en.ts.
 
 1. Search by guest name, email, and reservation ID.
 2. Filter by each accommodation and status.
-3. Confirm clearing filters returns the unfiltered first page.
-4. With more than 20 records, confirm previous/next pagination preserves active filters.
+3. Open every accommodation/status selector and confirm the option panel, hover, selected state, scrolling, and focus treatment use the project design system.
+4. Confirm clearing filters returns the unfiltered first page.
+5. With more than 20 records, confirm previous/next pagination preserves active filters.
 
 ### Payments and SDK events
 
@@ -200,6 +222,14 @@ Visible copy remains centralized in messages/es.ts and messages/en.ts.
 2. Change one preparation policy, save it, and confirm the public calendar reflects it.
 3. Confirm `PROPERTY_PREPARATION_BUFFER_UPDATED` records before/after values.
 4. Restore the intended policy.
+
+### Tilopay payment-method selector
+
+1. Prepare a normal checkout and confirm the visible payment-method options use the Radix design-system panel.
+2. Inspect the DOM and confirm `#tlpy_payment_method` remains present inside `.payFormTilopay`, hidden, and has the selected provider method ID.
+3. Change the visible method when multiple supported methods are returned and confirm the technical field updates before calling `Tilopay.startPayment()`.
+4. Repeat the same checks on `/reservas/pago/reintentar`; it must reuse the same component and behavior.
+5. Complete sandbox happy-path and retryable-error checks to confirm no SDK integration regression.
 
 ### Manual calendar blocks
 

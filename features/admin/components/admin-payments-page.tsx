@@ -1,12 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ChevronDown, Search } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { NativeSelect } from "@/components/ui/native-select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Card,
   CardContent,
@@ -29,6 +35,8 @@ const paymentStatuses = [
   "PARTIALLY_REFUNDED",
 ] as const;
 
+const ALL_FILTER_VALUE = "__all__";
+
 const inputClassName =
   "h-11 w-full rounded-2xl border border-input bg-background px-3 text-sm text-foreground shadow-xs outline-none transition placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50";
 
@@ -44,6 +52,8 @@ export function AdminPaymentsPageView({
   const statusCopy = messages.admin.statuses;
   const intlLocale = getIntlLocale(locale);
   const view = data.filters.view ?? "payments";
+  const propertyFilterInputRef = useRef<HTMLInputElement>(null);
+  const statusFilterInputRef = useRef<HTMLInputElement>(null);
   const [expandedDiagnostics, setExpandedDiagnostics] = useState<ReadonlySet<string>>(
     () => new Set(),
   );
@@ -175,38 +185,80 @@ export function AdminPaymentsPageView({
               />
             </label>
 
-            <label className="grid gap-2 text-sm font-medium">
-              <span className="sr-only">{copy.labels.propertyFilter}</span>
-              <NativeSelect
-                defaultValue={data.filters.propertyId ?? ""}
+            <div className="grid gap-2 text-sm font-medium">
+              <span className="sr-only" id="payments-property-filter-label">
+                {copy.labels.propertyFilter}
+              </span>
+              <Select
+                defaultValue={data.filters.propertyId ?? ALL_FILTER_VALUE}
                 key={`property:${data.filters.propertyId ?? "all"}`}
-                name="propertyId"
+                onValueChange={(value) => {
+                  if (propertyFilterInputRef.current) {
+                    propertyFilterInputRef.current.value =
+                      value === ALL_FILTER_VALUE ? "" : value;
+                  }
+                }}
               >
-                <option value="">{copy.filters.allProperties}</option>
-                {data.properties.map((property) => (
-                  <option key={property.id} value={property.id}>
-                    {locale === "en" ? property.nameEn : property.nameEs}
-                  </option>
-                ))}
-              </NativeSelect>
-            </label>
+                <SelectTrigger aria-labelledby="payments-property-filter-label">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL_FILTER_VALUE}>
+                    {copy.filters.allProperties}
+                  </SelectItem>
+                  {data.properties.map((property) => (
+                    <SelectItem key={property.id} value={property.id}>
+                      {locale === "en" ? property.nameEn : property.nameEs}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <input
+                defaultValue={data.filters.propertyId ?? ""}
+                key={`property-input:${data.filters.propertyId ?? "all"}`}
+                name="propertyId"
+                ref={propertyFilterInputRef}
+                type="hidden"
+              />
+            </div>
 
             {view === "payments" ? (
-              <label className="grid gap-2 text-sm font-medium">
-                <span className="sr-only">{copy.labels.statusFilter}</span>
-                <NativeSelect
-                  defaultValue={data.filters.status ?? ""}
+              <div className="grid gap-2 text-sm font-medium">
+                <span className="sr-only" id="payments-status-filter-label">
+                  {copy.labels.statusFilter}
+                </span>
+                <Select
+                  defaultValue={data.filters.status ?? ALL_FILTER_VALUE}
                   key={`status:${data.filters.status ?? "all"}`}
-                  name="status"
+                  onValueChange={(value) => {
+                    if (statusFilterInputRef.current) {
+                      statusFilterInputRef.current.value =
+                        value === ALL_FILTER_VALUE ? "" : value;
+                    }
+                  }}
                 >
-                  <option value="">{copy.filters.allStatuses}</option>
-                  {paymentStatuses.map((status) => (
-                    <option key={status} value={status}>
-                      {paymentStatusLabel(status)}
-                    </option>
-                  ))}
-                </NativeSelect>
-              </label>
+                  <SelectTrigger aria-labelledby="payments-status-filter-label">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={ALL_FILTER_VALUE}>
+                      {copy.filters.allStatuses}
+                    </SelectItem>
+                    {paymentStatuses.map((status) => (
+                      <SelectItem key={status} value={status}>
+                        {paymentStatusLabel(status)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <input
+                  defaultValue={data.filters.status ?? ""}
+                  key={`status-input:${data.filters.status ?? "all"}`}
+                  name="status"
+                  ref={statusFilterInputRef}
+                  type="hidden"
+                />
+              </div>
             ) : null}
 
             <Button type="submit">{copy.actions.search}</Button>

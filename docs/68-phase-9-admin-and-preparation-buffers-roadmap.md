@@ -176,7 +176,7 @@ The 9.7–9.9 features were initially accumulated on one vertically growing `/ad
 ```text
 - Shared protected admin layout with responsive sidebar, optimistic active state, and route loading feedback.
 - Compact dashboard with links to dedicated modules.
-- Reservations and payments use their own searchable, filterable, paginated pages with compact property/status selects.
+- Reservations and payments use their own searchable, filterable, paginated pages with fully styled Radix property/status selects.
 - Preparation settings are grouped by accommodation.
 - Calendar always operates with one selected accommodation.
 - Effective blockers show origin accommodation and composed-listing inheritance.
@@ -184,6 +184,7 @@ The 9.7–9.9 features were initially accumulated on one vertically growing `/ad
 - Manual-block creation revalidates availability server-side before writing.
 - Manual block note is optional.
 - Successful admin mutations use auto-dismissing snackbars; errors remain visible inline.
+- Visible select menus use the shared Radix component; Tilopay retains its hidden SDK field synchronized with the visible payment-method selector.
 - Releasing one day soft-deletes the original manual block and preserves the remaining left/right ranges.
 - Direct dynamic buffers and persisted imported buffers support one-day unlock overrides.
 - Overrides can be restored from the calendar.
