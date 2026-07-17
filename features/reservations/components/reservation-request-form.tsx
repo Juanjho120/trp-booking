@@ -481,181 +481,182 @@ export function ReservationRequestForm({
   }
 
   return (
-    <form className="space-y-4" onSubmit={handleQuoteRequest}>
-      <div className="space-y-2">
-        <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)]">
-          <DateRangeField
-            clearLabel={uxCopy.dateRange.clear}
-            doneLabel={uxCopy.dateRange.done}
-            label={uxCopy.dateRange.label}
-            onClear={() => {
-              setDateRange(undefined);
-              setQuote(null);
-              setPendingHold(null);
-              setHoldErrorMessage(null);
-            }}
-            onDone={() => setDatePickerOpen(false)}
-            onOpenChange={setDatePickerOpen}
-            onSelect={handleDateRangeSelect}
-            open={datePickerOpen}
-            selectedLabel={selectedDateRangeLabel}
-            today={today}
-            value={dateRange}
-            blockedDates={blockedDates}
-            month={visibleMonth}
-            onMonthChange={setVisibleMonth}
-          />
+    <div className="space-y-4">
+      <form className="space-y-4" onSubmit={handleQuoteRequest}>
+        <div className="space-y-2">
+          <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)]">
+            <DateRangeField
+              clearLabel={uxCopy.dateRange.clear}
+              doneLabel={uxCopy.dateRange.done}
+              label={uxCopy.dateRange.label}
+              onClear={() => {
+                setDateRange(undefined);
+                setQuote(null);
+                setPendingHold(null);
+                setHoldErrorMessage(null);
+              }}
+              onDone={() => setDatePickerOpen(false)}
+              onOpenChange={setDatePickerOpen}
+              onSelect={handleDateRangeSelect}
+              open={datePickerOpen}
+              selectedLabel={selectedDateRangeLabel}
+              today={today}
+              value={dateRange}
+              blockedDates={blockedDates}
+              month={visibleMonth}
+              onMonthChange={setVisibleMonth}
+            />
 
-          <OptionSelect
-            label={uxCopy.guests.label}
-            onOpenChange={setGuestSelectorOpen}
-            onSelect={(value) => {
-              setGuestCount(value);
-              setGuestSelectorOpen(false);
-              setQuote(null);
-              setPendingHold(null);
-              setHoldErrorMessage(null);
-            }}
-            open={guestSelectorOpen}
-            options={guestOptions.map((value) => ({ label: value, value }))}
-            placeholder={uxCopy.guests.placeholder}
-            value={guestCount}
-          />
+            <OptionSelect
+              label={uxCopy.guests.label}
+              onOpenChange={setGuestSelectorOpen}
+              onSelect={(value) => {
+                setGuestCount(value);
+                setGuestSelectorOpen(false);
+                setQuote(null);
+                setPendingHold(null);
+                setHoldErrorMessage(null);
+              }}
+              open={guestSelectorOpen}
+              options={guestOptions.map((value) => ({ label: value, value }))}
+              placeholder={uxCopy.guests.placeholder}
+              value={guestCount}
+            />
+          </div>
+          <p className="text-xs leading-5 text-muted-foreground">{uxCopy.dateRange.helper}</p>
         </div>
-        <p className="text-xs leading-5 text-muted-foreground">{uxCopy.dateRange.helper}</p>
-      </div>
 
-      <Field
-        autoComplete="name"
-        label={requestMessages.fields.guestName}
-        onChange={(value) => {
-          setGuestName(value);
-          setPendingHold(null);
-          setHoldErrorMessage(null);
-        }}
-        placeholder={requestMessages.placeholders.guestName}
-        value={guestName}
-      />
-      <Field
-        autoComplete="email"
-        inputMode="email"
-        label={requestMessages.fields.guestEmail}
-        onChange={(value) => {
-          setGuestEmail(value);
-          setPendingHold(null);
-          setHoldErrorMessage(null);
-        }}
-        placeholder={requestMessages.placeholders.guestEmail}
-        value={guestEmail}
-      />
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <CountrySelect
-          countryOptions={countryOptions}
-          label={uxCopy.country.label}
-          noResultsLabel={uxCopy.country.noResults}
-          onOpenChange={setCountryOpen}
-          onSearchChange={setCountrySearch}
-          onSelect={(country) => {
-            setGuestCountry(country.iso2);
-            setCountryOpen(false);
-            setCountrySearch("");
-            setPendingHold(null);
-            setHoldErrorMessage(null);
-          }}
-          open={countryOpen}
-          placeholder={uxCopy.country.placeholder}
-          search={countrySearch}
-          searchPlaceholder={uxCopy.country.search}
-          value={selectedCountry}
-        />
-
-        <PhoneField
-          dialCode={selectedCountry.dialCode}
-          inputLabel={uxCopy.phone.localNumber}
-          label={uxCopy.phone.label}
+        <Field
+          autoComplete="name"
+          label={requestMessages.fields.guestName}
           onChange={(value) => {
-            setGuestPhoneLocal(value);
+            setGuestName(value);
             setPendingHold(null);
             setHoldErrorMessage(null);
           }}
-          value={guestPhoneLocal}
+          placeholder={requestMessages.placeholders.guestName}
+          value={guestName}
         />
-      </div>
+        <Field
+          autoComplete="email"
+          inputMode="email"
+          label={requestMessages.fields.guestEmail}
+          onChange={(value) => {
+            setGuestEmail(value);
+            setPendingHold(null);
+            setHoldErrorMessage(null);
+          }}
+          placeholder={requestMessages.placeholders.guestEmail}
+          value={guestEmail}
+        />
 
-      <OptionSelect
-        dropDirection="up"
-        label={uxCopy.arrivalTime.label}
-        onOpenChange={setArrivalTimeOpen}
-        onSelect={(value) => {
-          setArrivalTimeEstimate(value);
-          setArrivalTimeOpen(false);
-          setPendingHold(null);
-          setHoldErrorMessage(null);
-        }}
-        open={arrivalTimeOpen}
-        options={timeOptions}
-        placeholder={uxCopy.arrivalTime.placeholder}
-        value={arrivalTimeEstimate}
-      />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <CountrySelect
+            countryOptions={countryOptions}
+            label={uxCopy.country.label}
+            noResultsLabel={uxCopy.country.noResults}
+            onOpenChange={setCountryOpen}
+            onSearchChange={setCountrySearch}
+            onSelect={(country) => {
+              setGuestCountry(country.iso2);
+              setCountryOpen(false);
+              setCountrySearch("");
+              setPendingHold(null);
+              setHoldErrorMessage(null);
+            }}
+            open={countryOpen}
+            placeholder={uxCopy.country.placeholder}
+            search={countrySearch}
+            searchPlaceholder={uxCopy.country.search}
+            value={selectedCountry}
+          />
 
-      <Button className="w-full rounded-full" disabled={status === "loading"} type="submit">
-        {status === "loading" ? requestMessages.loadingQuote : requestMessages.calculateQuote}
-      </Button>
-
-      {errorMessage ? (
-        <p
-          className="scroll-mt-24 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm leading-6 text-destructive"
-          ref={quoteErrorRef}
-        >
-          {errorMessage}
-        </p>
-      ) : null}
-
-      {quote ? (
-        <div className="scroll-mt-24" ref={quoteSummaryRef}>
-          <QuoteSummary quote={quote} />
-        </div>
-      ) : null}
-
-      {holdErrorMessage ? (
-        <p
-          className="scroll-mt-24 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm leading-6 text-destructive"
-          ref={pendingHoldErrorRef}
-        >
-          {holdErrorMessage}
-        </p>
-      ) : null}
-
-      {pendingHold ? (
-        <div className="scroll-mt-24" ref={pendingHoldSummaryRef}>
-          <PendingHoldSummary
-            copy={pendingHoldCopy}
-            locale={locale}
-            pendingHold={pendingHold}
+          <PhoneField
+            dialCode={selectedCountry.dialCode}
+            inputLabel={uxCopy.phone.localNumber}
+            label={uxCopy.phone.label}
+            onChange={(value) => {
+              setGuestPhoneLocal(value);
+              setPendingHold(null);
+              setHoldErrorMessage(null);
+            }}
+            value={guestPhoneLocal}
           />
         </div>
-      ) : null}
 
-      {pendingHold ? (
-        <div className="scroll-mt-24" ref={paymentSectionRef}>
-          <TilopaySdkCheckout
-            onPaymentFormReady={() => scrollElementToViewportCenterImmediately(paymentSectionRef.current)}
-            reservationId={pendingHold.reservationId}
-          />
-        </div>
-      ) : null}
+        <OptionSelect
+          dropDirection="up"
+          label={uxCopy.arrivalTime.label}
+          onOpenChange={setArrivalTimeOpen}
+          onSelect={(value) => {
+            setArrivalTimeEstimate(value);
+            setArrivalTimeOpen(false);
+            setPendingHold(null);
+            setHoldErrorMessage(null);
+          }}
+          open={arrivalTimeOpen}
+          options={timeOptions}
+          placeholder={uxCopy.arrivalTime.placeholder}
+          value={arrivalTimeEstimate}
+        />
 
-      <Button
-        className="w-full rounded-full"
-        disabled={status === "loading" || holdStatus === "loading" || Boolean(pendingHold)}
-        onClick={handlePendingHoldRequest}
-        type="button"
-        variant="secondary"
-      >
-        {holdStatus === "loading" ? pendingHoldCopy.creatingHold : pendingHoldCopy.createHold}
-      </Button>
-    </form>
+        <Button className="w-full rounded-full" disabled={status === "loading"} type="submit">
+          {status === "loading" ? requestMessages.loadingQuote : requestMessages.calculateQuote}
+        </Button>
+      </form>
+        {errorMessage ? (
+          <p
+            className="scroll-mt-24 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm leading-6 text-destructive"
+            ref={quoteErrorRef}
+          >
+            {errorMessage}
+          </p>
+        ) : null}
+
+        {quote ? (
+          <div className="scroll-mt-24" ref={quoteSummaryRef}>
+            <QuoteSummary quote={quote} />
+          </div>
+        ) : null}
+
+        {holdErrorMessage ? (
+          <p
+            className="scroll-mt-24 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm leading-6 text-destructive"
+            ref={pendingHoldErrorRef}
+          >
+            {holdErrorMessage}
+          </p>
+        ) : null}
+
+        {pendingHold ? (
+          <div className="scroll-mt-24" ref={pendingHoldSummaryRef}>
+            <PendingHoldSummary
+              copy={pendingHoldCopy}
+              locale={locale}
+              pendingHold={pendingHold}
+            />
+          </div>
+        ) : null}
+
+        {pendingHold ? (
+          <div className="scroll-mt-24" ref={paymentSectionRef}>
+            <TilopaySdkCheckout
+              onPaymentFormReady={() => scrollElementToViewportCenterImmediately(paymentSectionRef.current)}
+              reservationId={pendingHold.reservationId}
+            />
+          </div>
+        ) : null}
+
+        <Button
+          className="w-full rounded-full"
+          disabled={status === "loading" || holdStatus === "loading" || Boolean(pendingHold)}
+          onClick={handlePendingHoldRequest}
+          type="button"
+          variant="secondary"
+        >
+          {holdStatus === "loading" ? pendingHoldCopy.creatingHold : pendingHoldCopy.createHold}
+        </Button>
+    </div>
   );
 }
 

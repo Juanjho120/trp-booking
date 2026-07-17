@@ -394,6 +394,18 @@ export function TilopaySdkCheckout({
     technicalSelect.dispatchEvent(new Event("change", { bubbles: true }));
   }
 
+  function handleTechnicalPaymentMethodChange(value: string): void {
+    const isSupportedPaymentMethod = paymentMethods.some(
+      (method) => method.id === value,
+    );
+
+    if (!isSupportedPaymentMethod) {
+      return;
+    }
+
+    setSelectedPaymentMethod(value);
+  }
+
   function applyPaymentIssue(issue: TilopayRetryPaymentIssue): void {
     setPaymentIssue(issue);
     setFieldIssue(getFieldIssueForPaymentIssue(issue));
@@ -698,12 +710,16 @@ export function TilopaySdkCheckout({
           <div className="grid min-w-0 gap-2 text-sm font-medium text-foreground">
             <span id="tilopay-payment-method-label">{copy.paymentMethod}</span>
             <Select
-              disabled={!selectedPaymentMethod || status === "processing" || status === "processed"}
+              disabled={
+                paymentMethods.length === 0 ||
+                status === "processing" ||
+                status === "processed"
+              }
               onValueChange={handlePaymentMethodChange}
               value={selectedPaymentMethod}
             >
               <SelectTrigger aria-labelledby="tilopay-payment-method-label">
-                <SelectValue />
+                <SelectValue placeholder={copy.paymentMethodCard} />
               </SelectTrigger>
               <SelectContent>
                 {paymentMethods.map((method) => (
@@ -720,7 +736,9 @@ export function TilopaySdkCheckout({
             className="hidden"
             id="tlpy_payment_method"
             name="tlpy_payment_method"
-            onChange={(event) => setSelectedPaymentMethod(event.target.value)}
+            onChange={(event) =>
+              handleTechnicalPaymentMethodChange(event.target.value)
+            }
             ref={paymentMethodSelectRef}
             tabIndex={-1}
             value={selectedPaymentMethod}
