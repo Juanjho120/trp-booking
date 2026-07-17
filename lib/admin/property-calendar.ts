@@ -437,6 +437,8 @@ export async function createAdminManualCalendarBlock(
     throw new AdminCalendarError("INVALID_ADMIN_CALENDAR_REQUEST");
   }
 
+  const accommodationId = input.propertyId;
+
   const range = {
     startDate: input.startDate,
     endDate: input.endDate,
@@ -476,7 +478,7 @@ export async function createAdminManualCalendarBlock(
 
     const blockingRecords = await getAvailabilityBlockingRecords(
       {
-        accommodationId: input.propertyId,
+        accommodationId,
         startDate: input.startDate,
         endDate: input.endDate,
       },
