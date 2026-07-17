@@ -6,7 +6,7 @@
 Phase: Phase 9 — Tilopay Sandbox Integration
 Subphase: 9.9.1 Admin navigation and property calendar operations
 Status: In progress until local build and manual validation pass
-Base commit: c94964928380418377c91ff8b43e39ccd80c2ea8
+Base commit: 88aeae3596f2a511acf3125773089b20055e53ff
 Next subphase: 9.10 Phase 9 documentation update and closure
 ```
 
@@ -27,6 +27,8 @@ The implementation must remain a direct-booking admin, not a PMS.
 ```
 
 `app/admin/layout.tsx` owns authorization and renders a responsive sidebar. Each page loads only the data required by its module.
+
+The sidebar applies the target active state immediately when clicked. `app/admin/loading.tsx` renders a content skeleton while the destination page completes its dynamic Prisma query, so navigation feedback is immediate without caching stale operational data.
 
 ## Calendar Model
 
@@ -52,7 +54,7 @@ Each entry includes its origin accommodation. Entries inherited through Refugio 
 | Effective source | Admin action |
 | --- | --- |
 | Available future date | Add a manual block |
-| Any future date already blocked by another source | Add an independent manual block |
+| Any future date already blocked by another source | Not selectable for a new manual block |
 | Manual block from selected accommodation | Release one selected day |
 | Direct confirmed preparation buffer | Unlock one day |
 | Persisted admin-unlockable preparation buffer | Unlock one day |
@@ -63,7 +65,7 @@ Each entry includes its origin accommodation. Entries inherited through Refugio 
 | Inherited block from another accommodation | Read-only from the selected accommodation |
 | Past date | Read-only |
 
-A day remains unavailable while any effective blocking source remains.
+A day remains unavailable while any effective blocking source remains. Manual range selection accepts only contiguous dates whose effective blocking count is zero. The server repeats the same availability check before persisting the block so stale UI cannot create a redundant or conflicting manual block.
 
 ## Manual Block Persistence
 
@@ -79,7 +81,7 @@ isAdminOverrideAllowed = true
 deletedAt/deletedById = soft-delete history
 ```
 
-Overlapping or adjacent active manual ranges for the same property are normalized into one range. Releasing a single day:
+New manual ranges cannot overlap an active blocker. Adjacent active manual ranges for the same property are normalized into one range. Releasing a single day:
 
 1. Soft-deletes the original block.
 2. Creates a left replacement range when dates remain before the released day.
@@ -134,7 +136,7 @@ SDK events: payment ID, reservation ID, guest, safe SDK message, property
 Calendar: guest, reservation, note, origin accommodation
 ```
 
-Reservation and payment pages use server-side pagination with 20 records per page.
+Reservation and payment pages use server-side pagination with 20 records per page. Search, accommodation, and status controls share one responsive filter row; accommodation and status use styled design-system selects.
 
 ## Superseded Files
 
@@ -149,6 +151,10 @@ types/admin-reservation-payment-review.ts
 ```
 
 Keeping them would leave two admin architectures and unused business/query code in the repository.
+
+## Admin Feedback
+
+Successful calendar and accommodation-setting mutations render a fixed admin snackbar that dismisses automatically after four seconds and can also be closed manually. Error feedback remains inline and persistent so operational failures are not missed.
 
 ## Security and Boundaries
 
@@ -197,14 +203,16 @@ Visible copy remains centralized in messages/es.ts and messages/en.ts.
 
 ### Manual calendar blocks
 
-1. Select an accommodation and a future range.
-2. Create the block without a note.
+1. Select an accommodation and a fully available future range.
+2. Create the block without a note and confirm the success snackbar dismisses automatically.
 3. Confirm the selected property and composed dependent listings become unavailable.
-4. Create an adjacent or overlapping range and confirm effective manual coverage is normalized.
-5. Add a manual block on a date already occupied by another source and confirm both sources are visible.
-6. Release one day in the middle of a multi-day manual block.
-7. Confirm the released day is available only when no other blocker applies, and the days on both sides remain manually blocked.
-8. Confirm audit rows exist for creation and release.
+4. Confirm dates occupied by a direct reservation, active hold, Airbnb block, manual block, maintenance block, or preparation buffer cannot be selected in range mode.
+5. Attempt to span an unavailable day between two available dates and confirm the range is rejected.
+6. Submit a stale or conflicting range directly to the API and confirm it returns `ADMIN_CALENDAR_RANGE_UNAVAILABLE`.
+7. Create an adjacent available range and confirm effective manual coverage is normalized.
+8. Release one day in the middle of a multi-day manual block.
+9. Confirm the released day is available only when no other blocker applies, and the days on both sides remain manually blocked.
+10. Confirm audit rows exist for creation and release.
 
 ### Preparation buffers
 

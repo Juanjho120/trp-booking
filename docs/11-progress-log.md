@@ -7,7 +7,7 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 ```text
 Current phase: Phase 9 — Tilopay Sandbox Integration
 Current subphase: 9.9.1 Admin navigation and property calendar operations
-Last updated: 2026-07-16
+Last updated: 2026-07-17
 Last completed phase: Phase 8 — Reservation Flow
 Last completed subphase: 9.9 Admin preparation buffer settings and auditable overrides
 ```
@@ -244,15 +244,15 @@ Implementation scope:
 ```text
 app/admin/layout.tsx adds the shared protected shell.
 /app/admin remains a compact dashboard.
-/app/admin/reservations provides search, property/status filters, and pagination.
-/app/admin/payments separates payments and SDK events with search, filters, and pagination.
+/app/admin/reservations provides search plus property/status selects in one row and pagination.
+/app/admin/payments separates payments and SDK events with search, compact selects, and pagination.
 /app/admin/accommodations contains property-level preparation settings.
-/app/admin/calendar provides property tabs, month navigation, search, effective blockers, manual range blocking, manual day release, preparation unlock, and preparation restore.
-CalendarBlock.source = MANUAL_BLOCK persists admin-created availability blocks.
+/app/admin/calendar provides property tabs, month navigation, search, effective blockers, available-only manual range selection, manual day release, preparation unlock, and preparation restore.
+CalendarBlock.source = MANUAL_BLOCK persists admin-created availability blocks only after server-side availability revalidation.
 Manual blocks and preparation overrides use audit logs and soft deletion.
-Notes are optional.
-Reservation stays, active pending holds, and Airbnb booking blocks remain read-only.
-Composed-listing inheritance remains visible and effective.
+Notes are optional. Successful mutations use auto-dismissing admin snackbars; errors remain visible inline.
+Reservation stays, active pending holds, Airbnb booking blocks, preparation buffers, and all other effective blockers are excluded from manual-block selection.
+Composed-listing inheritance remains visible and effective. Sidebar navigation highlights the target immediately and the content area renders a route skeleton while dynamic queries finish.
 No Prisma migration, email delivery, guest date change, manual confirmation, refund action, or PMS behavior is added.
 ```
 

@@ -45,6 +45,7 @@ import type { DateOnlyString } from "@/types/availability";
 import type { Locale } from "@/types/locale";
 
 import { AdminPageHeader } from "./admin-page-header";
+import { AdminSnackbar } from "./admin-snackbar";
 
 type CalendarApiErrorCode =
   | AdminCalendarErrorCode
@@ -55,11 +56,6 @@ type CalendarApiResponse = Readonly<{
     code?: CalendarApiErrorCode;
   }>;
 }>;
-
-type Feedback = Readonly<{
-  tone: "success" | "error";
-  message: string;
-}> | null;
 
 const inputClassName =
   "h-11 w-full rounded-2xl border border-input bg-background px-3 text-sm text-foreground shadow-xs outline-none transition placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50";
@@ -114,7 +110,8 @@ export function AdminPropertyCalendarView({
   const [note, setNote] = useState("");
   const [search, setSearch] = useState("");
   const [busyKey, setBusyKey] = useState<string | null>(null);
-  const [feedback, setFeedback] = useState<Feedback>(null);
+  const [errorFeedback, setErrorFeedback] = useState<string | null>(null);
+  const [successFeedback, setSuccessFeedback] = useState<string | null>(null);
   const selectedDay = selectedDate
     ? initialCalendar.days.find((day) => day.date === selectedDate) ?? null
     : null;
@@ -182,9 +179,15 @@ export function AdminPropertyCalendarView({
   }
 
   function selectRangeDate(date: DateOnlyString) {
-    if (date < initialCalendar.today) {
+    const selectedCalendarDay = initialCalendar.days.find(
+      (day) => day.date === date,
+    );
+
+    if (!selectedCalendarDay?.canCreateManualBlock) {
       return;
     }
+
+    setErrorFeedback(null);
 
     if (!rangeStart || rangeEnd) {
       setRangeStart(date);
@@ -192,13 +195,22 @@ export function AdminPropertyCalendarView({
       return;
     }
 
-    if (date < rangeStart) {
-      setRangeEnd(rangeStart);
-      setRangeStart(date);
+    const proposedStart = date < rangeStart ? date : rangeStart;
+    const proposedEnd = date < rangeStart ? rangeStart : date;
+    const crossesUnavailableDate = initialCalendar.days.some(
+      (day) =>
+        day.date >= proposedStart &&
+        day.date <= proposedEnd &&
+        !day.canCreateManualBlock,
+    );
+
+    if (crossesUnavailableDate) {
+      setErrorFeedback(copy.errors.ADMIN_CALENDAR_RANGE_UNAVAILABLE);
       return;
     }
 
-    setRangeEnd(date);
+    setRangeStart(proposedStart);
+    setRangeEnd(proposedEnd);
   }
 
   async function executeMutation(
@@ -208,31 +220,23 @@ export function AdminPropertyCalendarView({
     onSuccess?: () => void,
   ) {
     setBusyKey(key);
-    setFeedback(null);
+    setErrorFeedback(null);
+    setSuccessFeedback(null);
 
     try {
       const response = await request();
       const payload = (await response.json()) as CalendarApiResponse;
 
       if (!response.ok) {
-        setFeedback({
-          tone: "error",
-          message: errorMessage(payload.error?.code),
-        });
+        setErrorFeedback(errorMessage(payload.error?.code));
         return;
       }
 
-      setFeedback({
-        tone: "success",
-        message: successMessage,
-      });
+      setSuccessFeedback(successMessage);
       onSuccess?.();
       router.refresh();
     } catch {
-      setFeedback({
-        tone: "error",
-        message: copy.errors.ADMIN_CALENDAR_UNEXPECTED_ERROR,
-      });
+      setErrorFeedback(copy.errors.ADMIN_CALENDAR_UNEXPECTED_ERROR);
     } finally {
       setBusyKey(null);
     }
@@ -352,6 +356,7 @@ export function AdminPropertyCalendarView({
               } else {
                 setRangeMode(true);
                 setSelectedDate(null);
+                setErrorFeedback(null);
               }
             }}
             type="button"
@@ -363,18 +368,20 @@ export function AdminPropertyCalendarView({
         }
       />
 
-      {feedback ? (
+      {errorFeedback ? (
         <div
-          className={
-            feedback.tone === "success"
-              ? "mb-5 rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-foreground"
-              : "mb-5 rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
-          }
-          role="status"
+          className="mb-5 rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+          role="alert"
         >
-          {feedback.message}
+          {errorFeedback}
         </div>
       ) : null}
+
+      <AdminSnackbar
+        closeLabel={messages.admin.feedback.dismiss}
+        message={successFeedback}
+        onDismiss={() => setSuccessFeedback(null)}
+      />
 
       <div className="mb-5 flex gap-2 overflow-x-auto pb-1">
         {initialCalendar.properties.map((property) => {
@@ -532,9 +539,13 @@ export function AdminPropertyCalendarView({
                     day.inCurrentMonth && "bg-background hover:bg-muted/30",
                     day.blockingCount > 0 && "bg-primary/[0.04]",
                     day.isPast && "cursor-default opacity-60",
+                    rangeMode &&
+                      !day.canCreateManualBlock &&
+                      "cursor-not-allowed bg-muted/40 opacity-50 hover:bg-muted/40",
                     inSelectedRange && "bg-primary/15 ring-2 ring-inset ring-primary",
                     normalizedSearch && !hasSearchMatch && "opacity-35",
                   )}
+                  disabled={rangeMode && !day.canCreateManualBlock}
                   key={day.date}
                   onClick={() => {
                     if (rangeMode) {
@@ -723,7 +734,7 @@ export function AdminPropertyCalendarView({
                 )}
               </div>
 
-              {!selectedDay.isPast ? (
+              {selectedDay.canCreateManualBlock ? (
                 <SheetFooter>
                   <Button
                     disabled={busyKey !== null}

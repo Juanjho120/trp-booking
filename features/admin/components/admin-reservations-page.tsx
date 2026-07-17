@@ -5,6 +5,7 @@ import { Search } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { NativeSelect } from "@/components/ui/native-select";
 import {
   Card,
   CardContent,
@@ -97,15 +98,12 @@ export function AdminReservationsPageView({
       />
 
       <Card className="mb-6 border-border/70 bg-card shadow-sm">
-        <CardContent className="grid gap-5 py-5">
-          <form className="flex flex-col gap-3 sm:flex-row" method="get">
-            {data.filters.propertyId ? (
-              <input name="propertyId" type="hidden" value={data.filters.propertyId} />
-            ) : null}
-            {data.filters.status ? (
-              <input name="status" type="hidden" value={data.filters.status} />
-            ) : null}
-            <label className="relative flex-1">
+        <CardContent className="py-5">
+          <form
+            className="grid gap-3 lg:grid-cols-[minmax(16rem,1fr)_minmax(12rem,0.65fr)_minmax(12rem,0.65fr)_auto_auto] lg:items-end"
+            method="get"
+          >
+            <label className="relative">
               <span className="sr-only">{copy.labels.search}</span>
               <Search
                 aria-hidden="true"
@@ -114,64 +112,50 @@ export function AdminReservationsPageView({
               <input
                 className={`${inputClassName} pl-10`}
                 defaultValue={data.filters.search ?? ""}
+                key={`search:${data.filters.search ?? ""}`}
                 name="search"
                 placeholder={copy.placeholders.search}
                 type="search"
               />
             </label>
+
+            <label className="grid gap-2 text-sm font-medium">
+              <span className="sr-only">{copy.labels.propertyFilter}</span>
+              <NativeSelect
+                defaultValue={data.filters.propertyId ?? ""}
+                key={`property:${data.filters.propertyId ?? "all"}`}
+                name="propertyId"
+              >
+                <option value="">{copy.filters.allProperties}</option>
+                {data.properties.map((property) => (
+                  <option key={property.id} value={property.id}>
+                    {locale === "en" ? property.nameEn : property.nameEs}
+                  </option>
+                ))}
+              </NativeSelect>
+            </label>
+
+            <label className="grid gap-2 text-sm font-medium">
+              <span className="sr-only">{copy.labels.statusFilter}</span>
+              <NativeSelect
+                defaultValue={data.filters.status ?? ""}
+                key={`status:${data.filters.status ?? "all"}`}
+                name="status"
+              >
+                <option value="">{copy.filters.allStatuses}</option>
+                {reservationStatuses.map((status) => (
+                  <option key={status} value={status}>
+                    {statusLabel(status)}
+                  </option>
+                ))}
+              </NativeSelect>
+            </label>
+
             <Button type="submit">{copy.actions.search}</Button>
             <Button asChild variant="outline">
               <Link href="/admin/reservations">{copy.actions.clear}</Link>
             </Button>
           </form>
-
-          <div className="grid gap-3">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              {copy.labels.propertyFilter}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              <Button asChild size="sm" variant={!data.filters.propertyId ? "default" : "outline"}>
-                <Link href={buildUrl({ propertyId: undefined, page: 1 })}>
-                  {copy.filters.allProperties}
-                </Link>
-              </Button>
-              {data.properties.map((property) => (
-                <Button
-                  asChild
-                  key={property.id}
-                  size="sm"
-                  variant={data.filters.propertyId === property.id ? "default" : "outline"}
-                >
-                  <Link href={buildUrl({ propertyId: property.id, page: 1 })}>
-                    {locale === "en" ? property.nameEn : property.nameEs}
-                  </Link>
-                </Button>
-              ))}
-            </div>
-          </div>
-
-          <div className="grid gap-3">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              {copy.labels.statusFilter}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              <Button asChild size="sm" variant={!data.filters.status ? "default" : "outline"}>
-                <Link href={buildUrl({ status: undefined, page: 1 })}>
-                  {copy.filters.allStatuses}
-                </Link>
-              </Button>
-              {reservationStatuses.map((status) => (
-                <Button
-                  asChild
-                  key={status}
-                  size="sm"
-                  variant={data.filters.status === status ? "default" : "outline"}
-                >
-                  <Link href={buildUrl({ status, page: 1 })}>{statusLabel(status)}</Link>
-                </Button>
-              ))}
-            </div>
-          </div>
         </CardContent>
       </Card>
 

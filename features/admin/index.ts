@@ -5,3 +5,4 @@ export { AdminPaymentsPageView } from "./components/admin-payments-page";
 export { AdminPropertyCalendarView } from "./components/admin-property-calendar";
 export { AdminReservationsPageView } from "./components/admin-reservations-page";
 export { AdminShell } from "./components/admin-shell";
+export { AdminSnackbar } from "./components/admin-snackbar";

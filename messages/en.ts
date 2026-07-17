@@ -362,6 +362,9 @@ export const enMessages = {
     },
   },
   admin: {
+    feedback: {
+      dismiss: "Dismiss notification",
+    },
     navigation: {
       brandMark: "TRP",
       fallbackUserName: "Administrator",
@@ -651,6 +654,8 @@ export const enMessages = {
           "We could not find the requested accommodation.",
         ADMIN_CALENDAR_DATE_IN_PAST:
           "Dates in the past cannot be changed.",
+        ADMIN_CALENDAR_RANGE_UNAVAILABLE:
+          "The selected range includes dates that are already occupied or blocked. Select available dates only.",
         ADMIN_CALENDAR_MANUAL_BLOCK_NOT_FOUND:
           "We could not find the selected manual block.",
         ADMIN_CALENDAR_DAY_NOT_IN_BLOCK:

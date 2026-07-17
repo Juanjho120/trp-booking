@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import {
   BedDouble,
   CalendarDays,
@@ -73,15 +73,26 @@ export function AdminShell({
   children,
 }: AdminShellProps) {
   const pathname = usePathname();
+  const [pendingNavigation, setPendingNavigation] = useState<Readonly<{
+    fromPathname: string;
+    href: string;
+  }> | null>(null);
   const { messages } = useLocale();
   const copy = messages.admin.navigation;
+  const optimisticPathname =
+    pendingNavigation?.fromPathname === pathname
+      ? pendingNavigation.href
+      : pathname;
 
   function NavigationLinks({ mobile = false }: Readonly<{ mobile?: boolean }>) {
     return (
       <nav aria-label={copy.ariaLabel} className="grid gap-1.5">
         {navigationItems.map((item) => {
           const Icon = item.icon;
-          const active = isNavigationItemActive(pathname, item.href);
+          const active = isNavigationItemActive(
+            optimisticPathname,
+            item.href,
+          );
           const label = copy.items[item.key];
           const link = (
             <Link
@@ -93,6 +104,20 @@ export function AdminShell({
                   : "text-muted-foreground hover:bg-muted hover:text-foreground",
               )}
               href={item.href}
+              onClick={(event) => {
+                if (
+                  event.button === 0 &&
+                  !event.altKey &&
+                  !event.ctrlKey &&
+                  !event.metaKey &&
+                  !event.shiftKey
+                ) {
+                  setPendingNavigation({
+                    fromPathname: pathname,
+                    href: item.href,
+                  });
+                }
+              }}
             >
               <Icon aria-hidden="true" className="size-4" />
               <span>{label}</span>

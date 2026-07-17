@@ -399,12 +399,14 @@ export async function getAdminPropertyCalendar(
     const dayEntries = entries.filter((entry) =>
       rangeContainsDate(entry, date),
     );
+    const blockingCount = dayEntries.filter((entry) => entry.blocking).length;
 
     return {
       date,
       inCurrentMonth: date.startsWith(`${calendarRange.month}-`),
       isPast: date < today,
-      blockingCount: dayEntries.filter((entry) => entry.blocking).length,
+      canCreateManualBlock: date >= today && blockingCount === 0,
+      blockingCount,
       entries: dayEntries,
     };
   });
@@ -470,6 +472,21 @@ export async function createAdminManualCalendarBlock(
 
     if (!property) {
       throw new AdminCalendarError("ADMIN_CALENDAR_PROPERTY_NOT_FOUND");
+    }
+
+    const blockingRecords = await getAvailabilityBlockingRecords(
+      {
+        accommodationId: input.propertyId,
+        startDate: input.startDate,
+        endDate: input.endDate,
+      },
+      {
+        prismaClient: transaction,
+      },
+    );
+
+    if (blockingRecords.length > 0) {
+      throw new AdminCalendarError("ADMIN_CALENDAR_RANGE_UNAVAILABLE");
     }
 
     const requestedStartDate = dateOnlyToUtcDate(input.startDate);

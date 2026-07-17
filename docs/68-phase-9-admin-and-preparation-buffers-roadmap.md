@@ -174,14 +174,16 @@ The 9.7–9.9 features were initially accumulated on one vertically growing `/ad
 ### Implementation direction
 
 ```text
-- Shared protected admin layout with responsive sidebar.
+- Shared protected admin layout with responsive sidebar, optimistic active state, and route loading feedback.
 - Compact dashboard with links to dedicated modules.
-- Reservations and payments use their own searchable, filterable, paginated pages.
+- Reservations and payments use their own searchable, filterable, paginated pages with compact property/status selects.
 - Preparation settings are grouped by accommodation.
 - Calendar always operates with one selected accommodation.
 - Effective blockers show origin accommodation and composed-listing inheritance.
-- Admin may add MANUAL_BLOCK ranges for any future dates, even when another source already blocks them.
+- Admin may add MANUAL_BLOCK ranges only when every selected future date is currently available.
+- Manual-block creation revalidates availability server-side before writing.
 - Manual block note is optional.
+- Successful admin mutations use auto-dismissing snackbars; errors remain visible inline.
 - Releasing one day soft-deletes the original manual block and preserves the remaining left/right ranges.
 - Direct dynamic buffers and persisted imported buffers support one-day unlock overrides.
 - Overrides can be restored from the calendar.

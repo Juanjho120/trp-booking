@@ -19,16 +19,12 @@ import type {
 import type { Locale } from "@/types/locale";
 
 import { AdminPageHeader } from "./admin-page-header";
+import { AdminSnackbar } from "./admin-snackbar";
 
 type PropertyDraft = Readonly<{
   preparationDaysBefore: string;
   preparationDaysAfter: string;
 }>;
-
-type Feedback = Readonly<{
-  tone: "success" | "error";
-  message: string;
-}> | null;
 
 type SettingsApiResponse = Readonly<{
   settings?: AdminPreparationBufferSettings;
@@ -70,7 +66,8 @@ export function AdminAccommodationSettings({
     buildDrafts(initialSettings),
   );
   const [busyPropertyId, setBusyPropertyId] = useState<string | null>(null);
-  const [feedback, setFeedback] = useState<Feedback>(null);
+  const [errorFeedback, setErrorFeedback] = useState<string | null>(null);
+  const [successFeedback, setSuccessFeedback] = useState<string | null>(null);
 
   function formatDateTime(value: string): string {
     return new Intl.DateTimeFormat(intlLocale, {
@@ -93,7 +90,8 @@ export function AdminAccommodationSettings({
     }
 
     setBusyPropertyId(propertyId);
-    setFeedback(null);
+    setErrorFeedback(null);
+    setSuccessFeedback(null);
 
     try {
       const response = await fetch("/api/admin/preparation-buffers", {
@@ -110,24 +108,15 @@ export function AdminAccommodationSettings({
       const payload = (await response.json()) as SettingsApiResponse;
 
       if (!response.ok || !payload.settings) {
-        setFeedback({
-          tone: "error",
-          message: errorMessage(payload.error?.code),
-        });
+        setErrorFeedback(errorMessage(payload.error?.code));
         return;
       }
 
       setSettings(payload.settings);
       setDrafts(buildDrafts(payload.settings));
-      setFeedback({
-        tone: "success",
-        message: copy.success.settingsSaved,
-      });
+      setSuccessFeedback(copy.success.settingsSaved);
     } catch {
-      setFeedback({
-        tone: "error",
-        message: copy.errors.PREPARATION_BUFFER_UNEXPECTED_ERROR,
-      });
+      setErrorFeedback(copy.errors.PREPARATION_BUFFER_UNEXPECTED_ERROR);
     } finally {
       setBusyPropertyId(null);
     }
@@ -141,18 +130,20 @@ export function AdminAccommodationSettings({
         title={copy.title}
       />
 
-      {feedback ? (
+      {errorFeedback ? (
         <div
-          className={
-            feedback.tone === "success"
-              ? "mb-6 rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-foreground"
-              : "mb-6 rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
-          }
-          role="status"
+          className="mb-6 rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+          role="alert"
         >
-          {feedback.message}
+          {errorFeedback}
         </div>
       ) : null}
+
+      <AdminSnackbar
+        closeLabel={messages.admin.feedback.dismiss}
+        message={successFeedback}
+        onDismiss={() => setSuccessFeedback(null)}
+      />
 
       <div className="grid gap-5 xl:grid-cols-3">
         {settings.properties.map((property) => {

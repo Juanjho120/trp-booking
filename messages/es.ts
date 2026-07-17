@@ -362,6 +362,9 @@ export const esMessages = {
     },
   },
   admin: {
+    feedback: {
+      dismiss: "Cerrar notificación",
+    },
     navigation: {
       brandMark: "TRP",
       fallbackUserName: "Administrador",
@@ -651,6 +654,8 @@ export const esMessages = {
           "No encontramos el alojamiento solicitado.",
         ADMIN_CALENDAR_DATE_IN_PAST:
           "No se pueden modificar fechas que ya pasaron.",
+        ADMIN_CALENDAR_RANGE_UNAVAILABLE:
+          "El rango seleccionado incluye fechas que ya están ocupadas o bloqueadas. Selecciona únicamente fechas disponibles.",
         ADMIN_CALENDAR_MANUAL_BLOCK_NOT_FOUND:
           "No encontramos el bloqueo manual seleccionado.",
         ADMIN_CALENDAR_DAY_NOT_IN_BLOCK:

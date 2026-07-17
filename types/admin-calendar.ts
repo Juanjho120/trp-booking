@@ -36,6 +36,7 @@ export type AdminCalendarDay = Readonly<{
   date: DateOnlyString;
   inCurrentMonth: boolean;
   isPast: boolean;
+  canCreateManualBlock: boolean;
   blockingCount: number;
   entries: readonly AdminCalendarEntry[];
 }>;
@@ -81,6 +82,7 @@ export const adminCalendarErrorCodes = [
   "INVALID_ADMIN_CALENDAR_REQUEST",
   "ADMIN_CALENDAR_PROPERTY_NOT_FOUND",
   "ADMIN_CALENDAR_DATE_IN_PAST",
+  "ADMIN_CALENDAR_RANGE_UNAVAILABLE",
   "ADMIN_CALENDAR_MANUAL_BLOCK_NOT_FOUND",
   "ADMIN_CALENDAR_DAY_NOT_IN_BLOCK",
   "ADMIN_CALENDAR_UNEXPECTED_ERROR",

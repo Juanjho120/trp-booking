@@ -36,6 +36,7 @@ function calendarErrorStatus(error: AdminCalendarError): number {
 
   if (
     error.code === "ADMIN_CALENDAR_DATE_IN_PAST" ||
+    error.code === "ADMIN_CALENDAR_RANGE_UNAVAILABLE" ||
     error.code === "ADMIN_CALENDAR_DAY_NOT_IN_BLOCK"
   ) {
     return 409;

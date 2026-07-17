@@ -51,8 +51,8 @@ TRP Booking is focused only on the public booking experience, direct reservation
 - Resend email delivery belongs to Phase 10 unless explicitly moved later.
 - Public-facing and admin-facing copy must be centralized in `messages/es.ts` and `messages/en.ts`.
 - Admin modules use dedicated routes under `/admin`; the dashboard must remain a compact summary instead of accumulating full operational sections.
-- Manual availability blocks use `CalendarBlock.source = MANUAL_BLOCK`, optional internal notes, soft deletion, and audit logs.
-- Reservation stays and active Airbnb booking blocks remain read-only in the property calendar; only manual blocks and preparation buffers support admin release actions.
+- Manual availability blocks use `CalendarBlock.source = MANUAL_BLOCK`, optional internal notes, soft deletion, audit logs, and server-side availability revalidation.
+- Existing effective blockers—including direct reservations, active holds, Airbnb bookings, manual blocks, maintenance, and preparation buffers—cannot be selected for a new manual range. Only manual blocks and preparation buffers support admin release actions.
 
 ## Phase 9 Summary
 
@@ -76,12 +76,13 @@ Phase 9.9 added configurable dynamic preparation buffers and auditable one-day o
 Phase 9.9.1 is now implementing the scalable admin experience:
 
 ```text
-- Shared protected admin layout with responsive sidebar navigation.
+- Shared protected admin layout with responsive sidebar navigation, optimistic active state, and content loading skeletons.
 - Compact dashboard plus dedicated reservations, payments, accommodations, and calendar routes.
-- Search, filters, and pagination in data-heavy modules.
+- Search, compact accommodation/status selects, and pagination in data-heavy modules.
 - Property calendar with effective occupancy sources and composed-listing inheritance.
-- Manual date-range blocking with optional notes and auditable soft-delete release.
+- Manual date-range blocking only across fully available dates, with optional notes and auditable soft-delete release.
 - Preparation-buffer unlock and restore actions from the calendar.
+- Successful admin mutations use auto-dismissing snackbars; errors remain persistent inline.
 - The same override subtraction for dynamic direct buffers, persisted imported buffers, public availability, and future iCal export.
 - No Prisma migration, email delivery, guest date changes, manual reservation confirmation, or PMS behavior.
 ```
