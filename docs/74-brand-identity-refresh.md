@@ -5,51 +5,77 @@
 ```text
 Phase: 9.11 — Admin MVP and Brand Identity Completion
 Subphase: 9.11.1 — Brand Identity Refresh
-Delivery: 9.11.1-A Production raster assets
-Status: Ready for repository copy and integration
+9.11.1-A Production raster assets — Completed
+9.11.1-B Reusable brand components — Completed
+9.11.1-C Application and metadata integration — Next
+9.11.1-D Responsive QA and documentation closure — Not started
 ```
 
-## Asset decision
+## Approved asset decision
 
-This delivery is based on the two approved raster masters:
+The two approved raster masters remain authoritative:
 
-- `logo-approved-with-text.png`
-- `logo-approved-mark.png`
+- `public/brand/source/logo-approved-with-text.png`
+- `public/brand/source/logo-approved-mark.png`
 
-The package uses the logo with text for the general brand assets and the mark without text for favicons and the smallest icon sizes.
+The primary logo with text is used for general brand placements. The mark without text is used for favicons, compact placements, and icon-only contexts.
 
-## Included assets
+No automatically recreated SVG is accepted because the previous recreation did not preserve the approved typography and proportions faithfully.
+
+## Runtime assets
 
 ```text
-public/brand/logo-primary.png
-public/brand/logo-primary-white-bg.png
-public/brand/logo-primary-2048.png
-public/brand/logo-primary-1024.png
-public/brand/logo-primary-512.png
-public/brand/logo-mark.png
-public/brand/logo-mark-white-bg.png
-public/brand/logo-mark-512.png
-public/brand/logo-mark-256.png
-public/brand/logo-social-square.png
-public/brand/logo-open-graph.png
-public/brand/favicon-16.png
-public/brand/favicon-32.png
-public/brand/favicon-48.png
-public/brand/favicon-64.png
-public/brand/favicon-180.png
-public/brand/favicon-192.png
-public/brand/favicon-512.png
-public/brand/favicon.ico
-public/brand/favicon.png
-public/brand/apple-touch-icon.png
-public/brand/source/logo-approved-with-text.png
-public/brand/source/logo-approved-mark.png
-public/brand/brand-manifest.json
+Primary logo: /brand/logo-primary.png
+Intrinsic size: 1233 × 1132
+Reusable component: BrandLogo
+
+Brand mark: /brand/logo-mark.png
+Intrinsic size: 1121 × 1036
+Reusable component: BrandMark
 ```
 
-## Notes
+## Component contract
 
-- The assets are cropped to reduce unused vertical and horizontal space.
-- The favicon family uses the mark without text because the wordmark would not be legible at small sizes.
-- No SVG is included in this delivery.
-- Integration into React components, metadata, header, footer, and admin layout belongs to the next subphase.
+The reusable components live under:
+
+```text
+components/brand/brand-assets.ts
+components/brand/brand-logo.tsx
+components/brand/brand-mark.tsx
+components/brand/index.ts
+```
+
+Both components:
+
+- use `next/image`;
+- preserve the approved intrinsic aspect ratio;
+- use quality `100` by default for logo clarity;
+- support standard safe `ImageProps` such as `priority`, `loading`, `sizes`, `style`, and `className`;
+- prohibit callers from replacing `src`, `height`, or `fill`;
+- derive the default accessible name from `siteConfig.brandName`;
+- allow `alt=""` when the image is decorative or adjacent to equivalent visible text;
+- expose `data-slot` for predictable styling and testing.
+
+## Usage examples
+
+```tsx
+import { BrandLogo, BrandMark } from "@/components/brand";
+
+<BrandLogo priority width={220} />
+<BrandMark alt="" width={48} />
+```
+
+## Scope boundary
+
+9.11.1-B does not replace the existing temporary `TRP` presentation yet.
+
+The following belongs to 9.11.1-C:
+
+```text
+Public header and footer
+Admin sidebar and mobile navigation
+Admin login
+Next.js metadata and icons
+Open Graph and social metadata
+Transactional email brand header preparation
+```

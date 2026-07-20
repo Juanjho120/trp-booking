@@ -1,38 +1,28 @@
 {
-  "phase": "9.11.1-A",
+  "phase": "9.11.1-B",
   "approved_sources": {
-    "with_text": "/mnt/data/ghostwriter_images/context/71b389ad-d4ce-5c7f-a6b5-d10c05f68223.png",
-    "mark_without_text": "/mnt/data/ghostwriter_images/context/ed1b6be4-fd14-532e-8e9c-af4ac176855a.png"
+    "with_text": "public/brand/source/logo-approved-with-text.png",
+    "mark_without_text": "public/brand/source/logo-approved-mark.png"
+  },
+  "runtime_assets": {
+    "primary": {
+      "src": "/brand/logo-primary.png",
+      "intrinsicWidth": 1233,
+      "intrinsicHeight": 1132,
+      "component": "BrandLogo"
+    },
+    "mark": {
+      "src": "/brand/logo-mark.png",
+      "intrinsicWidth": 1121,
+      "intrinsicHeight": 1036,
+      "component": "BrandMark"
+    }
   },
   "rules": [
-    "Use the image with text for general brand assets.",
+    "Use BrandLogo for the approved logo with text.",
+    "Use BrandMark for compact placements and icon-only contexts.",
     "Use the mark without text for favicons and small icons.",
-    "Crop aggressively to eliminate unused horizontal and vertical space.",
-    "No SVG included in this corrected raster delivery."
-  ],
-  "files": [
-    "public/brand/apple-touch-icon.png",
-    "public/brand/favicon-16.png",
-    "public/brand/favicon-180.png",
-    "public/brand/favicon-192.png",
-    "public/brand/favicon-32.png",
-    "public/brand/favicon-48.png",
-    "public/brand/favicon-512.png",
-    "public/brand/favicon-64.png",
-    "public/brand/favicon.ico",
-    "public/brand/favicon.png",
-    "public/brand/logo-mark-256.png",
-    "public/brand/logo-mark-512.png",
-    "public/brand/logo-mark-white-bg.png",
-    "public/brand/logo-mark.png",
-    "public/brand/logo-open-graph.png",
-    "public/brand/logo-primary-1024.png",
-    "public/brand/logo-primary-2048.png",
-    "public/brand/logo-primary-512.png",
-    "public/brand/logo-primary-white-bg.png",
-    "public/brand/logo-primary.png",
-    "public/brand/logo-social-square.png",
-    "public/brand/source/logo-approved-mark.png",
-    "public/brand/source/logo-approved-with-text.png"
+    "Do not hardcode brand asset paths in application modules.",
+    "No SVG is included in the current approved raster delivery."
   ]
 }
