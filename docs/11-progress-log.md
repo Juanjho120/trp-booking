@@ -11,6 +11,8 @@ Current focus: define property photo administration after completing accommodati
 Last updated: 2026-07-20
 Last completed subphase: 9.11.2 Accommodation content management
 9.11.2 base commit: b5472e8b448f02b6778dcee9e344b2fd55839480
+9.11.2 implementation commit: bc19e7327cd96647fd760b1a551fc4ae9ffacde2
+9.11.2 UI follow-up commit: 3dc5797aef1efc2942d68358bdc5d3b5b44cca4d
 ```
 
 ## Completed Work
@@ -143,7 +145,7 @@ Accommodation preparation settings use a dedicated route.
 The property calendar supports one selected accommodation, month navigation, search, effective blockers, composed-listing inheritance, manual block creation/release, and preparation-buffer unlock/restore.
 Manual blocks are accepted only on fully available future dates and are revalidated server-side.
 Manual blocks and preparation overrides preserve audit history through soft deletion and AdminAuditLog.
-Successful admin mutations use auto-dismissing snackbars; errors remain persistent inline.
+Successful and failed admin mutations use accessible auto-dismissing snackbars with distinct success and error variants and manual dismissal.
 No Prisma migration, email delivery, guest date change, manual confirmation, refund action, or PMS behavior was added.
 ```
 
@@ -253,6 +255,9 @@ The service normalizes text and validates lengths and capacity values independen
 expectedUpdatedAt provides optimistic concurrency and returns ACCOMMODATION_CONTENT_STALE for an outdated form.
 PROPERTY_CONTENT_UPDATED audit records contain the actor email, changed fields, and before/after values.
 Unsupported or soft-deleted properties return not found and cannot be restored from this UI.
+The public ES/EN selector is available from the shared site header.
+Public header and footer copy respond to the locale selected by the visitor.
+Accommodation-content, preparation-buffer, and calendar mutation errors use the shared destructive admin snackbar instead of persistent inline alerts.
 No Prisma migration, photo management, amenity/rule management, price editing, status publishing, deletion UI, email delivery, refund action, or PMS behavior was added.
 ```
 
@@ -261,6 +266,15 @@ Important seed boundary:
 ```text
 The Property upsert in prisma/seed.ts must use update: {} so re-running the development seed does not overwrite admin-managed runtime content or restore a soft-deleted property.
 The create branch of the upsert remains the clean-database baseline.
+```
+
+Accepted follow-up:
+
+```text
+The accommodation content workflow was reported functioning and committed.
+The public ES/EN selector and shared admin error snackbars were then validated and committed.
+Implementation commit: bc19e7327cd96647fd760b1a551fc4ae9ffacde2
+UI follow-up commit: 3dc5797aef1efc2942d68358bdc5d3b5b44cca4d
 ```
 
 ### Phase 9.11.3 — Property Photo Management
@@ -278,14 +292,10 @@ Do not mix amenity, rule, price, reservation, email, or PMS work into the photo 
 ## Next Recommended Work
 
 ```text
-1. Apply and validate Phase 9.11.2.
-2. Confirm editing ES/EN content changes the public listing and property detail page.
-3. Confirm a stale editor receives the safe concurrency error.
-4. Confirm PROPERTY_CONTENT_UPDATED audit rows contain only changed fields.
-5. Confirm preparation-buffer settings still save from /admin/accommodations.
-6. Run npm run env:validate, npm run db:validate, npm run lint, and npm run build.
-7. Commit Phase 9.11.2.
-8. Continue with 9.11.3 property photo management.
+1. Keep the accepted public ES/EN selector and shared admin snackbar behavior as regression requirements.
+2. Define the exact 9.11.3 property photo management contract before coding.
+3. Confirm Cloudinary ownership, upload, ordering, cover selection, bilingual alt text, and soft-delete rules.
+4. Do not mix amenities, house rules, pricing, reservations, email, or PMS behavior into 9.11.3.
 ```
 
 ## Continuity Notes for New Conversations

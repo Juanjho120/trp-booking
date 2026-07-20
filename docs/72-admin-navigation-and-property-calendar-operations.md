@@ -187,9 +187,16 @@ No external image dependency and no card-data handling were introduced.
 
 ## Admin Feedback
 
-Successful calendar and accommodation-setting mutations render a fixed admin snackbar that dismisses automatically after four seconds and can also be closed manually.
+Successful and failed admin mutations render through the shared fixed admin snackbar.
 
-Error feedback remains inline and persistent so operational failures are not missed.
+```text
+Success variant: primary icon and polite status semantics
+Error variant: destructive icon and assertive alert semantics
+Auto-dismiss: four seconds
+Manual dismissal: available through the close button
+```
+
+Inline persistent mutation errors are no longer used in the current accommodation-content, preparation-buffer, or calendar workflows.
 
 ## Superseded Architecture
 
