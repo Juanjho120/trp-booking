@@ -554,45 +554,132 @@ export const esMessages = {
     },
     accommodations: {
       seoTitle: "Alojamientos | Admin | Tu Refugio Perfecto",
-      badge: "Configuración por alojamiento",
+      badge: "Contenido y configuración",
       title: "Alojamientos",
       description:
-        "Administra la política automática de preparación de cada alojamiento sin mezclarla con reservas o bloqueos diarios.",
-      labels: {
-        lastUpdated: "Última actualización",
-        daysBefore: "Días antes del check-in",
-        daysAfter: "Días después del check-out",
+        "Administra el contenido público bilingüe y la preparación automática de cada alojamiento sin mezclar fotos, amenidades, reglas, precios o reservas.",
+      overview: {
+        sectionTitle: "Contenido público",
+        sectionDescription:
+          "Edita nombres, descripciones, capacidad y horarios que se muestran en el sitio público.",
+        labels: {
+          capacity: "Capacidad",
+          bedrooms: "Dormitorios",
+          price: "Precio de referencia",
+          checkIn: "Check-in",
+          lastUpdated: "Última actualización",
+        },
+        statuses: {
+          DRAFT: "Borrador",
+          ACTIVE: "Activo",
+          INACTIVE: "Inactivo",
+        },
+        actions: {
+          editContent: "Editar contenido público",
+        },
+        notes: {
+          readonlyBoundaries:
+            "El slug, estado, precio, moneda y composición se muestran como referencia y no se modifican en esta subfase.",
+        },
       },
-      actions: {
-        saveSettings: "Guardar configuración",
-        saving: "Guardando...",
+      content: {
+        seoTitle: "Editar alojamiento | Admin | Tu Refugio Perfecto",
+        badge: "Contenido público bilingüe",
+        title: "Editar contenido",
+        description:
+          "Los cambios aprobados se reflejan en el listado público, la página del alojamiento y sus metadatos dinámicos.",
+        sections: {
+          identity: "Identidad",
+          descriptions: "Descripciones",
+          capacity: "Capacidad",
+          arrival: "Horarios de llegada y salida",
+        },
+        labels: {
+          nameEs: "Nombre en español",
+          nameEn: "Nombre en inglés",
+          slug: "Slug público",
+          shortDescriptionEs: "Descripción corta en español",
+          shortDescriptionEn: "Descripción corta en inglés",
+          longDescriptionEs: "Descripción larga en español",
+          longDescriptionEn: "Descripción larga en inglés",
+          maxGuests: "Huéspedes máximos",
+          bedrooms: "Dormitorios",
+          bathrooms: "Baños",
+          checkInTime: "Hora de check-in",
+          checkOutTime: "Hora de check-out opcional",
+        },
+        actions: {
+          backToAccommodations: "Volver a alojamientos",
+          saveContent: "Guardar contenido",
+          saving: "Guardando...",
+        },
+        notes: {
+          requiredLanguages:
+            "El nombre y las descripciones son obligatorios en español e inglés.",
+          publicImpact:
+            "El sitio público consulta estos campos directamente desde la base de datos.",
+          capacityRange: "Valores permitidos: números enteros de 1 a 20.",
+          timeFormat:
+            "Usa una hora breve y legible, por ejemplo: 8:00 a. m. o 11:00 a. m.",
+          immutableFields:
+            "En esta subfase no se modifican slug, precio, moneda, estado, composición, fotos, amenidades, reglas ni política de preparación.",
+        },
+        success: {
+          contentSaved: "El contenido del alojamiento se guardó correctamente.",
+        },
+        errors: {
+          ADMIN_UNAUTHORIZED: "Tu sesión no tiene autorización administrativa.",
+          INVALID_ACCOMMODATION_CONTENT_REQUEST:
+            "Revisa el contenido y completa correctamente todos los campos obligatorios.",
+          ACCOMMODATION_CONTENT_PROPERTY_NOT_FOUND:
+            "No encontramos el alojamiento solicitado.",
+          ACCOMMODATION_CONTENT_STALE:
+            "Este alojamiento cambió después de que abriste el formulario. Recarga la página antes de guardar nuevamente.",
+          ACCOMMODATION_CONTENT_UNEXPECTED_ERROR:
+            "No pudimos guardar el contenido del alojamiento. Inténtalo de nuevo.",
+        },
       },
-      notes: {
-        allowedRange: "Valores permitidos: de 0 a 30 días.",
-        settingsImpact:
-          "Los cambios se aplican a reservas confirmadas, holds activos, disponibilidad pública y futuros feeds iCal. Los desbloqueos individuales se administran desde Calendario.",
-      },
-      success: {
-        settingsSaved: "La configuración de preparación se guardó correctamente.",
-      },
-      errors: {
-        ADMIN_UNAUTHORIZED: "Tu sesión no tiene autorización administrativa.",
-        INVALID_PREPARATION_BUFFER_REQUEST:
-          "Revisa la configuración de días de preparación e inténtalo de nuevo.",
-        PREPARATION_BUFFER_PROPERTY_NOT_FOUND:
-          "No encontramos el alojamiento solicitado.",
-        PREPARATION_BUFFER_RESERVATION_NOT_FOUND:
-          "No encontramos la reserva seleccionada.",
-        PREPARATION_BUFFER_RESERVATION_NOT_CONFIRMED:
-          "Solo se pueden desbloquear buffers de reservas confirmadas.",
-        PREPARATION_BUFFER_DATE_IN_PAST:
-          "No se puede modificar un día de preparación que ya pasó.",
-        PREPARATION_BUFFER_DATE_NOT_UNLOCKABLE:
-          "La fecha ya no pertenece al buffer de preparación seleccionado.",
-        PREPARATION_BUFFER_OVERRIDE_NOT_FOUND:
-          "No encontramos el desbloqueo de preparación que deseas restaurar.",
-        PREPARATION_BUFFER_UNEXPECTED_ERROR:
-          "No pudimos actualizar la configuración de preparación. Inténtalo de nuevo.",
+      preparation: {
+        badge: "Configuración de preparación",
+        title: "Buffers de preparación",
+        description:
+          "Administra la política automática de preparación de cada alojamiento sin mezclarla con reservas o bloqueos diarios.",
+        labels: {
+          lastUpdated: "Última actualización",
+          daysBefore: "Días antes del check-in",
+          daysAfter: "Días después del check-out",
+        },
+        actions: {
+          saveSettings: "Guardar configuración",
+          saving: "Guardando...",
+        },
+        notes: {
+          allowedRange: "Valores permitidos: de 0 a 30 días.",
+          settingsImpact:
+            "Los cambios se aplican a reservas confirmadas, holds activos, disponibilidad pública y futuros feeds iCal. Los desbloqueos individuales se administran desde Calendario.",
+        },
+        success: {
+          settingsSaved: "La configuración de preparación se guardó correctamente.",
+        },
+        errors: {
+          ADMIN_UNAUTHORIZED: "Tu sesión no tiene autorización administrativa.",
+          INVALID_PREPARATION_BUFFER_REQUEST:
+            "Revisa la configuración de días de preparación e inténtalo de nuevo.",
+          PREPARATION_BUFFER_PROPERTY_NOT_FOUND:
+            "No encontramos el alojamiento solicitado.",
+          PREPARATION_BUFFER_RESERVATION_NOT_FOUND:
+            "No encontramos la reserva seleccionada.",
+          PREPARATION_BUFFER_RESERVATION_NOT_CONFIRMED:
+            "Solo se pueden desbloquear buffers de reservas confirmadas.",
+          PREPARATION_BUFFER_DATE_IN_PAST:
+            "No se puede modificar un día de preparación que ya pasó.",
+          PREPARATION_BUFFER_DATE_NOT_UNLOCKABLE:
+            "La fecha ya no pertenece al buffer de preparación seleccionado.",
+          PREPARATION_BUFFER_OVERRIDE_NOT_FOUND:
+            "No encontramos el desbloqueo de preparación que deseas restaurar.",
+          PREPARATION_BUFFER_UNEXPECTED_ERROR:
+            "No pudimos actualizar la configuración de preparación. Inténtalo de nuevo.",
+        },
       },
     },
     calendar: {

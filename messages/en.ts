@@ -554,45 +554,132 @@ export const enMessages = {
     },
     accommodations: {
       seoTitle: "Accommodations | Admin | Tu Refugio Perfecto",
-      badge: "Settings by accommodation",
+      badge: "Content and settings",
       title: "Accommodations",
       description:
-        "Manage each accommodation's automatic preparation policy without mixing it with reservations or daily blocks.",
-      labels: {
-        lastUpdated: "Last updated",
-        daysBefore: "Days before check-in",
-        daysAfter: "Days after check-out",
+        "Manage bilingual public content and automatic preparation settings without mixing in photos, amenities, rules, prices, or reservations.",
+      overview: {
+        sectionTitle: "Public content",
+        sectionDescription:
+          "Edit names, descriptions, capacity, and arrival times displayed on the public website.",
+        labels: {
+          capacity: "Capacity",
+          bedrooms: "Bedrooms",
+          price: "Reference price",
+          checkIn: "Check-in",
+          lastUpdated: "Last updated",
+        },
+        statuses: {
+          DRAFT: "Draft",
+          ACTIVE: "Active",
+          INACTIVE: "Inactive",
+        },
+        actions: {
+          editContent: "Edit public content",
+        },
+        notes: {
+          readonlyBoundaries:
+            "Slug, status, price, currency, and composition are shown for reference and are not editable in this subphase.",
+        },
       },
-      actions: {
-        saveSettings: "Save settings",
-        saving: "Saving...",
+      content: {
+        seoTitle: "Edit accommodation | Admin | Tu Refugio Perfecto",
+        badge: "Bilingual public content",
+        title: "Edit content",
+        description:
+          "Approved changes are reflected in the public listing, accommodation detail page, and dynamic metadata.",
+        sections: {
+          identity: "Identity",
+          descriptions: "Descriptions",
+          capacity: "Capacity",
+          arrival: "Arrival and departure times",
+        },
+        labels: {
+          nameEs: "Spanish name",
+          nameEn: "English name",
+          slug: "Public slug",
+          shortDescriptionEs: "Short description in Spanish",
+          shortDescriptionEn: "Short description in English",
+          longDescriptionEs: "Long description in Spanish",
+          longDescriptionEn: "Long description in English",
+          maxGuests: "Maximum guests",
+          bedrooms: "Bedrooms",
+          bathrooms: "Bathrooms",
+          checkInTime: "Check-in time",
+          checkOutTime: "Optional check-out time",
+        },
+        actions: {
+          backToAccommodations: "Back to accommodations",
+          saveContent: "Save content",
+          saving: "Saving...",
+        },
+        notes: {
+          requiredLanguages:
+            "Names and descriptions are required in both Spanish and English.",
+          publicImpact:
+            "The public website reads these fields directly from the database.",
+          capacityRange: "Allowed values: whole numbers from 1 through 20.",
+          timeFormat:
+            "Use a brief readable time, for example: 8:00 a.m. or 11:00 a.m.",
+          immutableFields:
+            "This subphase does not edit slug, price, currency, status, composition, photos, amenities, rules, or preparation settings.",
+        },
+        success: {
+          contentSaved: "Accommodation content was saved successfully.",
+        },
+        errors: {
+          ADMIN_UNAUTHORIZED: "Your session does not have admin access.",
+          INVALID_ACCOMMODATION_CONTENT_REQUEST:
+            "Review the content and complete every required field correctly.",
+          ACCOMMODATION_CONTENT_PROPERTY_NOT_FOUND:
+            "We could not find the requested accommodation.",
+          ACCOMMODATION_CONTENT_STALE:
+            "This accommodation changed after you opened the form. Reload the page before saving again.",
+          ACCOMMODATION_CONTENT_UNEXPECTED_ERROR:
+            "We could not save the accommodation content. Please try again.",
+        },
       },
-      notes: {
-        allowedRange: "Allowed values: 0 through 30 days.",
-        settingsImpact:
-          "Changes apply to confirmed reservations, active holds, public availability, and future iCal feeds. Individual unlocks are managed from Calendar.",
-      },
-      success: {
-        settingsSaved: "Preparation settings were saved successfully.",
-      },
-      errors: {
-        ADMIN_UNAUTHORIZED: "Your session does not have admin access.",
-        INVALID_PREPARATION_BUFFER_REQUEST:
-          "Review the preparation-day settings and try again.",
-        PREPARATION_BUFFER_PROPERTY_NOT_FOUND:
-          "We could not find the requested accommodation.",
-        PREPARATION_BUFFER_RESERVATION_NOT_FOUND:
-          "We could not find the selected reservation.",
-        PREPARATION_BUFFER_RESERVATION_NOT_CONFIRMED:
-          "Only buffers from confirmed reservations can be unlocked.",
-        PREPARATION_BUFFER_DATE_IN_PAST:
-          "A preparation day in the past cannot be changed.",
-        PREPARATION_BUFFER_DATE_NOT_UNLOCKABLE:
-          "This date is no longer part of the reservation's current buffer.",
-        PREPARATION_BUFFER_OVERRIDE_NOT_FOUND:
-          "We could not find the preparation unlock you want to restore.",
-        PREPARATION_BUFFER_UNEXPECTED_ERROR:
-          "We could not update preparation settings. Please try again.",
+      preparation: {
+        badge: "Preparation settings",
+        title: "Preparation buffers",
+        description:
+          "Manage each accommodation's automatic preparation policy without mixing it with reservations or daily blocks.",
+        labels: {
+          lastUpdated: "Last updated",
+          daysBefore: "Days before check-in",
+          daysAfter: "Days after check-out",
+        },
+        actions: {
+          saveSettings: "Save settings",
+          saving: "Saving...",
+        },
+        notes: {
+          allowedRange: "Allowed values: 0 through 30 days.",
+          settingsImpact:
+            "Changes apply to confirmed reservations, active holds, public availability, and future iCal feeds. Individual unlocks are managed from Calendar.",
+        },
+        success: {
+          settingsSaved: "Preparation settings were saved successfully.",
+        },
+        errors: {
+          ADMIN_UNAUTHORIZED: "Your session does not have admin access.",
+          INVALID_PREPARATION_BUFFER_REQUEST:
+            "Review the preparation-day settings and try again.",
+          PREPARATION_BUFFER_PROPERTY_NOT_FOUND:
+            "We could not find the requested accommodation.",
+          PREPARATION_BUFFER_RESERVATION_NOT_FOUND:
+            "We could not find the selected reservation.",
+          PREPARATION_BUFFER_RESERVATION_NOT_CONFIRMED:
+            "Only buffers from confirmed reservations can be unlocked.",
+          PREPARATION_BUFFER_DATE_IN_PAST:
+            "A preparation day in the past cannot be changed.",
+          PREPARATION_BUFFER_DATE_NOT_UNLOCKABLE:
+            "This date is no longer part of the reservation's current buffer.",
+          PREPARATION_BUFFER_OVERRIDE_NOT_FOUND:
+            "We could not find the preparation unlock you want to restore.",
+          PREPARATION_BUFFER_UNEXPECTED_ERROR:
+            "We could not update preparation settings. Please try again.",
+        },
       },
     },
     calendar: {

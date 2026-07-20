@@ -113,6 +113,8 @@ The approved mark without text remains mandatory for favicon-scale assets. The l
 
 Responsive closure also ensures that long footer contact values wrap safely, the compact mobile admin header keeps its controls visible, and the branded admin sign-in page remains vertically scrollable on short screens.
 
+Accommodation content management now allows an authorized admin to edit bilingual names and descriptions, capacity, bedroom/bathroom counts, and arrival/departure times. Slug, price, currency, status, composition, photos, amenities, rules, and preparation settings remain outside that editor. Updates use server validation, optimistic concurrency, and `AdminAuditLog`.
+
 ## Documentation
 
 The project documentation lives under `/docs`.
@@ -136,13 +138,14 @@ docs/74-brand-identity-refresh.md
 docs/75-reusable-brand-components.md
 docs/76-brand-application-and-metadata-integration.md
 docs/77-responsive-brand-qa-and-closure.md
+docs/78-accommodation-content-management.md
 ```
 
 ## Development Status
 
 ```text
 Current phase: Phase 9.11 — Admin MVP and Brand Identity Completion
-Current subphase: 9.11.2 Accommodation content management
-Current focus: define the minimum admin-managed accommodation content contract before implementation
-Last completed subphase: 9.11.1-D Responsive QA and documentation closure
+Current subphase: 9.11.3 Property photo management
+Current focus: define property photo administration on top of the completed accommodation content editor
+Last completed subphase: 9.11.2 Accommodation content management
 ```

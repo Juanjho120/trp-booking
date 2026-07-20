@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 
-import { AdminAccommodationSettings } from "@/features/admin";
-import { getAdminPreparationBufferSettings } from "@/lib/admin";
+import { AdminAccommodationManagement } from "@/features/admin";
+import {
+  getAdminAccommodationContentSettings,
+  getAdminPreparationBufferSettings,
+} from "@/lib/admin";
 import { esMessages } from "@/messages";
 
 export const dynamic = "force-dynamic";
@@ -15,6 +18,15 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminAccommodationsPage() {
-  const settings = await getAdminPreparationBufferSettings();
-  return <AdminAccommodationSettings initialSettings={settings} />;
+  const [content, preparationSettings] = await Promise.all([
+    getAdminAccommodationContentSettings(),
+    getAdminPreparationBufferSettings(),
+  ]);
+
+  return (
+    <AdminAccommodationManagement
+      initialContent={content}
+      initialPreparationSettings={preparationSettings}
+    />
+  );
 }

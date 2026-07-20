@@ -1,3 +1,9 @@
+export {
+  AdminAccommodationContentError,
+  getAdminAccommodationContentById,
+  getAdminAccommodationContentSettings,
+  updateAdminAccommodationContent,
+} from "./accommodation-content";
 export { resolveAdminActor } from "./admin-actor";
 export {
   adminAccommodationIds,

@@ -15,9 +15,9 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 9.11 — Admin MVP and Brand Identity Completion
-Current subphase: 9.11.2 Accommodation content management
-Current focus: define the minimum admin-managed accommodation content contract before implementation
-Last completed subphase: 9.11.1-D Responsive QA and documentation closure
+Current subphase: 9.11.3 Property photo management
+Current focus: define property photo administration after completing the DB-backed accommodation content editor
+Last completed subphase: 9.11.2 Accommodation content management
 ```
 
 ---
@@ -195,7 +195,7 @@ Subphase status:
 9.11.1-B Reusable brand components — Completed
 9.11.1-C Application and metadata integration — Completed
 9.11.1-D Responsive QA and documentation closure — Completed
-9.11.2 Accommodation content management — Not started
+9.11.2 Accommodation content management — Completed
 9.11.3 Property photo management — Not started
 9.11.4 Amenities and house rules — Not started
 9.11.5 Reservation and payment detail views — Not started
@@ -215,6 +215,21 @@ Subphase status:
 - The branded admin sign-in page permits vertical scrolling on short displays.
 - Auth.js authorization, Google OAuth verification, JWT roles, server-side admin allowlist, and safe callback behavior remain unchanged.
 - Resend delivery and transactional email templates remain deferred to Phase 10.
+```
+
+### Phase 9.11.2 result
+
+```text
+- Authorized admins can edit bilingual property names, short descriptions, and long descriptions.
+- Admins can edit maximum guests, bedroom count, bathroom count, check-in time, and optional check-out time.
+- The existing /admin/accommodations page now separates public content management from preparation-buffer settings.
+- Slug, price, currency, status, composition, photos, amenities, rules, and preparation settings are not editable through the content editor.
+- Zod validates the PATCH request and the service repeats normalization and domain validation.
+- expectedUpdatedAt prevents an older browser tab from silently overwriting newer property content.
+- PROPERTY_CONTENT_UPDATED audit rows record the actor, changed fields, and before/after values.
+- Public accommodation pages already read Property content from PostgreSQL and therefore reflect accepted updates without a separate synchronization step.
+- Soft-deleted or unsupported property records cannot be edited.
+- No Prisma schema migration, photo management, amenity/rule management, pricing workflow, email delivery, or PMS behavior was added.
 ```
 
 ---

@@ -56,9 +56,13 @@ function buildDrafts(
 
 export function AdminAccommodationSettings({
   initialSettings,
-}: Readonly<{ initialSettings: AdminPreparationBufferSettings }>) {
+  showHeader = true,
+}: Readonly<{
+  initialSettings: AdminPreparationBufferSettings;
+  showHeader?: boolean;
+}>) {
   const { locale, messages } = useLocale();
-  const copy = messages.admin.accommodations;
+  const copy = messages.admin.accommodations.preparation;
   const intlLocale = getIntlLocale(locale);
   const [settings, setSettings] =
     useState<AdminPreparationBufferSettings>(initialSettings);
@@ -124,11 +128,13 @@ export function AdminAccommodationSettings({
 
   return (
     <>
-      <AdminPageHeader
-        badge={copy.badge}
-        description={copy.description}
-        title={copy.title}
-      />
+      {showHeader ? (
+        <AdminPageHeader
+          badge={copy.badge}
+          description={copy.description}
+          title={copy.title}
+        />
+      ) : null}
 
       {errorFeedback ? (
         <div

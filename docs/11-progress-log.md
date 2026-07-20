@@ -6,11 +6,11 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 9.11 — Admin MVP and Brand Identity Completion
-Current subphase: 9.11.2 Accommodation content management
-Current focus: define the minimum admin-managed accommodation content contract before implementation
+Current subphase: 9.11.3 Property photo management
+Current focus: define property photo administration after completing accommodation content management
 Last updated: 2026-07-20
-Last completed subphase: 9.11.1-D Responsive QA and documentation closure
-9.11.1-D base commit: cf9154f290c9635c61371b5ce83cf9a7e9a2966e
+Last completed subphase: 9.11.2 Accommodation content management
+9.11.2 base commit: b5472e8b448f02b6778dcee9e344b2fd55839480
 ```
 
 ## Completed Work
@@ -238,28 +238,54 @@ public/brand/brand-manifest.json updated to Phase 9.11.1-D.
 
 ### Phase 9.11.2 — Accommodation Content Management
 
+Status: **Completed**
+
+Implemented behavior:
+
+```text
+/admin/accommodations shows the three supported properties and keeps preparation settings in a separate section.
+Each property has a dedicated /admin/accommodations/[propertyId] content editor.
+Editable fields are bilingual names, short descriptions, long descriptions, max guests, bedrooms, bathrooms, check-in time, and optional check-out time.
+Slug, price, currency, status, composed-listing structure, photos, amenities, rules, and preparation settings remain read-only or deferred.
+Public pages already read active Property rows from PostgreSQL, so successful edits are visible without copying values back into typed configuration.
+PATCH /api/admin/accommodation-content requires an authorized admin session and a strict Zod payload.
+The service normalizes text and validates lengths and capacity values independently of the client.
+expectedUpdatedAt provides optimistic concurrency and returns ACCOMMODATION_CONTENT_STALE for an outdated form.
+PROPERTY_CONTENT_UPDATED audit records contain the actor email, changed fields, and before/after values.
+Unsupported or soft-deleted properties return not found and cannot be restored from this UI.
+No Prisma migration, photo management, amenity/rule management, price editing, status publishing, deletion UI, email delivery, refund action, or PMS behavior was added.
+```
+
+Important seed boundary:
+
+```text
+The Property upsert in prisma/seed.ts must use update: {} so re-running the development seed does not overwrite admin-managed runtime content or restore a soft-deleted property.
+The create branch of the upsert remains the clean-database baseline.
+```
+
+### Phase 9.11.3 — Property Photo Management
+
 Status: **Not started**
 
 Planning scope:
 
 ```text
-Define which accommodation fields the admin may edit.
-Preserve bilingual public content requirements.
-Keep availability, pricing, booking, and PMS responsibilities separated.
-Define validation, audit, and soft-delete behavior before implementation.
-Do not start photo, amenity, rule, email, or refund work inside this subphase.
+Define Cloudinary-backed upload, ordering, cover selection, bilingual alt text, and soft deletion.
+Reuse the existing PropertyImage model and Cloudinary ownership rules.
+Do not mix amenity, rule, price, reservation, email, or PMS work into the photo subphase.
 ```
 
 ## Next Recommended Work
 
 ```text
-1. Apply and validate Phase 9.11.1-D.
-2. Confirm public footer contact wrapping at 320px and 375px widths.
-3. Confirm the admin top bar keeps menu, mark, and ES/EN controls visible at mobile widths.
-4. Confirm /admin-login scrolls on a short mobile viewport.
-5. Run npm run env:validate, npm run db:validate, npm run lint, and npm run build.
-6. Commit Phase 9.11.1-D.
-7. Define the exact 9.11.2 accommodation content management contract before coding.
+1. Apply and validate Phase 9.11.2.
+2. Confirm editing ES/EN content changes the public listing and property detail page.
+3. Confirm a stale editor receives the safe concurrency error.
+4. Confirm PROPERTY_CONTENT_UPDATED audit rows contain only changed fields.
+5. Confirm preparation-buffer settings still save from /admin/accommodations.
+6. Run npm run env:validate, npm run db:validate, npm run lint, and npm run build.
+7. Commit Phase 9.11.2.
+8. Continue with 9.11.3 property photo management.
 ```
 
 ## Continuity Notes for New Conversations
@@ -285,11 +311,17 @@ docs/74-brand-identity-refresh.md
 docs/75-reusable-brand-components.md
 docs/76-brand-application-and-metadata-integration.md
 docs/77-responsive-brand-qa-and-closure.md
+docs/78-accommodation-content-management.md
 components/brand/
 components/layout/site-header.tsx
 components/layout/site-footer.tsx
 features/admin/components/admin-shell.tsx
 features/auth/components/admin-sign-in-page.tsx
+features/admin/components/admin-accommodation-management.tsx
+features/admin/components/admin-accommodation-content-editor.tsx
+app/api/admin/accommodation-content/route.ts
+lib/admin/accommodation-content.ts
+types/admin-accommodation-content.ts
 app/admin-login/page.tsx
 app/layout.tsx
 lib/reservations/confirmation.ts

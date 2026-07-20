@@ -1,3 +1,5 @@
+export { AdminAccommodationContentEditor } from "./components/admin-accommodation-content-editor";
+export { AdminAccommodationManagement } from "./components/admin-accommodation-management";
 export { AdminAccommodationSettings } from "./components/admin-accommodation-settings";
 export { AdminDashboardPage } from "./components/admin-dashboard-page";
 export { AdminPageHeader } from "./components/admin-page-header";
