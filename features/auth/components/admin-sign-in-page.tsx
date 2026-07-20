@@ -36,7 +36,7 @@ export function AdminSignInPage({ signInAction }: AdminSignInPageProps) {
       <Card className="relative z-10 w-full max-w-lg border-border/70 bg-background/95 shadow-xl backdrop-blur-xl">
         <CardHeader className="items-center text-center">
           <BrandLogo
-            className="w-48 sm:w-56"
+            className="mx-auto w-48 sm:w-56"
             priority
             sizes="(min-width: 640px) 224px, 192px"
             width={224}
