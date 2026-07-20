@@ -47,7 +47,7 @@ export function SiteFooter() {
           <p className="text-sm font-semibold text-foreground">
             {messages.footer.contactTitle}
           </p>
-          <div className="mt-4 grid gap-3 text-sm text-muted-foreground">
+          <div className="mt-4 grid gap-3 text-sm text-muted-foreground [overflow-wrap:anywhere]">
             <a
               className="transition-colors hover:text-foreground"
               href={`mailto:${siteConfig.emails.reservationsEs}`}

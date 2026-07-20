@@ -98,20 +98,20 @@ The real Airbnb iCal operational end-to-end test remains deferred until secure `
 
 ## Brand Identity Refresh
 
-Phase 9.11.1 is refreshing and integrating the approved Tu Refugio Perfecto identity before Phase 10 email templates are implemented.
+Phase 9.11.1 is completed. The approved Tu Refugio Perfecto identity is integrated across the public application, protected admin experience, Auth.js sign-in surface, favicons, application icons, and social metadata.
 
-Current brand work:
+Completed brand work:
 
 ```text
 9.11.1-A Production raster assets — Completed
 9.11.1-B Reusable BrandLogo and BrandMark components — Completed
-9.11.1-C Application and metadata integration — In progress
-9.11.1-D Responsive QA and documentation closure — Not started
+9.11.1-C Application and metadata integration — Completed
+9.11.1-D Responsive QA and documentation closure — Completed
 ```
 
-Application integration now covers the public header/footer, protected admin shell, branded Auth.js sign-in surface, favicons, application icons, Apple touch icon, Open Graph, and Twitter card metadata.
+The approved mark without text remains mandatory for favicon-scale assets. The logo with text is used only where sufficient display space exists.
 
-The approved mark without text remains mandatory for favicon-scale assets. The logo with text is used where sufficient display space exists.
+Responsive closure also ensures that long footer contact values wrap safely, the compact mobile admin header keeps its controls visible, and the branded admin sign-in page remains vertically scrollable on short screens.
 
 ## Documentation
 
@@ -135,13 +135,14 @@ docs/73-phase-9-documentation-closure.md
 docs/74-brand-identity-refresh.md
 docs/75-reusable-brand-components.md
 docs/76-brand-application-and-metadata-integration.md
+docs/77-responsive-brand-qa-and-closure.md
 ```
 
 ## Development Status
 
 ```text
 Current phase: Phase 9.11 — Admin MVP and Brand Identity Completion
-Current subphase: 9.11.1-C Application and metadata integration
-Current focus: validate the approved logo across the public site, admin surfaces, Auth.js sign-in, favicons, and social metadata
-Last completed subphase: 9.11.1-B Reusable brand components
+Current subphase: 9.11.2 Accommodation content management
+Current focus: define the minimum admin-managed accommodation content contract before implementation
+Last completed subphase: 9.11.1-D Responsive QA and documentation closure
 ```

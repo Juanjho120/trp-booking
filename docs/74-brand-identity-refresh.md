@@ -7,8 +7,8 @@ Phase: 9.11 — Admin MVP and Brand Identity Completion
 Subphase: 9.11.1 — Brand Identity Refresh
 9.11.1-A Production raster assets — Completed
 9.11.1-B Reusable brand components — Completed
-9.11.1-C Application and metadata integration — In progress
-9.11.1-D Responsive QA and documentation closure — Next after validation
+9.11.1-C Application and metadata integration — Completed
+9.11.1-D Responsive QA and documentation closure — Completed
 ```
 
 ## Approved asset decision
@@ -56,23 +56,9 @@ Both components:
 - allow `alt=""` when the image is decorative or adjacent to equivalent visible text;
 - expose `data-slot` for predictable styling and testing.
 
-## Usage examples
+## Application integration
 
-```tsx
-import { BrandLogo, BrandMark } from "@/components/brand";
-
-<BrandLogo priority width={220} />
-<BrandMark alt="" width={48} />
-```
-
-## Phase 9.11.1-B handoff
-
-9.11.1-B intentionally stopped before application integration. Phase 9.11.1-C now consumes the approved components in public, admin, authentication, and metadata surfaces. Transactional email rendering remains deferred to Phase 10.
-
-
-## 9.11.1-C application integration
-
-The approved assets are now consumed through `BrandLogo` and `BrandMark` in:
+The approved assets are consumed through `BrandLogo` and `BrandMark` in:
 
 ```text
 components/layout/site-header.tsx
@@ -91,3 +77,18 @@ app/apple-icon.png
 ```
 
 The custom Auth.js sign-in route is `/admin-login`. It preserves the existing Google OAuth provider and server-side admin allowlist; it changes presentation and routing only, not authorization policy.
+
+## Responsive closure
+
+```text
+Public header: compact mark remains visible at mobile widths; adjacent text begins at sm.
+Public footer: long email addresses wrap instead of forcing horizontal overflow.
+Admin desktop: sidebar uses the compact mark with adjacent localized identity text.
+Admin mobile: menu, mark, and locale selector remain visible; redundant adjacent identity text is hidden below sm.
+Admin sign-in: the full logo remains centered and the page can scroll vertically on short displays.
+Favicons and application icons: mark only, without unreadable wordmark text.
+```
+
+## Completion boundary
+
+Phase 9.11.1 is closed. Transactional email rendering may reuse the approved brand system in Phase 10, but Resend integration and email templates were not added here.

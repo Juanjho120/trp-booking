@@ -15,9 +15,9 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 9.11 — Admin MVP and Brand Identity Completion
-Current subphase: 9.11.1-C Application and metadata integration
-Current focus: integrate and validate the approved brand identity before starting Phase 10 email templates
-Last completed subphase: 9.11.1-B Reusable brand components
+Current subphase: 9.11.2 Accommodation content management
+Current focus: define the minimum admin-managed accommodation content contract before implementation
+Last completed subphase: 9.11.1-D Responsive QA and documentation closure
 ```
 
 ---
@@ -193,8 +193,8 @@ Subphase status:
 ```text
 9.11.1-A Production raster assets — Completed
 9.11.1-B Reusable brand components — Completed
-9.11.1-C Application and metadata integration — In progress
-9.11.1-D Responsive QA and documentation closure — Not started
+9.11.1-C Application and metadata integration — Completed
+9.11.1-D Responsive QA and documentation closure — Completed
 9.11.2 Accommodation content management — Not started
 9.11.3 Property photo management — Not started
 9.11.4 Amenities and house rules — Not started
@@ -202,16 +202,19 @@ Subphase status:
 9.11.6 Phase 9.11 validation and documentation closure — Not started
 ```
 
-### Phase 9.11.1-C implementation scope
+### Phase 9.11.1 result
 
 ```text
-- Replace the temporary TRP presentation in the public header and admin shell.
-- Add the approved primary logo to the public footer and branded admin sign-in surface.
-- Keep the mark without text for favicon and compact icon contexts.
-- Configure Next.js favicon, application icon, and Apple touch icon files.
-- Add Open Graph and Twitter card metadata using the approved social image.
-- Preserve centralized bilingual copy and Auth.js server-side allowlist behavior.
-- Do not add Resend delivery or transactional email templates yet.
+- Approved raster masters exist for the primary wordmark and icon-only mark.
+- BrandLogo and BrandMark centralize runtime paths, intrinsic dimensions, aspect ratios, and accessibility defaults.
+- The public header, public footer, admin navigation, and branded admin login use the reusable components.
+- Next.js favicon, application icon, Apple touch icon, Open Graph, and Twitter metadata use the approved assets.
+- Favicon-scale assets use only the mark without text.
+- Long footer contact values wrap on narrow screens.
+- The compact mobile admin header prioritizes menu, mark, and language controls without horizontal overflow.
+- The branded admin sign-in page permits vertical scrolling on short displays.
+- Auth.js authorization, Google OAuth verification, JWT roles, server-side admin allowlist, and safe callback behavior remain unchanged.
+- Resend delivery and transactional email templates remain deferred to Phase 10.
 ```
 
 ---

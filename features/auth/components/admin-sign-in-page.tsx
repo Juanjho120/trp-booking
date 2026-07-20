@@ -23,7 +23,7 @@ export function AdminSignInPage({ signInAction }: AdminSignInPageProps) {
   const copy = messages.admin.signIn;
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-muted/20 px-4 py-12 sm:px-6">
+    <main className="relative flex min-h-screen items-start justify-center overflow-x-hidden bg-muted/20 px-4 pb-12 pt-20 sm:items-center sm:px-6 sm:py-12">
       <div
         aria-hidden="true"
         className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_hsl(var(--primary)/0.14),_transparent_34rem),radial-gradient(circle_at_bottom_right,_hsl(var(--primary)/0.08),_transparent_28rem)]"

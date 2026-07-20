@@ -6,11 +6,11 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 9.11 — Admin MVP and Brand Identity Completion
-Current subphase: 9.11.1-C Application and metadata integration
-Current focus: apply and validate the approved brand across application and metadata surfaces
+Current subphase: 9.11.2 Accommodation content management
+Current focus: define the minimum admin-managed accommodation content contract before implementation
 Last updated: 2026-07-20
-Last completed subphase: 9.11.1-B Reusable brand components
-9.11.1-C base commit: ff61f42304780f1f1e049e6350de1d85be799a1e
+Last completed subphase: 9.11.1-D Responsive QA and documentation closure
+9.11.1-D base commit: cf9154f290c9635c61371b5ce83cf9a7e9a2966e
 ```
 
 ## Completed Work
@@ -178,49 +178,88 @@ No production credentials, real Airbnb URLs, export tokens, card data, or provid
 Real Airbnb iCal operational configuration and E2E validation remain deferred to production-readiness work.
 ```
 
-## Current Work
-
 ### Phase 9.11.1-C — Application and Metadata Integration
 
-Status: **In progress**
+Status: **Completed**
 
-Implemented in this delivery:
+Accepted implementation:
 
 ```text
-Public header uses BrandMark instead of the temporary TRP block
-Public footer uses BrandLogo
-Desktop and mobile admin navigation use BrandMark
-Custom branded /admin-login page uses BrandLogo
-Auth.js uses /admin-login as its custom sign-in page
-Admin callback destinations are reduced to safe local /admin paths
-Root metadata uses approved favicon, Apple touch, Open Graph, and Twitter assets
-Next.js app/favicon.ico, app/icon.png, and app/apple-icon.png use the approved mark without text
-Bilingual admin sign-in copy remains centralized in messages/es.ts and messages/en.ts
+Public header uses BrandMark instead of the temporary TRP block.
+Public footer uses BrandLogo.
+Desktop and mobile admin navigation use BrandMark.
+Custom branded /admin-login page uses BrandLogo.
+Auth.js uses /admin-login as its custom sign-in page.
+Admin callback destinations are reduced to safe local /admin paths.
+Root metadata uses approved favicon, Apple touch, Open Graph, and Twitter assets.
+Next.js app/favicon.ico, app/icon.png, and app/apple-icon.png use the approved mark without text.
+Bilingual admin sign-in copy remains centralized in messages/es.ts and messages/en.ts.
+The public brand name replaces the internal technical name in visible brand surfaces.
 ```
 
-Validation still required before closure:
+Acceptance:
 
 ```text
-npm run env:validate
-npm run db:validate
-npm run lint
-npm run build
-Signed-out /admin redirect to branded login
-Allowlisted Google login and return to /admin
-Public header/footer responsive review
-Desktop/mobile admin brand review
-Browser favicon and Apple touch icon review
-Open Graph and Twitter preview metadata review
+The application and metadata integration was reported functioning and committed.
+Integration commit: 8ac8291db2296f2c977f5e6667150a7ea0b8f9a8
+Visible-name follow-up commit: cf9154f290c9635c61371b5ce83cf9a7e9a2966e
+```
+
+### Phase 9.11.1-D — Responsive QA and Documentation Closure
+
+Status: **Completed**
+
+Responsive closure:
+
+```text
+Long reservation and admin email addresses can wrap inside the public footer on narrow screens.
+The mobile admin top bar hides redundant adjacent brand text below the sm breakpoint while preserving the menu, mark, and locale selector.
+The locale selector remains non-shrinking in the compact admin header.
+The branded /admin-login page allows vertical scrolling and starts below the fixed locale selector on small screens.
+BrandLogo and BrandMark continue to preserve their approved aspect ratios.
+Favicon-scale contexts continue to use only the mark without text.
+No visible copy, dependency, Auth.js policy, database schema, or provider integration changed.
+```
+
+Documentation closure:
+
+```text
+README.md updated.
+docs/10-phases.md updated.
+docs/11-progress-log.md updated.
+docs/74-brand-identity-refresh.md updated.
+docs/75-reusable-brand-components.md updated.
+docs/76-brand-application-and-metadata-integration.md updated.
+docs/77-responsive-brand-qa-and-closure.md added.
+public/brand/brand-manifest.json updated to Phase 9.11.1-D.
+```
+
+## Current Work
+
+### Phase 9.11.2 — Accommodation Content Management
+
+Status: **Not started**
+
+Planning scope:
+
+```text
+Define which accommodation fields the admin may edit.
+Preserve bilingual public content requirements.
+Keep availability, pricing, booking, and PMS responsibilities separated.
+Define validation, audit, and soft-delete behavior before implementation.
+Do not start photo, amenity, rule, email, or refund work inside this subphase.
 ```
 
 ## Next Recommended Work
 
 ```text
-1. Apply and validate Phase 9.11.1-C.
-2. Commit the application and metadata integration after manual acceptance.
-3. Continue with 9.11.1-D responsive QA and documentation closure.
-4. Continue with 9.11.2 accommodation content management after the brand refresh closes.
-5. Keep Phase 10 email delivery deferred until the Phase 9.11 admin/brand bridge is complete.
+1. Apply and validate Phase 9.11.1-D.
+2. Confirm public footer contact wrapping at 320px and 375px widths.
+3. Confirm the admin top bar keeps menu, mark, and ES/EN controls visible at mobile widths.
+4. Confirm /admin-login scrolls on a short mobile viewport.
+5. Run npm run env:validate, npm run db:validate, npm run lint, and npm run build.
+6. Commit Phase 9.11.1-D.
+7. Define the exact 9.11.2 accommodation content management contract before coding.
 ```
 
 ## Continuity Notes for New Conversations
@@ -245,6 +284,7 @@ docs/73-phase-9-documentation-closure.md
 docs/74-brand-identity-refresh.md
 docs/75-reusable-brand-components.md
 docs/76-brand-application-and-metadata-integration.md
+docs/77-responsive-brand-qa-and-closure.md
 components/brand/
 components/layout/site-header.tsx
 components/layout/site-footer.tsx

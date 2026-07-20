@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document records the implementation contract for Phase 9.11.1-B.
+This document records the implementation contract for Phase 9.11.1-B and the responsive validation completed in Phase 9.11.1-D.
 
 Brand asset paths, intrinsic dimensions, and rendering defaults must be centralized so public, admin, metadata, and future email modules do not implement the logo independently.
 
@@ -37,7 +37,6 @@ Recommended placements:
 
 ```text
 Public footer
-Wide public-header treatment where space permits
 Admin login
 Reservation confirmation screen
 Transactional email header preparation
@@ -85,22 +84,10 @@ Favicons remain static metadata assets and do not render through the React compo
 - Do not stretch or crop the logo with fixed conflicting height classes.
 - Do not replace `src` from feature modules.
 - Do not use the wordmark at favicon-scale sizes.
+- When horizontal space is constrained, keep the mark and hide redundant adjacent brand text before shrinking interactive controls.
+- Pages containing the full logo must allow vertical scrolling on short viewports.
 
-## Phase 9.11.1-B validation gate
-
-```text
-TypeScript strict-compatible component signatures
-No new dependency
-No visible hardcoded copy
-No integration changes outside components/brand
-No replacement of public/admin placeholders until 9.11.1-C
-Manifest paths are repository-relative
-```
-
-
-## Phase 9.11.1-C consumers
-
-The first approved runtime consumers are:
+## Approved consumers
 
 ```text
 Public header: BrandMark
@@ -110,3 +97,16 @@ Admin sign-in: BrandLogo
 ```
 
 Metadata icons do not render through React. They use the approved mark-only files directly because browser and device icon sizes are too small for the wordmark.
+
+## Phase 9.11.1-D validation gate
+
+```text
+No new dependency
+No new visible copy
+No hardcoded asset path outside the centralized contract
+No stretched or cropped brand image
+No wordmark in favicon-scale assets
+No horizontal overflow from footer contact values
+No mobile admin-header competition between brand text and controls
+No vertical clipping on the branded admin sign-in page
+```

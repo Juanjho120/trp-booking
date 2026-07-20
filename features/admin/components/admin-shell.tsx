@@ -192,12 +192,12 @@ export function AdminShell({
       <div className="min-w-0">
         <header className="sticky top-0 z-30 border-b border-border/70 bg-background/95 backdrop-blur-xl">
           <div className="flex min-h-16 items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center gap-3">
+            <div className="flex min-w-0 items-center gap-3">
               <Sheet>
                 <SheetTrigger asChild>
                   <Button
                     aria-label={copy.openMenu}
-                    className="lg:hidden"
+                    className="shrink-0 lg:hidden"
                     size="icon"
                     type="button"
                     variant="outline"
@@ -229,9 +229,9 @@ export function AdminShell({
                   </div>
                 </SheetContent>
               </Sheet>
-              <div className="flex items-center gap-2 lg:hidden">
-                <BrandMark alt="" className="w-8" sizes="32px" width={32} />
-                <div className="min-w-0">
+              <div className="flex min-w-0 items-center gap-2 lg:hidden">
+                <BrandMark alt="" className="w-8 shrink-0" sizes="32px" width={32} />
+                <div className="hidden min-w-0 sm:block">
                   <p className="truncate text-sm font-semibold">{copy.brandLabel}</p>
                   <p className="truncate text-xs text-muted-foreground">
                     {siteConfig.brandName}
@@ -239,7 +239,9 @@ export function AdminShell({
                 </div>
               </div>
             </div>
-            <LocaleSwitcher />
+            <div className="shrink-0">
+              <LocaleSwitcher />
+            </div>
           </div>
         </header>
 

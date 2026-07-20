@@ -6,14 +6,16 @@
 Phase: 9.11 — Admin MVP and Brand Identity Completion
 Subphase: 9.11.1 — Brand Identity Refresh
 Delivery: 9.11.1-C Application and metadata integration
-Status: In progress pending local build and visual acceptance
+Status: Completed and accepted
 Base commit: ff61f42304780f1f1e049e6350de1d85be799a1e
-Next delivery: 9.11.1-D Responsive QA and documentation closure
+Integration commit: 8ac8291db2296f2c977f5e6667150a7ea0b8f9a8
+Visible-name follow-up commit: cf9154f290c9635c61371b5ce83cf9a7e9a2966e
+Closure delivery: 9.11.1-D Responsive QA and documentation closure
 ```
 
 ## Purpose
 
-This delivery moves the approved Tu Refugio Perfecto assets from passive files into the real application surfaces before Phase 10 email templates are designed.
+This delivery moved the approved Tu Refugio Perfecto assets from passive files into the real application surfaces before Phase 10 email templates are designed.
 
 ## Public application integration
 
@@ -31,18 +33,19 @@ Existing public content and navigation remain unchanged.
 Desktop sidebar uses BrandMark.
 Mobile admin top bar uses BrandMark.
 Admin navigation sheet uses BrandMark.
-The obsolete TRP text placeholder is removed from centralized messages.
+The obsolete TRP text placeholder is removed from visible application surfaces.
+The public brand name is used instead of the internal technical name in visible identity text.
 ```
 
 ## Branded Auth.js sign-in
 
-Auth.js now declares:
+Auth.js declares:
 
 ```text
 pages.signIn = /admin-login
 ```
 
-The new route:
+The route:
 
 ```text
 app/admin-login/page.tsx
@@ -63,10 +66,10 @@ This does not change the server-side allowlist, verified Google email requiremen
 
 ## Metadata integration
 
-Root metadata now defines:
+Root metadata defines:
 
 ```text
-Application name and existing SEO values
+Public application name and existing SEO values
 Favicons 16/32/48 and ICO
 Apple touch icon 180x180
 Open Graph website metadata
@@ -84,9 +87,15 @@ app/apple-icon.png
 
 All favicon-scale files use the mark without text.
 
+## Accepted validation
+
+The application and metadata integration was reported functioning and committed before Phase 9.11.1-D began.
+
+The responsive closure then hardened narrow and short viewport behavior without changing the approved visual identity or authorization model.
+
 ## Scope boundary
 
-This delivery does not add:
+This delivery did not add:
 
 ```text
 Resend integration
@@ -99,27 +108,4 @@ Cancellation/refund behavior
 PMS features
 ```
 
-The approved logo is now ready to be reused by Phase 10 templates after Phase 9.11 is complete.
-
-## Validation
-
-```powershell
-npm run env:validate
-npm run db:validate
-npm run lint
-npm run build
-git diff --check
-```
-
-Manual acceptance:
-
-```text
-1. Open the public site on mobile and desktop.
-2. Verify the header mark is sharp, contained, and not stretched.
-3. Verify the full footer logo is readable and does not dominate the footer.
-4. Open /admin while signed out and confirm the branded sign-in page appears.
-5. Complete Google login with the allowlisted admin account.
-6. Verify desktop sidebar, mobile top bar, and mobile sheet branding.
-7. Confirm the favicon uses the symbol without text.
-8. Inspect Open Graph and Twitter metadata in the built HTML.
-```
+The approved logo is ready to be reused by Phase 10 templates after Phase 9.11 is complete.

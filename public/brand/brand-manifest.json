@@ -1,5 +1,5 @@
 {
-  "phase": "9.11.1-C",
+  "phase": "9.11.1-D",
   "approved_sources": {
     "with_text": "public/brand/source/logo-approved-with-text.png",
     "mark_without_text": "public/brand/source/logo-approved-mark.png"
@@ -23,6 +23,7 @@
     "Use BrandMark for compact placements and icon-only contexts.",
     "Use the mark without text for favicons and small icons.",
     "Do not hardcode brand asset paths in application modules.",
+    "Preserve responsive containment and the approved intrinsic aspect ratios.",
     "No SVG is included in the current approved raster delivery."
   ],
   "applicationIntegrations": {
@@ -58,5 +59,11 @@
       "asset": "/brand/logo-open-graph.png",
       "size": "1200x630"
     }
+  },
+  "responsiveQa": {
+    "footerLongValuesWrap": true,
+    "compactAdminHeaderKeepsControlsVisible": true,
+    "adminSignInAllowsVerticalScroll": true,
+    "wordmarkExcludedFromSmallIcons": true
   }
 }
