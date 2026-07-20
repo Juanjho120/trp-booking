@@ -557,7 +557,7 @@ export const esMessages = {
       badge: "Contenido y configuración",
       title: "Alojamientos",
       description:
-        "Administra el contenido público bilingüe, las fotografías y la preparación automática de cada alojamiento sin mezclar amenidades, reglas, precios o reservas.",
+        "Administra el contenido público bilingüe, las fotografías, las amenidades, las reglas y la preparación automática de cada alojamiento sin mezclar precios o reservas.",
       overview: {
         sectionTitle: "Contenido público",
         sectionDescription:
@@ -577,6 +577,7 @@ export const esMessages = {
         actions: {
           editContent: "Editar contenido público",
           managePhotos: "Administrar fotos",
+          manageAmenitiesRules: "Administrar amenidades y reglas",
         },
         notes: {
           readonlyBoundaries:
@@ -721,6 +722,108 @@ export const esMessages = {
             "No pudimos completar la carga con el proveedor de imágenes. Inténtalo nuevamente.",
           PROPERTY_PHOTO_UNEXPECTED_ERROR:
             "No pudimos actualizar las fotografías del alojamiento. Inténtalo nuevamente.",
+        },
+      },
+      amenitiesRules: {
+        seoTitle: "Amenidades y reglas | Admin | Tu Refugio Perfecto",
+        badge: "Contenido público estructurado",
+        title: "Amenidades y reglas",
+        description:
+          "Administra las amenidades y reglas bilingües que se muestran públicamente para este alojamiento.",
+        sections: {
+          assignments: "Asignaciones del alojamiento",
+          amenityAssignments: "Amenidades asignadas",
+          houseRuleAssignments: "Reglas asignadas",
+          amenityCatalog: "Catálogo de amenidades",
+          houseRuleCatalog: "Catálogo de reglas",
+        },
+        labels: {
+          assigned: "Asignado",
+          notAssigned: "No asignado",
+          nameEs: "Nombre en español",
+          nameEn: "Nombre en inglés",
+          icon: "Ícono",
+          category: "Categoría",
+          noCategory: "Sin categoría",
+          titleEs: "Título en español",
+          titleEn: "Título en inglés",
+          descriptionEs: "Descripción en español",
+          descriptionEn: "Descripción en inglés",
+        },
+        actions: {
+          backToAccommodations: "Volver a alojamientos",
+          backToContent: "Editar contenido",
+          saveAssignments: "Guardar asignaciones",
+          saveAmenity: "Guardar amenidad",
+          saveHouseRule: "Guardar regla",
+          saving: "Guardando...",
+        },
+        notes: {
+          assignment:
+            "Selecciona qué elementos activos aplican a este alojamiento. Los cambios se reflejan en la página pública.",
+          minimumRequired:
+            "Cada alojamiento debe conservar al menos una amenidad y una regla asignada.",
+          typedCatalog:
+            "El catálogo es compartido por los tres alojamientos. Editar el nombre o ícono de una amenidad actualiza todos los alojamientos que la usan. Las claves permanecen fijas y solo se permiten íconos aprobados.",
+          publicImpact:
+            "El catálogo de reglas también es compartido. Editar una regla actualiza todos los alojamientos que la tienen asignada, y la página pública muestra su descripción en el idioma seleccionado.",
+        },
+        success: {
+          assignmentsSaved: "Las asignaciones se guardaron correctamente.",
+          amenitySaved: "La amenidad se actualizó correctamente.",
+          houseRuleSaved: "La regla se actualizó correctamente.",
+        },
+        categoryLabels: {
+          access: "Acceso",
+          spaces: "Espacios",
+          kitchen: "Cocina",
+          "guest-fit": "Tipo de huésped",
+          connectivity: "Conectividad",
+          parking: "Estacionamiento",
+          bathroom: "Baño",
+          bedroom: "Dormitorio",
+          comfort: "Comodidad",
+          safety: "Seguridad",
+          outdoor: "Exterior",
+          "guest-services": "Servicios al huésped",
+          capacity: "Capacidad",
+          "house-rules": "Reglas de la casa",
+          care: "Cuidado del alojamiento",
+          composed: "Alojamiento combinado",
+        },
+        iconLabels: {
+          bath: "Baño",
+          bed: "Cama",
+          briefcase: "Equipaje",
+          car: "Automóvil",
+          chefHat: "Cocina",
+          coffee: "Café",
+          dumbbell: "Ejercicio",
+          fan: "Ventilador",
+          flame: "Estufa",
+          home: "Alojamiento",
+          refrigerator: "Refrigerador",
+          showerHead: "Ducha",
+          treePalm: "Patio",
+          utensils: "Comedor",
+          shieldCheck: "Seguridad",
+          wifi: "WiFi",
+          users: "Huéspedes",
+        },
+        errors: {
+          ADMIN_UNAUTHORIZED: "Tu sesión no tiene autorización administrativa.",
+          INVALID_AMENITY_HOUSE_RULE_REQUEST:
+            "Revisa los datos de amenidades y reglas e inténtalo nuevamente.",
+          AMENITY_HOUSE_RULE_PROPERTY_NOT_FOUND:
+            "No encontramos el alojamiento solicitado.",
+          AMENITY_NOT_FOUND: "No encontramos la amenidad seleccionada.",
+          HOUSE_RULE_NOT_FOUND: "No encontramos la regla seleccionada.",
+          AMENITY_HOUSE_RULE_STALE:
+            "Las amenidades o reglas cambiaron después de que abriste esta página. Recarga antes de guardar nuevamente.",
+          AMENITY_HOUSE_RULE_MINIMUM_REQUIRED:
+            "Selecciona al menos una amenidad y una regla para el alojamiento.",
+          AMENITY_HOUSE_RULE_UNEXPECTED_ERROR:
+            "No pudimos actualizar las amenidades y reglas. Inténtalo nuevamente.",
         },
       },
       preparation: {

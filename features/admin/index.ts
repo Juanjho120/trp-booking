@@ -9,3 +9,4 @@ export { AdminPropertyPhotoManager } from "./components/admin-property-photo-man
 export { AdminReservationsPageView } from "./components/admin-reservations-page";
 export { AdminShell } from "./components/admin-shell";
 export { AdminSnackbar } from "./components/admin-snackbar";
+export { AdminAmenitiesHouseRulesManager } from "./components/admin-amenities-house-rules-manager";

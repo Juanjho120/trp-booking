@@ -6,12 +6,12 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 9.11 — Admin MVP and Brand Identity Completion
-Current subphase: 9.11.4 Amenities and house rules
-Current focus: define bilingual amenity and house-rule administration after completing property photo management
+Current subphase: 9.11.5 Reservation and payment detail views
+Current focus: define protected reservation and payment detail pages after completing amenity and house-rule administration
 Last updated: 2026-07-20
-Last completed subphase: 9.11.3 Property photo management
-9.11.3 base commit: 9bc885750833c7e1bb964956fc4c86d70dfc4414
-9.11.3 implementation commit: pending local validation and commit
+Last completed subphase: 9.11.4 Amenities and house rules
+9.11.4 base commit: 9f5c10a6ca5812e0c6ea48852e1f673fb65df138
+9.11.4 implementation commit: pending local validation and commit
 ```
 
 ## Completed Work
@@ -278,7 +278,7 @@ UI follow-up commit: 3dc5797aef1efc2942d68358bdc5d3b5b44cca4d
 
 ### Phase 9.11.3 — Property Photo Management
 
-Status: **Completed pending local validation and commit**
+Status: **Completed**
 
 Implemented behavior:
 
@@ -314,28 +314,52 @@ The PropertyImage upsert in prisma/seed.ts must use update: {} so rerunning the 
 The create branch remains the clean-database baseline.
 ```
 
-### Phase 9.11.4 — Amenities and House Rules
-
-Status: **Not started**
-
-Planning scope:
+Accepted implementation:
 
 ```text
-Define bilingual amenity assignment and house-rule administration for the three supported accommodations.
-Reuse the existing Amenity, HouseRule, PropertyAmenity, and PropertyRule models and the typed icon catalog.
-Preserve public localization, soft-deletion rules, auditability, and the shared admin snackbar behavior.
-Do not mix pricing, property publishing, reservation/payment actions, email delivery, or PMS behavior into 9.11.4.
+Implementation commit: c76451b4f1f8b1af97783f3c2571b4fbb7c5daa0
+Sheet accessibility fix: 39a90fd8f5314189265b8cbf445a3e873c873c80
+Photo-limit and public-card alignment follow-up: 9f5c10a6ca5812e0c6ea48852e1f673fb65df138
+```
+
+### Phase 9.11.4 — Amenities and House Rules
+
+Status: **Completed pending local validation and commit**
+
+Implemented behavior:
+
+```text
+/admin/accommodations/[propertyId]/amenities-rules provides the protected manager for each supported accommodation.
+Admins can assign and unassign active amenities and house rules while keeping at least one of each assigned.
+Amenity names are editable in Spanish and English, icons are restricted to the approved typed catalog, and shared catalog edits affect every assigned accommodation.
+House-rule titles and public descriptions are editable in Spanish and English and remain shared across assigned accommodations.
+Catalog keys and categories remain immutable; the MVP does not create arbitrary runtime catalog entries.
+Catalog content updates use expectedUpdatedAt to reject stale edits.
+Assignment changes use a SHA-256 revision and serializable transaction to reject stale tabs.
+Unassignment deletes only PropertyAmenity or PropertyRule membership rows; Amenity and HouseRule catalog rows remain intact.
+AMENITY_CONTENT_UPDATED, HOUSE_RULE_CONTENT_UPDATED, and PROPERTY_AMENITIES_RULES_UPDATED preserve AdminAuditLog history.
+Success and failure feedback uses the shared accessible AdminSnackbar.
+Public pages already read active assignments and bilingual catalog content from PostgreSQL.
+No Prisma migration, pricing, property publishing, reservation/payment action, email delivery, or PMS behavior was added.
+```
+
+Important seed boundary:
+
+```text
+Amenity and HouseRule upserts must use update: {} so rerunning the seed does not overwrite admin-managed bilingual content or icons.
+Default PropertyAmenity and PropertyRule assignments are inserted only when the property currently has zero assignments.
+Because the admin requires at least one amenity and one rule, rerunning the seed does not restore intentionally removed default memberships.
 ```
 
 ## Next Recommended Work
 
 ```text
-1. Apply and validate Phase 9.11.3 against real development Cloudinary credentials.
-2. Upload each accepted image format and verify public listing/detail rendering.
-3. Validate order, cover, alt-text, stale-tab, soft-delete, final-photo guard, seed-safety, and audit behavior.
+1. Apply and validate Phase 9.11.4 against the development database.
+2. Confirm bilingual amenity and rule content edits on all three accommodations.
+3. Confirm assignment, minimum-selection, stale-tab, seed-safety, public localization, and audit behavior.
 4. Run npm run env:validate, npm run db:validate, npm run lint, and npm run build.
-5. Commit Phase 9.11.3.
-6. Continue with 9.11.4 amenities and house rules.
+5. Commit Phase 9.11.4 after local acceptance.
+6. Continue with 9.11.5 reservation and payment detail views.
 ```
 
 ## Continuity Notes for New Conversations
@@ -363,6 +387,7 @@ docs/76-brand-application-and-metadata-integration.md
 docs/77-responsive-brand-qa-and-closure.md
 docs/78-accommodation-content-management.md
 docs/79-property-photo-management.md
+docs/80-amenities-and-house-rules.md
 components/brand/
 components/layout/site-header.tsx
 components/layout/site-footer.tsx
@@ -371,13 +396,19 @@ features/auth/components/admin-sign-in-page.tsx
 features/admin/components/admin-accommodation-management.tsx
 features/admin/components/admin-accommodation-content-editor.tsx
 features/admin/components/admin-property-photo-manager.tsx
+features/admin/components/admin-amenities-house-rules-manager.tsx
 app/api/admin/accommodation-content/route.ts
 app/api/admin/property-photos/route.ts
+app/api/admin/amenities-house-rules/route.ts
 app/admin/accommodations/[propertyId]/photos/page.tsx
+app/admin/accommodations/[propertyId]/amenities-rules/page.tsx
 lib/admin/accommodation-content.ts
 lib/admin/property-photos.ts
+lib/admin/amenities-house-rules.ts
 types/admin-accommodation-content.ts
 types/admin-property-photos.ts
+types/admin-amenities-house-rules.ts
+types/amenity.ts
 app/admin-login/page.tsx
 app/layout.tsx
 lib/reservations/confirmation.ts

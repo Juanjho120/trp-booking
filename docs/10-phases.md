@@ -15,9 +15,9 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 9.11 — Admin MVP and Brand Identity Completion
-Current subphase: 9.11.4 Amenities and house rules
-Current focus: define bilingual amenity and house-rule administration after completing property photo management
-Last completed subphase: 9.11.3 Property photo management
+Current subphase: 9.11.5 Reservation and payment detail views
+Current focus: define protected reservation and payment detail pages after completing amenity and house-rule administration
+Last completed subphase: 9.11.4 Amenities and house rules
 ```
 
 ---
@@ -197,7 +197,7 @@ Subphase status:
 9.11.1-D Responsive QA and documentation closure — Completed
 9.11.2 Accommodation content management — Completed
 9.11.3 Property photo management — Completed
-9.11.4 Amenities and house rules — Not started
+9.11.4 Amenities and house rules — Completed
 9.11.5 Reservation and payment detail views — Not started
 9.11.6 Phase 9.11 validation and documentation closure — Not started
 ```
@@ -240,13 +240,30 @@ Subphase status:
 - Authorized admins can upload JPG, PNG, and WEBP files up to 10 MB with required bilingual alternative text.
 - Image bytes upload directly from the browser to Cloudinary through a short-lived signed request; the Cloudinary API secret remains server-side.
 - Finalization verifies the exact owned public ID, provider resource type, upload type, actual format, byte size, delivery URLs, and recent creation time before persistence.
-- Active galleries support up to 40 photos, sequential ordering, exactly one cover, bilingual alt-text editing, and soft deletion.
+- Active galleries support up to 20 photos, sequential ordering, exactly one cover, bilingual alt-text editing, and soft deletion.
 - Structural mutations use an optimistic gallery revision and serializable transactions so stale tabs do not silently overwrite order, cover, or deletion changes.
 - Deleting the cover promotes the first remaining ordered image; the final active photo cannot be deleted.
 - PROPERTY_IMAGE_UPLOADED, PROPERTY_IMAGE_ALT_TEXT_UPDATED, PROPERTY_IMAGES_REORDERED, PROPERTY_IMAGE_COVER_CHANGED, and PROPERTY_IMAGE_SOFT_DELETED preserve AdminAuditLog history.
 - Soft deletion retains the PropertyImage row and Cloudinary asset until a restore/permanent-purge lifecycle is explicitly approved.
 - Public listing and detail pages already read active PropertyImage rows, isCover, sortOrder, and bilingual alt text from PostgreSQL.
 - No Prisma migration, amenity/rule management, pricing workflow, reservation/payment action, email delivery, or PMS behavior was added.
+```
+
+
+### Phase 9.11.4 result
+
+```text
+- Each supported accommodation has a protected /admin/accommodations/[propertyId]/amenities-rules route.
+- Authorized admins can assign or unassign active amenities and house rules while preserving at least one of each per accommodation.
+- Amenity names remain bilingual and amenity icons are restricted to the approved typed icon catalog; catalog edits affect every accommodation using the shared item.
+- House-rule titles and public descriptions remain bilingual, database-backed, and shared across assigned accommodations.
+- Catalog keys and categories remain immutable in this MVP workflow; arbitrary runtime catalog keys are not created.
+- Catalog content updates use expectedUpdatedAt, and assignment changes use a SHA-256 revision plus serializable transactions.
+- AMENITY_CONTENT_UPDATED, HOUSE_RULE_CONTENT_UPDATED, and PROPERTY_AMENITIES_RULES_UPDATED preserve AdminAuditLog history.
+- Unassignment removes only PropertyAmenity or PropertyRule membership rows; Amenity and HouseRule catalog records are never hard-deleted by this UI.
+- The development seed preserves admin-managed catalog content and does not restore removed default assignments once a property has active assignments.
+- Public accommodation pages already read active assigned amenities and rules from PostgreSQL and reflect accepted changes without synchronization.
+- No Prisma migration, price/status/composition editing, reservation/payment action, email delivery, or PMS behavior was added.
 ```
 
 ---

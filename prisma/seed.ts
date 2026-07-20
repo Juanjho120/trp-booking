@@ -497,14 +497,7 @@ async function seedAmenities(): Promise<void> {
   for (const amenity of amenities) {
     await prisma.amenity.upsert({
       where: { key: amenity.key },
-      update: {
-        nameEs: amenity.nameEs,
-        nameEn: amenity.nameEn,
-        icon: amenity.icon,
-        category: amenity.category,
-        deletedAt: null,
-        deletedById: null,
-      },
+      update: {},
       create: amenity,
     });
   }
@@ -538,15 +531,7 @@ async function seedHouseRules(): Promise<void> {
   for (const rule of houseRules) {
     await prisma.houseRule.upsert({
       where: { key: rule.key },
-      update: {
-        titleEs: rule.titleEs,
-        titleEn: rule.titleEn,
-        descriptionEs: rule.descriptionEs,
-        descriptionEn: rule.descriptionEn,
-        category: rule.category,
-        deletedAt: null,
-        deletedById: null,
-      },
+      update: {},
       create: rule,
     });
   }
