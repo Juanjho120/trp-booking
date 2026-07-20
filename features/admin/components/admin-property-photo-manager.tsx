@@ -687,7 +687,7 @@ export function AdminPropertyPhotoManager({
         }}
         open={deleteTarget !== null}
       >
-        <SheetContent>
+        <SheetContent closeLabel={messages.admin.feedback.dismiss}>
           <SheetHeader>
             <SheetTitle>{copy.deleteDialog.title}</SheetTitle>
             <SheetDescription>
