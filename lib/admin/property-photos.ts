@@ -29,7 +29,7 @@ import {
   isAdminAccommodationId,
 } from "./accommodations";
 
-export const ADMIN_PROPERTY_PHOTO_MAX_COUNT = 20;
+export const ADMIN_PROPERTY_PHOTO_MAX_COUNT = 40;
 export const ADMIN_PROPERTY_PHOTO_MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
 export const ADMIN_PROPERTY_PHOTO_ACCEPTED_MIME_TYPES = [
   "image/jpeg",

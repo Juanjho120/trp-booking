@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import {
+  ADMIN_PROPERTY_PHOTO_MAX_COUNT,
   AdminPropertyPhotoError,
   adminApiErrorResponse,
   adminApiSuccessResponse,
@@ -65,7 +66,10 @@ const reorderSchema = z
     action: z.literal("reorder"),
     propertyId: propertyIdSchema,
     expectedRevision: revisionSchema,
-    orderedImageIds: z.array(imageIdSchema).min(1).max(20),
+    orderedImageIds: z
+      .array(imageIdSchema)
+      .min(1)
+      .max(ADMIN_PROPERTY_PHOTO_MAX_COUNT),
   })
   .strict();
 

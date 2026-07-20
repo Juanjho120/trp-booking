@@ -284,7 +284,7 @@ Implemented behavior:
 
 ```text
 /admin/accommodations/[propertyId]/photos provides the protected photo manager for each supported property.
-The admin accepts JPG, PNG, and WEBP images up to 10 MB and enforces a maximum of 20 active photos per property.
+The admin accepts JPG, PNG, and WEBP images up to 10 MB and enforces a maximum of 40 active photos per property.
 Spanish and English alternative text are required and normalized server-side.
 The browser uploads bytes directly to Cloudinary with a short-lived signed owned public ID; CLOUDINARY_API_SECRET remains server-side.
 Finalization re-reads the provider asset and verifies ownership, resource type, upload type, actual format, size, URLs, and upload age before creating PropertyImage.

@@ -43,7 +43,7 @@ Soft-delete a photo
 Automatically promote the first remaining photo when the cover is deleted
 ```
 
-The admin supports at most 20 active photos per property. Each file may be at most 10 MB.
+The admin supports at most 40 active photos per property. Each file may be at most 10 MB.
 
 ## Signed direct upload architecture
 

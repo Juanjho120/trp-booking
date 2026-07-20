@@ -40,7 +40,7 @@ export function AccommodationShowcase({ accommodations }: AccommodationShowcaseP
         <div className="mt-10 grid gap-6 lg:grid-cols-3">
           {accommodations.map((accommodation) => (
             <Card
-              className="group overflow-hidden rounded-[1.75rem] border-border/70 bg-card shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+              className="group h-full overflow-hidden rounded-[1.75rem] border-border/70 bg-card shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
               key={accommodation.id}
             >
               <div className="relative aspect-[16/11] overflow-hidden bg-muted">
@@ -66,11 +66,11 @@ export function AccommodationShowcase({ accommodations }: AccommodationShowcaseP
                 </div>
                 <CardTitle className="text-2xl">{accommodation.name[locale]}</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-5">
+              <CardContent className="flex flex-1 flex-col gap-5">
                 <p className="text-sm leading-6 text-muted-foreground">
                   {accommodation.shortDescription[locale]}
                 </p>
-                <div className="flex items-end justify-between gap-4 rounded-2xl bg-muted/45 p-4">
+                <div className="mt-auto flex items-end justify-between gap-4 rounded-2xl bg-muted/45 p-4">
                   <div>
                     <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
                       {messages.home.accommodations.from}
@@ -90,7 +90,7 @@ export function AccommodationShowcase({ accommodations }: AccommodationShowcaseP
                     : messages.home.accommodations.bathroomSingular}
                 </p>
               </CardContent>
-              <CardFooter>
+              <CardFooter className="mt-auto">
                 <Button asChild className="w-full rounded-full" variant="outline">
                   <Link href={`/alojamientos/${accommodation.slug.es}`}>
                     {messages.common.viewDetails}

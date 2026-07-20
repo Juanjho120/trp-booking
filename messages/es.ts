@@ -674,7 +674,7 @@ export const esMessages = {
         },
         notes: {
           formats:
-            "Formatos permitidos: JPG, PNG y WEBP. Tamaño máximo: 10 MB. Se admiten hasta 20 fotografías activas por alojamiento.",
+            "Formatos permitidos: JPG, PNG y WEBP. Tamaño máximo: 10 MB. Se admiten hasta 40 fotografías activas por alojamiento.",
           altText:
             "Describe brevemente lo que aparece en la fotografía en ambos idiomas. Este texto mejora la accesibilidad y acompaña la imagen pública.",
           order:
@@ -708,7 +708,7 @@ export const esMessages = {
           PROPERTY_PHOTO_STALE:
             "La galería cambió después de que abriste esta página. Recarga antes de intentar nuevamente.",
           PROPERTY_PHOTO_LIMIT_REACHED:
-            "Este alojamiento ya alcanzó el máximo de 20 fotografías activas.",
+            "Este alojamiento ya alcanzó el máximo de 40 fotografías activas.",
           PROPERTY_PHOTO_MINIMUM_REQUIRED:
             "No puedes eliminar la última fotografía activa del alojamiento.",
           PROPERTY_PHOTO_UNSUPPORTED_TYPE:

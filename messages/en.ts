@@ -674,7 +674,7 @@ export const enMessages = {
         },
         notes: {
           formats:
-            "Allowed formats: JPG, PNG, and WEBP. Maximum size: 10 MB. Up to 20 active photos are allowed per accommodation.",
+            "Allowed formats: JPG, PNG, and WEBP. Maximum size: 10 MB. Up to 40 active photos are allowed per accommodation.",
           altText:
             "Briefly describe what appears in the photo in both languages. This text improves accessibility and accompanies the public image.",
           order:
@@ -708,7 +708,7 @@ export const enMessages = {
           PROPERTY_PHOTO_STALE:
             "The gallery changed after you opened this page. Reload before trying again.",
           PROPERTY_PHOTO_LIMIT_REACHED:
-            "This accommodation has reached the maximum of 20 active photos.",
+            "This accommodation has reached the maximum of 40 active photos.",
           PROPERTY_PHOTO_MINIMUM_REQUIRED:
             "You cannot delete the accommodation's final active photo.",
           PROPERTY_PHOTO_UNSUPPORTED_TYPE:
