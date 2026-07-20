@@ -177,7 +177,7 @@ export function AdminShell({
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold">{copy.brandLabel}</p>
             <p className="truncate text-xs text-muted-foreground">
-              {siteConfig.internalName}
+              {siteConfig.brandName}
             </p>
           </div>
         </Link>
@@ -217,7 +217,7 @@ export function AdminShell({
                       </span>
                       <div className="min-w-0 text-left">
                         <SheetTitle>{copy.brandLabel}</SheetTitle>
-                        <SheetDescription>{siteConfig.internalName}</SheetDescription>
+                        <SheetDescription>{siteConfig.brandName}</SheetDescription>
                       </div>
                     </div>
                   </SheetHeader>
@@ -234,7 +234,7 @@ export function AdminShell({
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold">{copy.brandLabel}</p>
                   <p className="truncate text-xs text-muted-foreground">
-                    {siteConfig.internalName}
+                    {siteConfig.brandName}
                   </p>
                 </div>
               </div>

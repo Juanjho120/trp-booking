@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     template: "%s",
   },
   description: esMessages.seo.home.description,
-  applicationName: siteConfig.internalName,
+  applicationName: siteConfig.brandName,
   generator: "Next.js",
   referrer: "origin-when-cross-origin",
   keywords: [

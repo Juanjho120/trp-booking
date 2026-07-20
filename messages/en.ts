@@ -288,7 +288,7 @@ export const enMessages = {
       initializingPayment: "Initializing Tilopay secure form...",
       cardSectionTitle: "Card details",
       secureFieldsNote:
-        "These fields are processed by Tilopay SDK. TRP Booking does not store card number, CVV, or expiration date.",
+        "These fields are processed by Tilopay SDK. Tu Refugio Perfecto does not store card number, CVV, or expiration date.",
       paymentMethod: "Payment method",
       paymentMethodCard: "Credit / Debit Card",
       cardNumber: "Card number",
