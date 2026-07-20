@@ -1,5 +1,5 @@
 {
-  "phase": "9.11.1-B",
+  "phase": "9.11.1-C",
   "approved_sources": {
     "with_text": "public/brand/source/logo-approved-with-text.png",
     "mark_without_text": "public/brand/source/logo-approved-mark.png"
@@ -24,5 +24,39 @@
     "Use the mark without text for favicons and small icons.",
     "Do not hardcode brand asset paths in application modules.",
     "No SVG is included in the current approved raster delivery."
-  ]
+  ],
+  "applicationIntegrations": {
+    "publicHeader": {
+      "component": "BrandMark",
+      "file": "components/layout/site-header.tsx"
+    },
+    "publicFooter": {
+      "component": "BrandLogo",
+      "file": "components/layout/site-footer.tsx"
+    },
+    "adminNavigation": {
+      "component": "BrandMark",
+      "file": "features/admin/components/admin-shell.tsx"
+    },
+    "adminSignIn": {
+      "component": "BrandLogo",
+      "route": "/admin-login"
+    },
+    "favicon": {
+      "asset": "public/brand/favicon.ico",
+      "file": "app/favicon.ico"
+    },
+    "applicationIcon": {
+      "asset": "public/brand/favicon-512.png",
+      "file": "app/icon.png"
+    },
+    "appleTouchIcon": {
+      "asset": "public/brand/apple-touch-icon.png",
+      "file": "app/apple-icon.png"
+    },
+    "openGraph": {
+      "asset": "/brand/logo-open-graph.png",
+      "size": "1200x630"
+    }
+  }
 }

@@ -86,7 +86,7 @@ Favicons remain static metadata assets and do not render through the React compo
 - Do not replace `src` from feature modules.
 - Do not use the wordmark at favicon-scale sizes.
 
-## Validation gate
+## Phase 9.11.1-B validation gate
 
 ```text
 TypeScript strict-compatible component signatures
@@ -96,3 +96,17 @@ No integration changes outside components/brand
 No replacement of public/admin placeholders until 9.11.1-C
 Manifest paths are repository-relative
 ```
+
+
+## Phase 9.11.1-C consumers
+
+The first approved runtime consumers are:
+
+```text
+Public header: BrandMark
+Public footer: BrandLogo
+Admin desktop/mobile navigation: BrandMark
+Admin sign-in: BrandLogo
+```
+
+Metadata icons do not render through React. They use the approved mark-only files directly because browser and device icon sizes are too small for the wordmark.

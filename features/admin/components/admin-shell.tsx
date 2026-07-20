@@ -15,6 +15,7 @@ import {
   Menu,
 } from "lucide-react";
 
+import { BrandMark } from "@/components/brand";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -170,9 +171,9 @@ export function AdminShell({
     <div className="min-h-screen bg-muted/20 text-foreground lg:grid lg:grid-cols-[17rem_minmax(0,1fr)]">
       <aside className="sticky top-0 hidden h-screen flex-col border-r border-border bg-background p-5 lg:flex">
         <Link className="flex items-center gap-3" href="/admin">
-          <div className="flex size-11 items-center justify-center rounded-2xl bg-primary text-sm font-semibold text-primary-foreground shadow-sm">
-            {copy.brandMark}
-          </div>
+          <span className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-border/70 bg-white shadow-sm">
+            <BrandMark alt="" className="w-11" sizes="44px" width={44} />
+          </span>
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold">{copy.brandLabel}</p>
             <p className="truncate text-xs text-muted-foreground">
@@ -210,8 +211,15 @@ export function AdminShell({
                   side="left"
                 >
                   <SheetHeader>
-                    <SheetTitle>{copy.brandLabel}</SheetTitle>
-                    <SheetDescription>{siteConfig.internalName}</SheetDescription>
+                    <div className="flex items-center gap-3">
+                      <span className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-border/70 bg-white shadow-sm">
+                        <BrandMark alt="" className="w-10" sizes="40px" width={40} />
+                      </span>
+                      <div className="min-w-0 text-left">
+                        <SheetTitle>{copy.brandLabel}</SheetTitle>
+                        <SheetDescription>{siteConfig.internalName}</SheetDescription>
+                      </div>
+                    </div>
                   </SheetHeader>
                   <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-5 pb-5">
                     <NavigationLinks mobile />
@@ -221,11 +229,14 @@ export function AdminShell({
                   </div>
                 </SheetContent>
               </Sheet>
-              <div className="lg:hidden">
-                <p className="text-sm font-semibold">{copy.brandLabel}</p>
-                <p className="text-xs text-muted-foreground">
-                  {siteConfig.internalName}
-                </p>
+              <div className="flex items-center gap-2 lg:hidden">
+                <BrandMark alt="" className="w-8" sizes="32px" width={32} />
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold">{copy.brandLabel}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {siteConfig.internalName}
+                  </p>
+                </div>
               </div>
             </div>
             <LocaleSwitcher />

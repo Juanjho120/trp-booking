@@ -14,9 +14,10 @@ Deferred — Intentionally postponed.
 ## Current Phase
 
 ```text
-Current phase: Phase 10 — Email Notifications
-Current focus: define the email notification strategy, Resend integration contract, bilingual templates, idempotency, delivery audit behavior, and safe failure handling
-Last completed phase: Phase 9 — Tilopay Sandbox Integration
+Current phase: Phase 9.11 — Admin MVP and Brand Identity Completion
+Current subphase: 9.11.1-C Application and metadata integration
+Current focus: integrate and validate the approved brand identity before starting Phase 10 email templates
+Last completed subphase: 9.11.1-B Reusable brand components
 ```
 
 ---
@@ -177,6 +178,40 @@ Deferred Phase 9 operational item:
 
 ```text
 Real Airbnb iCal import/export E2E validation requires secure operational external_calendars rows, real import URLs, and export tokens.
+```
+
+---
+
+## Phase 9.11 — Admin MVP and Brand Identity Completion
+
+Status: **In progress**
+
+Goal: Close the documented MVP admin and brand-identity gaps before Phase 10 so public, admin, metadata, and future transactional email surfaces use the same approved brand system.
+
+Subphase status:
+
+```text
+9.11.1-A Production raster assets — Completed
+9.11.1-B Reusable brand components — Completed
+9.11.1-C Application and metadata integration — In progress
+9.11.1-D Responsive QA and documentation closure — Not started
+9.11.2 Accommodation content management — Not started
+9.11.3 Property photo management — Not started
+9.11.4 Amenities and house rules — Not started
+9.11.5 Reservation and payment detail views — Not started
+9.11.6 Phase 9.11 validation and documentation closure — Not started
+```
+
+### Phase 9.11.1-C implementation scope
+
+```text
+- Replace the temporary TRP presentation in the public header and admin shell.
+- Add the approved primary logo to the public footer and branded admin sign-in surface.
+- Keep the mark without text for favicon and compact icon contexts.
+- Configure Next.js favicon, application icon, and Apple touch icon files.
+- Add Open Graph and Twitter card metadata using the approved social image.
+- Preserve centralized bilingual copy and Auth.js server-side allowlist behavior.
+- Do not add Resend delivery or transactional email templates yet.
 ```
 
 ---

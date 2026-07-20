@@ -36,6 +36,11 @@ export const enMessages = {
       description:
         "Private panel to manage reservations, payments, accommodations, and availability for Tu Refugio Perfecto.",
     },
+    adminSignIn: {
+      title: "Admin access | Tu Refugio Perfecto",
+      description:
+        "Private access for authorized Tu Refugio Perfecto administrators.",
+    },
   },
   navigation: {
     mainAriaLabel: "Main navigation",
@@ -363,11 +368,20 @@ export const enMessages = {
     },
   },
   admin: {
+    signIn: {
+      badge: "Admin access",
+      title: "Sign in to the private dashboard",
+      description:
+        "Continue with the authorized Google account to manage reservations, payments, accommodations, and availability.",
+      continueWithGoogle: "Continue with Google",
+      accessNote:
+        "Access is limited to accounts included in the secure server-side admin allowlist.",
+      backToPublicSite: "Back to public site",
+    },
     feedback: {
       dismiss: "Dismiss notification",
     },
     navigation: {
-      brandMark: "TRP",
       fallbackUserName: "Administrator",
       brandLabel: "Private administration",
       ariaLabel: "Admin navigation",

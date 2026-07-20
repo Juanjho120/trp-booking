@@ -96,6 +96,23 @@ Final Phase 9 capabilities:
 
 The real Airbnb iCal operational end-to-end test remains deferred until secure `external_calendars` configuration, real import URLs, and export tokens are available.
 
+## Brand Identity Refresh
+
+Phase 9.11.1 is refreshing and integrating the approved Tu Refugio Perfecto identity before Phase 10 email templates are implemented.
+
+Current brand work:
+
+```text
+9.11.1-A Production raster assets — Completed
+9.11.1-B Reusable BrandLogo and BrandMark components — Completed
+9.11.1-C Application and metadata integration — In progress
+9.11.1-D Responsive QA and documentation closure — Not started
+```
+
+Application integration now covers the public header/footer, protected admin shell, branded Auth.js sign-in surface, favicons, application icons, Apple touch icon, Open Graph, and Twitter card metadata.
+
+The approved mark without text remains mandatory for favicon-scale assets. The logo with text is used where sufficient display space exists.
+
 ## Documentation
 
 The project documentation lives under `/docs`.
@@ -115,13 +132,16 @@ docs/70-automatic-preparation-buffers-in-availability.md
 docs/71-admin-preparation-buffer-settings-and-overrides.md
 docs/72-admin-navigation-and-property-calendar-operations.md
 docs/73-phase-9-documentation-closure.md
+docs/74-brand-identity-refresh.md
+docs/75-reusable-brand-components.md
+docs/76-brand-application-and-metadata-integration.md
 ```
 
 ## Development Status
 
 ```text
-Current phase: Phase 10 — Email Notifications
-Current focus: define the Phase 10 notification strategy, Resend contract, idempotency, templates, and delivery audit behavior
-Last completed phase: Phase 9 — Tilopay Sandbox Integration
-Last completed subphase: 9.10 Phase 9 documentation update and closure
+Current phase: Phase 9.11 — Admin MVP and Brand Identity Completion
+Current subphase: 9.11.1-C Application and metadata integration
+Current focus: validate the approved logo across the public site, admin surfaces, Auth.js sign-in, favicons, and social metadata
+Last completed subphase: 9.11.1-B Reusable brand components
 ```

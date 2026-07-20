@@ -1,31 +1,36 @@
-"use client";
-
 import Link from "next/link";
 import { MapPin } from "lucide-react";
 
+import { BrandMark } from "@/components/brand";
 import { Button } from "@/components/ui/button";
 import { siteConfig } from "@/config/site";
-import { LocaleSwitcher, useLocale } from "@/features/i18n";
+import { esMessages } from "@/messages";
+
+const messages = esMessages;
 
 export function SiteHeader() {
-  const { messages } = useLocale();
-
   return (
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/90 backdrop-blur-xl">
-      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-4 px-6 lg:px-8">
+      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-6 px-6 lg:px-8">
         <Link
           aria-label={messages.navigation.homeAriaLabel}
-          className="group flex min-w-0 items-center gap-3"
+          className="group flex items-center gap-3"
           href="/"
         >
-          <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary text-sm font-semibold text-primary-foreground shadow-sm transition-transform group-hover:-translate-y-0.5">
-            TRP
+          <span className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-border/70 bg-white shadow-sm transition-transform group-hover:-translate-y-0.5 group-hover:shadow-md">
+            <BrandMark
+              alt=""
+              className="w-11"
+              priority
+              sizes="44px"
+              width={44}
+            />
           </span>
-          <span className="hidden min-w-0 leading-tight sm:block">
-            <span className="block truncate text-sm font-semibold text-foreground">
+          <span className="hidden leading-tight sm:block">
+            <span className="block text-sm font-semibold text-foreground">
               {siteConfig.brandName}
             </span>
-            <span className="block truncate text-xs text-muted-foreground">
+            <span className="block text-xs text-muted-foreground">
               {messages.navigation.locationLabel}
             </span>
           </span>
@@ -46,13 +51,12 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-          <div className="hidden items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-xs text-muted-foreground xl:flex">
-            <MapPin className="size-4" aria-hidden="true" />
+        <div className="flex items-center gap-3">
+          <div className="hidden items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-xs text-muted-foreground lg:flex">
+            <MapPin aria-hidden="true" className="size-4" />
             {messages.navigation.locationLabel}
           </div>
-          <LocaleSwitcher />
-          <Button asChild className="hidden rounded-full sm:inline-flex">
+          <Button asChild className="rounded-full">
             <Link href="/alojamientos">{messages.common.bookNow}</Link>
           </Button>
         </div>

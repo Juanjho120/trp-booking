@@ -7,8 +7,8 @@ Phase: 9.11 — Admin MVP and Brand Identity Completion
 Subphase: 9.11.1 — Brand Identity Refresh
 9.11.1-A Production raster assets — Completed
 9.11.1-B Reusable brand components — Completed
-9.11.1-C Application and metadata integration — Next
-9.11.1-D Responsive QA and documentation closure — Not started
+9.11.1-C Application and metadata integration — In progress
+9.11.1-D Responsive QA and documentation closure — Next after validation
 ```
 
 ## Approved asset decision
@@ -65,17 +65,29 @@ import { BrandLogo, BrandMark } from "@/components/brand";
 <BrandMark alt="" width={48} />
 ```
 
-## Scope boundary
+## Phase 9.11.1-B handoff
 
-9.11.1-B does not replace the existing temporary `TRP` presentation yet.
+9.11.1-B intentionally stopped before application integration. Phase 9.11.1-C now consumes the approved components in public, admin, authentication, and metadata surfaces. Transactional email rendering remains deferred to Phase 10.
 
-The following belongs to 9.11.1-C:
+
+## 9.11.1-C application integration
+
+The approved assets are now consumed through `BrandLogo` and `BrandMark` in:
 
 ```text
-Public header and footer
-Admin sidebar and mobile navigation
-Admin login
-Next.js metadata and icons
-Open Graph and social metadata
-Transactional email brand header preparation
+components/layout/site-header.tsx
+components/layout/site-footer.tsx
+features/admin/components/admin-shell.tsx
+features/auth/components/admin-sign-in-page.tsx
 ```
+
+Metadata integration uses:
+
+```text
+app/favicon.ico
+app/icon.png
+app/apple-icon.png
+/brand/logo-open-graph.png
+```
+
+The custom Auth.js sign-in route is `/admin-login`. It preserves the existing Google OAuth provider and server-side admin allowlist; it changes presentation and routing only, not authorization policy.

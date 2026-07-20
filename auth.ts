@@ -1,7 +1,11 @@
 import NextAuth, { type NextAuthConfig } from "next-auth";
 import Google from "next-auth/providers/google";
 
-import { ADMIN_ROLE, isAllowedAdminEmail, normalizeAdminEmail } from "@/lib/auth/admin-access";
+import {
+  ADMIN_ROLE,
+  isAllowedAdminEmail,
+  normalizeAdminEmail,
+} from "@/lib/auth/admin-access";
 import { validateServerEnv } from "@/lib/env/server";
 
 const serverEnv = validateServerEnv();
@@ -26,6 +30,9 @@ export const authConfig = {
   ],
   secret: serverEnv.AUTH_SECRET,
   trustHost: serverEnv.AUTH_TRUST_HOST,
+  pages: {
+    signIn: "/admin-login",
+  },
   session: {
     strategy: "jwt",
   },

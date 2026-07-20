@@ -5,12 +5,12 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 ## Current Status
 
 ```text
-Current phase: Phase 10 — Email Notifications
-Current focus: Phase 10 planning has not started; define the notification strategy and first implementation subphase before coding
-Last updated: 2026-07-17
-Last completed phase: Phase 9 — Tilopay Sandbox Integration
-Last completed subphase: 9.10 Phase 9 documentation update and closure
-Phase 9 closure base commit: 497ae635c69c6267c383ecd134847b64ab7caacf
+Current phase: Phase 9.11 — Admin MVP and Brand Identity Completion
+Current subphase: 9.11.1-C Application and metadata integration
+Current focus: apply and validate the approved brand across application and metadata surfaces
+Last updated: 2026-07-20
+Last completed subphase: 9.11.1-B Reusable brand components
+9.11.1-C base commit: ff61f42304780f1f1e049e6350de1d85be799a1e
 ```
 
 ## Completed Work
@@ -180,30 +180,47 @@ Real Airbnb iCal operational configuration and E2E validation remain deferred to
 
 ## Current Work
 
-### Phase 10 — Email Notifications
+### Phase 9.11.1-C — Application and Metadata Integration
 
-Status: **Not started**
+Status: **In progress**
 
-Next planning scope:
+Implemented in this delivery:
 
 ```text
-Define the first Phase 10 subphase before implementation.
-Document the Resend provider/environment contract.
-Define bilingual reservation and admin notification templates.
-Define idempotency and duplicate-send prevention.
-Define delivery audit records and safe provider failure handling.
-Preserve payment-driven reservation confirmation.
+Public header uses BrandMark instead of the temporary TRP block
+Public footer uses BrandLogo
+Desktop and mobile admin navigation use BrandMark
+Custom branded /admin-login page uses BrandLogo
+Auth.js uses /admin-login as its custom sign-in page
+Admin callback destinations are reduced to safe local /admin paths
+Root metadata uses approved favicon, Apple touch, Open Graph, and Twitter assets
+Next.js app/favicon.ico, app/icon.png, and app/apple-icon.png use the approved mark without text
+Bilingual admin sign-in copy remains centralized in messages/es.ts and messages/en.ts
+```
+
+Validation still required before closure:
+
+```text
+npm run env:validate
+npm run db:validate
+npm run lint
+npm run build
+Signed-out /admin redirect to branded login
+Allowlisted Google login and return to /admin
+Public header/footer responsive review
+Desktop/mobile admin brand review
+Browser favicon and Apple touch icon review
+Open Graph and Twitter preview metadata review
 ```
 
 ## Next Recommended Work
 
 ```text
-1. Define the Phase 10 notification architecture and subphase sequence.
-2. Implement server-side Resend environment validation and provider abstraction.
-3. Add idempotent bilingual reservation-confirmation email delivery.
-4. Add the minimum admin notification required for a confirmed direct reservation.
-5. Keep arrival instructions and later lifecycle emails explicitly scoped and documented.
-6. Complete operational Airbnb iCal setup/E2E during production-readiness work when secure configuration exists.
+1. Apply and validate Phase 9.11.1-C.
+2. Commit the application and metadata integration after manual acceptance.
+3. Continue with 9.11.1-D responsive QA and documentation closure.
+4. Continue with 9.11.2 accommodation content management after the brand refresh closes.
+5. Keep Phase 10 email delivery deferred until the Phase 9.11 admin/brand bridge is complete.
 ```
 
 ## Continuity Notes for New Conversations
@@ -225,6 +242,16 @@ docs/70-automatic-preparation-buffers-in-availability.md
 docs/71-admin-preparation-buffer-settings-and-overrides.md
 docs/72-admin-navigation-and-property-calendar-operations.md
 docs/73-phase-9-documentation-closure.md
+docs/74-brand-identity-refresh.md
+docs/75-reusable-brand-components.md
+docs/76-brand-application-and-metadata-integration.md
+components/brand/
+components/layout/site-header.tsx
+components/layout/site-footer.tsx
+features/admin/components/admin-shell.tsx
+features/auth/components/admin-sign-in-page.tsx
+app/admin-login/page.tsx
+app/layout.tsx
 lib/reservations/confirmation.ts
 lib/payments/tilopay-payment-result.ts
 lib/availability/rules.ts

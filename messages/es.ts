@@ -36,6 +36,11 @@ export const esMessages = {
       description:
         "Panel privado para administrar reservas, pagos, alojamientos y disponibilidad de Tu Refugio Perfecto.",
     },
+    adminSignIn: {
+      title: "Acceso administrativo | Tu Refugio Perfecto",
+      description:
+        "Acceso privado para administradores autorizados de Tu Refugio Perfecto.",
+    },
   },
   navigation: {
     mainAriaLabel: "Navegación principal",
@@ -363,11 +368,20 @@ export const esMessages = {
     },
   },
   admin: {
+    signIn: {
+      badge: "Acceso administrativo",
+      title: "Ingresa al panel privado",
+      description:
+        "Continúa con la cuenta de Google autorizada para administrar reservas, pagos, alojamientos y disponibilidad.",
+      continueWithGoogle: "Continuar con Google",
+      accessNote:
+        "El acceso está limitado a las cuentas incluidas en la lista administrativa segura del servidor.",
+      backToPublicSite: "Volver al sitio público",
+    },
     feedback: {
       dismiss: "Cerrar notificación",
     },
     navigation: {
-      brandMark: "TRP",
       fallbackUserName: "Administrador",
       brandLabel: "Administración privada",
       ariaLabel: "Navegación administrativa",
