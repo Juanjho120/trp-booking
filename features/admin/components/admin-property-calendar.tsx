@@ -368,19 +368,14 @@ export function AdminPropertyCalendarView({
         }
       />
 
-      {errorFeedback ? (
-        <div
-          className="mb-5 rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
-          role="alert"
-        >
-          {errorFeedback}
-        </div>
-      ) : null}
-
       <AdminSnackbar
         closeLabel={messages.admin.feedback.dismiss}
-        message={successFeedback}
-        onDismiss={() => setSuccessFeedback(null)}
+        message={errorFeedback ?? successFeedback}
+        onDismiss={() => {
+          setErrorFeedback(null);
+          setSuccessFeedback(null);
+        }}
+        variant={errorFeedback ? "error" : "success"}
       />
 
       <div className="mb-5 flex gap-2 overflow-x-auto pb-1">

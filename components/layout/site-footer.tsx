@@ -1,12 +1,12 @@
+"use client";
 import Link from "next/link";
 
 import { BrandLogo } from "@/components/brand";
 import { siteConfig } from "@/config/site";
-import { esMessages } from "@/messages";
-
-const messages = esMessages;
+import { useLocale } from "@/features/i18n";
 
 export function SiteFooter() {
+  const { messages } = useLocale();
   const currentYear = new Date().getFullYear();
 
   return (

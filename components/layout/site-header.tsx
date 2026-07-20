@@ -1,20 +1,22 @@
+"use client";
+
 import Link from "next/link";
 import { MapPin } from "lucide-react";
 
 import { BrandMark } from "@/components/brand";
 import { Button } from "@/components/ui/button";
 import { siteConfig } from "@/config/site";
-import { esMessages } from "@/messages";
-
-const messages = esMessages;
+import { LocaleSwitcher, useLocale } from "@/features/i18n";
 
 export function SiteHeader() {
+  const { messages } = useLocale();
+
   return (
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/90 backdrop-blur-xl">
-      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-6 px-6 lg:px-8">
+      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-3 px-4 sm:gap-6 sm:px-6 lg:px-8">
         <Link
           aria-label={messages.navigation.homeAriaLabel}
-          className="group flex items-center gap-3"
+          className="group flex shrink-0 items-center gap-3"
           href="/"
         >
           <span className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-border/70 bg-white shadow-sm transition-transform group-hover:-translate-y-0.5 group-hover:shadow-md">
@@ -26,6 +28,7 @@ export function SiteHeader() {
               width={44}
             />
           </span>
+
           <span className="hidden leading-tight sm:block">
             <span className="block text-sm font-semibold text-foreground">
               {siteConfig.brandName}
@@ -38,7 +41,7 @@ export function SiteHeader() {
 
         <nav
           aria-label={messages.navigation.mainAriaLabel}
-          className="hidden items-center gap-6 md:flex"
+          className="hidden items-center gap-6 lg:flex"
         >
           {messages.navigation.items.map((item) => (
             <Link
@@ -51,13 +54,21 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-3">
-          <div className="hidden items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-xs text-muted-foreground lg:flex">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+          <LocaleSwitcher />
+
+          <div className="hidden items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-xs text-muted-foreground xl:flex">
             <MapPin aria-hidden="true" className="size-4" />
             {messages.navigation.locationLabel}
           </div>
+
           <Button asChild className="rounded-full">
-            <Link href="/alojamientos">{messages.common.bookNow}</Link>
+            <Link href="/alojamientos">
+              <span className="sm:hidden">{messages.common.reserve}</span>
+              <span className="hidden sm:inline">
+                {messages.common.bookNow}
+              </span>
+            </Link>
           </Button>
         </div>
       </div>
