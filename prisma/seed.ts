@@ -477,18 +477,7 @@ async function seedPropertyImages(): Promise<void> {
 
     await prisma.propertyImage.upsert({
       where: { id: image.id },
-      update: {
-        propertyId: image.propertyId,
-        cloudinaryPublicId,
-        url: cloudinaryDeliveryUrl,
-        secureUrl: cloudinaryDeliveryUrl,
-        altTextEs: image.altTextEs,
-        altTextEn: image.altTextEn,
-        sortOrder: image.sortOrder,
-        isCover: image.isCover,
-        deletedAt: null,
-        deletedById: null,
-      },
+      update: {},
       create: {
         id: image.id,
         propertyId: image.propertyId,

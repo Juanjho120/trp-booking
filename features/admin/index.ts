@@ -5,6 +5,7 @@ export { AdminDashboardPage } from "./components/admin-dashboard-page";
 export { AdminPageHeader } from "./components/admin-page-header";
 export { AdminPaymentsPageView } from "./components/admin-payments-page";
 export { AdminPropertyCalendarView } from "./components/admin-property-calendar";
+export { AdminPropertyPhotoManager } from "./components/admin-property-photo-manager";
 export { AdminReservationsPageView } from "./components/admin-reservations-page";
 export { AdminShell } from "./components/admin-shell";
 export { AdminSnackbar } from "./components/admin-snackbar";

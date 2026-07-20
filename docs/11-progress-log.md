@@ -6,13 +6,12 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 9.11 — Admin MVP and Brand Identity Completion
-Current subphase: 9.11.3 Property photo management
-Current focus: define property photo administration after completing accommodation content management
+Current subphase: 9.11.4 Amenities and house rules
+Current focus: define bilingual amenity and house-rule administration after completing property photo management
 Last updated: 2026-07-20
-Last completed subphase: 9.11.2 Accommodation content management
-9.11.2 base commit: b5472e8b448f02b6778dcee9e344b2fd55839480
-9.11.2 implementation commit: bc19e7327cd96647fd760b1a551fc4ae9ffacde2
-9.11.2 UI follow-up commit: 3dc5797aef1efc2942d68358bdc5d3b5b44cca4d
+Last completed subphase: 9.11.3 Property photo management
+9.11.3 base commit: 9bc885750833c7e1bb964956fc4c86d70dfc4414
+9.11.3 implementation commit: pending local validation and commit
 ```
 
 ## Completed Work
@@ -279,23 +278,64 @@ UI follow-up commit: 3dc5797aef1efc2942d68358bdc5d3b5b44cca4d
 
 ### Phase 9.11.3 — Property Photo Management
 
+Status: **Completed pending local validation and commit**
+
+Implemented behavior:
+
+```text
+/admin/accommodations/[propertyId]/photos provides the protected photo manager for each supported property.
+The admin accepts JPG, PNG, and WEBP images up to 10 MB and enforces a maximum of 20 active photos per property.
+Spanish and English alternative text are required and normalized server-side.
+The browser uploads bytes directly to Cloudinary with a short-lived signed owned public ID; CLOUDINARY_API_SECRET remains server-side.
+Finalization re-reads the provider asset and verifies ownership, resource type, upload type, actual format, size, URLs, and upload age before creating PropertyImage.
+The gallery supports ordered move controls, one cover photo, bilingual alt-text editing, and soft deletion.
+A SHA-256 gallery revision plus serializable transactions rejects stale structural changes from older tabs.
+The first upload becomes cover; deleting the cover promotes the first remaining ordered photo; the final active photo cannot be deleted.
+Soft deletion preserves deletedAt, deletedById, the database record, audit history, and the Cloudinary asset.
+All success and failure feedback uses the shared accessible AdminSnackbar.
+The public listing and detail gallery already consume active PostgreSQL PropertyImage rows, cover selection, order, and bilingual alt text.
+No Prisma migration, amenity/rule management, price/status/composition editing, reservation/payment action, email delivery, or PMS behavior was added.
+```
+
+Audit actions:
+
+```text
+PROPERTY_IMAGE_UPLOADED
+PROPERTY_IMAGE_ALT_TEXT_UPDATED
+PROPERTY_IMAGES_REORDERED
+PROPERTY_IMAGE_COVER_CHANGED
+PROPERTY_IMAGE_SOFT_DELETED
+```
+
+Important seed boundary:
+
+```text
+The PropertyImage upsert in prisma/seed.ts must use update: {} so rerunning the development seed does not overwrite admin-managed alt text, order, cover selection, or restore soft-deleted photo records.
+The create branch remains the clean-database baseline.
+```
+
+### Phase 9.11.4 — Amenities and House Rules
+
 Status: **Not started**
 
 Planning scope:
 
 ```text
-Define Cloudinary-backed upload, ordering, cover selection, bilingual alt text, and soft deletion.
-Reuse the existing PropertyImage model and Cloudinary ownership rules.
-Do not mix amenity, rule, price, reservation, email, or PMS work into the photo subphase.
+Define bilingual amenity assignment and house-rule administration for the three supported accommodations.
+Reuse the existing Amenity, HouseRule, PropertyAmenity, and PropertyRule models and the typed icon catalog.
+Preserve public localization, soft-deletion rules, auditability, and the shared admin snackbar behavior.
+Do not mix pricing, property publishing, reservation/payment actions, email delivery, or PMS behavior into 9.11.4.
 ```
 
 ## Next Recommended Work
 
 ```text
-1. Keep the accepted public ES/EN selector and shared admin snackbar behavior as regression requirements.
-2. Define the exact 9.11.3 property photo management contract before coding.
-3. Confirm Cloudinary ownership, upload, ordering, cover selection, bilingual alt text, and soft-delete rules.
-4. Do not mix amenities, house rules, pricing, reservations, email, or PMS behavior into 9.11.3.
+1. Apply and validate Phase 9.11.3 against real development Cloudinary credentials.
+2. Upload each accepted image format and verify public listing/detail rendering.
+3. Validate order, cover, alt-text, stale-tab, soft-delete, final-photo guard, seed-safety, and audit behavior.
+4. Run npm run env:validate, npm run db:validate, npm run lint, and npm run build.
+5. Commit Phase 9.11.3.
+6. Continue with 9.11.4 amenities and house rules.
 ```
 
 ## Continuity Notes for New Conversations
@@ -322,6 +362,7 @@ docs/75-reusable-brand-components.md
 docs/76-brand-application-and-metadata-integration.md
 docs/77-responsive-brand-qa-and-closure.md
 docs/78-accommodation-content-management.md
+docs/79-property-photo-management.md
 components/brand/
 components/layout/site-header.tsx
 components/layout/site-footer.tsx
@@ -329,9 +370,14 @@ features/admin/components/admin-shell.tsx
 features/auth/components/admin-sign-in-page.tsx
 features/admin/components/admin-accommodation-management.tsx
 features/admin/components/admin-accommodation-content-editor.tsx
+features/admin/components/admin-property-photo-manager.tsx
 app/api/admin/accommodation-content/route.ts
+app/api/admin/property-photos/route.ts
+app/admin/accommodations/[propertyId]/photos/page.tsx
 lib/admin/accommodation-content.ts
+lib/admin/property-photos.ts
 types/admin-accommodation-content.ts
+types/admin-property-photos.ts
 app/admin-login/page.tsx
 app/layout.tsx
 lib/reservations/confirmation.ts

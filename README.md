@@ -90,7 +90,7 @@ Final Phase 9 capabilities:
 - Dynamic preparation buffers for confirmed reservations and active pending holds.
 - Auditable one-day preparation-buffer overrides.
 - Property calendar with effective blockers, composed-listing inheritance, manual blocking, release, unlock, and restore operations.
-- Successful admin mutations shown as auto-dismissing snackbars; operational errors remain persistent inline.
+- Successful and failed admin mutations shown through accessible auto-dismissing snackbars with distinct variants and manual dismissal.
 - No Phase 10 emails, guest date changes, manual reservation confirmation, refund workflow, or PMS behavior.
 ```
 
@@ -113,7 +113,9 @@ The approved mark without text remains mandatory for favicon-scale assets. The l
 
 Responsive closure also ensures that long footer contact values wrap safely, the compact mobile admin header keeps its controls visible, and the branded admin sign-in page remains vertically scrollable on short screens.
 
-Accommodation content management now allows an authorized admin to edit bilingual names and descriptions, capacity, bedroom/bathroom counts, and arrival/departure times. Slug, price, currency, status, composition, photos, amenities, rules, and preparation settings remain outside that editor. Updates use server validation, optimistic concurrency, and `AdminAuditLog`.
+Accommodation content management allows an authorized admin to edit bilingual names and descriptions, capacity, bedroom/bathroom counts, and arrival/departure times. Slug, price, currency, status, composition, amenities, rules, and preparation settings remain outside that editor. Updates use server validation, optimistic concurrency, and `AdminAuditLog`.
+
+Property photo management adds protected Cloudinary-backed uploads, bilingual alt text, ordering, cover selection, and soft deletion. Upload bytes go directly from the browser to Cloudinary through a server-signed owned public ID, while finalization validates the provider asset before persisting `PropertyImage`. Structural gallery changes use optimistic revisions, and every mutation remains auditable.
 
 ## Documentation
 
@@ -139,13 +141,14 @@ docs/75-reusable-brand-components.md
 docs/76-brand-application-and-metadata-integration.md
 docs/77-responsive-brand-qa-and-closure.md
 docs/78-accommodation-content-management.md
+docs/79-property-photo-management.md
 ```
 
 ## Development Status
 
 ```text
 Current phase: Phase 9.11 — Admin MVP and Brand Identity Completion
-Current subphase: 9.11.3 Property photo management
-Current focus: define property photo administration on top of the completed accommodation content editor
-Last completed subphase: 9.11.2 Accommodation content management
+Current subphase: 9.11.4 Amenities and house rules
+Current focus: define bilingual amenity and house-rule administration after completing property photo management
+Last completed subphase: 9.11.3 Property photo management
 ```

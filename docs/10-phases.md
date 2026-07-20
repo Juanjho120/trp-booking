@@ -15,9 +15,9 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 9.11 — Admin MVP and Brand Identity Completion
-Current subphase: 9.11.3 Property photo management
-Current focus: define property photo administration after completing the DB-backed accommodation content editor
-Last completed subphase: 9.11.2 Accommodation content management
+Current subphase: 9.11.4 Amenities and house rules
+Current focus: define bilingual amenity and house-rule administration after completing property photo management
+Last completed subphase: 9.11.3 Property photo management
 ```
 
 ---
@@ -162,7 +162,7 @@ Phase 9 rules preserved:
 - The property calendar shows direct reservations, active holds, Airbnb blocks, manual blocks, maintenance, preparation buffers, overrides, and composed-listing inheritance.
 - New manual blocks are allowed only across fully available future dates and are revalidated server-side.
 - Manual release, preparation unlock, and preparation restore preserve audit history.
-- Successful admin mutations use auto-dismissing snackbars; errors remain inline.
+- Successful and failed admin mutations use accessible auto-dismissing snackbars with distinct variants and manual dismissal.
 ```
 
 ### Phase 9.10 result
@@ -196,7 +196,7 @@ Subphase status:
 9.11.1-C Application and metadata integration — Completed
 9.11.1-D Responsive QA and documentation closure — Completed
 9.11.2 Accommodation content management — Completed
-9.11.3 Property photo management — Not started
+9.11.3 Property photo management — Completed
 9.11.4 Amenities and house rules — Not started
 9.11.5 Reservation and payment detail views — Not started
 9.11.6 Phase 9.11 validation and documentation closure — Not started
@@ -230,6 +230,23 @@ Subphase status:
 - Public accommodation pages already read Property content from PostgreSQL and therefore reflect accepted updates without a separate synchronization step.
 - Soft-deleted or unsupported property records cannot be edited.
 - No Prisma schema migration, photo management, amenity/rule management, pricing workflow, email delivery, or PMS behavior was added.
+```
+
+
+### Phase 9.11.3 result
+
+```text
+- Each supported accommodation has a protected /admin/accommodations/[propertyId]/photos route.
+- Authorized admins can upload JPG, PNG, and WEBP files up to 10 MB with required bilingual alternative text.
+- Image bytes upload directly from the browser to Cloudinary through a short-lived signed request; the Cloudinary API secret remains server-side.
+- Finalization verifies the exact owned public ID, provider resource type, upload type, actual format, byte size, delivery URLs, and recent creation time before persistence.
+- Active galleries support up to 20 photos, sequential ordering, exactly one cover, bilingual alt-text editing, and soft deletion.
+- Structural mutations use an optimistic gallery revision and serializable transactions so stale tabs do not silently overwrite order, cover, or deletion changes.
+- Deleting the cover promotes the first remaining ordered image; the final active photo cannot be deleted.
+- PROPERTY_IMAGE_UPLOADED, PROPERTY_IMAGE_ALT_TEXT_UPDATED, PROPERTY_IMAGES_REORDERED, PROPERTY_IMAGE_COVER_CHANGED, and PROPERTY_IMAGE_SOFT_DELETED preserve AdminAuditLog history.
+- Soft deletion retains the PropertyImage row and Cloudinary asset until a restore/permanent-purge lifecycle is explicitly approved.
+- Public listing and detail pages already read active PropertyImage rows, isCover, sortOrder, and bilingual alt text from PostgreSQL.
+- No Prisma migration, amenity/rule management, pricing workflow, reservation/payment action, email delivery, or PMS behavior was added.
 ```
 
 ---

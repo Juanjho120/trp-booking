@@ -557,7 +557,7 @@ export const esMessages = {
       badge: "Contenido y configuración",
       title: "Alojamientos",
       description:
-        "Administra el contenido público bilingüe y la preparación automática de cada alojamiento sin mezclar fotos, amenidades, reglas, precios o reservas.",
+        "Administra el contenido público bilingüe, las fotografías y la preparación automática de cada alojamiento sin mezclar amenidades, reglas, precios o reservas.",
       overview: {
         sectionTitle: "Contenido público",
         sectionDescription:
@@ -576,6 +576,7 @@ export const esMessages = {
         },
         actions: {
           editContent: "Editar contenido público",
+          managePhotos: "Administrar fotos",
         },
         notes: {
           readonlyBoundaries:
@@ -622,7 +623,7 @@ export const esMessages = {
           timeFormat:
             "Usa una hora breve y legible, por ejemplo: 8:00 a. m. o 11:00 a. m.",
           immutableFields:
-            "En esta subfase no se modifican slug, precio, moneda, estado, composición, fotos, amenidades, reglas ni política de preparación.",
+            "Desde este editor no se modifican slug, precio, moneda, estado, composición, fotos, amenidades, reglas ni política de preparación. Las fotos se administran desde su sección dedicada.",
         },
         success: {
           contentSaved: "El contenido del alojamiento se guardó correctamente.",
@@ -637,6 +638,89 @@ export const esMessages = {
             "Este alojamiento cambió después de que abriste el formulario. Recarga la página antes de guardar nuevamente.",
           ACCOMMODATION_CONTENT_UNEXPECTED_ERROR:
             "No pudimos guardar el contenido del alojamiento. Inténtalo de nuevo.",
+        },
+      },
+      photos: {
+        seoTitle: "Fotos del alojamiento | Admin | Tu Refugio Perfecto",
+        badge: "Galería pública",
+        title: "Administrar fotos",
+        description:
+          "Carga, ordena y documenta las fotografías que se muestran en el listado público y en la galería del alojamiento.",
+        sections: {
+          upload: "Cargar una fotografía",
+          current: "Fotografías actuales",
+        },
+        labels: {
+          currentCount: "Fotografías",
+          noFileSelected: "No has seleccionado un archivo.",
+          altTextEs: "Texto alternativo en español",
+          altTextEn: "Texto alternativo en inglés",
+          order: "Orden",
+          cover: "Portada",
+        },
+        actions: {
+          backToAccommodations: "Volver a alojamientos",
+          backToContent: "Editar contenido",
+          chooseFile: "Seleccionar archivo",
+          upload: "Cargar fotografía",
+          uploading: "Cargando...",
+          saveAltText: "Guardar textos",
+          moveUp: "Mover arriba",
+          moveDown: "Mover abajo",
+          setCover: "Usar como portada",
+          delete: "Eliminar",
+          confirmDelete: "Eliminar fotografía",
+          cancel: "Cancelar",
+        },
+        notes: {
+          formats:
+            "Formatos permitidos: JPG, PNG y WEBP. Tamaño máximo: 10 MB. Se admiten hasta 20 fotografías activas por alojamiento.",
+          altText:
+            "Describe brevemente lo que aparece en la fotografía en ambos idiomas. Este texto mejora la accesibilidad y acompaña la imagen pública.",
+          order:
+            "Usa los controles de cada tarjeta para cambiar el orden. La portada se administra por separado y siempre debe existir una fotografía activa.",
+          softDelete:
+            "Eliminar una fotografía la oculta del sitio y conserva el registro para auditoría. El archivo de Cloudinary se mantiene hasta que exista una política aprobada de restauración o purga.",
+        },
+        success: {
+          photoUploaded: "La fotografía se cargó correctamente.",
+          altTextSaved: "Los textos alternativos se guardaron correctamente.",
+          orderSaved: "El orden de las fotografías se actualizó correctamente.",
+          coverSaved: "La portada del alojamiento se actualizó correctamente.",
+          photoDeleted: "La fotografía se eliminó del sitio correctamente.",
+        },
+        empty: {
+          noPhotos: "Este alojamiento todavía no tiene fotografías activas.",
+        },
+        deleteDialog: {
+          title: "Eliminar fotografía",
+          description:
+            "La fotografía dejará de mostrarse en el sitio público. El registro se conservará para auditoría y esta acción no eliminará el archivo de Cloudinary en esta subfase.",
+        },
+        errors: {
+          ADMIN_UNAUTHORIZED: "Tu sesión no tiene autorización administrativa.",
+          INVALID_PROPERTY_PHOTO_REQUEST:
+            "Revisa la fotografía y completa correctamente los textos alternativos en ambos idiomas.",
+          PROPERTY_PHOTO_PROPERTY_NOT_FOUND:
+            "No encontramos el alojamiento solicitado.",
+          PROPERTY_PHOTO_NOT_FOUND:
+            "No encontramos la fotografía seleccionada.",
+          PROPERTY_PHOTO_STALE:
+            "La galería cambió después de que abriste esta página. Recarga antes de intentar nuevamente.",
+          PROPERTY_PHOTO_LIMIT_REACHED:
+            "Este alojamiento ya alcanzó el máximo de 20 fotografías activas.",
+          PROPERTY_PHOTO_MINIMUM_REQUIRED:
+            "No puedes eliminar la última fotografía activa del alojamiento.",
+          PROPERTY_PHOTO_UNSUPPORTED_TYPE:
+            "Selecciona una imagen en formato JPG, PNG o WEBP.",
+          PROPERTY_PHOTO_FILE_TOO_LARGE:
+            "La fotografía supera el tamaño máximo permitido de 10 MB.",
+          PROPERTY_PHOTO_UPLOAD_EXPIRED:
+            "La carga tardó demasiado en finalizar. Selecciona el archivo e inténtalo nuevamente.",
+          PROPERTY_PHOTO_PROVIDER_ERROR:
+            "No pudimos completar la carga con el proveedor de imágenes. Inténtalo nuevamente.",
+          PROPERTY_PHOTO_UNEXPECTED_ERROR:
+            "No pudimos actualizar las fotografías del alojamiento. Inténtalo nuevamente.",
         },
       },
       preparation: {

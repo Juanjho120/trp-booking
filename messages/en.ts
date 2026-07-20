@@ -557,7 +557,7 @@ export const enMessages = {
       badge: "Content and settings",
       title: "Accommodations",
       description:
-        "Manage bilingual public content and automatic preparation settings without mixing in photos, amenities, rules, prices, or reservations.",
+        "Manage bilingual public content, photos, and automatic preparation settings without mixing in amenities, rules, prices, or reservations.",
       overview: {
         sectionTitle: "Public content",
         sectionDescription:
@@ -576,6 +576,7 @@ export const enMessages = {
         },
         actions: {
           editContent: "Edit public content",
+          managePhotos: "Manage photos",
         },
         notes: {
           readonlyBoundaries:
@@ -622,7 +623,7 @@ export const enMessages = {
           timeFormat:
             "Use a brief readable time, for example: 8:00 a.m. or 11:00 a.m.",
           immutableFields:
-            "This subphase does not edit slug, price, currency, status, composition, photos, amenities, rules, or preparation settings.",
+            "This editor does not change slug, price, currency, status, composition, photos, amenities, rules, or preparation settings. Photos are managed from their dedicated section.",
         },
         success: {
           contentSaved: "Accommodation content was saved successfully.",
@@ -637,6 +638,89 @@ export const enMessages = {
             "This accommodation changed after you opened the form. Reload the page before saving again.",
           ACCOMMODATION_CONTENT_UNEXPECTED_ERROR:
             "We could not save the accommodation content. Please try again.",
+        },
+      },
+      photos: {
+        seoTitle: "Accommodation photos | Admin | Tu Refugio Perfecto",
+        badge: "Public gallery",
+        title: "Manage photos",
+        description:
+          "Upload, order, and document the photos displayed in the public listing and accommodation gallery.",
+        sections: {
+          upload: "Upload a photo",
+          current: "Current photos",
+        },
+        labels: {
+          currentCount: "Photos",
+          noFileSelected: "No file selected.",
+          altTextEs: "Alternative text in Spanish",
+          altTextEn: "Alternative text in English",
+          order: "Order",
+          cover: "Cover",
+        },
+        actions: {
+          backToAccommodations: "Back to accommodations",
+          backToContent: "Edit content",
+          chooseFile: "Choose file",
+          upload: "Upload photo",
+          uploading: "Uploading...",
+          saveAltText: "Save text",
+          moveUp: "Move up",
+          moveDown: "Move down",
+          setCover: "Use as cover",
+          delete: "Delete",
+          confirmDelete: "Delete photo",
+          cancel: "Cancel",
+        },
+        notes: {
+          formats:
+            "Allowed formats: JPG, PNG, and WEBP. Maximum size: 10 MB. Up to 20 active photos are allowed per accommodation.",
+          altText:
+            "Briefly describe what appears in the photo in both languages. This text improves accessibility and accompanies the public image.",
+          order:
+            "Use each card's controls to change the order. The cover is managed separately, and at least one active photo must always remain.",
+          softDelete:
+            "Deleting a photo hides it from the website and preserves the record for auditing. The Cloudinary asset remains until a restore or purge policy is approved.",
+        },
+        success: {
+          photoUploaded: "The photo was uploaded successfully.",
+          altTextSaved: "The alternative text was saved successfully.",
+          orderSaved: "The photo order was updated successfully.",
+          coverSaved: "The accommodation cover was updated successfully.",
+          photoDeleted: "The photo was removed from the website successfully.",
+        },
+        empty: {
+          noPhotos: "This accommodation does not have active photos yet.",
+        },
+        deleteDialog: {
+          title: "Delete photo",
+          description:
+            "The photo will stop appearing on the public website. The record will remain for auditing, and this subphase will not delete the Cloudinary asset.",
+        },
+        errors: {
+          ADMIN_UNAUTHORIZED: "Your session does not have admin access.",
+          INVALID_PROPERTY_PHOTO_REQUEST:
+            "Review the photo and complete the alternative text correctly in both languages.",
+          PROPERTY_PHOTO_PROPERTY_NOT_FOUND:
+            "We could not find the requested accommodation.",
+          PROPERTY_PHOTO_NOT_FOUND:
+            "We could not find the selected photo.",
+          PROPERTY_PHOTO_STALE:
+            "The gallery changed after you opened this page. Reload before trying again.",
+          PROPERTY_PHOTO_LIMIT_REACHED:
+            "This accommodation has reached the maximum of 20 active photos.",
+          PROPERTY_PHOTO_MINIMUM_REQUIRED:
+            "You cannot delete the accommodation's final active photo.",
+          PROPERTY_PHOTO_UNSUPPORTED_TYPE:
+            "Select an image in JPG, PNG, or WEBP format.",
+          PROPERTY_PHOTO_FILE_TOO_LARGE:
+            "The photo exceeds the maximum allowed size of 10 MB.",
+          PROPERTY_PHOTO_UPLOAD_EXPIRED:
+            "The upload took too long to finalize. Select the file and try again.",
+          PROPERTY_PHOTO_PROVIDER_ERROR:
+            "We could not complete the upload with the image provider. Please try again.",
+          PROPERTY_PHOTO_UNEXPECTED_ERROR:
+            "We could not update the accommodation photos. Please try again.",
         },
       },
       preparation: {

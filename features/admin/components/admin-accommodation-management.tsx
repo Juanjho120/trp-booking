@@ -1,7 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { BedDouble, Clock3, FilePenLine, Users } from "lucide-react";
+import {
+  BedDouble,
+  Clock3,
+  FilePenLine,
+  Images,
+  Users,
+} from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -72,10 +78,14 @@ export function AdminAccommodationManagement({
 
         <div className="grid gap-5 xl:grid-cols-3">
           {initialContent.properties.map((property) => {
-            const propertyName = locale === "en" ? property.nameEn : property.nameEs;
+            const propertyName =
+              locale === "en" ? property.nameEn : property.nameEs;
 
             return (
-              <Card className="border-border/70 bg-card shadow-sm" key={property.id}>
+              <Card
+                className="border-border/70 bg-card shadow-sm"
+                key={property.id}
+              >
                 <CardHeader>
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex size-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
@@ -115,7 +125,10 @@ export function AdminAccommodationManagement({
                         {copy.overview.labels.price}
                       </dt>
                       <dd className="mt-1 font-medium">
-                        {formatMoney(property.baseNightlyPrice, property.currency)}
+                        {formatMoney(
+                          property.baseNightlyPrice,
+                          property.currency,
+                        )}
                       </dd>
                     </div>
                     <div>
@@ -133,12 +146,22 @@ export function AdminAccommodationManagement({
                     {copy.overview.labels.lastUpdated}: {formatDateTime(property.updatedAt)}
                   </p>
 
-                  <Button asChild className="w-full">
-                    <Link href={`/admin/accommodations/${property.id}`}>
-                      <FilePenLine aria-hidden="true" />
-                      {copy.overview.actions.editContent}
-                    </Link>
-                  </Button>
+                  <div className="grid gap-2">
+                    <Button asChild className="w-full">
+                      <Link href={`/admin/accommodations/${property.id}`}>
+                        <FilePenLine aria-hidden="true" />
+                        {copy.overview.actions.editContent}
+                      </Link>
+                    </Button>
+                    <Button asChild className="w-full" variant="outline">
+                      <Link
+                        href={`/admin/accommodations/${property.id}/photos`}
+                      >
+                        <Images aria-hidden="true" />
+                        {copy.overview.actions.managePhotos}
+                      </Link>
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             );
