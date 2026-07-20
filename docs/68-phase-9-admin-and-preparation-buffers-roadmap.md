@@ -2,13 +2,19 @@
 
 ## Status
 
-Roadmap corrected for the Phase 9.9.1 admin navigation and property calendar follow-up.
+Phase 9 roadmap completed and closed on 2026-07-17.
+
+Closure implementation base commit:
+
+```text
+497ae635c69c6267c383ecd134847b64ab7caacf
+```
 
 ## Purpose
 
-This document defines the Phase 9 work that follows payment validation and keeps admin visibility, dynamic preparation buffers, admin overrides, and Phase 10 emails separated into explicit subphases.
+This document records how Phase 9 separated payment validation, admin visibility, preparation buffers, admin overrides, scalable calendar operations, and the later Phase 10 email work into explicit boundaries.
 
-## Corrected Phase 9 Roadmap
+## Final Phase 9 Roadmap
 
 ```text
 9.1 Tilopay sandbox strategy and environment contract — Completed
@@ -21,25 +27,21 @@ This document defines the Phase 9 work that follows payment validation and keeps
 9.7 Admin reservation and payment review — Completed
 9.8 Automatic preparation buffers in availability — Completed
 9.9 Admin preparation buffer settings and manual unlock behavior — Completed
-9.9.1 Admin navigation and property calendar operations — In progress
-9.10 Phase 9 documentation update and closure — Not started
+9.9.1 Admin navigation and property calendar operations — Completed
+9.10 Phase 9 documentation update and closure — Completed
 ```
 
 ## Phase 9.7 — Admin Reservation and Payment Review
 
 ### Result
 
-The protected admin dashboard provides read-only visibility into reservations, payments, safe Tilopay diagnostics, and SDK client events.
+The protected admin area provides safe operational visibility into reservations, payments, Tilopay diagnostics, and SDK client events.
 
-It does not provide manual confirmation, cancellation, refund, date-change, calendar-editing, email, or PMS actions.
+It does not provide manual confirmation, cancellation, refund, date-change, email, or PMS actions.
 
-Admin copy and visible statuses are localized through `messages/es.ts` and `messages/en.ts`.
+Admin copy and visible statuses remain localized through `messages/es.ts` and `messages/en.ts`.
 
 ## Phase 9.8 — Automatic Preparation Buffers in Availability
-
-### Goal
-
-Make availability block preparation buffers automatically for reservations that currently block public availability.
 
 ### Preparation buffer defaults
 
@@ -69,47 +71,32 @@ After check-out buffer: [checkOutDate, checkOutDate + daysAfter)
 
 3. PENDING_PAYMENT reservation with expiresAt = null:
    - Is not a valid active hold.
-   - Does not block stay dates.
-   - Does not block preparation buffers.
+   - Does not block stay dates or buffers.
 
 4. CONFIRMED reservation:
    - Blocks stay dates.
    - Blocks preparation buffers dynamically.
 
 5. EXPIRED reservation:
-   - Does not block stay dates.
-   - Does not block preparation buffers.
+   - Does not block stay dates or buffers.
 ```
 
 ### Technical decisions
 
 ```text
-- Dynamic availability calculation remains the Phase 9.8 strategy.
+- Dynamic availability calculation remains the strategy.
 - PENDING_PAYMENT buffers are not materialized in calendar_blocks.
-- CONFIRMED direct-reservation buffers remain dynamic; Phase 9.9 selected auditable one-day override rows.
-- Buffer values are read from Property.preparationDaysBefore and Property.preparationDaysAfter.
+- CONFIRMED direct-reservation buffers remain dynamic.
+- Buffer values come from Property.preparationDaysBefore and Property.preparationDaysAfter.
 - The composed-listing dependency graph remains active.
-- Persisted PREPARATION_BUFFER rows suppress a direct dynamic buffer only when linked to the same reservation.
-- Airbnb iCal exports continue to exclude pending holds.
-- Airbnb iCal exports include confirmed buffers, including export-window boundary cases.
-```
-
-### Not included in 9.8
-
-```text
-Admin configuration for daysBefore/daysAfter
-New manual unlock behavior
-Persistent buffer materialization for pending holds
-Persistent direct-reservation buffer materialization
-Email notifications
-Guest date changes
-PMS behavior
-Prisma schema changes or migrations
+- Persisted PREPARATION_BUFFER rows suppress a direct dynamic buffer only when linked to the same source relation.
+- Airbnb iCal exports exclude pending holds.
+- Future Airbnb iCal exports include confirmed buffer calculations.
 ```
 
 ## Phase 9.9 — Admin Preparation Buffer Settings and Manual Unlock Behavior
 
-### Result
+### Final result
 
 Phase 9.9 selected Option B:
 
@@ -122,33 +109,25 @@ Implemented behavior:
 ```text
 - Admin can configure daysBefore/daysAfter per accommodation from 0 through 30.
 - Existing defaults remain 1/1, 2/2, and 2/2 until changed.
-- Confirmed direct-reservation buffers are still calculated dynamically.
+- Confirmed direct-reservation buffers remain dynamic.
 - A one-day PREPARATION_BUFFER CalendarBlock records each manual unlock.
-- The row is linked to its source relation and records admin, timestamp, and an optional internal note.
-- Availability subtracts only the override range from the dynamic buffer.
-- The reservation stay remains blocked.
+- The override is linked to its source and records admin, timestamp, and optional note.
+- Availability subtracts only the override range from the matching buffer.
+- Reservation stay dates remain blocked.
 - Composed-listing behavior remains active.
 - iCal export applies the same override subtraction when an operational feed exists.
-- Airbnb import sync reads current Property values when materializing imported preparation buffers.
-- Property changes and unlock actions create AdminAuditLog entries.
+- Property changes, unlocks, and restores create AdminAuditLog records.
 ```
 
-### Persistence decision
-
-No dedicated override model was required because the existing CalendarBlock schema already contains:
+Persistence decision:
 
 ```text
-reservationId
-isAdminOverrideAllowed
-unlockedByAdminAt
-unlockedByAdminId
-adminOverrideReason
-soft-delete fields
+No dedicated override model was required.
+The normal direct buffer is not materialized.
+Only the exception is persisted in CalendarBlock.
 ```
 
-The normal direct buffer is not materialized. Only the exception is persisted.
-
-### Boundaries preserved
+Boundaries preserved:
 
 ```text
 No pending-hold override rows
@@ -157,102 +136,83 @@ No guest date changes
 No confirmation/cancellation/refund actions
 No emails
 No PMS behavior
-No external_calendars seed or real Airbnb connection
 No Prisma migration
 ```
 
-### Operational iCal note
-
-The calculation path is consistent now, but the real iCal end-to-end test remains deferred because the project intentionally has no operational ExternalCalendar rows, raw export tokens, or real Airbnb import URLs yet.
-
 ## Phase 9.9.1 — Admin Navigation and Property Calendar Operations
 
-### Reason for the follow-up
-
-The 9.7–9.9 features were initially accumulated on one vertically growing `/admin` page. That layout did not scale for future modules and the buffer list did not match the host-oriented calendar workflow required for day-to-day operations.
-
-### Implementation direction
+### Final result
 
 ```text
 - Shared protected admin layout with responsive sidebar, optimistic active state, and route loading feedback.
 - Compact dashboard with links to dedicated modules.
-- Reservations and payments use their own searchable, filterable, paginated pages with fully styled Radix property/status selects.
-- Preparation settings are grouped by accommodation.
-- Calendar always operates with one selected accommodation.
+- Dedicated reservation and payment routes with server-side search, pagination, and fully styled Radix filters.
+- Dedicated accommodation preparation-settings route.
+- Property calendar scoped to one selected accommodation.
 - Effective blockers show origin accommodation and composed-listing inheritance.
-- Admin may add MANUAL_BLOCK ranges only when every selected future date is currently available.
-- Manual-block creation revalidates availability server-side before writing.
-- Manual block note is optional.
-- Successful admin mutations use auto-dismissing snackbars; errors remain visible inline.
-- Visible select menus use the shared Radix component; Tilopay retains its hidden SDK field synchronized with the visible payment-method selector.
-- Releasing one day soft-deletes the original manual block and preserves the remaining left/right ranges.
-- Direct dynamic buffers and persisted imported buffers support one-day unlock overrides.
+- MANUAL_BLOCK ranges are accepted only when every selected future date is available.
+- Manual-block creation repeats availability validation server-side.
+- Manual notes remain optional.
+- Manual release uses soft deletion and preserves left/right range fragments.
+- Direct dynamic and persisted imported preparation buffers support one-day unlock overrides.
 - Overrides can be restored from the calendar.
-- Reservation stays, active pending holds, and Airbnb booking blocks remain read-only.
-- All writes create AdminAuditLog entries.
+- Reservation stays, active holds, Airbnb booking blocks, and inherited records remain read-only where appropriate.
+- Successful mutations use auto-dismissing snackbars; errors remain inline.
+- All writes preserve AdminAuditLog history.
 ```
 
-### Persistence and debt-control decisions
+Select and checkout decisions:
+
+```text
+- Visible selectors use components/ui/select.tsx based on Radix.
+- Admin GET filters synchronize Radix values into hidden form inputs.
+- Tilopay keeps the SDK-required tlpy_payment_method field hidden and synchronized.
+- Empty or unsupported technical field changes do not clear a valid visible payment method.
+- The normal pending-reservation checkout is isolated from the quote form.
+- Normal checkout and retry checkout reuse TilopaySdkCheckout.
+- Visa, Mastercard, and American Express acceptance indicators appear below the card-number field.
+```
+
+Debt-control decisions:
 
 ```text
 - Reuse CalendarBlock for MANUAL_BLOCK records and PREPARATION_BUFFER overrides.
 - Do not add a duplicate availability model.
 - Do not materialize every direct-reservation buffer.
-- Do not keep the old combined shell or list-based buffer component alongside the new architecture.
-- Remove superseded admin files after copying the 9.9.1 delivery.
-- No Prisma migration or new dependency is required.
-```
-
-### Boundaries
-
-```text
-No manual confirmation/cancellation/refund actions
-No guest date modification
-No email delivery
-No operational Airbnb connection setup
-No PMS behavior
+- Do not retain the old combined admin shell or list-based buffer architecture.
+- No Prisma migration or new dependency was required.
 ```
 
 ## Phase 9.10 — Phase 9 Documentation Update and Closure
 
-### Goal
-
-Close Phase 9 only after:
+### Result
 
 ```text
-- 9.7 admin review is completed.
-- 9.8 dynamic preparation buffers are completed and validated.
-- 9.9 admin buffer settings/unlock behavior is implemented.
-- 9.9.1 scalable admin navigation and calendar operations are validated.
-- Phase 9 docs reflect the final payment, retry, admin, and buffer behavior.
+- Phase 9.9.1 was accepted as completed.
+- Official phase and progress trackers were moved to Phase 10.
+- README and Phase 9 operational documents now reflect the final payment, retry, admin, select, calendar, and buffer behavior.
+- A dedicated Phase 9 closure/handoff document was added.
+- No code, migration, credentials, or visible application copy was introduced by 9.10.
 ```
 
-### Required documentation updates at closure
+## Deferred Operational iCal Work
+
+The calculation path is consistent, but the real Airbnb iCal end-to-end test remains deferred because the project intentionally has no operational `ExternalCalendar` rows, raw export tokens, or real Airbnb import URLs yet.
+
+This item belongs to production-readiness work and must be completed using secure configuration without committing secrets.
+
+## Handoff to Phase 10
+
+Phase 10 must remain focused on email notifications:
 
 ```text
-docs/10-phases.md
-docs/11-progress-log.md
-README.md
-Any Phase 9 payment/admin/buffer docs added during implementation
+- Resend provider/environment contract
+- Bilingual templates
+- Reservation confirmation delivery
+- Minimum admin notification
+- Idempotency and duplicate-send prevention
+- Delivery auditability
+- Safe failure handling
 ```
 
-## Validation Notes
-
-Before closing 9.8:
-
-```powershell
-npm run db:validate
-npm run lint
-npm run build
-```
-
-Phase 9.9 and 9.9.1 implementation validation:
-
-```powershell
-npm run db:generate
-npm run db:validate
-npm run lint
-npm run build
-```
-
-Manual validation for 9.9.1 is documented in `docs/72-admin-navigation-and-property-calendar-operations.md`.
+Phase 10 must not weaken payment-driven confirmation or introduce PMS behavior.

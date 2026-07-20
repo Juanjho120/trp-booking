@@ -14,9 +14,9 @@ Deferred — Intentionally postponed.
 ## Current Phase
 
 ```text
-Current phase: Phase 9 — Tilopay Sandbox Integration
-Current subphase: 9.9.1 Admin navigation and property calendar operations
-Current focus: replace the vertically growing admin page with scalable module routes and add property-level calendar operations before closing Phase 9.
+Current phase: Phase 10 — Email Notifications
+Current focus: define the email notification strategy, Resend integration contract, bilingual templates, idempotency, delivery audit behavior, and safe failure handling
+Last completed phase: Phase 9 — Tilopay Sandbox Integration
 ```
 
 ---
@@ -45,9 +45,9 @@ Completed subphases:
 
 ## Phase 9 — Tilopay Sandbox Integration
 
-Status: **In progress**
+Status: **Completed**
 
-Goal: Add the Tilopay sandbox payment foundation on top of the completed Phase 8 reservation-flow foundation, then close the remaining operational gaps needed before Phase 10 email notifications.
+Goal: Add the Tilopay sandbox payment foundation on top of the completed Phase 8 reservation flow and close the operational payment, admin, availability, and preparation-buffer gaps required before Phase 10 email notifications.
 
 Subphase status:
 
@@ -62,11 +62,11 @@ Subphase status:
 9.7 Admin reservation and payment review — Completed
 9.8 Automatic preparation buffers in availability — Completed
 9.9 Admin preparation buffer settings and manual unlock behavior — Completed
-9.9.1 Admin navigation and property calendar operations — In progress
-9.10 Phase 9 documentation update and closure — Not started
+9.9.1 Admin navigation and property calendar operations — Completed
+9.10 Phase 9 documentation update and closure — Completed
 ```
 
-Phase 9 rules:
+Phase 9 rules preserved:
 
 ```text
 - Do not store card data.
@@ -74,117 +74,109 @@ Phase 9 rules:
 - Do not expose raw provider payloads in public API responses.
 - Do not set Reservation.status = CONFIRMED until payment validation succeeds.
 - Keep failed/rejected payment states auditable.
-- Do not send Resend emails in Phase 9 unless explicitly moved from Phase 10.
+- Do not send Resend emails in Phase 9.
 - Do not add PMS features.
 ```
 
-Phase 9.6 result:
+### Phase 9.4 result
 
 ```text
-- A payment-driven reservation confirmation service was added.
-- Reservation.status becomes CONFIRMED only after Payment.status is APPROVED.
-- Confirmation is idempotent when the reservation is already CONFIRMED.
-- Reservation.confirmedAt is set.
-- Reservation.expiresAt is cleared after confirmation.
-- Rejected and failed payments do not confirm reservations.
-- No emails, migrations, admin UI, refunds, or PMS behavior were added.
+- Tilopay SDK V2 became the preferred checkout foundation.
+- The backend obtains SDK access server-side and exposes only safe initialization data.
+- Payment.providerReference stores the unique Tilopay order number.
+- Card fields remain browser/SDK-managed and are never sent to the TRP Booking backend.
 ```
 
-Phase 9.6.1 result:
+### Phase 9.5 result
 
 ```text
-- Tilopay sandbox hardening continued after the initial 9.6 confirmation service.
-- Retryable Tilopay payment issues were mapped to safe public messages.
-- The payment retry page was aligned with centralized i18n messages.
-- Payment result pages distinguish payment status from reservation status.
-- Payment and reservation statuses are localized.
-- The public reservation flow auto-scrolls to the relevant quote, pending reservation, and payment areas.
-- This subphase still does not send Resend emails or add PMS behavior.
+- Redirect handling resolves the payment by providerReference/orderNumber.
+- Tilopay consult is executed server-side.
+- OrderHash V2 is validated with HMAC-SHA256.
+- Payment status can become APPROVED, REJECTED, or FAILED.
+- Public result pages do not trust redirect parameters as final payment truth.
 ```
 
-Phase 9.7 result:
+### Phase 9.6 result
 
 ```text
-- The protected admin page shows read-only operational visibility for direct reservations and payments.
-- Safe Tilopay diagnostics and SDK client events are available without exposing card data.
-- Admin review copy is centralized in messages/es.ts and messages/en.ts.
-- Reservation and payment statuses shown in admin are localized.
-- The admin dashboard uses the shared client locale switcher so ES/EN admin copy changes in place.
-- The admin page does not include actions to manually confirm, cancel, refund, or modify reservations.
+- Reservation confirmation is payment-driven and idempotent.
+- Only an active PENDING_PAYMENT reservation with an APPROVED payment can become CONFIRMED.
+- Reservation.confirmedAt is set and Reservation.expiresAt is cleared.
+- Rejected and failed payments never confirm reservations.
+```
+
+### Phase 9.6.1 result
+
+```text
+- Tilopay preflight validation and sandbox hardening were added.
+- Expired reservation confirmation is prevented.
+- Retryable provider issues map to safe bilingual messages.
+- Payment retry and result pages distinguish payment status from reservation status.
+- SDK client failures are recorded using safe operational diagnostics.
+- The public reservation flow guides the guest to the relevant quote, hold, payment, or error area.
+```
+
+### Phase 9.7 result
+
+```text
+- Protected admin visibility was added for reservations, payments, and safe SDK diagnostics.
+- Visible statuses and copy are localized.
 - Payment-driven confirmation remains the only confirmation path.
-- No migrations, emails, PMS behavior, or preparation-buffer changes were added.
+- No card number, CVV, expiration date, or tokenized card data is exposed.
 ```
 
-Phase 9.8 goal:
+### Phase 9.8 result
 
 ```text
-Make availability evaluate automatic preparation buffers for CONFIRMED reservations and active PENDING_PAYMENT holds without requiring admin configuration yet.
+- CONFIRMED reservations dynamically block stay dates and preparation-buffer ranges.
+- Active PENDING_PAYMENT holds block stay dates and preparation buffers only while expiresAt > now.
+- Expired holds, EXPIRED reservations, and PENDING_PAYMENT rows without expiresAt do not block availability.
+- Property preparation settings and composed-listing dependency rules are used by availability.
+- Confirmed buffers are represented consistently in future Airbnb iCal export calculations.
 ```
 
-Phase 9.8 result:
-
-```text
-- CONFIRMED reservations dynamically block stay dates plus preparation buffers.
-- PENDING_PAYMENT reservations dynamically block stay dates plus preparation buffers only while expiresAt > now.
-- PENDING_PAYMENT rows with expiresAt = null are not active holds and do not block availability.
-- EXPIRED reservations and expired pending holds do not block stay dates or preparation buffers.
-- Buffer values are read from Property.preparationDaysBefore and Property.preparationDaysAfter.
-- Composed-listing dependency rules remain active for stay and buffer ranges.
-- Pending and confirmed direct-reservation buffers are not materialized into calendar_blocks in 9.8.
-- Confirmed buffers continue to be represented in Airbnb iCal exports, including buffers that intersect the export-window boundary while the stay itself falls outside it.
-- No admin buffer configuration, new manual unlock behavior, migration, visible copy, email, or PMS behavior was added.
-```
-
-Phase 9.9 goal:
-
-```text
-Add the admin layer that makes preparation buffers configurable and manually unlockable after the dynamic buffer rules are correct.
-```
-
-Phase 9.9 result:
+### Phase 9.9 result
 
 ```text
 - Option B was selected: dynamic direct-reservation buffers plus auditable override records.
-- Admin can configure Property.preparationDaysBefore and Property.preparationDaysAfter from 0 through 30.
-- Current defaults remain 1/1, 2/2, and 2/2 until changed by admin.
-- A one-day unlocked PREPARATION_BUFFER CalendarBlock records the reservation, date, admin, timestamp, and optional internal note.
-- Partial overrides subtract only the selected day from the dynamic buffer.
+- Admin can configure preparation days before/after per accommodation from 0 through 30.
+- A one-day PREPARATION_BUFFER CalendarBlock records each manual unlock.
+- Availability and iCal export subtract only the matching override range.
 - Reservation stay dates remain blocked.
-- AdminAuditLog records configuration changes and unlock actions.
-- Public availability and iCal export use the same effective-buffer subtraction.
-- Airbnb import sync reads current Property buffer values when it creates or refreshes imported preparation blocks.
-- No Prisma migration, email, guest date modification, pending-buffer persistence, or PMS behavior was added.
+- Property changes and unlock operations create AdminAuditLog records.
 ```
 
-Phase 9.9.1 goal:
+### Phase 9.9.1 result
 
 ```text
-Replace the single vertically growing admin page with dedicated operational routes and provide an Airbnb-style property calendar for manual availability management.
+- A shared protected admin layout provides responsive sidebar navigation, optimistic active state, and route loading feedback.
+- /admin remains a compact dashboard.
+- Reservations and payments use dedicated searchable, filterable, paginated routes.
+- Visible accommodation/status/payment-method selectors use the shared Radix design-system component.
+- The Tilopay SDK-required tlpy_payment_method native field remains hidden and synchronized.
+- The normal checkout and retry flow reuse the same stable Tilopay checkout component.
+- Visa, Mastercard, and American Express acceptance indicators appear below the card-number field.
+- Accommodation settings use a dedicated route.
+- The property calendar shows direct reservations, active holds, Airbnb blocks, manual blocks, maintenance, preparation buffers, overrides, and composed-listing inheritance.
+- New manual blocks are allowed only across fully available future dates and are revalidated server-side.
+- Manual release, preparation unlock, and preparation restore preserve audit history.
+- Successful admin mutations use auto-dismissing snackbars; errors remain inline.
 ```
 
-Phase 9.9.1 implementation scope:
+### Phase 9.10 result
 
 ```text
-- Add a shared protected admin layout with responsive sidebar navigation, optimistic active state, and route loading feedback.
-- Keep /admin as a compact operational dashboard.
-- Move reservations and payments to searchable, filterable, paginated routes with fully styled Radix property/status selects in one filter row.
-- Move preparation settings to a dedicated accommodations route.
-- Add a property calendar that shows direct reservations, active pending holds, Airbnb blocks, manual blocks, preparation buffers, overrides, and composed-listing inheritance.
-- Allow future manual date-range blocks only when every selected date is currently available; the internal note remains optional.
-- Allow one-day release of manual blocks through auditable soft deletion and range splitting.
-- Allow preparation-buffer unlock and restore actions directly from the calendar.
-- Show successful admin mutations as auto-dismissing snackbars while preserving persistent inline errors.
-- Replace visible native select menus with the shared Radix design-system select; keep the Tilopay SDK-required `tlpy_payment_method` field hidden and synchronized for checkout and retry compatibility.
-- Keep reservation stays, active pending holds, and Airbnb booking blocks read-only.
-- Preserve public availability and future iCal consistency.
-- Remove superseded admin shells, list-based buffer UI, and the old combined review service.
-- Do not add Prisma migrations, email delivery, manual reservation confirmation, guest date changes, or PMS behavior.
+- Phase 9 implementation and operational boundaries were consolidated in README and the official trackers.
+- Phase 9.9.1 was marked completed after local implementation acceptance.
+- The remaining operational Airbnb iCal setup and real E2E validation were explicitly deferred to production-readiness work.
+- Phase 10 — Email Notifications became the next active phase.
 ```
 
-Phase 9.10 goal:
+Deferred Phase 9 operational item:
 
 ```text
-Close Phase 9 documentation only after 9.9.1 is validated and the final admin/calendar behavior is documented.
+Real Airbnb iCal import/export E2E validation requires secure operational external_calendars rows, real import URLs, and export tokens.
 ```
 
 ---
@@ -192,6 +184,21 @@ Close Phase 9 documentation only after 9.9.1 is validated and the final admin/ca
 ## Phase 10 — Email Notifications
 
 Status: **Not started**
+
+Goal: Add safe, bilingual, idempotent email notifications for the direct-booking lifecycle without changing payment-driven reservation confirmation.
+
+Initial planning topics:
+
+```text
+- Resend server-side provider contract and environment validation
+- Reservation confirmation email
+- Admin notification for a new confirmed direct reservation
+- Safe handling of rejected/failed payment communication where appropriate
+- Bilingual ES/EN templates
+- Idempotency and duplicate-send prevention
+- Delivery attempt audit records and safe provider-error handling
+- Arrival instructions and timing rules
+```
 
 ---
 

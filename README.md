@@ -45,18 +45,21 @@ TRP Booking is focused only on the public booking experience, direct reservation
 - Preparation buffers use the values stored in `Property.preparationDaysBefore` and `Property.preparationDaysAfter`.
 - Composed-listing dependency rules apply to stay dates and preparation buffers.
 - Guests cannot modify confirmed dates directly from the public website.
-- Phase 9 must keep all Tilopay credentials server-side only and must not store card data.
-- Phase 9 must not set `Reservation.status = CONFIRMED` until a provider payment result is validated server-side.
-- Phase 9 must keep failed, rejected, expired, and successful payment attempts auditable.
-- Resend email delivery belongs to Phase 10 unless explicitly moved later.
-- Public-facing and admin-facing copy must be centralized in `messages/es.ts` and `messages/en.ts`.
-- Admin modules use dedicated routes under `/admin`; the dashboard must remain a compact summary instead of accumulating full operational sections.
+- Tilopay credentials remain server-side and TRP Booking does not store card number, CVV, expiration date, or tokenized card data.
+- `Reservation.status` becomes `CONFIRMED` only after the provider payment result is validated server-side.
+- Failed, rejected, expired, and successful payment attempts remain auditable.
+- Resend email delivery belongs to Phase 10.
+- Public-facing and admin-facing copy is centralized in `messages/es.ts` and `messages/en.ts`.
+- Admin modules use dedicated routes under `/admin`; the dashboard remains a compact summary.
 - Manual availability blocks use `CalendarBlock.source = MANUAL_BLOCK`, optional internal notes, soft deletion, audit logs, and server-side availability revalidation.
-- Existing effective blockers—including direct reservations, active holds, Airbnb bookings, manual blocks, maintenance, and preparation buffers—cannot be selected for a new manual range. Only manual blocks and preparation buffers support admin release actions.
+- Existing effective blockers—including direct reservations, active holds, Airbnb bookings, manual blocks, maintenance, and preparation buffers—cannot be selected for a new manual range.
+- Only manual blocks and preparation buffers support the admin release/restore actions documented for Phase 9.
 
 ## Phase 9 Summary
 
-Completed Phase 9 work:
+Phase 9 — Tilopay Sandbox Integration is completed.
+
+Completed subphases:
 
 ```text
 9.1 Tilopay sandbox strategy and environment contract
@@ -69,30 +72,35 @@ Completed Phase 9 work:
 9.7 Admin reservation and payment review
 9.8 Automatic preparation buffers in availability
 9.9 Admin preparation buffer settings and auditable overrides
+9.9.1 Admin navigation and property calendar operations
+9.10 Phase 9 documentation update and closure
 ```
 
-Phase 9.9 added configurable dynamic preparation buffers and auditable one-day overrides.
-
-Phase 9.9.1 is now implementing the scalable admin experience:
+Final Phase 9 capabilities:
 
 ```text
-- Shared protected admin layout with responsive sidebar navigation, optimistic active state, and content loading skeletons.
-- Compact dashboard plus dedicated reservations, payments, accommodations, and calendar routes.
-- Search, fully styled Radix accommodation/status selects, and pagination in data-heavy modules.
-- Property calendar with effective occupancy sources and composed-listing inheritance.
-- Manual date-range blocking only across fully available dates, with optional notes and auditable soft-delete release.
-- Preparation-buffer unlock and restore actions from the calendar.
-- Successful admin mutations use auto-dismissing snackbars; errors remain persistent inline.
-- Visible select menus use the shared Radix design-system component, including the Tilopay payment-method selector while its SDK-required technical field remains hidden and synchronized.
-- The same override subtraction for dynamic direct buffers, persisted imported buffers, public availability, and future iCal export.
-- No Prisma migration, email delivery, guest date changes, manual reservation confirmation, or PMS behavior.
+- Server-side Tilopay sandbox session, redirect, consult, hash validation, and payment-result handling.
+- Payment-driven and idempotent reservation confirmation.
+- Safe localized retry behavior without exposing raw provider errors.
+- A shared Tilopay checkout used by the normal pending-reservation flow and retry flow.
+- Fully styled Radix payment-method selection while the SDK-required native field remains hidden and synchronized.
+- Visible accepted-card indicators for Visa, Mastercard, and American Express.
+- Dedicated admin routes for dashboard, reservations, payments, calendar, and accommodation settings.
+- Search, filters, and pagination for operational reservation/payment data.
+- Dynamic preparation buffers for confirmed reservations and active pending holds.
+- Auditable one-day preparation-buffer overrides.
+- Property calendar with effective blockers, composed-listing inheritance, manual blocking, release, unlock, and restore operations.
+- Successful admin mutations shown as auto-dismissing snackbars; operational errors remain persistent inline.
+- No Phase 10 emails, guest date changes, manual reservation confirmation, refund workflow, or PMS behavior.
 ```
+
+The real Airbnb iCal operational end-to-end test remains deferred until secure `external_calendars` configuration, real import URLs, and export tokens are available.
 
 ## Documentation
 
 The project documentation lives under `/docs`.
 
-Important current tracker and continuity files:
+Important tracker and continuity files:
 
 ```text
 AGENTS.md
@@ -106,13 +114,14 @@ docs/69-admin-reservation-payment-review.md
 docs/70-automatic-preparation-buffers-in-availability.md
 docs/71-admin-preparation-buffer-settings-and-overrides.md
 docs/72-admin-navigation-and-property-calendar-operations.md
+docs/73-phase-9-documentation-closure.md
 ```
 
 ## Development Status
 
 ```text
-Current phase: Phase 9 — Tilopay Sandbox Integration
-Current subphase: 9.9.1 Admin navigation and property calendar operations
-Last completed phase: Phase 8 — Reservation Flow
-Last completed subphase: 9.9 Admin preparation buffer settings and auditable overrides
+Current phase: Phase 10 — Email Notifications
+Current focus: define the Phase 10 notification strategy, Resend contract, idempotency, templates, and delivery audit behavior
+Last completed phase: Phase 9 — Tilopay Sandbox Integration
+Last completed subphase: 9.10 Phase 9 documentation update and closure
 ```

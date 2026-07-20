@@ -5,16 +5,16 @@
 ```text
 Phase: Phase 9 — Tilopay Sandbox Integration
 Subphase: 9.9.1 Admin navigation and property calendar operations
-Status: In progress until local build and manual validation pass
-Base commit: 575ff8c2d9438e289b606c5099b5d7ea198d58ec
-Next subphase: 9.10 Phase 9 documentation update and closure
+Status: Completed
+Closure base commit: 497ae635c69c6267c383ecd134847b64ab7caacf
+Next phase: Phase 10 — Email Notifications
 ```
 
 ## Goal
 
 Replace the vertically growing combined admin page with scalable module routes and provide a host-oriented property calendar for reviewing effective occupancy, adding manual blocks only on available ranges, releasing manual dates, and managing preparation-buffer exceptions.
 
-The implementation must remain a direct-booking admin, not a PMS.
+The implementation remains a direct-booking admin, not a PMS.
 
 ## Admin Information Architecture
 
@@ -81,7 +81,9 @@ isAdminOverrideAllowed = true
 deletedAt/deletedById = soft-delete history
 ```
 
-New manual ranges cannot overlap an active blocker. Adjacent active manual ranges for the same property are normalized into one range. Releasing a single day:
+New manual ranges cannot overlap an active blocker. Adjacent active manual ranges for the same property are normalized into one range.
+
+Releasing a single day:
 
 1. Soft-deletes the original block.
 2. Creates a left replacement range when dates remain before the released day.
@@ -101,7 +103,7 @@ The normal direct-reservation buffer remains dynamic.
 
 One-day unlock records continue to use `PREPARATION_BUFFER` rows with `unlockedByAdminAt` populated. The internal note is optional.
 
-Phase 9.9.1 supports:
+Supported relationships:
 
 ```text
 Direct dynamic buffers linked by reservationId
@@ -136,32 +138,62 @@ SDK events: payment ID, reservation ID, guest, safe SDK message, property
 Calendar: guest, reservation, note, origin accommodation
 ```
 
-Reservation and payment pages use server-side pagination with 20 records per page. Search, accommodation, and status controls share one responsive filter row; accommodation and status use the shared Radix design-system select so both the closed control and opened option panel are consistently styled.
+Reservation and payment pages use server-side pagination with 20 records per page. Search, accommodation, and status controls share one responsive filter row.
+
+Accommodation and status controls use the shared Radix design-system selector so the closed control and opened option panel are consistently styled.
 
 ## Select Component Contract
 
-Visible select menus use `components/ui/select.tsx`, built on the already installed Radix UI package and the project Tailwind tokens.
+Visible select menus use `components/ui/select.tsx`, built on the installed Radix UI package and project Tailwind tokens.
+
+Admin reservation/payment filters:
 
 ```text
-Admin reservation/payment filters:
 - Keep server-rendered GET filtering and shareable URLs.
 - Keep Radix uncontrolled with the applied query value as its keyed default.
-- Synchronize changes into hidden form inputs so the existing GET contract and shareable URLs remain unchanged.
+- Synchronize changes into hidden form inputs.
 - Use a non-empty internal all-options sentinel because Radix reserves the empty string for clearing selection.
-
-Tilopay checkout and retry:
-- Render the Radix selector as the only visible payment-method control.
-- Preserve the SDK-required native field with id/name tlpy_payment_method inside payFormTilopay.
-- Keep that technical field hidden, controlled, and synchronized with the visible selector.
-- Dispatch a bubbling change event when the visible selection changes so provider listeners remain compatible.
-- The retry flow receives the same behavior automatically because it reuses TilopaySdkCheckout.
 ```
 
-`components/ui/native-select.tsx` is superseded and must be removed rather than retained as an unused parallel component. No new dependency is required.
+Tilopay checkout and retry:
 
-## Superseded Files
+```text
+- Render the Radix selector as the only visible payment-method control.
+- Preserve the SDK-required field with id/name tlpy_payment_method inside payFormTilopay.
+- Keep the technical native field hidden and synchronized.
+- Dispatch a bubbling change event when the visible selection changes.
+- Ignore empty or unsupported technical values so a valid visible selection is not cleared.
+- Keep the normal checkout outside the reservation quote form.
+- Reuse TilopaySdkCheckout for both normal checkout and retry.
+```
 
-The following files belong to the old combined-page architecture and must be removed when applying this delivery:
+`components/ui/native-select.tsx` was superseded and removed. No new dependency was required.
+
+## Accepted Card Indicators
+
+The shared checkout displays fixed acceptance indicators below the card-number input for:
+
+```text
+Visa
+Mastercard
+American Express
+```
+
+The list is informational and bilingual through `messages/es.ts` and `messages/en.ts`.
+
+The existing dynamic brand detection remains separate: `Tilopay.getCardType()` continues to update the brand indicator shown inside the card-number field.
+
+No external image dependency and no card-data handling were introduced.
+
+## Admin Feedback
+
+Successful calendar and accommodation-setting mutations render a fixed admin snackbar that dismisses automatically after four seconds and can also be closed manually.
+
+Error feedback remains inline and persistent so operational failures are not missed.
+
+## Superseded Architecture
+
+The old combined-page files were removed so the repository contains only one admin architecture:
 
 ```text
 features/admin/components/admin-reservation-payment-review-shell.tsx
@@ -169,13 +201,8 @@ features/admin/components/admin-preparation-buffer-management.tsx
 features/admin/components/minimal-admin-shell.tsx
 lib/admin/reservation-payment-review.ts
 types/admin-reservation-payment-review.ts
+components/ui/native-select.tsx
 ```
-
-Keeping them would leave two admin architectures and unused business/query code in the repository.
-
-## Admin Feedback
-
-Successful calendar and accommodation-setting mutations render a fixed admin snackbar that dismisses automatically after four seconds and can also be closed manually. Error feedback remains inline and persistent so operational failures are not missed.
 
 ## Security and Boundaries
 
@@ -186,79 +213,74 @@ Provider/card payloads are never exposed.
 No manual reservation confirmation is added.
 No cancellation, refund, date-change, email, or PMS operation is added.
 No hard deletion of calendar or audit history is added.
-No new dependency or Prisma migration is required.
+No new dependency or Prisma migration was required.
 Visible copy remains centralized in messages/es.ts and messages/en.ts.
 ```
 
-## Manual Validation
+## Accepted Validation
 
-### Navigation and loading boundaries
+The implementation was accepted after local build and manual verification of:
+
+```text
+- Admin navigation and loading feedback
+- Reservation/payment search, filters, and pagination
+- Styled Radix select panels
+- Normal Tilopay checkout
+- Retry Tilopay checkout
+- Hidden technical payment-method synchronization
+- Visa/Mastercard/American Express indicators
+- Admin snackbars
+- Property calendar manual block creation/release
+- Preparation-buffer unlock/restore
+- Composed-listing inheritance
+```
+
+## Regression Checklist
+
+### Navigation and modules
 
 1. Open `/admin` and confirm it shows only the compact dashboard and upcoming arrivals.
-2. Navigate through the responsive sidebar to Reservations, Payments, Calendar, and Accommodations.
-3. Confirm the active navigation item is highlighted.
-4. On mobile, confirm the sidebar opens as a styled sheet and closes after navigation.
-5. Confirm ES/EN switching updates every admin module.
+2. Navigate to Reservations, Payments, Calendar, and Accommodations.
+3. Confirm active navigation feedback and the route skeleton.
+4. Confirm the responsive sidebar and ES/EN switching.
 
-### Reservations
+### Reservations and payments
 
-1. Search by guest name, email, and reservation ID.
-2. Filter by each accommodation and status.
-3. Open every accommodation/status selector and confirm the option panel, hover, selected state, scrolling, and focus treatment use the project design system.
-4. Confirm clearing filters returns the unfiltered first page.
-5. With more than 20 records, confirm previous/next pagination preserves active filters.
+1. Search and filter by supported fields.
+2. Open every selector and verify the design-system panel.
+3. Confirm clearing filters returns the unfiltered first page.
+4. Confirm pagination preserves active filters and selected payment/event view.
+5. Confirm safe diagnostics never expose card data.
 
-### Payments and SDK events
+### Tilopay checkout
 
-1. Switch between Payments and Events SDK.
-2. Search by order/reference, transaction, reservation, guest, and safe SDK message as applicable.
-3. Filter payments by property and status.
-4. Confirm safe diagnostics never show card number, CVV, expiration, or tokenized card data.
-5. Confirm pagination preserves the selected view and filters.
-
-### Accommodation settings
-
-1. Open `/admin/accommodations`.
-2. Change one preparation policy, save it, and confirm the public calendar reflects it.
-3. Confirm `PROPERTY_PREPARATION_BUFFER_UPDATED` records before/after values.
-4. Restore the intended policy.
-
-### Tilopay payment-method selector
-
-1. Prepare a normal checkout and confirm the visible payment-method options use the Radix design-system panel.
-2. Inspect the DOM and confirm `#tlpy_payment_method` remains present inside `.payFormTilopay`, hidden, and has the selected provider method ID.
-3. Change the visible method when multiple supported methods are returned and confirm the technical field updates before calling `Tilopay.startPayment()`.
-4. Repeat the same checks on `/reservas/pago/reintentar`; it must reuse the same component and behavior.
-5. Complete sandbox happy-path and retryable-error checks to confirm no SDK integration regression.
+1. Prepare a normal pending-reservation checkout.
+2. Confirm the visible payment-method selector opens and the technical field is synchronized.
+3. Confirm accepted-card indicators appear below the card-number field.
+4. Repeat on `/reservas/pago/reintentar`.
+5. Complete sandbox happy-path and retryable-error checks.
 
 ### Manual calendar blocks
 
-1. Select an accommodation and a fully available future range.
-2. Create the block without a note and confirm the success snackbar dismisses automatically.
-3. Confirm the selected property and composed dependent listings become unavailable.
-4. Confirm dates occupied by a direct reservation, active hold, Airbnb block, manual block, maintenance block, or preparation buffer cannot be selected in range mode.
-5. Attempt to span an unavailable day between two available dates and confirm the range is rejected.
-6. Submit a stale or conflicting range directly to the API and confirm it returns `ADMIN_CALENDAR_RANGE_UNAVAILABLE`.
-7. Create an adjacent available range and confirm effective manual coverage is normalized.
-8. Release one day in the middle of a multi-day manual block.
-9. Confirm the released day is available only when no other blocker applies, and the days on both sides remain manually blocked.
-10. Confirm audit rows exist for creation and release.
+1. Create a manual block across a fully available future range.
+2. Confirm occupied/blocker dates cannot be selected.
+3. Confirm a range cannot cross an unavailable day.
+4. Confirm stale conflicting API submission returns `ADMIN_CALENDAR_RANGE_UNAVAILABLE`.
+5. Release one day and verify range splitting plus audit history.
 
 ### Preparation buffers
 
-1. Use a future confirmed reservation with at least two buffer days.
-2. Unlock one buffer day without a note.
-3. Confirm the selected day is removed only from that buffer and the stay remains blocked.
-4. Confirm another independent blocker still keeps the date unavailable.
-5. Restore the override and confirm the preparation buffer becomes effective again.
-6. Confirm unlock and restore audit rows.
-7. When imported Airbnb data is operational later, repeat with an admin-unlockable persisted imported buffer.
+1. Unlock one confirmed-reservation buffer day.
+2. Confirm the stay remains blocked.
+3. Confirm another independent blocker still keeps the date unavailable.
+4. Restore the override and verify the buffer becomes effective again.
+5. Confirm unlock/restore audit rows.
 
 ### Composed listing
 
 1. Block an individual accommodation and confirm Refugio Completo inherits the block.
 2. Block Refugio Completo and confirm both individual accommodations inherit it.
-3. Confirm inherited entries show their origin accommodation and are read-only from the receiving calendar.
+3. Confirm inherited entries show origin accommodation and remain read-only from the receiving calendar.
 
 ## Validation Commands
 
