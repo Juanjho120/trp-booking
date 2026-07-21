@@ -5,8 +5,9 @@
 ```text
 Phase: Phase 10 — Email Notifications
 Subphase: 10.2 Persistence and Resend provider foundation
-Status: Implementation prepared; pending local validation and commit
+Status: Completed
 Base commit: 970eef34826004dcdd42cecf534f99652ecc7e78
+Accepted commit: 5ad4f1c4c08a1f98691d0215dc5958fbe7542f72
 Strategy: docs/85-email-notification-strategy-and-phase-10-roadmap.md
 Next subphase after acceptance: 10.3 Bilingual branded reservation-confirmation templates
 ```
@@ -365,10 +366,10 @@ Manual checks:
 
 ## Handoff to 10.3
 
-After local validation and commit, continue with:
+After acceptance, continue with:
 
 ```text
 10.3 — Bilingual branded reservation-confirmation templates
 ```
 
-10.3 may render typed ES/EN guest and admin templates, but it must still avoid creating notification intents or connecting delivery to reservation confirmation unless that work remains explicitly assigned to 10.4.
+10.3 may render typed ES/EN guest and admin templates, but it must still avoid creating notification intents or connecting delivery to reservation confirmation because that work remains explicitly assigned to 10.4.

@@ -1090,4 +1090,72 @@ export const esMessages = {
       },
     },
   },
+    emails: {
+    common: {
+      brandName: "Tu Refugio Perfecto",
+      publicName: "Bungalows Tu Refugio Perfecto",
+      location: "Panajachel, Guatemala",
+      reservationReference: "Referencia de reserva",
+      accommodation: "Alojamiento",
+      checkIn: "Entrada",
+      checkOut: "Salida",
+      nights: "Duración",
+      guests: "Huéspedes",
+      arrivalTime: "Hora estimada de llegada",
+      total: "Total confirmado",
+      confirmedAt: "Confirmada el",
+      guestName: "Huésped principal",
+      guestEmail: "Correo del huésped",
+      guestPhone: "Teléfono del huésped",
+      guestCountry: "País del huésped",
+      preferredLanguage: "Idioma preferido",
+      notProvided: "No proporcionado",
+      spanish: "Español",
+      english: "Inglés",
+      nightSingular: "noche",
+      nightPlural: "noches",
+      guestSingular: "huésped",
+      guestPlural: "huéspedes",
+      supportLabel: "Soporte de reservas",
+      footer:
+        "Tu Refugio Perfecto · Panajachel, Guatemala · Reserva directa segura",
+    },
+    reservationConfirmed: {
+      subjectPrefix: "Reserva confirmada",
+      previewPrefix: "Tu reserva está confirmada para",
+      eyebrow: "Reserva directa confirmada",
+      title: "Tu reserva está confirmada",
+      greetingPrefix: "Hola",
+      introduction:
+        "Recibimos y validamos tu pago. Tu estadía quedó confirmada con los siguientes detalles.",
+      summaryTitle: "Resumen de la reserva",
+      paymentNote:
+        "El pago fue aprobado y la reserva ya se encuentra confirmada. No necesitas realizar ninguna acción adicional.",
+      dateChangesTitle: "Cambios de fechas",
+      dateChangesDescription:
+        "Las fechas no pueden modificarse libremente desde el sitio. Para solicitar un cambio, responde a este correo. La solicitud requiere autorización previa o, según la política aplicable, cancelar y crear una nueva reserva.",
+      arrivalTitle: "Instrucciones de llegada",
+      arrivalDescription:
+        "Las instrucciones detalladas de llegada se compartirán por separado antes de tu estadía. Este correo no incluye códigos de acceso.",
+      supportDescription:
+        "Si necesitas ayuda, responde a este correo o escríbenos a",
+      closing: "Gracias por reservar directamente con Tu Refugio Perfecto.",
+    },
+    adminNewReservation: {
+      subjectPrefix: "Nueva reserva confirmada",
+      previewPrefix: "Nueva reserva confirmada con entrada el",
+      eyebrow: "Nueva reserva directa",
+      title: "Se confirmó una nueva reserva",
+      introduction:
+        "Una reserva directa quedó confirmada después de validar el pago. Revisa los datos operativos principales.",
+      reservationTitle: "Datos de la reserva",
+      guestTitle: "Datos del huésped",
+      paymentNote:
+        "La reserva ya está confirmada por el flujo de pago. No debe confirmarse manualmente.",
+      actionLabel: "Abrir detalle de la reserva",
+      actionFallback: "Si el botón no funciona, abre este enlace:",
+      footer:
+        "Notificación administrativa de Tu Refugio Perfecto. Este correo no incluye datos de tarjeta ni respuestas sin procesar del proveedor.",
+    },
+  },
 } as const;

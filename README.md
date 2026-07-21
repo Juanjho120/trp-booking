@@ -139,8 +139,8 @@ Planned subphases:
 
 ```text
 10.1 Email notification strategy and environment contract — Completed
-10.2 Persistence and Resend provider foundation — In progress
-10.3 Bilingual branded reservation-confirmation templates — Not started
+10.2 Persistence and Resend provider foundation — Completed
+10.3 Bilingual branded reservation-confirmation templates — In progress
 10.4 Guest and admin confirmation notification orchestration — Not started
 10.5 Retry processing and admin delivery visibility — Not started
 10.6 Arrival instructions scheduling and content — Not started
@@ -160,7 +160,7 @@ Initial Phase 10 scope:
 - No cancellation, refund, date-change, stay-extension, or PMS behavior.
 ```
 
-Phase 10.2 foundation prepared:
+Phase 10.2 foundation completed:
 
 ```text
 - Reservation.preferredLocale persists the existing ES/EN booking preference with a safe default for historical rows.
@@ -170,6 +170,19 @@ Phase 10.2 foundation prepared:
 - Email environment validation supports disabled, test-recipient override, and production modes.
 - Provider errors are normalized into bounded internal codes without persisting raw Resend responses.
 - No templates, notification intents, confirmation hooks, cron worker, admin email UI, or actual email delivery are introduced yet.
+```
+
+Phase 10.3 templates prepared:
+
+```text
+- Centralized transactional-email copy is added under the emails namespace in messages/es.ts and messages/en.ts.
+- Shared React email primitives render email-safe table markup and inline styles without adding another template dependency.
+- Guest RESERVATION_CONFIRMED and admin ADMIN_NEW_RESERVATION builders return subject, HTML, and plain-text content.
+- Template inputs are validated and normalized before rendering, and guest output must match the reservation preferred locale.
+- Dates, Guatemala business timestamps, money, guest counts, stay length, arrival time, and country names are locale-aware.
+- The approved primary brand logo is resolved as an absolute URL from EMAIL_PUBLIC_BASE_URL.
+- Guest templates do not expose protected admin links, provider payloads, card data, access codes, or PMS-only data.
+- No EmailNotification row is created and no Resend provider call is made in 10.3.
 ```
 
 ## Documentation
@@ -204,13 +217,15 @@ docs/83-reservation-and-payment-detail-views.md
 docs/84-phase-9.11-validation-and-documentation-closure.md
 docs/85-email-notification-strategy-and-phase-10-roadmap.md
 docs/86-email-persistence-and-resend-provider-foundation.md
+docs/87-bilingual-branded-reservation-confirmation-templates.md
 ```
 
 ## Development Status
 
 ```text
 Current phase: Phase 10 — Email Notifications
-Current subphase: 10.2 Persistence and Resend provider foundation — In progress
-Current focus: validate and commit the Phase 10.2 persistence and provider foundation; no notification intents or emails are sent yet
-Last completed subphase: 10.1 Email notification strategy and environment contract
+Current subphase: 10.3 Bilingual branded reservation-confirmation templates — In progress
+Current focus: validate and commit the bilingual guest/admin template builders; no notification intents or provider delivery are activated yet
+Last completed subphase: 10.2 Persistence and Resend provider foundation
+10.2 accepted commit: 5ad4f1c4c08a1f98691d0215dc5958fbe7542f72
 ```

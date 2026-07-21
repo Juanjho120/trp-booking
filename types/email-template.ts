@@ -1,0 +1,115 @@
+import type { DateOnlyString } from "@/types/availability";
+import type { TransactionalEmailLocale } from "@/types/email-provider";
+
+export type TransactionalEmailContent = Readonly<{
+  subject: string;
+  html: string;
+  text: string;
+}>;
+
+export type ReservationEmailTemplateReservation = Readonly<{
+  id: string;
+  guestName: string;
+  guestEmail: string;
+  guestPhone: string | null;
+  guestCountry: string | null;
+  preferredLocale: TransactionalEmailLocale;
+  propertyNameEs: string;
+  propertyNameEn: string;
+  checkInDate: DateOnlyString;
+  checkOutDate: DateOnlyString;
+  guestCount: number;
+  arrivalTimeEstimate: string | null;
+  total: string;
+  currency: string;
+  confirmedAt: string;
+}>;
+
+export type ReservationEmailTemplateInput = Readonly<{
+  locale: TransactionalEmailLocale;
+  publicBaseUrl: string;
+  reservation: ReservationEmailTemplateReservation;
+}>;
+
+export type ReservationEmailTemplateViewModel = Readonly<{
+  locale: TransactionalEmailLocale;
+  localeTag: "es-GT" | "en-US";
+  reservationId: string;
+  guestName: string;
+  guestEmail: string;
+  guestPhone: string | null;
+  guestCountry: string | null;
+  guestPreferredLocale: TransactionalEmailLocale;
+  propertyName: string;
+  checkInDate: string;
+  checkOutDate: string;
+  nights: number;
+  guestCount: number;
+  arrivalTimeEstimate: string | null;
+  total: string;
+  confirmedAt: string;
+  logoUrl: string;
+  publicHomeUrl: string;
+  adminReservationUrl: string;
+  supportEmail: string;
+}>;
+
+export type TransactionalEmailMessages = Readonly<{
+  common: Readonly<{
+    brandName: string;
+    publicName: string;
+    location: string;
+    reservationReference: string;
+    accommodation: string;
+    checkIn: string;
+    checkOut: string;
+    nights: string;
+    guests: string;
+    arrivalTime: string;
+    total: string;
+    confirmedAt: string;
+    guestName: string;
+    guestEmail: string;
+    guestPhone: string;
+    guestCountry: string;
+    preferredLanguage: string;
+    notProvided: string;
+    spanish: string;
+    english: string;
+    nightSingular: string;
+    nightPlural: string;
+    guestSingular: string;
+    guestPlural: string;
+    supportLabel: string;
+    footer: string;
+  }>;
+  reservationConfirmed: Readonly<{
+    subjectPrefix: string;
+    previewPrefix: string;
+    eyebrow: string;
+    title: string;
+    greetingPrefix: string;
+    introduction: string;
+    summaryTitle: string;
+    paymentNote: string;
+    dateChangesTitle: string;
+    dateChangesDescription: string;
+    arrivalTitle: string;
+    arrivalDescription: string;
+    supportDescription: string;
+    closing: string;
+  }>;
+  adminNewReservation: Readonly<{
+    subjectPrefix: string;
+    previewPrefix: string;
+    eyebrow: string;
+    title: string;
+    introduction: string;
+    reservationTitle: string;
+    guestTitle: string;
+    paymentNote: string;
+    actionLabel: string;
+    actionFallback: string;
+    footer: string;
+  }>;
+}>;

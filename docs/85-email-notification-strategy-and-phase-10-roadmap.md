@@ -432,7 +432,7 @@ Status: **Completed**
 
 ### 10.2 — Persistence and Resend provider foundation
 
-Status: **Not started**
+Status: **Completed**
 
 ```text
 - Add resend dependency.
@@ -447,7 +447,7 @@ Status: **Not started**
 
 ### 10.3 — Bilingual branded reservation-confirmation templates
 
-Status: **Not started**
+Status: **In progress**
 
 ```text
 - Add centralized ES/EN transactional email copy.
@@ -542,7 +542,7 @@ docs/85-email-notification-strategy-and-phase-10-roadmap.md
 
 ## Phase 10.2 Implementation Note
 
-Status at delivery: **Implementation prepared; pending local validation and commit.**
+Status: **Completed and accepted.**
 
 The Phase 10.2 delivery implements the persistence and provider foundation defined by this strategy:
 
@@ -557,10 +557,34 @@ The Phase 10.2 delivery implements the persistence and provider foundation defin
 - data-safe migration for historical reservations and notifications
 ```
 
-The delivery intentionally does not create notification intents, connect email work to reservation confirmation, render templates, process retries, expose admin delivery UI, or send an email. Those boundaries remain assigned to 10.3 through 10.5.
+The accepted 10.2 delivery does not create notification intents, connect email work to reservation confirmation, render templates, process retries, expose admin delivery UI, or send an email. Accepted commit: 5ad4f1c4c08a1f98691d0215dc5958fbe7542f72. Those remaining boundaries stay assigned to 10.3 through 10.5.
 
 Detailed implementation record:
 
 ```text
 docs/86-email-persistence-and-resend-provider-foundation.md
+```
+
+## Phase 10.3 Implementation Note
+
+Status at delivery: **Implementation prepared; pending local validation and commit.**
+
+The Phase 10.3 delivery implements the template and copy architecture defined by this roadmap:
+
+```text
+- matching emails namespaces in messages/es.ts and messages/en.ts
+- shared email-safe React layout using inline styles and table markup
+- approved primary logo resolved from an absolute public base URL
+- typed and validated guest/admin reservation template data with preferred-locale enforcement for guest output
+- locale-aware dates, Guatemala business timestamps, money, duration, guest counts, arrival time, and country names
+- guest reservation-confirmation HTML and plain-text output
+- admin new-reservation HTML and plain-text output with a protected admin detail link
+```
+
+The delivery does not create `EmailNotification` intents, alter reservation confirmation, call Resend, process retries, expose delivery history, add arrival scheduling, change Prisma, or add dependencies. Those responsibilities remain in 10.4 and later.
+
+Detailed implementation record:
+
+```text
+docs/87-bilingual-branded-reservation-confirmation-templates.md
 ```

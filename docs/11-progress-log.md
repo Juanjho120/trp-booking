@@ -6,10 +6,11 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 10 — Email Notifications
-Current subphase: 10.2 Persistence and Resend provider foundation — In progress
-Current focus: validate and commit the Phase 10.2 persistence and provider foundation; no notification intents or emails are sent yet
+Current subphase: 10.3 Bilingual branded reservation-confirmation templates — In progress
+Current focus: validate and commit the bilingual guest/admin template builders; no notification intents or provider delivery are activated yet
 Last updated: 2026-07-21
-Last completed subphase: 10.1 Email notification strategy and environment contract
+Last completed subphase: 10.2 Persistence and Resend provider foundation
+10.2 accepted commit: 5ad4f1c4c08a1f98691d0215dc5958fbe7542f72
 10.1 base commit: 0c9df37380588ca9573a74faf3ce52a1b25a0654
 10.1 strategy document: docs/85-email-notification-strategy-and-phase-10-roadmap.md
 ```
@@ -336,11 +337,9 @@ Strategy document:
 docs/85-email-notification-strategy-and-phase-10-roadmap.md
 ```
 
-## Active Work
-
 ### Phase 10.2 — Persistence and Resend Provider Foundation
 
-Status: **In progress — implementation prepared, pending local validation and commit**
+Status: **Completed**
 
 Implemented scope:
 
@@ -352,21 +351,40 @@ Added permanent EmailNotification.deduplicationKey uniqueness and a safe legacy-
 Added PROCESSING plus bounded retry/claim metadata and normalized error-code storage.
 Added a typed server-side Resend adapter with recipient override and safe provider-error mapping.
 Kept templates, notification intents, confirmation hooks, retry cron, admin delivery visibility, and actual email delivery out of scope.
+Accepted commit: 5ad4f1c4c08a1f98691d0215dc5958fbe7542f72.
+```
+
+## Active Work
+
+### Phase 10.3 — Bilingual Branded Reservation-Confirmation Templates
+
+Status: **In progress — implementation prepared, pending local validation and commit**
+
+Implemented scope:
+
+```text
+Added matching transactional email copy under messages/es.ts and messages/en.ts.
+Added shared email-safe React layout primitives using the approved primary brand asset.
+Added guest RESERVATION_CONFIRMED subject, HTML, and plain-text builders.
+Added admin ADMIN_NEW_RESERVATION subject, HTML, and plain-text builders.
+Added strict typed template inputs, Zod validation, normalized safe view models, preferred-locale enforcement for guest output, and locale-aware formatting.
+Added an absolute protected admin reservation-detail URL only to the administrative template.
+Kept EmailNotification intent creation, reservation-confirmation hooks, Resend calls, retry processing, admin delivery history, arrival scheduling, schema changes, and new dependencies out of scope.
+Implementation document: docs/87-bilingual-branded-reservation-confirmation-templates.md.
 ```
 
 ## Next Recommended Work
 
 ```text
-1. Copy the Phase 10.2 files into the repository.
-2. Run npm install so local node_modules matches the committed lockfile.
-3. Run npm run db:format, npm run db:generate, and npm run db:validate.
-4. Apply the migration with npm run db:migrate:dev locally or npm run db:migrate:deploy in a shared environment.
-5. Run npm run env:validate with EMAIL_DELIVERY_MODE=disabled first.
-6. Run npm run lint and npm run build.
-7. Confirm a newly created pending hold stores preferred_locale while a reused hold keeps its original locale.
-8. Confirm no EmailNotification row is created and no Resend request is made in Phase 10.2.
-9. Commit Phase 10.2 after validation.
-10. Continue with 10.3 bilingual branded reservation-confirmation templates.
+1. Apply the actual Phase 10.3 files and the surgical message-catalog patch.
+2. Run npm run env:validate, npm run db:validate, npm run lint, and npm run build.
+3. Render the guest and admin builders with Spanish and English sample data in a local test or temporary script.
+4. Verify the HTML uses an absolute approved logo URL and every template includes a plain-text alternative.
+5. Verify the guest email does not contain /admin URLs, card data, provider payloads, access codes, or PMS-only information.
+6. Verify the admin email contains only the protected reservation-detail URL and minimum operational guest/reservation data.
+7. Confirm the existing reservation/payment flow creates no EmailNotification rows and makes no Resend request in 10.3.
+8. Commit Phase 10.3 after validation.
+9. Continue with 10.4 guest/admin confirmation notification orchestration.
 ```
 
 ## Continuity Notes for New Conversations
@@ -384,6 +402,7 @@ docs/11-progress-log.md
 docs/84-phase-9.11-validation-and-documentation-closure.md
 docs/85-email-notification-strategy-and-phase-10-roadmap.md
 docs/86-email-persistence-and-resend-provider-foundation.md
+docs/87-bilingual-branded-reservation-confirmation-templates.md
 config/site.ts
 lib/env/server.ts
 lib/reservations/pending-holds.ts

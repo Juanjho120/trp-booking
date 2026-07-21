@@ -15,9 +15,10 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 10 — Email Notifications
-Current subphase: 10.2 Persistence and Resend provider foundation — In progress
-Current focus: validate and commit the Phase 10.2 persistence and provider foundation; no notification intents or emails are sent yet
-Last completed subphase: 10.1 Email notification strategy and environment contract
+Current subphase: 10.3 Bilingual branded reservation-confirmation templates — In progress
+Current focus: validate and commit the bilingual guest/admin template builders; no notification intents or provider delivery are activated yet
+Last completed subphase: 10.2 Persistence and Resend provider foundation
+10.2 accepted commit: 5ad4f1c4c08a1f98691d0215dc5958fbe7542f72
 ```
 
 ---
@@ -304,8 +305,8 @@ Subphase status:
 
 ```text
 10.1 Email notification strategy and environment contract — Completed
-10.2 Persistence and Resend provider foundation — In progress
-10.3 Bilingual branded reservation-confirmation templates — Not started
+10.2 Persistence and Resend provider foundation — Completed
+10.3 Bilingual branded reservation-confirmation templates — In progress
 10.4 Guest and admin confirmation notification orchestration — Not started
 10.5 Retry processing and admin delivery visibility — Not started
 10.6 Arrival instructions scheduling and content — Not started
@@ -346,7 +347,7 @@ Phase 10 rules:
 - No application code, Prisma schema, migration, dependency, environment variable, credential, email delivery, or PMS behavior was added in 10.1.
 ```
 
-### Phase 10.2 implementation prepared
+### Phase 10.2 result
 
 ```text
 - resend 6.17.2 is added as the only provider dependency.
@@ -361,6 +362,21 @@ Phase 10 rules:
 - The existing pending-hold service persists the request locale only when creating a new hold; reused holds keep their original stored locale.
 - No email template, notification intent, confirmation trigger, retry worker, admin delivery view, or real email send is activated in 10.2.
 - Detailed implementation and migration guidance is documented in docs/86-email-persistence-and-resend-provider-foundation.md.
+- The accepted implementation was committed as 5ad4f1c4c08a1f98691d0215dc5958fbe7542f72.
+```
+
+### Phase 10.3 implementation prepared
+
+```text
+- messages/es.ts and messages/en.ts gain matching transactional-email namespaces for guest and admin confirmation messages.
+- A shared React email layout uses email-safe table markup, inline styles, absolute brand URLs, and the approved primary logo.
+- buildReservationConfirmedEmail returns the bilingual guest subject, HTML, and plain-text alternative.
+- buildAdminNewReservationEmail returns the bilingual administrative subject, HTML, and plain-text alternative with a protected reservation-detail link.
+- A strict typed input contract and Zod validation normalize reservation data before rendering; guest output must match the stored preferred locale.
+- Dates, stay length, guest count, arrival time, currency, country, and confirmation timestamps are formatted by locale.
+- Guest output excludes admin links, raw provider data, card information, access codes, and PMS-only content.
+- No EmailNotification intent, reservation-confirmation hook, provider call, retry worker, migration, or dependency change is added.
+- The implementation record is docs/87-bilingual-branded-reservation-confirmation-templates.md.
 ```
 
 ---
