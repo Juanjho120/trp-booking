@@ -4,7 +4,7 @@
 // TypeScript/Prisma field names stay camelCase for code ergonomics.
 // PostgreSQL tables, columns, and enum type names are mapped to snake_case.
 
- generator client {
+generator client {
   provider = "prisma-client-js"
 }
 
@@ -147,6 +147,7 @@ enum EmailNotificationType {
 
 enum EmailNotificationStatus {
   PENDING
+  PROCESSING
   SENT
   FAILED
   SKIPPED
@@ -229,19 +230,19 @@ model PropertyComponent {
 }
 
 model PropertyImage {
-  id                 String   @id @default(cuid())
-  propertyId         String   @map("property_id")
-  cloudinaryPublicId String?  @map("cloudinary_public_id")
+  id                 String    @id @default(cuid())
+  propertyId         String    @map("property_id")
+  cloudinaryPublicId String?   @map("cloudinary_public_id")
   url                String
-  secureUrl          String?  @map("secure_url")
-  altTextEs          String   @map("alt_text_es")
-  altTextEn          String   @map("alt_text_en")
-  sortOrder          Int      @default(0) @map("sort_order")
-  isCover            Boolean  @default(false) @map("is_cover")
-  createdAt          DateTime @default(now()) @map("created_at")
-  updatedAt          DateTime @updatedAt @map("updated_at")
+  secureUrl          String?   @map("secure_url")
+  altTextEs          String    @map("alt_text_es")
+  altTextEn          String    @map("alt_text_en")
+  sortOrder          Int       @default(0) @map("sort_order")
+  isCover            Boolean   @default(false) @map("is_cover")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
   deletedAt          DateTime? @map("deleted_at")
-  deletedById        String?  @map("deleted_by_id")
+  deletedById        String?   @map("deleted_by_id")
 
   property  Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   deletedBy User?    @relation("PropertyImageDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull)
@@ -252,16 +253,16 @@ model PropertyImage {
 }
 
 model Amenity {
-  id          String   @id @default(cuid())
-  key         String   @unique
-  nameEs      String   @map("name_es")
-  nameEn      String   @map("name_en")
+  id          String    @id @default(cuid())
+  key         String    @unique
+  nameEs      String    @map("name_es")
+  nameEn      String    @map("name_en")
   icon        String
   category    String?
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
   deletedAt   DateTime? @map("deleted_at")
-  deletedById String?  @map("deleted_by_id")
+  deletedById String?   @map("deleted_by_id")
 
   deletedBy  User?             @relation("AmenityDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull)
   properties PropertyAmenity[]
@@ -285,17 +286,17 @@ model PropertyAmenity {
 }
 
 model HouseRule {
-  id            String   @id @default(cuid())
-  key           String   @unique
-  titleEs       String   @map("title_es")
-  titleEn       String   @map("title_en")
-  descriptionEs String   @map("description_es") @db.Text
-  descriptionEn String   @map("description_en") @db.Text
+  id            String    @id @default(cuid())
+  key           String    @unique
+  titleEs       String    @map("title_es")
+  titleEn       String    @map("title_en")
+  descriptionEs String    @map("description_es") @db.Text
+  descriptionEn String    @map("description_en") @db.Text
   category      String?
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
   deletedAt     DateTime? @map("deleted_at")
-  deletedById   String?  @map("deleted_by_id")
+  deletedById   String?   @map("deleted_by_id")
 
   deletedBy  User?          @relation("HouseRuleDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull)
   properties PropertyRule[]
@@ -325,6 +326,7 @@ model Reservation {
   guestEmail          String            @map("guest_email")
   guestPhone          String?           @map("guest_phone")
   guestCountry        String?           @map("guest_country")
+  preferredLocale     String            @default("es") @map("preferred_locale")
   checkInDate         DateTime          @map("check_in_date") @db.Date
   checkOutDate        DateTime          @map("check_out_date") @db.Date
   arrivalTimeEstimate String?           @map("arrival_time_estimate")
@@ -462,12 +464,12 @@ model CalendarBlock {
   deletedById             String?             @map("deleted_by_id")
 
   property              Property               @relation(fields: [propertyId], references: [id], onDelete: Restrict)
-  reservation           Reservation?            @relation(fields: [reservationId], references: [id], onDelete: SetNull)
-  externalCalendarEvent ExternalCalendarEvent?  @relation(fields: [externalCalendarEventId], references: [id], onDelete: SetNull)
-  parentBlock           CalendarBlock?          @relation("CalendarBlockParent", fields: [parentBlockId], references: [id], onDelete: SetNull)
-  childBlocks           CalendarBlock[]         @relation("CalendarBlockParent")
-  unlockedByAdmin       User?                   @relation("CalendarBlockUnlockedBy", fields: [unlockedByAdminId], references: [id], onDelete: SetNull)
-  deletedBy             User?                   @relation("CalendarBlockDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull)
+  reservation           Reservation?           @relation(fields: [reservationId], references: [id], onDelete: SetNull)
+  externalCalendarEvent ExternalCalendarEvent? @relation(fields: [externalCalendarEventId], references: [id], onDelete: SetNull)
+  parentBlock           CalendarBlock?         @relation("CalendarBlockParent", fields: [parentBlockId], references: [id], onDelete: SetNull)
+  childBlocks           CalendarBlock[]        @relation("CalendarBlockParent")
+  unlockedByAdmin       User?                  @relation("CalendarBlockUnlockedBy", fields: [unlockedByAdminId], references: [id], onDelete: SetNull)
+  deletedBy             User?                  @relation("CalendarBlockDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull)
 
   @@index([propertyId, startDate, endDate])
   @@index([source])
@@ -527,7 +529,7 @@ model ExternalCalendarEvent {
   updatedAt          DateTime                    @updatedAt @map("updated_at")
 
   externalCalendar ExternalCalendar @relation(fields: [externalCalendarId], references: [id], onDelete: Cascade)
-  calendarBlocks    CalendarBlock[]
+  calendarBlocks   CalendarBlock[]
 
   @@unique([externalCalendarId, providerEventUid])
   @@index([externalCalendarId, startDate, endDate])
@@ -561,22 +563,28 @@ model ExternalCalendarSyncLog {
 }
 
 model EmailNotification {
-  id                String                  @id @default(cuid())
-  reservationId     String                  @map("reservation_id")
-  type              EmailNotificationType
-  recipient         String
-  locale            String
-  status            EmailNotificationStatus @default(PENDING)
-  providerMessageId String?                 @map("provider_message_id")
-  sentAt            DateTime?               @map("sent_at")
-  errorMessage      String?                 @map("error_message")
-  createdAt         DateTime                @default(now()) @map("created_at")
-  updatedAt         DateTime                @updatedAt @map("updated_at")
+  id                  String                  @id @default(cuid())
+  reservationId       String                  @map("reservation_id")
+  type                EmailNotificationType
+  recipient           String
+  locale              String
+  deduplicationKey    String                  @unique @map("deduplication_key")
+  status              EmailNotificationStatus @default(PENDING)
+  attemptCount        Int                     @default(0) @map("attempt_count")
+  lastAttemptAt       DateTime?               @map("last_attempt_at")
+  nextAttemptAt       DateTime?               @map("next_attempt_at")
+  processingStartedAt DateTime?               @map("processing_started_at")
+  providerMessageId   String?                 @map("provider_message_id")
+  sentAt              DateTime?               @map("sent_at")
+  errorCode           String?                 @map("error_code")
+  errorMessage        String?                 @map("error_message") @db.Text
+  createdAt           DateTime                @default(now()) @map("created_at")
+  updatedAt           DateTime                @updatedAt @map("updated_at")
 
   reservation Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
 
   @@index([reservationId])
-  @@index([status])
+  @@index([status, nextAttemptAt])
   @@index([type])
   @@map("email_notifications")
 }

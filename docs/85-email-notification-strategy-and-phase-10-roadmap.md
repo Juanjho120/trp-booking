@@ -441,7 +441,7 @@ Status: **Not started**
 - Add permanent EmailNotification deduplication and retry/claim fields.
 - Add migration and regenerate Prisma Client.
 - Persist locale during pending-hold creation.
-- Add server-only provider adapter and safe error normalization.
+- Add server-side provider adapter and safe error normalization.
 - Do not send emails yet.
 ```
 
@@ -538,4 +538,29 @@ README.md
 docs/10-phases.md
 docs/11-progress-log.md
 docs/85-email-notification-strategy-and-phase-10-roadmap.md
+```
+
+## Phase 10.2 Implementation Note
+
+Status at delivery: **Implementation prepared; pending local validation and commit.**
+
+The Phase 10.2 delivery implements the persistence and provider foundation defined by this strategy:
+
+```text
+- resend 6.17.2 dependency and lockfile update
+- disabled, test, and production email environment modes
+- stored Reservation.preferredLocale
+- permanent EmailNotification.deduplicationKey
+- PROCESSING status and retry/claim metadata
+- safe normalized provider error codes
+- typed server-side Resend adapter
+- data-safe migration for historical reservations and notifications
+```
+
+The delivery intentionally does not create notification intents, connect email work to reservation confirmation, render templates, process retries, expose admin delivery UI, or send an email. Those boundaries remain assigned to 10.3 through 10.5.
+
+Detailed implementation record:
+
+```text
+docs/86-email-persistence-and-resend-provider-foundation.md
 ```

@@ -6,8 +6,8 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 10 — Email Notifications
-Current subphase: 10.2 Persistence and Resend provider foundation — Not started
-Current focus: add conditional email environment validation, the server-side Resend adapter, stored reservation locale, and permanent notification deduplication without sending emails yet
+Current subphase: 10.2 Persistence and Resend provider foundation — In progress
+Current focus: validate and commit the Phase 10.2 persistence and provider foundation; no notification intents or emails are sent yet
 Last updated: 2026-07-21
 Last completed subphase: 10.1 Email notification strategy and environment contract
 10.1 base commit: 0c9df37380588ca9573a74faf3ce52a1b25a0654
@@ -340,30 +340,33 @@ docs/85-email-notification-strategy-and-phase-10-roadmap.md
 
 ### Phase 10.2 — Persistence and Resend Provider Foundation
 
-Status: **Not started**
+Status: **In progress — implementation prepared, pending local validation and commit**
 
-Planned scope:
+Implemented scope:
 
 ```text
-Add the resend package as the only new provider dependency.
-Add conditional server-side email environment validation and document safe example values.
-Persist Reservation.preferredLocale from the existing pending-hold locale input.
-Add permanent EmailNotification.deduplicationKey uniqueness.
-Add bounded retry/claim metadata and safe error-code storage to EmailNotification.
-Add a server-only Resend adapter and normalized provider result/error types.
-Do not create templates, enqueue confirmation notifications, call Resend, or expose new UI yet.
+Added resend 6.17.2 as the only provider dependency and regenerated package-lock.json.
+Added conditional disabled/test/production email environment validation and safe .env.example values.
+Persisted Reservation.preferredLocale from the existing pending-hold locale input.
+Added permanent EmailNotification.deduplicationKey uniqueness and a safe legacy-row backfill.
+Added PROCESSING plus bounded retry/claim metadata and normalized error-code storage.
+Added a typed server-side Resend adapter with recipient override and safe provider-error mapping.
+Kept templates, notification intents, confirmation hooks, retry cron, admin delivery visibility, and actual email delivery out of scope.
 ```
 
 ## Next Recommended Work
 
 ```text
-1. Apply and commit the Phase 10.1 strategy documentation.
-2. Implement the Phase 10.2 Prisma migration and regenerate Prisma Client.
-3. Update .env.example and lib/env/server.ts with conditional email-delivery validation.
-4. Add the server-only Resend adapter and safe provider error mapping.
-5. Confirm no email is sent during Phase 10.2.
-6. Run npm run env:validate, npm run db:validate, npm run lint, and npm run build.
-7. Continue with 10.3 bilingual branded reservation-confirmation templates after local acceptance.
+1. Copy the Phase 10.2 files into the repository.
+2. Run npm install so local node_modules matches the committed lockfile.
+3. Run npm run db:format, npm run db:generate, and npm run db:validate.
+4. Apply the migration with npm run db:migrate:dev locally or npm run db:migrate:deploy in a shared environment.
+5. Run npm run env:validate with EMAIL_DELIVERY_MODE=disabled first.
+6. Run npm run lint and npm run build.
+7. Confirm a newly created pending hold stores preferred_locale while a reused hold keeps its original locale.
+8. Confirm no EmailNotification row is created and no Resend request is made in Phase 10.2.
+9. Commit Phase 10.2 after validation.
+10. Continue with 10.3 bilingual branded reservation-confirmation templates.
 ```
 
 ## Continuity Notes for New Conversations
@@ -380,6 +383,7 @@ docs/10-phases.md
 docs/11-progress-log.md
 docs/84-phase-9.11-validation-and-documentation-closure.md
 docs/85-email-notification-strategy-and-phase-10-roadmap.md
+docs/86-email-persistence-and-resend-provider-foundation.md
 config/site.ts
 lib/env/server.ts
 lib/reservations/pending-holds.ts

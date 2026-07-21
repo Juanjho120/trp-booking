@@ -139,7 +139,7 @@ Planned subphases:
 
 ```text
 10.1 Email notification strategy and environment contract — Completed
-10.2 Persistence and Resend provider foundation — Not started
+10.2 Persistence and Resend provider foundation — In progress
 10.3 Bilingual branded reservation-confirmation templates — Not started
 10.4 Guest and admin confirmation notification orchestration — Not started
 10.5 Retry processing and admin delivery visibility — Not started
@@ -158,6 +158,18 @@ Initial Phase 10 scope:
 - Arrival instructions only after timing and content ownership are explicitly approved.
 - No separate PAYMENT_APPROVED email and no automatic failed/rejected-payment email in the initial MVP.
 - No cancellation, refund, date-change, stay-extension, or PMS behavior.
+```
+
+Phase 10.2 foundation prepared:
+
+```text
+- Reservation.preferredLocale persists the existing ES/EN booking preference with a safe default for historical rows.
+- EmailNotification gains permanent deduplication, PROCESSING state, retry timestamps, attempt count, and safe error-code storage.
+- Existing notification rows are backfilled with unique legacy keys before the uniqueness constraint is enforced.
+- Resend 6.17.2 is isolated behind a typed server-side provider adapter.
+- Email environment validation supports disabled, test-recipient override, and production modes.
+- Provider errors are normalized into bounded internal codes without persisting raw Resend responses.
+- No templates, notification intents, confirmation hooks, cron worker, admin email UI, or actual email delivery are introduced yet.
 ```
 
 ## Documentation
@@ -191,13 +203,14 @@ docs/82-catalog-lifecycle-and-photo-selection.md
 docs/83-reservation-and-payment-detail-views.md
 docs/84-phase-9.11-validation-and-documentation-closure.md
 docs/85-email-notification-strategy-and-phase-10-roadmap.md
+docs/86-email-persistence-and-resend-provider-foundation.md
 ```
 
 ## Development Status
 
 ```text
 Current phase: Phase 10 — Email Notifications
-Current subphase: 10.2 Persistence and Resend provider foundation — Not started
-Current focus: add conditional email environment validation, the server-side Resend adapter, stored reservation locale, and permanent notification deduplication without sending emails yet
+Current subphase: 10.2 Persistence and Resend provider foundation — In progress
+Current focus: validate and commit the Phase 10.2 persistence and provider foundation; no notification intents or emails are sent yet
 Last completed subphase: 10.1 Email notification strategy and environment contract
 ```

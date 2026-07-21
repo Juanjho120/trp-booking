@@ -2,7 +2,10 @@ import { Prisma, ReservationStatus } from "@prisma/client";
 
 import { checkAccommodationAvailability } from "@/lib/availability/service";
 import { prisma } from "@/lib/db/prisma";
-import { calculateReservationQuote, ReservationQuoteError } from "@/lib/reservations/pricing";
+import {
+  calculateReservationQuote,
+  ReservationQuoteError,
+} from "@/lib/reservations/pricing";
 import type { AccommodationId, LocalizedText } from "@/types/accommodation";
 import type { DateOnlyString } from "@/types/availability";
 import type {
@@ -85,12 +88,17 @@ function normalizePhoneLocal(value: string): string {
   return value.trim().replace(/\s+/g, " ");
 }
 
-function buildGuestPhone(countryDialCode: string, guestPhoneLocal: string): string {
+function buildGuestPhone(
+  countryDialCode: string,
+  guestPhoneLocal: string,
+): string {
   return `${countryDialCode} ${guestPhoneLocal}`.trim();
 }
 
 function buildExpiresAt(now: Date): Date {
-  return new Date(now.getTime() + PENDING_RESERVATION_HOLD_DURATION_MINUTES * 60 * 1000);
+  return new Date(
+    now.getTime() + PENDING_RESERVATION_HOLD_DURATION_MINUTES * 60 * 1000,
+  );
 }
 
 function isValidArrivalTime(value: string): boolean {
@@ -102,6 +110,10 @@ function isValidArrivalTime(value: string): boolean {
 }
 
 function assertGuestDetails(input: CreatePendingReservationHoldInput): void {
+  if (input.locale !== "es" && input.locale !== "en") {
+    throw new PendingReservationHoldError("INVALID_PENDING_HOLD_REQUEST");
+  }
+
   if (normalizeText(input.guestName).length < 2) {
     throw new PendingReservationHoldError("INVALID_PENDING_HOLD_REQUEST");
   }
@@ -125,9 +137,15 @@ function assertGuestDetails(input: CreatePendingReservationHoldInput): void {
   if (!isValidArrivalTime(input.arrivalTimeEstimate.trim())) {
     throw new PendingReservationHoldError("INVALID_PENDING_HOLD_REQUEST");
   }
+
+  if (input.locale !== "es" && input.locale !== "en") {
+    throw new PendingReservationHoldError("INVALID_PENDING_HOLD_REQUEST");
+  }
 }
 
-function mapQuoteError(error: ReservationQuoteError): PendingReservationHoldError {
+function mapQuoteError(
+  error: ReservationQuoteError,
+): PendingReservationHoldError {
   switch (error.code) {
     case "INVALID_ACCOMMODATION":
       return new PendingReservationHoldError("INVALID_ACCOMMODATION");
@@ -142,7 +160,10 @@ function mapQuoteError(error: ReservationQuoteError): PendingReservationHoldErro
 }
 
 function isSerializableTransactionConflict(error: unknown): boolean {
-  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2034";
+  return (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === "P2034"
+  );
 }
 
 function toQuoteCurrency(value: string): ReservationQuoteCurrency {
@@ -167,7 +188,10 @@ function toReservationQuoteAmount(
   };
 }
 
-function getLocalizedValue(value: string | LocalizedText, locale: "es" | "en"): string {
+function getLocalizedValue(
+  value: string | LocalizedText,
+  locale: "es" | "en",
+): string {
   return typeof value === "string" ? value : value[locale];
 }
 
@@ -180,10 +204,19 @@ function withStoredReservationAmounts(
     checkInDate: toDateOnlyString(reservation.checkInDate),
     checkOutDate: toDateOnlyString(reservation.checkOutDate),
     guestCount: reservation.guestCount,
-    subtotal: toReservationQuoteAmount(reservation.subtotal, reservation.currency),
-    cleaningFee: toReservationQuoteAmount(reservation.cleaningFee, reservation.currency),
+    subtotal: toReservationQuoteAmount(
+      reservation.subtotal,
+      reservation.currency,
+    ),
+    cleaningFee: toReservationQuoteAmount(
+      reservation.cleaningFee,
+      reservation.currency,
+    ),
     taxes: toReservationQuoteAmount(reservation.taxes, reservation.currency),
-    discounts: toReservationQuoteAmount(reservation.discounts, reservation.currency),
+    discounts: toReservationQuoteAmount(
+      reservation.discounts,
+      reservation.currency,
+    ),
     total: toReservationQuoteAmount(reservation.total, reservation.currency),
     currency: toQuoteCurrency(reservation.currency),
   };
@@ -192,7 +225,10 @@ function withStoredReservationAmounts(
 async function buildPendingReservationHoldFromReservation(
   reservation: ReusablePendingReservation,
 ): Promise<PendingReservationHold> {
-  if (!reservation.expiresAt || reservation.status !== ReservationStatus.PENDING_PAYMENT) {
+  if (
+    !reservation.expiresAt ||
+    reservation.status !== ReservationStatus.PENDING_PAYMENT
+  ) {
     throw new PendingReservationHoldError("INVALID_PENDING_HOLD_REQUEST");
   }
 
@@ -203,7 +239,10 @@ async function buildPendingReservationHoldFromReservation(
     checkOutDate: toDateOnlyString(reservation.checkOutDate),
     guestCount: reservation.guestCount,
   });
-  const quoteWithStoredAmounts = withStoredReservationAmounts(quote, reservation);
+  const quoteWithStoredAmounts = withStoredReservationAmounts(
+    quote,
+    reservation,
+  );
 
   return {
     reservationId: reservation.id,
@@ -298,8 +337,8 @@ async function createPendingReservationHoldAttempt(
       const now = new Date();
 
       await expireMatchingStalePendingReservationHolds(tx, input, now);
-
-      const reusablePendingHold = await findReusableActivePendingReservationHold(tx, input, now);
+      const reusablePendingHold =
+        await findReusableActivePendingReservationHold(tx, input, now);
 
       if (reusablePendingHold) {
         return reusablePendingHold;
@@ -336,6 +375,7 @@ async function createPendingReservationHoldAttempt(
           guestEmail,
           guestPhone,
           guestCountry,
+          preferredLocale: input.locale,
           checkInDate: toDateOnlyDate(input.checkInDate),
           checkOutDate: toDateOnlyDate(input.checkOutDate),
           arrivalTimeEstimate: input.arrivalTimeEstimate.trim(),

@@ -15,8 +15,8 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 10 — Email Notifications
-Current subphase: 10.2 Persistence and Resend provider foundation — Not started
-Current focus: add conditional email environment validation, the server-side Resend adapter, stored reservation locale, and permanent notification deduplication without sending emails yet
+Current subphase: 10.2 Persistence and Resend provider foundation — In progress
+Current focus: validate and commit the Phase 10.2 persistence and provider foundation; no notification intents or emails are sent yet
 Last completed subphase: 10.1 Email notification strategy and environment contract
 ```
 
@@ -304,7 +304,7 @@ Subphase status:
 
 ```text
 10.1 Email notification strategy and environment contract — Completed
-10.2 Persistence and Resend provider foundation — Not started
+10.2 Persistence and Resend provider foundation — In progress
 10.3 Bilingual branded reservation-confirmation templates — Not started
 10.4 Guest and admin confirmation notification orchestration — Not started
 10.5 Retry processing and admin delivery visibility — Not started
@@ -344,6 +344,23 @@ Phase 10 rules:
 - Bilingual React email templates will reuse the approved brand assets and centralized ES/EN copy without introducing a second visible-copy source.
 - The explicit Phase 10 roadmap is documented in docs/85-email-notification-strategy-and-phase-10-roadmap.md.
 - No application code, Prisma schema, migration, dependency, environment variable, credential, email delivery, or PMS behavior was added in 10.1.
+```
+
+### Phase 10.2 implementation prepared
+
+```text
+- resend 6.17.2 is added as the only provider dependency.
+- Reservation.preferredLocale stores es or en and existing rows default safely to es.
+- EmailNotification gains a permanent unique deduplicationKey and PROCESSING status.
+- attemptCount, lastAttemptAt, nextAttemptAt, processingStartedAt, and errorCode support later bounded retry processing.
+- Existing EmailNotification rows receive deterministic legacy/<id> keys before the NOT NULL and UNIQUE constraints are applied.
+- lib/env/server.ts validates disabled, test, and production email modes without requiring a provider key while delivery is disabled.
+- Test mode redirects every intended recipient to one validated EMAIL_TEST_RECIPIENT.
+- Production mode requires HTTPS links and official-domain sender/reply-to addresses.
+- A typed server-side Resend adapter uses the database key as the provider idempotency key and normalizes failures into safe internal codes.
+- The existing pending-hold service persists the request locale only when creating a new hold; reused holds keep their original stored locale.
+- No email template, notification intent, confirmation trigger, retry worker, admin delivery view, or real email send is activated in 10.2.
+- Detailed implementation and migration guidance is documented in docs/86-email-persistence-and-resend-provider-foundation.md.
 ```
 
 ---
