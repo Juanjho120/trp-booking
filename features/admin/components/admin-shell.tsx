@@ -11,6 +11,7 @@ import {
   ExternalLink,
   Home,
   LayoutDashboard,
+  Library,
   LogOut,
   Menu,
 } from "lucide-react";
@@ -55,6 +56,11 @@ const navigationItems = [
     href: "/admin/accommodations",
     key: "accommodations",
     icon: Home,
+  },
+  {
+    href: "/admin/catalogs",
+    key: "catalogs",
+    icon: Library,
   },
 ] as const;
 

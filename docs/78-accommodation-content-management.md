@@ -5,10 +5,8 @@
 ```text
 Phase: 9.11 — Admin MVP and Brand Identity Completion
 Subphase: 9.11.2 — Accommodation content management
-Status: Completed and committed
+Status: Completed pending local validation and commit
 Base commit: b5472e8b448f02b6778dcee9e344b2fd55839480
-Implementation commit: bc19e7327cd96647fd760b1a551fc4ae9ffacde2
-UI follow-up commit: 3dc5797aef1efc2942d68358bdc5d3b5b44cca4d
 Next subphase: 9.11.3 — Property photo management
 ```
 
@@ -141,6 +139,21 @@ after (changed fields only)
 
 Submitting an unchanged form does not create an audit row.
 
+
+## Arrival and departure time selectors
+
+The accommodation editor no longer accepts arbitrary free text for `checkInTime` or `checkOutTime`.
+
+```text
+Check-in: required styled selector
+Check-out: optional styled selector with an explicit undefined option
+Interval: 30 minutes
+Stored format: canonical 12-hour value compatible with the existing Property columns
+Visible option label: 24-hour HH:mm
+```
+
+The API and admin service both normalize and validate the selected value. Existing canonical seed values such as `8:00 a.m.` remain compatible, and no Prisma migration is required.
+
 ## Seed safety requirement
 
 Once accommodation content is admin-managed, rerunning the development seed must not overwrite runtime edits or restore a soft-deleted property.
@@ -154,20 +167,6 @@ update: {},
 ```
 
 This change affects only existing Property rows. A clean database still receives the original baseline through `create`.
-
-## Accepted UI follow-up
-
-After the accommodation content workflow was accepted, two shared UI corrections were applied:
-
-```text
-- The public site header again exposes the ES/EN locale selector.
-- The public header and footer consume the active locale instead of fixed Spanish messages.
-- Success and error feedback share AdminSnackbar across accommodation content, preparation-buffer settings, and calendar mutations.
-- Error snackbars use destructive styling, role="alert", assertive live-region semantics, four-second auto-dismiss, and manual dismissal.
-- Persistent inline mutation-error blocks were removed from those administrative workflows.
-```
-
-These corrections did not change the database schema, authorization, validation, audit contract, editable fields, or public Property data source.
 
 ## Files
 
@@ -221,15 +220,13 @@ Manual acceptance:
 ```text
 1. Open /admin/accommodations as an allowlisted admin.
 2. Confirm all three properties show content summaries and preparation settings.
-3. Confirm the ES/EN selector is visible in the public header and changes the public header, footer, listing, and detail copy together.
-4. Open each content editor and switch ES/EN in the admin header.
-5. Save a bilingual text change and verify the success snackbar.
-6. Open /alojamientos and the affected detail route; confirm the DB-backed content changed.
-7. Save capacity or arrival-time changes and confirm the public detail summary updates.
-8. Open the same property in two tabs, save tab A, then save tab B; confirm tab B receives the stale-content error through the destructive admin snackbar.
-9. Trigger a preparation-buffer or calendar mutation error and confirm it also uses the destructive admin snackbar.
-10. Confirm slug, price, status, composition, photos, amenities, and rules are not editable.
-11. Confirm preparation-buffer settings still save independently.
-12. Confirm the audit row includes only changed fields and no secrets/provider payloads.
-13. Run the seed against a non-empty development database and confirm existing admin-edited Property content is preserved after applying the required update: {} change.
+3. Open each content editor and switch ES/EN in the admin header.
+4. Save a bilingual text change and verify the success snackbar.
+5. Open /alojamientos and the affected detail route; confirm the DB-backed content changed.
+6. Select check-in and optional check-out values, save them, and confirm the public detail summary updates.
+7. Open the same property in two tabs, save tab A, then save tab B; confirm tab B receives the stale-content error.
+8. Confirm slug, price, status, composition, photos, amenities, and rules are not editable.
+9. Confirm preparation-buffer settings still save independently.
+10. Confirm the audit row includes only changed fields and no secrets/provider payloads.
+11. Run the seed against a non-empty development database and confirm existing admin-edited Property content is preserved after applying the required update: {} change.
 ```

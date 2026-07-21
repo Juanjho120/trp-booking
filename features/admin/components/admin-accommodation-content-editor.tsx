@@ -13,7 +13,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useLocale } from "@/features/i18n";
+import {
+  normalizePropertyTimeValue,
+  propertyTimeOptions,
+} from "@/lib/time/property-time";
 import type {
   AdminAccommodationContentErrorCode,
   AdminAccommodationContentProperty,
@@ -47,6 +58,7 @@ const inputClassName =
   "h-11 w-full rounded-2xl border border-input bg-background px-3 text-sm text-foreground shadow-xs outline-none transition focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 read-only:bg-muted/40 read-only:text-muted-foreground";
 const textareaClassName =
   "min-h-28 w-full resize-y rounded-2xl border border-input bg-background px-3 py-3 text-sm leading-6 text-foreground shadow-xs outline-none transition focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50";
+const NO_CHECK_OUT_TIME_VALUE = "__none__";
 
 function buildDraft(property: AdminAccommodationContentProperty): ContentDraft {
   return {
@@ -59,8 +71,10 @@ function buildDraft(property: AdminAccommodationContentProperty): ContentDraft {
     maxGuests: String(property.maxGuests),
     bedrooms: String(property.bedrooms),
     bathrooms: String(property.bathrooms),
-    checkInTime: property.checkInTime,
-    checkOutTime: property.checkOutTime ?? "",
+    checkInTime: normalizePropertyTimeValue(property.checkInTime) ?? "",
+    checkOutTime: property.checkOutTime
+      ? normalizePropertyTimeValue(property.checkOutTime) ?? ""
+      : "",
   };
 }
 
@@ -325,28 +339,53 @@ export function AdminAccommodationContentEditor({
             <CardContent className="grid gap-5 sm:grid-cols-2">
               <label className="grid gap-2 text-sm font-medium">
                 {copy.labels.checkInTime}
-                <input
-                  className={inputClassName}
+                <Select
                   disabled={isSaving}
-                  maxLength={30}
-                  onChange={(event) =>
-                    updateDraft("checkInTime", event.target.value)
+                  onValueChange={(value) =>
+                    updateDraft("checkInTime", value)
                   }
-                  required
                   value={draft.checkInTime}
-                />
+                >
+                  <SelectTrigger aria-label={copy.labels.checkInTime}>
+                    <SelectValue
+                      placeholder={copy.placeholders.selectCheckInTime}
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {propertyTimeOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </label>
               <label className="grid gap-2 text-sm font-medium">
                 {copy.labels.checkOutTime}
-                <input
-                  className={inputClassName}
+                <Select
                   disabled={isSaving}
-                  maxLength={30}
-                  onChange={(event) =>
-                    updateDraft("checkOutTime", event.target.value)
+                  onValueChange={(value) =>
+                    updateDraft(
+                      "checkOutTime",
+                      value === NO_CHECK_OUT_TIME_VALUE ? "" : value,
+                    )
                   }
-                  value={draft.checkOutTime}
-                />
+                  value={draft.checkOutTime || NO_CHECK_OUT_TIME_VALUE}
+                >
+                  <SelectTrigger aria-label={copy.labels.checkOutTime}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={NO_CHECK_OUT_TIME_VALUE}>
+                      {copy.placeholders.noCheckOutTime}
+                    </SelectItem>
+                    {propertyTimeOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </label>
             </CardContent>
           </Card>

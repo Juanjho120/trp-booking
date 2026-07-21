@@ -13,7 +13,7 @@ import {
   Trash2,
   Upload,
 } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -95,6 +95,9 @@ export function AdminPropertyPhotoManager({
     buildAltDrafts(initialSettings),
   );
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFilePreviewUrl, setSelectedFilePreviewUrl] = useState<
+    string | null
+  >(null);
   const [uploadAltTextEs, setUploadAltTextEs] = useState("");
   const [uploadAltTextEn, setUploadAltTextEn] = useState("");
   const [busyKey, setBusyKey] = useState<string | null>(null);
@@ -107,6 +110,18 @@ export function AdminPropertyPhotoManager({
     locale === "en" ? settings.property.nameEn : settings.property.nameEs;
   const uploadDisabled = settings.photos.length >= settings.maxPhotos;
   const isBusy = busyKey !== null;
+
+  useEffect(() => {
+    if (!selectedFile) {
+      setSelectedFilePreviewUrl(null);
+      return;
+    }
+
+    const previewUrl = URL.createObjectURL(selectedFile);
+    setSelectedFilePreviewUrl(previewUrl);
+
+    return () => URL.revokeObjectURL(previewUrl);
+  }, [selectedFile]);
 
   function errorMessage(
     code: AdminPropertyPhotoErrorCode | undefined,
@@ -465,6 +480,24 @@ export function AdminPropertyPhotoManager({
                     : copy.labels.noFileSelected}
                 </p>
               </div>
+
+              {selectedFilePreviewUrl ? (
+                <div className="grid gap-2">
+                  <p className="text-sm font-medium text-foreground">
+                    {copy.labels.preview}
+                  </p>
+                  <div className="relative aspect-[16/10] w-full max-w-2xl overflow-hidden rounded-2xl border border-border/70 bg-muted">
+                    <Image
+                      alt={copy.labels.previewAlt}
+                      className="object-contain"
+                      fill
+                      sizes="(min-width: 1024px) 50vw, 100vw"
+                      src={selectedFilePreviewUrl}
+                      unoptimized
+                    />
+                  </div>
+                </div>
+              ) : null}
             </div>
 
             <label className="grid gap-2 text-sm font-medium">

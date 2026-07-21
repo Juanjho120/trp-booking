@@ -117,7 +117,9 @@ Accommodation content management allows an authorized admin to edit bilingual na
 
 Property photo management adds protected Cloudinary-backed uploads, bilingual alt text, ordering, cover selection, and soft deletion. Upload bytes go directly from the browser to Cloudinary through a server-signed owned public ID, while finalization validates the provider asset before persisting `PropertyImage`. Structural gallery changes use optimistic revisions, and every mutation remains auditable.
 
-Amenities and house rules are administered from a protected property-specific route. Authorized admins can edit bilingual catalog content, choose only approved typed amenity icons, and assign or unassign active catalog items while preserving at least one amenity and one rule per accommodation. Catalog keys remain fixed, public localization stays database-backed, and every mutation creates an audit record.
+Amenity and house-rule assignments remain property-specific, while the shared bilingual catalogs are administered from the dedicated `/admin/catalogs` sidebar section. The catalog page separates amenity and house-rule content through two tab-style buttons. Catalog keys remain fixed, public localization stays database-backed, and every mutation creates an audit record.
+
+The 9.11.4 UI follow-up also adds a local preview before a property photo is uploaded and replaces free-text check-in/check-out fields with validated 30-minute time selectors.
 
 ## Documentation
 
@@ -145,13 +147,14 @@ docs/77-responsive-brand-qa-and-closure.md
 docs/78-accommodation-content-management.md
 docs/79-property-photo-management.md
 docs/80-amenities-and-house-rules.md
+docs/81-phase-9.11.4-ui-follow-up.md
 ```
 
 ## Development Status
 
 ```text
 Current phase: Phase 9.11 — Admin MVP and Brand Identity Completion
-Current subphase: 9.11.5 Reservation and payment detail views
-Current focus: define protected reservation and payment detail pages after completing amenity and house-rule administration
-Last completed subphase: 9.11.4 Amenities and house rules
+Current subphase: 9.11.4 UI follow-up validation
+Current focus: validate the dedicated catalogs menu, property-photo preview, and accommodation time selectors
+Last completed subphase: 9.11.4 Amenities and house rules base implementation
 ```

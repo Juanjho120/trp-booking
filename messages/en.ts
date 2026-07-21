@@ -395,6 +395,7 @@ export const enMessages = {
         payments: "Payments",
         calendar: "Calendar",
         accommodations: "Accommodations",
+        catalogs: "Catalogs",
       },
     },
     statuses: {
@@ -552,12 +553,103 @@ export const enMessages = {
         noEvents: "No SDK events match these filters.",
       },
     },
+    catalogs: {
+      seoTitle: "Catalogs | Admin | Tu Refugio Perfecto",
+      badge: "Shared content",
+      title: "Catalogs",
+      description:
+        "Manage shared bilingual amenity and house-rule content in a section separate from accommodations.",
+      tabs: {
+        amenities: "Amenities",
+        houseRules: "House rules",
+      },
+      sections: {
+        amenities: "Amenity catalog",
+        houseRules: "House-rule catalog",
+      },
+      labels: {
+        nameEs: "Spanish name",
+        nameEn: "English name",
+        icon: "Icon",
+        category: "Category",
+        noCategory: "No category",
+        titleEs: "Spanish title",
+        titleEn: "English title",
+        descriptionEs: "Spanish description",
+        descriptionEn: "English description",
+      },
+      actions: {
+        saveAmenity: "Save amenity",
+        saveHouseRule: "Save rule",
+        saving: "Saving...",
+      },
+      notes: {
+        amenities:
+          "The catalog is shared by all three accommodations. Editing an amenity name or icon updates every accommodation where it is assigned. Keys and categories remain fixed.",
+        houseRules:
+          "Editing a rule updates every accommodation where it is assigned. The public page displays the description for the selected language.",
+      },
+      success: {
+        amenitySaved: "The amenity was updated successfully.",
+        houseRuleSaved: "The rule was updated successfully.",
+      },
+      categoryLabels: {
+        access: "Access",
+        spaces: "Spaces",
+        kitchen: "Kitchen",
+        "guest-fit": "Guest fit",
+        connectivity: "Connectivity",
+        parking: "Parking",
+        bathroom: "Bathroom",
+        bedroom: "Bedroom",
+        comfort: "Comfort",
+        safety: "Safety",
+        outdoor: "Outdoor",
+        "guest-services": "Guest services",
+        capacity: "Capacity",
+        "house-rules": "House rules",
+        care: "Property care",
+        composed: "Combined accommodation",
+      },
+      iconLabels: {
+        bath: "Bathroom",
+        bed: "Bed",
+        briefcase: "Luggage",
+        car: "Car",
+        chefHat: "Kitchen",
+        coffee: "Coffee",
+        dumbbell: "Exercise",
+        fan: "Fan",
+        flame: "Stove",
+        home: "Accommodation",
+        refrigerator: "Refrigerator",
+        showerHead: "Shower",
+        treePalm: "Patio",
+        utensils: "Dining",
+        shieldCheck: "Safety",
+        wifi: "WiFi",
+        users: "Guests",
+      },
+      errors: {
+        ADMIN_UNAUTHORIZED: "Your session does not have admin access.",
+        INVALID_ADMIN_CATALOG_REQUEST:
+          "Review the catalog information and try again.",
+        ADMIN_CATALOG_AMENITY_NOT_FOUND:
+          "We could not find the selected amenity.",
+        ADMIN_CATALOG_HOUSE_RULE_NOT_FOUND:
+          "We could not find the selected rule.",
+        ADMIN_CATALOG_STALE:
+          "The catalog changed after you opened this page. Reload before saving again.",
+        ADMIN_CATALOG_UNEXPECTED_ERROR:
+          "We could not update the catalog. Please try again.",
+      },
+    },
     accommodations: {
       seoTitle: "Accommodations | Admin | Tu Refugio Perfecto",
       badge: "Content and settings",
       title: "Accommodations",
       description:
-        "Manage bilingual public content, photos, amenities, rules, and automatic preparation settings without mixing in prices or reservations.",
+        "Manage bilingual public content, photos, assignments, and automatic preparation settings without mixing in prices or reservations.",
       overview: {
         sectionTitle: "Public content",
         sectionDescription:
@@ -577,7 +669,7 @@ export const enMessages = {
         actions: {
           editContent: "Edit public content",
           managePhotos: "Manage photos",
-          manageAmenitiesRules: "Manage amenities and rules",
+          manageAmenitiesRules: "Assign amenities and rules",
         },
         notes: {
           readonlyBoundaries:
@@ -610,6 +702,10 @@ export const enMessages = {
           checkInTime: "Check-in time",
           checkOutTime: "Optional check-out time",
         },
+        placeholders: {
+          selectCheckInTime: "Select check-in time",
+          noCheckOutTime: "No check-out time defined",
+        },
         actions: {
           backToAccommodations: "Back to accommodations",
           saveContent: "Save content",
@@ -622,7 +718,7 @@ export const enMessages = {
             "The public website reads these fields directly from the database.",
           capacityRange: "Allowed values: whole numbers from 1 through 20.",
           timeFormat:
-            "Use a brief readable time, for example: 8:00 a.m. or 11:00 a.m.",
+            "Select times in 30-minute intervals. Check-out can remain undefined.",
           immutableFields:
             "This editor does not change slug, price, currency, status, composition, photos, amenities, rules, or preparation settings. Photos are managed from their dedicated section.",
         },
@@ -654,6 +750,8 @@ export const enMessages = {
         labels: {
           currentCount: "Photos",
           noFileSelected: "No file selected.",
+          preview: "Preview",
+          previewAlt: "Preview of the selected accommodation photo",
           altTextEs: "Alternative text in Spanish",
           altTextEn: "Alternative text in English",
           order: "Order",
@@ -725,37 +823,20 @@ export const enMessages = {
         },
       },
       amenitiesRules: {
-        seoTitle: "Amenities and rules | Admin | Tu Refugio Perfecto",
+        seoTitle: "Assign amenities and rules | Admin | Tu Refugio Perfecto",
         badge: "Structured public content",
-        title: "Amenities and rules",
+        title: "Assign amenities and rules",
         description:
-          "Manage the bilingual amenities and rules displayed publicly for this accommodation.",
+          "Select which shared catalog amenities and house rules apply to this accommodation.",
         sections: {
           assignments: "Accommodation assignments",
           amenityAssignments: "Assigned amenities",
           houseRuleAssignments: "Assigned rules",
-          amenityCatalog: "Amenity catalog",
-          houseRuleCatalog: "House-rule catalog",
-        },
-        labels: {
-          assigned: "Assigned",
-          notAssigned: "Not assigned",
-          nameEs: "Spanish name",
-          nameEn: "English name",
-          icon: "Icon",
-          category: "Category",
-          noCategory: "No category",
-          titleEs: "Spanish title",
-          titleEn: "English title",
-          descriptionEs: "Spanish description",
-          descriptionEn: "English description",
         },
         actions: {
           backToAccommodations: "Back to accommodations",
-          backToContent: "Edit content",
+          openCatalogs: "Open catalogs",
           saveAssignments: "Save assignments",
-          saveAmenity: "Save amenity",
-          saveHouseRule: "Save rule",
           saving: "Saving...",
         },
         notes: {
@@ -763,67 +844,26 @@ export const enMessages = {
             "Select which active items apply to this accommodation. Changes are reflected on the public page.",
           minimumRequired:
             "Each accommodation must keep at least one assigned amenity and one assigned rule.",
-          typedCatalog:
-            "The catalog is shared by all three accommodations. Editing an amenity name or icon updates every accommodation that uses it. Keys remain fixed and only approved icons are allowed.",
-          publicImpact:
-            "The house-rule catalog is shared as well. Editing a rule updates every accommodation that uses it, and the public page displays its description in the selected language.",
+          catalogManagement:
+            "Names, icons, and descriptions are edited from the Catalogs menu in the admin panel.",
         },
         success: {
           assignmentsSaved: "Assignments were saved successfully.",
-          amenitySaved: "The amenity was updated successfully.",
-          houseRuleSaved: "The rule was updated successfully.",
-        },
-        categoryLabels: {
-          access: "Access",
-          spaces: "Spaces",
-          kitchen: "Kitchen",
-          "guest-fit": "Guest fit",
-          connectivity: "Connectivity",
-          parking: "Parking",
-          bathroom: "Bathroom",
-          bedroom: "Bedroom",
-          comfort: "Comfort",
-          safety: "Safety",
-          outdoor: "Outdoor",
-          "guest-services": "Guest services",
-          capacity: "Capacity",
-          "house-rules": "House rules",
-          care: "Property care",
-          composed: "Combined accommodation",
-        },
-        iconLabels: {
-          bath: "Bathroom",
-          bed: "Bed",
-          briefcase: "Luggage",
-          car: "Car",
-          chefHat: "Kitchen",
-          coffee: "Coffee",
-          dumbbell: "Exercise",
-          fan: "Fan",
-          flame: "Stove",
-          home: "Accommodation",
-          refrigerator: "Refrigerator",
-          showerHead: "Shower",
-          treePalm: "Patio",
-          utensils: "Dining",
-          shieldCheck: "Safety",
-          wifi: "WiFi",
-          users: "Guests",
         },
         errors: {
           ADMIN_UNAUTHORIZED: "Your session does not have admin access.",
           INVALID_AMENITY_HOUSE_RULE_REQUEST:
-            "Review the amenity and rule information and try again.",
+            "Review the amenity and rule assignments and try again.",
           AMENITY_HOUSE_RULE_PROPERTY_NOT_FOUND:
             "We could not find the requested accommodation.",
           AMENITY_NOT_FOUND: "We could not find the selected amenity.",
           HOUSE_RULE_NOT_FOUND: "We could not find the selected rule.",
           AMENITY_HOUSE_RULE_STALE:
-            "Amenities or rules changed after you opened this page. Reload before saving again.",
+            "Assignments changed after you opened this page. Reload before saving again.",
           AMENITY_HOUSE_RULE_MINIMUM_REQUIRED:
             "Select at least one amenity and one rule for the accommodation.",
           AMENITY_HOUSE_RULE_UNEXPECTED_ERROR:
-            "We could not update amenities and rules. Please try again.",
+            "We could not update the assignments. Please try again.",
         },
       },
       preparation: {

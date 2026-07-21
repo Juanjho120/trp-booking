@@ -5,8 +5,9 @@
 ```text
 Phase: 9.11 — Admin MVP and Brand Identity Completion
 Subphase: 9.11.4 — Amenities and house rules
-Status: Completed pending local validation and commit
+Status: Completed; UI follow-up pending local validation and commit
 Base commit: 9f5c10a6ca5812e0c6ea48852e1f673fb65df138
+Base implementation commit: 07dd7c03f19de77b0f18186c26986cd9e036213e
 Next subphase: 9.11.5 — Reservation and payment detail views
 ```
 
@@ -25,20 +26,27 @@ PropertyRule
 
 No Prisma schema migration is required.
 
-## Admin route
+## Admin routes
 
 ```text
+/admin/catalogs?catalog=amenities
+/admin/catalogs?catalog=house-rules
 /admin/accommodations/[propertyId]/amenities-rules
 ```
 
-The accommodations overview links to this route for each supported property.
+`/admin/catalogs` is available from the dedicated **Catalogs** sidebar item. Two tab-style buttons separate the shared Amenity and House Rule catalogs.
+
+The property-specific route remains available from each accommodation and now handles assignments only.
 
 ## Supported operations
 
 ```text
+From the property assignment page:
 Assign or unassign active amenities for one accommodation
 Assign or unassign active house rules for one accommodation
 Require at least one assigned amenity and one assigned rule
+
+From the shared Catalogs page:
 Edit amenity names in Spanish and English
 Select an amenity icon from the approved typed icon catalog
 Edit house-rule titles in Spanish and English
@@ -138,9 +146,11 @@ Audit metadata includes safe identifiers, actor email, changed bilingual values,
 ## API contract
 
 ```text
-PATCH /api/admin/amenities-house-rules
+PATCH /api/admin/catalogs
   action: update-amenity
   action: update-house-rule
+
+PATCH /api/admin/amenities-house-rules
   action: update-assignments
 ```
 
@@ -149,6 +159,19 @@ Every action requires the existing authorized admin session.
 ## Error feedback
 
 All failures map to bilingual domain codes and use the shared destructive `AdminSnackbar`.
+
+Catalog codes:
+
+```text
+ADMIN_UNAUTHORIZED
+INVALID_ADMIN_CATALOG_REQUEST
+ADMIN_CATALOG_AMENITY_NOT_FOUND
+ADMIN_CATALOG_HOUSE_RULE_NOT_FOUND
+ADMIN_CATALOG_STALE
+ADMIN_CATALOG_UNEXPECTED_ERROR
+```
+
+Property-assignment codes:
 
 ```text
 ADMIN_UNAUTHORIZED
@@ -207,15 +230,16 @@ git status
 Manual acceptance:
 
 ```text
-1. Open the amenities/rules page for each supported property.
-2. Assign and unassign amenities, keeping at least one selected.
-3. Assign and unassign rules, keeping at least one selected.
-4. Confirm zero selections are rejected through the destructive snackbar.
-5. Edit Spanish and English amenity names and select another approved icon.
-6. Edit Spanish and English house-rule titles and descriptions.
-7. Open the same catalog item in stale browser state and confirm the stale error.
-8. Open assignments in two tabs and confirm the older revision is rejected.
-9. Confirm the public property page reflects assignments and selected locale.
-10. Confirm every mutation creates the expected AdminAuditLog action.
-11. Rerun the seed and confirm content and removed assignments are preserved.
+1. Open Catalogs from the desktop and mobile admin navigation.
+2. Switch between the Amenities and House Rules tab-style buttons.
+3. Edit Spanish and English amenity names and select another approved icon.
+4. Edit Spanish and English house-rule titles and descriptions.
+5. Open the assignment page for each supported property.
+6. Assign and unassign amenities and rules, keeping at least one selected in each domain.
+7. Confirm zero selections are rejected through the destructive snackbar.
+8. Open the same catalog item in stale browser state and confirm the stale error.
+9. Open assignments in two tabs and confirm the older revision is rejected.
+10. Confirm the public property page reflects assignments and selected locale.
+11. Confirm every mutation creates the expected AdminAuditLog action.
+12. Rerun the seed and confirm content and removed assignments are preserved.
 ```

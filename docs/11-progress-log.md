@@ -6,12 +6,13 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 9.11 — Admin MVP and Brand Identity Completion
-Current subphase: 9.11.5 Reservation and payment detail views
-Current focus: define protected reservation and payment detail pages after completing amenity and house-rule administration
+Current subphase: 9.11.4 UI follow-up validation
+Current focus: validate dedicated catalogs, property-photo preview, and accommodation time selectors
 Last updated: 2026-07-20
-Last completed subphase: 9.11.4 Amenities and house rules
+Last completed subphase: 9.11.4 Amenities and house rules base implementation
 9.11.4 base commit: 9f5c10a6ca5812e0c6ea48852e1f673fb65df138
-9.11.4 implementation commit: pending local validation and commit
+9.11.4 implementation commit: 07dd7c03f19de77b0f18186c26986cd9e036213e
+9.11.4 UI follow-up commit: pending local validation and commit
 ```
 
 ## Completed Work
@@ -324,7 +325,7 @@ Photo-limit and public-card alignment follow-up: 9f5c10a6ca5812e0c6ea48852e1f673
 
 ### Phase 9.11.4 — Amenities and House Rules
 
-Status: **Completed pending local validation and commit**
+Status: **Completed; UI follow-up pending local validation and commit**
 
 Implemented behavior:
 
@@ -343,6 +344,20 @@ Public pages already read active assignments and bilingual catalog content from 
 No Prisma migration, pricing, property publishing, reservation/payment action, email delivery, or PMS behavior was added.
 ```
 
+
+UI follow-up:
+
+```text
+The sidebar adds a dedicated Catalogs entry.
+/admin/catalogs uses Amenities and House Rules tab-style buttons for shared catalog editing.
+/admin/accommodations/[propertyId]/amenities-rules remains responsible only for property assignments.
+The property-photo upload form previews the selected local file before upload and revokes the temporary object URL safely.
+Accommodation check-in and optional check-out fields use styled 30-minute selectors instead of free-text inputs.
+The API and service normalize and reject values outside the canonical half-hour time contract.
+The property-photo limit remains 40 active photos per accommodation.
+No Prisma migration, dependency, reservation/payment action, email delivery, or PMS behavior was added.
+```
+
 Important seed boundary:
 
 ```text
@@ -354,12 +369,13 @@ Because the admin requires at least one amenity and one rule, rerunning the seed
 ## Next Recommended Work
 
 ```text
-1. Apply and validate Phase 9.11.4 against the development database.
-2. Confirm bilingual amenity and rule content edits on all three accommodations.
-3. Confirm assignment, minimum-selection, stale-tab, seed-safety, public localization, and audit behavior.
-4. Run npm run env:validate, npm run db:validate, npm run lint, and npm run build.
-5. Commit Phase 9.11.4 after local acceptance.
-6. Continue with 9.11.5 reservation and payment detail views.
+1. Apply and validate the Phase 9.11.4 UI follow-up.
+2. Confirm the Catalogs sidebar route and both tab-style catalog views.
+3. Confirm property assignments remain available from each accommodation.
+4. Confirm the local photo preview and 30-minute check-in/check-out selectors.
+5. Run npm run env:validate, npm run db:validate, npm run lint, and npm run build.
+6. Commit the follow-up after local acceptance.
+7. Continue with 9.11.5 reservation and payment detail views.
 ```
 
 ## Continuity Notes for New Conversations
@@ -388,6 +404,7 @@ docs/77-responsive-brand-qa-and-closure.md
 docs/78-accommodation-content-management.md
 docs/79-property-photo-management.md
 docs/80-amenities-and-house-rules.md
+docs/81-phase-9.11.4-ui-follow-up.md
 components/brand/
 components/layout/site-header.tsx
 components/layout/site-footer.tsx
@@ -397,17 +414,23 @@ features/admin/components/admin-accommodation-management.tsx
 features/admin/components/admin-accommodation-content-editor.tsx
 features/admin/components/admin-property-photo-manager.tsx
 features/admin/components/admin-amenities-house-rules-manager.tsx
+features/admin/components/admin-catalog-manager.tsx
 app/api/admin/accommodation-content/route.ts
 app/api/admin/property-photos/route.ts
 app/api/admin/amenities-house-rules/route.ts
+app/api/admin/catalogs/route.ts
+app/admin/catalogs/page.tsx
 app/admin/accommodations/[propertyId]/photos/page.tsx
 app/admin/accommodations/[propertyId]/amenities-rules/page.tsx
 lib/admin/accommodation-content.ts
 lib/admin/property-photos.ts
 lib/admin/amenities-house-rules.ts
+lib/admin/catalogs.ts
+lib/time/property-time.ts
 types/admin-accommodation-content.ts
 types/admin-property-photos.ts
 types/admin-amenities-house-rules.ts
+types/admin-catalogs.ts
 types/amenity.ts
 app/admin-login/page.tsx
 app/layout.tsx

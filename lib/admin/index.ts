@@ -1,4 +1,10 @@
 export {
+  AdminCatalogError,
+  getAdminCatalogSettings,
+  updateAdminCatalogAmenity,
+  updateAdminCatalogHouseRule,
+} from "./catalogs";
+export {
   AdminAmenityHouseRuleError,
   getAdminAmenityHouseRuleSettings,
   updateAdminAmenityContent,

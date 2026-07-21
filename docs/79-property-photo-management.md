@@ -45,6 +45,23 @@ Automatically promote the first remaining photo when the cover is deleted
 
 The admin supports at most 40 active photos per property. Each file may be at most 10 MB.
 
+
+## Local upload preview
+
+Selecting a local JPG, PNG, or WEBP file creates a temporary browser object URL and displays the image inside the upload card before any Cloudinary request is prepared.
+
+The preview:
+
+```text
+Does not upload bytes by itself
+Uses the selected local File only
+Preserves the filename and file-size summary
+Is cleared after a successful upload or another selection
+Revokes the temporary object URL when replaced or unmounted
+```
+
+This preview does not change provider validation, file-size limits, supported formats, or Cloudinary ownership rules.
+
 ## Signed direct upload architecture
 
 The image bytes upload directly from the authorized admin browser to Cloudinary instead of passing through the Next.js server route.
@@ -234,8 +251,8 @@ Manual acceptance:
 
 ```text
 1. Open /admin/accommodations and select Manage photos for each property.
-2. Upload JPG, PNG, and WEBP files with bilingual alt text.
-3. Reject an unsupported type and a file larger than 10 MB through an error snackbar.
+2. Select JPG, PNG, and WEBP files and confirm the local preview appears before upload.
+3. Upload the selected files with bilingual alt text and reject an unsupported type or file larger than 10 MB through an error snackbar.
 4. Confirm the uploaded image appears on the public listing/detail after finalization.
 5. Move images up and down and confirm the public gallery order changes.
 6. Select a different cover and confirm the public card/detail uses it.

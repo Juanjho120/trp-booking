@@ -6,6 +6,7 @@ import {
   isAdminAccommodationId,
 } from "@/lib/admin/accommodations";
 import { prisma } from "@/lib/db/prisma";
+import { normalizePropertyTimeValue } from "@/lib/time/property-time";
 import type {
   AdminAccommodationContentActor,
   AdminAccommodationContentErrorCode,
@@ -20,7 +21,6 @@ const SHORT_DESCRIPTION_MIN_LENGTH = 20;
 const SHORT_DESCRIPTION_MAX_LENGTH = 500;
 const LONG_DESCRIPTION_MIN_LENGTH = 50;
 const LONG_DESCRIPTION_MAX_LENGTH = 5000;
-const TIME_MAX_LENGTH = 30;
 const MAX_CAPACITY_VALUE = 20;
 
 const accommodationContentSelect = {
@@ -120,11 +120,6 @@ function normalizeMultiline(value: string): string {
   return value.replace(/\r\n/g, "\n").trim();
 }
 
-function normalizeOptionalSingleLine(value: string | null | undefined): string | null {
-  const normalized = value ? normalizeSingleLine(value) : "";
-  return normalized || null;
-}
-
 function assertTextLength(value: string, minimum: number, maximum: number): void {
   if (value.length < minimum || value.length > maximum) {
     throw new AdminAccommodationContentError(
@@ -141,6 +136,28 @@ function assertCapacity(value: number): void {
   }
 }
 
+function normalizeRequiredTime(value: string): string {
+  const normalized = normalizePropertyTimeValue(value);
+
+  if (!normalized) {
+    throw new AdminAccommodationContentError(
+      "INVALID_ACCOMMODATION_CONTENT_REQUEST",
+    );
+  }
+
+  return normalized;
+}
+
+function normalizeOptionalTime(
+  value: string | null | undefined,
+): string | null {
+  if (!value?.trim()) {
+    return null;
+  }
+
+  return normalizeRequiredTime(value);
+}
+
 function normalizeInput(input: UpdateAdminAccommodationContentInput): MutableContent {
   const content = {
     nameEs: normalizeSingleLine(input.nameEs),
@@ -152,8 +169,8 @@ function normalizeInput(input: UpdateAdminAccommodationContentInput): MutableCon
     maxGuests: input.maxGuests,
     bedrooms: input.bedrooms,
     bathrooms: input.bathrooms,
-    checkInTime: normalizeSingleLine(input.checkInTime),
-    checkOutTime: normalizeOptionalSingleLine(input.checkOutTime),
+    checkInTime: normalizeRequiredTime(input.checkInTime),
+    checkOutTime: normalizeOptionalTime(input.checkOutTime),
   } satisfies MutableContent;
 
   assertTextLength(content.nameEs, NAME_MIN_LENGTH, NAME_MAX_LENGTH);
@@ -178,12 +195,6 @@ function normalizeInput(input: UpdateAdminAccommodationContentInput): MutableCon
     LONG_DESCRIPTION_MIN_LENGTH,
     LONG_DESCRIPTION_MAX_LENGTH,
   );
-  assertTextLength(content.checkInTime, 1, TIME_MAX_LENGTH);
-
-  if (content.checkOutTime) {
-    assertTextLength(content.checkOutTime, 1, TIME_MAX_LENGTH);
-  }
-
   assertCapacity(content.maxGuests);
   assertCapacity(content.bedrooms);
   assertCapacity(content.bathrooms);

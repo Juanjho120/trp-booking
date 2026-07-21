@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { isPropertyTimeValue } from "@/lib/time/property-time";
+
 import {
   adminApiErrorResponse,
   adminApiSuccessResponse,
@@ -24,8 +26,13 @@ const updateAccommodationContentSchema = z
     maxGuests: z.number().int().min(1).max(20),
     bedrooms: z.number().int().min(1).max(20),
     bathrooms: z.number().int().min(1).max(20),
-    checkInTime: z.string().trim().min(1).max(30),
-    checkOutTime: z.string().trim().max(30).nullable().optional(),
+    checkInTime: z.string().trim().refine(isPropertyTimeValue),
+    checkOutTime: z
+      .string()
+      .trim()
+      .refine(isPropertyTimeValue)
+      .nullable()
+      .optional(),
   })
   .strict();
 

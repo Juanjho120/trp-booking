@@ -197,7 +197,7 @@ Subphase status:
 9.11.1-D Responsive QA and documentation closure — Completed
 9.11.2 Accommodation content management — Completed
 9.11.3 Property photo management — Completed
-9.11.4 Amenities and house rules — Completed
+9.11.4 Amenities and house rules — Completed; UI follow-up pending local validation
 9.11.5 Reservation and payment detail views — Not started
 9.11.6 Phase 9.11 validation and documentation closure — Not started
 ```
@@ -240,7 +240,7 @@ Subphase status:
 - Authorized admins can upload JPG, PNG, and WEBP files up to 10 MB with required bilingual alternative text.
 - Image bytes upload directly from the browser to Cloudinary through a short-lived signed request; the Cloudinary API secret remains server-side.
 - Finalization verifies the exact owned public ID, provider resource type, upload type, actual format, byte size, delivery URLs, and recent creation time before persistence.
-- Active galleries support up to 20 photos, sequential ordering, exactly one cover, bilingual alt-text editing, and soft deletion.
+- Active galleries support up to 40 photos, sequential ordering, exactly one cover, bilingual alt-text editing, and soft deletion.
 - Structural mutations use an optimistic gallery revision and serializable transactions so stale tabs do not silently overwrite order, cover, or deletion changes.
 - Deleting the cover promotes the first remaining ordered image; the final active photo cannot be deleted.
 - PROPERTY_IMAGE_UPLOADED, PROPERTY_IMAGE_ALT_TEXT_UPDATED, PROPERTY_IMAGES_REORDERED, PROPERTY_IMAGE_COVER_CHANGED, and PROPERTY_IMAGE_SOFT_DELETED preserve AdminAuditLog history.
@@ -264,6 +264,10 @@ Subphase status:
 - The development seed preserves admin-managed catalog content and does not restore removed default assignments once a property has active assignments.
 - Public accommodation pages already read active assigned amenities and rules from PostgreSQL and reflect accepted changes without synchronization.
 - No Prisma migration, price/status/composition editing, reservation/payment action, email delivery, or PMS behavior was added.
+- Shared amenity and house-rule content is exposed through a dedicated /admin/catalogs sidebar route with Amenities and House Rules tab-style navigation.
+- Property-specific assignment remains under /admin/accommodations/[propertyId]/amenities-rules and no longer mixes shared catalog editing into the same page.
+- Selecting a local property photo produces an object-URL preview before the Cloudinary upload begins.
+- Check-in and optional check-out values use styled 30-minute selectors and are validated server-side against the same canonical time contract.
 ```
 
 ---
