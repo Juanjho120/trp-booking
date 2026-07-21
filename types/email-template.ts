@@ -28,6 +28,7 @@ export type ReservationEmailTemplateReservation = Readonly<{
 export type ReservationEmailTemplateInput = Readonly<{
   locale: TransactionalEmailLocale;
   publicBaseUrl: string;
+  brandLogoUrl: string;
   reservation: ReservationEmailTemplateReservation;
 }>;
 

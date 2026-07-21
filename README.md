@@ -91,6 +91,7 @@ TRP Booking is focused only on the public booking experience, direct reservation
 - Email delivery never determines payment approval and an email failure never rolls back a valid confirmed reservation.
 - Transactional email intents must use permanent database deduplication in addition to provider idempotency.
 - Test email delivery preserves the intended recipient in persistence but sends only to `EMAIL_TEST_RECIPIENT`.
+- Transactional email logos must use a permanent HTTPS asset through `EMAIL_BRAND_LOGO_URL`; they must not depend on localhost or the current Vercel deployment.
 - Public-facing, admin-facing, and transactional email copy is centralized in `messages/es.ts` and `messages/en.ts`.
 - Admin modules use dedicated routes under `/admin`; the dashboard remains a compact summary.
 - Manual availability blocks use `CalendarBlock.source = MANUAL_BLOCK`, optional internal notes, soft deletion, audit logs, and server-side availability revalidation.
@@ -223,7 +224,7 @@ Phase 10.3 templates completed:
 - Guest RESERVATION_CONFIRMED and admin ADMIN_NEW_RESERVATION builders return subject, HTML, and plain-text content.
 - Template inputs are validated and normalized before rendering, and guest output must match the reservation preferred locale.
 - Dates, Guatemala business timestamps, money, guest counts, stay length, arrival time, and country names are locale-aware.
-- The approved primary brand logo is resolved as an absolute URL from EMAIL_PUBLIC_BASE_URL.
+- The approved primary brand logo uses the permanent public HTTPS asset configured in EMAIL_BRAND_LOGO_URL, independently from the application deployment URL.
 - Guest templates do not expose protected admin links, provider payloads, card data, access codes, or PMS-only data.
 - No EmailNotification row is created and no Resend provider call is made in 10.3.
 - The accepted implementation was committed as 7f6510d3e152caccefa42d9a2f5f75dbf747a22e.
@@ -278,6 +279,7 @@ docs/86-email-persistence-and-resend-provider-foundation.md
 docs/87-bilingual-branded-reservation-confirmation-templates.md
 docs/88-guest-admin-confirmation-notification-orchestration.md
 docs/89-test-and-production-environment-strategy.md
+docs/90-transactional-email-brand-logo-hosting.md
 ```
 
 ## Development Status

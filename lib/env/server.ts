@@ -61,6 +61,16 @@ const optionalUrlSchema = z.preprocess(
   z.string().url("Must be a valid URL.").optional(),
 );
 
+const optionalPublicAssetUrlSchema = z.preprocess(
+  emptyStringToUndefined,
+  placeholderValueSchema
+    .refine(
+      (value) => z.string().url().safeParse(value).success,
+      "Must be a valid URL.",
+    )
+    .optional(),
+);
+
 const requiredUrlSchema = placeholderValueSchema.refine(
   (value) => z.string().url().safeParse(value).success,
   "Must be a valid URL.",
@@ -291,6 +301,7 @@ const emailRequiredKeys = [
   "EMAIL_REPLY_TO_EN",
   "EMAIL_ADMIN_RECIPIENTS",
   "EMAIL_PUBLIC_BASE_URL",
+  "EMAIL_BRAND_LOGO_URL",
 ] as const;
 
 const rawServerEnvSchema = z.object({
@@ -335,6 +346,7 @@ const rawServerEnvSchema = z.object({
     .enum(["es", "en"], { message: "Must be es or en." })
     .default("es"),
   EMAIL_PUBLIC_BASE_URL: optionalUrlSchema,
+  EMAIL_BRAND_LOGO_URL: optionalPublicAssetUrlSchema,
   EMAIL_TEST_RECIPIENT: optionalEmailSchema,
   VERCEL_ENV: vercelEnvironmentSchema,
   NODE_ENV: z
@@ -474,6 +486,24 @@ const serverEnvSchema = rawServerEnvSchema.superRefine((env, context) => {
     );
   }
 
+  if (env.EMAIL_BRAND_LOGO_URL) {
+    const brandLogoUrl = new URL(env.EMAIL_BRAND_LOGO_URL);
+
+    if (
+      brandLogoUrl.protocol !== "https:" ||
+      brandLogoUrl.username ||
+      brandLogoUrl.password ||
+      isLocalDevelopmentUrl(env.EMAIL_BRAND_LOGO_URL)
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["EMAIL_BRAND_LOGO_URL"],
+        message:
+          "Must be a publicly reachable HTTPS URL without embedded credentials.",
+      });
+    }
+  }
+
   const expectedSendingDomain =
     env.TRP_ENVIRONMENT === "production"
       ? PRODUCTION_SENDING_DOMAIN
@@ -553,6 +583,7 @@ type EnabledEmailEnvBase = Readonly<{
   adminRecipients: readonly string[];
   adminLocale: "es" | "en";
   publicBaseUrl: string;
+  brandLogoUrl: string;
 }>;
 
 export type TestEmailEnv = EnabledEmailEnvBase &
@@ -604,6 +635,7 @@ export function validateServerEnv(
     EMAIL_ADMIN_RECIPIENTS: source.EMAIL_ADMIN_RECIPIENTS,
     EMAIL_ADMIN_LOCALE: source.EMAIL_ADMIN_LOCALE,
     EMAIL_PUBLIC_BASE_URL: source.EMAIL_PUBLIC_BASE_URL,
+    EMAIL_BRAND_LOGO_URL: source.EMAIL_BRAND_LOGO_URL,
     EMAIL_TEST_RECIPIENT: source.EMAIL_TEST_RECIPIENT,
     VERCEL_ENV: source.VERCEL_ENV,
     NODE_ENV: source.NODE_ENV,
@@ -661,7 +693,8 @@ export function getEmailEnv(source: NodeJS.ProcessEnv = process.env): EmailEnv {
     !env.EMAIL_REPLY_TO_ES ||
     !env.EMAIL_REPLY_TO_EN ||
     !env.EMAIL_ADMIN_RECIPIENTS ||
-    !env.EMAIL_PUBLIC_BASE_URL
+    !env.EMAIL_PUBLIC_BASE_URL ||
+    !env.EMAIL_BRAND_LOGO_URL
   ) {
     throw new Error("Validated email configuration is incomplete.");
   }
@@ -673,6 +706,7 @@ export function getEmailEnv(source: NodeJS.ProcessEnv = process.env): EmailEnv {
     adminRecipients: env.EMAIL_ADMIN_RECIPIENTS,
     adminLocale: env.EMAIL_ADMIN_LOCALE,
     publicBaseUrl: env.EMAIL_PUBLIC_BASE_URL,
+    brandLogoUrl: env.EMAIL_BRAND_LOGO_URL,
   };
 
   if (env.EMAIL_DELIVERY_MODE === "test") {

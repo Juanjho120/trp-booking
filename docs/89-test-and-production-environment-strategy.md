@@ -5,8 +5,9 @@
 ```text
 Phase: Phase 10 — Email Notifications
 Context: Environment and provider-isolation follow-up during 10.4
-Status: Implementation prepared; pending local validation and commit
+Status: Completed
 Base commit: 263b2a396ed206beb12ca407bc67472cbbead3bf
+Accepted commit: d3803fb7744c5d9836db7a37001b2753c3f4c8f8
 Related strategy: docs/85-email-notification-strategy-and-phase-10-roadmap.md
 Provider foundation: docs/86-email-persistence-and-resend-provider-foundation.md
 Confirmation orchestration: docs/88-guest-admin-confirmation-notification-orchestration.md
@@ -196,6 +197,7 @@ EMAIL_REPLY_TO_EN="reservations@mail.trp-booking.juantzun.dev"
 EMAIL_ADMIN_RECIPIENTS="your-admin-test-address@your-domain.example"
 EMAIL_ADMIN_LOCALE="es"
 EMAIL_PUBLIC_BASE_URL="https://trp-booking.juantzun.dev"
+EMAIL_BRAND_LOGO_URL="https://res.cloudinary.com/ACCOUNT/image/upload/trp-booking/brand/logo-primary.png"
 EMAIL_TEST_RECIPIENT="your-safe-test-inbox@your-domain.example"
 ```
 
@@ -215,6 +217,7 @@ EMAIL_REPLY_TO_EN="reservations@mail.trp-booking.juantzun.dev"
 EMAIL_ADMIN_RECIPIENTS="your-admin-test-address@your-domain.example"
 EMAIL_ADMIN_LOCALE="es"
 EMAIL_PUBLIC_BASE_URL="https://trp-booking.juantzun.dev"
+EMAIL_BRAND_LOGO_URL="https://res.cloudinary.com/ACCOUNT/image/upload/trp-booking/brand/logo-primary.png"
 EMAIL_TEST_RECIPIENT="your-safe-test-inbox@your-domain.example"
 ```
 
@@ -234,6 +237,7 @@ EMAIL_REPLY_TO_EN="reservations@turefugioperfecto.com"
 EMAIL_ADMIN_RECIPIENTS="admin@turefugioperfecto.com"
 EMAIL_ADMIN_LOCALE="es"
 EMAIL_PUBLIC_BASE_URL="https://turefugioperfecto.com"
+EMAIL_BRAND_LOGO_URL="https://res.cloudinary.com/ACCOUNT/image/upload/trp-booking/brand/logo-primary.png"
 EMAIL_TEST_RECIPIENT=""
 ```
 
@@ -323,3 +327,25 @@ This environment follow-up does not add:
 - production-domain verification in the personal account
 - cancellation, refund, change-request, or PMS behavior
 ```
+
+## Permanent Transactional Email Logo
+
+The detailed implementation contract is documented in `docs/90-transactional-email-brand-logo-hosting.md` and supersedes the earlier logo-from-application-base behavior.
+
+`EMAIL_PUBLIC_BASE_URL` remains responsible for application links such as the public home page and protected admin reservation detail. The email logo is intentionally independent from that deployment URL.
+
+```text
+EMAIL_BRAND_LOGO_URL=https://res.cloudinary.com/.../logo-primary.png
+```
+
+Rules:
+
+```text
+- Required whenever email delivery is test or production.
+- Must be a publicly reachable HTTPS URL.
+- Must not use localhost, loopback hosts, embedded credentials, or a path that only exists in a not-yet-deployed Vercel application.
+- Local and test email rendering may use the same permanent test/approved brand asset.
+- Replacing an asset in Cloudinary should preserve a stable public URL or use an explicitly versioned URL intentionally updated in environment configuration.
+- A missing or invalid logo URL makes enabled email configuration invalid, but it never changes payment approval or reservation confirmation.
+```
+

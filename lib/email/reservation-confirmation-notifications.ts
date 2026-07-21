@@ -340,6 +340,7 @@ function buildTemplateReservation(
 async function buildNotificationContent(
   notification: ClaimedNotification,
   publicBaseUrl: string,
+  brandLogoUrl: string,
 ): Promise<TransactionalEmailContent> {
   const locale = normalizeLocale(notification.locale);
 
@@ -353,6 +354,7 @@ async function buildNotificationContent(
   const input: ReservationEmailTemplateInput = {
     locale,
     publicBaseUrl,
+    brandLogoUrl,
     reservation: buildTemplateReservation(notification),
   };
 
@@ -451,6 +453,7 @@ async function deliverClaimedNotification(
     notificationId: string;
     provider: EmailProvider;
     publicBaseUrl: string;
+    brandLogoUrl: string;
     now: () => Date;
   }>,
 ): Promise<"sent" | "failed" | "skipped"> {
@@ -488,6 +491,7 @@ async function deliverClaimedNotification(
     const content = await buildNotificationContent(
       notification,
       input.publicBaseUrl,
+      input.brandLogoUrl,
     );
     const result = await input.provider.send({
       intendedRecipient: notification.recipient,
@@ -572,6 +576,7 @@ export async function deliverReservationConfirmationNotificationsBestEffort(
         notificationId,
         provider,
         publicBaseUrl: emailEnv.publicBaseUrl,
+        brandLogoUrl: emailEnv.brandLogoUrl,
         now,
       });
 

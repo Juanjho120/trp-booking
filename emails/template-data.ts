@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-import { brandAssets } from "@/components/brand/brand-assets";
 import { siteConfig } from "@/config/site";
 import type { TransactionalEmailLocale } from "@/types/email-provider";
 import type {
@@ -66,6 +65,34 @@ const absoluteApplicationUrlSchema = z
       });
     }
   });
+const absoluteHttpsAssetUrlSchema = z
+  .string()
+  .trim()
+  .url()
+  .superRefine((value, context) => {
+    const url = new URL(value);
+
+    if (url.protocol !== "https:") {
+      context.addIssue({
+        code: "custom",
+        message: "Must use HTTPS.",
+      });
+    }
+
+    if (url.username || url.password) {
+      context.addIssue({
+        code: "custom",
+        message: "Must not include URL credentials.",
+      });
+    }
+
+    if (["localhost", "127.0.0.1", "::1"].includes(url.hostname)) {
+      context.addIssue({
+        code: "custom",
+        message: "Must use a publicly reachable host.",
+      });
+    }
+  });
 
 const optionalNormalizedTextSchema = z.preprocess((value) => {
   if (typeof value !== "string") {
@@ -80,6 +107,7 @@ const reservationTemplateSchema = z
   .object({
     locale: localeSchema,
     publicBaseUrl: absoluteApplicationUrlSchema,
+    brandLogoUrl: absoluteHttpsAssetUrlSchema,
     reservation: z.object({
       id: reservationIdSchema,
       guestName: normalizedTextSchema(120),
@@ -260,7 +288,7 @@ export function buildReservationEmailTemplateViewModel(
     ),
     total: formatMoney(reservation.total, reservation.currency, locale),
     confirmedAt: formatConfirmedAt(reservation.confirmedAt, locale),
-    logoUrl: new URL(brandAssets.primary.src, baseUrl).toString(),
+    logoUrl: parsedInput.data.brandLogoUrl,
     publicHomeUrl: new URL("/", baseUrl).toString(),
     adminReservationUrl: new URL(
       `/admin/reservations/${encodeURIComponent(reservation.id)}`,
