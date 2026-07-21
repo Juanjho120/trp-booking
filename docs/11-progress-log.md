@@ -5,13 +5,12 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 ## Current Status
 
 ```text
-Current phase: Phase 9.11 — Admin MVP and Brand Identity Completion
-Current subphase: 9.11.5 Reservation and payment detail views
-Current focus: validate protected detail routes, reservation/payment cross-navigation, safe diagnostics, bilingual rendering, and not-found behavior
+Current phase: Phase 10 — Email Notifications
+Current subphase: Initial planning — Not started
+Current focus: define explicit Phase 10 subphases before implementation
 Last updated: 2026-07-21
-Last completed subphase: 9.11.4 Amenities and house rules
-9.11.5 base commit: c5b15197bba6d2fce84a15649944ebd013a0fdfc
-9.11.5 implementation: prepared in ZIP; pending local validation and commit
+Last completed phase: Phase 9.11 — Admin MVP and Brand Identity Completion
+9.11.6 closure base commit: b9fa0d7e397959a385685b7c8298c2b93cd974b0
 ```
 
 ## Completed Work
@@ -253,11 +252,9 @@ Static amenity-key hardening follow-up: d6ae907b6c3bc91b45147d05aa83878c0b38d3c2
 Final static/dynamic ordering fix: c5b15197bba6d2fce84a15649944ebd013a0fdfc
 ```
 
-## Active Work
-
 ### Phase 9.11.5 — Reservation and Payment Detail Views
 
-Status: **Implementation prepared; pending local validation and commit**
+Status: **Completed**
 
 ```text
 /admin/reservations/[reservationId] provides a protected read-only reservation detail.
@@ -272,26 +269,45 @@ Visible copy and statuses reuse the centralized bilingual message catalog.
 No mutation action, Prisma migration, seed change, email delivery, calendar mutation, refund flow, date-change flow, or PMS behavior was added.
 ```
 
+Accepted commits:
+
+```text
+Implementation: f3d14a26f314967c7d1ff536477e9541dd17a7ed
+Detail-route registration fix: 1ae765fe1bb3b2504f2c458632fd5b9acef43ade
+List-route restoration: b9fa0d7e397959a385685b7c8298c2b93cd974b0
+```
+
 Implementation document:
 
 ```text
 docs/83-reservation-and-payment-detail-views.md
 ```
 
+### Phase 9.11.6 — Validation and Documentation Closure
+
+Status: **Completed**
+
+```text
+Phase 9.11 implementation and scope boundaries are consolidated in README and the official trackers.
+The final reservation/payment list and detail route arrangement was reported working and committed.
+The closure records the accepted Phase 9.11.5 commits and the next Phase 10 handoff.
+No application code, Prisma migration, seed change, dependency, provider credential, visible UI copy, email delivery, or PMS behavior was added.
+```
+
+Closure document:
+
+```text
+docs/84-phase-9.11-validation-and-documentation-closure.md
+```
+
 ## Next Recommended Work
 
 ```text
-1. Copy the Phase 9.11.5 ZIP files into the current repository root.
-2. Run npm run env:validate and npm run db:validate.
-3. Run npm run lint and npm run build.
-4. Open a reservation detail from /admin/reservations.
-5. Verify guest, stay, pricing, hold, status, and payment attempts.
-6. Follow a payment detail and verify safe diagnostics and SDK events.
-7. Follow the parent reservation link back from the payment detail.
-8. Verify Spanish/English rendering and protected not-found behavior.
-9. Confirm no raw JSON, card data, mutation action, refund action, cancellation action, or date-change action appears.
-10. Commit Phase 9.11.5 after local acceptance.
-11. Continue with 9.11.6 Phase 9.11 validation and documentation closure.
+1. Run npm run env:validate and npm run db:validate after applying the closure files.
+2. Run npm run lint and npm run build.
+3. Commit the Phase 9.11.6 documentation closure.
+4. Start Phase 10 by defining explicit email-notification subphases before implementation.
+5. Preserve payment-driven confirmation, safe bilingual copy, idempotency, auditability, and the direct-booking/PMS boundary.
 ```
 
 ## Continuity Notes for New Conversations
@@ -304,19 +320,11 @@ AGENTS.md
 .env.example
 docs/10-phases.md
 docs/11-progress-log.md
+docs/73-phase-9-documentation-closure.md
+docs/74-brand-identity-refresh.md
+docs/78-accommodation-content-management.md
+docs/79-property-photo-management.md
 docs/80-amenities-and-house-rules.md
-docs/81-phase-9.11.4-ui-follow-up.md
-docs/82-catalog-lifecycle-and-photo-selection.md
 docs/83-reservation-and-payment-detail-views.md
-app/admin/reservations/[reservationId]/page.tsx
-app/admin/payments/[paymentId]/page.tsx
-features/admin/components/admin-reservation-detail-page.tsx
-features/admin/components/admin-payment-detail-page.tsx
-features/admin/components/admin-reservations-page.tsx
-features/admin/components/admin-payments-page.tsx
-lib/admin/reservation-detail.ts
-lib/admin/payment-detail.ts
-lib/admin/payment-diagnostics.ts
-types/admin-reservation-detail.ts
-types/admin-payment-detail.ts
+docs/84-phase-9.11-validation-and-documentation-closure.md
 ```

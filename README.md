@@ -96,30 +96,39 @@ Final Phase 9 capabilities:
 
 The real Airbnb iCal operational end-to-end test remains deferred until secure `external_calendars` configuration, real import URLs, and export tokens are available.
 
-## Brand Identity Refresh
+## Phase 9.11 — Admin MVP and Brand Identity Completion
 
-Phase 9.11.1 is completed. The approved Tu Refugio Perfecto identity is integrated across the public application, protected admin experience, Auth.js sign-in surface, favicons, application icons, and social metadata.
+Phase 9.11 is completed.
 
-Completed brand work:
+Completed subphases:
 
 ```text
-9.11.1-A Production raster assets — Completed
-9.11.1-B Reusable BrandLogo and BrandMark components — Completed
-9.11.1-C Application and metadata integration — Completed
-9.11.1-D Responsive QA and documentation closure — Completed
+9.11.1-A Production raster assets
+9.11.1-B Reusable brand components
+9.11.1-C Application and metadata integration
+9.11.1-D Responsive QA and documentation closure
+9.11.2 Accommodation content management
+9.11.3 Property photo management
+9.11.4 Amenities and house rules
+9.11.5 Reservation and payment detail views
+9.11.6 Validation and documentation closure
 ```
 
-The approved mark without text remains mandatory for favicon-scale assets. The logo with text is used only where sufficient display space exists.
+Final Phase 9.11 capabilities:
 
-Responsive closure also ensures that long footer contact values wrap safely, the compact mobile admin header keeps its controls visible, and the branded admin sign-in page remains vertically scrollable on short screens.
+```text
+- Approved BrandLogo and BrandMark components across public, admin, Auth.js, favicon, application-icon, and social metadata surfaces.
+- Responsive brand behavior for narrow footers, the compact mobile admin header, and short sign-in viewports.
+- Protected bilingual accommodation content editing with validation, optimistic concurrency, and audit history.
+- Cloudinary-backed property photo upload, bilingual alt text, ordering, cover selection, local preview, and soft deletion.
+- Shared bilingual amenity and house-rule catalog lifecycle management separated from property-specific assignments.
+- Styled check-in/check-out selectors and typed static/dynamic amenity ordering.
+- Protected read-only reservation and payment details with safe diagnostics and cross-navigation.
+- Existing reservation and payment list routes preserved alongside their dynamic detail routes.
+- No manual reservation confirmation, cancellation, refund, guest date change, stay extension, payment override, email delivery, or PMS expansion.
+```
 
-Accommodation content management allows an authorized admin to edit bilingual names and descriptions, capacity, bedroom/bathroom counts, and arrival/departure times. Slug, price, currency, status, composition, amenities, rules, and preparation settings remain outside that editor. Updates use server validation, optimistic concurrency, and `AdminAuditLog`.
-
-Property photo management adds protected Cloudinary-backed uploads, bilingual alt text, ordering, cover selection, and soft deletion. Upload bytes go directly from the browser to Cloudinary through a server-signed owned public ID, while finalization validates the provider asset before persisting `PropertyImage`. Structural gallery changes use optimistic revisions, and every mutation remains auditable.
-
-Amenity and house-rule assignments remain property-specific, while the shared bilingual catalogs are administered from the dedicated `/admin/catalogs` sidebar section. The catalog page separates amenity and house-rule content through two tab-style buttons. Catalog keys remain fixed, public localization stays database-backed, and every mutation creates an audit record.
-
-The 9.11.4 UI follow-up also adds a local preview before a property photo is uploaded and replaces free-text check-in/check-out fields with validated 30-minute time selectors.
+Phase 9.11 closure is documented in `docs/84-phase-9.11-validation-and-documentation-closure.md`.
 
 ## Documentation
 
@@ -148,13 +157,16 @@ docs/78-accommodation-content-management.md
 docs/79-property-photo-management.md
 docs/80-amenities-and-house-rules.md
 docs/81-phase-9.11.4-ui-follow-up.md
+docs/82-catalog-lifecycle-and-photo-selection.md
+docs/83-reservation-and-payment-detail-views.md
+docs/84-phase-9.11-validation-and-documentation-closure.md
 ```
 
 ## Development Status
 
 ```text
-Current phase: Phase 9.11 — Admin MVP and Brand Identity Completion
-Current subphase: 9.11.4 UI follow-up validation
-Current focus: validate the dedicated catalogs menu, property-photo preview, and accommodation time selectors
-Last completed subphase: 9.11.4 Amenities and house rules base implementation
+Current phase: Phase 10 — Email Notifications
+Current subphase: Initial planning — Not started
+Current focus: define explicit Phase 10 subphases before implementation
+Last completed phase: Phase 9.11 — Admin MVP and Brand Identity Completion
 ```

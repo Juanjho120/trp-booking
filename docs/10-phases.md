@@ -14,10 +14,10 @@ Deferred — Intentionally postponed.
 ## Current Phase
 
 ```text
-Current phase: Phase 9.11 — Admin MVP and Brand Identity Completion
-Current subphase: 9.11.5 Reservation and payment detail views
-Current focus: validate protected read-only reservation/payment detail routes, cross-navigation, safe diagnostics, bilingual rendering, and not-found behavior
-Last completed subphase: 9.11.4 Amenities and house rules
+Current phase: Phase 10 — Email Notifications
+Current subphase: Initial planning — Not started
+Current focus: define explicit Phase 10 subphases before implementation
+Last completed phase: Phase 9.11 — Admin MVP and Brand Identity Completion
 ```
 
 ---
@@ -184,7 +184,7 @@ Real Airbnb iCal import/export E2E validation requires secure operational extern
 
 ## Phase 9.11 — Admin MVP and Brand Identity Completion
 
-Status: **In progress**
+Status: **Completed**
 
 Goal: Close the documented MVP admin and brand-identity gaps before Phase 10 so public, admin, metadata, and future transactional email surfaces use the same approved brand system.
 
@@ -198,8 +198,8 @@ Subphase status:
 9.11.2 Accommodation content management — Completed
 9.11.3 Property photo management — Completed
 9.11.4 Amenities and house rules — Completed
-9.11.5 Reservation and payment detail views — In progress; implementation prepared and pending local validation
-9.11.6 Phase 9.11 validation and documentation closure — Not started
+9.11.5 Reservation and payment detail views — Completed
+9.11.6 Phase 9.11 validation and documentation closure — Completed
 ```
 
 ### Phase 9.11.1 result
@@ -267,7 +267,7 @@ Subphase status:
 - No Prisma migration, catalog hard deletion, restore/purge UI, price/status editing, reservation/payment action, email delivery, or PMS behavior was added.
 ```
 
-### Phase 9.11.5 implementation prepared
+### Phase 9.11.5 result
 
 ```text
 - /admin/reservations/[reservationId] provides a protected, read-only reservation detail view.
@@ -280,6 +280,16 @@ Subphase status:
 - PaymentClientEvent.sdkPayload is not selected or exposed.
 - The implementation reuses centralized bilingual copy and localized statuses.
 - No Prisma migration, seed change, reservation/payment mutation, email delivery, calendar mutation, refund action, date-change action, or PMS behavior was added.
+```
+
+### Phase 9.11.6 result
+
+```text
+- Phase 9.11 validation and accepted implementation boundaries are consolidated in README and the official trackers.
+- Phase 9.11.5 is recorded as completed after the final list/detail route structure was reported working and committed.
+- The authoritative closure record is docs/84-phase-9.11-validation-and-documentation-closure.md.
+- Phase 10 — Email Notifications is the next official phase and must begin by defining explicit implementation subphases.
+- No application code, visible UI copy, Prisma schema, migration, seed, dependency, provider credential, email delivery, reservation/payment mutation, or PMS behavior was added by the closure subphase.
 ```
 
 ---

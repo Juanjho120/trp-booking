@@ -5,8 +5,11 @@
 ```text
 Phase: Phase 9.11 — Admin MVP and Brand Identity Completion
 Subphase: 9.11.5 Reservation and payment detail views
-Status: Implementation prepared; pending local validation and commit
+Status: Completed
 Base commit: c5b15197bba6d2fce84a15649944ebd013a0fdfc
+Implementation commit: f3d14a26f314967c7d1ff536477e9541dd17a7ed
+Detail-route registration fix: 1ae765fe1bb3b2504f2c458632fd5b9acef43ade
+List-route restoration: b9fa0d7e397959a385685b7c8298c2b93cd974b0
 ```
 
 ## Goal
@@ -171,7 +174,7 @@ This preserves the project rule that public-facing and admin-facing copy must no
 
 ## Validation
 
-Run after copying the delivery files into the repository:
+The final route arrangement was reported working and committed locally. The repository validation gate remains:
 
 ```text
 npm run env:validate
@@ -195,10 +198,19 @@ Manual validation:
 10. Verify no raw JSON, card data, mutation button, confirmation action, cancellation action, or refund action appears.
 ```
 
-## Next subphase
-
-After local acceptance and commit:
+## Acceptance record
 
 ```text
-9.11.6 — Phase 9.11 validation and documentation closure
+- The initial implementation commit added the read-only detail surfaces.
+- The route-registration correction moved both detail pages out of app/api and into app/admin.
+- The list-route restoration preserved /admin/reservations and /admin/payments alongside their dynamic child routes.
+- The final arrangement was reported working and committed before Phase 9.11 closure.
 ```
+
+## Next phase
+
+```text
+Phase 10 — Email Notifications
+```
+
+Phase 10 must begin by defining explicit subphases before implementation.
