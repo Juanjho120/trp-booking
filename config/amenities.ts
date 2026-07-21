@@ -1,4 +1,7 @@
-import type { AmenityDefinition, AmenityKey } from "@/types/amenity";
+import type {
+  AmenityDefinition,
+  BuiltInAmenityKey,
+} from "@/types/amenity";
 
 export const amenityCatalog = {
   "combined-access": {
@@ -145,8 +148,8 @@ export const amenityCatalog = {
       en: "Luggage drop-off allowed",
     },
   },
-} as const satisfies Record<AmenityKey, AmenityDefinition>;
+} as const satisfies Record<BuiltInAmenityKey, AmenityDefinition>;
 
-export function getAmenityByKey(key: AmenityKey) {
+export function getAmenityByKey(key: BuiltInAmenityKey) {
   return amenityCatalog[key];
 }
