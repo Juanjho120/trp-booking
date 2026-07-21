@@ -7,9 +7,19 @@ This file defines the working rules for TRP Booking.
 - Technical project name: `trp-booking`.
 - Internal project name: `TRP Booking`.
 - Public brand: `Tu Refugio Perfecto` / `Bungalows Tu Refugio Perfecto`.
-- Official domain target: `turefugioperfecto.com.gt`.
+- Official production domain: `turefugioperfecto.com`.
+- Stable test deployment: `trp-booking.juantzun.dev`.
 - This project is a direct booking website, not a PMS.
 - TAMIAS remains the PMS / internal operations system.
+
+## Environment Isolation
+
+- `TRP_ENVIRONMENT=local|test|production` is the source of truth for the business/runtime environment.
+- Do not infer the TRP environment only from `VERCEL_ENV`; the stable test deployment may be a Vercel production deployment while remaining `TRP_ENVIRONMENT=test`.
+- Local and test environments use Tilopay sandbox, the personal test Resend account, and the verified sending domain `mail.trp-booking.juantzun.dev`.
+- Production uses Tilopay production, the future Tu Refugio Perfecto company Resend account, and the verified sending domain `mail.turefugioperfecto.com`.
+- Never reuse production API keys, sending domains, payment credentials, databases, or recipient routing in local/test.
+- Test email delivery must always retain the intended recipient in persistence while sending only to `EMAIL_TEST_RECIPIENT`.
 
 ## Required Working Style
 

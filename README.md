@@ -9,11 +9,48 @@ Tu Refugio Perfecto
 Bungalows Tu Refugio Perfecto
 ```
 
-The official domain target is:
+The official production domain is:
 
 ```text
-turefugioperfecto.com.gt
+turefugioperfecto.com
 ```
+
+The stable test deployment is:
+
+```text
+trp-booking.juantzun.dev
+```
+
+## Environment Strategy
+
+TRP Booking separates the business/runtime environment from the deployment platform environment:
+
+```text
+TRP_ENVIRONMENT=local
+- Application URL: http://localhost:3000
+- Tilopay: sandbox
+- Email: disabled or test
+- Resend account: personal test account
+- Verified sending domain: mail.trp-booking.juantzun.dev
+
+TRP_ENVIRONMENT=test
+- Application URL: https://trp-booking.juantzun.dev
+- Tilopay: sandbox
+- Email: disabled or test
+- Resend account: personal test account
+- Verified sending domain: mail.trp-booking.juantzun.dev
+
+TRP_ENVIRONMENT=production
+- Application URL: https://turefugioperfecto.com
+- Tilopay: production
+- Email: disabled or production
+- Resend account: Tu Refugio Perfecto company account
+- Verified sending domain: mail.turefugioperfecto.com
+```
+
+`VERCEL_ENV` remains deployment metadata and must not be used as the only signal for the TRP business environment. The stable test site may use a Vercel production deployment while remaining `TRP_ENVIRONMENT=test`.
+
+Detailed environment, domain, Resend-account, and Cloudflare DNS rules are documented in `docs/89-test-and-production-environment-strategy.md`.
 
 ## Purpose
 
@@ -37,6 +74,9 @@ TRP Booking is focused only on the public booking experience, direct reservation
 ## Key Operational Rules
 
 - Provider secrets for Auth.js, Cloudinary, Tilopay, Resend, Airbnb iCal, and similar services must remain server-side only.
+- `TRP_ENVIRONMENT` is the source of truth for local, test, and production business/runtime behavior.
+- Local/test credentials, domains, databases, payment settings, and recipient routing must remain isolated from production.
+- The personal Resend account and `mail.trp-booking.juantzun.dev` are test-only; production will use a company-owned Resend account and `mail.turefugioperfecto.com`.
 - Reservation flow must re-check availability server-side before creating pending holds or handing off to payment.
 - Pending reservation holds must use `PENDING_PAYMENT` with a non-null `expiresAt` and must never be confirmed before validated payment.
 - `CONFIRMED` reservations block their stay dates and preparation buffers.
@@ -50,6 +90,7 @@ TRP Booking is focused only on the public booking experience, direct reservation
 - Failed, rejected, expired, and successful payment attempts remain auditable.
 - Email delivery never determines payment approval and an email failure never rolls back a valid confirmed reservation.
 - Transactional email intents must use permanent database deduplication in addition to provider idempotency.
+- Test email delivery preserves the intended recipient in persistence but sends only to `EMAIL_TEST_RECIPIENT`.
 - Public-facing, admin-facing, and transactional email copy is centralized in `messages/es.ts` and `messages/en.ts`.
 - Admin modules use dedicated routes under `/admin`; the dashboard remains a compact summary.
 - Manual availability blocks use `CalendarBlock.source = MANUAL_BLOCK`, optional internal notes, soft deletion, audit logs, and server-side availability revalidation.
@@ -168,6 +209,8 @@ Phase 10.2 foundation completed:
 - Existing notification rows are backfilled with unique legacy keys before the uniqueness constraint is enforced.
 - Resend 6.17.2 is isolated behind a typed server-side provider adapter.
 - Email environment validation supports disabled, test-recipient override, and production modes.
+- TRP_ENVIRONMENT now separates business environment rules from Vercel deployment metadata.
+- Test and production Resend accounts, public domains, and verified sending domains remain isolated.
 - Provider errors are normalized into bounded internal codes without persisting raw Resend responses.
 - No templates, notification intents, confirmation hooks, cron worker, admin email UI, or actual email delivery are introduced yet.
 ```
@@ -176,7 +219,7 @@ Phase 10.3 templates completed:
 
 ```text
 - Centralized transactional-email copy is added under the emails namespace in messages/es.ts and messages/en.ts.
-- Shared React email primitives render email-safe table markup and inline styles without adding another template dependency.
+- Shared React email primitives render email-safe table markup and inline styles.
 - Guest RESERVATION_CONFIRMED and admin ADMIN_NEW_RESERVATION builders return subject, HTML, and plain-text content.
 - Template inputs are validated and normalized before rendering, and guest output must match the reservation preferred locale.
 - Dates, Guatemala business timestamps, money, guest counts, stay length, arrival time, and country names are locale-aware.
@@ -234,6 +277,7 @@ docs/85-email-notification-strategy-and-phase-10-roadmap.md
 docs/86-email-persistence-and-resend-provider-foundation.md
 docs/87-bilingual-branded-reservation-confirmation-templates.md
 docs/88-guest-admin-confirmation-notification-orchestration.md
+docs/89-test-and-production-environment-strategy.md
 ```
 
 ## Development Status
@@ -241,7 +285,7 @@ docs/88-guest-admin-confirmation-notification-orchestration.md
 ```text
 Current phase: Phase 10 — Email Notifications
 Current subphase: 10.4 Guest and admin confirmation notification orchestration — In progress
-Current focus: validate transactional intent creation, post-commit best-effort delivery, and duplicate-send prevention without adding retry cron or admin delivery UI yet
+Current focus: validate transactional intent creation, post-commit best-effort delivery, duplicate-send prevention, and isolated local/test/production provider configuration
 Last completed subphase: 10.3 Bilingual branded reservation-confirmation templates
 10.3 accepted commit: 7f6510d3e152caccefa42d9a2f5f75dbf747a22e
 ```

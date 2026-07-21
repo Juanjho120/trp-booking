@@ -10,7 +10,7 @@ import {
   buildReservationConfirmedEmail,
   EmailTemplateDataError,
 } from "@/emails";
-import { siteConfig } from "@/config/site";
+import { environmentConfig } from "@/config/site";
 import { prisma } from "@/lib/db/prisma";
 import { getEmailEnv } from "@/lib/env/server";
 import type { EmailProvider } from "@/types/email-provider";
@@ -111,6 +111,12 @@ function getConfiguredAdminRecipients(source: NodeJS.ProcessEnv): string[] {
   return Array.from(new Set(validRecipients));
 }
 
+function getEnvironmentAdminFallback(source: NodeJS.ProcessEnv): string {
+  return source.TRP_ENVIRONMENT === "production"
+    ? environmentConfig.production.adminEmail
+    : environmentConfig.test.adminEmail;
+}
+
 function resolveReservationNotificationRouting(
   source: NodeJS.ProcessEnv = process.env,
 ): ReservationNotificationRouting {
@@ -120,7 +126,7 @@ function resolveReservationNotificationRouting(
     adminRecipients:
       configuredRecipients.length > 0
         ? configuredRecipients
-        : [siteConfig.emails.admin],
+        : [getEnvironmentAdminFallback(source)],
     adminLocale: source.EMAIL_ADMIN_LOCALE === "en" ? "en" : "es",
   };
 }
@@ -479,7 +485,10 @@ async function deliverClaimedNotification(
       );
     }
 
-    const content = await buildNotificationContent(notification, input.publicBaseUrl);
+    const content = await buildNotificationContent(
+      notification,
+      input.publicBaseUrl,
+    );
     const result = await input.provider.send({
       intendedRecipient: notification.recipient,
       locale,

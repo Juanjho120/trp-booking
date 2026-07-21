@@ -1,9 +1,16 @@
 import { z } from "zod";
 
+import { environmentConfig } from "@/config/site";
+
 const REQUIRED_DATABASE_SCHEMA = "trp_booking";
 const CLOUDINARY_REQUIRED_FOLDER_PREFIX = "trp-booking/";
-const OFFICIAL_EMAIL_DOMAIN = "turefugioperfecto.com.gt";
 const TRANSACTIONAL_RECIPIENT_MAX_LENGTH = 160;
+
+const TEST_APPLICATION_DOMAIN = environmentConfig.test.applicationDomain;
+const TEST_SENDING_DOMAIN = environmentConfig.test.sendingDomain;
+const PRODUCTION_APPLICATION_DOMAIN =
+  environmentConfig.production.applicationDomain;
+const PRODUCTION_SENDING_DOMAIN = environmentConfig.production.sendingDomain;
 
 const placeholderValueSchema = z
   .string()
@@ -46,7 +53,6 @@ function emptyStringToUndefined(value: unknown): unknown {
   }
 
   const trimmedValue = value.trim();
-
   return trimmedValue.length > 0 ? trimmedValue : undefined;
 }
 
@@ -92,11 +98,7 @@ function parseEmailList(
     .filter(Boolean);
 
   if (emails.length === 0) {
-    context.addIssue({
-      code: "custom",
-      message: emptyMessage,
-    });
-
+    context.addIssue({ code: "custom", message: emptyMessage });
     return z.NEVER;
   }
 
@@ -105,11 +107,7 @@ function parseEmailList(
   );
 
   if (invalidEmails.length > 0) {
-    context.addIssue({
-      code: "custom",
-      message: invalidMessage,
-    });
-
+    context.addIssue({ code: "custom", message: invalidMessage });
     return z.NEVER;
   }
 
@@ -132,17 +130,11 @@ const adminEmailListSchema = z
       return z.NEVER;
     }
 
-    const placeholderEmails = emails.filter((email) =>
-      email.endsWith("@example.com"),
-    );
-
-    if (placeholderEmails.length > 0) {
+    if (emails.some((email) => email.endsWith("@example.com"))) {
       context.addIssue({
         code: "custom",
-        message:
-          "Replace example.com admin emails with real allowed admin emails.",
+        message: "Replace example.com admin emails with real allowed admin emails.",
       });
-
       return z.NEVER;
     }
 
@@ -174,7 +166,6 @@ const optionalEmailListSchema = z.preprocess(
           code: "custom",
           message: `Email recipients must not exceed ${TRANSACTIONAL_RECIPIENT_MAX_LENGTH} characters.`,
         });
-
         return z.NEVER;
       }
 
@@ -187,7 +178,6 @@ function extractSenderEmail(value: string): string | null {
   const bracketMatch = value.match(/<([^<>]+)>\s*$/);
   const candidate = bracketMatch?.[1] ?? value;
   const parsed = z.string().email().safeParse(candidate.trim());
-
   return parsed.success ? parsed.data.toLowerCase() : null;
 }
 
@@ -204,22 +194,43 @@ const optionalEmailSenderSchema = z.preprocess(
     .optional(),
 );
 
-function isOfficialEmailAddress(value: string): boolean {
-  const domain = value.toLowerCase().split("@")[1];
-
-  return (
-    domain === OFFICIAL_EMAIL_DOMAIN ||
-    domain?.endsWith(`.${OFFICIAL_EMAIL_DOMAIN}`) === true
-  );
+function getEmailDomain(value: string): string | null {
+  return value.toLowerCase().split("@")[1] ?? null;
 }
 
-function isOfficialApplicationUrl(value: string): boolean {
-  const hostname = new URL(value).hostname.toLowerCase();
+function matchesDomain(value: string, domain: string): boolean {
+  const normalizedValue = value.toLowerCase();
+  return normalizedValue === domain || normalizedValue.endsWith(`.${domain}`);
+}
 
-  return (
-    hostname === OFFICIAL_EMAIL_DOMAIN ||
-    hostname.endsWith(`.${OFFICIAL_EMAIL_DOMAIN}`)
-  );
+function emailUsesExactDomain(value: string, domain: string): boolean {
+  return getEmailDomain(value) === domain;
+}
+
+function emailUsesDomain(value: string, domain: string): boolean {
+  const emailDomain = getEmailDomain(value);
+  return emailDomain !== null && matchesDomain(emailDomain, domain);
+}
+
+function senderUsesExactDomain(value: string, domain: string): boolean {
+  const email = extractSenderEmail(value);
+  return email !== null && emailUsesExactDomain(email, domain);
+}
+
+function urlUsesDomain(value: string, domain: string): boolean {
+  return matchesDomain(new URL(value).hostname.toLowerCase(), domain);
+}
+
+function isLocalDevelopmentUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return (
+      (url.protocol === "http:" || url.protocol === "https:") &&
+      ["localhost", "127.0.0.1", "::1"].includes(url.hostname)
+    );
+  } catch {
+    return false;
+  }
 }
 
 const resendApiKeySchema = providerCredentialValueSchema
@@ -282,20 +293,10 @@ const emailRequiredKeys = [
   "EMAIL_PUBLIC_BASE_URL",
 ] as const;
 
-function isLocalDevelopmentUrl(value: string): boolean {
-  try {
-    const url = new URL(value);
-
-    return (
-      (url.protocol === "http:" || url.protocol === "https:") &&
-      ["localhost", "127.0.0.1", "::1"].includes(url.hostname)
-    );
-  } catch {
-    return false;
-  }
-}
-
 const rawServerEnvSchema = z.object({
+  TRP_ENVIRONMENT: z.enum(["local", "test", "production"], {
+    message: "Must be local, test, or production.",
+  }),
   DATABASE_URL: postgresConnectionStringSchema,
   DIRECT_URL: postgresConnectionStringSchema,
   AUTH_SECRET: authSecretSchema,
@@ -331,9 +332,7 @@ const rawServerEnvSchema = z.object({
   EMAIL_REPLY_TO_EN: optionalEmailSchema,
   EMAIL_ADMIN_RECIPIENTS: optionalEmailListSchema,
   EMAIL_ADMIN_LOCALE: z
-    .enum(["es", "en"], {
-      message: "Must be es or en.",
-    })
+    .enum(["es", "en"], { message: "Must be es or en." })
     .default("es"),
   EMAIL_PUBLIC_BASE_URL: optionalUrlSchema,
   EMAIL_TEST_RECIPIENT: optionalEmailSchema,
@@ -343,36 +342,85 @@ const rawServerEnvSchema = z.object({
     .default("development"),
 });
 
-const serverEnvSchema = rawServerEnvSchema.superRefine((env, context) => {
-  const isVercelProductionDeployment = env.VERCEL_ENV === "production";
+function validateEnvironmentUrl(
+  context: z.RefinementCtx,
+  path: string,
+  value: string,
+  trpEnvironment: "local" | "test" | "production",
+): void {
+  const url = new URL(value);
 
-  for (const key of tilopayCallbackUrlKeys) {
-    const value = env[key];
-
-    if (value.startsWith("https://")) {
-      continue;
-    }
-
-    if (!isVercelProductionDeployment && isLocalDevelopmentUrl(value)) {
-      continue;
+  if (trpEnvironment === "local") {
+    if (
+      isLocalDevelopmentUrl(value) ||
+      (url.protocol === "https:" && url.hostname === TEST_APPLICATION_DOMAIN)
+    ) {
+      return;
     }
 
     context.addIssue({
       code: "custom",
-      path: [key],
+      path: [path],
+      message: `Local URLs must use localhost or https://${TEST_APPLICATION_DOMAIN}.`,
+    });
+    return;
+  }
+
+  if (url.protocol !== "https:") {
+    context.addIssue({
+      code: "custom",
+      path: [path],
       message: "Must use HTTPS outside local development.",
+    });
+    return;
+  }
+
+  const expectedDomain =
+    trpEnvironment === "test"
+      ? TEST_APPLICATION_DOMAIN
+      : PRODUCTION_APPLICATION_DOMAIN;
+
+  const matchesExpectedDomain =
+    trpEnvironment === "test"
+      ? url.hostname === expectedDomain
+      : urlUsesDomain(value, expectedDomain);
+
+  if (!matchesExpectedDomain) {
+    context.addIssue({
+      code: "custom",
+      path: [path],
+      message: `Must use ${expectedDomain}${
+        trpEnvironment === "production" ? " or one of its subdomains" : ""
+      }.`,
+    });
+  }
+}
+
+const serverEnvSchema = rawServerEnvSchema.superRefine((env, context) => {
+  for (const key of tilopayCallbackUrlKeys) {
+    validateEnvironmentUrl(context, key, env[key], env.TRP_ENVIRONMENT);
+  }
+
+  const expectedTilopayEnvironment =
+    env.TRP_ENVIRONMENT === "production" ? "production" : "sandbox";
+
+  if (env.TILOPAY_ENVIRONMENT !== expectedTilopayEnvironment) {
+    context.addIssue({
+      code: "custom",
+      path: ["TILOPAY_ENVIRONMENT"],
+      message: `TRP_ENVIRONMENT=${env.TRP_ENVIRONMENT} requires TILOPAY_ENVIRONMENT=${expectedTilopayEnvironment}.`,
     });
   }
 
   if (
-    isVercelProductionDeployment &&
-    env.TILOPAY_ENVIRONMENT !== "production"
+    env.TRP_ENVIRONMENT === "production" &&
+    env.VERCEL_ENV !== undefined &&
+    env.VERCEL_ENV !== "production"
   ) {
     context.addIssue({
       code: "custom",
-      path: ["TILOPAY_ENVIRONMENT"],
-      message:
-        "Production deployments must use TILOPAY_ENVIRONMENT=production.",
+      path: ["VERCEL_ENV"],
+      message: "TRP production must run as a Vercel production deployment.",
     });
   }
 
@@ -380,36 +428,25 @@ const serverEnvSchema = rawServerEnvSchema.superRefine((env, context) => {
     return;
   }
 
-  if (isVercelProductionDeployment && env.EMAIL_DELIVERY_MODE === "test") {
-    context.addIssue({
-      code: "custom",
-      path: ["EMAIL_DELIVERY_MODE"],
-      message: "Production deployments cannot use EMAIL_DELIVERY_MODE=test.",
-    });
-  }
+  const expectedEmailMode =
+    env.TRP_ENVIRONMENT === "production" ? "production" : "test";
 
-  if (
-    isVercelProductionDeployment &&
-    env.EMAIL_DELIVERY_MODE !== "production"
-  ) {
+  if (env.EMAIL_DELIVERY_MODE !== expectedEmailMode) {
     context.addIssue({
       code: "custom",
       path: ["EMAIL_DELIVERY_MODE"],
-      message:
-        "Vercel production deployments must use production email delivery mode or disabled mode.",
+      message: `TRP_ENVIRONMENT=${env.TRP_ENVIRONMENT} requires EMAIL_DELIVERY_MODE=${expectedEmailMode} or disabled.`,
     });
   }
 
   for (const key of emailRequiredKeys) {
-    if (env[key] !== undefined) {
-      continue;
+    if (env[key] === undefined) {
+      context.addIssue({
+        code: "custom",
+        path: [key],
+        message: `Required when EMAIL_DELIVERY_MODE=${env.EMAIL_DELIVERY_MODE}.`,
+      });
     }
-
-    context.addIssue({
-      code: "custom",
-      path: [key],
-      message: `Required when EMAIL_DELIVERY_MODE=${env.EMAIL_DELIVERY_MODE}.`,
-    });
   }
 
   if (env.EMAIL_DELIVERY_MODE === "test" && !env.EMAIL_TEST_RECIPIENT) {
@@ -429,52 +466,27 @@ const serverEnvSchema = rawServerEnvSchema.superRefine((env, context) => {
   }
 
   if (env.EMAIL_PUBLIC_BASE_URL) {
-    const publicBaseUrl = new URL(env.EMAIL_PUBLIC_BASE_URL);
-
-    if (
-      env.EMAIL_DELIVERY_MODE === "production" &&
-      publicBaseUrl.protocol !== "https:"
-    ) {
-      context.addIssue({
-        code: "custom",
-        path: ["EMAIL_PUBLIC_BASE_URL"],
-        message: "Production email links must use HTTPS.",
-      });
-    }
-
-    if (
-      env.EMAIL_DELIVERY_MODE === "production" &&
-      !isOfficialApplicationUrl(env.EMAIL_PUBLIC_BASE_URL)
-    ) {
-      context.addIssue({
-        code: "custom",
-        path: ["EMAIL_PUBLIC_BASE_URL"],
-        message: `Production email links must use ${OFFICIAL_EMAIL_DOMAIN} or one of its subdomains.`,
-      });
-    }
-
-    if (
-      env.EMAIL_DELIVERY_MODE === "test" &&
-      publicBaseUrl.protocol !== "https:" &&
-      !isLocalDevelopmentUrl(env.EMAIL_PUBLIC_BASE_URL)
-    ) {
-      context.addIssue({
-        code: "custom",
-        path: ["EMAIL_PUBLIC_BASE_URL"],
-        message: "Test email links must use HTTPS outside local development.",
-      });
-    }
+    validateEnvironmentUrl(
+      context,
+      "EMAIL_PUBLIC_BASE_URL",
+      env.EMAIL_PUBLIC_BASE_URL,
+      env.TRP_ENVIRONMENT,
+    );
   }
+
+  const expectedSendingDomain =
+    env.TRP_ENVIRONMENT === "production"
+      ? PRODUCTION_SENDING_DOMAIN
+      : TEST_SENDING_DOMAIN;
 
   for (const key of ["EMAIL_FROM_ES", "EMAIL_FROM_EN"] as const) {
     const sender = env[key];
-    const email = sender ? extractSenderEmail(sender) : null;
 
-    if (email && !isOfficialEmailAddress(email)) {
+    if (sender && !senderUsesExactDomain(sender, expectedSendingDomain)) {
       context.addIssue({
         code: "custom",
         path: [key],
-        message: `Must use ${OFFICIAL_EMAIL_DOMAIN} or one of its subdomains.`,
+        message: `Must use the verified sending domain ${expectedSendingDomain}.`,
       });
     }
   }
@@ -482,17 +494,30 @@ const serverEnvSchema = rawServerEnvSchema.superRefine((env, context) => {
   for (const key of ["EMAIL_REPLY_TO_ES", "EMAIL_REPLY_TO_EN"] as const) {
     const email = env[key];
 
-    if (email && !isOfficialEmailAddress(email)) {
+    if (!email) {
+      continue;
+    }
+
+    const valid =
+      env.TRP_ENVIRONMENT === "production"
+        ? emailUsesDomain(email, PRODUCTION_APPLICATION_DOMAIN)
+        : emailUsesDomain(email, TEST_SENDING_DOMAIN);
+
+    if (!valid) {
       context.addIssue({
         code: "custom",
         path: [key],
-        message: `Must use ${OFFICIAL_EMAIL_DOMAIN} or one of its subdomains.`,
+        message:
+          env.TRP_ENVIRONMENT === "production"
+            ? `Must use ${PRODUCTION_APPLICATION_DOMAIN} or one of its subdomains.`
+            : `Must use the isolated test domain ${TEST_SENDING_DOMAIN}.`,
       });
     }
   }
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
+export type TrpEnvironment = ServerEnv["TRP_ENVIRONMENT"];
 
 export type CloudinaryEnv = Pick<
   ServerEnv,
@@ -548,6 +573,7 @@ export function validateServerEnv(
   source: NodeJS.ProcessEnv = process.env,
 ): ServerEnv {
   return serverEnvSchema.parse({
+    TRP_ENVIRONMENT: source.TRP_ENVIRONMENT,
     DATABASE_URL: source.DATABASE_URL,
     DIRECT_URL: source.DIRECT_URL,
     AUTH_SECRET: source.AUTH_SECRET,
@@ -625,9 +651,7 @@ export function getEmailEnv(source: NodeJS.ProcessEnv = process.env): EmailEnv {
   const env = validateServerEnv(source);
 
   if (env.EMAIL_DELIVERY_MODE === "disabled") {
-    return {
-      deliveryMode: "disabled",
-    };
+    return { deliveryMode: "disabled" };
   }
 
   if (
@@ -644,14 +668,8 @@ export function getEmailEnv(source: NodeJS.ProcessEnv = process.env): EmailEnv {
 
   const enabledEmailEnvBase: EnabledEmailEnvBase = {
     apiKey: env.RESEND_API_KEY,
-    from: {
-      es: env.EMAIL_FROM_ES,
-      en: env.EMAIL_FROM_EN,
-    },
-    replyTo: {
-      es: env.EMAIL_REPLY_TO_ES,
-      en: env.EMAIL_REPLY_TO_EN,
-    },
+    from: { es: env.EMAIL_FROM_ES, en: env.EMAIL_FROM_EN },
+    replyTo: { es: env.EMAIL_REPLY_TO_ES, en: env.EMAIL_REPLY_TO_EN },
     adminRecipients: env.EMAIL_ADMIN_RECIPIENTS,
     adminLocale: env.EMAIL_ADMIN_LOCALE,
     publicBaseUrl: env.EMAIL_PUBLIC_BASE_URL,
@@ -669,10 +687,7 @@ export function getEmailEnv(source: NodeJS.ProcessEnv = process.env): EmailEnv {
     };
   }
 
-  return {
-    ...enabledEmailEnvBase,
-    deliveryMode: "production",
-  };
+  return { ...enabledEmailEnvBase, deliveryMode: "production" };
 }
 
 export function formatEnvValidationError(error: unknown): string {
