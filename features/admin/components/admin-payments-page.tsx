@@ -1,18 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { ChevronDown, ExternalLink, Search } from "lucide-react";
 import { useRef, useState } from "react";
-import { ChevronDown, Search } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Card,
   CardContent,
@@ -20,8 +13,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useLocale } from "@/features/i18n";
-import type { AdminPaymentsPageData, AdminPaymentsView } from "@/types/admin-payments";
+import type {
+  AdminPaymentsPageData,
+  AdminPaymentsView,
+} from "@/types/admin-payments";
 import type { Locale } from "@/types/locale";
 
 import { AdminPageHeader } from "./admin-page-header";
@@ -54,9 +57,9 @@ export function AdminPaymentsPageView({
   const view = data.filters.view ?? "payments";
   const propertyFilterInputRef = useRef<HTMLInputElement>(null);
   const statusFilterInputRef = useRef<HTMLInputElement>(null);
-  const [expandedDiagnostics, setExpandedDiagnostics] = useState<ReadonlySet<string>>(
-    () => new Set(),
-  );
+  const [expandedDiagnostics, setExpandedDiagnostics] = useState<
+    ReadonlySet<string>
+  >(() => new Set());
 
   function toggleDiagnostics(paymentId: string) {
     setExpandedDiagnostics((current) => {
@@ -91,18 +94,22 @@ export function AdminPaymentsPageView({
   }
 
   function paymentStatusLabel(status: string): string {
-    return statusCopy.payment[
-      status as keyof typeof statusCopy.payment
-    ] ?? status;
+    return (
+      statusCopy.payment[status as keyof typeof statusCopy.payment] ?? status
+    );
   }
 
   function eventLabel(eventType: string): string {
-    return statusCopy.paymentClientEvent[
-      eventType as keyof typeof statusCopy.paymentClientEvent
-    ] ?? eventType;
+    return (
+      statusCopy.paymentClientEvent[
+        eventType as keyof typeof statusCopy.paymentClientEvent
+      ] ?? eventType
+    );
   }
 
-  function buildUrl(overrides: Record<string, string | number | undefined>): string {
+  function buildUrl(
+    overrides: Record<string, string | number | undefined>,
+  ): string {
     const params = new URLSearchParams();
     const values = {
       view,
@@ -278,45 +285,61 @@ export function AdminPaymentsPageView({
       </Card>
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
-        <p>{copy.labels.results}: {data.pagination.totalItems}</p>
-        <p>{copy.labels.page} {data.pagination.page} {copy.labels.of} {data.pagination.totalPages}</p>
+        <p>
+          {copy.labels.results}: {data.pagination.totalItems}
+        </p>
+        <p>
+          {copy.labels.page} {data.pagination.page} {copy.labels.of}{" "}
+          {data.pagination.totalPages}
+        </p>
       </div>
 
       {view === "payments" ? (
         data.payments.length > 0 ? (
           <div className="grid gap-4">
             {data.payments.map((payment) => (
-              <Card className="border-border/70 bg-card shadow-sm" key={payment.id} size="sm">
+              <Card
+                className="border-border/70 bg-card shadow-sm"
+                key={payment.id}
+                size="sm"
+              >
                 <CardHeader>
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <CardTitle>{payment.guestName}</CardTitle>
                       <CardDescription className="mt-1">
-                        {locale === "en" ? payment.property.nameEn : payment.property.nameEs}
+                        {locale === "en"
+                          ? payment.property.nameEn
+                          : payment.property.nameEs}
                       </CardDescription>
                     </div>
-                    <Badge variant="outline">{paymentStatusLabel(payment.status)}</Badge>
+                    <Badge variant="outline">
+                      {paymentStatusLabel(payment.status)}
+                    </Badge>
                   </div>
                 </CardHeader>
                 <CardContent className="grid gap-4">
                   <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                    <div>
-                      <p className="text-xs uppercase tracking-wide text-muted-foreground">{copy.labels.amount}</p>
-                      <p className="mt-1 text-sm font-medium">{formatMoney(payment.amount, payment.currency)}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs uppercase tracking-wide text-muted-foreground">{copy.labels.order}</p>
-                      <p className="mt-1 break-all text-sm">{payment.providerReference ?? copy.labels.unavailable}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs uppercase tracking-wide text-muted-foreground">{copy.labels.reservation}</p>
-                      <p className="mt-1 break-all text-sm">{payment.reservationId}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs uppercase tracking-wide text-muted-foreground">{copy.labels.createdAt}</p>
-                      <p className="mt-1 text-sm">{formatDateTime(payment.createdAt)}</p>
-                    </div>
+                    <SummaryValue
+                      label={copy.labels.amount}
+                      value={formatMoney(payment.amount, payment.currency)}
+                    />
+                    <SummaryValue
+                      label={copy.labels.order}
+                      value={
+                        payment.providerReference ?? copy.labels.unavailable
+                      }
+                    />
+                    <SummaryValue
+                      label={copy.labels.reservation}
+                      value={payment.reservationId}
+                    />
+                    <SummaryValue
+                      label={copy.labels.createdAt}
+                      value={formatDateTime(payment.createdAt)}
+                    />
                   </div>
+
                   <div className="rounded-2xl border border-border bg-muted/20 p-4">
                     <Button
                       aria-expanded={expandedDiagnostics.has(payment.id)}
@@ -328,81 +351,124 @@ export function AdminPaymentsPageView({
                       {copy.labels.safeDiagnostics}
                       <ChevronDown
                         aria-hidden="true"
-                        className={expandedDiagnostics.has(payment.id) ? "rotate-180 transition" : "transition"}
+                        className={
+                          expandedDiagnostics.has(payment.id)
+                            ? "rotate-180 transition"
+                            : "transition"
+                        }
                       />
                     </Button>
                     {expandedDiagnostics.has(payment.id) ? (
-                      <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2 xl:grid-cols-3">
-                        {Object.entries(payment.diagnostics).map(([key, value]) => (
-                          <div key={key}>
-                            <dt className="text-xs uppercase tracking-wide text-muted-foreground">
-                              {copy.diagnostics[key as keyof typeof copy.diagnostics]}
-                            </dt>
-                            <dd className="mt-1 break-words">{value ?? copy.labels.unavailable}</dd>
-                          </div>
-                        ))}
-                      </dl>
+                      <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2 xl:grid-cols-3">
+                        {Object.entries(payment.diagnostics).map(
+                          ([key, value]) => (
+                            <SummaryValue
+                              key={key}
+                              label={
+                                copy.diagnostics[
+                                  key as keyof typeof copy.diagnostics
+                                ]
+                              }
+                              value={value ?? copy.labels.unavailable}
+                            />
+                          ),
+                        )}
+                      </div>
                     ) : null}
                   </div>
+
+                  <Button
+                    asChild
+                    className="justify-self-start"
+                    variant="outline"
+                  >
+                    <Link
+                      href={`/admin/payments/${encodeURIComponent(payment.id)}`}
+                    >
+                      {messages.common.viewDetails}
+                      <ExternalLink aria-hidden="true" />
+                    </Link>
+                  </Button>
                 </CardContent>
               </Card>
             ))}
           </div>
         ) : (
-          <Card className="border-dashed bg-muted/20 shadow-none">
-            <CardContent className="py-10 text-center text-sm text-muted-foreground">
-              {copy.empty.noPayments}
-            </CardContent>
-          </Card>
+          <EmptyState message={copy.empty.noPayments} />
         )
       ) : data.events.length > 0 ? (
         <div className="grid gap-4">
           {data.events.map((event) => (
-            <Card className="border-border/70 bg-card shadow-sm" key={event.id} size="sm">
+            <Card
+              className="border-border/70 bg-card shadow-sm"
+              key={event.id}
+              size="sm"
+            >
               <CardHeader>
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <CardTitle>{eventLabel(event.eventType)}</CardTitle>
                     <CardDescription className="mt-1">
-                      {locale === "en" ? event.property.nameEn : event.property.nameEs} · {event.guestName}
+                      {locale === "en"
+                        ? event.property.nameEn
+                        : event.property.nameEs}{" "}
+                      · {event.guestName}
                     </CardDescription>
                   </div>
-                  <Badge variant="outline">{formatDateTime(event.createdAt)}</Badge>
+                  <Badge variant="outline">
+                    {formatDateTime(event.createdAt)}
+                  </Badge>
                 </div>
               </CardHeader>
-              <CardContent className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">{copy.labels.payment}</p>
-                  <p className="mt-1 break-all text-sm">{event.paymentId}</p>
+              <CardContent className="grid gap-4">
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                  <SummaryValue
+                    label={copy.labels.payment}
+                    value={event.paymentId}
+                  />
+                  <SummaryValue
+                    label={copy.labels.reservation}
+                    value={event.reservationId}
+                  />
+                  <SummaryValue
+                    label={copy.labels.environment}
+                    value={event.environment ?? copy.labels.unavailable}
+                  />
+                  <SummaryValue
+                    label={copy.labels.sdkMessage}
+                    value={event.sdkMessage ?? copy.labels.unavailable}
+                  />
                 </div>
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">{copy.labels.reservation}</p>
-                  <p className="mt-1 break-all text-sm">{event.reservationId}</p>
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">{copy.labels.environment}</p>
-                  <p className="mt-1 text-sm">{event.environment ?? copy.labels.unavailable}</p>
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">{copy.labels.sdkMessage}</p>
-                  <p className="mt-1 text-sm">{event.sdkMessage ?? copy.labels.unavailable}</p>
-                </div>
+                <Button
+                  asChild
+                  className="justify-self-start"
+                  variant="outline"
+                >
+                  <Link
+                    href={`/admin/payments/${encodeURIComponent(event.paymentId)}`}
+                  >
+                    {messages.common.viewDetails}
+                    <ExternalLink aria-hidden="true" />
+                  </Link>
+                </Button>
               </CardContent>
             </Card>
           ))}
         </div>
       ) : (
-        <Card className="border-dashed bg-muted/20 shadow-none">
-          <CardContent className="py-10 text-center text-sm text-muted-foreground">
-            {copy.empty.noEvents}
-          </CardContent>
-        </Card>
+        <EmptyState message={copy.empty.noEvents} />
       )}
 
       <div className="mt-6 flex items-center justify-between gap-3">
-        <Button asChild={data.pagination.page > 1} disabled={data.pagination.page <= 1} variant="outline">
+        <Button
+          asChild={data.pagination.page > 1}
+          disabled={data.pagination.page <= 1}
+          variant="outline"
+        >
           {data.pagination.page > 1 ? (
-            <Link href={buildUrl({ page: data.pagination.page - 1 })}>{copy.actions.previous}</Link>
+            <Link href={buildUrl({ page: data.pagination.page - 1 })}>
+              {copy.actions.previous}
+            </Link>
           ) : (
             <span>{copy.actions.previous}</span>
           )}
@@ -413,12 +479,38 @@ export function AdminPaymentsPageView({
           variant="outline"
         >
           {data.pagination.page < data.pagination.totalPages ? (
-            <Link href={buildUrl({ page: data.pagination.page + 1 })}>{copy.actions.next}</Link>
+            <Link href={buildUrl({ page: data.pagination.page + 1 })}>
+              {copy.actions.next}
+            </Link>
           ) : (
             <span>{copy.actions.next}</span>
           )}
         </Button>
       </div>
     </>
+  );
+}
+
+function SummaryValue({
+  label,
+  value,
+}: Readonly<{ label: string; value: string }>) {
+  return (
+    <div className="min-w-0">
+      <p className="text-xs uppercase tracking-wide text-muted-foreground">
+        {label}
+      </p>
+      <p className="mt-1 break-words text-sm font-medium">{value}</p>
+    </div>
+  );
+}
+
+function EmptyState({ message }: Readonly<{ message: string }>) {
+  return (
+    <Card className="border-dashed bg-muted/20 shadow-none">
+      <CardContent className="py-10 text-center text-sm text-muted-foreground">
+        {message}
+      </CardContent>
+    </Card>
   );
 }

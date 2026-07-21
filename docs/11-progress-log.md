@@ -6,14 +6,12 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 9.11 — Admin MVP and Brand Identity Completion
-Current subphase: 9.11.4 final catalog lifecycle follow-up validation
-Current focus: validate catalog creation, catalog soft deletion, assignment safeguards, and clearing a selected property photo
-Last updated: 2026-07-20
-Last completed subphase: 9.11.4 UI follow-up
-9.11.4 base commit: 9f5c10a6ca5812e0c6ea48852e1f673fb65df138
-9.11.4 implementation commit: 07dd7c03f19de77b0f18186c26986cd9e036213e
-9.11.4 accepted UI follow-up commit: ac4c8d96dbe1a80e481ebbc9046a3bf887a22a6e
-9.11.4 catalog lifecycle follow-up commit: pending local validation and commit
+Current subphase: 9.11.5 Reservation and payment detail views
+Current focus: validate protected detail routes, reservation/payment cross-navigation, safe diagnostics, bilingual rendering, and not-found behavior
+Last updated: 2026-07-21
+Last completed subphase: 9.11.4 Amenities and house rules
+9.11.5 base commit: c5b15197bba6d2fce84a15649944ebd013a0fdfc
+9.11.5 implementation: prepared in ZIP; pending local validation and commit
 ```
 
 ## Completed Work
@@ -188,7 +186,7 @@ Photo-limit/card alignment: 9f5c10a6ca5812e0c6ea48852e1f673fb65df138
 
 ### Phase 9.11.4 — Amenities and House Rules
 
-Status: **Completed; final catalog lifecycle follow-up pending local validation and commit**
+Status: **Completed**
 
 Base implementation:
 
@@ -211,7 +209,7 @@ Accommodation check-in and check-out use controlled 30-minute selectors.
 Accepted follow-up commit: ac4c8d96dbe1a80e481ebbc9046a3bf887a22a6e
 ```
 
-Final catalog lifecycle follow-up:
+Accepted catalog lifecycle follow-up:
 
 ```text
 POST /api/admin/catalogs creates amenities and house rules.
@@ -221,8 +219,9 @@ DELETE /api/admin/catalogs soft-deletes amenities and house rules.
 Deletion removes replaceable assignment rows in the same serializable transaction.
 Deletion is rejected when an affected property would lose its final active item in that domain.
 deletedAt, deletedById, expectedUpdatedAt, and AdminAuditLog preserve history and concurrency.
-The property-photo upload form adds an explicit clear-selection control that resets the hidden input and removes the preview without contacting Cloudinary.
-No Prisma migration, hard deletion, restore/purge UI, dependency, reservation/payment action, email delivery, or PMS behavior was added.
+The property-photo upload form can explicitly clear its local selection without contacting Cloudinary.
+Static amenity ordering accepts runtime-created catalog keys.
+No Prisma migration, hard deletion, restore/purge UI, reservation/payment action, email delivery, or PMS behavior was added.
 ```
 
 Catalog audit actions:
@@ -245,17 +244,54 @@ Default assignments are inserted only when a property currently has zero assignm
 Seed reruns do not overwrite runtime content or restore soft-deleted catalog records.
 ```
 
+Accepted commits:
+
+```text
+Catalog lifecycle implementation: 96e6d3938be82dd500b03aeead18c95b962a20fe
+Static amenity-key hardening: 88b2320994d0dd91b80e2359bb28932751de8a37
+Static amenity-key hardening follow-up: d6ae907b6c3bc91b45147d05aa83878c0b38d3c2
+Final static/dynamic ordering fix: c5b15197bba6d2fce84a15649944ebd013a0fdfc
+```
+
+## Active Work
+
+### Phase 9.11.5 — Reservation and Payment Detail Views
+
+Status: **Implementation prepared; pending local validation and commit**
+
+```text
+/admin/reservations/[reservationId] provides a protected read-only reservation detail.
+/admin/payments/[paymentId] provides a protected read-only payment detail.
+Reservation and payment list cards link to the corresponding detail routes.
+Reservation detail shows guest, stay, pricing, active hold, and ordered payment-attempt information.
+Payment detail shows safe allowlisted diagnostics, parent reservation context, and ordered SDK client events.
+Reservation and payment detail pages provide cross-navigation.
+Payment.rawPayload is processed only in the server loader and never returned as raw JSON.
+PaymentClientEvent.sdkPayload is not selected.
+Visible copy and statuses reuse the centralized bilingual message catalog.
+No mutation action, Prisma migration, seed change, email delivery, calendar mutation, refund flow, date-change flow, or PMS behavior was added.
+```
+
+Implementation document:
+
+```text
+docs/83-reservation-and-payment-detail-views.md
+```
+
 ## Next Recommended Work
 
 ```text
-1. Apply and validate the final Phase 9.11.4 catalog lifecycle follow-up.
-2. Create an amenity and house rule and confirm both start unassigned.
-3. Assign the new items and confirm public bilingual rendering.
-4. Verify soft deletion, minimum-assignment rejection, stale-tab rejection, and audit rows.
-5. Confirm the clear-selection photo control removes the local preview without clearing alternative-text drafts.
-6. Run npm run env:validate, npm run db:validate, npm run lint, and npm run build.
-7. Commit the follow-up after local acceptance.
-8. Continue with 9.11.5 reservation and payment detail views.
+1. Copy the Phase 9.11.5 ZIP files into the current repository root.
+2. Run npm run env:validate and npm run db:validate.
+3. Run npm run lint and npm run build.
+4. Open a reservation detail from /admin/reservations.
+5. Verify guest, stay, pricing, hold, status, and payment attempts.
+6. Follow a payment detail and verify safe diagnostics and SDK events.
+7. Follow the parent reservation link back from the payment detail.
+8. Verify Spanish/English rendering and protected not-found behavior.
+9. Confirm no raw JSON, card data, mutation action, refund action, cancellation action, or date-change action appears.
+10. Commit Phase 9.11.5 after local acceptance.
+11. Continue with 9.11.6 Phase 9.11 validation and documentation closure.
 ```
 
 ## Continuity Notes for New Conversations
@@ -271,10 +307,16 @@ docs/11-progress-log.md
 docs/80-amenities-and-house-rules.md
 docs/81-phase-9.11.4-ui-follow-up.md
 docs/82-catalog-lifecycle-and-photo-selection.md
-features/admin/components/admin-catalog-manager.tsx
-features/admin/components/admin-property-photo-manager.tsx
-app/api/admin/catalogs/route.ts
-lib/admin/catalogs.ts
-types/admin-catalogs.ts
-types/amenity.ts
+docs/83-reservation-and-payment-detail-views.md
+app/admin/reservations/[reservationId]/page.tsx
+app/admin/payments/[paymentId]/page.tsx
+features/admin/components/admin-reservation-detail-page.tsx
+features/admin/components/admin-payment-detail-page.tsx
+features/admin/components/admin-reservations-page.tsx
+features/admin/components/admin-payments-page.tsx
+lib/admin/reservation-detail.ts
+lib/admin/payment-detail.ts
+lib/admin/payment-diagnostics.ts
+types/admin-reservation-detail.ts
+types/admin-payment-detail.ts
 ```

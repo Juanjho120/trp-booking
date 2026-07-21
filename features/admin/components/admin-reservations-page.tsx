@@ -1,18 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { Search } from "lucide-react";
+import { ExternalLink, Search } from "lucide-react";
 import { useRef } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Card,
   CardContent,
@@ -20,6 +13,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useLocale } from "@/features/i18n";
 import type { AdminReservationsPageData } from "@/types/admin-reservations";
 import type { Locale } from "@/types/locale";
@@ -37,7 +37,6 @@ const reservationStatuses = [
 ] as const;
 
 const ALL_FILTER_VALUE = "__all__";
-
 const inputClassName =
   "h-11 w-full rounded-2xl border border-input bg-background px-3 text-sm text-foreground shadow-xs outline-none transition placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50";
 
@@ -50,7 +49,7 @@ export function AdminReservationsPageView({
 }: Readonly<{ data: AdminReservationsPageData }>) {
   const { locale, messages } = useLocale();
   const copy = messages.admin.reservationsPage;
-  const statusCopy = messages.admin.statuses.reservation;
+  const reservationStatusCopy = messages.admin.statuses.reservation;
   const paymentStatusCopy = messages.admin.statuses.payment;
   const intlLocale = getIntlLocale(locale);
   const propertyFilterInputRef = useRef<HTMLInputElement>(null);
@@ -70,17 +69,22 @@ export function AdminReservationsPageView({
     }).format(Number(value));
   }
 
-  function statusLabel(status: string): string {
-    return statusCopy[status as keyof typeof statusCopy] ?? status;
+  function reservationStatusLabel(status: string): string {
+    return (
+      reservationStatusCopy[status as keyof typeof reservationStatusCopy] ??
+      status
+    );
   }
 
   function paymentStatusLabel(status: string | null): string {
     return status
-      ? paymentStatusCopy[status as keyof typeof paymentStatusCopy] ?? status
+      ? (paymentStatusCopy[status as keyof typeof paymentStatusCopy] ?? status)
       : copy.labels.unavailable;
   }
 
-  function buildUrl(overrides: Record<string, string | number | undefined>): string {
+  function buildUrl(
+    overrides: Record<string, string | number | undefined>,
+  ): string {
     const params = new URLSearchParams();
     const values = {
       search: data.filters.search,
@@ -190,7 +194,7 @@ export function AdminReservationsPageView({
                   </SelectItem>
                   {reservationStatuses.map((status) => (
                     <SelectItem key={status} value={status}>
-                      {statusLabel(status)}
+                      {reservationStatusLabel(status)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -217,14 +221,19 @@ export function AdminReservationsPageView({
           {copy.labels.results}: {data.pagination.totalItems}
         </p>
         <p className="text-sm text-muted-foreground">
-          {copy.labels.page} {data.pagination.page} {copy.labels.of} {data.pagination.totalPages}
+          {copy.labels.page} {data.pagination.page} {copy.labels.of}{" "}
+          {data.pagination.totalPages}
         </p>
       </div>
 
       {data.reservations.length > 0 ? (
         <div className="grid gap-4">
           {data.reservations.map((reservation) => (
-            <Card className="border-border/70 bg-card shadow-sm" key={reservation.id} size="sm">
+            <Card
+              className="border-border/70 bg-card shadow-sm"
+              key={reservation.id}
+              size="sm"
+            >
               <CardHeader>
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
@@ -235,46 +244,59 @@ export function AdminReservationsPageView({
                         : reservation.property.nameEs}
                     </CardDescription>
                   </div>
-                  <Badge variant="outline">{statusLabel(reservation.status)}</Badge>
+                  <Badge variant="outline">
+                    {reservationStatusLabel(reservation.status)}
+                  </Badge>
                 </div>
               </CardHeader>
               <CardContent className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <SummaryValue
+                  label={copy.labels.dates}
+                  value={`${formatDate(reservation.checkInDate)} — ${formatDate(
+                    reservation.checkOutDate,
+                  )}`}
+                />
                 <div>
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                    {copy.labels.dates}
-                  </p>
-                  <p className="mt-1 text-sm font-medium">
-                    {formatDate(reservation.checkInDate)} — {formatDate(reservation.checkOutDate)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                    {copy.labels.contact}
-                  </p>
-                  <p className="mt-1 break-all text-sm">{reservation.guestEmail}</p>
+                  <SummaryValue
+                    label={copy.labels.contact}
+                    value={reservation.guestEmail}
+                  />
                   {reservation.guestPhone ? (
-                    <p className="mt-1 text-sm text-muted-foreground">{reservation.guestPhone}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {reservation.guestPhone}
+                    </p>
                   ) : null}
                 </div>
                 <div>
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                    {copy.labels.total}
-                  </p>
-                  <p className="mt-1 text-sm font-medium">
-                    {formatMoney(reservation.total, reservation.currency)}
-                  </p>
+                  <SummaryValue
+                    label={copy.labels.total}
+                    value={formatMoney(reservation.total, reservation.currency)}
+                  />
                   <p className="mt-1 text-sm text-muted-foreground">
                     {copy.labels.guests}: {reservation.guestCount}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                    {copy.labels.reservation}
-                  </p>
-                  <p className="mt-1 break-all text-sm">{reservation.id}</p>
+                  <SummaryValue
+                    label={copy.labels.reservation}
+                    value={reservation.id}
+                  />
                   <p className="mt-1 text-sm text-muted-foreground">
-                    {copy.labels.latestPayment}: {paymentStatusLabel(reservation.latestPaymentStatus)}
+                    {copy.labels.latestPayment}:{" "}
+                    {paymentStatusLabel(reservation.latestPaymentStatus)}
                   </p>
+                </div>
+                <div className="flex justify-end sm:col-span-2 xl:col-span-4">
+                  <Button asChild variant="outline">
+                    <Link
+                      href={`/admin/reservations/${encodeURIComponent(
+                        reservation.id,
+                      )}`}
+                    >
+                      {messages.common.viewDetails}
+                      <ExternalLink aria-hidden="true" />
+                    </Link>
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -317,5 +339,19 @@ export function AdminReservationsPageView({
         </Button>
       </div>
     </>
+  );
+}
+
+function SummaryValue({
+  label,
+  value,
+}: Readonly<{ label: string; value: string }>) {
+  return (
+    <div className="min-w-0">
+      <p className="text-xs uppercase tracking-wide text-muted-foreground">
+        {label}
+      </p>
+      <p className="mt-1 break-words text-sm font-medium">{value}</p>
+    </div>
   );
 }

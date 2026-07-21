@@ -27,11 +27,9 @@ export {
   isAdminAccommodationId,
   toAdminAccommodationId,
 } from "./accommodations";
-export {
-  adminApiErrorResponse,
-  adminApiSuccessResponse,
-} from "./api-response";
+export { adminApiErrorResponse, adminApiSuccessResponse } from "./api-response";
 export { getAdminDashboardSummary } from "./dashboard";
+export { getAdminPaymentDetail } from "./payment-detail";
 export { getAdminPaymentsPage } from "./payments";
 export {
   AdminCalendarError,
@@ -59,5 +57,6 @@ export {
   unlockAdminPreparationBufferDay,
   updateAdminPreparationBufferSettings,
 } from "./preparation-buffer-management";
+export { getAdminReservationDetail } from "./reservation-detail";
 export { getAdminReservationsPage } from "./reservations";
 export { getAdminSessionActor } from "./session";

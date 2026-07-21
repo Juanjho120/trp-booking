@@ -15,9 +15,9 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 9.11 — Admin MVP and Brand Identity Completion
-Current subphase: 9.11.4 final catalog lifecycle follow-up validation
-Current focus: validate catalog creation, catalog soft deletion, assignment safeguards, and clearing a selected property photo
-Last completed subphase: 9.11.4 UI follow-up
+Current subphase: 9.11.5 Reservation and payment detail views
+Current focus: validate protected read-only reservation/payment detail routes, cross-navigation, safe diagnostics, bilingual rendering, and not-found behavior
+Last completed subphase: 9.11.4 Amenities and house rules
 ```
 
 ---
@@ -197,8 +197,8 @@ Subphase status:
 9.11.1-D Responsive QA and documentation closure — Completed
 9.11.2 Accommodation content management — Completed
 9.11.3 Property photo management — Completed
-9.11.4 Amenities and house rules — Completed; final catalog lifecycle follow-up pending local validation
-9.11.5 Reservation and payment detail views — Not started
+9.11.4 Amenities and house rules — Completed
+9.11.5 Reservation and payment detail views — In progress; implementation prepared and pending local validation
 9.11.6 Phase 9.11 validation and documentation closure — Not started
 ```
 
@@ -263,7 +263,23 @@ Subphase status:
 - Public accommodation pages read active assignments and bilingual catalog content from PostgreSQL.
 - Selecting a local property photo produces an object-URL preview, and the admin can explicitly clear that selection before upload.
 - Check-in and optional check-out values use styled 30-minute selectors and server-side validation.
+- Static amenity ordering accepts runtime-created catalog keys without weakening the typed static icon catalog.
 - No Prisma migration, catalog hard deletion, restore/purge UI, price/status editing, reservation/payment action, email delivery, or PMS behavior was added.
+```
+
+### Phase 9.11.5 implementation prepared
+
+```text
+- /admin/reservations/[reservationId] provides a protected, read-only reservation detail view.
+- /admin/payments/[paymentId] provides a protected, read-only payment detail view.
+- Reservation and payment list cards expose localized detail actions.
+- Reservation detail includes guest, stay, pricing, hold, and ordered payment-attempt information.
+- Payment detail includes safe allowlisted diagnostics, parent reservation context, and ordered SDK client events.
+- Reservation and payment detail pages provide cross-navigation without introducing mutation actions.
+- Payment.rawPayload is processed only server-side and is never returned as raw JSON.
+- PaymentClientEvent.sdkPayload is not selected or exposed.
+- The implementation reuses centralized bilingual copy and localized statuses.
+- No Prisma migration, seed change, reservation/payment mutation, email delivery, calendar mutation, refund action, date-change action, or PMS behavior was added.
 ```
 
 ---
