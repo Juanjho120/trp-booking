@@ -34,9 +34,9 @@ function formatGuests(
   return `${guests} ${guests === 1 ? singular : plural}`;
 }
 
-export function buildAdminNewReservationEmail(
+export async function buildAdminNewReservationEmail(
   input: ReservationEmailTemplateInput,
-): TransactionalEmailContent {
+): Promise<TransactionalEmailContent> {
   const view = buildReservationEmailTemplateViewModel(input);
   const messages = getTransactionalEmailMessages(view.locale);
   const nights = formatNights(
@@ -59,7 +59,7 @@ export function buildAdminNewReservationEmail(
   const subject = `${messages.adminNewReservation.subjectPrefix} · ${view.propertyName} · ${view.guestName}`;
   const previewText = `${messages.adminNewReservation.previewPrefix} ${view.checkInDate}.`;
 
-  const html = renderEmailDocument(
+  const html = await renderEmailDocument(
     <EmailLayout
       brandName={messages.common.brandName}
       brandUrl={view.publicHomeUrl}

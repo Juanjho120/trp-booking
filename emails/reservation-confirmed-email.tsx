@@ -36,9 +36,9 @@ function formatGuests(
   return `${guests} ${guests === 1 ? singular : plural}`;
 }
 
-export function buildReservationConfirmedEmail(
+export async function buildReservationConfirmedEmail(
   input: ReservationEmailTemplateInput,
-): TransactionalEmailContent {
+): Promise<TransactionalEmailContent> {
   const view = buildReservationEmailTemplateViewModel(input);
 
   if (view.locale !== view.guestPreferredLocale) {
@@ -60,7 +60,7 @@ export function buildReservationConfirmedEmail(
   const subject = `${messages.reservationConfirmed.subjectPrefix} · ${view.propertyName}`;
   const previewText = `${messages.reservationConfirmed.previewPrefix} ${view.checkInDate}.`;
 
-  const html = renderEmailDocument(
+  const html = await renderEmailDocument(
     <EmailLayout
       brandName={messages.common.brandName}
       brandUrl={view.publicHomeUrl}

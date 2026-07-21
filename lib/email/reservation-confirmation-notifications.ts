@@ -23,6 +23,7 @@ import type {
 import type {
   ReservationEmailTemplateInput,
   ReservationEmailTemplateReservation,
+  TransactionalEmailContent,
 } from "@/types/email-template";
 
 import { EmailProviderError } from "./provider";
@@ -330,10 +331,10 @@ function buildTemplateReservation(
   };
 }
 
-function buildNotificationContent(
+async function buildNotificationContent(
   notification: ClaimedNotification,
   publicBaseUrl: string,
-) {
+): Promise<TransactionalEmailContent> {
   const locale = normalizeLocale(notification.locale);
 
   if (!locale) {
@@ -478,7 +479,7 @@ async function deliverClaimedNotification(
       );
     }
 
-    const content = buildNotificationContent(notification, input.publicBaseUrl);
+    const content = await buildNotificationContent(notification, input.publicBaseUrl);
     const result = await input.provider.send({
       intendedRecipient: notification.recipient,
       locale,

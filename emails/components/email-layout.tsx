@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-head-element, @next/next/no-img-element -- Transactional email markup requires literal document elements and absolute image URLs. */
 
-import type { CSSProperties, ReactNode } from "react";
-import { renderToStaticMarkup } from "react-dom/server";
+import { render } from "@react-email/render";
+import type { CSSProperties, ReactElement, ReactNode } from "react";
 
 import type { TransactionalEmailLocale } from "@/types/email-provider";
 
@@ -352,6 +352,8 @@ export function EmailButton({
   );
 }
 
-export function renderEmailDocument(element: ReactNode): string {
-  return `<!doctype html>${renderToStaticMarkup(element)}`;
+export async function renderEmailDocument(
+  element: ReactElement,
+): Promise<string> {
+  return render(element);
 }
