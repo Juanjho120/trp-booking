@@ -169,20 +169,43 @@ function compareAccommodationOrder(firstId: string, secondId: string): number {
   );
 }
 
-function compareAmenityOrder(firstKey: string, secondKey: string): number {
-  const firstIndex = amenityDisplayOrder.indexOf(firstKey as AmenityKey);
-  const secondIndex = amenityDisplayOrder.indexOf(secondKey as AmenityKey);
+function compareConfiguredOrder(
+  firstKey: string,
+  secondKey: string,
+  configuredOrder: readonly string[],
+): number {
+  const firstIndex = configuredOrder.indexOf(firstKey);
+  const secondIndex = configuredOrder.indexOf(secondKey);
 
-  return (firstIndex === -1 ? Number.MAX_SAFE_INTEGER : firstIndex) -
-    (secondIndex === -1 ? Number.MAX_SAFE_INTEGER : secondIndex);
+  if (firstIndex === -1 && secondIndex === -1) {
+    return firstKey.localeCompare(secondKey);
+  }
+
+  if (firstIndex === -1) {
+    return 1;
+  }
+
+  if (secondIndex === -1) {
+    return -1;
+  }
+
+  return firstIndex - secondIndex;
+}
+
+function compareAmenityOrder(firstKey: string, secondKey: string): number {
+  return compareConfiguredOrder(
+    firstKey,
+    secondKey,
+    amenityDisplayOrder,
+  );
 }
 
 function compareRuleOrder(firstKey: string, secondKey: string): number {
-  const firstIndex = ruleDisplayOrder.indexOf(firstKey as (typeof ruleDisplayOrder)[number]);
-  const secondIndex = ruleDisplayOrder.indexOf(secondKey as (typeof ruleDisplayOrder)[number]);
-
-  return (firstIndex === -1 ? Number.MAX_SAFE_INTEGER : firstIndex) -
-    (secondIndex === -1 ? Number.MAX_SAFE_INTEGER : secondIndex);
+  return compareConfiguredOrder(
+    firstKey,
+    secondKey,
+    ruleDisplayOrder,
+  );
 }
 
 function buildLocalizedText(es: string, en: string): LocalizedText {
