@@ -770,6 +770,7 @@ export const esMessages = {
           delete: "Eliminar",
           confirmDelete: "Eliminar fotografía",
           cancel: "Cancelar",
+          clearSelection: "Limpiar selección",
         },
         notes: {
           formats:

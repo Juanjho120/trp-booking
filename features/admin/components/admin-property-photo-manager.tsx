@@ -89,7 +89,6 @@ export function AdminPropertyPhotoManager({
 }>) {
   const { locale, messages } = useLocale();
   const copy = messages.admin.accommodations.photos;
-  const clearSelectionLabel = messages.admin.payments.actions.clear;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [settings, setSettings] =
     useState<AdminPropertyPhotoSettings>(initialSettings);
@@ -493,7 +492,7 @@ export function AdminPropertyPhotoManager({
                     variant="ghost"
                   >
                     <X aria-hidden="true" />
-                    {clearSelectionLabel}
+                    {copy.actions.clearSelection}
                   </Button>
                 ) : null}
               </div>

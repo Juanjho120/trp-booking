@@ -770,6 +770,7 @@ export const enMessages = {
           delete: "Delete",
           confirmDelete: "Delete photo",
           cancel: "Cancel",
+          clearSelection: "Clear selection",
         },
         notes: {
           formats:
