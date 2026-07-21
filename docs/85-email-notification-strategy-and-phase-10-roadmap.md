@@ -447,7 +447,7 @@ Status: **Completed**
 
 ### 10.3 — Bilingual branded reservation-confirmation templates
 
-Status: **In progress**
+Status: **Completed**
 
 ```text
 - Add centralized ES/EN transactional email copy.
@@ -460,7 +460,7 @@ Status: **In progress**
 
 ### 10.4 — Guest and admin confirmation notification orchestration
 
-Status: **Not started**
+Status: **In progress**
 
 ```text
 - Create guest/admin notification intents transactionally with a newly confirmed reservation.
@@ -567,7 +567,9 @@ docs/86-email-persistence-and-resend-provider-foundation.md
 
 ## Phase 10.3 Implementation Note
 
-Status at delivery: **Implementation prepared; pending local validation and commit.**
+Status: **Completed and accepted.**
+
+Accepted commit: `7f6510d3e152caccefa42d9a2f5f75dbf747a22e`.
 
 The Phase 10.3 delivery implements the template and copy architecture defined by this roadmap:
 
@@ -581,10 +583,36 @@ The Phase 10.3 delivery implements the template and copy architecture defined by
 - admin new-reservation HTML and plain-text output with a protected admin detail link
 ```
 
-The delivery does not create `EmailNotification` intents, alter reservation confirmation, call Resend, process retries, expose delivery history, add arrival scheduling, change Prisma, or add dependencies. Those responsibilities remain in 10.4 and later.
+The accepted delivery does not create `EmailNotification` intents, alter reservation confirmation, call Resend, process retries, expose delivery history, add arrival scheduling, change Prisma, or add dependencies. Those responsibilities remain in 10.4 and later.
 
 Detailed implementation record:
 
 ```text
 docs/87-bilingual-branded-reservation-confirmation-templates.md
+```
+
+## Phase 10.4 Implementation Note
+
+Status at delivery: **Implementation prepared; pending local validation and commit.**
+
+The Phase 10.4 delivery implements the confirmation-notification orchestration defined by this roadmap:
+
+```text
+- guest and per-admin notification intents written or reused transactionally with reservation confirmation
+- stable permanent deduplication keys reused as provider idempotency keys
+- idempotent behavior for repeated APPROVED payment callbacks
+- best-effort immediate delivery only after the confirmation transaction commits
+- atomic PENDING to PROCESSING claiming before rendering/provider work
+- disabled mode that preserves PENDING intents without calling Resend
+- test mode that stores intended recipients while delivery is rerouted by the provider adapter
+- SENT only after a provider message ID and FAILED with normalized safe error values
+- unchanged successful payment/reservation result even when rendering, provider delivery, or audit updates fail after commit
+```
+
+The delivery intentionally leaves retry scheduling, retry cron, stale PROCESSING recovery, bounded maximum attempts, admin notification history, manual resend, arrival instructions, and production webhook observability to later subphases. No schema, migration, dependency, environment variable, centralized copy, or PMS behavior is added.
+
+Detailed implementation record:
+
+```text
+docs/88-guest-admin-confirmation-notification-orchestration.md
 ```

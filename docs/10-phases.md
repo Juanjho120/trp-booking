@@ -15,10 +15,10 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 10 — Email Notifications
-Current subphase: 10.3 Bilingual branded reservation-confirmation templates — In progress
-Current focus: validate and commit the bilingual guest/admin template builders; no notification intents or provider delivery are activated yet
-Last completed subphase: 10.2 Persistence and Resend provider foundation
-10.2 accepted commit: 5ad4f1c4c08a1f98691d0215dc5958fbe7542f72
+Current subphase: 10.4 Guest and admin confirmation notification orchestration — In progress
+Current focus: validate transactional intent creation, post-commit best-effort delivery, and duplicate-send prevention without adding retry cron or admin delivery UI yet
+Last completed subphase: 10.3 Bilingual branded reservation-confirmation templates
+10.3 accepted commit: 7f6510d3e152caccefa42d9a2f5f75dbf747a22e
 ```
 
 ---
@@ -306,8 +306,8 @@ Subphase status:
 ```text
 10.1 Email notification strategy and environment contract — Completed
 10.2 Persistence and Resend provider foundation — Completed
-10.3 Bilingual branded reservation-confirmation templates — In progress
-10.4 Guest and admin confirmation notification orchestration — Not started
+10.3 Bilingual branded reservation-confirmation templates — Completed
+10.4 Guest and admin confirmation notification orchestration — In progress
 10.5 Retry processing and admin delivery visibility — Not started
 10.6 Arrival instructions scheduling and content — Not started
 10.7 Validation and documentation closure — Not started
@@ -365,7 +365,7 @@ Phase 10 rules:
 - The accepted implementation was committed as 5ad4f1c4c08a1f98691d0215dc5958fbe7542f72.
 ```
 
-### Phase 10.3 implementation prepared
+### Phase 10.3 result
 
 ```text
 - messages/es.ts and messages/en.ts gain matching transactional-email namespaces for guest and admin confirmation messages.
@@ -377,6 +377,23 @@ Phase 10 rules:
 - Guest output excludes admin links, raw provider data, card information, access codes, and PMS-only content.
 - No EmailNotification intent, reservation-confirmation hook, provider call, retry worker, migration, or dependency change is added.
 - The implementation record is docs/87-bilingual-branded-reservation-confirmation-templates.md.
+- The accepted implementation was committed as 7f6510d3e152caccefa42d9a2f5f75dbf747a22e.
+```
+
+### Phase 10.4 implementation prepared
+
+```text
+- The payment-driven confirmation service creates or reuses one guest intent and one intent per configured admin recipient in the same database transaction that confirms the reservation.
+- Existing APPROVED callbacks use the same confirmation service and therefore backfill or reuse missing intents idempotently.
+- Permanent deduplication keys follow reservation-confirmed/<reservationId>/<recipient> and admin-new-reservation/<reservationId>/<recipient>.
+- Provider delivery starts only after the transaction commits.
+- Immediate delivery atomically claims PENDING rows as PROCESSING before rendering or calling Resend.
+- The stored recipient always remains the intended guest/admin recipient; test-mode rerouting stays inside the provider adapter.
+- SENT requires a provider message ID. Safe template/provider failures become FAILED without changing Payment or Reservation.
+- Disabled or invalid email configuration leaves intents PENDING and returns the existing successful confirmation result.
+- FAILED retries, nextAttemptAt scheduling, stale claims, bounded attempt limits, cron processing, and admin visibility remain in 10.5.
+- No Prisma schema, migration, environment variable, dependency, UI copy, arrival scheduling, or PMS behavior is added.
+- The implementation record is docs/88-guest-admin-confirmation-notification-orchestration.md.
 ```
 
 ---

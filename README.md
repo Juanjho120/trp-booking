@@ -140,8 +140,8 @@ Planned subphases:
 ```text
 10.1 Email notification strategy and environment contract — Completed
 10.2 Persistence and Resend provider foundation — Completed
-10.3 Bilingual branded reservation-confirmation templates — In progress
-10.4 Guest and admin confirmation notification orchestration — Not started
+10.3 Bilingual branded reservation-confirmation templates — Completed
+10.4 Guest and admin confirmation notification orchestration — In progress
 10.5 Retry processing and admin delivery visibility — Not started
 10.6 Arrival instructions scheduling and content — Not started
 10.7 Validation and documentation closure — Not started
@@ -172,7 +172,7 @@ Phase 10.2 foundation completed:
 - No templates, notification intents, confirmation hooks, cron worker, admin email UI, or actual email delivery are introduced yet.
 ```
 
-Phase 10.3 templates prepared:
+Phase 10.3 templates completed:
 
 ```text
 - Centralized transactional-email copy is added under the emails namespace in messages/es.ts and messages/en.ts.
@@ -183,6 +183,21 @@ Phase 10.3 templates prepared:
 - The approved primary brand logo is resolved as an absolute URL from EMAIL_PUBLIC_BASE_URL.
 - Guest templates do not expose protected admin links, provider payloads, card data, access codes, or PMS-only data.
 - No EmailNotification row is created and no Resend provider call is made in 10.3.
+- The accepted implementation was committed as 7f6510d3e152caccefa42d9a2f5f75dbf747a22e.
+```
+
+Phase 10.4 orchestration prepared:
+
+```text
+- Guest and admin EmailNotification intents are inserted or reused inside the reservation-confirmation transaction.
+- Stable reservation-confirmed/... and admin-new-reservation/... keys remain the permanent database and Resend idempotency keys.
+- Repeated APPROVED payment callbacks reuse existing intents instead of creating duplicates.
+- Immediate delivery starts only after the confirmation transaction commits.
+- An atomic PENDING to PROCESSING claim prevents concurrent callbacks from sending the same intent twice.
+- Disabled or unavailable email configuration leaves intents PENDING without affecting payment or reservation success.
+- Test mode keeps the intended recipient in the database while the provider adapter redirects delivery to EMAIL_TEST_RECIPIENT.
+- Provider and template failures become safe FAILED notification records while the approved payment and confirmed reservation remain unchanged.
+- Retry scheduling, stale PROCESSING recovery, attempt limits, admin delivery visibility, and manual resend remain assigned to 10.5.
 ```
 
 ## Documentation
@@ -218,14 +233,15 @@ docs/84-phase-9.11-validation-and-documentation-closure.md
 docs/85-email-notification-strategy-and-phase-10-roadmap.md
 docs/86-email-persistence-and-resend-provider-foundation.md
 docs/87-bilingual-branded-reservation-confirmation-templates.md
+docs/88-guest-admin-confirmation-notification-orchestration.md
 ```
 
 ## Development Status
 
 ```text
 Current phase: Phase 10 — Email Notifications
-Current subphase: 10.3 Bilingual branded reservation-confirmation templates — In progress
-Current focus: validate and commit the bilingual guest/admin template builders; no notification intents or provider delivery are activated yet
-Last completed subphase: 10.2 Persistence and Resend provider foundation
-10.2 accepted commit: 5ad4f1c4c08a1f98691d0215dc5958fbe7542f72
+Current subphase: 10.4 Guest and admin confirmation notification orchestration — In progress
+Current focus: validate transactional intent creation, post-commit best-effort delivery, and duplicate-send prevention without adding retry cron or admin delivery UI yet
+Last completed subphase: 10.3 Bilingual branded reservation-confirmation templates
+10.3 accepted commit: 7f6510d3e152caccefa42d9a2f5f75dbf747a22e
 ```
