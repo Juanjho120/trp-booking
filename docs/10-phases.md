@@ -15,9 +15,9 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 9.11 — Admin MVP and Brand Identity Completion
-Current subphase: 9.11.5 Reservation and payment detail views
-Current focus: define protected reservation and payment detail pages after completing amenity and house-rule administration
-Last completed subphase: 9.11.4 Amenities and house rules
+Current subphase: 9.11.4 final catalog lifecycle follow-up validation
+Current focus: validate catalog creation, catalog soft deletion, assignment safeguards, and clearing a selected property photo
+Last completed subphase: 9.11.4 UI follow-up
 ```
 
 ---
@@ -197,7 +197,7 @@ Subphase status:
 9.11.1-D Responsive QA and documentation closure — Completed
 9.11.2 Accommodation content management — Completed
 9.11.3 Property photo management — Completed
-9.11.4 Amenities and house rules — Completed; UI follow-up pending local validation
+9.11.4 Amenities and house rules — Completed; final catalog lifecycle follow-up pending local validation
 9.11.5 Reservation and payment detail views — Not started
 9.11.6 Phase 9.11 validation and documentation closure — Not started
 ```
@@ -222,7 +222,7 @@ Subphase status:
 ```text
 - Authorized admins can edit bilingual property names, short descriptions, and long descriptions.
 - Admins can edit maximum guests, bedroom count, bathroom count, check-in time, and optional check-out time.
-- The existing /admin/accommodations page now separates public content management from preparation-buffer settings.
+- The existing /admin/accommodations page separates public content management from preparation-buffer settings.
 - Slug, price, currency, status, composition, photos, amenities, rules, and preparation settings are not editable through the content editor.
 - Zod validates the PATCH request and the service repeats normalization and domain validation.
 - expectedUpdatedAt prevents an older browser tab from silently overwriting newer property content.
@@ -231,7 +231,6 @@ Subphase status:
 - Soft-deleted or unsupported property records cannot be edited.
 - No Prisma schema migration, photo management, amenity/rule management, pricing workflow, email delivery, or PMS behavior was added.
 ```
-
 
 ### Phase 9.11.3 result
 
@@ -249,25 +248,22 @@ Subphase status:
 - No Prisma migration, amenity/rule management, pricing workflow, reservation/payment action, email delivery, or PMS behavior was added.
 ```
 
-
 ### Phase 9.11.4 result
 
 ```text
-- Each supported accommodation has a protected /admin/accommodations/[propertyId]/amenities-rules route.
+- Shared catalog content is managed from /admin/catalogs with Amenities and House Rules tabs.
+- Property-specific assignment remains under /admin/accommodations/[propertyId]/amenities-rules.
 - Authorized admins can assign or unassign active amenities and house rules while preserving at least one of each per accommodation.
-- Amenity names remain bilingual and amenity icons are restricted to the approved typed icon catalog; catalog edits affect every accommodation using the shared item.
-- House-rule titles and public descriptions remain bilingual, database-backed, and shared across assigned accommodations.
-- Catalog keys and categories remain immutable in this MVP workflow; arbitrary runtime catalog keys are not created.
-- Catalog content updates use expectedUpdatedAt, and assignment changes use a SHA-256 revision plus serializable transactions.
-- AMENITY_CONTENT_UPDATED, HOUSE_RULE_CONTENT_UPDATED, and PROPERTY_AMENITIES_RULES_UPDATED preserve AdminAuditLog history.
-- Unassignment removes only PropertyAmenity or PropertyRule membership rows; Amenity and HouseRule catalog records are never hard-deleted by this UI.
-- The development seed preserves admin-managed catalog content and does not restore removed default assignments once a property has active assignments.
-- Public accommodation pages already read active assigned amenities and rules from PostgreSQL and reflect accepted changes without synchronization.
-- No Prisma migration, price/status/composition editing, reservation/payment action, email delivery, or PMS behavior was added.
-- Shared amenity and house-rule content is exposed through a dedicated /admin/catalogs sidebar route with Amenities and House Rules tab-style navigation.
-- Property-specific assignment remains under /admin/accommodations/[propertyId]/amenities-rules and no longer mixes shared catalog editing into the same page.
-- Selecting a local property photo produces an object-URL preview before the Cloudinary upload begins.
-- Check-in and optional check-out values use styled 30-minute selectors and are validated server-side against the same canonical time contract.
+- Catalog content remains bilingual and amenity icons remain restricted to the approved typed icon catalog.
+- Admins can create new amenity and house-rule catalog rows; new entries start unassigned.
+- The server generates immutable runtime keys from the English label and safely resolves key collisions.
+- Catalog updates and soft deletions use expectedUpdatedAt.
+- Soft deletion removes replaceable membership rows, sets deletedAt/deletedById, and rejects any operation that would leave an accommodation without an active item in that domain.
+- AMENITY_CREATED, AMENITY_CONTENT_UPDATED, AMENITY_SOFT_DELETED, HOUSE_RULE_CREATED, HOUSE_RULE_CONTENT_UPDATED, HOUSE_RULE_SOFT_DELETED, and PROPERTY_AMENITIES_RULES_UPDATED preserve AdminAuditLog history.
+- Public accommodation pages read active assignments and bilingual catalog content from PostgreSQL.
+- Selecting a local property photo produces an object-URL preview, and the admin can explicitly clear that selection before upload.
+- Check-in and optional check-out values use styled 30-minute selectors and server-side validation.
+- No Prisma migration, catalog hard deletion, restore/purge UI, price/status editing, reservation/payment action, email delivery, or PMS behavior was added.
 ```
 
 ---

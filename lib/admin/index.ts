@@ -1,6 +1,10 @@
 export {
   AdminCatalogError,
+  createAdminCatalogAmenity,
+  createAdminCatalogHouseRule,
   getAdminCatalogSettings,
+  softDeleteAdminCatalogAmenity,
+  softDeleteAdminCatalogHouseRule,
   updateAdminCatalogAmenity,
   updateAdminCatalogHouseRule,
 } from "./catalogs";

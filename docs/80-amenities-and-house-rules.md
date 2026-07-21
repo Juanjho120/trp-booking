@@ -5,15 +5,16 @@
 ```text
 Phase: 9.11 — Admin MVP and Brand Identity Completion
 Subphase: 9.11.4 — Amenities and house rules
-Status: Completed; UI follow-up pending local validation and commit
+Status: Completed; catalog lifecycle follow-up pending local validation and commit
 Base commit: 9f5c10a6ca5812e0c6ea48852e1f673fb65df138
 Base implementation commit: 07dd7c03f19de77b0f18186c26986cd9e036213e
+Accepted UI follow-up commit: ac4c8d96dbe1a80e481ebbc9046a3bf887a22a6e
 Next subphase: 9.11.5 — Reservation and payment detail views
 ```
 
 ## Purpose
 
-Phase 9.11.4 adds protected bilingual administration for the amenities and house rules displayed on the three supported public accommodations.
+Phase 9.11.4 provides protected bilingual administration for the amenities and house rules displayed on the supported public accommodations.
 
 The implementation reuses the existing models:
 
@@ -36,7 +37,7 @@ No Prisma schema migration is required.
 
 `/admin/catalogs` is available from the dedicated **Catalogs** sidebar item. Two tab-style buttons separate the shared Amenity and House Rule catalogs.
 
-The property-specific route remains available from each accommodation and now handles assignments only.
+The property-specific route manages assignments only.
 
 ## Supported operations
 
@@ -47,17 +48,27 @@ Assign or unassign active house rules for one accommodation
 Require at least one assigned amenity and one assigned rule
 
 From the shared Catalogs page:
-Edit amenity names in Spanish and English
-Select an amenity icon from the approved typed icon catalog
-Edit house-rule titles in Spanish and English
-Edit public house-rule descriptions in Spanish and English
+Create amenities with bilingual names and an approved icon
+Edit amenity names and approved icon
+Soft-delete amenities
+Create house rules with bilingual titles and descriptions
+Edit house-rule titles and descriptions
+Soft-delete house rules
 ```
 
-Catalog items are shared by the three accommodations: editing a name, icon, title, or description affects every accommodation using that item. Catalog keys and categories remain immutable. This MVP does not create arbitrary runtime keys because public rendering depends on the approved typed amenity/icon catalog and established rule ordering.
+New items are initially unassigned. The admin assigns them from each accommodation's assignment route.
+
+## Runtime keys
+
+The server creates a stable lowercase slug key from the English amenity name or English house-rule title. The technical key is not entered manually by the admin.
+
+When the generated key already exists, the server appends a numeric suffix while preserving the database unique constraint. Existing keys remain immutable after creation.
+
+The built-in amenity key tuple remains available for seed ordering and autocomplete, while the public `AmenityKey` contract accepts server-created runtime keys. Runtime items that are not present in the preferred built-in order appear after the known entries.
 
 ## Public behavior
 
-Public accommodation queries already:
+Public accommodation queries:
 
 ```text
 Exclude soft-deleted Amenity and HouseRule records
@@ -67,39 +78,15 @@ Read approved amenity icon names
 Read bilingual house-rule descriptions
 ```
 
-Accepted admin changes therefore appear on the public accommodation detail page without copying values into static configuration.
+Accepted admin changes therefore appear publicly without copying values into static configuration.
 
 ## Typed amenity icons
 
-`types/amenity.ts` exports the approved `amenityIconNames` tuple and derives `AmenityIconName` from it.
-
-The admin selector accepts only:
-
-```text
-bath
-bed
-briefcase
-car
-chefHat
-coffee
-dumbbell
-fan
-flame
-home
-refrigerator
-showerHead
-treePalm
-utensils
-shieldCheck
-wifi
-users
-```
-
-The same `AmenityIcon` component used publicly is reused by the admin preview.
+Amenity creation and editing accept only the approved `amenityIconNames` values. The same `AmenityIcon` component is reused in public pages and the admin preview.
 
 ## Validation and concurrency
 
-Amenity content validation:
+Amenity validation:
 
 ```text
 nameEs: 2–160 characters
@@ -107,7 +94,7 @@ nameEn: 2–160 characters
 icon: approved typed icon only
 ```
 
-House-rule content validation:
+House-rule validation:
 
 ```text
 titleEs: 2–160 characters
@@ -116,101 +103,77 @@ descriptionEs: 3–500 characters
 descriptionEn: 3–500 characters
 ```
 
-Content updates use `expectedUpdatedAt`. An older tab cannot silently overwrite a newer catalog edit.
+Content updates and deletions use `expectedUpdatedAt`. An older tab cannot overwrite or delete a newer catalog version.
 
-Assignment changes send the complete selected amenity and house-rule ID sets with a SHA-256 revision. The server repeats validation and writes the membership replacement in a serializable transaction.
+Assignment changes continue to send the complete selected amenity and house-rule ID sets with a SHA-256 revision. Membership replacement remains serializable.
 
-## Assignment deletion boundary
+## Soft-delete behavior
 
-Unassigning an item deletes only its replaceable membership row:
+Deleting a catalog item performs one serializable transaction:
 
 ```text
-PropertyAmenity
-PropertyRule
+Validate the current updatedAt value
+Identify assigned accommodations
+Verify every affected accommodation will retain another active item in that domain
+Delete replaceable PropertyAmenity or PropertyRule memberships
+Set deletedAt and deletedById on the catalog record
+Create an AdminAuditLog record
 ```
 
-The `Amenity` or `HouseRule` catalog record is not deleted, restored, or soft-deleted by this UI. `AdminAuditLog` preserves the before and after assignment sets.
+Deletion is rejected when it would leave any accommodation with zero active amenity assignments or zero active house-rule assignments.
 
-This is intentionally different from deleting an admin-managed business catalog record. Catalog deletion remains outside this subphase.
+No catalog row is hard-deleted. Restore and permanent purge remain outside this phase.
 
 ## Audit actions
 
 ```text
+AMENITY_CREATED
 AMENITY_CONTENT_UPDATED
+AMENITY_SOFT_DELETED
+HOUSE_RULE_CREATED
 HOUSE_RULE_CONTENT_UPDATED
+HOUSE_RULE_SOFT_DELETED
 PROPERTY_AMENITIES_RULES_UPDATED
 ```
 
-Audit metadata includes safe identifiers, actor email, changed bilingual values, selected icon, and before/after assignment IDs. It does not contain secrets or raw provider payloads.
+Audit metadata contains safe identifiers, actor email, bilingual values, selected icon, affected property IDs, and deletion timestamp. It does not contain secrets or provider payloads.
 
 ## API contract
 
 ```text
+POST /api/admin/catalogs
+  action: create-amenity
+  action: create-house-rule
+
 PATCH /api/admin/catalogs
   action: update-amenity
   action: update-house-rule
+
+DELETE /api/admin/catalogs
+  action: delete-amenity
+  action: delete-house-rule
 
 PATCH /api/admin/amenities-house-rules
   action: update-assignments
 ```
 
-Every action requires the existing authorized admin session.
+Every action requires the existing authorized admin session and strict Zod validation.
 
-## Error feedback
+## Seed safety
 
-All failures map to bilingual domain codes and use the shared destructive `AdminSnackbar`.
+Amenity and HouseRule upserts in `prisma/seed.ts` continue to use `update: {}`. Rerunning the seed does not overwrite runtime content or restore soft-deleted catalog rows.
 
-Catalog codes:
-
-```text
-ADMIN_UNAUTHORIZED
-INVALID_ADMIN_CATALOG_REQUEST
-ADMIN_CATALOG_AMENITY_NOT_FOUND
-ADMIN_CATALOG_HOUSE_RULE_NOT_FOUND
-ADMIN_CATALOG_STALE
-ADMIN_CATALOG_UNEXPECTED_ERROR
-```
-
-Property-assignment codes:
-
-```text
-ADMIN_UNAUTHORIZED
-INVALID_AMENITY_HOUSE_RULE_REQUEST
-AMENITY_HOUSE_RULE_PROPERTY_NOT_FOUND
-AMENITY_NOT_FOUND
-HOUSE_RULE_NOT_FOUND
-AMENITY_HOUSE_RULE_STALE
-AMENITY_HOUSE_RULE_MINIMUM_REQUIRED
-AMENITY_HOUSE_RULE_UNEXPECTED_ERROR
-```
-
-## Seed safety requirement
-
-After this phase, rerunning the development seed must not overwrite admin-managed catalog content or restore intentionally removed default assignments.
-
-Required `prisma/seed.ts` behavior:
-
-```text
-Amenity upsert update branch: update: {}
-HouseRule upsert update branch: update: {}
-Seed default PropertyAmenity rows only when that property has zero amenity assignments
-Seed default PropertyRule rows only when that property has zero rule assignments
-```
-
-The admin requires at least one assignment in each domain, so a managed property continues to have a non-zero count and the seed does not restore removed defaults.
+Default assignments are inserted only when the property currently has zero assignments. Because deletion refuses to remove the final active assignment, normal seed reruns do not restore deliberately removed memberships.
 
 ## Scope boundary
 
-Phase 9.11.4 does not add:
+Phase 9.11.4 still does not add:
 
 ```text
 Prisma migration
-Creation of arbitrary amenity or rule keys
-Catalog soft-delete, restore, or purge UI
+Catalog restore or permanent purge
 Amenity or rule ordering fields
-Price or currency editing
-Property publication/status editing
-Property composition editing
+Price, currency, or property publication editing
 Reservation or payment actions
 Email delivery
 PMS behavior
@@ -230,16 +193,12 @@ git status
 Manual acceptance:
 
 ```text
-1. Open Catalogs from the desktop and mobile admin navigation.
-2. Switch between the Amenities and House Rules tab-style buttons.
-3. Edit Spanish and English amenity names and select another approved icon.
-4. Edit Spanish and English house-rule titles and descriptions.
-5. Open the assignment page for each supported property.
-6. Assign and unassign amenities and rules, keeping at least one selected in each domain.
-7. Confirm zero selections are rejected through the destructive snackbar.
-8. Open the same catalog item in stale browser state and confirm the stale error.
-9. Open assignments in two tabs and confirm the older revision is rejected.
-10. Confirm the public property page reflects assignments and selected locale.
-11. Confirm every mutation creates the expected AdminAuditLog action.
-12. Rerun the seed and confirm content and removed assignments are preserved.
+1. Create an amenity and confirm it appears unassigned in every property assignment page.
+2. Assign the amenity and confirm the public page displays it with the selected icon and locale.
+3. Edit the amenity in one tab and confirm a stale update/delete is rejected from another tab.
+4. Soft-delete an amenity with safe remaining assignments and confirm it disappears publicly and administratively.
+5. Attempt to delete the final amenity of a property and confirm the operation is rejected.
+6. Repeat creation, editing, assignment, and soft deletion for house rules.
+7. Confirm the expected AdminAuditLog action for every mutation.
+8. Rerun the development seed and confirm created content, edits, soft deletion, and assignment changes are preserved.
 ```

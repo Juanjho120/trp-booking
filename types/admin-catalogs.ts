@@ -32,6 +32,19 @@ export type AdminCatalogSettings = Readonly<{
 
 export type AdminCatalogActor = AdminActor;
 
+export type CreateAdminCatalogAmenityInput = Readonly<{
+  nameEs: string;
+  nameEn: string;
+  icon: AmenityIconName;
+}>;
+
+export type CreateAdminCatalogHouseRuleInput = Readonly<{
+  titleEs: string;
+  titleEn: string;
+  descriptionEs: string;
+  descriptionEn: string;
+}>;
+
 export type UpdateAdminCatalogAmenityInput = Readonly<{
   amenityId: string;
   expectedUpdatedAt: string;
@@ -49,12 +62,23 @@ export type UpdateAdminCatalogHouseRuleInput = Readonly<{
   descriptionEn: string;
 }>;
 
+export type DeleteAdminCatalogAmenityInput = Readonly<{
+  amenityId: string;
+  expectedUpdatedAt: string;
+}>;
+
+export type DeleteAdminCatalogHouseRuleInput = Readonly<{
+  houseRuleId: string;
+  expectedUpdatedAt: string;
+}>;
+
 export const adminCatalogErrorCodes = [
   "ADMIN_UNAUTHORIZED",
   "INVALID_ADMIN_CATALOG_REQUEST",
   "ADMIN_CATALOG_AMENITY_NOT_FOUND",
   "ADMIN_CATALOG_HOUSE_RULE_NOT_FOUND",
   "ADMIN_CATALOG_STALE",
+  "ADMIN_CATALOG_MINIMUM_ASSIGNMENT_REQUIRED",
   "ADMIN_CATALOG_UNEXPECTED_ERROR",
 ] as const;
 

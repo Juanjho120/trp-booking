@@ -4,7 +4,11 @@ import {
   AdminCatalogError,
   adminApiErrorResponse,
   adminApiSuccessResponse,
+  createAdminCatalogAmenity,
+  createAdminCatalogHouseRule,
   getAdminSessionActor,
+  softDeleteAdminCatalogAmenity,
+  softDeleteAdminCatalogHouseRule,
   updateAdminCatalogAmenity,
   updateAdminCatalogHouseRule,
 } from "@/lib/admin";
@@ -18,6 +22,25 @@ const catalogIdSchema = z.string().trim().min(1).max(120);
 const timestampSchema = z.string().datetime();
 const singleLineSchema = z.string().trim().min(2).max(160);
 const descriptionSchema = z.string().trim().min(3).max(500);
+
+const createAmenitySchema = z
+  .object({
+    action: z.literal("create-amenity"),
+    nameEs: singleLineSchema,
+    nameEn: singleLineSchema,
+    icon: z.enum(amenityIconNames),
+  })
+  .strict();
+
+const createHouseRuleSchema = z
+  .object({
+    action: z.literal("create-house-rule"),
+    titleEs: singleLineSchema,
+    titleEn: singleLineSchema,
+    descriptionEs: descriptionSchema,
+    descriptionEn: descriptionSchema,
+  })
+  .strict();
 
 const updateAmenitySchema = z
   .object({
@@ -42,9 +65,35 @@ const updateHouseRuleSchema = z
   })
   .strict();
 
+const deleteAmenitySchema = z
+  .object({
+    action: z.literal("delete-amenity"),
+    amenityId: catalogIdSchema,
+    expectedUpdatedAt: timestampSchema,
+  })
+  .strict();
+
+const deleteHouseRuleSchema = z
+  .object({
+    action: z.literal("delete-house-rule"),
+    houseRuleId: catalogIdSchema,
+    expectedUpdatedAt: timestampSchema,
+  })
+  .strict();
+
+const postSchema = z.discriminatedUnion("action", [
+  createAmenitySchema,
+  createHouseRuleSchema,
+]);
+
 const patchSchema = z.discriminatedUnion("action", [
   updateAmenitySchema,
   updateHouseRuleSchema,
+]);
+
+const deleteSchema = z.discriminatedUnion("action", [
+  deleteAmenitySchema,
+  deleteHouseRuleSchema,
 ]);
 
 function errorStatus(code: AdminCatalogErrorCode): number {
@@ -55,6 +104,7 @@ function errorStatus(code: AdminCatalogErrorCode): number {
     case "ADMIN_CATALOG_HOUSE_RULE_NOT_FOUND":
       return 404;
     case "ADMIN_CATALOG_STALE":
+    case "ADMIN_CATALOG_MINIMUM_ASSIGNMENT_REQUIRED":
       return 409;
     case "INVALID_ADMIN_CATALOG_REQUEST":
       return 400;
@@ -69,6 +119,39 @@ async function readJson(request: Request): Promise<unknown> {
     return await request.json();
   } catch {
     throw new AdminCatalogError("INVALID_ADMIN_CATALOG_REQUEST");
+  }
+}
+
+function errorResponse(error: unknown) {
+  if (error instanceof AdminCatalogError) {
+    return adminApiErrorResponse(error.code, errorStatus(error.code));
+  }
+
+  return adminApiErrorResponse("ADMIN_CATALOG_UNEXPECTED_ERROR", 500);
+}
+
+export async function POST(request: Request) {
+  const actor = await getAdminSessionActor();
+
+  if (!actor) {
+    return adminApiErrorResponse("ADMIN_UNAUTHORIZED", 401);
+  }
+
+  try {
+    const parsedRequest = postSchema.safeParse(await readJson(request));
+
+    if (!parsedRequest.success) {
+      return adminApiErrorResponse("INVALID_ADMIN_CATALOG_REQUEST", 400);
+    }
+
+    const settings =
+      parsedRequest.data.action === "create-amenity"
+        ? await createAdminCatalogAmenity(parsedRequest.data, actor)
+        : await createAdminCatalogHouseRule(parsedRequest.data, actor);
+
+    return adminApiSuccessResponse({ settings });
+  } catch (error) {
+    return errorResponse(error);
   }
 }
 
@@ -93,10 +176,31 @@ export async function PATCH(request: Request) {
 
     return adminApiSuccessResponse({ settings });
   } catch (error) {
-    if (error instanceof AdminCatalogError) {
-      return adminApiErrorResponse(error.code, errorStatus(error.code));
+    return errorResponse(error);
+  }
+}
+
+export async function DELETE(request: Request) {
+  const actor = await getAdminSessionActor();
+
+  if (!actor) {
+    return adminApiErrorResponse("ADMIN_UNAUTHORIZED", 401);
+  }
+
+  try {
+    const parsedRequest = deleteSchema.safeParse(await readJson(request));
+
+    if (!parsedRequest.success) {
+      return adminApiErrorResponse("INVALID_ADMIN_CATALOG_REQUEST", 400);
     }
 
-    return adminApiErrorResponse("ADMIN_CATALOG_UNEXPECTED_ERROR", 500);
+    const settings =
+      parsedRequest.data.action === "delete-amenity"
+        ? await softDeleteAdminCatalogAmenity(parsedRequest.data, actor)
+        : await softDeleteAdminCatalogHouseRule(parsedRequest.data, actor);
+
+    return adminApiSuccessResponse({ settings });
+  } catch (error) {
+    return errorResponse(error);
   }
 }

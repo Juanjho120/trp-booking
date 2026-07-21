@@ -12,6 +12,7 @@ import {
   Star,
   Trash2,
   Upload,
+  X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -88,6 +89,7 @@ export function AdminPropertyPhotoManager({
 }>) {
   const { locale, messages } = useLocale();
   const copy = messages.admin.accommodations.photos;
+  const clearSelectionLabel = messages.admin.payments.actions.clear;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [settings, setSettings] =
     useState<AdminPropertyPhotoSettings>(initialSettings);
@@ -134,6 +136,14 @@ export function AdminPropertyPhotoManager({
   function clearFeedback(): void {
     setErrorFeedback(null);
     setSuccessFeedback(null);
+  }
+
+  function clearSelectedFile(): void {
+    setSelectedFile(null);
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   }
 
   function applySettings(nextSettings: AdminPropertyPhotoSettings): void {
@@ -295,14 +305,9 @@ export function AdminPropertyPhotoManager({
       }
 
       applySettings(finalizePayload.settings);
-      setSelectedFile(null);
+      clearSelectedFile();
       setUploadAltTextEs("");
       setUploadAltTextEn("");
-
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-
       setSuccessFeedback(copy.success.photoUploaded);
     } catch {
       setErrorFeedback(copy.errors.PROPERTY_PHOTO_PROVIDER_ERROR);
@@ -440,7 +445,8 @@ export function AdminPropertyPhotoManager({
               </CardDescription>
             </div>
             <Badge variant="secondary">
-              {copy.labels.currentCount}: {settings.photos.length} / {settings.maxPhotos}
+              {copy.labels.currentCount}: {settings.photos.length} /{" "}
+              {settings.maxPhotos}
             </Badge>
           </div>
         </CardHeader>
@@ -479,6 +485,17 @@ export function AdminPropertyPhotoManager({
                     ? `${selectedFile.name} · ${formatFileSize(selectedFile.size)}`
                     : copy.labels.noFileSelected}
                 </p>
+                {selectedFile ? (
+                  <Button
+                    disabled={isBusy}
+                    onClick={clearSelectedFile}
+                    type="button"
+                    variant="ghost"
+                  >
+                    <X aria-hidden="true" />
+                    {clearSelectionLabel}
+                  </Button>
+                ) : null}
               </div>
 
               {selectedFilePreviewUrl ? (
@@ -655,7 +672,9 @@ export function AdminPropertyPhotoManager({
                         {copy.actions.moveUp}
                       </Button>
                       <Button
-                        disabled={isBusy || index === settings.photos.length - 1}
+                        disabled={
+                          isBusy || index === settings.photos.length - 1
+                        }
                         onClick={() => void movePhoto(index, 1)}
                         type="button"
                         variant="outline"
