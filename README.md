@@ -48,8 +48,9 @@ TRP Booking is focused only on the public booking experience, direct reservation
 - Tilopay credentials remain server-side and TRP Booking does not store card number, CVV, expiration date, or tokenized card data.
 - `Reservation.status` becomes `CONFIRMED` only after the provider payment result is validated server-side.
 - Failed, rejected, expired, and successful payment attempts remain auditable.
-- Resend email delivery belongs to Phase 10.
-- Public-facing and admin-facing copy is centralized in `messages/es.ts` and `messages/en.ts`.
+- Email delivery never determines payment approval and an email failure never rolls back a valid confirmed reservation.
+- Transactional email intents must use permanent database deduplication in addition to provider idempotency.
+- Public-facing, admin-facing, and transactional email copy is centralized in `messages/es.ts` and `messages/en.ts`.
 - Admin modules use dedicated routes under `/admin`; the dashboard remains a compact summary.
 - Manual availability blocks use `CalendarBlock.source = MANUAL_BLOCK`, optional internal notes, soft deletion, audit logs, and server-side availability revalidation.
 - Existing effective blockers—including direct reservations, active holds, Airbnb bookings, manual blocks, maintenance, and preparation buffers—cannot be selected for a new manual range.
@@ -130,6 +131,35 @@ Final Phase 9.11 capabilities:
 
 Phase 9.11 closure is documented in `docs/84-phase-9.11-validation-and-documentation-closure.md`.
 
+## Phase 10 — Email Notifications
+
+Phase 10 is in progress. The strategy and explicit subphase roadmap are defined in `docs/85-email-notification-strategy-and-phase-10-roadmap.md`.
+
+Planned subphases:
+
+```text
+10.1 Email notification strategy and environment contract — Completed
+10.2 Persistence and Resend provider foundation — Not started
+10.3 Bilingual branded reservation-confirmation templates — Not started
+10.4 Guest and admin confirmation notification orchestration — Not started
+10.5 Retry processing and admin delivery visibility — Not started
+10.6 Arrival instructions scheduling and content — Not started
+10.7 Validation and documentation closure — Not started
+```
+
+Initial Phase 10 scope:
+
+```text
+- Guest reservation-confirmation email after validated payment confirms the reservation.
+- Minimum admin notification for a newly confirmed direct reservation.
+- Bilingual ES/EN templates using the approved brand system.
+- Permanent database deduplication plus Resend idempotency keys.
+- Safe delivery-attempt history and bounded retry processing.
+- Arrival instructions only after timing and content ownership are explicitly approved.
+- No separate PAYMENT_APPROVED email and no automatic failed/rejected-payment email in the initial MVP.
+- No cancellation, refund, date-change, stay-extension, or PMS behavior.
+```
+
 ## Documentation
 
 The project documentation lives under `/docs`.
@@ -160,13 +190,14 @@ docs/81-phase-9.11.4-ui-follow-up.md
 docs/82-catalog-lifecycle-and-photo-selection.md
 docs/83-reservation-and-payment-detail-views.md
 docs/84-phase-9.11-validation-and-documentation-closure.md
+docs/85-email-notification-strategy-and-phase-10-roadmap.md
 ```
 
 ## Development Status
 
 ```text
 Current phase: Phase 10 — Email Notifications
-Current subphase: Initial planning — Not started
-Current focus: define explicit Phase 10 subphases before implementation
-Last completed phase: Phase 9.11 — Admin MVP and Brand Identity Completion
+Current subphase: 10.2 Persistence and Resend provider foundation — Not started
+Current focus: add conditional email environment validation, the server-side Resend adapter, stored reservation locale, and permanent notification deduplication without sending emails yet
+Last completed subphase: 10.1 Email notification strategy and environment contract
 ```

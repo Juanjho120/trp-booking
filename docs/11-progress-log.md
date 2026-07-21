@@ -6,11 +6,12 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 10 — Email Notifications
-Current subphase: Initial planning — Not started
-Current focus: define explicit Phase 10 subphases before implementation
+Current subphase: 10.2 Persistence and Resend provider foundation — Not started
+Current focus: add conditional email environment validation, the server-side Resend adapter, stored reservation locale, and permanent notification deduplication without sending emails yet
 Last updated: 2026-07-21
-Last completed phase: Phase 9.11 — Admin MVP and Brand Identity Completion
-9.11.6 closure base commit: b9fa0d7e397959a385685b7c8298c2b93cd974b0
+Last completed subphase: 10.1 Email notification strategy and environment contract
+10.1 base commit: 0c9df37380588ca9573a74faf3ce52a1b25a0654
+10.1 strategy document: docs/85-email-notification-strategy-and-phase-10-roadmap.md
 ```
 
 ## Completed Work
@@ -300,14 +301,69 @@ Closure document:
 docs/84-phase-9.11-validation-and-documentation-closure.md
 ```
 
+### Phase 10.1 — Email Notification Strategy and Environment Contract
+
+Status: **Completed**
+
+Repository findings:
+
+```text
+EmailNotification and the email type/status enums already exist in prisma/schema.prisma.
+EmailNotification does not yet have a permanent deduplication key or safe retry-claim fields.
+The public pending-hold request carries locale = es|en, but Reservation does not persist that preference.
+The reservation-confirmation service is already payment-driven and transactionally changes the reservation to CONFIRMED.
+The repository has no Resend dependency, API-key validation, sender validation, template layer, dispatcher, or retry worker yet.
+siteConfig already centralizes the public Spanish, English, and admin email addresses.
+```
+
+Accepted strategy:
+
+```text
+The database owns permanent email deduplication and Resend receives the same stable key as its provider idempotency key.
+Provider network calls run only after the reservation-confirmation transaction commits.
+Guest RESERVATION_CONFIRMED and ADMIN_NEW_RESERVATION are the initial automatic messages.
+PAYMENT_APPROVED is not sent separately.
+Automatic rejected/failed-payment emails are deferred from the initial MVP to avoid duplicate or noisy messages across retries.
+Arrival instructions remain a later Phase 10 subphase pending explicit timing and content approval.
+Transactional email copy stays centralized in messages/es.ts and messages/en.ts.
+The server-side environment contract will support disabled, test-recipient-override, and production delivery modes.
+No email is sent and no schema, migration, dependency, or environment file is changed by 10.1.
+```
+
+Strategy document:
+
+```text
+docs/85-email-notification-strategy-and-phase-10-roadmap.md
+```
+
+## Active Work
+
+### Phase 10.2 — Persistence and Resend Provider Foundation
+
+Status: **Not started**
+
+Planned scope:
+
+```text
+Add the resend package as the only new provider dependency.
+Add conditional server-side email environment validation and document safe example values.
+Persist Reservation.preferredLocale from the existing pending-hold locale input.
+Add permanent EmailNotification.deduplicationKey uniqueness.
+Add bounded retry/claim metadata and safe error-code storage to EmailNotification.
+Add a server-only Resend adapter and normalized provider result/error types.
+Do not create templates, enqueue confirmation notifications, call Resend, or expose new UI yet.
+```
+
 ## Next Recommended Work
 
 ```text
-1. Run npm run env:validate and npm run db:validate after applying the closure files.
-2. Run npm run lint and npm run build.
-3. Commit the Phase 9.11.6 documentation closure.
-4. Start Phase 10 by defining explicit email-notification subphases before implementation.
-5. Preserve payment-driven confirmation, safe bilingual copy, idempotency, auditability, and the direct-booking/PMS boundary.
+1. Apply and commit the Phase 10.1 strategy documentation.
+2. Implement the Phase 10.2 Prisma migration and regenerate Prisma Client.
+3. Update .env.example and lib/env/server.ts with conditional email-delivery validation.
+4. Add the server-only Resend adapter and safe provider error mapping.
+5. Confirm no email is sent during Phase 10.2.
+6. Run npm run env:validate, npm run db:validate, npm run lint, and npm run build.
+7. Continue with 10.3 bilingual branded reservation-confirmation templates after local acceptance.
 ```
 
 ## Continuity Notes for New Conversations
@@ -318,13 +374,17 @@ Minimum context files:
 README.md
 AGENTS.md
 .env.example
+package.json
+prisma/schema.prisma
 docs/10-phases.md
 docs/11-progress-log.md
-docs/73-phase-9-documentation-closure.md
-docs/74-brand-identity-refresh.md
-docs/78-accommodation-content-management.md
-docs/79-property-photo-management.md
-docs/80-amenities-and-house-rules.md
-docs/83-reservation-and-payment-detail-views.md
 docs/84-phase-9.11-validation-and-documentation-closure.md
+docs/85-email-notification-strategy-and-phase-10-roadmap.md
+config/site.ts
+lib/env/server.ts
+lib/reservations/pending-holds.ts
+lib/reservations/confirmation.ts
+types/reservation-pending-hold.ts
+messages/es.ts
+messages/en.ts
 ```

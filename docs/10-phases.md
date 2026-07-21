@@ -15,9 +15,9 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 10 — Email Notifications
-Current subphase: Initial planning — Not started
-Current focus: define explicit Phase 10 subphases before implementation
-Last completed phase: Phase 9.11 — Admin MVP and Brand Identity Completion
+Current subphase: 10.2 Persistence and Resend provider foundation — Not started
+Current focus: add conditional email environment validation, the server-side Resend adapter, stored reservation locale, and permanent notification deduplication without sending emails yet
+Last completed subphase: 10.1 Email notification strategy and environment contract
 ```
 
 ---
@@ -296,21 +296,54 @@ Subphase status:
 
 ## Phase 10 — Email Notifications
 
-Status: **Not started**
+Status: **In progress**
 
 Goal: Add safe, bilingual, idempotent email notifications for the direct-booking lifecycle without changing payment-driven reservation confirmation.
 
-Initial planning topics:
+Subphase status:
 
 ```text
-- Resend server-side provider contract and environment validation
-- Reservation confirmation email
-- Admin notification for a new confirmed direct reservation
-- Safe handling of rejected/failed payment communication where appropriate
-- Bilingual ES/EN templates
-- Idempotency and duplicate-send prevention
-- Delivery attempt audit records and safe provider-error handling
-- Arrival instructions and timing rules
+10.1 Email notification strategy and environment contract — Completed
+10.2 Persistence and Resend provider foundation — Not started
+10.3 Bilingual branded reservation-confirmation templates — Not started
+10.4 Guest and admin confirmation notification orchestration — Not started
+10.5 Retry processing and admin delivery visibility — Not started
+10.6 Arrival instructions scheduling and content — Not started
+10.7 Validation and documentation closure — Not started
+```
+
+Phase 10 rules:
+
+```text
+- Email delivery never determines payment approval.
+- Email failure never rolls back or downgrades a valid confirmed reservation.
+- Provider network calls do not run inside the reservation-confirmation database transaction.
+- Resend credentials, sender configuration, and recipient overrides remain server-side only.
+- Permanent database deduplication is required in addition to provider idempotency.
+- Transactional email copy and subjects remain centralized in messages/es.ts and messages/en.ts.
+- Email records retain safe delivery-attempt history without raw provider payloads or secrets.
+- Initial automatic emails are RESERVATION_CONFIRMED and ADMIN_NEW_RESERVATION.
+- PAYMENT_APPROVED is not sent separately because the reservation-confirmation email already communicates success.
+- Automatic rejected/failed-payment emails are deferred from the initial MVP to avoid duplicate or noisy messages across payment retries.
+- Cancellation, refund, date-change, stay-extension, and related Phase 11 emails remain deferred.
+- Arrival instructions require explicitly approved timing and content before activation.
+- No PMS behavior is added.
+```
+
+### Phase 10.1 result
+
+```text
+- The current repository and Phase 9.11 closure were reviewed before defining email architecture.
+- EmailNotification already provides the initial audit record, but it lacks a permanent deduplication key and retry-claim fields.
+- The public booking locale reaches pending-hold creation but is not currently persisted on Reservation.
+- The reservation-confirmation service remains the only valid business trigger after an APPROVED payment.
+- Resend is selected as a server-side provider through the official Node.js SDK.
+- The database will own permanent deduplication; the stable database key will also be sent as the Resend idempotency key.
+- Notification intents will be created transactionally with reservation confirmation, while provider delivery occurs only after commit.
+- Test and production recipient behavior will be controlled through validated server-side environment configuration.
+- Bilingual React email templates will reuse the approved brand assets and centralized ES/EN copy without introducing a second visible-copy source.
+- The explicit Phase 10 roadmap is documented in docs/85-email-notification-strategy-and-phase-10-roadmap.md.
+- No application code, Prisma schema, migration, dependency, environment variable, credential, email delivery, or PMS behavior was added in 10.1.
 ```
 
 ---
