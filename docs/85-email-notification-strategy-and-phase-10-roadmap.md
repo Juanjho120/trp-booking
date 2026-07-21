@@ -460,7 +460,7 @@ Status: **Completed**
 
 ### 10.4 — Guest and admin confirmation notification orchestration
 
-Status: **In progress**
+Status: **Completed**
 
 ```text
 - Create guest/admin notification intents transactionally with a newly confirmed reservation.
@@ -472,7 +472,7 @@ Status: **In progress**
 
 ### 10.5 — Retry processing and admin delivery visibility
 
-Status: **Not started**
+Status: **In progress**
 
 ```text
 - Add protected bounded cron processing.
@@ -576,7 +576,7 @@ The Phase 10.3 delivery implements the template and copy architecture defined by
 ```text
 - matching emails namespaces in messages/es.ts and messages/en.ts
 - shared email-safe React layout using inline styles and table markup
-- approved primary logo resolved from an absolute public base URL
+- approved primary logo resolved from the permanent HTTPS asset configured in EMAIL_BRAND_LOGO_URL
 - typed and validated guest/admin reservation template data with preferred-locale enforcement for guest output
 - locale-aware dates, Guatemala business timestamps, money, duration, guest counts, arrival time, and country names
 - guest reservation-confirmation HTML and plain-text output
@@ -593,7 +593,7 @@ docs/87-bilingual-branded-reservation-confirmation-templates.md
 
 ## Phase 10.4 Implementation Note
 
-Status at delivery: **Implementation prepared; pending local validation and commit.**
+Status: **Completed and accepted.**
 
 The Phase 10.4 delivery implements the confirmation-notification orchestration defined by this roadmap:
 
@@ -609,10 +609,39 @@ The Phase 10.4 delivery implements the confirmation-notification orchestration d
 - unchanged successful payment/reservation result even when rendering, provider delivery, or audit updates fail after commit
 ```
 
-The delivery intentionally leaves retry scheduling, retry cron, stale PROCESSING recovery, bounded maximum attempts, admin notification history, manual resend, arrival instructions, and production webhook observability to later subphases. No schema, migration, dependency, environment variable, centralized copy, or PMS behavior is added.
+The accepted implementation and follow-ups are recorded through commit `6f7bdc3c6027d6be8b4fcdfe027c57b01dfef50d`. Retry scheduling, retry cron, stale PROCESSING recovery, bounded maximum attempts, and read-only admin notification history remain in 10.5. Manual resend is not part of the initial Phase 10 roadmap. Arrival instructions and production webhook observability remain later work.
 
 Detailed implementation record:
 
 ```text
 docs/88-guest-admin-confirmation-notification-orchestration.md
 ```
+
+## Phase 10.5 Implementation Note
+
+Status at delivery: **Implementation prepared; pending local validation and commit.**
+
+The Phase 10.5 delivery implements the bounded retry and admin-visibility contract defined by this roadmap:
+
+```text
+- CRON_SECRET-protected retry endpoint with a maximum batch size of 20
+- five-minute Vercel schedule
+- centralized retry delays of 5 minutes, 15 minutes, 1 hour, and 6 hours
+- maximum of 5 total delivery attempts
+- stale PROCESSING recovery after 10 minutes
+- atomic status-aware claims and processingStartedAt ownership tokens
+- terminal safe failure for exhausted stale claims
+- compatibility with retryable FAILED rows that predate nextAttemptAt scheduling
+- reuse of permanent deduplication keys as Resend idempotency keys
+- safe read-only reservation notification history with centralized bilingual copy
+- no retries for SENT or SKIPPED rows
+```
+
+The delivery does not add a manual resend button, provider webhook handling, raw provider payload visibility, secrets, schema/migration changes, dependencies, arrival instructions, payment/reservation mutations, or PMS behavior.
+
+Detailed implementation record:
+
+```text
+docs/91-email-retry-processing-and-admin-delivery-visibility.md
+```
+

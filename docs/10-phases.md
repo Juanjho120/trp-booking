@@ -15,10 +15,11 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 10 — Email Notifications
-Current subphase: 10.4 Guest and admin confirmation notification orchestration — In progress
-Current focus: validate transactional intent creation, post-commit best-effort delivery, and duplicate-send prevention without adding retry cron or admin delivery UI yet
-Last completed subphase: 10.3 Bilingual branded reservation-confirmation templates
-10.3 accepted commit: 7f6510d3e152caccefa42d9a2f5f75dbf747a22e
+Current subphase: 10.5 Retry processing and admin delivery visibility — In progress
+Current focus: validate bounded retry processing, stale-claim recovery, maximum attempts, and safe read-only admin notification history
+Last completed subphase: 10.4 Guest and admin confirmation notification orchestration
+10.4 accepted implementation commit: ab74af5863d82ede8489b11a00627c3e759c205d
+Latest accepted Phase 10.4 follow-up commit: 6f7bdc3c6027d6be8b4fcdfe027c57b01dfef50d
 ```
 
 ---
@@ -307,8 +308,8 @@ Subphase status:
 10.1 Email notification strategy and environment contract — Completed
 10.2 Persistence and Resend provider foundation — Completed
 10.3 Bilingual branded reservation-confirmation templates — Completed
-10.4 Guest and admin confirmation notification orchestration — In progress
-10.5 Retry processing and admin delivery visibility — Not started
+10.4 Guest and admin confirmation notification orchestration — Completed
+10.5 Retry processing and admin delivery visibility — In progress
 10.6 Arrival instructions scheduling and content — Not started
 10.7 Validation and documentation closure — Not started
 ```
@@ -380,7 +381,7 @@ Phase 10 rules:
 - The accepted implementation was committed as 7f6510d3e152caccefa42d9a2f5f75dbf747a22e.
 ```
 
-### Phase 10.4 implementation prepared
+### Phase 10.4 result
 
 ```text
 - The payment-driven confirmation service creates or reuses one guest intent and one intent per configured admin recipient in the same database transaction that confirms the reservation.
@@ -391,9 +392,25 @@ Phase 10 rules:
 - The stored recipient always remains the intended guest/admin recipient; test-mode rerouting stays inside the provider adapter.
 - SENT requires a provider message ID. Safe template/provider failures become FAILED without changing Payment or Reservation.
 - Disabled or invalid email configuration leaves intents PENDING and returns the existing successful confirmation result.
+- The accepted implementation and follow-ups are recorded through 6f7bdc3c6027d6be8b4fcdfe027c57b01dfef50d.
 - FAILED retries, nextAttemptAt scheduling, stale claims, bounded attempt limits, cron processing, and admin visibility remain in 10.5.
-- No Prisma schema, migration, environment variable, dependency, UI copy, arrival scheduling, or PMS behavior is added.
+- Manual resend remains outside the initial Phase 10 roadmap.
+- No Prisma schema, migration, environment variable, dependency, arrival scheduling, or PMS behavior is added.
 - The implementation record is docs/88-guest-admin-confirmation-notification-orchestration.md.
+```
+
+### Phase 10.5 implementation prepared
+
+```text
+- A CRON_SECRET-protected /api/cron/process-email-notifications endpoint processes a maximum of 20 due rows per execution.
+- Retryable errors use centralized 5-minute, 15-minute, 1-hour, and 6-hour delays with a maximum of 5 total attempts.
+- PROCESSING claims older than 10 minutes are eligible for safe recovery; exhausted stale claims become terminal FAILED rows.
+- Atomic updateMany claims and processingStartedAt ownership tokens prevent concurrent or stale workers from finalizing the same row.
+- The worker never retries SENT or SKIPPED notifications and reuses the permanent deduplication key as the Resend idempotency key.
+- Existing retryable FAILED rows with no nextAttemptAt remain eligible, preserving compatibility with failures created before 10.5.
+- Reservation detail now includes safe read-only notification history with localized type/status labels and bounded diagnostics.
+- No raw provider payload, secret, manual resend action, schema migration, dependency, arrival scheduling, or PMS behavior is added.
+- The implementation record is docs/91-email-retry-processing-and-admin-delivery-visibility.md.
 ```
 
 ---

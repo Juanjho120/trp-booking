@@ -6,11 +6,12 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 10 — Email Notifications
-Current subphase: 10.4 Guest and admin confirmation notification orchestration — In progress
-Current focus: validate transactional intent creation, post-commit best-effort delivery, and duplicate-send prevention without adding retry cron or admin delivery UI yet
+Current subphase: 10.5 Retry processing and admin delivery visibility — In progress
+Current focus: validate bounded retry processing, stale-claim recovery, maximum attempts, and safe read-only admin notification history
 Last updated: 2026-07-21
-Last completed subphase: 10.3 Bilingual branded reservation-confirmation templates
-10.3 accepted commit: 7f6510d3e152caccefa42d9a2f5f75dbf747a22e
+Last completed subphase: 10.4 Guest and admin confirmation notification orchestration
+10.4 accepted implementation commit: ab74af5863d82ede8489b11a00627c3e759c205d
+Latest accepted Phase 10.4 follow-up commit: 6f7bdc3c6027d6be8b4fcdfe027c57b01dfef50d
 10.1 base commit: 0c9df37380588ca9573a74faf3ce52a1b25a0654
 10.1 strategy document: docs/85-email-notification-strategy-and-phase-10-roadmap.md
 ```
@@ -374,39 +375,70 @@ Implementation document: docs/87-bilingual-branded-reservation-confirmation-temp
 Accepted commit: 7f6510d3e152caccefa42d9a2f5f75dbf747a22e.
 ```
 
-## Active Work
+## Completed Work — Phase 10.4
 
 ### Phase 10.4 — Guest and Admin Confirmation Notification Orchestration
+
+Status: **Completed and accepted**
+
+```text
+Guest and per-admin notification intents are created or reused transactionally with reservation confirmation.
+Provider delivery starts only after commit and atomically claims PENDING rows.
+Repeated APPROVED callbacks reuse the same permanent deduplication keys.
+Test mode preserves intended recipients while delivering only to EMAIL_TEST_RECIPIENT.
+Provider/template failure remains isolated from approved payment and confirmed reservation state.
+Environment/domain isolation and the permanent public logo URL were accepted as follow-ups.
+No retry cron, stale-claim recovery, admin notification history, arrival scheduling, or manual resend was included.
+```
+
+Accepted commits:
+
+```text
+Orchestration: ab74af5863d82ede8489b11a00627c3e759c205d
+Turbopack-compatible renderer: 263b2a396ed206beb12ca407bc67472cbbead3bf
+Environment isolation: d3803fb7744c5d9836db7a37001b2753c3f4c8f8
+Permanent email logo URL: 6f7bdc3c6027d6be8b4fcdfe027c57b01dfef50d
+```
+
+## Active Work
+
+### Phase 10.5 — Retry Processing and Admin Delivery Visibility
 
 Status: **In progress — implementation prepared, pending local validation and commit**
 
 Implemented scope:
 
 ```text
-Added idempotent guest/admin EmailNotification intent creation to the payment-driven reservation-confirmation transaction.
-Added stable guest and per-admin deduplication keys reused by both PostgreSQL and Resend.
-Added post-commit immediate delivery without changing the existing confirmation result contract.
-Added atomic PENDING to PROCESSING claiming to prevent concurrent duplicate sends.
-Added reservation/property loading and integration with the accepted bilingual template builders.
-Added disabled/test/production routing through the validated server environment and existing provider adapter.
-Added safe SENT and FAILED audit transitions without raw provider payloads.
-Kept retry cron, backoff, stale-claim recovery, automatic FAILED retries, admin delivery history, manual resend, arrival instructions, schema changes, dependencies, and PMS behavior out of scope.
-Implementation document: docs/88-guest-admin-confirmation-notification-orchestration.md.
+Added a CRON_SECRET-protected retry worker at /api/cron/process-email-notifications.
+Added a maximum batch size of 20 and Vercel execution every five minutes.
+Added retry delays of 5 minutes, 15 minutes, 1 hour, and 6 hours.
+Added a maximum of 5 total delivery attempts.
+Added recovery of PROCESSING claims older than 10 minutes.
+Added claim ownership tokens so a reclaimed stale worker cannot overwrite a newer result.
+Added terminal failure handling for exhausted stale claims.
+Added compatibility for retryable FAILED rows created before nextAttemptAt scheduling existed.
+Extended protected reservation detail with safe read-only email delivery history.
+Localized notification types and statuses in messages/es.ts and messages/en.ts.
+Kept raw provider payloads, secrets, manual resend, schema changes, dependencies, arrival scheduling, and PMS behavior out of scope.
+Implementation document: docs/91-email-retry-processing-and-admin-delivery-visibility.md.
 ```
 
 ## Next Recommended Work
 
 ```text
-1. Copy the Phase 10.4 files into the repository.
+1. Copy the Phase 10.5 ZIP files into the repository root.
 2. Run npm run env:validate, npm run db:validate, npm run lint, and npm run build.
-3. With EMAIL_DELIVERY_MODE=disabled, complete an approved payment and verify guest/admin intents remain PENDING while the reservation succeeds.
-4. Repeat the same approved callback and verify no duplicate deduplication keys or rows are created.
-5. In test mode, send only to EMAIL_TEST_RECIPIENT and verify intended recipients remain stored on their own rows.
-6. Verify one concurrent callback claims each PENDING intent and other callbacks skip it.
-7. Simulate a safe provider/template failure and verify EmailNotification becomes FAILED while Payment remains APPROVED and Reservation remains CONFIRMED.
-8. Confirm no automatic FAILED retry, cron endpoint, admin notification-history UI, or manual resend action exists yet.
-9. Commit Phase 10.4 after validation.
-10. Continue with 10.5 retry processing and admin delivery visibility.
+3. Create a retryable FAILED notification and confirm nextAttemptAt follows the centralized backoff.
+4. Call the protected cron endpoint and verify only due rows are claimed.
+5. Run two cron requests concurrently and verify each notification is sent at most once.
+6. Create a PROCESSING row older than 10 minutes and verify the worker recovers it.
+7. Verify a notification stops retrying after 5 total attempts.
+8. Verify SENT and SKIPPED notifications are never selected.
+9. Open the reservation detail in Spanish and English and verify localized read-only notification history.
+10. Confirm no raw Resend response, API key, sender credential, card data, or manual resend action appears.
+11. Confirm payment remains APPROVED and reservation remains CONFIRMED when a retry fails.
+12. Commit Phase 10.5 after local acceptance.
+13. Continue with 10.6 arrival instructions scheduling and content.
 ```
 
 ## Continuity Notes for New Conversations
@@ -426,6 +458,9 @@ docs/85-email-notification-strategy-and-phase-10-roadmap.md
 docs/86-email-persistence-and-resend-provider-foundation.md
 docs/87-bilingual-branded-reservation-confirmation-templates.md
 docs/88-guest-admin-confirmation-notification-orchestration.md
+docs/89-test-and-production-environment-strategy.md
+docs/90-transactional-email-brand-logo-hosting.md
+docs/91-email-retry-processing-and-admin-delivery-visibility.md
 config/site.ts
 lib/env/server.ts
 lib/reservations/pending-holds.ts

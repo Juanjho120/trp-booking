@@ -420,6 +420,13 @@ export const enMessages = {
         TILOPAY_SDK_START_PAYMENT_FAILED: "SDK payment start failed",
         TILOPAY_SDK_START_PAYMENT_NON_SUCCESS: "SDK payment start was not successful",
       },
+      emailNotification: {
+        PENDING: "Pending",
+        PROCESSING: "Processing",
+        SENT: "Sent",
+        FAILED: "Failed",
+        SKIPPED: "Skipped",
+      },
     },
     dashboard: {
       badge: "Daily operations",
@@ -494,6 +501,40 @@ export const enMessages = {
         clear: "Clear",
         previous: "Previous",
         next: "Next",
+      },
+      notifications: {
+        title: "Email delivery",
+        description:
+          "Transactional notification history for this reservation. Sent means Resend accepted the message; it does not confirm that it was opened.",
+        labels: {
+          type: "Type",
+          recipient: "Intended recipient",
+          locale: "Language",
+          status: "Status",
+          attempts: "Attempts",
+          lastAttempt: "Last attempt",
+          nextAttempt: "Next attempt",
+          sentAt: "Sent",
+          providerMessageId: "Provider ID",
+          errorCode: "Error code",
+          errorMessage: "Safe detail",
+        },
+        types: {
+          RESERVATION_CONFIRMED: "Reservation confirmation",
+          PAYMENT_APPROVED: "Payment approved",
+          PAYMENT_FAILED: "Payment failed",
+          RESERVATION_CANCELLED: "Reservation cancelled",
+          RESERVATION_DATES_UPDATED: "Reservation dates updated",
+          STAY_EXTENSION_CONFIRMED: "Stay extension confirmed",
+          REFUND_PROCESSED: "Refund processed",
+          ARRIVAL_INSTRUCTIONS: "Arrival instructions",
+          ADMIN_NEW_RESERVATION: "New reservation for administration",
+        },
+        locales: {
+          es: "Spanish",
+          en: "English",
+        },
+        empty: "This reservation does not have email notifications yet.",
       },
       empty: {
         noResults: "No reservations match these filters.",
@@ -1090,7 +1131,7 @@ export const enMessages = {
       },
     },
   },
-    emails: {
+  emails: {
     common: {
       brandName: "Tu Refugio Perfecto",
       publicName: "Bungalows Tu Refugio Perfecto",

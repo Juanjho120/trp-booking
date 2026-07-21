@@ -15,6 +15,8 @@ import { prisma } from "@/lib/db/prisma";
 import { getEmailEnv } from "@/lib/env/server";
 import type { EmailProvider } from "@/types/email-provider";
 import type {
+  ClaimedEmailNotificationDeliveryOutcome,
+  EmailNotificationClaim,
   EmailNotificationDeliveryErrorCode,
   ImmediateEmailDeliverySummary,
   ReservationConfirmationNotificationIntent,
@@ -28,6 +30,10 @@ import type {
 
 import { EmailProviderError } from "./provider";
 import { createResendEmailProvider } from "./resend-provider";
+import {
+  calculateNextEmailNotificationAttemptAt,
+  EMAIL_NOTIFICATION_MAX_ATTEMPTS,
+} from "./retry-policy";
 
 const recipientSchema = z
   .string()
@@ -56,6 +62,8 @@ const SAFE_DELIVERY_ERROR_MESSAGES: Readonly<
     "The email notification data is incomplete.",
   EMAIL_NOTIFICATION_UNSUPPORTED_TYPE:
     "The email notification type is not supported by this dispatcher.",
+  EMAIL_NOTIFICATION_RETRY_LIMIT_REACHED:
+    "The email notification reached the maximum delivery attempt count.",
   EMAIL_NOTIFICATION_UNEXPECTED_ERROR:
     "The email notification could not be delivered.",
 };
@@ -227,33 +235,45 @@ export async function createReservationConfirmationNotificationIntents(
 
 async function claimPendingNotification(
   notificationId: string,
-  now: Date,
-): Promise<boolean> {
+  processingStartedAt: Date,
+): Promise<EmailNotificationClaim | null> {
   const result = await prisma.emailNotification.updateMany({
     where: {
       id: notificationId,
       status: EmailNotificationStatus.PENDING,
+      attemptCount: {
+        lt: EMAIL_NOTIFICATION_MAX_ATTEMPTS,
+      },
     },
     data: {
       status: EmailNotificationStatus.PROCESSING,
       attemptCount: {
         increment: 1,
       },
-      lastAttemptAt: now,
-      processingStartedAt: now,
+      lastAttemptAt: processingStartedAt,
+      processingStartedAt,
       nextAttemptAt: null,
       errorCode: null,
       errorMessage: null,
     },
   });
 
-  return result.count === 1;
+  if (result.count !== 1) {
+    return null;
+  }
+
+  return {
+    notificationId,
+    processingStartedAt,
+  };
 }
 
-async function readClaimedNotification(notificationId: string) {
-  return prisma.emailNotification.findUnique({
+async function readClaimedNotification(claim: EmailNotificationClaim) {
+  return prisma.emailNotification.findFirst({
     where: {
-      id: notificationId,
+      id: claim.notificationId,
+      status: EmailNotificationStatus.PROCESSING,
+      processingStartedAt: claim.processingStartedAt,
     },
     select: {
       id: true,
@@ -262,6 +282,7 @@ async function readClaimedNotification(notificationId: string) {
       locale: true,
       deduplicationKey: true,
       status: true,
+      attemptCount: true,
       reservation: {
         select: {
           id: true,
@@ -397,14 +418,15 @@ function normalizeDeliveryError(
 }
 
 async function markNotificationSent(
-  notificationId: string,
+  claim: EmailNotificationClaim,
   providerMessageId: string,
   sentAt: Date,
 ): Promise<void> {
   const result = await prisma.emailNotification.updateMany({
     where: {
-      id: notificationId,
+      id: claim.notificationId,
       status: EmailNotificationStatus.PROCESSING,
+      processingStartedAt: claim.processingStartedAt,
     },
     data: {
       status: EmailNotificationStatus.SENT,
@@ -426,59 +448,57 @@ async function markNotificationSent(
 }
 
 async function markNotificationFailed(
-  notificationId: string,
+  claim: EmailNotificationClaim,
+  attemptCount: number,
   error: EmailNotificationDeliveryError,
-): Promise<void> {
+  failedAt: Date,
+): Promise<Date | null> {
+  const nextAttemptAt = error.retryable
+    ? calculateNextEmailNotificationAttemptAt(attemptCount, failedAt)
+    : null;
+
   try {
-    await prisma.emailNotification.updateMany({
+    const result = await prisma.emailNotification.updateMany({
       where: {
-        id: notificationId,
+        id: claim.notificationId,
         status: EmailNotificationStatus.PROCESSING,
+        processingStartedAt: claim.processingStartedAt,
       },
       data: {
         status: EmailNotificationStatus.FAILED,
         processingStartedAt: null,
         errorCode: error.code,
         errorMessage: error.message,
-        nextAttemptAt: null,
+        nextAttemptAt,
       },
     });
+
+    return result.count === 1 ? nextAttemptAt : null;
   } catch {
     // The confirmed reservation must remain successful even when delivery audit persistence fails.
+    return null;
   }
 }
 
-async function deliverClaimedNotification(
+export async function deliverClaimedEmailNotification(
   input: Readonly<{
-    notificationId: string;
+    claim: EmailNotificationClaim;
     provider: EmailProvider;
     publicBaseUrl: string;
     brandLogoUrl: string;
     now: () => Date;
   }>,
-): Promise<"sent" | "failed" | "skipped"> {
-  const claimed = await claimPendingNotification(
-    input.notificationId,
-    input.now(),
-  );
+): Promise<ClaimedEmailNotificationDeliveryOutcome> {
+  const notification = await readClaimedNotification(input.claim);
 
-  if (!claimed) {
-    return "skipped";
+  if (!notification) {
+    return {
+      outcome: "skipped",
+      retryScheduled: false,
+    };
   }
 
   try {
-    const notification = await readClaimedNotification(input.notificationId);
-
-    if (
-      !notification ||
-      notification.status !== EmailNotificationStatus.PROCESSING
-    ) {
-      throw new EmailNotificationDeliveryError(
-        "EMAIL_NOTIFICATION_DATA_INCOMPLETE",
-        false,
-      );
-    }
-
     const locale = normalizeLocale(notification.locale);
 
     if (!locale) {
@@ -503,19 +523,28 @@ async function deliverClaimedNotification(
     });
 
     await markNotificationSent(
-      notification.id,
+      input.claim,
       result.providerMessageId,
       input.now(),
     );
 
-    return "sent";
+    return {
+      outcome: "sent",
+      retryScheduled: false,
+    };
   } catch (error) {
-    await markNotificationFailed(
-      input.notificationId,
+    const failedAt = input.now();
+    const nextAttemptAt = await markNotificationFailed(
+      input.claim,
+      notification.attemptCount,
       normalizeDeliveryError(error),
+      failedAt,
     );
 
-    return "failed";
+    return {
+      outcome: "failed",
+      retryScheduled: nextAttemptAt !== null,
+    };
   }
 }
 
@@ -531,6 +560,7 @@ export async function deliverReservationConfirmationNotificationsBestEffort(
     attempted: 0,
     sent: 0,
     failed: 0,
+    retryScheduled: 0,
     skipped: 0,
   } as const;
   const source = options.source ?? process.env;
@@ -568,29 +598,37 @@ export async function deliverReservationConfirmationNotificationsBestEffort(
   let attempted = 0;
   let sent = 0;
   let failed = 0;
+  let retryScheduled = 0;
   let skipped = 0;
 
   for (const notificationId of uniqueNotificationIds) {
     try {
-      const outcome = await deliverClaimedNotification({
-        notificationId,
+      const claim = await claimPendingNotification(notificationId, now());
+
+      if (!claim) {
+        skipped += 1;
+        continue;
+      }
+
+      attempted += 1;
+      const outcome = await deliverClaimedEmailNotification({
+        claim,
         provider,
         publicBaseUrl: emailEnv.publicBaseUrl,
         brandLogoUrl: emailEnv.brandLogoUrl,
         now,
       });
 
-      if (outcome === "skipped") {
-        skipped += 1;
-        continue;
-      }
-
-      attempted += 1;
-
-      if (outcome === "sent") {
+      if (outcome.outcome === "sent") {
         sent += 1;
-      } else {
+      } else if (outcome.outcome === "failed") {
         failed += 1;
+
+        if (outcome.retryScheduled) {
+          retryScheduled += 1;
+        }
+      } else {
+        skipped += 1;
       }
     } catch {
       failed += 1;
@@ -603,6 +641,7 @@ export async function deliverReservationConfirmationNotificationsBestEffort(
     attempted,
     sent,
     failed,
+    retryScheduled,
     skipped,
   };
 }

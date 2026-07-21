@@ -20,19 +20,46 @@ export type EmailNotificationDeliveryErrorCode =
   | "EMAIL_TEMPLATE_INVALID_DATA"
   | "EMAIL_NOTIFICATION_DATA_INCOMPLETE"
   | "EMAIL_NOTIFICATION_UNSUPPORTED_TYPE"
+  | "EMAIL_NOTIFICATION_RETRY_LIMIT_REACHED"
   | "EMAIL_NOTIFICATION_UNEXPECTED_ERROR";
 
-export type ImmediateEmailDeliveryMode =
+export type EmailDeliveryMode =
   | "disabled"
   | "test"
   | "production"
   | "unavailable";
 
 export type ImmediateEmailDeliverySummary = Readonly<{
-  deliveryMode: ImmediateEmailDeliveryMode;
+  deliveryMode: EmailDeliveryMode;
   requested: number;
   attempted: number;
   sent: number;
   failed: number;
+  retryScheduled: number;
   skipped: number;
+}>;
+
+export type EmailNotificationProcessingSummary = Readonly<{
+  deliveryMode: EmailDeliveryMode;
+  processedAt: string;
+  batchSize: number;
+  candidates: number;
+  claimed: number;
+  staleRecovered: number;
+  staleExhausted: number;
+  attempted: number;
+  sent: number;
+  failed: number;
+  retryScheduled: number;
+  skipped: number;
+}>;
+
+export type EmailNotificationClaim = Readonly<{
+  notificationId: string;
+  processingStartedAt: Date;
+}>;
+
+export type ClaimedEmailNotificationDeliveryOutcome = Readonly<{
+  outcome: "sent" | "failed" | "skipped";
+  retryScheduled: boolean;
 }>;

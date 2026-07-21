@@ -13,7 +13,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useLocale } from "@/features/i18n";
-import type { AdminReservationDetailData } from "@/types/admin-reservation-detail";
+import type {
+  AdminReservationDetailData,
+  AdminReservationDetailEmailNotification,
+} from "@/types/admin-reservation-detail";
 import type { Locale } from "@/types/locale";
 
 import { AdminPageHeader } from "./admin-page-header";
@@ -32,6 +35,8 @@ export function AdminReservationDetailPage({
   const pendingCopy = messages.reservations.pendingHold;
   const reservationStatuses = messages.admin.statuses.reservation;
   const paymentStatuses = messages.admin.statuses.payment;
+  const emailNotificationStatuses = messages.admin.statuses.emailNotification;
+  const notificationCopy = reservationCopy.notifications;
   const intlLocale = getIntlLocale(locale);
 
   function formatDate(value: string): string {
@@ -67,6 +72,25 @@ export function AdminReservationDetailPage({
 
   function paymentStatusLabel(status: string): string {
     return paymentStatuses[status as keyof typeof paymentStatuses] ?? status;
+  }
+
+  function emailNotificationStatusLabel(status: string): string {
+    return (
+      emailNotificationStatuses[
+        status as keyof typeof emailNotificationStatuses
+      ] ?? status
+    );
+  }
+
+  function emailNotificationTypeLabel(type: string): string {
+    return notificationCopy.types[type as keyof typeof notificationCopy.types] ?? type;
+  }
+
+  function emailNotificationLocaleLabel(value: string): string {
+    return (
+      notificationCopy.locales[value as keyof typeof notificationCopy.locales] ??
+      value
+    );
   }
 
   const propertyName =
@@ -247,7 +271,121 @@ export function AdminReservationDetailPage({
           </CardContent>
         </Card>
       </div>
+
+      <Card className="mt-6 border-border/70 bg-card shadow-sm">
+        <CardHeader>
+          <CardTitle>{notificationCopy.title}</CardTitle>
+          <CardDescription>{notificationCopy.description}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {reservation.emailNotifications.length > 0 ? (
+            <div className="grid gap-4">
+              {reservation.emailNotifications.map((notification) => (
+                <EmailNotificationCard
+                  formatDateTime={formatDateTime}
+                  key={notification.id}
+                  labels={notificationCopy.labels}
+                  localeLabel={emailNotificationLocaleLabel(notification.locale)}
+                  notification={notification}
+                  statusLabel={emailNotificationStatusLabel(notification.status)}
+                  typeLabel={emailNotificationTypeLabel(notification.type)}
+                  unavailableLabel={reservationCopy.labels.unavailable}
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              {notificationCopy.empty}
+            </p>
+          )}
+        </CardContent>
+      </Card>
     </>
+  );
+}
+
+function EmailNotificationCard({
+  notification,
+  typeLabel,
+  statusLabel,
+  localeLabel,
+  labels,
+  unavailableLabel,
+  formatDateTime,
+}: Readonly<{
+  notification: AdminReservationDetailEmailNotification;
+  typeLabel: string;
+  statusLabel: string;
+  localeLabel: string;
+  labels: {
+    type: string;
+    recipient: string;
+    locale: string;
+    status: string;
+    attempts: string;
+    lastAttempt: string;
+    nextAttempt: string;
+    sentAt: string;
+    providerMessageId: string;
+    errorCode: string;
+    errorMessage: string;
+  };
+  unavailableLabel: string;
+  formatDateTime: (value: string | null) => string;
+}>) {
+  const hasError = notification.errorCode || notification.errorMessage;
+
+  return (
+    <div className="rounded-2xl border border-border bg-muted/20 p-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">
+            {labels.type}
+          </p>
+          <p className="mt-1 break-words text-sm font-semibold">{typeLabel}</p>
+        </div>
+        <Badge variant="outline">{statusLabel}</Badge>
+      </div>
+
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <DetailValue label={labels.recipient} value={notification.recipient} />
+        <DetailValue label={labels.locale} value={localeLabel} />
+        <DetailValue label={labels.status} value={statusLabel} />
+        <DetailValue
+          label={labels.attempts}
+          value={String(notification.attemptCount)}
+        />
+        <DetailValue
+          label={labels.lastAttempt}
+          value={formatDateTime(notification.lastAttemptAt)}
+        />
+        <DetailValue
+          label={labels.nextAttempt}
+          value={formatDateTime(notification.nextAttemptAt)}
+        />
+        <DetailValue
+          label={labels.sentAt}
+          value={formatDateTime(notification.sentAt)}
+        />
+        <DetailValue
+          label={labels.providerMessageId}
+          value={notification.providerMessageId ?? unavailableLabel}
+        />
+      </div>
+
+      {hasError ? (
+        <div className="mt-4 grid gap-4 rounded-xl border border-border/70 bg-background/60 p-4 sm:grid-cols-2">
+          <DetailValue
+            label={labels.errorCode}
+            value={notification.errorCode ?? unavailableLabel}
+          />
+          <DetailValue
+            label={labels.errorMessage}
+            value={notification.errorMessage ?? unavailableLabel}
+          />
+        </div>
+      ) : null}
+    </div>
   );
 }
 

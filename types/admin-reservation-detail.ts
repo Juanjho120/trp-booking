@@ -10,6 +10,21 @@ export type AdminReservationDetailPayment = Readonly<{
   createdAt: string;
 }>;
 
+export type AdminReservationDetailEmailNotification = Readonly<{
+  id: string;
+  type: string;
+  recipient: string;
+  locale: string;
+  status: string;
+  attemptCount: number;
+  lastAttemptAt: string | null;
+  nextAttemptAt: string | null;
+  sentAt: string | null;
+  providerMessageId: string | null;
+  errorCode: string | null;
+  errorMessage: string | null;
+}>;
+
 export type AdminReservationDetailData = Readonly<{
   id: string;
   property: AdminPropertyOption;
@@ -31,4 +46,5 @@ export type AdminReservationDetailData = Readonly<{
   expiresAt: string | null;
   createdAt: string;
   payments: readonly AdminReservationDetailPayment[];
+  emailNotifications: readonly AdminReservationDetailEmailNotification[];
 }>;

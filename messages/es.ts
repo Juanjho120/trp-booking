@@ -420,6 +420,13 @@ export const esMessages = {
         TILOPAY_SDK_START_PAYMENT_FAILED: "Inicio de pago SDK fallido",
         TILOPAY_SDK_START_PAYMENT_NON_SUCCESS: "Inicio de pago SDK no exitoso",
       },
+      emailNotification: {
+        PENDING: "Pendiente",
+        PROCESSING: "Procesando",
+        SENT: "Enviado",
+        FAILED: "Fallido",
+        SKIPPED: "Omitido",
+      },
     },
     dashboard: {
       badge: "Operación diaria",
@@ -494,6 +501,40 @@ export const esMessages = {
         clear: "Limpiar",
         previous: "Anterior",
         next: "Siguiente",
+      },
+      notifications: {
+        title: "Entrega de correos",
+        description:
+          "Historial de notificaciones transaccionales de esta reserva. El estado Enviado significa que Resend aceptó el mensaje; no confirma que haya sido abierto.",
+        labels: {
+          type: "Tipo",
+          recipient: "Destinatario previsto",
+          locale: "Idioma",
+          status: "Estado",
+          attempts: "Intentos",
+          lastAttempt: "Último intento",
+          nextAttempt: "Próximo intento",
+          sentAt: "Enviado",
+          providerMessageId: "ID del proveedor",
+          errorCode: "Código de error",
+          errorMessage: "Detalle seguro",
+        },
+        types: {
+          RESERVATION_CONFIRMED: "Confirmación de reserva",
+          PAYMENT_APPROVED: "Pago aprobado",
+          PAYMENT_FAILED: "Pago fallido",
+          RESERVATION_CANCELLED: "Reserva cancelada",
+          RESERVATION_DATES_UPDATED: "Fechas de reserva actualizadas",
+          STAY_EXTENSION_CONFIRMED: "Extensión de estadía confirmada",
+          REFUND_PROCESSED: "Reembolso procesado",
+          ARRIVAL_INSTRUCTIONS: "Instrucciones de llegada",
+          ADMIN_NEW_RESERVATION: "Nueva reserva para administración",
+        },
+        locales: {
+          es: "Español",
+          en: "Inglés",
+        },
+        empty: "Esta reserva todavía no tiene notificaciones por correo.",
       },
       empty: {
         noResults: "No encontramos reservas con estos filtros.",
@@ -1090,7 +1131,7 @@ export const esMessages = {
       },
     },
   },
-    emails: {
+  emails: {
     common: {
       brandName: "Tu Refugio Perfecto",
       publicName: "Bungalows Tu Refugio Perfecto",

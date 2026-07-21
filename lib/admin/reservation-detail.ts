@@ -2,6 +2,27 @@ import { dateOnlyFromDate } from "@/lib/availability/rules";
 import { prisma } from "@/lib/db/prisma";
 import type { AdminReservationDetailData } from "@/types/admin-reservation-detail";
 
+const PROVIDER_MESSAGE_ID_MAX_LENGTH = 180;
+const ERROR_CODE_MAX_LENGTH = 120;
+const ERROR_MESSAGE_MAX_LENGTH = 240;
+
+function normalizeOptionalText(
+  value: string | null,
+  maximumLength: number,
+): string | null {
+  if (!value) {
+    return null;
+  }
+
+  const normalized = value.trim().replace(/\s+/g, " ");
+
+  if (!normalized) {
+    return null;
+  }
+
+  return normalized.slice(0, maximumLength);
+}
+
 export async function getAdminReservationDetail(
   reservationId: string,
 ): Promise<AdminReservationDetailData | null> {
@@ -50,6 +71,23 @@ export async function getAdminReservationDetail(
           createdAt: true,
         },
       },
+      emailNotifications: {
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        select: {
+          id: true,
+          type: true,
+          recipient: true,
+          locale: true,
+          status: true,
+          attemptCount: true,
+          lastAttemptAt: true,
+          nextAttemptAt: true,
+          sentAt: true,
+          providerMessageId: true,
+          errorCode: true,
+          errorMessage: true,
+        },
+      },
     },
   });
 
@@ -84,6 +122,29 @@ export async function getAdminReservationDetail(
       amount: payment.amount.toFixed(2),
       currency: payment.currency,
       createdAt: payment.createdAt.toISOString(),
+    })),
+    emailNotifications: reservation.emailNotifications.map((notification) => ({
+      id: notification.id,
+      type: notification.type,
+      recipient: notification.recipient,
+      locale: notification.locale,
+      status: notification.status,
+      attemptCount: notification.attemptCount,
+      lastAttemptAt: notification.lastAttemptAt?.toISOString() ?? null,
+      nextAttemptAt: notification.nextAttemptAt?.toISOString() ?? null,
+      sentAt: notification.sentAt?.toISOString() ?? null,
+      providerMessageId: normalizeOptionalText(
+        notification.providerMessageId,
+        PROVIDER_MESSAGE_ID_MAX_LENGTH,
+      ),
+      errorCode: normalizeOptionalText(
+        notification.errorCode,
+        ERROR_CODE_MAX_LENGTH,
+      ),
+      errorMessage: normalizeOptionalText(
+        notification.errorMessage,
+        ERROR_MESSAGE_MAX_LENGTH,
+      ),
     })),
   };
 }

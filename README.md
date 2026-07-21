@@ -183,8 +183,8 @@ Planned subphases:
 10.1 Email notification strategy and environment contract — Completed
 10.2 Persistence and Resend provider foundation — Completed
 10.3 Bilingual branded reservation-confirmation templates — Completed
-10.4 Guest and admin confirmation notification orchestration — In progress
-10.5 Retry processing and admin delivery visibility — Not started
+10.4 Guest and admin confirmation notification orchestration — Completed
+10.5 Retry processing and admin delivery visibility — In progress
 10.6 Arrival instructions scheduling and content — Not started
 10.7 Validation and documentation closure — Not started
 ```
@@ -230,7 +230,7 @@ Phase 10.3 templates completed:
 - The accepted implementation was committed as 7f6510d3e152caccefa42d9a2f5f75dbf747a22e.
 ```
 
-Phase 10.4 orchestration prepared:
+Phase 10.4 orchestration completed:
 
 ```text
 - Guest and admin EmailNotification intents are inserted or reused inside the reservation-confirmation transaction.
@@ -241,7 +241,22 @@ Phase 10.4 orchestration prepared:
 - Disabled or unavailable email configuration leaves intents PENDING without affecting payment or reservation success.
 - Test mode keeps the intended recipient in the database while the provider adapter redirects delivery to EMAIL_TEST_RECIPIENT.
 - Provider and template failures become safe FAILED notification records while the approved payment and confirmed reservation remain unchanged.
-- Retry scheduling, stale PROCESSING recovery, attempt limits, admin delivery visibility, and manual resend remain assigned to 10.5.
+- The accepted orchestration and its environment/logo follow-ups are recorded through commit 6f7bdc3c6027d6be8b4fcdfe027c57b01dfef50d.
+- Retry scheduling, stale PROCESSING recovery, attempt limits, and read-only admin delivery visibility remain assigned to 10.5.
+- Manual resend is not part of the initial Phase 10 roadmap.
+```
+
+Phase 10.5 retry and visibility implementation prepared:
+
+```text
+- A CRON_SECRET-protected worker processes at most 20 due notifications every five minutes.
+- Retryable failures use bounded backoff at 5 minutes, 15 minutes, 1 hour, and 6 hours.
+- Delivery stops after 5 total attempts and stale PROCESSING claims are recovered after 10 minutes.
+- Atomic claim tokens prevent an older stale worker from finalizing a row reclaimed by a newer worker.
+- SENT and SKIPPED notifications are never retried.
+- Reservation detail exposes safe read-only notification history, intended recipient, locale, attempts, schedule, provider ID, and normalized error diagnostics.
+- No raw Resend payload, API key, sender credential, card data, manual resend action, schema migration, dependency, or PMS behavior is added.
+- The implementation record is docs/91-email-retry-processing-and-admin-delivery-visibility.md.
 ```
 
 ## Documentation
@@ -280,14 +295,16 @@ docs/87-bilingual-branded-reservation-confirmation-templates.md
 docs/88-guest-admin-confirmation-notification-orchestration.md
 docs/89-test-and-production-environment-strategy.md
 docs/90-transactional-email-brand-logo-hosting.md
+docs/91-email-retry-processing-and-admin-delivery-visibility.md
 ```
 
 ## Development Status
 
 ```text
 Current phase: Phase 10 — Email Notifications
-Current subphase: 10.4 Guest and admin confirmation notification orchestration — In progress
-Current focus: validate transactional intent creation, post-commit best-effort delivery, duplicate-send prevention, and isolated local/test/production provider configuration
-Last completed subphase: 10.3 Bilingual branded reservation-confirmation templates
-10.3 accepted commit: 7f6510d3e152caccefa42d9a2f5f75dbf747a22e
+Current subphase: 10.5 Retry processing and admin delivery visibility — In progress
+Current focus: validate bounded retry processing, stale-claim recovery, maximum attempts, and safe read-only admin notification history
+Last completed subphase: 10.4 Guest and admin confirmation notification orchestration
+10.4 accepted implementation commit: ab74af5863d82ede8489b11a00627c3e759c205d
+Latest accepted Phase 10.4 follow-up commit: 6f7bdc3c6027d6be8b4fcdfe027c57b01dfef50d
 ```
