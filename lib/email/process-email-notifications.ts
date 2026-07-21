@@ -1,4 +1,7 @@
-import { EmailNotificationStatus } from "@prisma/client";
+import {
+  EmailNotificationStatus,
+  type Prisma,
+} from "@prisma/client";
 
 import { prisma } from "@/lib/db/prisma";
 import { getEmailEnv } from "@/lib/env/server";
@@ -58,19 +61,26 @@ function buildEmptySummary(
   };
 }
 
-function buildDueAtFilter(now: Date) {
+function buildDueAtFilter(
+  now: Date,
+): Prisma.EmailNotificationWhereInput {
   return {
-    OR: [{ nextAttemptAt: null }, { nextAttemptAt: { lte: now } }],
-  } as const;
+    OR: [
+      { nextAttemptAt: null },
+      { nextAttemptAt: { lte: now } },
+    ],
+  };
 }
 
-function buildStaleProcessingFilter(staleProcessingCutoff: Date) {
+function buildStaleProcessingFilter(
+  staleProcessingCutoff: Date,
+): Prisma.EmailNotificationWhereInput {
   return {
     OR: [
       { processingStartedAt: null },
       { processingStartedAt: { lte: staleProcessingCutoff } },
     ],
-  } as const;
+  };
 }
 
 async function markExhaustedStaleProcessingNotifications(
