@@ -10,6 +10,7 @@ export { createResendEmailProvider } from "./resend-provider";
 export {
   createReservationConfirmationNotificationIntents,
   deliverClaimedEmailNotification,
+  deliverPendingEmailNotificationsBestEffort,
   deliverReservationConfirmationNotificationsBestEffort,
 } from "./reservation-confirmation-notifications";
 export {

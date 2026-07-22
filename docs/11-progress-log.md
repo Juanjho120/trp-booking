@@ -6,12 +6,12 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 10 — Email Notifications
-Current subphase: 10.5 Retry processing and admin delivery visibility — In progress
-Current focus: validate bounded retry processing, stale-claim recovery, maximum attempts, and safe read-only admin notification history
-Last updated: 2026-07-21
-Last completed subphase: 10.4 Guest and admin confirmation notification orchestration
-10.4 accepted implementation commit: ab74af5863d82ede8489b11a00627c3e759c205d
-Latest accepted Phase 10.4 follow-up commit: 6f7bdc3c6027d6be8b4fcdfe027c57b01dfef50d
+Current subphase: 10.5.1 Manual resend and delivery recovery controls — In progress
+Current focus: validate audited manual delivery creation, source relation/version suppression, request idempotency, controlled admin confirmation, and unchanged payment/reservation state
+Last updated: 2026-07-22
+Last completed subphase: 10.5 Retry processing and admin delivery visibility
+10.5 accepted implementation commit: 1d3b02f6ae5fe37bd850a0ede0227e7173628aa1
+10.5 accepted follow-up commit: f77625f1d95095d7ebfd270007e1cbc54b667762
 10.1 base commit: 0c9df37380588ca9573a74faf3ce52a1b25a0654
 10.1 strategy document: docs/85-email-notification-strategy-and-phase-10-roadmap.md
 ```
@@ -400,45 +400,73 @@ Environment isolation: d3803fb7744c5d9836db7a37001b2753c3f4c8f8
 Permanent email logo URL: 6f7bdc3c6027d6be8b4fcdfe027c57b01dfef50d
 ```
 
-## Active Work
+## Completed Work — Phase 10.5
 
 ### Phase 10.5 — Retry Processing and Admin Delivery Visibility
+
+Status: **Completed and accepted**
+
+```text
+A CRON_SECRET-protected worker processes no more than 20 due notifications every five minutes.
+Retryable failures use 5-minute, 15-minute, 1-hour, and 6-hour backoff with 5 total attempts.
+Stale PROCESSING claims recover after 10 minutes through ownership tokens and atomic claims.
+SENT and SKIPPED rows are never automatically retried.
+Protected reservation detail shows localized, bounded, safe delivery history.
+Payment remains APPROVED and Reservation remains CONFIRMED when delivery or retry fails.
+Local retry, stale recovery, concurrency, limit, idempotency, and admin-visibility tests were accepted.
+```
+
+Accepted commits:
+
+```text
+Implementation: 1d3b02f6ae5fe37bd850a0ede0227e7173628aa1
+Prisma filter typing follow-up: f77625f1d95095d7ebfd270007e1cbc54b667762
+```
+
+Implementation document:
+
+```text
+docs/91-email-retry-processing-and-admin-delivery-visibility.md
+```
+
+## Active Work
+
+### Phase 10.5.1 — Manual Resend and Delivery Recovery Controls
 
 Status: **In progress — implementation prepared, pending local validation and commit**
 
 Implemented scope:
 
 ```text
-Added a CRON_SECRET-protected retry worker at /api/cron/process-email-notifications.
-Added a maximum batch size of 20 and Vercel execution every five minutes.
-Added retry delays of 5 minutes, 15 minutes, 1 hour, and 6 hours.
-Added a maximum of 5 total delivery attempts.
-Added recovery of PROCESSING claims older than 10 minutes.
-Added claim ownership tokens so a reclaimed stale worker cannot overwrite a newer result.
-Added terminal failure handling for exhausted stale claims.
-Added compatibility for retryable FAILED rows created before nextAttemptAt scheduling existed.
-Extended protected reservation detail with safe read-only email delivery history.
-Localized notification types and statuses in messages/es.ts and messages/en.ts.
-Kept raw provider payloads, secrets, manual resend, schema changes, dependencies, arrival scheduling, and PMS behavior out of scope.
-Implementation document: docs/91-email-retry-processing-and-admin-delivery-visibility.md.
+Added EmailNotificationOrigin plus parent, requester, and request-time audit fields.
+Added a protected POST action for eligible reservation-confirmation and admin-new-reservation notifications.
+Each manual request creates a new notification and a new provider idempotency key; it never resets source delivery fields.
+The requesting admin and source notification are preserved in EmailNotification and AdminAuditLog.
+The worker and immediate callback require no manual child plus the discovered source version, preventing a stale claim from racing the manual request.
+PROCESSING, SKIPPED, unsupported types, and notifications outside confirmed reservations are rejected.
+A client request UUID makes network retries and concurrent double submission idempotent.
+A styled confirmation Sheet and Snackbar use centralized bilingual copy; SENT re-delivery shows an explicit duplicate warning.
+The new row reuses the existing post-transaction provider and bounded retry pipeline.
+No raw provider payload, secret, payment mutation, reservation mutation, arrival scheduling, new dependency, or PMS behavior is added.
+Implementation document: docs/92-manual-resend-and-delivery-recovery-controls.md.
 ```
 
 ## Next Recommended Work
 
 ```text
-1. Copy the Phase 10.5 ZIP files into the repository root.
-2. Run npm run env:validate, npm run db:validate, npm run lint, and npm run build.
-3. Create a retryable FAILED notification and confirm nextAttemptAt follows the centralized backoff.
-4. Call the protected cron endpoint and verify only due rows are claimed.
-5. Run two cron requests concurrently and verify each notification is sent at most once.
-6. Create a PROCESSING row older than 10 minutes and verify the worker recovers it.
-7. Verify a notification stops retrying after 5 total attempts.
-8. Verify SENT and SKIPPED notifications are never selected.
-9. Open the reservation detail in Spanish and English and verify localized read-only notification history.
-10. Confirm no raw Resend response, API key, sender credential, card data, or manual resend action appears.
-11. Confirm payment remains APPROVED and reservation remains CONFIRMED when a retry fails.
-12. Commit Phase 10.5 after local acceptance.
-13. Continue with 10.6 arrival instructions scheduling and content.
+1. Copy the Phase 10.5.1 ZIP files into the repository root.
+2. Run npm run db:format, npm run db:generate, and npm run db:validate.
+3. Apply the migration with npm run db:migrate:dev locally.
+4. Run npm run env:validate, npm run lint, npm run build, and git diff --check.
+5. Verify PROCESSING and SKIPPED notifications do not show or accept a manual action.
+6. Retry a FAILED configuration error after correcting configuration and confirm a new MANUAL row is created and sent.
+7. Send another copy from SENT and verify the duplicate-warning Sheet appears.
+8. Submit the same request UUID twice and verify only one manual row and one audit record exist.
+9. Run two concurrent requests with the same UUID and verify unique-key recovery returns the same row.
+10. Create a manual child from a retryable FAILED/PENDING source and verify the source is no longer selected by cron while the child remains eligible.
+11. Verify manual failure schedules retry only on the new child and never changes Payment or Reservation.
+12. Verify ES/EN origin, requester, parent, timestamps, feedback, and errors.
+13. Commit Phase 10.5.1 after local acceptance, then continue with 10.6 arrival instructions.
 ```
 
 ## Continuity Notes for New Conversations
@@ -461,6 +489,7 @@ docs/88-guest-admin-confirmation-notification-orchestration.md
 docs/89-test-and-production-environment-strategy.md
 docs/90-transactional-email-brand-logo-hosting.md
 docs/91-email-retry-processing-and-admin-delivery-visibility.md
+docs/92-manual-resend-and-delivery-recovery-controls.md
 config/site.ts
 lib/env/server.ts
 lib/reservations/pending-holds.ts

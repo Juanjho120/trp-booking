@@ -510,6 +510,11 @@ export const esMessages = {
           type: "Tipo",
           recipient: "Destinatario previsto",
           locale: "Idioma",
+          origin: "Origen",
+          requestedBy: "Solicitado por",
+          requestedAt: "Solicitud manual",
+          parentNotification: "Notificación original",
+          createdAt: "Creada",
           status: "Estado",
           attempts: "Intentos",
           lastAttempt: "Último intento",
@@ -533,6 +538,59 @@ export const esMessages = {
         locales: {
           es: "Español",
           en: "Inglés",
+        },
+        origins: {
+          AUTOMATIC: "Automático",
+          MANUAL: "Manual",
+        },
+        actions: {
+          retryNow: "Reintentar ahora",
+          sendAgain: "Enviar nuevamente",
+          sending: "Enviando...",
+          cancel: "Cancelar",
+        },
+        dialog: {
+          retryTitle: "Reintentar entrega",
+          sendAgainTitle: "Enviar nuevamente",
+          retryDescription:
+            "Se creará una nueva notificación con su propio historial e intentos de entrega.",
+          sendAgainDescription:
+            "Se creará una nueva copia de una notificación que el proveedor ya aceptó anteriormente.",
+          recipientLabel: "Destinatario previsto",
+          historyNote:
+            "La notificación original conservará su estado y su historial de entrega; la nueva solicitud quedará vinculada para auditoría.",
+          automaticSuppressionNote:
+            "Cuando se crea la nueva solicitud, la notificación original deja de ser elegible para procesamiento automático para evitar entregas duplicadas.",
+          duplicateWarning:
+            "El destinatario puede recibir un correo duplicado. Confirma esta acción únicamente cuando sea necesaria.",
+        },
+        success: {
+          sent: "La nueva notificación fue aceptada por el proveedor.",
+          queued:
+            "La nueva notificación quedó pendiente y será procesada cuando el servicio de correo esté disponible.",
+          alreadyProcessed:
+            "Esta solicitud ya existía y no se creó otra notificación.",
+          failedRetryScheduled:
+            "La nueva notificación falló, pero quedó programada para reintento automático.",
+          failedTerminal:
+            "La nueva notificación se creó, pero la entrega falló sin un reintento automático programado.",
+        },
+        errors: {
+          ADMIN_UNAUTHORIZED: "Tu sesión no tiene autorización administrativa.",
+          INVALID_ADMIN_EMAIL_NOTIFICATION_RESEND_REQUEST:
+            "La solicitud de reenvío no es válida. Recarga la página e inténtalo nuevamente.",
+          ADMIN_EMAIL_NOTIFICATION_NOT_FOUND:
+            "No encontramos la notificación seleccionada para esta reserva.",
+          ADMIN_EMAIL_NOTIFICATION_STALE:
+            "La notificación cambió después de que abriste esta página. Recarga antes de intentar nuevamente.",
+          ADMIN_EMAIL_NOTIFICATION_PROCESSING_ACTIVE:
+            "La notificación está siendo procesada. Espera a que finalice o a que el worker recupere el claim vencido.",
+          ADMIN_EMAIL_NOTIFICATION_RESEND_NOT_ALLOWED:
+            "Esta notificación no admite reenvío manual.",
+          ADMIN_EMAIL_NOTIFICATION_RESERVATION_NOT_CONFIRMED:
+            "Solo se pueden reenviar correos vinculados a una reserva confirmada.",
+          ADMIN_EMAIL_NOTIFICATION_UNEXPECTED_ERROR:
+            "No pudimos crear la nueva notificación. Inténtalo nuevamente.",
         },
         empty: "Esta reserva todavía no tiene notificaciones por correo.",
       },

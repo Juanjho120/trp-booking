@@ -5,8 +5,9 @@
 ```text
 Phase: Phase 10 — Email Notifications
 Subphase: 10.5 Retry processing and admin delivery visibility
-Status: Implementation prepared; pending local validation and commit
-Base commit: 6f7bdc3c6027d6be8b4fcdfe027c57b01dfef50d
+Status: Completed and accepted
+Implementation commit: 1d3b02f6ae5fe37bd850a0ede0227e7173628aa1
+Accepted follow-up commit: f77625f1d95095d7ebfd270007e1cbc54b667762
 Related roadmap: docs/85-email-notification-strategy-and-phase-10-roadmap.md
 ```
 
@@ -205,7 +206,7 @@ The UI clarifies that `SENT` means the provider accepted the message. It does no
 - PMS behavior
 ```
 
-A future manual resend action requires separately approved audit, authorization, status-transition, idempotency, and concurrency rules.
+Those audit, authorization, idempotency, history-preservation, and concurrency rules were later approved as Phase 10.5.1 and are documented separately in docs/92-manual-resend-and-delivery-recovery-controls.md.
 
 ## Files
 
@@ -245,5 +246,29 @@ docs/91-email-retry-processing-and-admin-delivery-visibility.md
 - SENT and SKIPPED rows are never retried
 - A retry failure never changes Payment or Reservation
 - Reservation detail renders localized safe notification history
-- No raw provider payload, secret, card data, or manual resend action is exposed
+- At the 10.5 acceptance commits, no raw provider payload, secret, card data, or manual resend action was exposed
+```
+
+
+## Acceptance Record
+
+The user completed and accepted local validation for:
+
+```text
+- retryable FAILED scheduling and due processing
+- non-retryable FAILED exclusion
+- stale PROCESSING recovery after 10 minutes
+- single attempt-count increment per claim
+- maximum attempt handling
+- concurrent claim safety
+- Resend idempotency behavior
+- localized protected delivery history
+- unchanged APPROVED payment and CONFIRMED reservation state on delivery failure
+```
+
+Accepted commits:
+
+```text
+Implementation: 1d3b02f6ae5fe37bd850a0ede0227e7173628aa1
+Prisma type follow-up: f77625f1d95095d7ebfd270007e1cbc54b667762
 ```

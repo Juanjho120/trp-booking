@@ -155,6 +155,13 @@ enum EmailNotificationStatus {
   @@map("email_notification_status")
 }
 
+enum EmailNotificationOrigin {
+  AUTOMATIC
+  MANUAL
+
+  @@map("email_notification_origin")
+}
+
 model User {
   id        String   @id @default(cuid())
   name      String?
@@ -163,14 +170,15 @@ model User {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  deletedProperties        Property[]         @relation("PropertyDeletedBy")
-  deletedPropertyImages    PropertyImage[]    @relation("PropertyImageDeletedBy")
-  deletedAmenities         Amenity[]          @relation("AmenityDeletedBy")
-  deletedHouseRules        HouseRule[]        @relation("HouseRuleDeletedBy")
-  deletedExternalCalendars ExternalCalendar[] @relation("ExternalCalendarDeletedBy")
-  deletedCalendarBlocks    CalendarBlock[]    @relation("CalendarBlockDeletedBy")
-  unlockedCalendarBlocks   CalendarBlock[]    @relation("CalendarBlockUnlockedBy")
-  auditLogs                AdminAuditLog[]
+  deletedProperties           Property[]          @relation("PropertyDeletedBy")
+  deletedPropertyImages       PropertyImage[]     @relation("PropertyImageDeletedBy")
+  deletedAmenities            Amenity[]           @relation("AmenityDeletedBy")
+  deletedHouseRules           HouseRule[]         @relation("HouseRuleDeletedBy")
+  deletedExternalCalendars    ExternalCalendar[]  @relation("ExternalCalendarDeletedBy")
+  deletedCalendarBlocks       CalendarBlock[]     @relation("CalendarBlockDeletedBy")
+  unlockedCalendarBlocks      CalendarBlock[]     @relation("CalendarBlockUnlockedBy")
+  requestedEmailNotifications EmailNotification[] @relation("EmailNotificationRequestedByAdmin")
+  auditLogs                   AdminAuditLog[]
 
   @@map("users")
 }
@@ -563,29 +571,39 @@ model ExternalCalendarSyncLog {
 }
 
 model EmailNotification {
-  id                  String                  @id @default(cuid())
-  reservationId       String                  @map("reservation_id")
-  type                EmailNotificationType
-  recipient           String
-  locale              String
-  deduplicationKey    String                  @unique @map("deduplication_key")
-  status              EmailNotificationStatus @default(PENDING)
-  attemptCount        Int                     @default(0) @map("attempt_count")
-  lastAttemptAt       DateTime?               @map("last_attempt_at")
-  nextAttemptAt       DateTime?               @map("next_attempt_at")
-  processingStartedAt DateTime?               @map("processing_started_at")
-  providerMessageId   String?                 @map("provider_message_id")
-  sentAt              DateTime?               @map("sent_at")
-  errorCode           String?                 @map("error_code")
-  errorMessage        String?                 @map("error_message") @db.Text
-  createdAt           DateTime                @default(now()) @map("created_at")
-  updatedAt           DateTime                @updatedAt @map("updated_at")
+  id                   String                  @id @default(cuid())
+  reservationId        String                  @map("reservation_id")
+  type                 EmailNotificationType
+  recipient            String
+  locale               String
+  deduplicationKey     String                  @unique @map("deduplication_key")
+  origin               EmailNotificationOrigin @default(AUTOMATIC)
+  parentNotificationId String?                 @map("parent_notification_id")
+  requestedByAdminId   String?                 @map("requested_by_admin_id")
+  requestedAt          DateTime?               @map("requested_at")
+  status               EmailNotificationStatus @default(PENDING)
+  attemptCount         Int                     @default(0) @map("attempt_count")
+  lastAttemptAt        DateTime?               @map("last_attempt_at")
+  nextAttemptAt        DateTime?               @map("next_attempt_at")
+  processingStartedAt  DateTime?               @map("processing_started_at")
+  providerMessageId    String?                 @map("provider_message_id")
+  sentAt               DateTime?               @map("sent_at")
+  errorCode            String?                 @map("error_code")
+  errorMessage         String?                 @map("error_message") @db.Text
+  createdAt            DateTime                @default(now()) @map("created_at")
+  updatedAt            DateTime                @updatedAt @map("updated_at")
 
-  reservation Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  reservation        Reservation         @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  parentNotification EmailNotification?  @relation("EmailNotificationManualResends", fields: [parentNotificationId], references: [id], onDelete: SetNull)
+  manualResends      EmailNotification[] @relation("EmailNotificationManualResends")
+  requestedByAdmin   User?               @relation("EmailNotificationRequestedByAdmin", fields: [requestedByAdminId], references: [id], onDelete: SetNull)
 
   @@index([reservationId])
   @@index([status, nextAttemptAt])
   @@index([type])
+  @@index([origin])
+  @@index([parentNotificationId])
+  @@index([requestedByAdminId])
   @@map("email_notifications")
 }
 

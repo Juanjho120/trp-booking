@@ -237,10 +237,30 @@ async function claimPendingNotification(
   notificationId: string,
   processingStartedAt: Date,
 ): Promise<EmailNotificationClaim | null> {
-  const result = await prisma.emailNotification.updateMany({
+  const candidate = await prisma.emailNotification.findFirst({
     where: {
       id: notificationId,
       status: EmailNotificationStatus.PENDING,
+      manualResends: { none: {} },
+      attemptCount: {
+        lt: EMAIL_NOTIFICATION_MAX_ATTEMPTS,
+      },
+    },
+    select: {
+      updatedAt: true,
+    },
+  });
+
+  if (!candidate) {
+    return null;
+  }
+
+  const result = await prisma.emailNotification.updateMany({
+    where: {
+      id: notificationId,
+      updatedAt: candidate.updatedAt,
+      status: EmailNotificationStatus.PENDING,
+      manualResends: { none: {} },
       attemptCount: {
         lt: EMAIL_NOTIFICATION_MAX_ATTEMPTS,
       },
@@ -548,7 +568,7 @@ export async function deliverClaimedEmailNotification(
   }
 }
 
-export async function deliverReservationConfirmationNotificationsBestEffort(
+export async function deliverPendingEmailNotificationsBestEffort(
   notificationIds: readonly string[],
   options: ImmediateDeliveryOptions = {},
 ): Promise<ImmediateEmailDeliverySummary> {
@@ -644,4 +664,11 @@ export async function deliverReservationConfirmationNotificationsBestEffort(
     retryScheduled,
     skipped,
   };
+}
+
+export async function deliverReservationConfirmationNotificationsBestEffort(
+  notificationIds: readonly string[],
+  options: ImmediateDeliveryOptions = {},
+): Promise<ImmediateEmailDeliverySummary> {
+  return deliverPendingEmailNotificationsBestEffort(notificationIds, options);
 }

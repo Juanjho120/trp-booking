@@ -395,7 +395,7 @@ full template HTML
 provider request payloads
 ```
 
-No manual resend button is included in the initial Phase 10 roadmap. The bounded retry worker remains the first recovery mechanism; a manual action can be proposed later with explicit audit and concurrency rules.
+The initial roadmap excluded manual resend until bounded retries were validated. After 10.5 acceptance, 10.5.1 adds a separately audited manual action with new-row idempotency, source suppression, authorization, and concurrency rules.
 
 ## Arrival Instructions Boundary
 
@@ -472,13 +472,28 @@ Status: **Completed**
 
 ### 10.5 — Retry processing and admin delivery visibility
 
-Status: **In progress**
+Status: **Completed**
 
 ```text
 - Add protected bounded cron processing.
 - Add concurrency-safe claiming, retry backoff, stale-claim recovery, and attempt limits.
 - Extend reservation detail with safe read-only notification history.
 - Confirm no raw provider payload or secret reaches the admin UI.
+```
+
+### 10.5.1 — Manual resend and delivery recovery controls
+
+Status: **In progress**
+
+```text
+- Add a protected admin action only for eligible confirmation notifications.
+- Create a new manual notification instead of resetting the source delivery record.
+- Add origin, parent, requesting-admin, and request-time audit fields.
+- Use a request UUID plus unique deduplication key for API retry and concurrency safety.
+- Exclude a source from automatic claiming after a manual child exists.
+- Reuse the existing post-transaction provider and bounded retry pipeline.
+- Add centralized bilingual confirmation, duplicate warning, success, and error copy.
+- Do not expose a generic editor for delivery metadata.
 ```
 
 ### 10.6 — Arrival instructions scheduling and content
@@ -609,7 +624,7 @@ The Phase 10.4 delivery implements the confirmation-notification orchestration d
 - unchanged successful payment/reservation result even when rendering, provider delivery, or audit updates fail after commit
 ```
 
-The accepted implementation and follow-ups are recorded through commit `6f7bdc3c6027d6be8b4fcdfe027c57b01dfef50d`. Retry scheduling, retry cron, stale PROCESSING recovery, bounded maximum attempts, and read-only admin notification history remain in 10.5. Manual resend is not part of the initial Phase 10 roadmap. Arrival instructions and production webhook observability remain later work.
+The accepted implementation and follow-ups are recorded through commit `6f7bdc3c6027d6be8b4fcdfe027c57b01dfef50d`. Retry scheduling, retry cron, stale PROCESSING recovery, bounded maximum attempts, and read-only admin notification history remain in 10.5. Manual resend was excluded from the original roadmap and was later approved as subphase 10.5.1. Arrival instructions and production webhook observability remain later work.
 
 Detailed implementation record:
 
@@ -619,7 +634,7 @@ docs/88-guest-admin-confirmation-notification-orchestration.md
 
 ## Phase 10.5 Implementation Note
 
-Status at delivery: **Implementation prepared; pending local validation and commit.**
+Status: **Completed and accepted.**
 
 The Phase 10.5 delivery implements the bounded retry and admin-visibility contract defined by this roadmap:
 
@@ -637,7 +652,7 @@ The Phase 10.5 delivery implements the bounded retry and admin-visibility contra
 - no retries for SENT or SKIPPED rows
 ```
 
-The delivery does not add a manual resend button, provider webhook handling, raw provider payload visibility, secrets, schema/migration changes, dependencies, arrival instructions, payment/reservation mutations, or PMS behavior.
+The accepted delivery does not add provider webhook handling, raw provider payload visibility, secrets, schema/migration changes, dependencies, arrival instructions, payment/reservation mutations, or PMS behavior. Local validation accepted the retry, concurrency, stale recovery, attempt-limit, idempotency, admin visibility, and isolation behavior. Accepted commits: `1d3b02f6ae5fe37bd850a0ede0227e7173628aa1` and `f77625f1d95095d7ebfd270007e1cbc54b667762`.
 
 Detailed implementation record:
 
@@ -645,3 +660,30 @@ Detailed implementation record:
 docs/91-email-retry-processing-and-admin-delivery-visibility.md
 ```
 
+
+
+## Phase 10.5.1 Implementation Note
+
+Status at delivery: **Implementation prepared; pending local validation and commit.**
+
+The Phase 10.5.1 delivery adds the separately approved manual recovery contract:
+
+```text
+- new EmailNotificationOrigin AUTOMATIC|MANUAL audit field
+- parent notification, requesting admin, and requested-at linkage
+- protected admin resend API with strict validation
+- separate notification row and separate provider idempotency key per manual request
+- client request UUID for safe retries and concurrent duplicate submissions
+- source exclusion from automatic/immediate claiming after a manual child exists
+- PROCESSING/SKIPPED/unsupported/non-confirmed guards
+- styled bilingual confirmation Sheet, duplicate warning, and Snackbar feedback
+- reuse of the existing post-transaction claim, template, provider, failure, and retry pipeline
+```
+
+The delivery intentionally does not make delivery metadata editable, reset historical attempts, expose raw Resend data, modify payment or reservation state, add arrival instructions, add a dependency, or introduce PMS behavior.
+
+Detailed implementation record:
+
+```text
+docs/92-manual-resend-and-delivery-recovery-controls.md
+```

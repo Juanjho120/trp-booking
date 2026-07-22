@@ -29,6 +29,10 @@ export {
 } from "./accommodations";
 export { adminApiErrorResponse, adminApiSuccessResponse } from "./api-response";
 export { getAdminDashboardSummary } from "./dashboard";
+export {
+  AdminEmailNotificationResendError,
+  requestAdminEmailNotificationResend,
+} from "./email-notification-resend";
 export { getAdminPaymentDetail } from "./payment-detail";
 export { getAdminPaymentsPage } from "./payments";
 export {

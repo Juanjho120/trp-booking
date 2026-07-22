@@ -184,7 +184,8 @@ Planned subphases:
 10.2 Persistence and Resend provider foundation — Completed
 10.3 Bilingual branded reservation-confirmation templates — Completed
 10.4 Guest and admin confirmation notification orchestration — Completed
-10.5 Retry processing and admin delivery visibility — In progress
+10.5 Retry processing and admin delivery visibility — Completed
+10.5.1 Manual resend and delivery recovery controls — In progress
 10.6 Arrival instructions scheduling and content — Not started
 10.7 Validation and documentation closure — Not started
 ```
@@ -243,10 +244,10 @@ Phase 10.4 orchestration completed:
 - Provider and template failures become safe FAILED notification records while the approved payment and confirmed reservation remain unchanged.
 - The accepted orchestration and its environment/logo follow-ups are recorded through commit 6f7bdc3c6027d6be8b4fcdfe027c57b01dfef50d.
 - Retry scheduling, stale PROCESSING recovery, attempt limits, and read-only admin delivery visibility remain assigned to 10.5.
-- Manual resend is not part of the initial Phase 10 roadmap.
+- Manual resend was excluded from the original roadmap and was later approved as subphase 10.5.1.
 ```
 
-Phase 10.5 retry and visibility implementation prepared:
+Phase 10.5 retry and visibility completed:
 
 ```text
 - A CRON_SECRET-protected worker processes at most 20 due notifications every five minutes.
@@ -255,8 +256,22 @@ Phase 10.5 retry and visibility implementation prepared:
 - Atomic claim tokens prevent an older stale worker from finalizing a row reclaimed by a newer worker.
 - SENT and SKIPPED notifications are never retried.
 - Reservation detail exposes safe read-only notification history, intended recipient, locale, attempts, schedule, provider ID, and normalized error diagnostics.
-- No raw Resend payload, API key, sender credential, card data, manual resend action, schema migration, dependency, or PMS behavior is added.
+- No raw Resend payload, API key, sender credential, card data, schema migration, dependency, or PMS behavior was added.
+- Local retry, stale-claim, maximum-attempt, concurrency, idempotency, admin-visibility, and payment/reservation isolation tests were accepted.
+- Accepted commits: 1d3b02f6ae5fe37bd850a0ede0227e7173628aa1 and f77625f1d95095d7ebfd270007e1cbc54b667762.
 - The implementation record is docs/91-email-retry-processing-and-admin-delivery-visibility.md.
+```
+
+Phase 10.5.1 manual resend and delivery recovery implementation prepared:
+
+```text
+- Authorized admins can request a new delivery from eligible PENDING, FAILED, or SENT confirmation notifications.
+- Each manual request creates a separate EmailNotification with a new provider idempotency key, origin metadata, parent linkage, requesting admin, and audit log.
+- The source delivery state remains intact and becomes ineligible for automatic claiming after a manual child exists, preventing duplicate automatic delivery.
+- PROCESSING, SKIPPED, unsupported notification types, and notifications for non-confirmed reservations cannot be manually resent.
+- A styled confirmation sheet distinguishes retry from sending another copy and warns when a prior SENT message may be duplicated.
+- The new notification reuses the existing post-transaction delivery and bounded retry pipeline; payment and reservation state remain unchanged.
+- The implementation record is docs/92-manual-resend-and-delivery-recovery-controls.md.
 ```
 
 ## Documentation
@@ -296,15 +311,16 @@ docs/88-guest-admin-confirmation-notification-orchestration.md
 docs/89-test-and-production-environment-strategy.md
 docs/90-transactional-email-brand-logo-hosting.md
 docs/91-email-retry-processing-and-admin-delivery-visibility.md
+docs/92-manual-resend-and-delivery-recovery-controls.md
 ```
 
 ## Development Status
 
 ```text
 Current phase: Phase 10 — Email Notifications
-Current subphase: 10.5 Retry processing and admin delivery visibility — In progress
-Current focus: validate bounded retry processing, stale-claim recovery, maximum attempts, and safe read-only admin notification history
-Last completed subphase: 10.4 Guest and admin confirmation notification orchestration
-10.4 accepted implementation commit: ab74af5863d82ede8489b11a00627c3e759c205d
-Latest accepted Phase 10.4 follow-up commit: 6f7bdc3c6027d6be8b4fcdfe027c57b01dfef50d
+Current subphase: 10.5.1 Manual resend and delivery recovery controls — In progress
+Current focus: validate audited manual delivery creation, source relation/version suppression, request idempotency, controlled admin confirmation, and unchanged payment/reservation state
+Last completed subphase: 10.5 Retry processing and admin delivery visibility
+10.5 accepted implementation commit: 1d3b02f6ae5fe37bd850a0ede0227e7173628aa1
+10.5 accepted follow-up commit: f77625f1d95095d7ebfd270007e1cbc54b667762
 ```

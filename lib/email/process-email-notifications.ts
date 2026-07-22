@@ -34,6 +34,7 @@ type ProcessEmailNotificationsOptions = Readonly<{
 type RetryCandidate = Readonly<{
   id: string;
   status: EmailNotificationStatus;
+  updatedAt: Date;
 }>;
 
 type ClaimedRetryCandidate = Readonly<{
@@ -89,6 +90,7 @@ async function markExhaustedStaleProcessingNotifications(
   const result = await prisma.emailNotification.updateMany({
     where: {
       status: EmailNotificationStatus.PROCESSING,
+      manualResends: { none: {} },
       ...buildStaleProcessingFilter(staleProcessingCutoff),
       attemptCount: {
         gte: EMAIL_NOTIFICATION_MAX_ATTEMPTS,
@@ -112,6 +114,7 @@ async function findEligibleRetryCandidates(
 ): Promise<readonly RetryCandidate[]> {
   return prisma.emailNotification.findMany({
     where: {
+      manualResends: { none: {} },
       attemptCount: {
         lt: EMAIL_NOTIFICATION_MAX_ATTEMPTS,
       },
@@ -142,6 +145,7 @@ async function findEligibleRetryCandidates(
     select: {
       id: true,
       status: true,
+      updatedAt: true,
     },
   });
 }
@@ -174,6 +178,8 @@ async function claimRetryCandidate(
   const result = await prisma.emailNotification.updateMany({
     where: {
       id: candidate.id,
+      updatedAt: candidate.updatedAt,
+      manualResends: { none: {} },
       attemptCount: {
         lt: EMAIL_NOTIFICATION_MAX_ATTEMPTS,
       },

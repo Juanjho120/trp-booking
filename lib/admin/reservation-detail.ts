@@ -5,6 +5,12 @@ import type { AdminReservationDetailData } from "@/types/admin-reservation-detai
 const PROVIDER_MESSAGE_ID_MAX_LENGTH = 180;
 const ERROR_CODE_MAX_LENGTH = 120;
 const ERROR_MESSAGE_MAX_LENGTH = 240;
+const ADMIN_NAME_MAX_LENGTH = 160;
+const ADMIN_EMAIL_MAX_LENGTH = 160;
+
+function normalizeRequiredText(value: string, maximumLength: number): string {
+  return value.trim().replace(/\s+/g, " ").slice(0, maximumLength);
+}
 
 function normalizeOptionalText(
   value: string | null,
@@ -78,6 +84,19 @@ export async function getAdminReservationDetail(
           type: true,
           recipient: true,
           locale: true,
+          origin: true,
+          parentNotificationId: true,
+          manualResends: {
+            take: 1,
+            select: { id: true },
+          },
+          requestedAt: true,
+          requestedByAdmin: {
+            select: {
+              name: true,
+              email: true,
+            },
+          },
           status: true,
           attemptCount: true,
           lastAttemptAt: true,
@@ -86,6 +105,8 @@ export async function getAdminReservationDetail(
           providerMessageId: true,
           errorCode: true,
           errorMessage: true,
+          createdAt: true,
+          updatedAt: true,
         },
       },
     },
@@ -128,6 +149,22 @@ export async function getAdminReservationDetail(
       type: notification.type,
       recipient: notification.recipient,
       locale: notification.locale,
+      origin: notification.origin,
+      parentNotificationId: notification.parentNotificationId,
+      hasManualResends: notification.manualResends.length > 0,
+      requestedAt: notification.requestedAt?.toISOString() ?? null,
+      requestedByAdmin: notification.requestedByAdmin
+        ? {
+            name: normalizeOptionalText(
+              notification.requestedByAdmin.name,
+              ADMIN_NAME_MAX_LENGTH,
+            ),
+            email: normalizeRequiredText(
+              notification.requestedByAdmin.email,
+              ADMIN_EMAIL_MAX_LENGTH,
+            ),
+          }
+        : null,
       status: notification.status,
       attemptCount: notification.attemptCount,
       lastAttemptAt: notification.lastAttemptAt?.toISOString() ?? null,
@@ -145,6 +182,8 @@ export async function getAdminReservationDetail(
         notification.errorMessage,
         ERROR_MESSAGE_MAX_LENGTH,
       ),
+      createdAt: notification.createdAt.toISOString(),
+      updatedAt: notification.updatedAt.toISOString(),
     })),
   };
 }

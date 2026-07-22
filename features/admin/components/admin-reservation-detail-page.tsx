@@ -1,7 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import { useRouter } from "next/navigation";
+import {
+  ArrowLeft,
+  ExternalLink,
+  Loader2,
+  RotateCcw,
+  Send,
+} from "lucide-react";
+import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,7 +20,19 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { useLocale } from "@/features/i18n";
+import type {
+  AdminEmailNotificationResendErrorCode,
+  AdminEmailNotificationResendResult,
+} from "@/types/admin-email-notification-resend";
 import type {
   AdminReservationDetailData,
   AdminReservationDetailEmailNotification,
@@ -20,14 +40,46 @@ import type {
 import type { Locale } from "@/types/locale";
 
 import { AdminPageHeader } from "./admin-page-header";
+import { AdminSnackbar } from "./admin-snackbar";
+
+const manuallyResendableTypes = new Set([
+  "RESERVATION_CONFIRMED",
+  "ADMIN_NEW_RESERVATION",
+]);
+const manuallyResendableStatuses = new Set(["PENDING", "FAILED", "SENT"]);
+
+type ManualResendTarget = Readonly<{
+  notification: AdminReservationDetailEmailNotification;
+  requestId: string;
+}>;
+
+type ManualResendApiResponse = Readonly<{
+  result?: AdminEmailNotificationResendResult;
+  error?: Readonly<{
+    code?: AdminEmailNotificationResendErrorCode;
+  }>;
+}>;
 
 function getIntlLocale(locale: Locale): string {
   return locale === "en" ? "en-US" : "es-GT";
 }
 
+function canManuallyResend(
+  notification: AdminReservationDetailEmailNotification,
+  reservationStatus: string,
+): boolean {
+  return (
+    reservationStatus === "CONFIRMED" &&
+    manuallyResendableTypes.has(notification.type) &&
+    manuallyResendableStatuses.has(notification.status) &&
+    (notification.status === "SENT" || !notification.hasManualResends)
+  );
+}
+
 export function AdminReservationDetailPage({
   reservation,
 }: Readonly<{ reservation: AdminReservationDetailData }>) {
+  const router = useRouter();
   const { locale, messages } = useLocale();
   const reservationCopy = messages.admin.reservationsPage;
   const paymentCopy = messages.admin.paymentsPage;
@@ -38,6 +90,14 @@ export function AdminReservationDetailPage({
   const emailNotificationStatuses = messages.admin.statuses.emailNotification;
   const notificationCopy = reservationCopy.notifications;
   const intlLocale = getIntlLocale(locale);
+  const [manualResendTarget, setManualResendTarget] =
+    useState<ManualResendTarget | null>(null);
+  const [busyNotificationId, setBusyNotificationId] = useState<string | null>(
+    null,
+  );
+  const [errorFeedback, setErrorFeedback] = useState<string | null>(null);
+  const [successFeedback, setSuccessFeedback] = useState<string | null>(null);
+  const isBusy = busyNotificationId !== null;
 
   function formatDate(value: string): string {
     return new Intl.DateTimeFormat(intlLocale, {
@@ -93,8 +153,112 @@ export function AdminReservationDetailPage({
     );
   }
 
+  function emailNotificationOriginLabel(value: string): string {
+    return (
+      notificationCopy.origins[value as keyof typeof notificationCopy.origins] ??
+      value
+    );
+  }
+
+  function clearFeedback(): void {
+    setErrorFeedback(null);
+    setSuccessFeedback(null);
+  }
+
+  function openManualResend(
+    notification: AdminReservationDetailEmailNotification,
+  ): void {
+    clearFeedback();
+    setManualResendTarget({
+      notification,
+      requestId: crypto.randomUUID(),
+    });
+  }
+
+  function manualResendErrorMessage(
+    code: AdminEmailNotificationResendErrorCode | undefined,
+  ): string {
+    return code
+      ? notificationCopy.errors[code] ??
+          notificationCopy.errors.ADMIN_EMAIL_NOTIFICATION_UNEXPECTED_ERROR
+      : notificationCopy.errors.ADMIN_EMAIL_NOTIFICATION_UNEXPECTED_ERROR;
+  }
+
+  function manualResendSuccessMessage(
+    result: AdminEmailNotificationResendResult,
+  ): string {
+    if (result.outcome === "sent") {
+      return notificationCopy.success.sent;
+    }
+
+    if (result.outcome === "already-processed") {
+      return notificationCopy.success.alreadyProcessed;
+    }
+
+    if (result.outcome === "failed") {
+      return result.retryScheduled
+        ? notificationCopy.success.failedRetryScheduled
+        : notificationCopy.success.failedTerminal;
+    }
+
+    return notificationCopy.success.queued;
+  }
+
+  async function confirmManualResend(): Promise<void> {
+    if (!manualResendTarget || isBusy) {
+      return;
+    }
+
+    clearFeedback();
+    setBusyNotificationId(manualResendTarget.notification.id);
+
+    try {
+      const response = await fetch(
+        `/api/admin/email-notifications/${encodeURIComponent(
+          manualResendTarget.notification.id,
+        )}/resend`,
+        {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({
+            reservationId: reservation.id,
+            expectedUpdatedAt: manualResendTarget.notification.updatedAt,
+            requestId: manualResendTarget.requestId,
+          }),
+        },
+      );
+      const payload = (await response.json()) as ManualResendApiResponse;
+
+      if (!response.ok || !payload.result) {
+        setErrorFeedback(manualResendErrorMessage(payload.error?.code));
+        return;
+      }
+
+      const feedback = manualResendSuccessMessage(payload.result);
+
+      if (payload.result.outcome === "failed") {
+        setErrorFeedback(feedback);
+      } else {
+        setSuccessFeedback(feedback);
+      }
+
+      setManualResendTarget(null);
+      router.refresh();
+    } catch {
+      setErrorFeedback(
+        notificationCopy.errors.ADMIN_EMAIL_NOTIFICATION_UNEXPECTED_ERROR,
+      );
+    } finally {
+      setBusyNotificationId(null);
+    }
+  }
+
   const propertyName =
     locale === "en" ? reservation.property.nameEn : reservation.property.nameEs;
+  const resendTargetWasSent =
+    manualResendTarget?.notification.status === "SENT";
 
   return (
     <>
@@ -110,6 +274,13 @@ export function AdminReservationDetailPage({
         badge={reservationStatusLabel(reservation.status)}
         description={reservationCopy.description}
         title={`${reservationCopy.title} · ${reservation.id}`}
+      />
+
+      <AdminSnackbar
+        closeLabel={messages.admin.feedback.dismiss}
+        message={errorFeedback ?? successFeedback}
+        onDismiss={clearFeedback}
+        variant={errorFeedback ? "error" : "success"}
       />
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(20rem,0.8fr)]">
@@ -282,11 +453,24 @@ export function AdminReservationDetailPage({
             <div className="grid gap-4">
               {reservation.emailNotifications.map((notification) => (
                 <EmailNotificationCard
+                  actionLabel={
+                    notification.status === "SENT"
+                      ? notificationCopy.actions.sendAgain
+                      : notificationCopy.actions.retryNow
+                  }
+                  busy={busyNotificationId === notification.id}
+                  canResend={canManuallyResend(
+                    notification,
+                    reservation.status,
+                  )}
                   formatDateTime={formatDateTime}
                   key={notification.id}
                   labels={notificationCopy.labels}
                   localeLabel={emailNotificationLocaleLabel(notification.locale)}
                   notification={notification}
+                  onRequestResend={() => openManualResend(notification)}
+                  originLabel={emailNotificationOriginLabel(notification.origin)}
+                  sendingLabel={notificationCopy.actions.sending}
                   statusLabel={emailNotificationStatusLabel(notification.status)}
                   typeLabel={emailNotificationTypeLabel(notification.type)}
                   unavailableLabel={reservationCopy.labels.unavailable}
@@ -300,6 +484,82 @@ export function AdminReservationDetailPage({
           )}
         </CardContent>
       </Card>
+
+      <Sheet
+        onOpenChange={(open) => {
+          if (!open && !isBusy) {
+            setManualResendTarget(null);
+          }
+        }}
+        open={manualResendTarget !== null}
+      >
+        <SheetContent closeLabel={messages.admin.feedback.dismiss}>
+          <SheetHeader>
+            <SheetTitle>
+              {resendTargetWasSent
+                ? notificationCopy.dialog.sendAgainTitle
+                : notificationCopy.dialog.retryTitle}
+            </SheetTitle>
+            <SheetDescription>
+              {resendTargetWasSent
+                ? notificationCopy.dialog.sendAgainDescription
+                : notificationCopy.dialog.retryDescription}
+            </SheetDescription>
+          </SheetHeader>
+
+          <div className="grid gap-4 overflow-y-auto px-6 py-2 text-sm leading-6">
+            <div className="rounded-2xl border border-border bg-muted/30 p-4">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                {notificationCopy.dialog.recipientLabel}
+              </p>
+              <p className="mt-1 break-all font-medium">
+                {manualResendTarget?.notification.recipient}
+              </p>
+            </div>
+            <p className="text-muted-foreground">
+              {notificationCopy.dialog.historyNote}
+            </p>
+            <p className="text-muted-foreground">
+              {notificationCopy.dialog.automaticSuppressionNote}
+            </p>
+            {resendTargetWasSent ? (
+              <p className="rounded-2xl border border-destructive/30 bg-destructive/5 p-4 text-foreground">
+                {notificationCopy.dialog.duplicateWarning}
+              </p>
+            ) : null}
+          </div>
+
+          <SheetFooter>
+            <Button
+              disabled={isBusy}
+              onClick={() => setManualResendTarget(null)}
+              type="button"
+              variant="outline"
+            >
+              {notificationCopy.actions.cancel}
+            </Button>
+            <Button
+              disabled={isBusy}
+              onClick={() => void confirmManualResend()}
+              type="button"
+              variant={resendTargetWasSent ? "destructive" : "default"}
+            >
+              {isBusy ? (
+                <Loader2 aria-hidden="true" className="animate-spin" />
+              ) : resendTargetWasSent ? (
+                <Send aria-hidden="true" />
+              ) : (
+                <RotateCcw aria-hidden="true" />
+              )}
+              {isBusy
+                ? notificationCopy.actions.sending
+                : resendTargetWasSent
+                  ? notificationCopy.actions.sendAgain
+                  : notificationCopy.actions.retryNow}
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
     </>
   );
 }
@@ -309,18 +569,30 @@ function EmailNotificationCard({
   typeLabel,
   statusLabel,
   localeLabel,
+  originLabel,
   labels,
   unavailableLabel,
   formatDateTime,
+  canResend,
+  actionLabel,
+  sendingLabel,
+  busy,
+  onRequestResend,
 }: Readonly<{
   notification: AdminReservationDetailEmailNotification;
   typeLabel: string;
   statusLabel: string;
   localeLabel: string;
+  originLabel: string;
   labels: {
     type: string;
     recipient: string;
     locale: string;
+    origin: string;
+    requestedBy: string;
+    requestedAt: string;
+    parentNotification: string;
+    createdAt: string;
     status: string;
     attempts: string;
     lastAttempt: string;
@@ -332,8 +604,18 @@ function EmailNotificationCard({
   };
   unavailableLabel: string;
   formatDateTime: (value: string | null) => string;
+  canResend: boolean;
+  actionLabel: string;
+  sendingLabel: string;
+  busy: boolean;
+  onRequestResend: () => void;
 }>) {
   const hasError = notification.errorCode || notification.errorMessage;
+  const requestedBy = notification.requestedByAdmin
+    ? notification.requestedByAdmin.name
+      ? `${notification.requestedByAdmin.name} · ${notification.requestedByAdmin.email}`
+      : notification.requestedByAdmin.email
+    : unavailableLabel;
 
   return (
     <div className="rounded-2xl border border-border bg-muted/20 p-4">
@@ -350,6 +632,11 @@ function EmailNotificationCard({
       <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <DetailValue label={labels.recipient} value={notification.recipient} />
         <DetailValue label={labels.locale} value={localeLabel} />
+        <DetailValue label={labels.origin} value={originLabel} />
+        <DetailValue
+          label={labels.createdAt}
+          value={formatDateTime(notification.createdAt)}
+        />
         <DetailValue label={labels.status} value={statusLabel} />
         <DetailValue
           label={labels.attempts}
@@ -371,6 +658,19 @@ function EmailNotificationCard({
           label={labels.providerMessageId}
           value={notification.providerMessageId ?? unavailableLabel}
         />
+        {notification.origin === "MANUAL" ? (
+          <>
+            <DetailValue label={labels.requestedBy} value={requestedBy} />
+            <DetailValue
+              label={labels.requestedAt}
+              value={formatDateTime(notification.requestedAt)}
+            />
+            <DetailValue
+              label={labels.parentNotification}
+              value={notification.parentNotificationId ?? unavailableLabel}
+            />
+          </>
+        ) : null}
       </div>
 
       {hasError ? (
@@ -383,6 +683,26 @@ function EmailNotificationCard({
             label={labels.errorMessage}
             value={notification.errorMessage ?? unavailableLabel}
           />
+        </div>
+      ) : null}
+
+      {canResend ? (
+        <div className="mt-4 flex justify-end border-t border-border/70 pt-4">
+          <Button
+            disabled={busy}
+            onClick={onRequestResend}
+            type="button"
+            variant={notification.status === "SENT" ? "outline" : "default"}
+          >
+            {busy ? (
+              <Loader2 aria-hidden="true" className="animate-spin" />
+            ) : notification.status === "SENT" ? (
+              <Send aria-hidden="true" />
+            ) : (
+              <RotateCcw aria-hidden="true" />
+            )}
+            {busy ? sendingLabel : actionLabel}
+          </Button>
         </div>
       ) : null}
     </div>
@@ -412,18 +732,12 @@ function MoneyRow({
     <div
       className={
         emphasized
-          ? "flex items-center justify-between gap-4 rounded-2xl bg-muted px-4 py-3 sm:col-span-2"
-          : "flex items-center justify-between gap-4 border-b border-border/60 pb-3"
+          ? "flex items-center justify-between gap-4 rounded-2xl bg-primary/10 p-4 font-semibold"
+          : "flex items-center justify-between gap-4 rounded-2xl border border-border/70 p-4"
       }
     >
       <dt className="text-sm text-muted-foreground">{label}</dt>
-      <dd
-        className={
-          emphasized ? "text-base font-semibold" : "text-sm font-medium"
-        }
-      >
-        {value}
-      </dd>
+      <dd className="text-sm font-semibold text-foreground">{value}</dd>
     </div>
   );
 }

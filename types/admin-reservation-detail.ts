@@ -10,11 +10,21 @@ export type AdminReservationDetailPayment = Readonly<{
   createdAt: string;
 }>;
 
+export type AdminReservationDetailEmailNotificationAdmin = Readonly<{
+  name: string | null;
+  email: string;
+}>;
+
 export type AdminReservationDetailEmailNotification = Readonly<{
   id: string;
   type: string;
   recipient: string;
   locale: string;
+  origin: string;
+  parentNotificationId: string | null;
+  hasManualResends: boolean;
+  requestedAt: string | null;
+  requestedByAdmin: AdminReservationDetailEmailNotificationAdmin | null;
   status: string;
   attemptCount: number;
   lastAttemptAt: string | null;
@@ -23,6 +33,8 @@ export type AdminReservationDetailEmailNotification = Readonly<{
   providerMessageId: string | null;
   errorCode: string | null;
   errorMessage: string | null;
+  createdAt: string;
+  updatedAt: string;
 }>;
 
 export type AdminReservationDetailData = Readonly<{

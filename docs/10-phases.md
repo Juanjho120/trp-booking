@@ -15,11 +15,11 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 10 — Email Notifications
-Current subphase: 10.5 Retry processing and admin delivery visibility — In progress
-Current focus: validate bounded retry processing, stale-claim recovery, maximum attempts, and safe read-only admin notification history
-Last completed subphase: 10.4 Guest and admin confirmation notification orchestration
-10.4 accepted implementation commit: ab74af5863d82ede8489b11a00627c3e759c205d
-Latest accepted Phase 10.4 follow-up commit: 6f7bdc3c6027d6be8b4fcdfe027c57b01dfef50d
+Current subphase: 10.5.1 Manual resend and delivery recovery controls — In progress
+Current focus: validate audited manual delivery creation, source relation/version suppression, request idempotency, controlled admin confirmation, and unchanged payment/reservation state
+Last completed subphase: 10.5 Retry processing and admin delivery visibility
+10.5 accepted implementation commit: 1d3b02f6ae5fe37bd850a0ede0227e7173628aa1
+10.5 accepted follow-up commit: f77625f1d95095d7ebfd270007e1cbc54b667762
 ```
 
 ---
@@ -309,7 +309,8 @@ Subphase status:
 10.2 Persistence and Resend provider foundation — Completed
 10.3 Bilingual branded reservation-confirmation templates — Completed
 10.4 Guest and admin confirmation notification orchestration — Completed
-10.5 Retry processing and admin delivery visibility — In progress
+10.5 Retry processing and admin delivery visibility — Completed
+10.5.1 Manual resend and delivery recovery controls — In progress
 10.6 Arrival instructions scheduling and content — Not started
 10.7 Validation and documentation closure — Not started
 ```
@@ -399,7 +400,7 @@ Phase 10 rules:
 - The implementation record is docs/88-guest-admin-confirmation-notification-orchestration.md.
 ```
 
-### Phase 10.5 implementation prepared
+### Phase 10.5 result
 
 ```text
 - A CRON_SECRET-protected /api/cron/process-email-notifications endpoint processes a maximum of 20 due rows per execution.
@@ -409,8 +410,24 @@ Phase 10 rules:
 - The worker never retries SENT or SKIPPED notifications and reuses the permanent deduplication key as the Resend idempotency key.
 - Existing retryable FAILED rows with no nextAttemptAt remain eligible, preserving compatibility with failures created before 10.5.
 - Reservation detail now includes safe read-only notification history with localized type/status labels and bounded diagnostics.
-- No raw provider payload, secret, manual resend action, schema migration, dependency, arrival scheduling, or PMS behavior is added.
+- No raw provider payload, secret, schema migration, dependency, arrival scheduling, or PMS behavior was added.
+- Local retry, stale-claim, maximum-attempt, concurrency, idempotency, admin-visibility, and payment/reservation isolation tests were accepted.
+- Accepted commits: 1d3b02f6ae5fe37bd850a0ede0227e7173628aa1 and f77625f1d95095d7ebfd270007e1cbc54b667762.
 - The implementation record is docs/91-email-retry-processing-and-admin-delivery-visibility.md.
+```
+
+### Phase 10.5.1 implementation prepared
+
+```text
+- Eligible PENDING, FAILED, and SENT confirmation notifications expose a protected manual action.
+- Each request creates a separate MANUAL EmailNotification with a new deduplication key, parent linkage, requesting admin, requested timestamp, and AdminAuditLog entry.
+- Existing source delivery history is not rewritten; automatic and immediate claims require both no manual child and the source version observed during discovery.
+- PROCESSING, SKIPPED, unsupported types, and notifications for non-confirmed reservations are rejected.
+- A client-generated request UUID makes API retries idempotent and concurrent duplicate submissions resolve to one manual row.
+- A styled Sheet and centralized ES/EN copy distinguish retry from sending another copy and warn about duplicate delivery after SENT.
+- Manual delivery runs only after the creation transaction and reuses the existing provider, template, claim, failure, and retry pipeline.
+- No raw provider payload, secret, payment mutation, reservation mutation, arrival scheduling, dependency, or PMS behavior is added.
+- The implementation record is docs/92-manual-resend-and-delivery-recovery-controls.md.
 ```
 
 ---

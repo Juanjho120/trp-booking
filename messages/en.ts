@@ -510,6 +510,11 @@ export const enMessages = {
           type: "Type",
           recipient: "Intended recipient",
           locale: "Language",
+          origin: "Origin",
+          requestedBy: "Requested by",
+          requestedAt: "Manual request",
+          parentNotification: "Original notification",
+          createdAt: "Created",
           status: "Status",
           attempts: "Attempts",
           lastAttempt: "Last attempt",
@@ -533,6 +538,59 @@ export const enMessages = {
         locales: {
           es: "Spanish",
           en: "English",
+        },
+        origins: {
+          AUTOMATIC: "Automatic",
+          MANUAL: "Manual",
+        },
+        actions: {
+          retryNow: "Retry now",
+          sendAgain: "Send again",
+          sending: "Sending...",
+          cancel: "Cancel",
+        },
+        dialog: {
+          retryTitle: "Retry delivery",
+          sendAgainTitle: "Send again",
+          retryDescription:
+            "A new notification will be created with its own delivery history and attempts.",
+          sendAgainDescription:
+            "A new copy will be created for a notification that the provider previously accepted.",
+          recipientLabel: "Intended recipient",
+          historyNote:
+            "The original notification keeps its delivery status and history, and the new request is linked for audit purposes.",
+          automaticSuppressionNote:
+            "After the new request is created, the original notification is no longer eligible for automatic processing, preventing duplicate deliveries.",
+          duplicateWarning:
+            "The recipient may receive a duplicate email. Confirm this action only when it is necessary.",
+        },
+        success: {
+          sent: "The new notification was accepted by the provider.",
+          queued:
+            "The new notification is pending and will be processed when email delivery is available.",
+          alreadyProcessed:
+            "This request already existed, so another notification was not created.",
+          failedRetryScheduled:
+            "The new notification failed, but an automatic retry was scheduled.",
+          failedTerminal:
+            "The new notification was created, but delivery failed without an automatic retry scheduled.",
+        },
+        errors: {
+          ADMIN_UNAUTHORIZED: "Your session is not authorized for administration.",
+          INVALID_ADMIN_EMAIL_NOTIFICATION_RESEND_REQUEST:
+            "The resend request is invalid. Refresh the page and try again.",
+          ADMIN_EMAIL_NOTIFICATION_NOT_FOUND:
+            "The selected notification was not found for this reservation.",
+          ADMIN_EMAIL_NOTIFICATION_STALE:
+            "The notification changed after you opened this page. Refresh before trying again.",
+          ADMIN_EMAIL_NOTIFICATION_PROCESSING_ACTIVE:
+            "The notification is being processed. Wait for it to finish or for the worker to recover an expired claim.",
+          ADMIN_EMAIL_NOTIFICATION_RESEND_NOT_ALLOWED:
+            "This notification does not support manual resend.",
+          ADMIN_EMAIL_NOTIFICATION_RESERVATION_NOT_CONFIRMED:
+            "Only emails linked to a confirmed reservation can be resent.",
+          ADMIN_EMAIL_NOTIFICATION_UNEXPECTED_ERROR:
+            "The new notification could not be created. Try again.",
         },
         empty: "This reservation does not have email notifications yet.",
       },
