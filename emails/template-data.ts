@@ -8,6 +8,7 @@ import type {
   ReservationEmailTemplateInput,
   ReservationEmailTemplateViewModel,
 } from "@/types/email-template";
+import { normalizeTimeOfDay } from "@/lib/email/time-of-day";
 
 const BUSINESS_TIME_ZONE = "America/Guatemala";
 const localeTags = {
@@ -44,7 +45,20 @@ const dateOnlySchema = z
     (value): `${number}-${number}-${number}` =>
       value as `${number}-${number}-${number}`,
   );
-const arrivalTimeSchema = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/);
+const arrivalTimeSchema = z.string().transform((value, context) => {
+  const normalizedTime = normalizeTimeOfDay(value);
+
+  if (!normalizedTime) {
+    context.addIssue({
+      code: "custom",
+      message: "Invalid time-of-day value.",
+    });
+
+    return z.NEVER;
+  }
+
+  return normalizedTime;
+});
 const amountSchema = z.string().regex(/^\d{1,8}(?:\.\d{1,2})?$/);
 const currencySchema = z
   .string()

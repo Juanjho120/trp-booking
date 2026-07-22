@@ -16,6 +16,7 @@ import {
   ARRIVAL_INSTRUCTIONS_MAX_LEAD_TIME_HOURS,
   ARRIVAL_INSTRUCTIONS_MIN_LEAD_TIME_HOURS,
 } from "@/types/admin-arrival-instructions";
+import { normalizeTimeOfDay } from "@/lib/email/time-of-day";
 
 const BUSINESS_UTC_OFFSET_HOURS = 6;
 const ARRIVAL_SCHEDULING_LOOKAHEAD_DAYS = 8;
@@ -72,15 +73,17 @@ function parseCheckInTime(value: string): Readonly<{
   hours: number;
   minutes: number;
 }> | null {
-  const match = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(value.trim());
+  const normalizedTime = normalizeTimeOfDay(value);
 
-  if (!match) {
+  if (!normalizedTime) {
     return null;
   }
 
+  const [hours, minutes] = normalizedTime.split(":").map(Number);
+
   return {
-    hours: Number(match[1]),
-    minutes: Number(match[2]),
+    hours,
+    minutes,
   };
 }
 
