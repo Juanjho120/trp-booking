@@ -36,9 +36,9 @@ function MultilineInstructions({ text }: Readonly<{ text: string }>) {
   );
 }
 
-export function buildArrivalInstructionsEmail(
+export async function buildArrivalInstructionsEmail(
   input: ArrivalInstructionsEmailTemplateInput,
-): TransactionalEmailContent {
+): Promise<TransactionalEmailContent> {
   const view = buildArrivalInstructionsEmailTemplateViewModel(input);
 
   if (view.locale !== view.guestPreferredLocale) {
@@ -49,7 +49,7 @@ export function buildArrivalInstructionsEmail(
   const subject = `${messages.arrivalInstructions.subjectPrefix} · ${view.propertyName}`;
   const previewText = `${messages.arrivalInstructions.previewPrefix} ${view.checkInDate}.`;
 
-  const html = renderEmailDocument(
+  const html = await renderEmailDocument(
     <EmailLayout
       brandName={messages.common.brandName}
       brandUrl={view.publicHomeUrl}
