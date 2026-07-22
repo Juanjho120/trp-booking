@@ -39,7 +39,11 @@ const dateOnlySchema = z
       Number.isFinite(date.getTime()) &&
       date.toISOString().slice(0, 10) === value
     );
-  });
+  })
+  .transform(
+    (value): `${number}-${number}-${number}` =>
+      value as `${number}-${number}-${number}`,
+  );
 const arrivalTimeSchema = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/);
 const amountSchema = z.string().regex(/^\d{1,8}(?:\.\d{1,2})?$/);
 const currencySchema = z
