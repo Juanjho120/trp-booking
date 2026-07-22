@@ -1,5 +1,12 @@
 export {
+  ensureArrivalInstructionsNotificationIntent,
+  getArrivalCheckInDateTime,
+  getArrivalInstructionsScheduledFor,
+  scheduleArrivalInstructionsNotifications,
+} from "./arrival-instructions";
+export {
   buildAdminNewReservationEmail,
+  buildArrivalInstructionsEmail,
   buildReservationConfirmedEmail,
   EmailTemplateDataError,
 } from "@/emails";

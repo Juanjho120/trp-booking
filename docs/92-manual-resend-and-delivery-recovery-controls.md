@@ -5,8 +5,9 @@
 ```text
 Phase: Phase 10 — Email Notifications
 Subphase: 10.5.1 Manual resend and delivery recovery controls
-Status: Implementation prepared; pending local validation and commit
+Status: Completed and accepted
 Base commit: f77625f1d95095d7ebfd270007e1cbc54b667762
+Accepted commit: 355c72490d416a257b9827d31c67223a97200491
 Previous accepted subphase: 10.5 Retry processing and admin delivery visibility
 Next subphase after acceptance: 10.6 Arrival instructions scheduling and content
 ```
@@ -252,7 +253,7 @@ No dependency or seed change is required.
 - Provider delivery/open/bounce webhooks
 - Raw Resend request/response visibility
 - Payment or reservation mutation
-- Arrival instructions
+- Arrival instructions scheduling and content, which proceeds in Phase 10.6
 - Cancellation, refund, date-change, or stay-extension workflows
 - PMS behavior
 ```

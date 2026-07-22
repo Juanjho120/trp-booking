@@ -6,12 +6,11 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 10 — Email Notifications
-Current subphase: 10.5.1 Manual resend and delivery recovery controls — In progress
-Current focus: validate audited manual delivery creation, source relation/version suppression, request idempotency, controlled admin confirmation, and unchanged payment/reservation state
+Current subphase: 10.6 Arrival instructions scheduling and content — In progress
+Current focus: validate property-owned bilingual instructions, 48-hour scheduling, same-day eligibility, version supersession, protected backfill, and unchanged payment/reservation state
 Last updated: 2026-07-22
-Last completed subphase: 10.5 Retry processing and admin delivery visibility
-10.5 accepted implementation commit: 1d3b02f6ae5fe37bd850a0ede0227e7173628aa1
-10.5 accepted follow-up commit: f77625f1d95095d7ebfd270007e1cbc54b667762
+Last completed subphase: 10.5.1 Manual resend and delivery recovery controls
+10.5.1 accepted commit: 355c72490d416a257b9827d31c67223a97200491
 10.1 base commit: 0c9df37380588ca9573a74faf3ce52a1b25a0654
 10.1 strategy document: docs/85-email-notification-strategy-and-phase-10-roadmap.md
 ```
@@ -429,44 +428,78 @@ Implementation document:
 docs/91-email-retry-processing-and-admin-delivery-visibility.md
 ```
 
-## Active Work
+## Completed Work — Phase 10.5.1
 
 ### Phase 10.5.1 — Manual Resend and Delivery Recovery Controls
+
+Status: **Completed and accepted**
+
+```text
+Eligible PENDING, FAILED, and SENT confirmation notifications expose a protected manual action.
+Each request creates a separate MANUAL EmailNotification with a new deduplication key, parent link, requesting admin, requested timestamp, and audit event.
+The original delivery record remains intact and is excluded from automatic claiming after a manual child exists.
+PROCESSING, SKIPPED, unsupported, stale, and non-confirmed requests remain rejected.
+Client request UUIDs and unique keys make network retries and concurrent duplicate submissions idempotent.
+The styled bilingual confirmation Sheet warns when a prior SENT notification may be duplicated.
+Manual delivery reuses the existing post-transaction provider and bounded retry pipeline.
+Payment and Reservation remain unchanged when manual delivery fails.
+```
+
+Accepted commit:
+
+```text
+355c72490d416a257b9827d31c67223a97200491
+```
+
+Implementation document:
+
+```text
+docs/92-manual-resend-and-delivery-recovery-controls.md
+```
+
+## Active Work
+
+### Phase 10.6 — Arrival Instructions Scheduling and Content
 
 Status: **In progress — implementation prepared, pending local validation and commit**
 
 Implemented scope:
 
 ```text
-Added EmailNotificationOrigin plus parent, requester, and request-time audit fields.
-Added a protected POST action for eligible reservation-confirmation and admin-new-reservation notifications.
-Each manual request creates a new notification and a new provider idempotency key; it never resets source delivery fields.
-The requesting admin and source notification are preserved in EmailNotification and AdminAuditLog.
-The worker and immediate callback require no manual child plus the discovered source version, preventing a stale claim from racing the manual request.
-PROCESSING, SKIPPED, unsupported types, and notifications outside confirmed reservations are rejected.
-A client request UUID makes network retries and concurrent double submission idempotent.
-A styled confirmation Sheet and Snackbar use centralized bilingual copy; SENT re-delivery shows an explicit duplicate warning.
-The new row reuses the existing post-transaction provider and bounded retry pipeline.
-No raw provider payload, secret, payment mutation, reservation mutation, arrival scheduling, new dependency, or PMS behavior is added.
-Implementation document: docs/92-manual-resend-and-delivery-recovery-controls.md.
+Added property-owned arrival settings with enabled state, a 1–168-hour lead time, exact address, optional HTTPS map URL, and bilingual ES/EN instructions.
+Selected 48 hours before the property check-in time in America/Guatemala as the default schedule.
+Same-day and late confirmations inside the lead window become immediately eligible when check-in has not started.
+Added a protected admin editor with optimistic concurrency, audit logging, centralized bilingual copy, and explicit secret-content guardrails.
+Added an ARRIVAL_INSTRUCTIONS branded HTML/plain-text template using the guest's stored preferred locale.
+Added transactional intent creation during confirmation plus a CRON_SECRET-protected backfill scheduler every 30 minutes.
+Added scheduledFor, check-in snapshot, and settings-version metadata to EmailNotification.
+Added permanent deduplication by reservation, check-in date, settings version, and recipient.
+Settings or date changes supersede stale pending/failed intents, and delivery performs a final version/status check before contacting Resend.
+Reused the existing worker, claim ownership, bounded retry, provider idempotency, test recipient override, and admin history.
+Kept rotating secrets, raw provider payloads, payment/reservation mutation, new dependencies, environment variables, and PMS behavior out of scope.
+Implementation document: docs/93-arrival-instructions-scheduling-and-content.md.
 ```
 
 ## Next Recommended Work
 
 ```text
-1. Copy the Phase 10.5.1 ZIP files into the repository root.
+1. Copy the Phase 10.6 ZIP files into the repository root.
 2. Run npm run db:format, npm run db:generate, and npm run db:validate.
 3. Apply the migration with npm run db:migrate:dev locally.
 4. Run npm run env:validate, npm run lint, npm run build, and git diff --check.
-5. Verify PROCESSING and SKIPPED notifications do not show or accept a manual action.
-6. Retry a FAILED configuration error after correcting configuration and confirm a new MANUAL row is created and sent.
-7. Send another copy from SENT and verify the duplicate-warning Sheet appears.
-8. Submit the same request UUID twice and verify only one manual row and one audit record exist.
-9. Run two concurrent requests with the same UUID and verify unique-key recovery returns the same row.
-10. Create a manual child from a retryable FAILED/PENDING source and verify the source is no longer selected by cron while the child remains eligible.
-11. Verify manual failure schedules retry only on the new child and never changes Payment or Reservation.
-12. Verify ES/EN origin, requester, parent, timestamps, feedback, and errors.
-13. Commit Phase 10.5.1 after local acceptance, then continue with 10.6 arrival instructions.
+5. Save disabled arrival settings and verify no arrival intent is created.
+6. Enable complete ES/EN settings with the default 48-hour lead time and confirm the admin audit row is created.
+7. Confirm a reservation more than 48 hours before arrival and verify one PENDING ARRIVAL_INSTRUCTIONS row with the correct scheduledFor value.
+8. Confirm a reservation inside the 48-hour window and verify immediate eligibility and delivery.
+9. Confirm a same-day reservation before check-in and verify it is eligible; confirm one after check-in and verify no intent is created.
+10. Run the scheduler repeatedly and concurrently and verify permanent deduplication creates one intent per reservation/check-in/settings version/recipient.
+11. Run the delivery worker before scheduledFor and verify the row is ignored; run it after scheduledFor and verify SENT or bounded FAILED behavior.
+12. Change the property instructions before delivery and verify the older row becomes SKIPPED and a new version is scheduled.
+13. Change or cancel a reservation and verify the final delivery guard skips the stale notification without contacting Resend.
+14. Verify ES and EN subjects, HTML, plain text, date/time formatting, address, optional map link, and support contact.
+15. Verify test mode stores the guest recipient while delivery goes only to EMAIL_TEST_RECIPIENT.
+16. Confirm no rotating access code, lockbox code, Wi-Fi password, raw provider data, Payment mutation, Reservation mutation, or PMS behavior is introduced.
+17. Commit Phase 10.6 after local acceptance, then continue with 10.7 validation and documentation closure.
 ```
 
 ## Continuity Notes for New Conversations
@@ -490,10 +523,14 @@ docs/89-test-and-production-environment-strategy.md
 docs/90-transactional-email-brand-logo-hosting.md
 docs/91-email-retry-processing-and-admin-delivery-visibility.md
 docs/92-manual-resend-and-delivery-recovery-controls.md
+docs/93-arrival-instructions-scheduling-and-content.md
 config/site.ts
 lib/env/server.ts
 lib/reservations/pending-holds.ts
 lib/reservations/confirmation.ts
+lib/email/arrival-instructions.ts
+lib/admin/arrival-instructions.ts
+types/admin-arrival-instructions.ts
 types/reservation-pending-hold.ts
 messages/es.ts
 messages/en.ts

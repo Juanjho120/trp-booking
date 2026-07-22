@@ -29,6 +29,7 @@ export type AdminReservationDetailEmailNotification = Readonly<{
   attemptCount: number;
   lastAttemptAt: string | null;
   nextAttemptAt: string | null;
+  scheduledFor: string | null;
   sentAt: string | null;
   providerMessageId: string | null;
   errorCode: string | null;

@@ -3,6 +3,8 @@ import { z } from "zod";
 import { siteConfig } from "@/config/site";
 import type { TransactionalEmailLocale } from "@/types/email-provider";
 import type {
+  ArrivalInstructionsEmailTemplateInput,
+  ArrivalInstructionsEmailTemplateViewModel,
   ReservationEmailTemplateInput,
   ReservationEmailTemplateViewModel,
 } from "@/types/email-template";
@@ -103,6 +105,29 @@ const optionalNormalizedTextSchema = z.preprocess((value) => {
   return normalized.length > 0 ? normalized : null;
 }, z.string().max(160).nullable());
 
+const normalizedMultilineSchema = (minimumLength: number, maximumLength: number) =>
+  z
+    .string()
+    .transform((value) => value.replace(/\r\n/g, "\n").trim())
+    .pipe(z.string().min(minimumLength).max(maximumLength));
+
+const optionalHttpsUrlSchema = z.preprocess((value) => {
+  if (typeof value !== "string" || !value.trim()) {
+    return null;
+  }
+
+  return value.trim();
+}, z.string().url().superRefine((value, context) => {
+  const url = new URL(value);
+
+  if (url.protocol !== "https:" || url.username || url.password) {
+    context.addIssue({
+      code: "custom",
+      message: "Must use HTTPS without URL credentials.",
+    });
+  }
+}).nullable());
+
 const reservationTemplateSchema = z
   .object({
     locale: localeSchema,
@@ -144,6 +169,15 @@ const reservationTemplateSchema = z
       });
     }
   });
+
+const arrivalInstructionsTemplateSchema = reservationTemplateSchema.safeExtend({
+  arrival: z.object({
+    checkInTime: arrivalTimeSchema,
+    exactAddress: normalizedMultilineSchema(5, 500),
+    mapUrl: optionalHttpsUrlSchema,
+    instructions: normalizedMultilineSchema(20, 5_000),
+  }),
+});
 
 export class EmailTemplateDataError extends Error {
   readonly code = "EMAIL_TEMPLATE_INVALID_DATA" as const;
@@ -297,3 +331,34 @@ export function buildReservationEmailTemplateViewModel(
     supportEmail: getSupportEmail(locale),
   };
 }
+
+export function buildArrivalInstructionsEmailTemplateViewModel(
+  input: ArrivalInstructionsEmailTemplateInput,
+): ArrivalInstructionsEmailTemplateViewModel {
+  const parsedInput = arrivalInstructionsTemplateSchema.safeParse(input);
+
+  if (!parsedInput.success) {
+    throw new EmailTemplateDataError();
+  }
+
+  const reservationViewModel = buildReservationEmailTemplateViewModel(
+    parsedInput.data,
+  );
+  const checkInTime = formatArrivalTime(
+    parsedInput.data.arrival.checkInTime,
+    parsedInput.data.locale,
+  );
+
+  if (!checkInTime) {
+    throw new EmailTemplateDataError();
+  }
+
+  return {
+    ...reservationViewModel,
+    checkInTime,
+    exactAddress: parsedInput.data.arrival.exactAddress,
+    mapUrl: parsedInput.data.arrival.mapUrl,
+    instructions: parsedInput.data.arrival.instructions,
+  };
+}
+

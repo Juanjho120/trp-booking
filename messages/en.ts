@@ -519,6 +519,7 @@ export const enMessages = {
           attempts: "Attempts",
           lastAttempt: "Last attempt",
           nextAttempt: "Next attempt",
+          scheduledFor: "Scheduled for",
           sentAt: "Sent",
           providerMessageId: "Provider ID",
           errorCode: "Error code",
@@ -769,6 +770,7 @@ export const enMessages = {
           editContent: "Edit public content",
           managePhotos: "Manage photos",
           manageAmenitiesRules: "Assign amenities and rules",
+          manageArrivalInstructions: "Configure arrival instructions",
         },
         notes: {
           readonlyBoundaries:
@@ -834,6 +836,68 @@ export const enMessages = {
             "This accommodation changed after you opened the form. Reload the page before saving again.",
           ACCOMMODATION_CONTENT_UNEXPECTED_ERROR:
             "We could not save the accommodation content. Please try again.",
+        },
+      },
+      arrivalInstructions: {
+        seoTitle: "Arrival instructions | Admin | Tu Refugio Perfecto",
+        badge: "Pre-check-in email",
+        title: "Arrival instructions",
+        description:
+          "Configure the bilingual operational content and the time when the arrival email is scheduled for this accommodation.",
+        sections: {
+          content: "Guest content",
+          schedule: "Scheduling",
+        },
+        labels: {
+          exactAddress: "Exact address",
+          mapUrl: "Optional HTTPS map link",
+          instructionsEs: "Instructions in Spanish",
+          instructionsEn: "Instructions in English",
+          leadTimeHours: "Hours before check-in",
+          propertyCheckIn: "Accommodation check-in time",
+        },
+        placeholders: {
+          exactAddress: "Address shared only with the confirmed guest",
+          mapUrl: "https://maps.google.com/...",
+          instructionsEs:
+            "Describe how to arrive, where to park, and who to contact.",
+          instructionsEn:
+            "Describe how to arrive, where to park, and who to contact.",
+        },
+        actions: {
+          backToAccommodations: "Back to accommodations",
+          enable: "Enable arrival email",
+          disable: "Disable arrival email",
+          save: "Save settings",
+          saving: "Saving...",
+        },
+        states: {
+          enabled: "Enabled",
+          disabled: "Disabled",
+        },
+        notes: {
+          contentOwnership:
+            "This content is stored per accommodation in the database. It is sent only to guests with a confirmed reservation.",
+          schedule:
+            "The default is 48 hours. If a reservation is confirmed inside that window, the email becomes eligible immediately as long as check-in has not started.",
+          securityTitle: "Do not store rotating secrets here",
+          securityDescription:
+            "Do not include door codes, lockbox codes, Wi-Fi passwords, or temporary credentials. Share them through a controlled operational channel when applicable.",
+        },
+        success: {
+          saved:
+            "Arrival settings were saved. Upcoming reservations will be scheduled without changing payment or confirmation state.",
+        },
+        errors: {
+          ADMIN_UNAUTHORIZED: "Your session does not have administrator access.",
+          INVALID_ADMIN_ARRIVAL_INSTRUCTIONS_REQUEST:
+            "Review the address, both languages, map link, and lead-time range before saving.",
+          ADMIN_ARRIVAL_INSTRUCTIONS_PROPERTY_NOT_FOUND:
+            "We could not find the requested accommodation.",
+          ADMIN_ARRIVAL_INSTRUCTIONS_STALE:
+            "The settings changed after you opened this page. Reload before saving again.",
+          ADMIN_ARRIVAL_INSTRUCTIONS_UNEXPECTED_ERROR:
+            "We could not update the arrival instructions. Please try again.",
         },
       },
       photos: {
@@ -1198,6 +1262,8 @@ export const enMessages = {
       accommodation: "Accommodation",
       checkIn: "Check-in",
       checkOut: "Check-out",
+      checkInTime: "Check-in time",
+      exactAddress: "Exact address",
       nights: "Length of stay",
       guests: "Guests",
       arrivalTime: "Estimated arrival time",
@@ -1239,6 +1305,25 @@ export const enMessages = {
       supportDescription:
         "For assistance, reply to this email or contact us at",
       closing: "Thank you for booking directly with Tu Refugio Perfecto.",
+    },
+    arrivalInstructions: {
+      subjectPrefix: "Arrival instructions",
+      previewPrefix: "Information for your arrival on",
+      eyebrow: "Your stay is approaching",
+      title: "Instructions for your arrival",
+      greetingPrefix: "Hello",
+      introduction:
+        "Your reservation is confirmed. Review this information before traveling to the accommodation.",
+      scheduleTitle: "Arrival summary",
+      locationTitle: "Location",
+      mapActionLabel: "Open location in maps",
+      mapActionFallback: "If the button does not work, open this link:",
+      instructionsTitle: "Accommodation directions",
+      securityNote:
+        "For security, this email does not include rotating codes, passwords, or temporary credentials. The host will share them through the appropriate operational channel when applicable.",
+      supportDescription:
+        "For questions before arrival, reply to this email or contact us at",
+      closing: "We look forward to welcoming you in Panajachel. Safe travels.",
     },
     adminNewReservation: {
       subjectPrefix: "New confirmed reservation",

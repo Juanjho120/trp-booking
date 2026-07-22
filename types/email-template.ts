@@ -32,6 +32,17 @@ export type ReservationEmailTemplateInput = Readonly<{
   reservation: ReservationEmailTemplateReservation;
 }>;
 
+export type ArrivalInstructionsEmailTemplateInput =
+  ReservationEmailTemplateInput &
+    Readonly<{
+      arrival: Readonly<{
+        checkInTime: string;
+        exactAddress: string;
+        mapUrl: string | null;
+        instructions: string;
+      }>;
+    }>;
+
 export type ReservationEmailTemplateViewModel = Readonly<{
   locale: TransactionalEmailLocale;
   localeTag: "es-GT" | "en-US";
@@ -55,6 +66,15 @@ export type ReservationEmailTemplateViewModel = Readonly<{
   supportEmail: string;
 }>;
 
+export type ArrivalInstructionsEmailTemplateViewModel =
+  ReservationEmailTemplateViewModel &
+    Readonly<{
+      checkInTime: string;
+      exactAddress: string;
+      mapUrl: string | null;
+      instructions: string;
+    }>;
+
 export type TransactionalEmailMessages = Readonly<{
   common: Readonly<{
     brandName: string;
@@ -64,6 +84,8 @@ export type TransactionalEmailMessages = Readonly<{
     accommodation: string;
     checkIn: string;
     checkOut: string;
+    checkInTime: string;
+    exactAddress: string;
     nights: string;
     guests: string;
     arrivalTime: string;
@@ -112,5 +134,21 @@ export type TransactionalEmailMessages = Readonly<{
     actionLabel: string;
     actionFallback: string;
     footer: string;
+  }>;
+  arrivalInstructions: Readonly<{
+    subjectPrefix: string;
+    previewPrefix: string;
+    eyebrow: string;
+    title: string;
+    greetingPrefix: string;
+    introduction: string;
+    scheduleTitle: string;
+    locationTitle: string;
+    mapActionLabel: string;
+    mapActionFallback: string;
+    instructionsTitle: string;
+    securityNote: string;
+    supportDescription: string;
+    closing: string;
   }>;
 }>;

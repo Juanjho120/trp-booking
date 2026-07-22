@@ -519,6 +519,7 @@ export const esMessages = {
           attempts: "Intentos",
           lastAttempt: "Último intento",
           nextAttempt: "Próximo intento",
+          scheduledFor: "Programada para",
           sentAt: "Enviado",
           providerMessageId: "ID del proveedor",
           errorCode: "Código de error",
@@ -769,6 +770,7 @@ export const esMessages = {
           editContent: "Editar contenido público",
           managePhotos: "Administrar fotos",
           manageAmenitiesRules: "Asignar amenidades y reglas",
+          manageArrivalInstructions: "Configurar instrucciones de llegada",
         },
         notes: {
           readonlyBoundaries:
@@ -834,6 +836,68 @@ export const esMessages = {
             "Este alojamiento cambió después de que abriste el formulario. Recarga la página antes de guardar nuevamente.",
           ACCOMMODATION_CONTENT_UNEXPECTED_ERROR:
             "No pudimos guardar el contenido del alojamiento. Inténtalo de nuevo.",
+        },
+      },
+      arrivalInstructions: {
+        seoTitle: "Instrucciones de llegada | Admin | Tu Refugio Perfecto",
+        badge: "Correo previo al check-in",
+        title: "Instrucciones de llegada",
+        description:
+          "Configura el contenido operativo bilingüe y el momento en que se programa el correo de llegada para este alojamiento.",
+        sections: {
+          content: "Contenido para el huésped",
+          schedule: "Programación",
+        },
+        labels: {
+          exactAddress: "Dirección exacta",
+          mapUrl: "Enlace HTTPS del mapa opcional",
+          instructionsEs: "Instrucciones en español",
+          instructionsEn: "Instrucciones en inglés",
+          leadTimeHours: "Horas antes del check-in",
+          propertyCheckIn: "Hora de check-in del alojamiento",
+        },
+        placeholders: {
+          exactAddress: "Dirección que recibirá únicamente el huésped confirmado",
+          mapUrl: "https://maps.google.com/...",
+          instructionsEs:
+            "Describe cómo llegar, dónde estacionarse y con quién comunicarse.",
+          instructionsEn:
+            "Describe how to arrive, where to park, and who to contact.",
+        },
+        actions: {
+          backToAccommodations: "Volver a alojamientos",
+          enable: "Activar correo de llegada",
+          disable: "Desactivar correo de llegada",
+          save: "Guardar configuración",
+          saving: "Guardando...",
+        },
+        states: {
+          enabled: "Activo",
+          disabled: "Inactivo",
+        },
+        notes: {
+          contentOwnership:
+            "Este contenido se guarda por alojamiento en la base de datos. Solo se envía a huéspedes con una reserva confirmada.",
+          schedule:
+            "El valor predeterminado es 48 horas. Si una reserva se confirma dentro de esa ventana, el correo queda disponible inmediatamente, siempre que el check-in aún no haya comenzado.",
+          securityTitle: "No guardes secretos rotativos aquí",
+          securityDescription:
+            "No incluyas códigos de cerradura, códigos de caja, contraseñas de Wi-Fi ni credenciales temporales. Compártelos por un canal operativo controlado cuando corresponda.",
+        },
+        success: {
+          saved:
+            "La configuración de llegada se guardó. Las reservas próximas serán programadas sin modificar su pago o confirmación.",
+        },
+        errors: {
+          ADMIN_UNAUTHORIZED: "Tu sesión no tiene autorización administrativa.",
+          INVALID_ADMIN_ARRIVAL_INSTRUCTIONS_REQUEST:
+            "Revisa la dirección, ambos idiomas, el enlace del mapa y el rango de horas antes de guardar.",
+          ADMIN_ARRIVAL_INSTRUCTIONS_PROPERTY_NOT_FOUND:
+            "No encontramos el alojamiento solicitado.",
+          ADMIN_ARRIVAL_INSTRUCTIONS_STALE:
+            "La configuración cambió después de que abriste la página. Recarga antes de guardar nuevamente.",
+          ADMIN_ARRIVAL_INSTRUCTIONS_UNEXPECTED_ERROR:
+            "No pudimos actualizar las instrucciones de llegada. Inténtalo nuevamente.",
         },
       },
       photos: {
@@ -1198,6 +1262,8 @@ export const esMessages = {
       accommodation: "Alojamiento",
       checkIn: "Entrada",
       checkOut: "Salida",
+      checkInTime: "Hora de check-in",
+      exactAddress: "Dirección exacta",
       nights: "Duración",
       guests: "Huéspedes",
       arrivalTime: "Hora estimada de llegada",
@@ -1239,6 +1305,25 @@ export const esMessages = {
       supportDescription:
         "Si necesitas ayuda, responde a este correo o escríbenos a",
       closing: "Gracias por reservar directamente con Tu Refugio Perfecto.",
+    },
+    arrivalInstructions: {
+      subjectPrefix: "Instrucciones de llegada",
+      previewPrefix: "Información para tu llegada el",
+      eyebrow: "Tu estadía se acerca",
+      title: "Instrucciones para tu llegada",
+      greetingPrefix: "Hola",
+      introduction:
+        "Tu reserva está confirmada. Revisa esta información antes de dirigirte al alojamiento.",
+      scheduleTitle: "Resumen de llegada",
+      locationTitle: "Ubicación",
+      mapActionLabel: "Abrir ubicación en el mapa",
+      mapActionFallback: "Si el botón no funciona, abre este enlace:",
+      instructionsTitle: "Indicaciones del alojamiento",
+      securityNote:
+        "Por seguridad, este correo no incluye códigos rotativos, contraseñas ni credenciales temporales. El anfitrión los compartirá por el canal operativo correspondiente cuando aplique.",
+      supportDescription:
+        "Si tienes dudas antes de llegar, responde a este correo o escríbenos a",
+      closing: "Te esperamos en Panajachel. Que tengas un buen viaje.",
     },
     adminNewReservation: {
       subjectPrefix: "Nueva reserva confirmada",

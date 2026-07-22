@@ -597,6 +597,7 @@ function EmailNotificationCard({
     attempts: string;
     lastAttempt: string;
     nextAttempt: string;
+    scheduledFor: string;
     sentAt: string;
     providerMessageId: string;
     errorCode: string;
@@ -649,6 +650,10 @@ function EmailNotificationCard({
         <DetailValue
           label={labels.nextAttempt}
           value={formatDateTime(notification.nextAttemptAt)}
+        />
+        <DetailValue
+          label={labels.scheduledFor}
+          value={formatDateTime(notification.scheduledFor)}
         />
         <DetailValue
           label={labels.sentAt}

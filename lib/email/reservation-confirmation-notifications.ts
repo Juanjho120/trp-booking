@@ -1,12 +1,14 @@
 import {
   EmailNotificationStatus,
   EmailNotificationType,
+  ReservationStatus,
   type Prisma,
 } from "@prisma/client";
 import { z } from "zod";
 
 import {
   buildAdminNewReservationEmail,
+  buildArrivalInstructionsEmail,
   buildReservationConfirmedEmail,
   EmailTemplateDataError,
 } from "@/emails";
@@ -23,6 +25,7 @@ import type {
   ReservationConfirmationNotificationType,
 } from "@/types/email-notification";
 import type {
+  ArrivalInstructionsEmailTemplateInput,
   ReservationEmailTemplateInput,
   ReservationEmailTemplateReservation,
   TransactionalEmailContent,
@@ -64,6 +67,10 @@ const SAFE_DELIVERY_ERROR_MESSAGES: Readonly<
     "The email notification type is not supported by this dispatcher.",
   EMAIL_NOTIFICATION_RETRY_LIMIT_REACHED:
     "The email notification reached the maximum delivery attempt count.",
+  EMAIL_ARRIVAL_INSTRUCTIONS_SUPERSEDED:
+    "Arrival instructions were superseded before delivery.",
+  EMAIL_ARRIVAL_INSTRUCTIONS_DISABLED:
+    "Arrival instructions are no longer enabled for this accommodation.",
   EMAIL_NOTIFICATION_UNEXPECTED_ERROR:
     "The email notification could not be delivered.",
 };
@@ -245,6 +252,10 @@ async function claimPendingNotification(
       attemptCount: {
         lt: EMAIL_NOTIFICATION_MAX_ATTEMPTS,
       },
+      OR: [
+        { nextAttemptAt: null },
+        { nextAttemptAt: { lte: processingStartedAt } },
+      ],
     },
     select: {
       updatedAt: true,
@@ -264,6 +275,10 @@ async function claimPendingNotification(
       attemptCount: {
         lt: EMAIL_NOTIFICATION_MAX_ATTEMPTS,
       },
+      OR: [
+        { nextAttemptAt: null },
+        { nextAttemptAt: { lte: processingStartedAt } },
+      ],
     },
     data: {
       status: EmailNotificationStatus.PROCESSING,
@@ -303,9 +318,12 @@ async function readClaimedNotification(claim: EmailNotificationClaim) {
       deduplicationKey: true,
       status: true,
       attemptCount: true,
+      reservationCheckInDateSnapshot: true,
+      arrivalInstructionsVersion: true,
       reservation: {
         select: {
           id: true,
+          status: true,
           guestName: true,
           guestEmail: true,
           guestPhone: true,
@@ -322,6 +340,17 @@ async function readClaimedNotification(claim: EmailNotificationClaim) {
             select: {
               nameEs: true,
               nameEn: true,
+              checkInTime: true,
+              arrivalInstructions: {
+                select: {
+                  enabled: true,
+                  exactAddress: true,
+                  mapUrl: true,
+                  instructionsEs: true,
+                  instructionsEn: true,
+                  updatedAt: true,
+                },
+              },
             },
           },
         },
@@ -407,10 +436,109 @@ async function buildNotificationContent(
     return buildAdminNewReservationEmail(input);
   }
 
+  if (notification.type === EmailNotificationType.ARRIVAL_INSTRUCTIONS) {
+    const settings = notification.reservation.property.arrivalInstructions;
+
+    if (
+      !settings?.enabled ||
+      !settings.exactAddress?.trim() ||
+      !settings.instructionsEs?.trim() ||
+      !settings.instructionsEn?.trim()
+    ) {
+      throw new EmailNotificationDeliveryError(
+        "EMAIL_ARRIVAL_INSTRUCTIONS_DISABLED",
+        false,
+      );
+    }
+
+    const arrivalInput: ArrivalInstructionsEmailTemplateInput = {
+      ...input,
+      arrival: {
+        checkInTime: notification.reservation.property.checkInTime,
+        exactAddress: settings.exactAddress,
+        mapUrl: settings.mapUrl,
+        instructions:
+          locale === "es" ? settings.instructionsEs : settings.instructionsEn,
+      },
+    };
+
+    return buildArrivalInstructionsEmail(arrivalInput);
+  }
+
   throw new EmailNotificationDeliveryError(
     "EMAIL_NOTIFICATION_UNSUPPORTED_TYPE",
     false,
   );
+}
+
+type ArrivalInstructionsSkipReason = Readonly<{
+  code:
+    | "EMAIL_ARRIVAL_INSTRUCTIONS_SUPERSEDED"
+    | "EMAIL_ARRIVAL_INSTRUCTIONS_DISABLED";
+  message: string;
+}>;
+
+function getArrivalInstructionsSkipReason(
+  notification: ClaimedNotification,
+): ArrivalInstructionsSkipReason | null {
+  if (notification.type !== EmailNotificationType.ARRIVAL_INSTRUCTIONS) {
+    return null;
+  }
+
+  const reservation = notification.reservation;
+  const settings = reservation.property.arrivalInstructions;
+  const snapshot = notification.reservationCheckInDateSnapshot;
+  const version = notification.arrivalInstructionsVersion;
+
+  if (
+    reservation.status !== ReservationStatus.CONFIRMED ||
+    !snapshot ||
+    toDateOnlyString(snapshot) !== toDateOnlyString(reservation.checkInDate) ||
+    !version ||
+    !settings ||
+    settings.updatedAt.getTime() !== version.getTime()
+  ) {
+    return {
+      code: "EMAIL_ARRIVAL_INSTRUCTIONS_SUPERSEDED",
+      message: SAFE_DELIVERY_ERROR_MESSAGES.EMAIL_ARRIVAL_INSTRUCTIONS_SUPERSEDED,
+    };
+  }
+
+  if (
+    !settings.enabled ||
+    !settings.exactAddress?.trim() ||
+    !settings.instructionsEs?.trim() ||
+    !settings.instructionsEn?.trim()
+  ) {
+    return {
+      code: "EMAIL_ARRIVAL_INSTRUCTIONS_DISABLED",
+      message: SAFE_DELIVERY_ERROR_MESSAGES.EMAIL_ARRIVAL_INSTRUCTIONS_DISABLED,
+    };
+  }
+
+  return null;
+}
+
+async function markNotificationSkipped(
+  claim: EmailNotificationClaim,
+  reason: ArrivalInstructionsSkipReason,
+): Promise<boolean> {
+  const result = await prisma.emailNotification.updateMany({
+    where: {
+      id: claim.notificationId,
+      status: EmailNotificationStatus.PROCESSING,
+      processingStartedAt: claim.processingStartedAt,
+    },
+    data: {
+      status: EmailNotificationStatus.SKIPPED,
+      processingStartedAt: null,
+      nextAttemptAt: null,
+      errorCode: reason.code,
+      errorMessage: reason.message,
+    },
+  });
+
+  return result.count === 1;
 }
 
 function normalizeDeliveryError(
@@ -512,6 +640,17 @@ export async function deliverClaimedEmailNotification(
   const notification = await readClaimedNotification(input.claim);
 
   if (!notification) {
+    return {
+      outcome: "skipped",
+      retryScheduled: false,
+    };
+  }
+
+  const skipReason = getArrivalInstructionsSkipReason(notification);
+
+  if (skipReason) {
+    await markNotificationSkipped(input.claim, skipReason);
+
     return {
       outcome: "skipped",
       retryScheduled: false,

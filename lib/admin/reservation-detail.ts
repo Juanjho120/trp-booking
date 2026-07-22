@@ -101,6 +101,7 @@ export async function getAdminReservationDetail(
           attemptCount: true,
           lastAttemptAt: true,
           nextAttemptAt: true,
+          scheduledFor: true,
           sentAt: true,
           providerMessageId: true,
           errorCode: true,
@@ -169,6 +170,7 @@ export async function getAdminReservationDetail(
       attemptCount: notification.attemptCount,
       lastAttemptAt: notification.lastAttemptAt?.toISOString() ?? null,
       nextAttemptAt: notification.nextAttemptAt?.toISOString() ?? null,
+      scheduledFor: notification.scheduledFor?.toISOString() ?? null,
       sentAt: notification.sentAt?.toISOString() ?? null,
       providerMessageId: normalizeOptionalText(
         notification.providerMessageId,

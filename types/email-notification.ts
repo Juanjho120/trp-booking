@@ -7,6 +7,18 @@ export type ReservationConfirmationNotificationType =
   | "RESERVATION_CONFIRMED"
   | "ADMIN_NEW_RESERVATION";
 
+export type ArrivalInstructionsNotificationIntent = Readonly<{
+  outcome:
+    | "created"
+    | "existing"
+    | "not-configured"
+    | "not-confirmed"
+    | "check-in-passed"
+    | "invalid-data";
+  notificationId: string | null;
+  scheduledFor: string | null;
+}>;
+
 export type ReservationConfirmationNotificationIntent = Readonly<{
   id: string;
   type: ReservationConfirmationNotificationType;
@@ -21,6 +33,8 @@ export type EmailNotificationDeliveryErrorCode =
   | "EMAIL_NOTIFICATION_DATA_INCOMPLETE"
   | "EMAIL_NOTIFICATION_UNSUPPORTED_TYPE"
   | "EMAIL_NOTIFICATION_RETRY_LIMIT_REACHED"
+  | "EMAIL_ARRIVAL_INSTRUCTIONS_SUPERSEDED"
+  | "EMAIL_ARRIVAL_INSTRUCTIONS_DISABLED"
   | "EMAIL_NOTIFICATION_UNEXPECTED_ERROR";
 
 export type EmailDeliveryMode =
@@ -37,6 +51,16 @@ export type ImmediateEmailDeliverySummary = Readonly<{
   failed: number;
   retryScheduled: number;
   skipped: number;
+}>;
+
+export type ArrivalInstructionsSchedulingSummary = Readonly<{
+  processedAt: string;
+  lookaheadDays: number;
+  candidates: number;
+  created: number;
+  existing: number;
+  skipped: number;
+  failed: number;
 }>;
 
 export type EmailNotificationProcessingSummary = Readonly<{

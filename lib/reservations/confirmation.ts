@@ -5,6 +5,7 @@ import {
   createReservationConfirmationNotificationIntents,
   deliverReservationConfirmationNotificationsBestEffort,
 } from "@/lib/email/reservation-confirmation-notifications";
+import { ensureArrivalInstructionsNotificationIntent } from "@/lib/email/arrival-instructions";
 import type {
   ConfirmedReservationAfterPayment,
   ReservationConfirmationErrorCode,
@@ -71,14 +72,25 @@ type ConfirmationTransactionResult = Readonly<{
 async function createNotificationIntents(
   tx: Prisma.TransactionClient,
   reservation: ConfirmedReservationForNotifications,
+  now: Date,
 ): Promise<readonly string[]> {
   const intents = await createReservationConfirmationNotificationIntents(tx, {
     id: reservation.id,
     guestEmail: reservation.guestEmail,
     preferredLocale: reservation.preferredLocale,
   });
+  const notificationIds = intents.map((intent) => intent.id);
+  const arrivalIntent = await ensureArrivalInstructionsNotificationIntent(
+    tx,
+    reservation.id,
+    { now },
+  );
 
-  return intents.map((intent) => intent.id);
+  if (arrivalIntent.notificationId) {
+    notificationIds.push(arrivalIntent.notificationId);
+  }
+
+  return notificationIds;
 }
 
 export async function confirmReservationAfterApprovedPayment(
@@ -125,11 +137,15 @@ export async function confirmReservationAfterApprovedPayment(
         payment.reservation.status === ReservationStatus.CONFIRMED &&
         payment.reservation.confirmedAt
       ) {
-        const notificationIds = await createNotificationIntents(tx, {
-          id: payment.reservation.id,
-          guestEmail: payment.reservation.guestEmail,
-          preferredLocale: payment.reservation.preferredLocale,
-        });
+        const notificationIds = await createNotificationIntents(
+          tx,
+          {
+            id: payment.reservation.id,
+            guestEmail: payment.reservation.guestEmail,
+            preferredLocale: payment.reservation.preferredLocale,
+          },
+          now,
+        );
 
         return {
           confirmation: {
@@ -181,11 +197,15 @@ export async function confirmReservationAfterApprovedPayment(
         );
       }
 
-      const notificationIds = await createNotificationIntents(tx, {
-        id: reservation.id,
-        guestEmail: reservation.guestEmail,
-        preferredLocale: reservation.preferredLocale,
-      });
+      const notificationIds = await createNotificationIntents(
+        tx,
+        {
+          id: reservation.id,
+          guestEmail: reservation.guestEmail,
+          preferredLocale: reservation.preferredLocale,
+        },
+        now,
+      );
 
       return {
         confirmation: {

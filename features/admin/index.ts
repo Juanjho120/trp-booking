@@ -2,6 +2,7 @@ export { AdminAccommodationContentEditor } from "./components/admin-accommodatio
 export { AdminAccommodationManagement } from "./components/admin-accommodation-management";
 export { AdminAccommodationSettings } from "./components/admin-accommodation-settings";
 export { AdminAmenitiesHouseRulesManager } from "./components/admin-amenities-house-rules-manager";
+export { AdminArrivalInstructionsEditor } from "./components/admin-arrival-instructions-editor";
 export { AdminCatalogManager } from "./components/admin-catalog-manager";
 export { AdminDashboardPage } from "./components/admin-dashboard-page";
 export { AdminPageHeader } from "./components/admin-page-header";

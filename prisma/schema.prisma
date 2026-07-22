@@ -208,19 +208,38 @@ model Property {
   deletedAt             DateTime?      @map("deleted_at")
   deletedById           String?        @map("deleted_by_id")
 
-  deletedBy         User?               @relation("PropertyDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull)
-  parentComponents  PropertyComponent[] @relation("ParentProperty")
-  componentOf       PropertyComponent[] @relation("ComponentProperty")
-  images            PropertyImage[]
-  amenities         PropertyAmenity[]
-  rules             PropertyRule[]
-  reservations      Reservation[]
-  calendarBlocks    CalendarBlock[]
-  externalCalendars ExternalCalendar[]
+  deletedBy           User?                        @relation("PropertyDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull)
+  parentComponents    PropertyComponent[]          @relation("ParentProperty")
+  componentOf         PropertyComponent[]          @relation("ComponentProperty")
+  images              PropertyImage[]
+  amenities           PropertyAmenity[]
+  rules               PropertyRule[]
+  reservations        Reservation[]
+  calendarBlocks      CalendarBlock[]
+  externalCalendars   ExternalCalendar[]
+  arrivalInstructions PropertyArrivalInstructions?
 
   @@index([status])
   @@index([deletedAt])
   @@map("properties")
+}
+
+model PropertyArrivalInstructions {
+  id             String   @id @default(cuid())
+  propertyId     String   @unique @map("property_id")
+  enabled        Boolean  @default(false)
+  leadTimeHours  Int      @default(48) @map("lead_time_hours")
+  exactAddress   String?  @map("exact_address") @db.Text
+  mapUrl         String?  @map("map_url")
+  instructionsEs String?  @map("instructions_es") @db.Text
+  instructionsEn String?  @map("instructions_en") @db.Text
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([enabled])
+  @@map("property_arrival_instructions")
 }
 
 model PropertyComponent {
@@ -571,27 +590,30 @@ model ExternalCalendarSyncLog {
 }
 
 model EmailNotification {
-  id                   String                  @id @default(cuid())
-  reservationId        String                  @map("reservation_id")
-  type                 EmailNotificationType
-  recipient            String
-  locale               String
-  deduplicationKey     String                  @unique @map("deduplication_key")
-  origin               EmailNotificationOrigin @default(AUTOMATIC)
-  parentNotificationId String?                 @map("parent_notification_id")
-  requestedByAdminId   String?                 @map("requested_by_admin_id")
-  requestedAt          DateTime?               @map("requested_at")
-  status               EmailNotificationStatus @default(PENDING)
-  attemptCount         Int                     @default(0) @map("attempt_count")
-  lastAttemptAt        DateTime?               @map("last_attempt_at")
-  nextAttemptAt        DateTime?               @map("next_attempt_at")
-  processingStartedAt  DateTime?               @map("processing_started_at")
-  providerMessageId    String?                 @map("provider_message_id")
-  sentAt               DateTime?               @map("sent_at")
-  errorCode            String?                 @map("error_code")
-  errorMessage         String?                 @map("error_message") @db.Text
-  createdAt            DateTime                @default(now()) @map("created_at")
-  updatedAt            DateTime                @updatedAt @map("updated_at")
+  id                             String                  @id @default(cuid())
+  reservationId                  String                  @map("reservation_id")
+  type                           EmailNotificationType
+  recipient                      String
+  locale                         String
+  deduplicationKey               String                  @unique @map("deduplication_key")
+  origin                         EmailNotificationOrigin @default(AUTOMATIC)
+  parentNotificationId           String?                 @map("parent_notification_id")
+  requestedByAdminId             String?                 @map("requested_by_admin_id")
+  requestedAt                    DateTime?               @map("requested_at")
+  scheduledFor                   DateTime?               @map("scheduled_for")
+  reservationCheckInDateSnapshot DateTime?               @map("reservation_check_in_date_snapshot") @db.Date
+  arrivalInstructionsVersion     DateTime?               @map("arrival_instructions_version")
+  status                         EmailNotificationStatus @default(PENDING)
+  attemptCount                   Int                     @default(0) @map("attempt_count")
+  lastAttemptAt                  DateTime?               @map("last_attempt_at")
+  nextAttemptAt                  DateTime?               @map("next_attempt_at")
+  processingStartedAt            DateTime?               @map("processing_started_at")
+  providerMessageId              String?                 @map("provider_message_id")
+  sentAt                         DateTime?               @map("sent_at")
+  errorCode                      String?                 @map("error_code")
+  errorMessage                   String?                 @map("error_message") @db.Text
+  createdAt                      DateTime                @default(now()) @map("created_at")
+  updatedAt                      DateTime                @updatedAt @map("updated_at")
 
   reservation        Reservation         @relation(fields: [reservationId], references: [id], onDelete: Cascade)
   parentNotification EmailNotification?  @relation("EmailNotificationManualResends", fields: [parentNotificationId], references: [id], onDelete: SetNull)
@@ -604,6 +626,9 @@ model EmailNotification {
   @@index([origin])
   @@index([parentNotificationId])
   @@index([requestedByAdminId])
+  @@index([scheduledFor])
+  @@index([reservationCheckInDateSnapshot])
+  @@index([arrivalInstructionsVersion])
   @@map("email_notifications")
 }
 

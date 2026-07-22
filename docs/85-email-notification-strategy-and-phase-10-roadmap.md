@@ -401,18 +401,19 @@ The initial roadmap excluded manual resend until bounded retries were validated.
 
 Phase 10.6 is intentionally separate from confirmation emails.
 
-Before implementation, it must define:
+Approved Phase 10.6 decisions:
 
 ```text
-- How long before check-in the email is eligible
-- Whether the lead time is global or property-specific
-- Which instructions are public/static and which are sensitive
-- Where operational content is owned and edited
-- What happens for same-day bookings
-- Whether a previously sent message is superseded after an authorized date change in Phase 11
+- Timing is property-specific and defaults to 48 hours before the property's configured check-in time.
+- Admin may configure a lead time from 1 through 168 hours.
+- Same-day or late-confirmed reservations are immediately eligible when they are inside the lead window and check-in has not started.
+- Exact address, optional HTTPS map URL, and bilingual operational instructions are owned in PostgreSQL and edited through the protected accommodation admin.
+- Source-controlled copy contains only the reusable branded template and guardrails, not property-specific operational content.
+- Notification identity includes the reservation check-in date and the settings version so authorized future date/configuration changes create a new intent and supersede stale pending delivery.
+- A protected 30-minute scheduler backfills existing upcoming confirmed reservations; confirmation also creates the intent transactionally when configuration is already complete.
 ```
 
-No access code, lockbox code, private Wi-Fi credential, or other rotating secret may be committed to source-controlled messages or documentation.
+No access code, lockbox code, private Wi-Fi credential, alarm code, password, or other rotating secret may be committed to source-controlled messages, documentation, or the approved property instructions fields.
 
 ## Explicit Phase 10 Roadmap
 
@@ -483,7 +484,7 @@ Status: **Completed**
 
 ### 10.5.1 — Manual resend and delivery recovery controls
 
-Status: **In progress**
+Status: **Completed**
 
 ```text
 - Add a protected admin action only for eligible confirmation notifications.
@@ -498,7 +499,7 @@ Status: **In progress**
 
 ### 10.6 — Arrival instructions scheduling and content
 
-Status: **Not started**
+Status: **In progress**
 
 ```text
 - Approve timing and same-day behavior.
@@ -664,7 +665,9 @@ docs/91-email-retry-processing-and-admin-delivery-visibility.md
 
 ## Phase 10.5.1 Implementation Note
 
-Status at delivery: **Implementation prepared; pending local validation and commit.**
+Status: **Completed and accepted.**
+
+Accepted commit: `355c72490d416a257b9827d31c67223a97200491`.
 
 The Phase 10.5.1 delivery adds the separately approved manual recovery contract:
 
@@ -686,4 +689,32 @@ Detailed implementation record:
 
 ```text
 docs/92-manual-resend-and-delivery-recovery-controls.md
+```
+
+## Phase 10.6 Implementation Note
+
+Status at delivery: **Implementation prepared; pending local validation and commit.**
+
+The Phase 10.6 delivery implements the approved arrival-instructions contract:
+
+```text
+- PropertyArrivalInstructions database ownership for enabled state, 1–168-hour lead time, exact address, optional HTTPS map URL, and ES/EN instructions
+- 48-hour property-specific default calculated from the property's check-in time in America/Guatemala
+- immediate eligibility for same-day/late confirmations before check-in
+- protected optimistic admin editing and PROPERTY_ARRIVAL_INSTRUCTIONS_UPDATED audit history
+- transactional ARRIVAL_INSTRUCTIONS intent creation during confirmation
+- CRON_SECRET-protected 30-minute backfill scheduling for existing upcoming confirmed reservations
+- scheduledFor, reservation check-in snapshot, and settings-version notification metadata
+- permanent idempotency by reservation, check-in date, settings version, and recipient
+- final reservation/settings version checks that mark stale rows SKIPPED before contacting Resend
+- bilingual branded HTML and plain-text arrival email with exact address, optional map URL, operational instructions, and support contact
+- reuse of existing provider, retry, test-recipient, idempotency, and admin-history infrastructure
+```
+
+The delivery explicitly excludes rotating access/lockbox/Wi-Fi credentials, raw provider payloads, payment mutation, reservation confirmation changes, new dependencies, new environment variables, Phase 11 date-change UI, and PMS behavior.
+
+Detailed implementation record:
+
+```text
+docs/93-arrival-instructions-scheduling-and-content.md
 ```

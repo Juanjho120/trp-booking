@@ -185,8 +185,8 @@ Planned subphases:
 10.3 Bilingual branded reservation-confirmation templates — Completed
 10.4 Guest and admin confirmation notification orchestration — Completed
 10.5 Retry processing and admin delivery visibility — Completed
-10.5.1 Manual resend and delivery recovery controls — In progress
-10.6 Arrival instructions scheduling and content — Not started
+10.5.1 Manual resend and delivery recovery controls — Completed
+10.6 Arrival instructions scheduling and content — In progress
 10.7 Validation and documentation closure — Not started
 ```
 
@@ -262,7 +262,7 @@ Phase 10.5 retry and visibility completed:
 - The implementation record is docs/91-email-retry-processing-and-admin-delivery-visibility.md.
 ```
 
-Phase 10.5.1 manual resend and delivery recovery implementation prepared:
+Phase 10.5.1 manual resend and delivery recovery completed:
 
 ```text
 - Authorized admins can request a new delivery from eligible PENDING, FAILED, or SENT confirmation notifications.
@@ -271,7 +271,25 @@ Phase 10.5.1 manual resend and delivery recovery implementation prepared:
 - PROCESSING, SKIPPED, unsupported notification types, and notifications for non-confirmed reservations cannot be manually resent.
 - A styled confirmation sheet distinguishes retry from sending another copy and warns when a prior SENT message may be duplicated.
 - The new notification reuses the existing post-transaction delivery and bounded retry pipeline; payment and reservation state remain unchanged.
+- Local recovery, duplicate-warning, request-idempotency, concurrency, audit, and payment/reservation isolation tests were accepted.
+- Accepted commit: 355c72490d416a257b9827d31c67223a97200491.
 - The implementation record is docs/92-manual-resend-and-delivery-recovery-controls.md.
+```
+
+Phase 10.6 arrival instructions scheduling and content implementation prepared:
+
+```text
+- Arrival settings are owned per accommodation in PostgreSQL and edited through a protected bilingual admin page.
+- Each property can configure an enabled flag, a lead time from 1 through 168 hours, an exact address, an optional HTTPS map URL, and ES/EN instructions.
+- The default lead time is 48 hours before the property's check-in time in America/Guatemala.
+- Same-day or late confirmations inside the lead window become immediately eligible as long as check-in has not started.
+- Confirmation creates the ARRIVAL_INSTRUCTIONS intent transactionally when the property is configured; a protected 30-minute scheduler backfills existing upcoming confirmed reservations.
+- scheduledFor, a check-in-date snapshot, and the arrival-settings version make delivery auditable and allow stale notifications to be skipped after configuration or authorized date changes.
+- The permanent deduplication key includes reservation, check-in date, settings version, and recipient.
+- Delivery reuses the existing provider, idempotency, claim, bounded retry, test-recipient, and admin-history foundation.
+- Rotating access codes, lockbox codes, Wi-Fi passwords, and other secrets are explicitly prohibited from the stored instructions.
+- No payment mutation, reservation confirmation change, dependency, environment variable, or PMS behavior is added.
+- The implementation record is docs/93-arrival-instructions-scheduling-and-content.md.
 ```
 
 ## Documentation
@@ -312,15 +330,15 @@ docs/89-test-and-production-environment-strategy.md
 docs/90-transactional-email-brand-logo-hosting.md
 docs/91-email-retry-processing-and-admin-delivery-visibility.md
 docs/92-manual-resend-and-delivery-recovery-controls.md
+docs/93-arrival-instructions-scheduling-and-content.md
 ```
 
 ## Development Status
 
 ```text
 Current phase: Phase 10 — Email Notifications
-Current subphase: 10.5.1 Manual resend and delivery recovery controls — In progress
-Current focus: validate audited manual delivery creation, source relation/version suppression, request idempotency, controlled admin confirmation, and unchanged payment/reservation state
-Last completed subphase: 10.5 Retry processing and admin delivery visibility
-10.5 accepted implementation commit: 1d3b02f6ae5fe37bd850a0ede0227e7173628aa1
-10.5 accepted follow-up commit: f77625f1d95095d7ebfd270007e1cbc54b667762
+Current subphase: 10.6 Arrival instructions scheduling and content — In progress
+Current focus: validate property-owned bilingual instructions, 48-hour scheduling, same-day eligibility, version supersession, protected backfill, and unchanged payment/reservation state
+Last completed subphase: 10.5.1 Manual resend and delivery recovery controls
+10.5.1 accepted commit: 355c72490d416a257b9827d31c67223a97200491
 ```

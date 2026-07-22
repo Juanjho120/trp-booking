@@ -15,11 +15,10 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 10 — Email Notifications
-Current subphase: 10.5.1 Manual resend and delivery recovery controls — In progress
-Current focus: validate audited manual delivery creation, source relation/version suppression, request idempotency, controlled admin confirmation, and unchanged payment/reservation state
-Last completed subphase: 10.5 Retry processing and admin delivery visibility
-10.5 accepted implementation commit: 1d3b02f6ae5fe37bd850a0ede0227e7173628aa1
-10.5 accepted follow-up commit: f77625f1d95095d7ebfd270007e1cbc54b667762
+Current subphase: 10.6 Arrival instructions scheduling and content — In progress
+Current focus: validate property-owned bilingual instructions, 48-hour scheduling, same-day eligibility, version supersession, protected backfill, and unchanged payment/reservation state
+Last completed subphase: 10.5.1 Manual resend and delivery recovery controls
+10.5.1 accepted commit: 355c72490d416a257b9827d31c67223a97200491
 ```
 
 ---
@@ -310,8 +309,8 @@ Subphase status:
 10.3 Bilingual branded reservation-confirmation templates — Completed
 10.4 Guest and admin confirmation notification orchestration — Completed
 10.5 Retry processing and admin delivery visibility — Completed
-10.5.1 Manual resend and delivery recovery controls — In progress
-10.6 Arrival instructions scheduling and content — Not started
+10.5.1 Manual resend and delivery recovery controls — Completed
+10.6 Arrival instructions scheduling and content — In progress
 10.7 Validation and documentation closure — Not started
 ```
 
@@ -329,7 +328,7 @@ Phase 10 rules:
 - PAYMENT_APPROVED is not sent separately because the reservation-confirmation email already communicates success.
 - Automatic rejected/failed-payment emails are deferred from the initial MVP to avoid duplicate or noisy messages across payment retries.
 - Cancellation, refund, date-change, stay-extension, and related Phase 11 emails remain deferred.
-- Arrival instructions require explicitly approved timing and content before activation.
+- Arrival instructions use approved property-specific timing and database-owned bilingual content; rotating secrets are never stored in source-controlled copy.
 - No PMS behavior is added.
 ```
 
@@ -416,7 +415,7 @@ Phase 10 rules:
 - The implementation record is docs/91-email-retry-processing-and-admin-delivery-visibility.md.
 ```
 
-### Phase 10.5.1 implementation prepared
+### Phase 10.5.1 result
 
 ```text
 - Eligible PENDING, FAILED, and SENT confirmation notifications expose a protected manual action.
@@ -427,7 +426,26 @@ Phase 10 rules:
 - A styled Sheet and centralized ES/EN copy distinguish retry from sending another copy and warn about duplicate delivery after SENT.
 - Manual delivery runs only after the creation transaction and reuses the existing provider, template, claim, failure, and retry pipeline.
 - No raw provider payload, secret, payment mutation, reservation mutation, arrival scheduling, dependency, or PMS behavior is added.
+- Local recovery, duplicate-warning, request-idempotency, concurrency, audit, and payment/reservation isolation tests were accepted.
+- Accepted commit: 355c72490d416a257b9827d31c67223a97200491.
 - The implementation record is docs/92-manual-resend-and-delivery-recovery-controls.md.
+```
+
+### Phase 10.6 implementation prepared
+
+```text
+- PropertyArrivalInstructions stores an enabled flag, 1–168-hour lead time, exact address, optional HTTPS map URL, and bilingual ES/EN operational instructions.
+- The accepted default is 48 hours before the property's configured check-in time in America/Guatemala.
+- Reservations confirmed inside the lead window become immediately eligible, while confirmations after check-in do not create an intent.
+- Reservation confirmation creates an idempotent ARRIVAL_INSTRUCTIONS intent inside the existing transaction when configuration is complete.
+- A CRON_SECRET-protected scheduler runs every 30 minutes and backfills upcoming confirmed reservations within the maximum lead-time horizon.
+- EmailNotification stores scheduledFor, a reservation check-in snapshot, and the arrival-settings version.
+- Deduplication includes reservation, check-in date, settings version, and intended recipient; stale versions are marked SKIPPED before provider delivery.
+- The bilingual branded email contains schedule, exact address, optional map link, approved operational instructions, and support contact.
+- Admin editing is optimistic, audited, and warns against storing access codes, lockbox codes, Wi-Fi passwords, or other rotating secrets.
+- The existing worker, retry limits, Resend idempotency, test routing, and read-only delivery history are reused.
+- No payment mutation, reservation confirmation change, new dependency, environment variable, or PMS behavior is added.
+- The implementation record is docs/93-arrival-instructions-scheduling-and-content.md.
 ```
 
 ---

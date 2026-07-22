@@ -27,6 +27,11 @@ export {
   isAdminAccommodationId,
   toAdminAccommodationId,
 } from "./accommodations";
+export {
+  AdminArrivalInstructionsError,
+  getAdminArrivalInstructionsByPropertyId,
+  updateAdminArrivalInstructions,
+} from "./arrival-instructions";
 export { adminApiErrorResponse, adminApiSuccessResponse } from "./api-response";
 export { getAdminDashboardSummary } from "./dashboard";
 export {
