@@ -1264,6 +1264,7 @@ export const enMessages = {
       checkOut: "Check-out",
       checkInTime: "Check-in time",
       exactAddress: "Exact address",
+      houseRules: "House rules",
       nights: "Length of stay",
       guests: "Guests",
       arrivalTime: "Estimated arrival time",

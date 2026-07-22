@@ -9,6 +9,10 @@ import {
   EmailTitle,
   renderEmailDocument,
 } from "@/emails/components/email-layout";
+import {
+  buildPlainTextHouseRules,
+  EmailHouseRules,
+} from "@/emails/components/email-house-rules";
 import { buildPlainTextEmail, buildPlainTextRows } from "@/emails/email-text";
 import { getTransactionalEmailMessages } from "@/emails/messages";
 import {
@@ -110,6 +114,13 @@ export async function buildReservationConfirmedEmail(
         <EmailDetailRow label={messages.common.total} last value={view.total} />
       </EmailSection>
 
+      {view.houseRules.length > 0 ? (
+        <EmailSection>
+          <EmailSectionTitle>{messages.common.houseRules}</EmailSectionTitle>
+          <EmailHouseRules rules={view.houseRules} />
+        </EmailSection>
+      ) : null}
+
       <EmailSection>
         <EmailSectionTitle>
           {messages.reservationConfirmed.dateChangesTitle}
@@ -161,6 +172,7 @@ export async function buildReservationConfirmedEmail(
       { label: messages.common.arrivalTime, value: arrivalTime },
       { label: messages.common.total, value: view.total },
     ]),
+    buildPlainTextHouseRules(messages.common.houseRules, view.houseRules),
     `${messages.reservationConfirmed.dateChangesTitle}\n${messages.reservationConfirmed.dateChangesDescription}`,
     `${messages.reservationConfirmed.arrivalTitle}\n${messages.reservationConfirmed.arrivalDescription}`,
     `${messages.common.supportLabel}: ${view.supportEmail}`,

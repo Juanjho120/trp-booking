@@ -5,9 +5,8 @@
 ```text
 Phase: Phase 10 — Email Notifications
 Subphase: 10.3 Bilingual branded reservation-confirmation templates
-Status: Completed
+Status: Implementation prepared; pending local validation and commit
 Base commit: 5ad4f1c4c08a1f98691d0215dc5958fbe7542f72
-Accepted commit: 7f6510d3e152caccefa42d9a2f5f75dbf747a22e
 Strategy: docs/85-email-notification-strategy-and-phase-10-roadmap.md
 Provider foundation: docs/86-email-persistence-and-resend-provider-foundation.md
 Next subphase after acceptance: 10.4 Guest and admin confirmation notification orchestration
@@ -370,9 +369,25 @@ Template checks with representative ES and EN data:
 13. Exercise the existing payment flow and confirm no EmailNotification row or Resend request is created in 10.3.
 ```
 
+## Phase 10.6 Follow-up — House Rules in Guest Templates
+
+The guest-facing `RESERVATION_CONFIRMED` template and the later `ARRIVAL_INSTRUCTIONS` template now include the accommodation's active assigned house rules.
+
+```text
+- Read current PropertyRule assignments during notification delivery.
+- Exclude soft-deleted HouseRule records.
+- Validate bilingual titles and descriptions through the shared template-data contract.
+- Localize each rule using the reservation's stored preferred locale.
+- Render matching HTML and plain-text sections.
+- Omit the section safely when no active assigned rule is available.
+- Do not add a Prisma migration, rule snapshot, provider payload, or PMS behavior.
+```
+
+Rule content is resolved at delivery time. Pending notifications therefore use the latest active bilingual house-rule content without changing reservation, payment, notification deduplication, or retry behavior.
+
 ## Handoff to 10.4
 
-After acceptance, continue with:
+After local validation and commit, continue with:
 
 ```text
 10.4 — Guest and admin confirmation notification orchestration

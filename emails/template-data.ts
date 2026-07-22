@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { siteConfig } from "@/config/site";
+import { normalizeTimeOfDay } from "@/lib/email/time-of-day";
 import type { TransactionalEmailLocale } from "@/types/email-provider";
 import type {
   ArrivalInstructionsEmailTemplateInput,
@@ -8,7 +9,6 @@ import type {
   ReservationEmailTemplateInput,
   ReservationEmailTemplateViewModel,
 } from "@/types/email-template";
-import { normalizeTimeOfDay } from "@/lib/email/time-of-day";
 
 const BUSINESS_TIME_ZONE = "America/Guatemala";
 const localeTags = {
@@ -165,6 +165,16 @@ const reservationTemplateSchema = z
       preferredLocale: localeSchema,
       propertyNameEs: normalizedTextSchema(160),
       propertyNameEn: normalizedTextSchema(160),
+      houseRules: z
+        .array(
+          z.object({
+            titleEs: normalizedTextSchema(160),
+            titleEn: normalizedTextSchema(160),
+            descriptionEs: normalizedMultilineSchema(3, 500),
+            descriptionEn: normalizedMultilineSchema(3, 500),
+          }),
+        )
+        .max(100),
       checkInDate: dateOnlySchema,
       checkOutDate: dateOnlySchema,
       guestCount: z.number().int().min(1).max(100),
@@ -330,6 +340,11 @@ export function buildReservationEmailTemplateViewModel(
     guestPreferredLocale: reservation.preferredLocale,
     propertyName:
       locale === "es" ? reservation.propertyNameEs : reservation.propertyNameEn,
+    houseRules: reservation.houseRules.map((rule) => ({
+      title: locale === "es" ? rule.titleEs : rule.titleEn,
+      description:
+        locale === "es" ? rule.descriptionEs : rule.descriptionEn,
+    })),
     checkInDate: formatDateOnly(reservation.checkInDate, locale),
     checkOutDate: formatDateOnly(reservation.checkOutDate, locale),
     nights: calculateNights(reservation.checkInDate, reservation.checkOutDate),

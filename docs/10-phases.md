@@ -441,7 +441,8 @@ Phase 10 rules:
 - A CRON_SECRET-protected scheduler runs every 30 minutes and backfills upcoming confirmed reservations within the maximum lead-time horizon.
 - EmailNotification stores scheduledFor, a reservation check-in snapshot, and the arrival-settings version.
 - Deduplication includes reservation, check-in date, settings version, and intended recipient; stale versions are marked SKIPPED before provider delivery.
-- The bilingual branded email contains schedule, exact address, optional map link, approved operational instructions, and support contact.
+- The bilingual branded email contains schedule, exact address, optional map link, approved operational instructions, active bilingual house rules, and support contact.
+- RESERVATION_CONFIRMED and ARRIVAL_INSTRUCTIONS render the accommodation's active assigned house rules in the guest's stored locale at delivery time.
 - Admin editing is optimistic, audited, and warns against storing access codes, lockbox codes, Wi-Fi passwords, or other rotating secrets.
 - The existing worker, retry limits, Resend idempotency, test routing, and read-only delivery history are reused.
 - No payment mutation, reservation confirmation change, new dependency, environment variable, or PMS behavior is added.

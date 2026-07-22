@@ -7,6 +7,18 @@ export type TransactionalEmailContent = Readonly<{
   text: string;
 }>;
 
+export type ReservationEmailTemplateHouseRule = Readonly<{
+  titleEs: string;
+  titleEn: string;
+  descriptionEs: string;
+  descriptionEn: string;
+}>;
+
+export type ReservationEmailTemplateHouseRuleViewModel = Readonly<{
+  title: string;
+  description: string;
+}>;
+
 export type ReservationEmailTemplateReservation = Readonly<{
   id: string;
   guestName: string;
@@ -16,6 +28,7 @@ export type ReservationEmailTemplateReservation = Readonly<{
   preferredLocale: TransactionalEmailLocale;
   propertyNameEs: string;
   propertyNameEn: string;
+  houseRules: readonly ReservationEmailTemplateHouseRule[];
   checkInDate: DateOnlyString;
   checkOutDate: DateOnlyString;
   guestCount: number;
@@ -53,6 +66,7 @@ export type ReservationEmailTemplateViewModel = Readonly<{
   guestCountry: string | null;
   guestPreferredLocale: TransactionalEmailLocale;
   propertyName: string;
+  houseRules: readonly ReservationEmailTemplateHouseRuleViewModel[];
   checkInDate: string;
   checkOutDate: string;
   nights: number;
@@ -86,6 +100,7 @@ export type TransactionalEmailMessages = Readonly<{
     checkOut: string;
     checkInTime: string;
     exactAddress: string;
+    houseRules: string;
     nights: string;
     guests: string;
     arrivalTime: string;

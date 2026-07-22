@@ -287,6 +287,7 @@ Phase 10.6 arrival instructions scheduling and content implementation prepared:
 - scheduledFor, a check-in-date snapshot, and the arrival-settings version make delivery auditable and allow stale notifications to be skipped after configuration or authorized date changes.
 - The permanent deduplication key includes reservation, check-in date, settings version, and recipient.
 - Delivery reuses the existing provider, idempotency, claim, bounded retry, test-recipient, and admin-history foundation.
+- RESERVATION_CONFIRMED and ARRIVAL_INSTRUCTIONS render the accommodation's currently active assigned house rules in the guest's stored locale.
 - Rotating access codes, lockbox codes, Wi-Fi passwords, and other secrets are explicitly prohibited from the stored instructions.
 - No payment mutation, reservation confirmation change, dependency, environment variable, or PMS behavior is added.
 - The implementation record is docs/93-arrival-instructions-scheduling-and-content.md.

@@ -126,11 +126,14 @@ The HTML and plain-text alternatives include:
 - exact address
 - optional HTTPS map link
 - property-approved instructions in the selected language
+- currently active assigned house rules in the selected language
 - security reminder
 - locale-specific reservations support email
 ```
 
 The template does not expose admin links, raw provider payloads, payment data, access codes, or PMS-only content.
+
+House rules are read from the accommodation's active `PropertyRule` assignments when delivery content is built. Unassigned and soft-deleted `HouseRule` records are excluded. This change does not add a rule snapshot or modify the arrival-notification deduplication key; a pending delivery therefore uses the latest active bilingual rule content available at delivery time.
 
 ## Intent Creation and Backfill
 
@@ -323,6 +326,8 @@ docs/93-arrival-instructions-scheduling-and-content.md
 - Repeated and concurrent scheduler runs create one row per permanent key
 - The worker ignores the row before scheduledFor and claims it after scheduledFor
 - ES and EN HTML/plain-text output match the stored guest locale
+- RESERVATION_CONFIRMED and ARRIVAL_INSTRUCTIONS include only active assigned house rules in the stored guest locale
+- A property with no active assigned rules omits the house-rules section without failing delivery
 - Test mode retains the guest recipient in persistence while delivering only to EMAIL_TEST_RECIPIENT
 - Settings changes supersede old PENDING/FAILED rows and create a new version
 - Reservation cancellation or check-in-date mismatch causes safe SKIPPED before provider work

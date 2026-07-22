@@ -341,6 +341,21 @@ async function readClaimedNotification(claim: EmailNotificationClaim) {
               nameEs: true,
               nameEn: true,
               checkInTime: true,
+              rules: {
+                select: {
+                  rule: {
+                    select: {
+                      key: true,
+                      titleEs: true,
+                      titleEn: true,
+                      descriptionEs: true,
+                      descriptionEn: true,
+                      createdAt: true,
+                      deletedAt: true,
+                    },
+                  },
+                },
+              },
               arrivalInstructions: {
                 select: {
                   enabled: true,
@@ -397,6 +412,22 @@ function buildTemplateReservation(
     preferredLocale,
     propertyNameEs: reservation.property.nameEs,
     propertyNameEn: reservation.property.nameEn,
+    houseRules: reservation.property.rules
+      .filter(({ rule }) => rule.deletedAt === null)
+      .sort((first, second) => {
+        const createdAtDifference =
+          first.rule.createdAt.getTime() - second.rule.createdAt.getTime();
+
+        return createdAtDifference !== 0
+          ? createdAtDifference
+          : first.rule.key.localeCompare(second.rule.key);
+      })
+      .map(({ rule }) => ({
+        titleEs: rule.titleEs,
+        titleEn: rule.titleEn,
+        descriptionEs: rule.descriptionEs,
+        descriptionEn: rule.descriptionEn,
+      })),
     checkInDate: toDateOnlyString(reservation.checkInDate),
     checkOutDate: toDateOnlyString(reservation.checkOutDate),
     guestCount: reservation.guestCount,

@@ -471,6 +471,7 @@ Selected 48 hours before the property check-in time in America/Guatemala as the 
 Same-day and late confirmations inside the lead window become immediately eligible even after the configured check-in time; only check-in dates before the current Guatemala business date are excluded.
 Added a protected admin editor with optimistic concurrency, audit logging, centralized bilingual copy, and explicit secret-content guardrails.
 Added an ARRIVAL_INSTRUCTIONS branded HTML/plain-text template using the guest's stored preferred locale.
+Added active bilingual house rules to RESERVATION_CONFIRMED and ARRIVAL_INSTRUCTIONS using the accommodation's current PropertyRule assignments at delivery time.
 Added transactional intent creation during confirmation plus a CRON_SECRET-protected backfill scheduler every 30 minutes.
 Added scheduledFor, check-in snapshot, and settings-version metadata to EmailNotification.
 Added permanent deduplication by reservation, check-in date, settings version, and recipient.
@@ -496,10 +497,11 @@ Implementation document: docs/93-arrival-instructions-scheduling-and-content.md.
 11. Run the delivery worker before scheduledFor and verify the row is ignored; run it after scheduledFor and verify SENT or bounded FAILED behavior.
 12. Change the property instructions before delivery and verify the older row becomes SKIPPED and a new version is scheduled.
 13. Change or cancel a reservation and verify the final delivery guard skips the stale notification without contacting Resend.
-14. Verify ES and EN subjects, HTML, plain text, date/time formatting, address, optional map link, and support contact.
-15. Verify test mode stores the guest recipient while delivery goes only to EMAIL_TEST_RECIPIENT.
-16. Confirm no rotating access code, lockbox code, Wi-Fi password, raw provider data, Payment mutation, Reservation mutation, or PMS behavior is introduced.
-17. Commit Phase 10.6 after local acceptance, then continue with 10.7 validation and documentation closure.
+14. Verify ES and EN subjects, HTML, plain text, date/time formatting, address, optional map link, active house rules, and support contact.
+15. Verify unassigned or soft-deleted house rules do not appear, and accommodations with no active rules omit the section safely.
+16. Verify test mode stores the guest recipient while delivery goes only to EMAIL_TEST_RECIPIENT.
+17. Confirm no rotating access code, lockbox code, Wi-Fi password, raw provider data, Payment mutation, Reservation mutation, or PMS behavior is introduced.
+18. Commit Phase 10.6 after local acceptance, then continue with 10.7 validation and documentation closure.
 ```
 
 ## Continuity Notes for New Conversations
