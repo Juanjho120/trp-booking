@@ -282,7 +282,7 @@ Phase 10.6 arrival instructions scheduling and content implementation prepared:
 - Arrival settings are owned per accommodation in PostgreSQL and edited through a protected bilingual admin page.
 - Each property can configure an enabled flag, a lead time from 1 through 168 hours, an exact address, an optional HTTPS map URL, and ES/EN instructions.
 - The default lead time is 48 hours before the property's check-in time in America/Guatemala.
-- Same-day or late confirmations inside the lead window become immediately eligible as long as check-in has not started.
+- Same-day confirmations become immediately eligible even when the configured check-in time has already passed; only reservations whose check-in date is before the current date in America/Guatemala are excluded.
 - Confirmation creates the ARRIVAL_INSTRUCTIONS intent transactionally when the property is configured; a protected 30-minute scheduler backfills existing upcoming confirmed reservations.
 - scheduledFor, a check-in-date snapshot, and the arrival-settings version make delivery auditable and allow stale notifications to be skipped after configuration or authorized date changes.
 - The permanent deduplication key includes reservation, check-in date, settings version, and recipient.

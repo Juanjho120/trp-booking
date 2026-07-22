@@ -44,11 +44,11 @@ More than the lead time before check-in
 -> create PENDING intent
 -> scheduledFor and nextAttemptAt equal the future eligibility timestamp
 
-Inside the lead-time window, but before check-in
+Inside the lead-time window, including same-day confirmation before or after the configured check-in time
 -> create PENDING intent with scheduledFor in the past
 -> post-confirmation delivery or the next worker run may claim it immediately
 
-At or after check-in
+Check-in date before the current date in America/Guatemala
 -> do not create a new arrival intent
 ```
 
@@ -318,7 +318,8 @@ docs/93-arrival-instructions-scheduling-and-content.md
 - Enabling complete settings creates an auditable property configuration
 - A reservation more than 48 hours away receives one future PENDING intent
 - A reservation inside the lead window becomes immediately eligible
-- A same-day reservation before check-in is eligible; one after check-in is not
+- Same-day reservations before and after the configured check-in time are immediately eligible
+- A reservation whose check-in date is before the current Guatemala business date does not create a new intent
 - Repeated and concurrent scheduler runs create one row per permanent key
 - The worker ignores the row before scheduledFor and claims it after scheduledFor
 - ES and EN HTML/plain-text output match the stored guest locale

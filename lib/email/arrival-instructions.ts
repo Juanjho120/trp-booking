@@ -235,7 +235,9 @@ export async function ensureArrivalInstructionsNotificationIntent(
     };
   }
 
-  if (checkInAt <= now) {
+  const currentGuatemalaDate = getGuatemalaDateOnly(now);
+
+  if (reservation.checkInDate < currentGuatemalaDate) {
     return {
       outcome: "check-in-passed",
       notificationId: null,

@@ -468,7 +468,7 @@ Implemented scope:
 ```text
 Added property-owned arrival settings with enabled state, a 1–168-hour lead time, exact address, optional HTTPS map URL, and bilingual ES/EN instructions.
 Selected 48 hours before the property check-in time in America/Guatemala as the default schedule.
-Same-day and late confirmations inside the lead window become immediately eligible when check-in has not started.
+Same-day and late confirmations inside the lead window become immediately eligible even after the configured check-in time; only check-in dates before the current Guatemala business date are excluded.
 Added a protected admin editor with optimistic concurrency, audit logging, centralized bilingual copy, and explicit secret-content guardrails.
 Added an ARRIVAL_INSTRUCTIONS branded HTML/plain-text template using the guest's stored preferred locale.
 Added transactional intent creation during confirmation plus a CRON_SECRET-protected backfill scheduler every 30 minutes.
@@ -491,7 +491,7 @@ Implementation document: docs/93-arrival-instructions-scheduling-and-content.md.
 6. Enable complete ES/EN settings with the default 48-hour lead time and confirm the admin audit row is created.
 7. Confirm a reservation more than 48 hours before arrival and verify one PENDING ARRIVAL_INSTRUCTIONS row with the correct scheduledFor value.
 8. Confirm a reservation inside the 48-hour window and verify immediate eligibility and delivery.
-9. Confirm a same-day reservation before check-in and verify it is eligible; confirm one after check-in and verify no intent is created.
+9. Confirm same-day reservations both before and after the configured check-in time and verify both are immediately eligible; verify a reservation whose check-in date is already in the past does not create a new intent.
 10. Run the scheduler repeatedly and concurrently and verify permanent deduplication creates one intent per reservation/check-in/settings version/recipient.
 11. Run the delivery worker before scheduledFor and verify the row is ignored; run it after scheduledFor and verify SENT or bounded FAILED behavior.
 12. Change the property instructions before delivery and verify the older row becomes SKIPPED and a new version is scheduled.

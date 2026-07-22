@@ -436,7 +436,7 @@ Phase 10 rules:
 ```text
 - PropertyArrivalInstructions stores an enabled flag, 1–168-hour lead time, exact address, optional HTTPS map URL, and bilingual ES/EN operational instructions.
 - The accepted default is 48 hours before the property's configured check-in time in America/Guatemala.
-- Reservations confirmed inside the lead window become immediately eligible, while confirmations after check-in do not create an intent.
+- Reservations confirmed inside the lead window become immediately eligible. Same-day confirmations remain eligible even after the configured check-in time; only reservations whose check-in date is before the current date in America/Guatemala do not create a new intent.
 - Reservation confirmation creates an idempotent ARRIVAL_INSTRUCTIONS intent inside the existing transaction when configuration is complete.
 - A CRON_SECRET-protected scheduler runs every 30 minutes and backfills upcoming confirmed reservations within the maximum lead-time horizon.
 - EmailNotification stores scheduledFor, a reservation check-in snapshot, and the arrival-settings version.
