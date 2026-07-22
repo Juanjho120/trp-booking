@@ -7,7 +7,7 @@ import {
   FilePenLine,
   Images,
   ListChecks,
-  MailClock,
+  MailCheck,
   Users,
 } from "lucide-react";
 
@@ -175,7 +175,7 @@ export function AdminAccommodationManagement({
                       <Link
                         href={`/admin/accommodations/${property.id}/arrival-instructions`}
                       >
-                        <MailClock aria-hidden="true" />
+                        <MailCheck aria-hidden="true" />
                         {copy.overview.actions.manageArrivalInstructions}
                       </Link>
                     </Button>

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Clock3, Loader2, MailClock, Save } from "lucide-react";
+import { ArrowLeft, Clock3, Loader2, MailCheck, Save } from "lucide-react";
 import { type ChangeEvent, type ReactNode, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -283,7 +283,7 @@ export function AdminArrivalInstructionsEditor({
                 type="button"
                 variant={draft.enabled ? "default" : "outline"}
               >
-                <MailClock aria-hidden="true" />
+                <MailCheck aria-hidden="true" />
                 {draft.enabled ? copy.actions.disable : copy.actions.enable}
               </Button>
             </CardContent>
