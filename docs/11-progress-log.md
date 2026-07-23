@@ -6,14 +6,13 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
-Current subphase: 11.2 Lifecycle request persistence and audit foundation — Not started
-Current focus: prepare typed lifecycle request, refund, adjustment-payment, and temporary-hold persistence using the approved cancellation matrix; validate Tilopay refund behavior in 11.4
+Current subphase: 11.3 Admin cancellation decision and availability release — In progress
+Current focus: validate protected cancellation-request creation, standard-policy snapshots, serializable approval/rejection, availability release, arrival-notification suppression, idempotency, and unchanged payment/refund state
 Last updated: 2026-07-23
-Last completed subphase: 11.1 Lifecycle strategy, policy, and provider boundary
-11.1 strategy base commit: 00e23979aec894b1ff953a89b9297744e71a4a21
-11.1 strategy document: docs/95-phase-11-lifecycle-strategy-and-roadmap.md
-11.1 correction base commit: ca875bb01f649356262122bf06c2b92a9f3ef99d
-11.1 correction document: docs/96-phase-11.1-cancellation-policy-and-tilopay-refund-contract-correction.md
+Last completed subphase: 11.2 Lifecycle request persistence and audit foundation
+11.2 accepted commit: 2495aa891fd26938550960f94fdbea700151350f
+11.2 implementation document: docs/97-phase-11.2-lifecycle-request-persistence-and-audit-foundation.md
+11.3 implementation document: docs/98-phase-11.3-admin-cancellation-decision-and-availability-release.md
 Last completed phase: Phase 10 — Email Notifications
 Phase 10 closure document: docs/94-phase-10-validation-and-documentation-closure.md
 ```
@@ -548,14 +547,47 @@ docs/96-phase-11.1-cancellation-policy-and-tilopay-refund-contract-correction.md
 ## Next Recommended Work
 
 ```text
-1. Commit the Phase 11.1 cancellation-policy and Tilopay-contract correction.
-2. Continue with 11.2 lifecycle request persistence and audit foundation without adding mutation UI or provider calls.
-3. Preserve the approved 100% / 50% / 0% cancellation matrix as typed policy snapshots in future requests.
-4. Validate processModification in 11.4 through actual sandbox tests for success, partial/full refund, invalid requests, duplicate calls, retries, and idempotency before production execution.
-5. Approve fee treatment and admin exception authority before final 11.3 policy-calculation acceptance.
-6. Approve the date-change repricing basis, negative-difference behavior, and temporary hold duration before 11.5.
-7. Keep secure public guest request intake deferred unless its identity-verification design is separately approved.
-8. Keep production Resend/provider webhook readiness in Phase 12.
+1. Run the Phase 11.3 local/test acceptance matrix and commit the accepted implementation.
+2. Verify exact 168-hour and 72-hour policy boundaries using the property check-in time in America/Guatemala.
+3. Verify request/decision idempotency, stale-tab protection, concurrent submission handling, and audit actions.
+4. Verify approved cancellation releases direct stay, preparation-buffer, and composed-listing availability without creating a Refund or changing Payment financial state.
+5. After acceptance, mark 11.3 completed and begin 11.4 refund authorization and Tilopay reconciliation.
+6. Validate processModification through the approved sandbox matrix before production execution.
+7. Keep date-change repricing, negative-difference behavior, and temporary hold duration assigned to 11.5.
+8. Keep lifecycle email templates and orchestration assigned to 11.6.
+```
+
+## Completed Work — Phase 11.2
+
+### Phase 11.2 — Lifecycle Request Persistence and Audit Foundation
+
+Status: **Completed and accepted**
+
+```text
+Typed lifecycle requests now own request state, actors, timestamps, old/new operational and financial snapshots, idempotency, and optimistic concurrency.
+Payment purpose/request linkage distinguishes adjustment payments from initial reservation payments.
+Temporary lifecycle-request holds participate in availability, preparation buffers, and composed-listing dependencies while active and unexpired.
+Refund status is separated from processing mode without silently rewriting historical lifecycle meaning.
+New flows keep active stays CONFIRMED and do not use Reservation.PARTIALLY_REFUNDED as an availability state.
+Accepted commit: 2495aa891fd26938550960f94fdbea700151350f.
+Implementation document: docs/97-phase-11.2-lifecycle-request-persistence-and-audit-foundation.md.
+```
+
+## In Progress — Phase 11.3
+
+### Phase 11.3 — Admin Cancellation Decision and Availability Release
+
+Status: **In progress — implementation prepared for local/test acceptance**
+
+```text
+Protected admin routes record and decide cancellation requests using strict Zod validation and safe error codes.
+Creation snapshots the confirmed reservation, validated initial payment, and exact standard cancellation-policy outcome.
+Approval changes Reservation to CANCELLED and completes the request inside a serializable transaction.
+Rejection preserves the reservation and availability.
+Cancellation releases direct stay and preparation-buffer availability through the existing status-driven availability model.
+Pending and failed arrival-instruction notifications are skipped without rewriting SENT history.
+No Refund row, Tilopay modification, Payment refund state, lifecycle email, public self-service endpoint, or PMS behavior is added.
+Implementation document: docs/98-phase-11.3-admin-cancellation-decision-and-availability-release.md.
 ```
 
 ## Continuity Notes for New Conversations
@@ -583,6 +615,11 @@ docs/93-arrival-instructions-scheduling-and-content.md
 docs/94-phase-10-validation-and-documentation-closure.md
 docs/95-phase-11-lifecycle-strategy-and-roadmap.md
 docs/96-phase-11.1-cancellation-policy-and-tilopay-refund-contract-correction.md
+docs/97-phase-11.2-lifecycle-request-persistence-and-audit-foundation.md
+docs/98-phase-11.3-admin-cancellation-decision-and-availability-release.md
+lib/admin/reservation-cancellation.ts
+lib/reservations/cancellation-policy.ts
+types/admin-reservation-cancellation.ts
 config/site.ts
 lib/env/server.ts
 lib/reservations/pending-holds.ts

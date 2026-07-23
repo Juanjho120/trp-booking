@@ -66,6 +66,13 @@ export {
   unlockAdminPreparationBufferDay,
   updateAdminPreparationBufferSettings,
 } from "./preparation-buffer-management";
+export {
+  AdminReservationCancellationError,
+  createAdminCancellationRequest,
+  decideAdminCancellationRequest,
+  getAdminCancellationRequestsForReservation,
+  toAdminCancellationRequestSummary,
+} from "./reservation-cancellation";
 export { getAdminReservationDetail } from "./reservation-detail";
 export { getAdminReservationsPage } from "./reservations";
 export { getAdminSessionActor } from "./session";

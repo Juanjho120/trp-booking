@@ -2,6 +2,8 @@ import { dateOnlyFromDate } from "@/lib/availability/rules";
 import { prisma } from "@/lib/db/prisma";
 import type { AdminReservationDetailData } from "@/types/admin-reservation-detail";
 
+import { getAdminCancellationRequestsForReservation } from "./reservation-cancellation";
+
 const PROVIDER_MESSAGE_ID_MAX_LENGTH = 180;
 const ERROR_CODE_MAX_LENGTH = 120;
 const ERROR_MESSAGE_MAX_LENGTH = 240;
@@ -58,12 +60,16 @@ export async function getAdminReservationDetail(
       total: true,
       currency: true,
       expiresAt: true,
+      confirmedAt: true,
+      cancelledAt: true,
       createdAt: true,
+      updatedAt: true,
       property: {
         select: {
           id: true,
           nameEs: true,
           nameEn: true,
+          checkInTime: true,
         },
       },
       payments: {
@@ -117,6 +123,9 @@ export async function getAdminReservationDetail(
     return null;
   }
 
+  const cancellationRequests =
+    await getAdminCancellationRequestsForReservation(reservation.id);
+
   return {
     id: reservation.id,
     property: reservation.property,
@@ -136,7 +145,10 @@ export async function getAdminReservationDetail(
     total: reservation.total.toFixed(2),
     currency: reservation.currency,
     expiresAt: reservation.expiresAt?.toISOString() ?? null,
+    confirmedAt: reservation.confirmedAt?.toISOString() ?? null,
+    cancelledAt: reservation.cancelledAt?.toISOString() ?? null,
     createdAt: reservation.createdAt.toISOString(),
+    updatedAt: reservation.updatedAt.toISOString(),
     payments: reservation.payments.map((payment) => ({
       id: payment.id,
       providerReference: payment.providerReference,
@@ -187,5 +199,6 @@ export async function getAdminReservationDetail(
       createdAt: notification.createdAt.toISOString(),
       updatedAt: notification.updatedAt.toISOString(),
     })),
+    cancellationRequests,
   };
 }

@@ -15,13 +15,12 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
-Current subphase: 11.2 Lifecycle request persistence and audit foundation — Not started
-Current focus: prepare typed lifecycle request, refund, adjustment-payment, and temporary-hold persistence using the approved cancellation matrix; validate Tilopay refund behavior in 11.4
-Last completed subphase: 11.1 Lifecycle strategy, policy, and provider boundary
-11.1 strategy base commit: 00e23979aec894b1ff953a89b9297744e71a4a21
-11.1 strategy document: docs/95-phase-11-lifecycle-strategy-and-roadmap.md
-11.1 correction base commit: ca875bb01f649356262122bf06c2b92a9f3ef99d
-11.1 correction document: docs/96-phase-11.1-cancellation-policy-and-tilopay-refund-contract-correction.md
+Current subphase: 11.3 Admin cancellation decision and availability release — In progress
+Current focus: validate protected cancellation-request creation, standard-policy snapshots, serializable approval/rejection, availability release, arrival-notification suppression, idempotency, and unchanged payment/refund state
+Last completed subphase: 11.2 Lifecycle request persistence and audit foundation
+11.2 accepted commit: 2495aa891fd26938550960f94fdbea700151350f
+11.2 implementation document: docs/97-phase-11.2-lifecycle-request-persistence-and-audit-foundation.md
+11.3 implementation document: docs/98-phase-11.3-admin-cancellation-decision-and-availability-release.md
 Last completed phase: Phase 10 — Email Notifications
 Phase 10 closure document: docs/94-phase-10-validation-and-documentation-closure.md
 ```
@@ -479,8 +478,8 @@ Subphase status:
 
 ```text
 11.1 Lifecycle strategy, policy, and provider boundary — Completed
-11.2 Lifecycle request persistence and audit foundation — Not started
-11.3 Admin cancellation decision and availability release — Not started
+11.2 Lifecycle request persistence and audit foundation — Completed
+11.3 Admin cancellation decision and availability release — In progress
 11.4 Refund authorization and Tilopay reconciliation — Not started
 11.5 Authorized date changes and stay extensions — Not started
 11.6 Lifecycle notifications and admin operational history — Not started
@@ -525,6 +524,31 @@ Phase 11 rules:
 - The corrective record is docs/96-phase-11.1-cancellation-policy-and-tilopay-refund-contract-correction.md.
 - Fee treatment, admin exception authority, and exact date-change repricing remain explicit decisions for their corresponding implementation subphases.
 - No application code, visible UI copy, Prisma schema, migration, seed, dependency, environment variable, provider request, lifecycle mutation, or PMS behavior is added by 11.1 or its correction.
+```
+
+### Phase 11.2 result
+
+```text
+- ReservationLifecycleRequest persists typed cancellation, date-change, and stay-extension requests with request state, actors, timestamps, snapshots, idempotency, and optimistic concurrency.
+- PaymentPurpose distinguishes initial reservation payments from lifecycle adjustment payments.
+- LifecycleRequestHold persists requested-date holds and participates in availability and preparation buffers only while active and unexpired.
+- Refund status and processing mode are separated without silently reinterpreting historical records.
+- Reservation REFUNDED and PARTIALLY_REFUNDED values remain historical compatibility states and are not used by new active-stay flows.
+- The accepted implementation commit is 2495aa891fd26938550960f94fdbea700151350f.
+- The implementation record is docs/97-phase-11.2-lifecycle-request-persistence-and-audit-foundation.md.
+```
+
+### Phase 11.3 implementation prepared
+
+```text
+- Authorized admins can record an idempotent cancellation request from reservation detail using an approved support channel.
+- The server snapshots the confirmed reservation, validated initial payment, and exact 100% / 50% / 0% policy result using the property check-in time in America/Guatemala.
+- Approval changes Reservation from CONFIRMED to CANCELLED and completes the request inside a serializable transaction.
+- Rejection preserves the confirmed reservation and availability.
+- Cancellation releases dynamic stay and preparation-buffer availability without deleting operational history.
+- Pending and failed arrival-instruction notifications become SKIPPED; existing SENT history remains unchanged.
+- Refund creation, Tilopay execution, payment financial-state changes, and lifecycle emails remain deferred.
+- The implementation record is docs/98-phase-11.3-admin-cancellation-decision-and-availability-release.md.
 ```
 
 ---

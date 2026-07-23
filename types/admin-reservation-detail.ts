@@ -1,4 +1,5 @@
 import type { AdminPropertyOption } from "@/types/admin";
+import type { AdminCancellationRequestSummary } from "@/types/admin-reservation-cancellation";
 import type { DateOnlyString } from "@/types/availability";
 
 export type AdminReservationDetailPayment = Readonly<{
@@ -40,7 +41,10 @@ export type AdminReservationDetailEmailNotification = Readonly<{
 
 export type AdminReservationDetailData = Readonly<{
   id: string;
-  property: AdminPropertyOption;
+  property: AdminPropertyOption &
+    Readonly<{
+      checkInTime: string;
+    }>;
   guestName: string;
   guestEmail: string;
   guestPhone: string | null;
@@ -57,7 +61,11 @@ export type AdminReservationDetailData = Readonly<{
   total: string;
   currency: string;
   expiresAt: string | null;
+  confirmedAt: string | null;
+  cancelledAt: string | null;
   createdAt: string;
+  updatedAt: string;
   payments: readonly AdminReservationDetailPayment[];
   emailNotifications: readonly AdminReservationDetailEmailNotification[];
+  cancellationRequests: readonly AdminCancellationRequestSummary[];
 }>;

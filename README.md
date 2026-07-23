@@ -314,8 +314,8 @@ Planned subphases:
 
 ```text
 11.1 Lifecycle strategy, policy, and provider boundary — Completed
-11.2 Lifecycle request persistence and audit foundation — Not started
-11.3 Admin cancellation decision and availability release — Not started
+11.2 Lifecycle request persistence and audit foundation — Completed
+11.3 Admin cancellation decision and availability release — In progress
 11.4 Refund authorization and Tilopay reconciliation — Not started
 11.5 Authorized date changes and stay extensions — Not started
 11.6 Lifecycle notifications and admin operational history — Not started
@@ -386,19 +386,20 @@ docs/93-arrival-instructions-scheduling-and-content.md
 docs/94-phase-10-validation-and-documentation-closure.md
 docs/95-phase-11-lifecycle-strategy-and-roadmap.md
 docs/96-phase-11.1-cancellation-policy-and-tilopay-refund-contract-correction.md
+docs/97-phase-11.2-lifecycle-request-persistence-and-audit-foundation.md
+docs/98-phase-11.3-admin-cancellation-decision-and-availability-release.md
 ```
 
 ## Development Status
 
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
-Current subphase: 11.2 Lifecycle request persistence and audit foundation — Not started
-Current focus: prepare typed lifecycle request, refund, adjustment-payment, and temporary-hold persistence using the approved cancellation matrix; validate Tilopay refund behavior in 11.4
-Last completed subphase: 11.1 Lifecycle strategy, policy, and provider boundary
-11.1 strategy base commit: 00e23979aec894b1ff953a89b9297744e71a4a21
-11.1 strategy document: docs/95-phase-11-lifecycle-strategy-and-roadmap.md
-11.1 correction base commit: ca875bb01f649356262122bf06c2b92a9f3ef99d
-11.1 correction document: docs/96-phase-11.1-cancellation-policy-and-tilopay-refund-contract-correction.md
+Current subphase: 11.3 Admin cancellation decision and availability release — In progress
+Current focus: validate protected cancellation-request creation, standard-policy snapshots, serializable approval/rejection, availability release, arrival-notification suppression, idempotency, and unchanged payment/refund state
+Last completed subphase: 11.2 Lifecycle request persistence and audit foundation
+11.2 accepted commit: 2495aa891fd26938550960f94fdbea700151350f
+11.2 implementation document: docs/97-phase-11.2-lifecycle-request-persistence-and-audit-foundation.md
+11.3 implementation document: docs/98-phase-11.3-admin-cancellation-decision-and-availability-release.md
 Last completed phase: Phase 10 — Email Notifications
 Phase 10 closure document: docs/94-phase-10-validation-and-documentation-closure.md
 ```

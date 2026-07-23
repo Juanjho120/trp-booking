@@ -502,6 +502,137 @@ export const esMessages = {
         previous: "Anterior",
         next: "Siguiente",
       },
+      cancellation: {
+        badge: "Ciclo de vida de la reserva",
+        title: "Cancelación administrativa",
+        description:
+          "Registra una solicitud recibida por un canal autorizado y decide la cancelación sin mezclarla con la ejecución del reembolso.",
+        labels: {
+          unavailable: "No disponible",
+          request: "Solicitud",
+          channel: "Canal de solicitud",
+          requesterName: "Nombre de quien solicita",
+          requesterEmail: "Correo de contacto opcional",
+          requesterPhone: "Teléfono de contacto opcional",
+          requesterContact: "Contacto del solicitante",
+          requestReason: "Motivo informado",
+          createdBy: "Registrada por",
+          requestedAt: "Registrada el",
+          policyOutcome: "Resultado de política",
+          hoursBeforeCheckIn: "Horas antes del check-in",
+          standardRefund: "Reembolso estándar elegible",
+          policyCalculatedAt: "Política calculada el",
+          checkInAt: "Check-in evaluado",
+          reviewedBy: "Decidida por",
+          decidedAt: "Decidida el",
+          decisionNote: "Motivo de la decisión",
+        },
+        channels: {
+          EMAIL: "Correo electrónico",
+          PHONE: "Teléfono",
+          WHATSAPP: "WhatsApp",
+          OTHER: "Otro canal autorizado",
+        },
+        statuses: {
+          PENDING_REVIEW: "Pendiente de revisión",
+          APPROVED: "Aprobada",
+          REJECTED: "Rechazada",
+          AWAITING_ADJUSTMENT_PAYMENT: "Esperando pago de diferencia",
+          COMPLETED: "Completada",
+          WITHDRAWN: "Retirada",
+          EXPIRED: "Expirada",
+          FAILED: "Fallida",
+        },
+        policyReasons: {
+          AT_LEAST_168_HOURS: "7 días o más antes del check-in",
+          BETWEEN_72_AND_168_HOURS: "Entre 72 horas y menos de 7 días",
+          LESS_THAN_72_HOURS: "Menos de 72 horas antes del check-in",
+          NOT_APPLICABLE: "No aplica",
+        },
+        placeholders: {
+          requestReason:
+            "Describe lo que solicitó el huésped y el contexto necesario para revisarlo.",
+          decisionNote:
+            "Explica brevemente por qué se aprueba o rechaza la cancelación.",
+        },
+        actions: {
+          createRequest: "Registrar solicitud",
+          creating: "Registrando...",
+          approve: "Aprobar cancelación",
+          reject: "Rechazar solicitud",
+          processing: "Procesando...",
+          close: "Cerrar",
+          confirmApprove: "Confirmar cancelación",
+          confirmReject: "Confirmar rechazo",
+        },
+        createDialog: {
+          title: "Registrar solicitud de cancelación",
+          description:
+            "La solicitud se guardará con una copia de la reserva, el pago capturado y la política vigente. Todavía no cancelará la estadía.",
+          policyNote:
+            "El porcentaje y monto elegible se calculan en el servidor usando la hora de check-in del alojamiento en America/Guatemala.",
+        },
+        decisionDialog: {
+          approveTitle: "Aprobar cancelación",
+          rejectTitle: "Rechazar solicitud",
+          approveDescription:
+            "La reserva cambiará de Confirmada a Cancelada y sus fechas y buffers dejarán de bloquear disponibilidad.",
+          rejectDescription:
+            "La solicitud quedará rechazada y la reserva continuará confirmada sin modificar fechas, disponibilidad ni pagos.",
+          approveWarning:
+            "Esta acción no procesa ni promete un reembolso. El monto mostrado es el resultado estándar de la política y se autorizará o conciliará por separado en Phase 11.4.",
+          rejectWarning:
+            "El historial de la solicitud y la decisión se conservará para auditoría.",
+        },
+        notes: {
+          policyCalculation:
+            "La matriz aplicada es 100% con 168 horas o más, 50% desde 72 horas hasta menos de 168 y 0% por debajo de 72 horas.",
+          refundSeparate:
+            "Cancelación y reembolso son decisiones separadas. Aquí no se crea un Refund ni se llama a Tilopay.",
+          availabilityRelease:
+            "Al aprobar, la disponibilidad se libera porque la reserva deja de estar Confirmada. Los correos de llegada pendientes o fallidos se omiten de forma auditable.",
+        },
+        states: {
+          reservationNotEligible:
+            "Solo una reserva confirmada y no cancelada puede iniciar este flujo.",
+          activeRequest:
+            "Ya existe una solicitud pendiente. Debe aprobarse o rechazarse antes de registrar otra.",
+        },
+        success: {
+          requestCreated:
+            "La solicitud de cancelación quedó registrada y pendiente de decisión.",
+          cancelled:
+            "La cancelación fue aprobada. La reserva y su disponibilidad se actualizaron correctamente.",
+          rejected:
+            "La solicitud fue rechazada. La reserva continúa confirmada.",
+          alreadyCancelled:
+            "Esta solicitud ya había cancelado la reserva; no se repitió la operación.",
+          alreadyRejected:
+            "Esta solicitud ya había sido rechazada; no se repitió la operación.",
+        },
+        errors: {
+          ADMIN_UNAUTHORIZED: "Tu sesión no tiene autorización administrativa.",
+          INVALID_ADMIN_CANCELLATION_REQUEST:
+            "Revisa el canal, los datos de contacto, el motivo y la confirmación antes de continuar.",
+          ADMIN_CANCELLATION_RESERVATION_NOT_FOUND:
+            "No encontramos la reserva seleccionada.",
+          ADMIN_CANCELLATION_RESERVATION_NOT_CONFIRMED:
+            "La reserva ya no está confirmada o dejó de ser elegible para cancelación.",
+          ADMIN_CANCELLATION_SOURCE_PAYMENT_NOT_FOUND:
+            "No encontramos un pago inicial validado para calcular la política de cancelación.",
+          ADMIN_CANCELLATION_REQUEST_ALREADY_ACTIVE:
+            "Ya existe una solicitud de cancelación pendiente para esta reserva.",
+          ADMIN_CANCELLATION_REQUEST_NOT_FOUND:
+            "No encontramos la solicitud de cancelación seleccionada.",
+          ADMIN_CANCELLATION_REQUEST_NOT_PENDING:
+            "La solicitud ya fue decidida y no admite otra decisión.",
+          ADMIN_CANCELLATION_STALE:
+            "La reserva o la solicitud cambió después de que abriste esta página. Recarga antes de continuar.",
+          ADMIN_CANCELLATION_UNEXPECTED_ERROR:
+            "No pudimos procesar la cancelación. Inténtalo nuevamente.",
+        },
+        empty: "Esta reserva todavía no tiene solicitudes de cancelación.",
+      },
       notifications: {
         title: "Entrega de correos",
         description:

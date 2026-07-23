@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { AdminReservationDetailPage } from "@/features/admin";
+import {
+  AdminReservationCancellationSection,
+  AdminReservationDetailPage,
+} from "@/features/admin";
 import { getAdminReservationDetail } from "@/lib/admin";
 import { esMessages } from "@/messages";
 
@@ -31,5 +34,10 @@ export default async function AdminReservationDetailRoute({
     notFound();
   }
 
-  return <AdminReservationDetailPage reservation={reservation} />;
+  return (
+    <>
+      <AdminReservationDetailPage reservation={reservation} />
+      <AdminReservationCancellationSection reservation={reservation} />
+    </>
+  );
 }

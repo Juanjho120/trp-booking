@@ -502,6 +502,137 @@ export const enMessages = {
         previous: "Previous",
         next: "Next",
       },
+      cancellation: {
+        badge: "Reservation lifecycle",
+        title: "Administrative cancellation",
+        description:
+          "Record a request received through an authorized channel and decide the cancellation without mixing it with refund execution.",
+        labels: {
+          unavailable: "Unavailable",
+          request: "Request",
+          channel: "Request channel",
+          requesterName: "Requester name",
+          requesterEmail: "Optional contact email",
+          requesterPhone: "Optional contact phone",
+          requesterContact: "Requester contact",
+          requestReason: "Reported reason",
+          createdBy: "Recorded by",
+          requestedAt: "Recorded at",
+          policyOutcome: "Policy outcome",
+          hoursBeforeCheckIn: "Hours before check-in",
+          standardRefund: "Standard eligible refund",
+          policyCalculatedAt: "Policy calculated at",
+          checkInAt: "Evaluated check-in",
+          reviewedBy: "Decided by",
+          decidedAt: "Decided at",
+          decisionNote: "Decision reason",
+        },
+        channels: {
+          EMAIL: "Email",
+          PHONE: "Phone",
+          WHATSAPP: "WhatsApp",
+          OTHER: "Other authorized channel",
+        },
+        statuses: {
+          PENDING_REVIEW: "Pending review",
+          APPROVED: "Approved",
+          REJECTED: "Rejected",
+          AWAITING_ADJUSTMENT_PAYMENT: "Awaiting adjustment payment",
+          COMPLETED: "Completed",
+          WITHDRAWN: "Withdrawn",
+          EXPIRED: "Expired",
+          FAILED: "Failed",
+        },
+        policyReasons: {
+          AT_LEAST_168_HOURS: "7 days or more before check-in",
+          BETWEEN_72_AND_168_HOURS: "From 72 hours through less than 7 days",
+          LESS_THAN_72_HOURS: "Less than 72 hours before check-in",
+          NOT_APPLICABLE: "Not applicable",
+        },
+        placeholders: {
+          requestReason:
+            "Describe what the guest requested and the context needed for review.",
+          decisionNote:
+            "Briefly explain why the cancellation is approved or rejected.",
+        },
+        actions: {
+          createRequest: "Record request",
+          creating: "Recording...",
+          approve: "Approve cancellation",
+          reject: "Reject request",
+          processing: "Processing...",
+          close: "Close",
+          confirmApprove: "Confirm cancellation",
+          confirmReject: "Confirm rejection",
+        },
+        createDialog: {
+          title: "Record cancellation request",
+          description:
+            "The request will store a snapshot of the reservation, captured payment, and current policy. It will not cancel the stay yet.",
+          policyNote:
+            "The eligible percentage and amount are calculated on the server using the accommodation check-in time in America/Guatemala.",
+        },
+        decisionDialog: {
+          approveTitle: "Approve cancellation",
+          rejectTitle: "Reject request",
+          approveDescription:
+            "The reservation will change from Confirmed to Cancelled, and its dates and buffers will stop blocking availability.",
+          rejectDescription:
+            "The request will be rejected, and the reservation will remain confirmed without changing dates, availability, or payments.",
+          approveWarning:
+            "This action does not process or promise a refund. The displayed amount is the standard policy outcome and will be authorized or reconciled separately in Phase 11.4.",
+          rejectWarning:
+            "The request and decision history will be preserved for auditing.",
+        },
+        notes: {
+          policyCalculation:
+            "The applied matrix is 100% at 168 hours or more, 50% from 72 hours through less than 168, and 0% below 72 hours.",
+          refundSeparate:
+            "Cancellation and refund are separate decisions. This action does not create a Refund or call Tilopay.",
+          availabilityRelease:
+            "After approval, availability is released because the reservation is no longer Confirmed. Pending or failed arrival emails are skipped with audit history.",
+        },
+        states: {
+          reservationNotEligible:
+            "Only a confirmed, non-cancelled reservation can start this flow.",
+          activeRequest:
+            "A pending request already exists. It must be approved or rejected before another is recorded.",
+        },
+        success: {
+          requestCreated:
+            "The cancellation request was recorded and is pending a decision.",
+          cancelled:
+            "The cancellation was approved. The reservation and availability were updated successfully.",
+          rejected:
+            "The request was rejected. The reservation remains confirmed.",
+          alreadyCancelled:
+            "This request had already cancelled the reservation; the operation was not repeated.",
+          alreadyRejected:
+            "This request had already been rejected; the operation was not repeated.",
+        },
+        errors: {
+          ADMIN_UNAUTHORIZED: "Your session is not authorized for administration.",
+          INVALID_ADMIN_CANCELLATION_REQUEST:
+            "Review the channel, contact details, reason, and confirmation before continuing.",
+          ADMIN_CANCELLATION_RESERVATION_NOT_FOUND:
+            "We could not find the selected reservation.",
+          ADMIN_CANCELLATION_RESERVATION_NOT_CONFIRMED:
+            "The reservation is no longer confirmed or is no longer eligible for cancellation.",
+          ADMIN_CANCELLATION_SOURCE_PAYMENT_NOT_FOUND:
+            "We could not find a validated initial payment for the cancellation-policy calculation.",
+          ADMIN_CANCELLATION_REQUEST_ALREADY_ACTIVE:
+            "A pending cancellation request already exists for this reservation.",
+          ADMIN_CANCELLATION_REQUEST_NOT_FOUND:
+            "We could not find the selected cancellation request.",
+          ADMIN_CANCELLATION_REQUEST_NOT_PENDING:
+            "The request has already been decided and does not accept another decision.",
+          ADMIN_CANCELLATION_STALE:
+            "The reservation or request changed after you opened this page. Reload before continuing.",
+          ADMIN_CANCELLATION_UNEXPECTED_ERROR:
+            "We could not process the cancellation. Please try again.",
+        },
+        empty: "This reservation does not have cancellation requests yet.",
+      },
       notifications: {
         title: "Email delivery",
         description:
