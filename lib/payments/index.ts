@@ -5,6 +5,9 @@ export {
   processTilopayModification,
   TilopayApiClientError,
 } from "./tilopay-api-client";
+export type {
+  TilopayModificationObservation,
+} from "./tilopay-api-client";
 export {
   createTilopayOrderHash,
   diagnoseTilopayOrderHash,
