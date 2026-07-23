@@ -304,6 +304,41 @@ Phase 10.7 validation and documentation closure completed:
 - The authoritative closure record is docs/94-phase-10-validation-and-documentation-closure.md.
 ```
 
+
+## Phase 11 — Cancellation, Refund, and Change Request Rules
+
+Phase 11 is in progress. The strategy and explicit subphase roadmap are defined in `docs/95-phase-11-lifecycle-strategy-and-roadmap.md`.
+
+Planned subphases:
+
+```text
+11.1 Lifecycle strategy, policy, and provider boundary — Completed
+11.2 Lifecycle request persistence and audit foundation — Not started
+11.3 Admin cancellation decision and availability release — Not started
+11.4 Refund authorization and Tilopay reconciliation — Not started
+11.5 Authorized date changes and stay extensions — Not started
+11.6 Lifecycle notifications and admin operational history — Not started
+11.7 Validation and documentation closure — Not started
+```
+
+Accepted Phase 11 foundation:
+
+```text
+- Reservation state owns the stay/availability lifecycle; Payment and Refund own financial reversals.
+- New flows must not use Reservation.PARTIALLY_REFUNDED for an active stay because availability currently depends on CONFIRMED.
+- Guests cannot directly edit confirmed dates or invoke unauthenticated lifecycle mutations.
+- Initial requests are admin-recorded from approved support channels.
+- Cancellation and refund are separate decisions; refund failure never restores a cancelled reservation.
+- Date changes and stay extensions require availability revalidation and additional payment when the difference is positive.
+- Requested dates awaiting payment require a temporary lifecycle-request hold.
+- Initial Tilopay reversals are reconciled from the merchant portal until an official automated refund API contract is verified.
+- Lifecycle emails are added only after the underlying transition is accepted.
+- Cancellation percentages, cutoff windows, and repricing policy remain explicit business decisions; no values are invented in 11.1.
+- No PMS behavior is added.
+```
+
+Subphase 11.1 is completed as a documentation-only strategy and introduces no schema, provider, reservation, payment, calendar, UI-copy, or email-delivery change.
+
 ## Documentation
 
 The project documentation lives under `/docs`.
@@ -344,15 +379,18 @@ docs/91-email-retry-processing-and-admin-delivery-visibility.md
 docs/92-manual-resend-and-delivery-recovery-controls.md
 docs/93-arrival-instructions-scheduling-and-content.md
 docs/94-phase-10-validation-and-documentation-closure.md
+docs/95-phase-11-lifecycle-strategy-and-roadmap.md
 ```
 
 ## Development Status
 
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
-Current subphase: Phase 11 planning — Not started
-Current focus: define explicit Phase 11 subphases and business contracts before implementing cancellation, refund, authorized date-change, or stay-extension workflows
+Current subphase: 11.2 Lifecycle request persistence and audit foundation — Not started
+Current focus: approve the unresolved cancellation/refund and date-change pricing decisions, then prepare the typed persistence and concurrency foundation
+Last completed subphase: 11.1 Lifecycle strategy, policy, and provider boundary
+11.1 strategy base commit: 00e23979aec894b1ff953a89b9297744e71a4a21
+11.1 strategy document: docs/95-phase-11-lifecycle-strategy-and-roadmap.md
 Last completed phase: Phase 10 — Email Notifications
-Phase 10 closure base commit: 17be3fdf752a10932bae3f7192f55b16d80ac8e3
 Phase 10 closure document: docs/94-phase-10-validation-and-documentation-closure.md
 ```

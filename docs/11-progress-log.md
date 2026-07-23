@@ -6,11 +6,13 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
-Current subphase: Phase 11 planning — Not started
-Current focus: define explicit Phase 11 subphases and business contracts before implementation
+Current subphase: 11.2 Lifecycle request persistence and audit foundation — Not started
+Current focus: approve unresolved policy decisions and prepare typed lifecycle request, refund, adjustment-payment, and temporary-hold persistence
 Last updated: 2026-07-23
+Last completed subphase: 11.1 Lifecycle strategy, policy, and provider boundary
+11.1 strategy base commit: 00e23979aec894b1ff953a89b9297744e71a4a21
+11.1 strategy document: docs/95-phase-11-lifecycle-strategy-and-roadmap.md
 Last completed phase: Phase 10 — Email Notifications
-Phase 10 closure base commit: 17be3fdf752a10932bae3f7192f55b16d80ac8e3
 Phase 10 closure document: docs/94-phase-10-validation-and-documentation-closure.md
 ```
 
@@ -495,14 +497,55 @@ No application code, Prisma schema, migration, seed, dependency, provider creden
 Closure document: docs/94-phase-10-validation-and-documentation-closure.md.
 ```
 
+
+## Completed Work — Phase 11.1
+
+### Phase 11.1 — Lifecycle Strategy, Policy, and Provider Boundary
+
+Status: **Completed**
+
+Repository findings:
+
+```text
+Reservation already has CANCELLED/REFUNDED/PARTIALLY_REFUNDED statuses and cancelledAt.
+Payment already has PARTIALLY_REFUNDED/REFUNDED states.
+Refund persistence already stores payment, amount, currency, reason, provider reference, status, and timestamps.
+EmailNotificationType already reserves cancellation, date-update, extension, and refund types.
+AdminAuditLog exists, but there is no typed lifecycle request or transition snapshot.
+Current availability treats CONFIRMED as the active direct-reservation blocker.
+```
+
+Accepted strategy:
+
+```text
+Reservation owns stay/availability state; Payment and Refund own financial state.
+New flows do not move an active reservation to PARTIALLY_REFUNDED.
+Cancellation and refund are separate admin decisions.
+Initial Tilopay refund processing is merchant-portal reconciliation until an official API contract is verified.
+Guests request authorization through approved support channels; no unauthenticated mutation endpoint is introduced.
+Date changes and extensions preserve the original reservation and require availability/buffer repricing validation.
+Positive price differences require an approved linked adjustment payment before applying dates.
+Requested dates awaiting payment require a temporary expiring lifecycle-request hold.
+Lifecycle notifications are deferred until the underlying mutations are accepted.
+Cancellation/refund percentages and date-change repricing remain explicit unresolved business decisions.
+No application code, Prisma change, migration, dependency, environment variable, provider request, visible copy, or PMS behavior is added by 11.1.
+```
+
+Strategy document:
+
+```text
+docs/95-phase-11-lifecycle-strategy-and-roadmap.md
+```
+
 ## Next Recommended Work
 
 ```text
-1. Begin Phase 11 by defining explicit subphases before implementing lifecycle mutations or notifications.
-2. Approve cancellation and refund rules, authority, audit requirements, and payment-provider boundaries.
-3. Approve authorized reservation date-change and stay-extension workflows, including availability and additional-payment handling.
-4. Define Phase 11 notification types only after the underlying business transitions are accepted.
-5. Keep production Resend account/domain acceptance, real-recipient delivery, webhook observability, and bounce/complaint handling in Phase 12.
+1. Commit the completed Phase 11.1 strategy files.
+2. Approve cancellation cutoff/refund rules, fee treatment, no-show/after-check-in behavior, and admin exception authority before 11.3.
+3. Approve the date-change repricing basis, negative-difference behavior, and temporary hold duration before 11.5.
+4. Continue with 11.2 lifecycle request persistence and audit foundation without adding mutation UI or provider calls.
+5. Keep secure public guest request intake deferred unless its identity-verification design is separately approved.
+6. Keep production Resend/provider webhook readiness in Phase 12.
 ```
 
 ## Continuity Notes for New Conversations
@@ -528,6 +571,7 @@ docs/91-email-retry-processing-and-admin-delivery-visibility.md
 docs/92-manual-resend-and-delivery-recovery-controls.md
 docs/93-arrival-instructions-scheduling-and-content.md
 docs/94-phase-10-validation-and-documentation-closure.md
+docs/95-phase-11-lifecycle-strategy-and-roadmap.md
 config/site.ts
 lib/env/server.ts
 lib/reservations/pending-holds.ts

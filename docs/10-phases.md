@@ -15,10 +15,12 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
-Current subphase: Phase 11 planning — Not started
-Current focus: define explicit Phase 11 subphases and business contracts before implementation
+Current subphase: 11.2 Lifecycle request persistence and audit foundation — Not started
+Current focus: approve unresolved policy decisions and prepare typed lifecycle request, refund, adjustment-payment, and temporary-hold persistence
+Last completed subphase: 11.1 Lifecycle strategy, policy, and provider boundary
+11.1 strategy base commit: 00e23979aec894b1ff953a89b9297744e71a4a21
+11.1 strategy document: docs/95-phase-11-lifecycle-strategy-and-roadmap.md
 Last completed phase: Phase 10 — Email Notifications
-Phase 10 closure base commit: 17be3fdf752a10932bae3f7192f55b16d80ac8e3
 Phase 10 closure document: docs/94-phase-10-validation-and-documentation-closure.md
 ```
 
@@ -467,7 +469,53 @@ Phase 10 rules:
 
 ## Phase 11 — Cancellation, Refund, and Change Request Rules
 
-Status: **Not started**
+Status: **In progress**
+
+Goal: Add safe, auditable, idempotent cancellation, refund, authorized date-change, and stay-extension workflows without creating unrestricted guest self-service mutation or expanding TRP Booking into a PMS.
+
+Subphase status:
+
+```text
+11.1 Lifecycle strategy, policy, and provider boundary — Completed
+11.2 Lifecycle request persistence and audit foundation — Not started
+11.3 Admin cancellation decision and availability release — Not started
+11.4 Refund authorization and Tilopay reconciliation — Not started
+11.5 Authorized date changes and stay extensions — Not started
+11.6 Lifecycle notifications and admin operational history — Not started
+11.7 Validation and documentation closure — Not started
+```
+
+Phase 11 rules:
+
+```text
+- Reservation status owns the stay and availability lifecycle; Payment and Refund own financial reversals.
+- Guests do not edit confirmed dates directly from the public website.
+- Initial cancellation/change/extension requests are recorded and decided by authorized admins.
+- Cancellation and refund are separate, auditable decisions.
+- Refund failure never restores a cancelled reservation or rewrites historical attempts.
+- Full and partial refunds cannot exceed the validated captured payment amount.
+- Initial Tilopay reversals use merchant-portal reconciliation until an official automated refund API contract is verified.
+- Authorized date changes and extensions revalidate availability, composed dependencies, buffers, and server-side pricing.
+- A positive financial difference must be paid before new dates are applied.
+- Lifecycle emails are created only after the underlying transition commits and never determine that transition.
+- No hard deletion, raw provider exposure, card-data handling, unauthenticated lifecycle mutation, or PMS behavior is added.
+```
+
+### Phase 11.1 result
+
+```text
+- The current schema already contains cancellation/refund statuses, Refund persistence, cancelledAt, AdminAuditLog, and reserved lifecycle email types.
+- No typed lifecycle request record, old/new snapshot, adjustment-payment relation, or temporary requested-date hold currently exists.
+- New flows must not set an active reservation to PARTIALLY_REFUNDED because current availability uses CONFIRMED as the active direct-reservation blocker.
+- Cancellation changes Reservation to CANCELLED; Payment and Refund record full/partial financial reversals.
+- Guests request authorization through approved support channels; the initial MVP has no insecure public mutation or lookup endpoint.
+- Date changes preserve the original reservation ID/history and apply only after final availability validation and any required additional payment.
+- Stay extensions are specialized date changes and require availability validation plus the price difference when applicable.
+- Public Tilopay material supports total/partial merchant-portal reversals and describes a provider window, but no automated refund endpoint is assumed without a verified contract.
+- Cancellation windows/percentages, fee treatment, and the exact date-change repricing basis remain explicit business decisions.
+- The strategy record is docs/95-phase-11-lifecycle-strategy-and-roadmap.md.
+- No application code, visible UI copy, Prisma schema, migration, seed, dependency, environment variable, provider request, lifecycle mutation, or PMS behavior is added by 11.1.
+```
 
 ---
 
