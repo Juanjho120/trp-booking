@@ -1,18 +1,20 @@
 # 35 — Preparation Buffer and Blocked-Date Evaluation
 
-This document records the Phase 6.4 preparation-buffer foundation, the Phase 9.8 pending-hold update, and the Phase 9.9 auditable override strategy, and the Phase 9.9.1 property-calendar operations.
+This document records the Phase 6.4 preparation-buffer foundation, the Phase 9.8 pending-hold update, the Phase 9.9 auditable override strategy, the Phase 9.9.1 property-calendar operations, and the Phase 11.2 lifecycle-request hold foundation.
 
 ## Original Phase 6 Context
 
 ```text
 Phase: Phase 6 — Availability Calendar Foundation
 Original subphase: 6.4 Preparation buffer and blocked-date evaluation
-Later rule updates: 9.8 Automatic preparation buffers in availability; 9.9 Admin settings and auditable overrides
+Later rule updates: 9.8 Automatic preparation buffers in availability; 9.9 Admin settings and auditable overrides; 11.2 Lifecycle request holds
 ```
 
 Phase 6.4 introduced dynamic preparation buffers for confirmed reservations before the real pending-payment flow existed.
 
-Phase 9.8 updates that behavior now that active payment holds are part of the production booking flow.
+Phase 9.8 updated that behavior once active payment holds became part of the production booking flow.
+
+Phase 11.2 adds a separate temporary hold for authorized date-change or stay-extension requests that are waiting for an adjustment payment. It is not a `CalendarBlock` and it never replaces the original confirmed reservation.
 
 ## Blocking Sources
 
@@ -21,12 +23,14 @@ The availability service evaluates:
 ```text
 CONFIRMED direct reservations
 Active PENDING_PAYMENT holds with expiresAt > now
+Active lifecycle-request holds with expiresAt > now
 Manual calendar blocks
 Maintenance calendar blocks
 Airbnb calendar blocks
 Composed-listing dependency blocks
 Persisted preparation buffer blocks
 Dynamic preparation buffer ranges from blocking direct reservations
+Dynamic preparation buffer ranges from active lifecycle-request holds
 ```
 
 ## Preparation Buffer Defaults
@@ -44,6 +48,8 @@ Property.preparationDaysBefore
 Property.preparationDaysAfter
 ```
 
+A lifecycle-request hold snapshots those two values when it is created so its protected range does not move silently if accommodation settings change while an adjustment payment is pending.
+
 ## Range Convention
 
 ```text
@@ -58,7 +64,7 @@ Preparation buffers may overlap a requested availability range even when the res
 
 The service expands reservation lookup using the maximum relevant `daysBefore` and `daysAfter` values for all accommodations that can block the requested listing.
 
-This preserves buffer visibility at both sides of a requested date range.
+Lifecycle-request hold lookup uses the accepted accommodation-setting upper bound of 30 preparation days because each hold owns a snapshot of the values that were active when the hold was created.
 
 ## Phase 9.8 Pending-Hold Rule
 
@@ -94,6 +100,35 @@ CONFIRMED
 
 Phase 9.9 keeps confirmed direct-reservation buffers dynamic. A manually unlocked day is persisted as a one-day, same-reservation `PREPARATION_BUFFER` CalendarBlock with unlock audit fields populated.
 
+## Phase 11.2 Lifecycle-Request Hold Rule
+
+A lifecycle-request hold exists only for a typed date-change or stay-extension request whose requested dates need temporary protection, normally while a positive adjustment payment is pending.
+
+```text
+LifecycleRequestHold.status = ACTIVE and expiresAt > now
+-> blocks requested stay dates
+-> blocks its snapshotted preparation buffers
+-> follows composed-listing dependency rules
+-> does not release or replace the original confirmed reservation
+
+LifecycleRequestHold.expiresAt <= now
+-> blocks neither requested stay dates nor preparation buffers
+
+LifecycleRequestHold.status = RELEASED or EXPIRED
+-> blocks neither requested stay dates nor preparation buffers
+```
+
+The hold belongs one-to-one to a lifecycle request. Its expiration has no schema default because the business duration remains an explicit Phase 11.5 decision. The service treats an elapsed `expiresAt` as nonblocking even before a later cleanup process persists `status = EXPIRED`.
+
+Availability checks may provide:
+
+```text
+excludeReservationId
+excludeLifecycleRequestId
+```
+
+These exclusions are server-side domain options for Phase 11.5. They allow final validation to ignore only the original reservation and the request's own hold while preserving every other reservation, Airbnb booking, manual block, maintenance block, preparation buffer, and competing lifecycle hold.
+
 ## Derived vs Persisted Preparation Buffers
 
 For direct reservations:
@@ -106,7 +141,14 @@ For direct reservations:
 5. A PREPARATION_BUFFER belonging to another reservation or an imported calendar event does not suppress this direct reservation's dynamic buffer.
 ```
 
-This prevents an unrelated or unlocked imported buffer from accidentally removing a direct reservation's buffer.
+For lifecycle-request holds:
+
+```text
+1. The service derives the buffer from the hold's preparation snapshots.
+2. The hold and its buffers remain temporary and expire together.
+3. Admin preparation-buffer unlock records do not modify lifecycle-request holds.
+4. A later Phase 11 mutation must release or expire the hold explicitly when the request completes, is rejected, is withdrawn, or expires.
+```
 
 ## Composed Listing Rules
 
@@ -118,6 +160,8 @@ Bungalow Refugio Perfecto blocks itself and Refugio Completo.
 Refugio Completo blocks itself and both individual accommodations.
 ```
 
+This dependency graph also applies to lifecycle-request holds.
+
 ## Airbnb iCal Export
 
 Airbnb iCal exports include:
@@ -128,7 +172,7 @@ CONFIRMED preparation-buffer ranges
 Active persisted calendar blocks
 ```
 
-Pending payment holds remain excluded because they are short-lived payment holds.
+Pending payment holds and lifecycle-request holds remain excluded because they are short-lived internal payment/change protections rather than confirmed bookings.
 
 Confirmed direct-reservation exports subtract the same auditable override ranges used by public availability. The confirmed-reservation lookup window is expanded so a buffer is exported when it intersects the export window even if the reservation stay itself is immediately outside that window.
 
@@ -156,20 +200,20 @@ MANUAL_BLOCK records may cover any future date range for one property.
 A manual block can overlap reservations, Airbnb dates, or buffers as an independent reason to remain unavailable.
 Releasing one day soft-deletes the original range and creates left/right replacement ranges when needed.
 Composed-listing dependency rules apply to manual blocks exactly as they apply to reservations and buffers.
-Reservation stays, active pending holds, and Airbnb booking blocks remain read-only.
+Reservation stays, active pending holds, lifecycle-request holds, and Airbnb booking blocks remain read-only in calendar operations.
 ```
 
-## Out of Scope After Phase 9.9.1
+## Out of Scope After Phase 11.2
 
 ```text
-Materializing every direct-reservation buffer
-Pending-payment buffer persistence
-Operational external-calendar setup and real Airbnb E2E validation
-Email delivery
-Guest date modification
-Stay-extension workflows
+Lifecycle request mutation UI or API actions
+Admin approval/rejection/cancellation execution
+Tilopay refund/reversal requests
+Adjustment checkout creation
+Automatic hold creation or cleanup worker
+Lifecycle emails
+Guest self-service date modification
 PMS behavior
-Prisma schema changes or migrations
 ```
 
 ## Validation
@@ -177,9 +221,12 @@ Prisma schema changes or migrations
 Run:
 
 ```powershell
+npm run db:format
 npm run db:validate
+npm run db:generate
 npm run lint
 npm run build
+git diff --check
 ```
 
-Manual checks for the admin calendar follow-up are documented in `docs/72-admin-navigation-and-property-calendar-operations.md`.
+The detailed Phase 11.2 persistence and migration contract is documented in `docs/97-phase-11.2-lifecycle-request-persistence-and-audit-foundation.md`.

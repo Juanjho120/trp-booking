@@ -32,7 +32,9 @@ enum ReservationStatus {
   PENDING_PAYMENT
   CONFIRMED
   CANCELLED
+  /// Historical compatibility only. New Phase 11 flows keep financial state on Payment and Refund.
   REFUNDED
+  /// Historical compatibility only. Active stays must remain CONFIRMED.
   PARTIALLY_REFUNDED
   EXPIRED
   BLOCKED
@@ -44,6 +46,13 @@ enum PaymentProvider {
   TILOPAY
 
   @@map("payment_provider")
+}
+
+enum PaymentPurpose {
+  INITIAL_RESERVATION
+  LIFECYCLE_ADJUSTMENT
+
+  @@map("payment_purpose")
 }
 
 enum PaymentStatus {
@@ -66,11 +75,74 @@ enum PaymentClientEventType {
 
 enum RefundStatus {
   PENDING
+  PROCESSING
   APPROVED
   FAILED
+  /// Historical compatibility only. New records use processingMode to identify portal fallback.
   MANUAL
 
   @@map("refund_status")
+}
+
+enum RefundProcessingMode {
+  LEGACY_UNSPECIFIED
+  TILOPAY_API
+  TILOPAY_PORTAL_FALLBACK
+
+  @@map("refund_processing_mode")
+}
+
+enum ReservationLifecycleRequestType {
+  CANCELLATION
+  DATE_CHANGE
+  STAY_EXTENSION
+
+  @@map("reservation_lifecycle_request_type")
+}
+
+enum ReservationLifecycleRequestStatus {
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+  AWAITING_ADJUSTMENT_PAYMENT
+  COMPLETED
+  WITHDRAWN
+  EXPIRED
+  FAILED
+
+  @@map("reservation_lifecycle_request_status")
+}
+
+enum ReservationLifecycleRequestChannel {
+  EMAIL
+  PHONE
+  WHATSAPP
+  OTHER
+
+  @@map("reservation_lifecycle_request_channel")
+}
+
+enum CancellationPolicyVersion {
+  DIRECT_BOOKING_2026_07_23
+
+  @@map("cancellation_policy_version")
+}
+
+enum CancellationPolicyReasonCode {
+  NOT_APPLICABLE
+  AT_LEAST_168_HOURS
+  BETWEEN_72_AND_168_HOURS
+  LESS_THAN_72_HOURS
+
+  @@map("cancellation_policy_reason_code")
+}
+
+enum LifecycleRequestHoldStatus {
+  ACTIVE
+  RELEASED
+  EXPIRED
+
+  @@map("lifecycle_request_hold_status")
 }
 
 enum CalendarBlockSource {
@@ -170,14 +242,17 @@ model User {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  deletedProperties           Property[]          @relation("PropertyDeletedBy")
-  deletedPropertyImages       PropertyImage[]     @relation("PropertyImageDeletedBy")
-  deletedAmenities            Amenity[]           @relation("AmenityDeletedBy")
-  deletedHouseRules           HouseRule[]         @relation("HouseRuleDeletedBy")
-  deletedExternalCalendars    ExternalCalendar[]  @relation("ExternalCalendarDeletedBy")
-  deletedCalendarBlocks       CalendarBlock[]     @relation("CalendarBlockDeletedBy")
-  unlockedCalendarBlocks      CalendarBlock[]     @relation("CalendarBlockUnlockedBy")
-  requestedEmailNotifications EmailNotification[] @relation("EmailNotificationRequestedByAdmin")
+  deletedProperties           Property[]                    @relation("PropertyDeletedBy")
+  deletedPropertyImages       PropertyImage[]               @relation("PropertyImageDeletedBy")
+  deletedAmenities            Amenity[]                     @relation("AmenityDeletedBy")
+  deletedHouseRules           HouseRule[]                   @relation("HouseRuleDeletedBy")
+  deletedExternalCalendars    ExternalCalendar[]            @relation("ExternalCalendarDeletedBy")
+  deletedCalendarBlocks       CalendarBlock[]               @relation("CalendarBlockDeletedBy")
+  unlockedCalendarBlocks      CalendarBlock[]               @relation("CalendarBlockUnlockedBy")
+  requestedEmailNotifications EmailNotification[]           @relation("EmailNotificationRequestedByAdmin")
+  createdLifecycleRequests    ReservationLifecycleRequest[] @relation("LifecycleRequestCreatedByAdmin")
+  reviewedLifecycleRequests   ReservationLifecycleRequest[] @relation("LifecycleRequestReviewedByAdmin")
+  requestedRefunds            Refund[]                      @relation("RefundRequestedByAdmin")
   auditLogs                   AdminAuditLog[]
 
   @@map("users")
@@ -208,16 +283,17 @@ model Property {
   deletedAt             DateTime?      @map("deleted_at")
   deletedById           String?        @map("deleted_by_id")
 
-  deletedBy           User?                        @relation("PropertyDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull)
-  parentComponents    PropertyComponent[]          @relation("ParentProperty")
-  componentOf         PropertyComponent[]          @relation("ComponentProperty")
-  images              PropertyImage[]
-  amenities           PropertyAmenity[]
-  rules               PropertyRule[]
-  reservations        Reservation[]
-  calendarBlocks      CalendarBlock[]
-  externalCalendars   ExternalCalendar[]
-  arrivalInstructions PropertyArrivalInstructions?
+  deletedBy             User?                        @relation("PropertyDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull)
+  parentComponents      PropertyComponent[]          @relation("ParentProperty")
+  componentOf           PropertyComponent[]          @relation("ComponentProperty")
+  images                PropertyImage[]
+  amenities             PropertyAmenity[]
+  rules                 PropertyRule[]
+  reservations          Reservation[]
+  calendarBlocks        CalendarBlock[]
+  externalCalendars     ExternalCalendar[]
+  arrivalInstructions   PropertyArrivalInstructions?
+  lifecycleRequestHolds LifecycleRequestHold[]
 
   @@index([status])
   @@index([deletedAt])
@@ -371,12 +447,13 @@ model Reservation {
   createdAt           DateTime          @default(now()) @map("created_at")
   updatedAt           DateTime          @updatedAt @map("updated_at")
 
-  property            Property             @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  property            Property                      @relation(fields: [propertyId], references: [id], onDelete: Restrict)
   guests              ReservationGuest[]
   payments            Payment[]
   paymentClientEvents PaymentClientEvent[]
   calendarBlocks      CalendarBlock[]
   emailNotifications  EmailNotification[]
+  lifecycleRequests   ReservationLifecycleRequest[]
 
   @@index([propertyId, checkInDate, checkOutDate])
   @@index([status])
@@ -402,7 +479,9 @@ model ReservationGuest {
 model Payment {
   id                    String          @id @default(cuid())
   reservationId         String          @map("reservation_id")
+  lifecycleRequestId    String?         @map("lifecycle_request_id")
   provider              PaymentProvider @default(TILOPAY)
+  purpose               PaymentPurpose  @default(INITIAL_RESERVATION)
   providerTransactionId String?         @map("provider_transaction_id")
   providerReference     String?         @map("provider_reference")
   status                PaymentStatus   @default(PENDING)
@@ -414,11 +493,15 @@ model Payment {
   createdAt             DateTime        @default(now()) @map("created_at")
   updatedAt             DateTime        @updatedAt @map("updated_at")
 
-  reservation  Reservation          @relation(fields: [reservationId], references: [id], onDelete: Restrict)
-  refunds      Refund[]
-  clientEvents PaymentClientEvent[]
+  reservation                Reservation                   @relation(fields: [reservationId], references: [id], onDelete: Restrict)
+  lifecycleRequest           ReservationLifecycleRequest?  @relation("LifecycleAdjustmentPayments", fields: [lifecycleRequestId], references: [id], onDelete: SetNull)
+  sourceForLifecycleRequests ReservationLifecycleRequest[] @relation("LifecycleSourcePayment")
+  refunds                    Refund[]
+  clientEvents               PaymentClientEvent[]
 
   @@index([reservationId])
+  @@index([lifecycleRequestId])
+  @@index([purpose])
   @@index([provider, providerReference])
   @@index([status])
   @@map("payments")
@@ -453,22 +536,147 @@ model PaymentClientEvent {
 }
 
 model Refund {
-  id               String       @id @default(cuid())
-  paymentId        String       @map("payment_id")
-  providerRefundId String?      @map("provider_refund_id")
-  amount           Decimal      @db.Decimal(10, 2)
-  currency         String       @default("USD")
-  reason           String?
-  status           RefundStatus @default(PENDING)
-  rawPayload       Json?        @map("raw_payload")
-  createdAt        DateTime     @default(now()) @map("created_at")
-  updatedAt        DateTime     @updatedAt @map("updated_at")
+  id                  String               @id @default(cuid())
+  paymentId           String               @map("payment_id")
+  lifecycleRequestId  String?              @map("lifecycle_request_id")
+  requestedByAdminId  String?              @map("requested_by_admin_id")
+  clientRequestId     String?              @unique @map("client_request_id")
+  idempotencyKey      String?              @unique @map("idempotency_key")
+  providerRefundId    String?              @map("provider_refund_id")
+  amount              Decimal              @db.Decimal(10, 2)
+  currency            String               @default("USD")
+  reason              String?
+  status              RefundStatus         @default(PENDING)
+  processingMode      RefundProcessingMode @default(TILOPAY_API) @map("processing_mode")
+  processingStartedAt DateTime?            @map("processing_started_at")
+  approvedAt          DateTime?            @map("approved_at")
+  failedAt            DateTime?            @map("failed_at")
+  failureCode         String?              @map("failure_code") @db.VarChar(100)
+  rawPayload          Json?                @map("raw_payload")
+  createdAt           DateTime             @default(now()) @map("created_at")
+  updatedAt           DateTime             @updatedAt @map("updated_at")
 
-  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+  payment          Payment                      @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+  lifecycleRequest ReservationLifecycleRequest? @relation(fields: [lifecycleRequestId], references: [id], onDelete: SetNull)
+  requestedByAdmin User?                        @relation("RefundRequestedByAdmin", fields: [requestedByAdminId], references: [id], onDelete: SetNull)
 
   @@index([paymentId])
-  @@index([status])
+  @@index([lifecycleRequestId])
+  @@index([requestedByAdminId])
+  @@index([status, processingMode])
   @@map("refunds")
+}
+
+model ReservationLifecycleRequest {
+  id              String                             @id @default(cuid())
+  reservationId   String                             @map("reservation_id")
+  sourcePaymentId String?                            @map("source_payment_id")
+  requestType     ReservationLifecycleRequestType    @map("request_type")
+  status          ReservationLifecycleRequestStatus  @default(PENDING_REVIEW)
+  channel         ReservationLifecycleRequestChannel
+  requesterName   String                             @map("requester_name") @db.VarChar(160)
+  requesterEmail  String?                            @map("requester_email") @db.VarChar(254)
+  requesterPhone  String?                            @map("requester_phone") @db.VarChar(40)
+  requestNote     String?                            @map("request_note") @db.Text
+  clientRequestId String                             @unique @map("client_request_id") @db.VarChar(120)
+  idempotencyKey  String                             @unique @map("idempotency_key") @db.VarChar(180)
+
+  originalReservationStatus ReservationStatus @map("original_reservation_status")
+  originalCheckInDate       DateTime          @map("original_check_in_date") @db.Date
+  originalCheckOutDate      DateTime          @map("original_check_out_date") @db.Date
+  originalGuestName         String            @map("original_guest_name") @db.VarChar(160)
+  originalGuestEmail        String            @map("original_guest_email") @db.VarChar(254)
+  originalGuestPhone        String?           @map("original_guest_phone") @db.VarChar(40)
+  originalGuestCountry      String?           @map("original_guest_country") @db.VarChar(100)
+  originalPreferredLocale   String            @map("original_preferred_locale") @db.VarChar(10)
+  originalGuestCount        Int               @map("original_guest_count")
+  originalSubtotal          Decimal           @map("original_subtotal") @db.Decimal(10, 2)
+  originalCleaningFee       Decimal           @map("original_cleaning_fee") @db.Decimal(10, 2)
+  originalTaxes             Decimal           @map("original_taxes") @db.Decimal(10, 2)
+  originalDiscounts         Decimal           @map("original_discounts") @db.Decimal(10, 2)
+  originalTotal             Decimal           @map("original_total") @db.Decimal(10, 2)
+  currency                  String            @default("USD") @db.VarChar(3)
+
+  requestedCheckInDate  DateTime? @map("requested_check_in_date") @db.Date
+  requestedCheckOutDate DateTime? @map("requested_check_out_date") @db.Date
+  requestedGuestCount   Int?      @map("requested_guest_count")
+  requestedSubtotal     Decimal?  @map("requested_subtotal") @db.Decimal(10, 2)
+  requestedCleaningFee  Decimal?  @map("requested_cleaning_fee") @db.Decimal(10, 2)
+  requestedTaxes        Decimal?  @map("requested_taxes") @db.Decimal(10, 2)
+  requestedDiscounts    Decimal?  @map("requested_discounts") @db.Decimal(10, 2)
+  requestedTotal        Decimal?  @map("requested_total") @db.Decimal(10, 2)
+  financialDifference   Decimal?  @map("financial_difference") @db.Decimal(10, 2)
+
+  cancellationPolicyVersion CancellationPolicyVersion?   @map("cancellation_policy_version")
+  policyTimezone            String?                      @map("policy_timezone") @db.VarChar(64)
+  policyCalculatedAt        DateTime?                    @map("policy_calculated_at")
+  policyCheckInAt           DateTime?                    @map("policy_check_in_at")
+  policyHoursBeforeCheckIn  Decimal?                     @map("policy_hours_before_check_in") @db.Decimal(12, 6)
+  policyReasonCode          CancellationPolicyReasonCode @default(NOT_APPLICABLE) @map("policy_reason_code")
+  standardRefundPercentage  Int?                         @map("standard_refund_percentage")
+  standardRefundAmount      Decimal?                     @map("standard_refund_amount") @db.Decimal(10, 2)
+  approvedRefundPercentage  Int?                         @map("approved_refund_percentage")
+  approvedRefundAmount      Decimal?                     @map("approved_refund_amount") @db.Decimal(10, 2)
+  policyExceptionApplied    Boolean                      @default(false) @map("policy_exception_applied")
+  policyExceptionReason     String?                      @map("policy_exception_reason") @db.Text
+
+  createdByAdminId             String    @map("created_by_admin_id")
+  reviewedByAdminId            String?   @map("reviewed_by_admin_id")
+  decisionReasonCode           String?   @map("decision_reason_code") @db.VarChar(100)
+  decisionNote                 String?   @map("decision_note") @db.Text
+  failureCode                  String?   @map("failure_code") @db.VarChar(100)
+  requestedAt                  DateTime  @default(now()) @map("requested_at")
+  reviewedAt                   DateTime? @map("reviewed_at")
+  decidedAt                    DateTime? @map("decided_at")
+  completedAt                  DateTime? @map("completed_at")
+  failedAt                     DateTime? @map("failed_at")
+  withdrawnAt                  DateTime? @map("withdrawn_at")
+  expiredAt                    DateTime? @map("expired_at")
+  expectedReservationUpdatedAt DateTime  @map("expected_reservation_updated_at")
+  version                      Int       @default(1)
+  createdAt                    DateTime  @default(now()) @map("created_at")
+  updatedAt                    DateTime  @updatedAt @map("updated_at")
+
+  reservation        Reservation           @relation(fields: [reservationId], references: [id], onDelete: Restrict)
+  sourcePayment      Payment?              @relation("LifecycleSourcePayment", fields: [sourcePaymentId], references: [id], onDelete: Restrict)
+  createdByAdmin     User                  @relation("LifecycleRequestCreatedByAdmin", fields: [createdByAdminId], references: [id], onDelete: Restrict)
+  reviewedByAdmin    User?                 @relation("LifecycleRequestReviewedByAdmin", fields: [reviewedByAdminId], references: [id], onDelete: SetNull)
+  adjustmentPayments Payment[]             @relation("LifecycleAdjustmentPayments")
+  refunds            Refund[]
+  hold               LifecycleRequestHold?
+
+  @@index([reservationId, status])
+  @@index([requestType, status])
+  @@index([sourcePaymentId])
+  @@index([createdByAdminId])
+  @@index([reviewedByAdminId])
+  @@index([requestedAt])
+  @@map("reservation_lifecycle_requests")
+}
+
+model LifecycleRequestHold {
+  id                    String                     @id @default(cuid())
+  lifecycleRequestId    String                     @unique @map("lifecycle_request_id")
+  propertyId            String                     @map("property_id")
+  startDate             DateTime                   @map("start_date") @db.Date
+  endDate               DateTime                   @map("end_date") @db.Date
+  preparationDaysBefore Int                        @map("preparation_days_before")
+  preparationDaysAfter  Int                        @map("preparation_days_after")
+  status                LifecycleRequestHoldStatus @default(ACTIVE)
+  expiresAt             DateTime                   @map("expires_at")
+  releasedAt            DateTime?                  @map("released_at")
+  expiredAt             DateTime?                  @map("expired_at")
+  releaseReasonCode     String?                    @map("release_reason_code") @db.VarChar(100)
+  version               Int                        @default(1)
+  createdAt             DateTime                   @default(now()) @map("created_at")
+  updatedAt             DateTime                   @updatedAt @map("updated_at")
+
+  lifecycleRequest ReservationLifecycleRequest @relation(fields: [lifecycleRequestId], references: [id], onDelete: Restrict)
+  property         Property                    @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+
+  @@index([propertyId, startDate, endDate])
+  @@index([status, expiresAt])
+  @@map("lifecycle_request_holds")
 }
 
 model CalendarBlock {

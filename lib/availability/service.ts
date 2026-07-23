@@ -1,5 +1,6 @@
 import {
   CalendarBlockSource,
+  LifecycleRequestHoldStatus,
   ReservationStatus,
   type Prisma,
   type PrismaClient,
@@ -27,6 +28,8 @@ import {
   getBlockingAccommodationIds,
   subtractAvailabilityDateRanges,
 } from "./rules";
+
+const LIFECYCLE_HOLD_MAX_PREPARATION_DAYS = 30;
 
 const propertyAvailabilitySelect = {
   id: true,
@@ -56,6 +59,23 @@ const calendarBlockAvailabilitySelect = {
   unlockedByAdminAt: true,
 } satisfies Prisma.CalendarBlockSelect;
 
+const lifecycleRequestHoldAvailabilitySelect = {
+  id: true,
+  lifecycleRequestId: true,
+  propertyId: true,
+  startDate: true,
+  endDate: true,
+  preparationDaysBefore: true,
+  preparationDaysAfter: true,
+  status: true,
+  expiresAt: true,
+  lifecycleRequest: {
+    select: {
+      reservationId: true,
+    },
+  },
+} satisfies Prisma.LifecycleRequestHoldSelect;
+
 type PropertyAvailabilityRecord = Prisma.PropertyGetPayload<{
   select: typeof propertyAvailabilitySelect;
 }>;
@@ -66,6 +86,10 @@ type ReservationAvailabilityRecord = Prisma.ReservationGetPayload<{
 
 type CalendarBlockAvailabilityRecord = Prisma.CalendarBlockGetPayload<{
   select: typeof calendarBlockAvailabilitySelect;
+}>;
+
+type LifecycleRequestHoldAvailabilityRecord = Prisma.LifecycleRequestHoldGetPayload<{
+  select: typeof lifecycleRequestHoldAvailabilitySelect;
 }>;
 
 type AvailabilityPrismaClient = PrismaClient | Prisma.TransactionClient;
@@ -199,6 +223,13 @@ function isReservationBlockingAvailability(
   );
 }
 
+function isLifecycleRequestHoldBlockingAvailability(
+  hold: LifecycleRequestHoldAvailabilityRecord,
+  now: Date,
+): boolean {
+  return hold.status === LifecycleRequestHoldStatus.ACTIVE && hold.expiresAt > now;
+}
+
 function toReservationAvailabilityStatus(
   status: ReservationAvailabilityRecord["status"],
 ): ReservationAvailabilityStatus {
@@ -225,8 +256,14 @@ function getPreparationBufferLookupWindow(
 ): PreparationBufferLookupWindow {
   const maxPreparationDays = propertyMappings.reduce(
     (currentMax, mapping) => ({
-      daysBefore: Math.max(currentMax.daysBefore, mapping.preparationBuffer.daysBefore),
-      daysAfter: Math.max(currentMax.daysAfter, mapping.preparationBuffer.daysAfter),
+      daysBefore: Math.max(
+        currentMax.daysBefore,
+        mapping.preparationBuffer.daysBefore,
+      ),
+      daysAfter: Math.max(
+        currentMax.daysAfter,
+        mapping.preparationBuffer.daysAfter,
+      ),
     }),
     {
       daysBefore: 0,
@@ -235,8 +272,29 @@ function getPreparationBufferLookupWindow(
   );
 
   return {
-    startDate: addDaysToDateOnly(requestedRange.startDate, -maxPreparationDays.daysAfter),
-    endDate: addDaysToDateOnly(requestedRange.endDate, maxPreparationDays.daysBefore),
+    startDate: addDaysToDateOnly(
+      requestedRange.startDate,
+      -maxPreparationDays.daysAfter,
+    ),
+    endDate: addDaysToDateOnly(
+      requestedRange.endDate,
+      maxPreparationDays.daysBefore,
+    ),
+  };
+}
+
+function getLifecycleHoldLookupWindow(
+  requestedRange: AvailabilityDateRange,
+): PreparationBufferLookupWindow {
+  return {
+    startDate: addDaysToDateOnly(
+      requestedRange.startDate,
+      -LIFECYCLE_HOLD_MAX_PREPARATION_DAYS,
+    ),
+    endDate: addDaysToDateOnly(
+      requestedRange.endDate,
+      LIFECYCLE_HOLD_MAX_PREPARATION_DAYS,
+    ),
   };
 }
 
@@ -247,12 +305,32 @@ function toReservationBlockingRecord(
 ): AvailabilityBlockingRecord {
   return {
     accommodationId:
-      propertyIdToAccommodationId.get(reservation.propertyId) ?? fallbackAccommodationId,
+      propertyIdToAccommodationId.get(reservation.propertyId) ??
+      fallbackAccommodationId,
     ...toDateOnlyRange(reservation.checkInDate, reservation.checkOutDate),
     source: CalendarBlockSource.DIRECT_RESERVATION,
     reason: reservation.status,
     reservationId: reservation.id,
     reservationStatus: toReservationAvailabilityStatus(reservation.status),
+  };
+}
+
+function toLifecycleRequestHoldBlockingRecord(
+  hold: LifecycleRequestHoldAvailabilityRecord,
+  effectiveRange: AvailabilityDateRange,
+  propertyIdToAccommodationId: ReadonlyMap<string, AccommodationId>,
+  fallbackAccommodationId: AccommodationId,
+  reason: string,
+): AvailabilityBlockingRecord {
+  return {
+    accommodationId:
+      propertyIdToAccommodationId.get(hold.propertyId) ?? fallbackAccommodationId,
+    ...effectiveRange,
+    source: "LIFECYCLE_REQUEST_HOLD",
+    reason,
+    reservationId: hold.lifecycleRequest.reservationId,
+    lifecycleRequestId: hold.lifecycleRequestId,
+    lifecycleRequestHoldId: hold.id,
   };
 }
 
@@ -264,7 +342,8 @@ function toCalendarBlockBlockingRecord(
 ): AvailabilityBlockingRecord {
   return {
     accommodationId:
-      propertyIdToAccommodationId.get(calendarBlock.propertyId) ?? fallbackAccommodationId,
+      propertyIdToAccommodationId.get(calendarBlock.propertyId) ??
+      fallbackAccommodationId,
     ...effectiveRange,
     source: toAvailabilityBlockSource(calendarBlock.source),
     reason: calendarBlock.reason ?? undefined,
@@ -344,37 +423,81 @@ function toDerivedPreparationBufferBlockingRecords(
   calendarBlocks: readonly CalendarBlockAvailabilityRecord[],
 ): readonly AvailabilityBlockingRecord[] {
   const accommodationId =
-    propertyIdToAccommodationId.get(reservation.propertyId) ?? fallbackAccommodationId;
-  const preparationBuffer = propertyIdToPreparationBuffer.get(reservation.propertyId);
+    propertyIdToAccommodationId.get(reservation.propertyId) ??
+    fallbackAccommodationId;
+  const preparationBuffer = propertyIdToPreparationBuffer.get(
+    reservation.propertyId,
+  );
 
   if (!preparationBuffer) {
     return [];
   }
 
-  const stayRange = toDateOnlyRange(reservation.checkInDate, reservation.checkOutDate);
+  const stayRange = toDateOnlyRange(
+    reservation.checkInDate,
+    reservation.checkOutDate,
+  );
   const suppressionRanges = getPreparationBufferSuppressionRanges(
     reservation,
     calendarBlocks,
   );
 
-  return buildPreparationBufferRanges(accommodationId, stayRange, preparationBuffer).flatMap(
-    (bufferRange) =>
-      subtractAvailabilityDateRanges(bufferRange, suppressionRanges)
-        .filter((effectiveRange) =>
-          availabilityDateRangesOverlap(requestedRange, effectiveRange),
-        )
-        .map((effectiveRange) => ({
-          accommodationId: bufferRange.accommodationId,
-          startDate: effectiveRange.startDate,
-          endDate: effectiveRange.endDate,
-          source: CalendarBlockSource.PREPARATION_BUFFER,
-          reason: `Derived ${bufferRange.kind} preparation buffer (${bufferRange.days} day${
-            bufferRange.days === 1 ? "" : "s"
-          }).`,
-          reservationId: reservation.id,
-          reservationStatus: toReservationAvailabilityStatus(reservation.status),
-        })),
+  return buildPreparationBufferRanges(
+    accommodationId,
+    stayRange,
+    preparationBuffer,
+  ).flatMap((bufferRange) =>
+    subtractAvailabilityDateRanges(bufferRange, suppressionRanges)
+      .filter((effectiveRange) =>
+        availabilityDateRangesOverlap(requestedRange, effectiveRange),
+      )
+      .map((effectiveRange) => ({
+        accommodationId: bufferRange.accommodationId,
+        startDate: effectiveRange.startDate,
+        endDate: effectiveRange.endDate,
+        source: CalendarBlockSource.PREPARATION_BUFFER,
+        reason: `Derived ${bufferRange.kind} preparation buffer (${bufferRange.days} day${
+          bufferRange.days === 1 ? "" : "s"
+        }).`,
+        reservationId: reservation.id,
+        reservationStatus: toReservationAvailabilityStatus(reservation.status),
+      })),
   );
+}
+
+function toDerivedLifecycleHoldPreparationBufferBlockingRecords(
+  hold: LifecycleRequestHoldAvailabilityRecord,
+  requestedRange: AvailabilityDateRange,
+  propertyIdToAccommodationId: ReadonlyMap<string, AccommodationId>,
+  fallbackAccommodationId: AccommodationId,
+): readonly AvailabilityBlockingRecord[] {
+  const accommodationId =
+    propertyIdToAccommodationId.get(hold.propertyId) ?? fallbackAccommodationId;
+  const holdRange = toDateOnlyRange(hold.startDate, hold.endDate);
+  const preparationBuffer: PreparationBufferPolicy = {
+    daysBefore: hold.preparationDaysBefore,
+    daysAfter: hold.preparationDaysAfter,
+  };
+
+  return buildPreparationBufferRanges(
+    accommodationId,
+    holdRange,
+    preparationBuffer,
+  )
+    .filter((bufferRange) =>
+      availabilityDateRangesOverlap(requestedRange, bufferRange),
+    )
+    .map((bufferRange) =>
+      toLifecycleRequestHoldBlockingRecord(
+        hold,
+        bufferRange,
+        propertyIdToAccommodationId,
+        fallbackAccommodationId,
+        `Lifecycle request ${bufferRange.kind} preparation buffer (${bufferRange.days} day${
+          bufferRange.days === 1 ? "" : "s"
+        }).`,
+      ),
+    );
 }
 
 export async function getAvailabilityBlockingRecords(
@@ -392,26 +515,48 @@ export async function getAvailabilityBlockingRecords(
   };
   const requestedStartDate = dateOnlyToUtcDate(input.startDate);
   const requestedEndDate = dateOnlyToUtcDate(input.endDate);
-  const blockingAccommodationIds = getBlockingAccommodationIds(input.accommodationId);
-  const propertyMappings = await resolvePropertyMappings(prismaClient, blockingAccommodationIds);
+  const blockingAccommodationIds = getBlockingAccommodationIds(
+    input.accommodationId,
+  );
+  const propertyMappings = await resolvePropertyMappings(
+    prismaClient,
+    blockingAccommodationIds,
+  );
   const propertyIdToAccommodationId = new Map(
-    propertyMappings.map((mapping) => [mapping.propertyId, mapping.accommodationId]),
+    propertyMappings.map((mapping) => [
+      mapping.propertyId,
+      mapping.accommodationId,
+    ]),
   );
   const propertyIdToPreparationBuffer = new Map(
-    propertyMappings.map((mapping) => [mapping.propertyId, mapping.preparationBuffer]),
+    propertyMappings.map((mapping) => [
+      mapping.propertyId,
+      mapping.preparationBuffer,
+    ]),
   );
-  const blockingPropertyIds = propertyMappings.map((mapping) => mapping.propertyId);
+  const blockingPropertyIds = propertyMappings.map(
+    (mapping) => mapping.propertyId,
+  );
   const preparationLookupWindow = getPreparationBufferLookupWindow(
     requestedRange,
     propertyMappings,
   );
+  const lifecycleHoldLookupWindow = getLifecycleHoldLookupWindow(requestedRange);
 
-  const [reservations, calendarBlocks]: [
+  const [reservations, calendarBlocks, lifecycleRequestHolds]: [
     ReservationAvailabilityRecord[],
     CalendarBlockAvailabilityRecord[],
+    LifecycleRequestHoldAvailabilityRecord[],
   ] = await Promise.all([
     prismaClient.reservation.findMany({
       where: {
+        ...(input.excludeReservationId
+          ? {
+              id: {
+                not: input.excludeReservationId,
+              },
+            }
+          : {}),
         propertyId: {
           in: blockingPropertyIds,
         },
@@ -450,10 +595,38 @@ export async function getAvailabilityBlockingRecords(
       },
       select: calendarBlockAvailabilitySelect,
     }),
+    prismaClient.lifecycleRequestHold.findMany({
+      where: {
+        ...(input.excludeLifecycleRequestId
+          ? {
+              lifecycleRequestId: {
+                not: input.excludeLifecycleRequestId,
+              },
+            }
+          : {}),
+        propertyId: {
+          in: blockingPropertyIds,
+        },
+        status: LifecycleRequestHoldStatus.ACTIVE,
+        expiresAt: {
+          gt: now,
+        },
+        startDate: {
+          lt: dateOnlyToUtcDate(lifecycleHoldLookupWindow.endDate),
+        },
+        endDate: {
+          gt: dateOnlyToUtcDate(lifecycleHoldLookupWindow.startDate),
+        },
+      },
+      select: lifecycleRequestHoldAvailabilitySelect,
+    }),
   ]);
 
   const blockingReservations = reservations.filter((reservation) =>
     isReservationBlockingAvailability(reservation, now),
+  );
+  const blockingLifecycleRequestHolds = lifecycleRequestHolds.filter((hold) =>
+    isLifecycleRequestHoldBlockingAvailability(hold, now),
   );
 
   const reservationBlockingRecords = blockingReservations
@@ -464,19 +637,51 @@ export async function getAvailabilityBlockingRecords(
       ),
     )
     .map((reservation) =>
-      toReservationBlockingRecord(reservation, propertyIdToAccommodationId, input.accommodationId),
+      toReservationBlockingRecord(
+        reservation,
+        propertyIdToAccommodationId,
+        input.accommodationId,
+      ),
     );
 
-  const derivedPreparationBufferBlockingRecords = blockingReservations.flatMap((reservation) =>
-    toDerivedPreparationBufferBlockingRecords(
-      reservation,
-      requestedRange,
-      propertyIdToAccommodationId,
-      propertyIdToPreparationBuffer,
-      input.accommodationId,
-      calendarBlocks,
-    ),
+  const derivedPreparationBufferBlockingRecords = blockingReservations.flatMap(
+    (reservation) =>
+      toDerivedPreparationBufferBlockingRecords(
+        reservation,
+        requestedRange,
+        propertyIdToAccommodationId,
+        propertyIdToPreparationBuffer,
+        input.accommodationId,
+        calendarBlocks,
+      ),
   );
+
+  const lifecycleRequestHoldBlockingRecords = blockingLifecycleRequestHolds
+    .filter((hold) =>
+      availabilityDateRangesOverlap(
+        requestedRange,
+        toDateOnlyRange(hold.startDate, hold.endDate),
+      ),
+    )
+    .map((hold) =>
+      toLifecycleRequestHoldBlockingRecord(
+        hold,
+        toDateOnlyRange(hold.startDate, hold.endDate),
+        propertyIdToAccommodationId,
+        input.accommodationId,
+        "Active lifecycle request hold.",
+      ),
+    );
+
+  const lifecycleRequestHoldPreparationBufferBlockingRecords =
+    blockingLifecycleRequestHolds.flatMap((hold) =>
+      toDerivedLifecycleHoldPreparationBufferBlockingRecords(
+        hold,
+        requestedRange,
+        propertyIdToAccommodationId,
+        input.accommodationId,
+      ),
+    );
 
   const calendarBlockBlockingRecords = calendarBlocks.flatMap(
     (calendarBlock) =>
@@ -491,6 +696,8 @@ export async function getAvailabilityBlockingRecords(
   return [
     ...reservationBlockingRecords,
     ...derivedPreparationBufferBlockingRecords,
+    ...lifecycleRequestHoldBlockingRecords,
+    ...lifecycleRequestHoldPreparationBufferBlockingRecords,
     ...calendarBlockBlockingRecords,
   ];
 }

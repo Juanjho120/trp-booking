@@ -13,7 +13,8 @@ export type AvailabilityBlockSource =
   | "MANUAL_BLOCK"
   | "MAINTENANCE"
   | "COMPOSED_LISTING_DEPENDENCY"
-  | "PREPARATION_BUFFER";
+  | "PREPARATION_BUFFER"
+  | "LIFECYCLE_REQUEST_HOLD";
 
 export type ReservationAvailabilityStatus = "CONFIRMED" | "PENDING_PAYMENT";
 
@@ -40,11 +41,15 @@ export type AvailabilityBlockingRecord = AvailabilityDateRange &
     reservationStatus?: ReservationAvailabilityStatus;
     calendarBlockId?: string;
     externalCalendarEventId?: string;
+    lifecycleRequestId?: string;
+    lifecycleRequestHoldId?: string;
   }>;
 
 export type AvailabilityCheckInput = AvailabilityDateRange &
   Readonly<{
     accommodationId: AccommodationId;
+    excludeReservationId?: string;
+    excludeLifecycleRequestId?: string;
   }>;
 
 export type AvailabilityCheckResult = Readonly<{
