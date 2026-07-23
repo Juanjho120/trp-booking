@@ -702,7 +702,7 @@ async function recordExecutionObservation(
           action: "REFUND_PROVIDER_RESPONSE_OBSERVED",
           entityType: "Refund",
           entityId: refundId,
-          metadata: {
+          metadata: toSafeJson({
             actorEmail: adminActor.email,
             requestId,
             httpStatus: observation.httpStatus,
@@ -712,7 +712,7 @@ async function recordExecutionObservation(
             responseShape: observation.responseShape,
             resultClassification: "RECONCILIATION_REQUIRED",
             paymentStatusChanged: false,
-          },
+          }),
         },
       });
 
@@ -1072,7 +1072,7 @@ export async function consultAdminTilopayRefund(
             action: "REFUND_PROVIDER_CONSULT_OBSERVED",
             entityType: "Refund",
             entityId: refund.id,
-            metadata: {
+            metadata: toSafeJson({
               actorEmail: adminActor.email,
               requestId: input.requestId,
               responseCode: observation.responseCode ?? null,
@@ -1082,7 +1082,7 @@ export async function consultAdminTilopayRefund(
               responseShape: observation.responseShape ?? null,
               resultClassification: "RECONCILIATION_REQUIRED",
               paymentStatusChanged: false,
-            },
+            }),
           },
         });
 
