@@ -406,7 +406,7 @@ Approved Phase 10.6 decisions:
 ```text
 - Timing is property-specific and defaults to 48 hours before the property's configured check-in time.
 - Admin may configure a lead time from 1 through 168 hours.
-- Same-day or late-confirmed reservations are immediately eligible when they are inside the lead window and check-in has not started.
+- Same-day confirmations remain immediately eligible before or after the configured check-in time; only a check-in date before the current America/Guatemala business date is excluded.
 - Exact address, optional HTTPS map URL, and bilingual operational instructions are owned in PostgreSQL and edited through the protected accommodation admin.
 - Source-controlled copy contains only the reusable branded template and guardrails, not property-specific operational content.
 - Notification identity includes the reservation check-in date and the settings version so authorized future date/configuration changes create a new intent and supersede stale pending delivery.
@@ -499,7 +499,7 @@ Status: **Completed**
 
 ### 10.6 — Arrival instructions scheduling and content
 
-Status: **In progress**
+Status: **Completed**
 
 ```text
 - Approve timing and same-day behavior.
@@ -511,7 +511,7 @@ Status: **In progress**
 
 ### 10.7 — Validation and documentation closure
 
-Status: **Not started**
+Status: **Completed**
 
 ```text
 - Run environment, Prisma, lint, build, and manual end-to-end validation.
@@ -693,28 +693,50 @@ docs/92-manual-resend-and-delivery-recovery-controls.md
 
 ## Phase 10.6 Implementation Note
 
-Status at delivery: **Implementation prepared; pending local validation and commit.**
+Status: **Completed and accepted.**
 
 The Phase 10.6 delivery implements the approved arrival-instructions contract:
 
 ```text
 - PropertyArrivalInstructions database ownership for enabled state, 1–168-hour lead time, exact address, optional HTTPS map URL, and ES/EN instructions
 - 48-hour property-specific default calculated from the property's check-in time in America/Guatemala
-- immediate eligibility for same-day/late confirmations before check-in
+- immediate eligibility for same-day confirmations before or after the configured check-in time
 - protected optimistic admin editing and PROPERTY_ARRIVAL_INSTRUCTIONS_UPDATED audit history
 - transactional ARRIVAL_INSTRUCTIONS intent creation during confirmation
 - CRON_SECRET-protected 30-minute backfill scheduling for existing upcoming confirmed reservations
 - scheduledFor, reservation check-in snapshot, and settings-version notification metadata
 - permanent idempotency by reservation, check-in date, settings version, and recipient
 - final reservation/settings version checks that mark stale rows SKIPPED before contacting Resend
-- bilingual branded HTML and plain-text arrival email with exact address, optional map URL, operational instructions, and support contact
+- bilingual branded HTML and plain-text arrival email with exact address, optional map URL, operational instructions, active assigned house rules, and support contact
 - reuse of existing provider, retry, test-recipient, idempotency, and admin-history infrastructure
 ```
 
-The delivery explicitly excludes rotating access/lockbox/Wi-Fi credentials, raw provider payloads, payment mutation, reservation confirmation changes, new dependencies, new environment variables, Phase 11 date-change UI, and PMS behavior.
+The accepted implementation and follow-ups are recorded from `e75a50f6b7a929ff1e167c590284086c6259130b` through `17be3fdf752a10932bae3f7192f55b16d80ac8e3`. The delivery explicitly excludes rotating access/lockbox/Wi-Fi credentials, raw provider payloads, payment mutation, reservation confirmation changes, new dependencies, new environment variables, Phase 11 date-change UI, and PMS behavior.
 
 Detailed implementation record:
 
 ```text
 docs/93-arrival-instructions-scheduling-and-content.md
+```
+
+## Phase 10.7 Closure Note
+
+Status: **Completed.**
+
+Phase 10.7 consolidates the accepted email implementation, local/test validation evidence, operational controls, security boundaries, and deferred production-readiness work.
+
+```text
+- RESERVATION_CONFIRMED, ADMIN_NEW_RESERVATION, and ARRIVAL_INSTRUCTIONS are the accepted automatic message types.
+- Permanent PostgreSQL deduplication remains the durable source of idempotency; Resend receives the same key.
+- Provider work remains post-commit and cannot change approved Payment or confirmed Reservation state.
+- Retry, stale-claim recovery, attempt limits, read-only admin history, and separately audited manual recovery are accepted.
+- Arrival timing, same-day behavior, supersession, bilingual content, and active assigned house rules are accepted.
+- Production real-recipient delivery, provider webhooks, bounce/complaint observability, and company-account/domain acceptance remain Phase 12 work.
+- Phase 11 must define lifecycle business rules before adding cancellation, refund, date-change, or stay-extension notifications.
+```
+
+Authoritative closure record:
+
+```text
+docs/94-phase-10-validation-and-documentation-closure.md
 ```

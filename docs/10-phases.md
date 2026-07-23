@@ -14,11 +14,12 @@ Deferred — Intentionally postponed.
 ## Current Phase
 
 ```text
-Current phase: Phase 10 — Email Notifications
-Current subphase: 10.6 Arrival instructions scheduling and content — In progress
-Current focus: validate property-owned bilingual instructions, 48-hour scheduling, same-day eligibility, version supersession, protected backfill, and unchanged payment/reservation state
-Last completed subphase: 10.5.1 Manual resend and delivery recovery controls
-10.5.1 accepted commit: 355c72490d416a257b9827d31c67223a97200491
+Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
+Current subphase: Phase 11 planning — Not started
+Current focus: define explicit Phase 11 subphases and business contracts before implementation
+Last completed phase: Phase 10 — Email Notifications
+Phase 10 closure base commit: 17be3fdf752a10932bae3f7192f55b16d80ac8e3
+Phase 10 closure document: docs/94-phase-10-validation-and-documentation-closure.md
 ```
 
 ---
@@ -297,7 +298,7 @@ Subphase status:
 
 ## Phase 10 — Email Notifications
 
-Status: **In progress**
+Status: **Completed**
 
 Goal: Add safe, bilingual, idempotent email notifications for the direct-booking lifecycle without changing payment-driven reservation confirmation.
 
@@ -310,8 +311,8 @@ Subphase status:
 10.4 Guest and admin confirmation notification orchestration — Completed
 10.5 Retry processing and admin delivery visibility — Completed
 10.5.1 Manual resend and delivery recovery controls — Completed
-10.6 Arrival instructions scheduling and content — In progress
-10.7 Validation and documentation closure — Not started
+10.6 Arrival instructions scheduling and content — Completed
+10.7 Validation and documentation closure — Completed
 ```
 
 Phase 10 rules:
@@ -431,7 +432,7 @@ Phase 10 rules:
 - The implementation record is docs/92-manual-resend-and-delivery-recovery-controls.md.
 ```
 
-### Phase 10.6 implementation prepared
+### Phase 10.6 result
 
 ```text
 - PropertyArrivalInstructions stores an enabled flag, 1–168-hour lead time, exact address, optional HTTPS map URL, and bilingual ES/EN operational instructions.
@@ -446,7 +447,20 @@ Phase 10 rules:
 - Admin editing is optimistic, audited, and warns against storing access codes, lockbox codes, Wi-Fi passwords, or other rotating secrets.
 - The existing worker, retry limits, Resend idempotency, test routing, and read-only delivery history are reused.
 - No payment mutation, reservation confirmation change, new dependency, environment variable, or PMS behavior is added.
+- Accepted implementation and follow-up commits run from e75a50f6b7a929ff1e167c590284086c6259130b through 17be3fdf752a10932bae3f7192f55b16d80ac8e3.
 - The implementation record is docs/93-arrival-instructions-scheduling-and-content.md.
+```
+
+### Phase 10.7 result
+
+```text
+- Phase 10 local/test acceptance evidence and final operational boundaries are consolidated in README and the official trackers.
+- The closure records successful bilingual confirmation/admin delivery, permanent deduplication, bounded retry, stale-claim recovery, manual resend, arrival scheduling, same-day eligibility, version/date supersession, and active house-rule rendering.
+- Email failures remain isolated from approved Payment and confirmed Reservation state.
+- Real production-recipient delivery and provider webhook observability remain deferred to Phase 12 Production Readiness.
+- Phase 11 becomes the next official phase and must begin by defining explicit cancellation, refund, authorized date-change, and stay-extension subphases.
+- The authoritative closure record is docs/94-phase-10-validation-and-documentation-closure.md.
+- No application code, visible UI copy, Prisma schema, migration, seed, dependency, credential, provider call, payment/reservation mutation, or PMS behavior is added by 10.7.
 ```
 
 ---

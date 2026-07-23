@@ -5,11 +5,12 @@
 ```text
 Phase: Phase 10 — Email Notifications
 Subphase: 10.3 Bilingual branded reservation-confirmation templates
-Status: Implementation prepared; pending local validation and commit
+Status: Completed
 Base commit: 5ad4f1c4c08a1f98691d0215dc5958fbe7542f72
+Accepted commit: 7f6510d3e152caccefa42d9a2f5f75dbf747a22e
 Strategy: docs/85-email-notification-strategy-and-phase-10-roadmap.md
 Provider foundation: docs/86-email-persistence-and-resend-provider-foundation.md
-Next subphase after acceptance: 10.4 Guest and admin confirmation notification orchestration
+Next accepted subphase: 10.4 Guest and admin confirmation notification orchestration
 ```
 
 ## Purpose
@@ -387,7 +388,7 @@ Rule content is resolved at delivery time. Pending notifications therefore use t
 
 ## Handoff to 10.4
 
-After local validation and commit, continue with:
+Phase 10.4 was completed and accepted after this template foundation:
 
 ```text
 10.4 — Guest and admin confirmation notification orchestration

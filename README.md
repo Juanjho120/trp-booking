@@ -61,7 +61,7 @@ TRP Booking is a public website and booking engine for direct reservations. It a
 - Check availability.
 - Reserve available dates.
 - Pay online through Tilopay.
-- Receive confirmation and arrival instructions by email when Phase 10 is implemented.
+- Receive bilingual reservation confirmation and scheduled arrival instructions by email.
 
 It also includes a private admin area for the minimum operational features required by the direct-booking flow.
 
@@ -175,7 +175,7 @@ Phase 9.11 closure is documented in `docs/84-phase-9.11-validation-and-documenta
 
 ## Phase 10 — Email Notifications
 
-Phase 10 is in progress. The strategy and explicit subphase roadmap are defined in `docs/85-email-notification-strategy-and-phase-10-roadmap.md`.
+Phase 10 is completed. The strategy and implementation roadmap are defined in `docs/85-email-notification-strategy-and-phase-10-roadmap.md`, and the authoritative closure record is `docs/94-phase-10-validation-and-documentation-closure.md`.
 
 Planned subphases:
 
@@ -186,8 +186,8 @@ Planned subphases:
 10.4 Guest and admin confirmation notification orchestration — Completed
 10.5 Retry processing and admin delivery visibility — Completed
 10.5.1 Manual resend and delivery recovery controls — Completed
-10.6 Arrival instructions scheduling and content — In progress
-10.7 Validation and documentation closure — Not started
+10.6 Arrival instructions scheduling and content — Completed
+10.7 Validation and documentation closure — Completed
 ```
 
 Initial Phase 10 scope:
@@ -276,7 +276,7 @@ Phase 10.5.1 manual resend and delivery recovery completed:
 - The implementation record is docs/92-manual-resend-and-delivery-recovery-controls.md.
 ```
 
-Phase 10.6 arrival instructions scheduling and content implementation prepared:
+Phase 10.6 arrival instructions scheduling and content completed:
 
 ```text
 - Arrival settings are owned per accommodation in PostgreSQL and edited through a protected bilingual admin page.
@@ -290,7 +290,18 @@ Phase 10.6 arrival instructions scheduling and content implementation prepared:
 - RESERVATION_CONFIRMED and ARRIVAL_INSTRUCTIONS render the accommodation's currently active assigned house rules in the guest's stored locale.
 - Rotating access codes, lockbox codes, Wi-Fi passwords, and other secrets are explicitly prohibited from the stored instructions.
 - No payment mutation, reservation confirmation change, dependency, environment variable, or PMS behavior is added.
+- Accepted implementation and follow-up commits run from e75a50f6b7a929ff1e167c590284086c6259130b through 17be3fdf752a10932bae3f7192f55b16d80ac8e3.
 - The implementation record is docs/93-arrival-instructions-scheduling-and-content.md.
+```
+
+Phase 10.7 validation and documentation closure completed:
+
+```text
+- The accepted Phase 10 architecture, implementation boundaries, local/test validation evidence, and operational handoff are consolidated.
+- Reservation confirmation, admin notification, retry recovery, manual resend, arrival scheduling, same-day delivery, supersession, and house-rule rendering were validated without changing approved Payment or confirmed Reservation state.
+- Production recipient delivery, Resend delivery/bounce/complaint webhooks, and production-domain operational acceptance remain deferred to Phase 12 Production Readiness.
+- Phase 11 Cancellation, Refund, and Change Request Rules is the next official phase and must begin by defining explicit subphases and business contracts.
+- The authoritative closure record is docs/94-phase-10-validation-and-documentation-closure.md.
 ```
 
 ## Documentation
@@ -332,14 +343,16 @@ docs/90-transactional-email-brand-logo-hosting.md
 docs/91-email-retry-processing-and-admin-delivery-visibility.md
 docs/92-manual-resend-and-delivery-recovery-controls.md
 docs/93-arrival-instructions-scheduling-and-content.md
+docs/94-phase-10-validation-and-documentation-closure.md
 ```
 
 ## Development Status
 
 ```text
-Current phase: Phase 10 — Email Notifications
-Current subphase: 10.6 Arrival instructions scheduling and content — In progress
-Current focus: validate property-owned bilingual instructions, 48-hour scheduling, same-day eligibility, version supersession, protected backfill, and unchanged payment/reservation state
-Last completed subphase: 10.5.1 Manual resend and delivery recovery controls
-10.5.1 accepted commit: 355c72490d416a257b9827d31c67223a97200491
+Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
+Current subphase: Phase 11 planning — Not started
+Current focus: define explicit Phase 11 subphases and business contracts before implementing cancellation, refund, authorized date-change, or stay-extension workflows
+Last completed phase: Phase 10 — Email Notifications
+Phase 10 closure base commit: 17be3fdf752a10932bae3f7192f55b16d80ac8e3
+Phase 10 closure document: docs/94-phase-10-validation-and-documentation-closure.md
 ```

@@ -5,14 +5,13 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 ## Current Status
 
 ```text
-Current phase: Phase 10 — Email Notifications
-Current subphase: 10.6 Arrival instructions scheduling and content — In progress
-Current focus: validate property-owned bilingual instructions, 48-hour scheduling, same-day eligibility, version supersession, protected backfill, and unchanged payment/reservation state
-Last updated: 2026-07-22
-Last completed subphase: 10.5.1 Manual resend and delivery recovery controls
-10.5.1 accepted commit: 355c72490d416a257b9827d31c67223a97200491
-10.1 base commit: 0c9df37380588ca9573a74faf3ce52a1b25a0654
-10.1 strategy document: docs/85-email-notification-strategy-and-phase-10-roadmap.md
+Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
+Current subphase: Phase 11 planning — Not started
+Current focus: define explicit Phase 11 subphases and business contracts before implementation
+Last updated: 2026-07-23
+Last completed phase: Phase 10 — Email Notifications
+Phase 10 closure base commit: 17be3fdf752a10932bae3f7192f55b16d80ac8e3
+Phase 10 closure document: docs/94-phase-10-validation-and-documentation-closure.md
 ```
 
 ## Completed Work
@@ -354,7 +353,7 @@ Kept templates, notification intents, confirmation hooks, retry cron, admin deli
 Accepted commit: 5ad4f1c4c08a1f98691d0215dc5958fbe7542f72.
 ```
 
-## Active Work
+## Completed Work — Phase 10.3
 
 ### Phase 10.3 — Bilingual Branded Reservation-Confirmation Templates
 
@@ -457,11 +456,11 @@ Implementation document:
 docs/92-manual-resend-and-delivery-recovery-controls.md
 ```
 
-## Active Work
+## Completed Work — Phase 10.6
 
 ### Phase 10.6 — Arrival Instructions Scheduling and Content
 
-Status: **In progress — implementation prepared, pending local validation and commit**
+Status: **Completed and accepted**
 
 Implemented scope:
 
@@ -479,29 +478,31 @@ Settings or date changes supersede stale pending/failed intents, and delivery pe
 Reused the existing worker, claim ownership, bounded retry, provider idempotency, test recipient override, and admin history.
 Kept rotating secrets, raw provider payloads, payment/reservation mutation, new dependencies, environment variables, and PMS behavior out of scope.
 Implementation document: docs/93-arrival-instructions-scheduling-and-content.md.
+Accepted implementation and follow-up commits: e75a50f6b7a929ff1e167c590284086c6259130b through 17be3fdf752a10932bae3f7192f55b16d80ac8e3.
+```
+
+## Completed Work — Phase 10.7
+
+### Phase 10.7 — Validation and Documentation Closure
+
+Status: **Completed**
+
+```text
+Phase 10 implementation and accepted local/test validation evidence are consolidated in README and the official trackers.
+The closure preserves payment-driven confirmation, post-commit provider calls, permanent database idempotency, safe bounded retries, audited manual recovery, and version-aware arrival delivery.
+Production-recipient delivery and Resend webhook observability remain deferred to Phase 12 Production Readiness.
+No application code, Prisma schema, migration, seed, dependency, provider credential, visible UI copy, payment/reservation mutation, or PMS behavior was added.
+Closure document: docs/94-phase-10-validation-and-documentation-closure.md.
 ```
 
 ## Next Recommended Work
 
 ```text
-1. Copy the Phase 10.6 ZIP files into the repository root.
-2. Run npm run db:format, npm run db:generate, and npm run db:validate.
-3. Apply the migration with npm run db:migrate:dev locally.
-4. Run npm run env:validate, npm run lint, npm run build, and git diff --check.
-5. Save disabled arrival settings and verify no arrival intent is created.
-6. Enable complete ES/EN settings with the default 48-hour lead time and confirm the admin audit row is created.
-7. Confirm a reservation more than 48 hours before arrival and verify one PENDING ARRIVAL_INSTRUCTIONS row with the correct scheduledFor value.
-8. Confirm a reservation inside the 48-hour window and verify immediate eligibility and delivery.
-9. Confirm same-day reservations both before and after the configured check-in time and verify both are immediately eligible; verify a reservation whose check-in date is already in the past does not create a new intent.
-10. Run the scheduler repeatedly and concurrently and verify permanent deduplication creates one intent per reservation/check-in/settings version/recipient.
-11. Run the delivery worker before scheduledFor and verify the row is ignored; run it after scheduledFor and verify SENT or bounded FAILED behavior.
-12. Change the property instructions before delivery and verify the older row becomes SKIPPED and a new version is scheduled.
-13. Change or cancel a reservation and verify the final delivery guard skips the stale notification without contacting Resend.
-14. Verify ES and EN subjects, HTML, plain text, date/time formatting, address, optional map link, active house rules, and support contact.
-15. Verify unassigned or soft-deleted house rules do not appear, and accommodations with no active rules omit the section safely.
-16. Verify test mode stores the guest recipient while delivery goes only to EMAIL_TEST_RECIPIENT.
-17. Confirm no rotating access code, lockbox code, Wi-Fi password, raw provider data, Payment mutation, Reservation mutation, or PMS behavior is introduced.
-18. Commit Phase 10.6 after local acceptance, then continue with 10.7 validation and documentation closure.
+1. Begin Phase 11 by defining explicit subphases before implementing lifecycle mutations or notifications.
+2. Approve cancellation and refund rules, authority, audit requirements, and payment-provider boundaries.
+3. Approve authorized reservation date-change and stay-extension workflows, including availability and additional-payment handling.
+4. Define Phase 11 notification types only after the underlying business transitions are accepted.
+5. Keep production Resend account/domain acceptance, real-recipient delivery, webhook observability, and bounce/complaint handling in Phase 12.
 ```
 
 ## Continuity Notes for New Conversations
@@ -526,6 +527,7 @@ docs/90-transactional-email-brand-logo-hosting.md
 docs/91-email-retry-processing-and-admin-delivery-visibility.md
 docs/92-manual-resend-and-delivery-recovery-controls.md
 docs/93-arrival-instructions-scheduling-and-content.md
+docs/94-phase-10-validation-and-documentation-closure.md
 config/site.ts
 lib/env/server.ts
 lib/reservations/pending-holds.ts

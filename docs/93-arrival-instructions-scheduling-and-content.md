@@ -5,10 +5,12 @@
 ```text
 Phase: Phase 10 — Email Notifications
 Subphase: 10.6 Arrival instructions scheduling and content
-Status: Implementation prepared; pending local validation and commit
+Status: Completed
 Base commit: 355c72490d416a257b9827d31c67223a97200491
+Initial implementation commit: e75a50f6b7a929ff1e167c590284086c6259130b
+Final accepted follow-up commit: 17be3fdf752a10932bae3f7192f55b16d80ac8e3
 Previous accepted subphase: 10.5.1 Manual resend and delivery recovery controls
-Next subphase after acceptance: 10.7 Validation and documentation closure
+Next completed subphase: 10.7 Validation and documentation closure
 ```
 
 ## Goal
@@ -286,6 +288,8 @@ lib/email/arrival-instructions.ts
 lib/email/reservation-confirmation-notifications.ts
 lib/email/index.ts
 lib/reservations/confirmation.ts
+emails/components/email-house-rules.tsx
+emails/reservation-confirmed-email.tsx
 emails/arrival-instructions-email.tsx
 emails/template-data.ts
 emails/index.ts
@@ -336,3 +340,19 @@ docs/93-arrival-instructions-scheduling-and-content.md
 - No native alert, confirm, or prompt
 - No access code, lockbox code, Wi-Fi password, raw provider payload, secret, card data, or PMS behavior
 ```
+
+## Acceptance Record
+
+The project owner reported the complete local/test scenario matrix working and committed through `17be3fdf752a10932bae3f7192f55b16d80ac8e3`. Accepted follow-ups include template rendering, date-only typing, configured time parsing, same-day delivery after the check-in hour, and active assigned house rules in both guest-facing templates.
+
+```text
+Initial implementation: e75a50f6b7a929ff1e167c590284086c6259130b
+Arrival editor icon compatibility: aa6c6bcda62feb8a7cbc5f62e2090b23785da556
+Async arrival template rendering: b61e87280305a44761b2d0a3e0cb267d3755da7b
+Date-only type preservation: f3157a925459cee51bdfbba5913144a000b8ae36
+Configured check-in time support: 3cbc057e2aa4802141596bdecbbda81dd5a64517
+Same-day delivery after check-in time: 75135d42b20c11dbf986bf5bf0f8e8b89177e1b2
+Active house rules in guest emails: 17be3fdf752a10932bae3f7192f55b16d80ac8e3
+```
+
+Production real-recipient delivery and provider webhook observability are not claimed by this local/test acceptance; they remain Phase 12 Production Readiness work.
