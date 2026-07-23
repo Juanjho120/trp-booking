@@ -7,11 +7,13 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
 Current subphase: 11.2 Lifecycle request persistence and audit foundation — Not started
-Current focus: approve unresolved policy decisions and prepare typed lifecycle request, refund, adjustment-payment, and temporary-hold persistence
+Current focus: prepare typed lifecycle request, refund, adjustment-payment, and temporary-hold persistence using the approved cancellation matrix; validate Tilopay refund behavior in 11.4
 Last updated: 2026-07-23
 Last completed subphase: 11.1 Lifecycle strategy, policy, and provider boundary
 11.1 strategy base commit: 00e23979aec894b1ff953a89b9297744e71a4a21
 11.1 strategy document: docs/95-phase-11-lifecycle-strategy-and-roadmap.md
+11.1 correction base commit: ca875bb01f649356262122bf06c2b92a9f3ef99d
+11.1 correction document: docs/96-phase-11.1-cancellation-policy-and-tilopay-refund-contract-correction.md
 Last completed phase: Phase 10 — Email Notifications
 Phase 10 closure document: docs/94-phase-10-validation-and-documentation-closure.md
 ```
@@ -515,37 +517,45 @@ AdminAuditLog exists, but there is no typed lifecycle request or transition snap
 Current availability treats CONFIRMED as the active direct-reservation blocker.
 ```
 
-Accepted strategy:
+Accepted strategy, including the Phase 11.1 correction:
 
 ```text
 Reservation owns stay/availability state; Payment and Refund own financial state.
 New flows do not move an active reservation to PARTIALLY_REFUNDED.
 Cancellation and refund are separate admin decisions.
-Initial Tilopay refund processing is merchant-portal reconciliation until an official API contract is verified.
+The approved cancellation matrix returns 100% at 7 or more days before check-in, 50% from 72 hours through less than 7 days, and 0% below 72 hours.
+Policy timing uses the property's configured check-in time in America/Guatemala.
+Same-day, after-check-in, and no-show cancellations are standard 0% refund cases unless a separately approved exception is recorded.
+Official Tilopay documentation defines POST /api/v1/processModification with bearer authentication, orderNumber, amount, key, type 2 refund, and type 3 reversal.
+Actual sandbox support, successful and failed response bodies, duplicate behavior, retry safety, and idempotency remain assigned to 11.4 endpoint testing.
+Merchant-portal processing remains a fallback/reconciliation option rather than the only initial path.
 Guests request authorization through approved support channels; no unauthenticated mutation endpoint is introduced.
 Date changes and extensions preserve the original reservation and require availability/buffer repricing validation.
 Positive price differences require an approved linked adjustment payment before applying dates.
 Requested dates awaiting payment require a temporary expiring lifecycle-request hold.
 Lifecycle notifications are deferred until the underlying mutations are accepted.
-Cancellation/refund percentages and date-change repricing remain explicit unresolved business decisions.
-No application code, Prisma change, migration, dependency, environment variable, provider request, visible copy, or PMS behavior is added by 11.1.
+Fee treatment, exception authority, and date-change repricing remain explicit decisions for their corresponding implementation subphases.
+No application code, Prisma change, migration, dependency, environment variable, provider request, visible copy, or PMS behavior is added by 11.1 or its correction.
 ```
 
-Strategy document:
+Strategy and correction documents:
 
 ```text
 docs/95-phase-11-lifecycle-strategy-and-roadmap.md
+docs/96-phase-11.1-cancellation-policy-and-tilopay-refund-contract-correction.md
 ```
 
 ## Next Recommended Work
 
 ```text
-1. Commit the completed Phase 11.1 strategy files.
-2. Approve cancellation cutoff/refund rules, fee treatment, no-show/after-check-in behavior, and admin exception authority before 11.3.
-3. Approve the date-change repricing basis, negative-difference behavior, and temporary hold duration before 11.5.
-4. Continue with 11.2 lifecycle request persistence and audit foundation without adding mutation UI or provider calls.
-5. Keep secure public guest request intake deferred unless its identity-verification design is separately approved.
-6. Keep production Resend/provider webhook readiness in Phase 12.
+1. Commit the Phase 11.1 cancellation-policy and Tilopay-contract correction.
+2. Continue with 11.2 lifecycle request persistence and audit foundation without adding mutation UI or provider calls.
+3. Preserve the approved 100% / 50% / 0% cancellation matrix as typed policy snapshots in future requests.
+4. Validate processModification in 11.4 through actual sandbox tests for success, partial/full refund, invalid requests, duplicate calls, retries, and idempotency before production execution.
+5. Approve fee treatment and admin exception authority before final 11.3 policy-calculation acceptance.
+6. Approve the date-change repricing basis, negative-difference behavior, and temporary hold duration before 11.5.
+7. Keep secure public guest request intake deferred unless its identity-verification design is separately approved.
+8. Keep production Resend/provider webhook readiness in Phase 12.
 ```
 
 ## Continuity Notes for New Conversations
@@ -572,6 +582,7 @@ docs/92-manual-resend-and-delivery-recovery-controls.md
 docs/93-arrival-instructions-scheduling-and-content.md
 docs/94-phase-10-validation-and-documentation-closure.md
 docs/95-phase-11-lifecycle-strategy-and-roadmap.md
+docs/96-phase-11.1-cancellation-policy-and-tilopay-refund-contract-correction.md
 config/site.ts
 lib/env/server.ts
 lib/reservations/pending-holds.ts

@@ -10,6 +10,8 @@ Strategy date: 2026-07-23
 Base commit: 00e23979aec894b1ff953a89b9297744e71a4a21
 Previous closure: docs/94-phase-10-validation-and-documentation-closure.md
 Next subphase after acceptance: 11.2 Lifecycle request persistence and audit foundation
+Corrective addendum: docs/96-phase-11.1-cancellation-policy-and-tilopay-refund-contract-correction.md
+Correction base commit: ca875bb01f649356262122bf06c2b92a9f3ef99d
 ```
 
 ## Purpose
@@ -90,11 +92,13 @@ However, the repository does not yet provide:
 - Request status, reviewer, decision, and completion timestamps
 - A relation between adjustment payments and the lifecycle request that caused them
 - A temporary availability hold for a requested date change awaiting additional payment
-- Approved cancellation/refund policy windows or percentages
-- A verified automated Tilopay refund/reversal adapter
+- An implemented and sandbox-validated Tilopay refund/reversal adapter
+- Confirmed processModification response/error/idempotency behavior
 - Admin cancellation, refund, date-change, or extension mutation actions
 - Lifecycle notification templates or orchestration
 ```
+
+The approved cancellation matrix and the official Tilopay processModification request contract are now documented. Their persistence and provider execution remain future subphase work.
 
 The current admin reservation and payment details are intentionally read-only. Phase 11 must add explicit guarded actions rather than converting delivery/payment metadata into generic editable forms.
 
@@ -164,53 +168,90 @@ The cancellation transaction must also make pending arrival communication inelig
 
 Pending-payment reservations already expire automatically. An admin cancellation action for an active hold is not part of the initial confirmed-reservation cancellation MVP unless a concrete operational need is approved.
 
-## Cancellation Policy Boundary
+## Approved Cancellation Policy
 
-No cancellation percentages, cutoff hours, or automatic refund amounts are currently approved. Phase 11 must not invent or hardcode them.
-
-Before 11.3 implementation acceptance, the business policy must define:
+The previously approved direct-booking cancellation policy is authoritative for Phase 11:
 
 ```text
-- Free-cancellation cutoff, if any
-- Partial-refund windows, if any
-- Non-refundable window, if any
-- Same-day, after-check-in, and no-show behavior
-- Treatment of cleaning fee, taxes, discounts, and payment-processing costs
-- Admin exception authority and required reason
-- Whether cancellation is allowed after the stay has started
-- Guest-facing policy wording in Spanish and English
+Cancellation at least 7 days before check-in
+-> Refund 100% of the policy-eligible captured amount
+
+Cancellation from 72 hours through less than 7 days before check-in
+-> Refund 50% of the policy-eligible captured amount
+
+Cancellation less than 72 hours before check-in
+-> No refund
 ```
 
-Until that matrix is approved, the system may support only an explicit admin-entered decision and amount; it must not calculate a policy outcome automatically.
+Deterministic implementation boundaries:
+
+```text
+hoursBeforeCheckIn >= 168
+-> 100%
+
+72 <= hoursBeforeCheckIn < 168
+-> 50%
+
+hoursBeforeCheckIn < 72
+-> 0%
+```
+
+Policy timing is calculated against the accommodation's configured check-in date/time in `America/Guatemala`. Exactly 168 hours receives 100%; exactly 72 hours receives 50%. Same-day, after-check-in, and no-show cancellations fall below the 72-hour boundary and therefore receive 0% under the standard policy. The reservation may still be cancelled operationally even when the refund amount is zero.
+
+The guest pays 100% when booking. Confirmed dates cannot be changed freely through the public website: the guest must request authorization, or cancel and create a new reservation under this policy. Stay extensions remain subject to availability and additional payment when applicable.
+
+Current MVP pricing keeps cleaning fee, taxes, and discounts at zero. Before any of those values become nonzero, their treatment in cancellation calculations must be explicitly approved and documented. Admin exception authority is not implied by this matrix; any future exception path must require an authorized actor, an explicit reason, and separate audit history.
+
+Guest-facing Spanish and English policy wording belongs to the corresponding public/lifecycle-copy subphase and must match this matrix exactly.
 
 ## Tilopay Refund and Reversal Boundary
 
-Official public Tilopay material reviewed on 2026-07-23 describes merchant-portal reversals with these operational characteristics:
+The official Tilopay documentation supplied for this project defines the transaction-modification endpoint:
 
 ```text
-- The merchant initiates the reversal through the Tilopay platform.
-- A reversal may be total or partial.
-- Cumulative reversals cannot exceed the original transaction amount.
-- The public terms describe a 60-day provider window from transaction registration.
-- Cardholder credit timing depends on the issuing bank.
+POST https://app.tilopay.com/api/v1/processModification
+Authorization: Bearer <server-side Tilopay token>
 ```
 
-The 60-day value is a provider operational boundary, not the guest cancellation policy. The merchant agreement and account-specific configuration remain authoritative and must be verified before production processing.
+Documented request body:
 
-The reviewed public SDK page does not expose a verified refund endpoint contract that TRP Booking can safely implement now. Phase 11 must therefore use this initial provider strategy:
+```json
+{
+  "orderNumber": "1214352",
+  "type": "2",
+  "amount": "1.00",
+  "key": "api_key"
+}
+```
+
+Documented modification types:
 
 ```text
-Initial MVP
--> Admin authorizes the refund in TRP Booking
--> TRP Booking creates a PENDING refund record
--> Authorized operator executes the reversal in the Tilopay merchant portal
--> Admin records/reconciles the provider reference and confirmed result
-
-Future automated adapter
--> Allowed only after official endpoint, authentication, idempotency, sandbox behavior, and response contract are obtained and validated
+1 = Capture
+2 = Refund
+3 = Reversal
 ```
 
-No endpoint, payload field, or provider status may be guessed from undocumented examples.
+`orderNumber` is the previously submitted Tilopay order, `amount` is the amount to modify, and `key` is the integration key. Credentials and bearer tokens remain server-side only. The internal authoritative correction record is `docs/96-phase-11.1-cancellation-policy-and-tilopay-refund-contract-correction.md`.
+
+The endpoint contract is known; the following provider behavior is intentionally deferred to 11.4 and must be established through actual sandbox tests before production execution:
+
+```text
+- Whether processModification is enabled in sandbox for this merchant account
+- Exact success response body and provider reference fields
+- Exact validation, authentication, business, and server error bodies
+- Full refund behavior
+- Partial refund behavior and repeated cumulative partial refunds
+- Refund amount greater than the remaining refundable amount
+- Zero, negative, malformed, or wrong-currency requests
+- Unknown, rejected, already refunded, or already reversed order behavior
+- Difference between type 2 refund and type 3 reversal for the transaction states used by TRP Booking
+- Duplicate identical requests and provider idempotency behavior
+- Timeout, retry, and uncertain-result handling
+- Reconciliation through consult and/or consultTransactions
+```
+
+Phase 11.4 may implement an automated adapter only after these observed contracts are recorded. Merchant-portal execution remains an operational fallback or reconciliation path if sandbox/production API behavior is unavailable or ambiguous; it is not the only assumed initial integration path. No response field, success criterion, error mapping, or idempotency guarantee may be invented before testing.
 
 ## Refund Invariants
 
@@ -238,8 +279,8 @@ Refund status
 - FAILED
 
 Refund processing mode/origin
-- TILOPAY_PORTAL
-- TILOPAY_API (future only)
+- TILOPAY_API
+- TILOPAY_PORTAL_FALLBACK
 - OFFLINE_EXCEPTION (only if explicitly approved)
 ```
 
@@ -444,17 +485,22 @@ Rules:
 
 ### 11.1 — Lifecycle strategy, policy, and provider boundary
 
-Status: **Completed**
+Status: **Completed, with corrective addendum**
 
 ```text
 - Inspect current schema, reservation/payment states, refund model, availability rules, admin detail boundaries, and email foundation.
 - Preserve the approved guest date-change and stay-extension rules.
 - Separate stay lifecycle state from payment/refund state.
 - Define the initial admin-mediated cancellation/refund/change boundary.
-- Define the manual Tilopay portal strategy until an official refund API contract is verified.
+- Preserve the approved 100% / 50% / 0% cancellation matrix with deterministic Guatemala-time boundaries.
+- Record the official Tilopay processModification request contract without inventing response behavior.
+- Assign sandbox response, error, retry, and idempotency validation to 11.4.
+- Keep merchant-portal processing as a fallback/reconciliation path.
 - Define concurrency, idempotency, audit, availability, pricing, and notification boundaries.
-- Record unresolved policy decisions without inventing percentages or deadlines.
+- Record only the decisions that genuinely remain unresolved.
 ```
+
+Corrective addendum: `docs/96-phase-11.1-cancellation-policy-and-tilopay-refund-contract-correction.md`.
 
 ### 11.2 — Lifecycle request persistence and audit foundation
 
@@ -490,12 +536,15 @@ Status: **Not started**
 
 ```text
 - Add full/partial refund authorization with cumulative refundable-amount validation.
-- Create idempotent PENDING refund records before external action.
-- Support initial merchant-portal processing and provider-reference reconciliation.
-- Update Payment financial status only after confirmed reversal.
+- Create idempotent PENDING refund records before any external action.
+- Test POST /api/v1/processModification against sandbox for full refund, partial refund, reversal, invalid requests, duplicates, retries, and uncertain outcomes.
+- Record exact observed success/error response contracts and whether the provider offers idempotency.
+- Implement type 2 refund and/or type 3 reversal only according to the validated transaction-state behavior.
+- Reconcile uncertain or completed results through the validated Tilopay consult path.
+- Keep merchant-portal processing as an audited fallback when API execution is unavailable or ambiguous.
+- Update Payment financial status only after a confirmed provider/reconciled result.
 - Keep cancellation/date-change state independent from refund failure.
-- Add safe recovery and bounded operational diagnostics.
-- Do not guess an undocumented Tilopay API endpoint.
+- Add safe recovery and bounded operational diagnostics without exposing raw provider data.
 ```
 
 ### 11.5 — Authorized date changes and stay extensions
@@ -531,7 +580,7 @@ Status: **Not started**
 ```text
 - Validate state transitions, policy decisions, idempotency, concurrency, availability, buffers, and financial limits.
 - Validate positive/zero/negative date-change differences and hold expiration.
-- Validate full/partial/manual refund reconciliation and failure isolation.
+- Validate full/partial API refund execution, portal-fallback reconciliation, and failure isolation.
 - Validate bilingual lifecycle notifications and duplicate prevention.
 - Consolidate README and official trackers.
 - Record remaining production/provider/legal-policy readiness items.
@@ -542,11 +591,10 @@ Status: **Not started**
 The strategy does not block the persistence foundation, but these decisions must be approved before their corresponding mutation subphase:
 
 ```text
-Cancellation/refund policy
-- Cutoff windows and refund percentages
-- Fee/tax/cleaning/discount treatment
-- Same-day, no-show, and after-check-in rules
-- Admin exception authority
+Cancellation/refund follow-up decisions
+- Fee/tax/cleaning/discount treatment before those values become nonzero
+- Admin exception authority and required audit reason
+- Final guest-facing legal wording in Spanish and English
 
 Date-change pricing
 - Full repricing versus preserved original-rate basis
@@ -570,11 +618,13 @@ Legal/consumer-policy wording must be reviewed for the business's operating juri
 - docs/11-progress-log.md reviewed.
 - docs/94-phase-10-validation-and-documentation-closure.md reviewed.
 - Current base commit verified as 00e23979aec894b1ff953a89b9297744e71a4a21.
+- Correction base commit verified as ca875bb01f649356262122bf06c2b92a9f3ef99d.
 - Current ReservationStatus, PaymentStatus, RefundStatus, Refund model, and email notification types reviewed.
 - Current availability rule that confirmed reservations block dates reviewed.
 - Existing admin reservation/payment detail read-only boundary reviewed.
 - Existing guest date-change and stay-extension decisions preserved.
-- Official public Tilopay reversal material reviewed without inventing an API contract.
+- Official Tilopay processModification request contract reviewed from the project-supplied documentation.
+- Sandbox response, error, retry, and idempotency behavior explicitly deferred to 11.4 testing.
 - No application code changed.
 - No Prisma schema or migration changed.
 - No dependency or environment variable changed.
@@ -594,11 +644,12 @@ git diff --check
 git status --short
 ```
 
-## Files Updated by 11.1
+## Files Updated by 11.1 and Its Corrective Addendum
 
 ```text
 README.md
 docs/10-phases.md
 docs/11-progress-log.md
 docs/95-phase-11-lifecycle-strategy-and-roadmap.md
+docs/96-phase-11.1-cancellation-policy-and-tilopay-refund-contract-correction.md
 ```

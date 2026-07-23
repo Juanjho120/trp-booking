@@ -85,6 +85,7 @@ TRP Booking is focused only on the public booking experience, direct reservation
 - Preparation buffers use the values stored in `Property.preparationDaysBefore` and `Property.preparationDaysAfter`.
 - Composed-listing dependency rules apply to stay dates and preparation buffers.
 - Guests cannot modify confirmed dates directly from the public website.
+- The approved direct-booking cancellation matrix is 100% refund at 7 or more days before check-in, 50% refund from 72 hours through less than 7 days before check-in, and no refund below 72 hours.
 - Tilopay credentials remain server-side and TRP Booking does not store card number, CVV, expiration date, or tokenized card data.
 - `Reservation.status` becomes `CONFIRMED` only after the provider payment result is validated server-side.
 - Failed, rejected, expired, and successful payment attempts remain auditable.
@@ -329,15 +330,19 @@ Accepted Phase 11 foundation:
 - Guests cannot directly edit confirmed dates or invoke unauthenticated lifecycle mutations.
 - Initial requests are admin-recorded from approved support channels.
 - Cancellation and refund are separate decisions; refund failure never restores a cancelled reservation.
+- The approved cancellation matrix is 100% refund at 7 or more days before check-in, 50% from 72 hours through less than 7 days, and 0% below 72 hours.
+- Cancellation timing is evaluated against the property's configured check-in time in America/Guatemala.
 - Date changes and stay extensions require availability revalidation and additional payment when the difference is positive.
 - Requested dates awaiting payment require a temporary lifecycle-request hold.
-- Initial Tilopay reversals are reconciled from the merchant portal until an official automated refund API contract is verified.
+- Tilopay officially documents POST /api/v1/processModification with type 2 for refund and type 3 for reversal.
+- Sandbox support, response shapes, errors, duplicate behavior, retry safety, and provider idempotency are validated during 11.4 before production execution.
+- Merchant-portal processing remains an operational fallback, not the only assumed integration path.
 - Lifecycle emails are added only after the underlying transition is accepted.
-- Cancellation percentages, cutoff windows, and repricing policy remain explicit business decisions; no values are invented in 11.1.
+- Fee treatment, admin exceptions, and date-change repricing remain explicit decisions for their corresponding implementation subphases.
 - No PMS behavior is added.
 ```
 
-Subphase 11.1 is completed as a documentation-only strategy and introduces no schema, provider, reservation, payment, calendar, UI-copy, or email-delivery change.
+Subphase 11.1 remains completed as a documentation-only strategy. Its approved-policy and provider-contract correction is recorded in `docs/96-phase-11.1-cancellation-policy-and-tilopay-refund-contract-correction.md` and introduces no schema, provider call, reservation/payment mutation, calendar mutation, UI copy, or email delivery.
 
 ## Documentation
 
@@ -380,6 +385,7 @@ docs/92-manual-resend-and-delivery-recovery-controls.md
 docs/93-arrival-instructions-scheduling-and-content.md
 docs/94-phase-10-validation-and-documentation-closure.md
 docs/95-phase-11-lifecycle-strategy-and-roadmap.md
+docs/96-phase-11.1-cancellation-policy-and-tilopay-refund-contract-correction.md
 ```
 
 ## Development Status
@@ -387,10 +393,12 @@ docs/95-phase-11-lifecycle-strategy-and-roadmap.md
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
 Current subphase: 11.2 Lifecycle request persistence and audit foundation — Not started
-Current focus: approve the unresolved cancellation/refund and date-change pricing decisions, then prepare the typed persistence and concurrency foundation
+Current focus: prepare typed lifecycle request, refund, adjustment-payment, and temporary-hold persistence using the approved cancellation matrix; validate Tilopay refund behavior in 11.4
 Last completed subphase: 11.1 Lifecycle strategy, policy, and provider boundary
 11.1 strategy base commit: 00e23979aec894b1ff953a89b9297744e71a4a21
 11.1 strategy document: docs/95-phase-11-lifecycle-strategy-and-roadmap.md
+11.1 correction base commit: ca875bb01f649356262122bf06c2b92a9f3ef99d
+11.1 correction document: docs/96-phase-11.1-cancellation-policy-and-tilopay-refund-contract-correction.md
 Last completed phase: Phase 10 — Email Notifications
 Phase 10 closure document: docs/94-phase-10-validation-and-documentation-closure.md
 ```

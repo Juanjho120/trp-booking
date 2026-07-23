@@ -16,10 +16,12 @@ Deferred — Intentionally postponed.
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
 Current subphase: 11.2 Lifecycle request persistence and audit foundation — Not started
-Current focus: approve unresolved policy decisions and prepare typed lifecycle request, refund, adjustment-payment, and temporary-hold persistence
+Current focus: prepare typed lifecycle request, refund, adjustment-payment, and temporary-hold persistence using the approved cancellation matrix; validate Tilopay refund behavior in 11.4
 Last completed subphase: 11.1 Lifecycle strategy, policy, and provider boundary
 11.1 strategy base commit: 00e23979aec894b1ff953a89b9297744e71a4a21
 11.1 strategy document: docs/95-phase-11-lifecycle-strategy-and-roadmap.md
+11.1 correction base commit: ca875bb01f649356262122bf06c2b92a9f3ef99d
+11.1 correction document: docs/96-phase-11.1-cancellation-policy-and-tilopay-refund-contract-correction.md
 Last completed phase: Phase 10 — Email Notifications
 Phase 10 closure document: docs/94-phase-10-validation-and-documentation-closure.md
 ```
@@ -493,8 +495,12 @@ Phase 11 rules:
 - Initial cancellation/change/extension requests are recorded and decided by authorized admins.
 - Cancellation and refund are separate, auditable decisions.
 - Refund failure never restores a cancelled reservation or rewrites historical attempts.
+- The approved cancellation matrix returns 100% at 7 or more days before check-in, 50% from 72 hours through less than 7 days, and 0% below 72 hours.
+- Policy timing uses the property's configured check-in time in America/Guatemala.
 - Full and partial refunds cannot exceed the validated captured payment amount.
-- Initial Tilopay reversals use merchant-portal reconciliation until an official automated refund API contract is verified.
+- Tilopay officially documents POST /api/v1/processModification with type 2 for refund and type 3 for reversal.
+- Sandbox responses, errors, duplicate behavior, retries, and idempotency are validated in 11.4 before production execution.
+- Merchant-portal processing remains an operational fallback.
 - Authorized date changes and extensions revalidate availability, composed dependencies, buffers, and server-side pricing.
 - A positive financial difference must be paid before new dates are applied.
 - Lifecycle emails are created only after the underlying transition commits and never determine that transition.
@@ -509,12 +515,16 @@ Phase 11 rules:
 - New flows must not set an active reservation to PARTIALLY_REFUNDED because current availability uses CONFIRMED as the active direct-reservation blocker.
 - Cancellation changes Reservation to CANCELLED; Payment and Refund record full/partial financial reversals.
 - Guests request authorization through approved support channels; the initial MVP has no insecure public mutation or lookup endpoint.
+- The approved cancellation matrix is 100% refund at 7 or more days before check-in, 50% from 72 hours through less than 7 days, and 0% below 72 hours.
+- Same-day, after-check-in, and no-show cancellations fall in the standard 0% window unless a separately approved exception is recorded.
 - Date changes preserve the original reservation ID/history and apply only after final availability validation and any required additional payment.
 - Stay extensions are specialized date changes and require availability validation plus the price difference when applicable.
-- Public Tilopay material supports total/partial merchant-portal reversals and describes a provider window, but no automated refund endpoint is assumed without a verified contract.
-- Cancellation windows/percentages, fee treatment, and the exact date-change repricing basis remain explicit business decisions.
+- Official Tilopay documentation defines POST /api/v1/processModification, bearer authentication, orderNumber, amount, key, type 2 refund, and type 3 reversal.
+- Response/error/idempotency/sandbox validation is intentionally assigned to 11.4 and will be recorded from actual endpoint tests before production execution.
 - The strategy record is docs/95-phase-11-lifecycle-strategy-and-roadmap.md.
-- No application code, visible UI copy, Prisma schema, migration, seed, dependency, environment variable, provider request, lifecycle mutation, or PMS behavior is added by 11.1.
+- The corrective record is docs/96-phase-11.1-cancellation-policy-and-tilopay-refund-contract-correction.md.
+- Fee treatment, admin exception authority, and exact date-change repricing remain explicit decisions for their corresponding implementation subphases.
+- No application code, visible UI copy, Prisma schema, migration, seed, dependency, environment variable, provider request, lifecycle mutation, or PMS behavior is added by 11.1 or its correction.
 ```
 
 ---
