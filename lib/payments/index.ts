@@ -1,5 +1,8 @@
 export {
   consultTilopayTransaction,
+  describeTilopayConsultObservation,
+  observeTilopayModificationSandbox,
+  processTilopayModification,
   TilopayApiClientError,
 } from "./tilopay-api-client";
 export {

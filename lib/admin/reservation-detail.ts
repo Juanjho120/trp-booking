@@ -1,8 +1,10 @@
 import { dateOnlyFromDate } from "@/lib/availability/rules";
 import { prisma } from "@/lib/db/prisma";
+import { getTilopayEnv } from "@/lib/env/server";
 import type { AdminReservationDetailData } from "@/types/admin-reservation-detail";
 
 import { getAdminCancellationRequestsForReservation } from "./reservation-cancellation";
+import { getAdminRefundsForReservation } from "./refunds";
 
 const PROVIDER_MESSAGE_ID_MAX_LENGTH = 180;
 const ERROR_CODE_MAX_LENGTH = 120;
@@ -76,11 +78,15 @@ export async function getAdminReservationDetail(
         orderBy: [{ createdAt: "desc" }, { id: "desc" }],
         select: {
           id: true,
+          purpose: true,
           providerReference: true,
+          providerTransactionId: true,
           status: true,
           amount: true,
           currency: true,
+          paidAt: true,
           createdAt: true,
+          updatedAt: true,
         },
       },
       emailNotifications: {
@@ -123,8 +129,12 @@ export async function getAdminReservationDetail(
     return null;
   }
 
-  const cancellationRequests =
-    await getAdminCancellationRequestsForReservation(reservation.id);
+  const [cancellationRequests, refunds] = await Promise.all([
+    getAdminCancellationRequestsForReservation(reservation.id),
+    getAdminRefundsForReservation(reservation.id),
+  ]);
+  const refundApiExecutionEnabled =
+    getTilopayEnv().TILOPAY_ENVIRONMENT === "sandbox";
 
   return {
     id: reservation.id,
@@ -151,11 +161,15 @@ export async function getAdminReservationDetail(
     updatedAt: reservation.updatedAt.toISOString(),
     payments: reservation.payments.map((payment) => ({
       id: payment.id,
+      purpose: payment.purpose,
       providerReference: payment.providerReference,
+      providerTransactionId: payment.providerTransactionId,
       status: payment.status,
       amount: payment.amount.toFixed(2),
       currency: payment.currency,
+      paidAt: payment.paidAt?.toISOString() ?? null,
       createdAt: payment.createdAt.toISOString(),
+      updatedAt: payment.updatedAt.toISOString(),
     })),
     emailNotifications: reservation.emailNotifications.map((notification) => ({
       id: notification.id,
@@ -200,5 +214,7 @@ export async function getAdminReservationDetail(
       updatedAt: notification.updatedAt.toISOString(),
     })),
     cancellationRequests,
+    refunds,
+    refundApiExecutionEnabled,
   };
 }

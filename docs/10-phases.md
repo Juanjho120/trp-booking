@@ -15,12 +15,12 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
-Current subphase: 11.3 Admin cancellation decision and availability release — In progress
-Current focus: validate protected cancellation-request creation, standard-policy snapshots, serializable approval/rejection, availability release, arrival-notification suppression, idempotency, and unchanged payment/refund state
-Last completed subphase: 11.2 Lifecycle request persistence and audit foundation
-11.2 accepted commit: 2495aa891fd26938550960f94fdbea700151350f
-11.2 implementation document: docs/97-phase-11.2-lifecycle-request-persistence-and-audit-foundation.md
+Current subphase: 11.4 Refund authorization and Tilopay reconciliation — In progress
+Current focus: validate cumulative refund authorization, sandbox processModification observations, uncertain-result handling, consult/portal reconciliation, payment financial-state transitions, idempotency, and unchanged cancelled reservation state
+Last completed subphase: 11.3 Admin cancellation decision and availability release
+11.3 accepted commit: c609ea0e5b4654da86436dba79477455681d7b14
 11.3 implementation document: docs/98-phase-11.3-admin-cancellation-decision-and-availability-release.md
+11.4 implementation document: docs/99-phase-11.4-refund-authorization-and-tilopay-reconciliation.md
 Last completed phase: Phase 10 — Email Notifications
 Phase 10 closure document: docs/94-phase-10-validation-and-documentation-closure.md
 ```
@@ -479,8 +479,8 @@ Subphase status:
 ```text
 11.1 Lifecycle strategy, policy, and provider boundary — Completed
 11.2 Lifecycle request persistence and audit foundation — Completed
-11.3 Admin cancellation decision and availability release — In progress
-11.4 Refund authorization and Tilopay reconciliation — Not started
+11.3 Admin cancellation decision and availability release — Completed
+11.4 Refund authorization and Tilopay reconciliation — In progress
 11.5 Authorized date changes and stay extensions — Not started
 11.6 Lifecycle notifications and admin operational history — Not started
 11.7 Validation and documentation closure — Not started
@@ -538,7 +538,7 @@ Phase 11 rules:
 - The implementation record is docs/97-phase-11.2-lifecycle-request-persistence-and-audit-foundation.md.
 ```
 
-### Phase 11.3 implementation prepared
+### Phase 11.3 result
 
 ```text
 - Authorized admins can record an idempotent cancellation request from reservation detail using an approved support channel.
@@ -548,7 +548,24 @@ Phase 11 rules:
 - Cancellation releases dynamic stay and preparation-buffer availability without deleting operational history.
 - Pending and failed arrival-instruction notifications become SKIPPED; existing SENT history remains unchanged.
 - Refund creation, Tilopay execution, payment financial-state changes, and lifecycle emails remain deferred.
+- Local/test cancellation, policy-boundary, concurrency, idempotency, availability-release, and arrival-supersession tests were reported successful.
+- The accepted implementation commit is c609ea0e5b4654da86436dba79477455681d7b14.
 - The implementation record is docs/98-phase-11.3-admin-cancellation-decision-and-availability-release.md.
+```
+
+### Phase 11.4 implementation prepared
+
+```text
+- Authorized admins can create idempotent full/partial PENDING Refund records within both the frozen policy allowance and captured-payment balance.
+- PENDING, PROCESSING, APPROVED, and historical MANUAL amounts participate in cumulative protection; confirmed FAILED attempts remain historical but release their reserved balance.
+- Tilopay processModification type 2 execution is sandbox-only and occurs only after the Refund transaction commits.
+- Unknown provider responses and timeouts remain PROCESSING and require explicit reconciliation; they are never blindly retried or treated as success.
+- Existing Tilopay consult and audited portal evidence can reconcile APPROVED/FAILED outcomes.
+- Payment changes to PARTIALLY_REFUNDED or REFUNDED only after an approved reconciliation; Reservation remains CANCELLED.
+- Safe diagnostics expose bounded codes, descriptions, references, and response shapes without raw provider values or credentials.
+- No Prisma migration, dependency, environment variable, refund email, public mutation endpoint, or PMS behavior is added.
+- Real sandbox full/partial/reversal/error/duplicate/timeout observations remain required before 11.4 completion or production API execution.
+- The implementation record is docs/99-phase-11.4-refund-authorization-and-tilopay-reconciliation.md.
 ```
 
 ---

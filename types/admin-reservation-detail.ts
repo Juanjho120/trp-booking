@@ -1,14 +1,19 @@
 import type { AdminPropertyOption } from "@/types/admin";
 import type { AdminCancellationRequestSummary } from "@/types/admin-reservation-cancellation";
+import type { AdminRefundSummary } from "@/types/admin-refund";
 import type { DateOnlyString } from "@/types/availability";
 
 export type AdminReservationDetailPayment = Readonly<{
   id: string;
+  purpose: string;
   providerReference: string | null;
+  providerTransactionId: string | null;
   status: string;
   amount: string;
   currency: string;
+  paidAt: string | null;
   createdAt: string;
+  updatedAt: string;
 }>;
 
 export type AdminReservationDetailEmailNotificationAdmin = Readonly<{
@@ -68,4 +73,6 @@ export type AdminReservationDetailData = Readonly<{
   payments: readonly AdminReservationDetailPayment[];
   emailNotifications: readonly AdminReservationDetailEmailNotification[];
   cancellationRequests: readonly AdminCancellationRequestSummary[];
+  refunds: readonly AdminRefundSummary[];
+  refundApiExecutionEnabled: boolean;
 }>;

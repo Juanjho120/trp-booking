@@ -633,6 +633,169 @@ export const enMessages = {
         },
         empty: "This reservation does not have cancellation requests yet.",
       },
+      refunds: {
+        badge: "Refunds",
+        title: "Refund authorization and reconciliation",
+        description:
+          "Authorize amounts within the approved policy, observe Tilopay sandbox behavior, and confirm financial results only after explicit verification.",
+        labels: {
+          refund: "Refund",
+          payment: "Payment",
+          paymentStatus: "Payment status",
+          policyAmount: "Policy-authorized amount",
+          committedAmount: "Committed amount",
+          remainingAmount: "Still authorizable",
+          amount: "Amount",
+          reason: "Internal reason",
+          processingMode: "Processing mode",
+          requestedBy: "Authorized by",
+          createdAt: "Created",
+          updatedAt: "Updated",
+          providerOrder: "Tilopay order",
+          providerRefundId: "Refund reference",
+          diagnosticSource: "Diagnostic source",
+          responseCode: "Observed code",
+          resultClassification: "Classification",
+          observedAt: "Observed at",
+          observedOrder: "Observed order",
+          observedAmount: "Observed amount",
+          safeDescription: "Safe detail",
+          outcome: "Confirmed outcome",
+          reconciliationSource: "Verification source",
+          finalProcessingMode: "Final mode",
+          reconciliationNote: "Reconciliation evidence and note",
+          unavailable: "Unavailable",
+        },
+        statuses: {
+          PENDING: "Pending",
+          PROCESSING: "Processing / reconciliation required",
+          APPROVED: "Approved",
+          FAILED: "Failed",
+          MANUAL: "Historical manual",
+          REFUNDED: "Refunded",
+          PARTIALLY_REFUNDED: "Partially refunded",
+        },
+        processingModes: {
+          TILOPAY_API: "Tilopay API",
+          TILOPAY_PORTAL_FALLBACK: "Tilopay portal",
+          LEGACY_UNSPECIFIED: "Historical unspecified mode",
+        },
+        outcomes: {
+          APPROVED: "Refund confirmed",
+          FAILED: "Refund not completed",
+        },
+        sources: {
+          TILOPAY_CONSULT: "Tilopay consult",
+          TILOPAY_PORTAL: "Tilopay admin portal",
+        },
+        actions: {
+          authorize: "Authorize refund",
+          authorizing: "Authorizing...",
+          confirmAuthorization: "Create authorization",
+          executeSandbox: "Send to sandbox",
+          executing: "Sending...",
+          consult: "Consult Tilopay",
+          consulting: "Consulting...",
+          reconcile: "Reconcile result",
+          reconciling: "Reconciling...",
+          confirmReconciliation: "Confirm reconciliation",
+          close: "Close",
+        },
+        placeholders: {
+          reason:
+            "Explain why this amount is authorized and which cancellation request supports it.",
+          providerRefundId:
+            "Reference visible in the Tilopay response or portal",
+          reconciliationNote:
+            "Describe what was verified, where it was confirmed, and why the result is final.",
+        },
+        notes: {
+          separateLifecycle:
+            "The reservation remains cancelled even when a refund attempt fails. Only confirmed refunds change the payment's financial status.",
+        },
+        authorizationDialog: {
+          title: "Authorize refund",
+          description:
+            "Create a PENDING record before any external action. You may authorize the full allowed amount or part of the remaining balance.",
+          warning:
+            "This action does not move money yet. Pending, processing, and approved amounts reserve the cumulative limit to prevent over-refunding.",
+        },
+        executionDialog: {
+          title: "Send request to Tilopay sandbox",
+          description:
+            "A type 2 modification will be sent for this refund's order and amount.",
+          warning:
+            "The processModification response contract is still being observed. The refund remains PROCESSING and the payment does not change until a verified result is reconciled. Do not repeat the call after a timeout.",
+        },
+        reconciliationDialog: {
+          title: "Reconcile refund",
+          description:
+            "Confirm the outcome only after checking Tilopay consult data or the operation in its portal.",
+          warning:
+            "Approving changes the payment to partially or fully refunded. Record a reference and sufficient evidence; this decision never restores the cancelled reservation.",
+        },
+        success: {
+          authorized: "The refund was authorized and is pending processing.",
+          authorizationAlreadyExists:
+            "This authorization already existed, so another refund was not created.",
+          providerObserved:
+            "Tilopay responded or the result became uncertain. Review diagnostics and reconcile before changing the payment.",
+          executionFailedSafely:
+            "The request did not reach the modification operation, and the attempt failed without changing the payment.",
+          consulted:
+            "The Tilopay consult observation was stored safely. Verify the evidence before reconciliation.",
+          reconciledApproved:
+            "The refund was approved and the payment's financial status was updated.",
+          reconciledFailed:
+            "The attempt was marked failed without restoring the reservation.",
+        },
+        empty: {
+          noRefunds: "This cancellation does not have authorized refunds yet.",
+          noEligiblePolicy:
+            "The cancellation does not have a positive amount authorized by the standard policy.",
+          cancellationRequired:
+            "The cancellation must be approved before a refund can be authorized.",
+        },
+        errors: {
+          ADMIN_UNAUTHORIZED: "Your session is not authorized for administration.",
+          INVALID_ADMIN_REFUND_REQUEST:
+            "Review the amount, reason, references, and confirmation details.",
+          ADMIN_REFUND_LIFECYCLE_REQUEST_NOT_FOUND:
+            "The selected cancellation request was not found.",
+          ADMIN_REFUND_NOT_FOUND: "The selected refund was not found.",
+          ADMIN_REFUND_REQUEST_NOT_COMPLETED:
+            "The cancellation request has not been completed yet.",
+          ADMIN_REFUND_RESERVATION_NOT_CANCELLED:
+            "The reservation must be cancelled before authorizing a refund.",
+          ADMIN_REFUND_PAYMENT_NOT_FOUND:
+            "The original payment associated with this cancellation was not found.",
+          ADMIN_REFUND_PAYMENT_NOT_REFUNDABLE:
+            "The payment is no longer in a state that supports this operation.",
+          ADMIN_REFUND_POLICY_NOT_ELIGIBLE:
+            "The stored policy does not allow this refund authorization.",
+          ADMIN_REFUND_AMOUNT_EXCEEDS_POLICY:
+            "The amount exceeds the remaining cancellation-policy allowance.",
+          ADMIN_REFUND_AMOUNT_EXCEEDS_PAYMENT:
+            "The amount exceeds the payment's refundable balance.",
+          ADMIN_REFUND_STALE:
+            "The request, payment, or refund changed. Refresh the page before continuing.",
+          ADMIN_REFUND_NOT_PENDING:
+            "Only a pending refund can be sent to the provider.",
+          ADMIN_REFUND_NOT_PROCESSING:
+            "Only a processing refund can be consulted.",
+          ADMIN_REFUND_API_EXECUTION_NOT_ALLOWED:
+            "This refund is not configured for Tilopay API execution.",
+          ADMIN_REFUND_API_SANDBOX_ONLY:
+            "Automated execution remains sandbox-only until the observed contract is closed.",
+          ADMIN_REFUND_RECONCILIATION_CONFLICT:
+            "The refund already has a different final outcome.",
+          ADMIN_REFUND_PROVIDER_UNAVAILABLE:
+            "Tilopay could not be consulted. Do not repeat an uncertain modification; verify the provider first.",
+          ADMIN_REFUND_UNEXPECTED_ERROR:
+            "The refund operation could not be completed. Please try again.",
+        },
+      },
+
       notifications: {
         title: "Email delivery",
         description:

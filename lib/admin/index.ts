@@ -73,6 +73,15 @@ export {
   getAdminCancellationRequestsForReservation,
   toAdminCancellationRequestSummary,
 } from "./reservation-cancellation";
+export {
+  AdminRefundError,
+  consultAdminTilopayRefund,
+  createAdminRefundAuthorization,
+  executeAdminTilopayRefund,
+  getAdminRefundsForReservation,
+  reconcileAdminRefund,
+  toAdminRefundSummary,
+} from "./refunds";
 export { getAdminReservationDetail } from "./reservation-detail";
 export { getAdminReservationsPage } from "./reservations";
 export { getAdminSessionActor } from "./session";

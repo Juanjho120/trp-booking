@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import {
   AdminReservationCancellationSection,
   AdminReservationDetailPage,
+  AdminReservationRefundSection,
 } from "@/features/admin";
 import { getAdminReservationDetail } from "@/lib/admin";
 import { esMessages } from "@/messages";
@@ -38,6 +39,7 @@ export default async function AdminReservationDetailRoute({
     <>
       <AdminReservationDetailPage reservation={reservation} />
       <AdminReservationCancellationSection reservation={reservation} />
+      <AdminReservationRefundSection reservation={reservation} />
     </>
   );
 }

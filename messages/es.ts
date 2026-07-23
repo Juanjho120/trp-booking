@@ -633,6 +633,169 @@ export const esMessages = {
         },
         empty: "Esta reserva todavía no tiene solicitudes de cancelación.",
       },
+      refunds: {
+        badge: "Reembolsos",
+        title: "Autorización y reconciliación de reembolsos",
+        description:
+          "Autoriza montos dentro de la política aprobada, observa Tilopay en sandbox y confirma el resultado financiero solo después de una verificación explícita.",
+        labels: {
+          refund: "Reembolso",
+          payment: "Pago",
+          paymentStatus: "Estado del pago",
+          policyAmount: "Monto permitido por política",
+          committedAmount: "Monto comprometido",
+          remainingAmount: "Monto todavía autorizable",
+          amount: "Monto",
+          reason: "Motivo interno",
+          processingMode: "Modo de procesamiento",
+          requestedBy: "Autorizado por",
+          createdAt: "Creado",
+          updatedAt: "Actualizado",
+          providerOrder: "Orden Tilopay",
+          providerRefundId: "Referencia de reembolso",
+          diagnosticSource: "Fuente del diagnóstico",
+          responseCode: "Código observado",
+          resultClassification: "Clasificación",
+          observedAt: "Observado",
+          observedOrder: "Orden observada",
+          observedAmount: "Monto observado",
+          safeDescription: "Detalle seguro",
+          outcome: "Resultado confirmado",
+          reconciliationSource: "Fuente de verificación",
+          finalProcessingMode: "Modo final",
+          reconciliationNote: "Evidencia y nota de reconciliación",
+          unavailable: "No disponible",
+        },
+        statuses: {
+          PENDING: "Pendiente",
+          PROCESSING: "Procesando / por reconciliar",
+          APPROVED: "Aprobado",
+          FAILED: "Fallido",
+          MANUAL: "Manual histórico",
+          REFUNDED: "Reembolsado",
+          PARTIALLY_REFUNDED: "Parcialmente reembolsado",
+        },
+        processingModes: {
+          TILOPAY_API: "API de Tilopay",
+          TILOPAY_PORTAL_FALLBACK: "Portal de Tilopay",
+          LEGACY_UNSPECIFIED: "Histórico sin modo normalizado",
+        },
+        outcomes: {
+          APPROVED: "Reembolso confirmado",
+          FAILED: "Reembolso no realizado",
+        },
+        sources: {
+          TILOPAY_CONSULT: "Consulta de Tilopay",
+          TILOPAY_PORTAL: "Portal administrativo de Tilopay",
+        },
+        actions: {
+          authorize: "Autorizar reembolso",
+          authorizing: "Autorizando...",
+          confirmAuthorization: "Crear autorización",
+          executeSandbox: "Enviar a sandbox",
+          executing: "Enviando...",
+          consult: "Consultar Tilopay",
+          consulting: "Consultando...",
+          reconcile: "Reconciliar resultado",
+          reconciling: "Reconciliando...",
+          confirmReconciliation: "Confirmar reconciliación",
+          close: "Cerrar",
+        },
+        placeholders: {
+          reason:
+            "Explica por qué se autoriza este monto y qué solicitud de cancelación lo respalda.",
+          providerRefundId:
+            "Referencia visible en la respuesta o portal de Tilopay",
+          reconciliationNote:
+            "Describe qué se verificó, dónde se confirmó y por qué el resultado es definitivo.",
+        },
+        notes: {
+          separateLifecycle:
+            "La reservación permanece cancelada aunque un intento de reembolso falle. Solo los reembolsos confirmados cambian el estado financiero del pago.",
+        },
+        authorizationDialog: {
+          title: "Autorizar reembolso",
+          description:
+            "Crea un registro PENDING antes de cualquier acción externa. Puedes autorizar el total permitido o una parte del monto restante.",
+          warning:
+            "Esta acción todavía no mueve dinero. El monto pendiente, procesando y aprobado se reserva contra el límite acumulado para impedir sobre-reembolsos.",
+        },
+        executionDialog: {
+          title: "Enviar solicitud a Tilopay sandbox",
+          description:
+            "Se enviará una modificación tipo 2 para la orden y el monto de este reembolso.",
+          warning:
+            "La respuesta de processModification todavía está en observación. La solicitud quedará PROCESSING y no cambiará el pago hasta reconciliar un resultado verificado. No repitas la llamada ante un timeout.",
+        },
+        reconciliationDialog: {
+          title: "Reconciliar reembolso",
+          description:
+            "Confirma el resultado únicamente después de verificar la consulta de Tilopay o la operación en su portal.",
+          warning:
+            "Marcar como aprobado cambia el pago a parcial o totalmente reembolsado. Registra una referencia y evidencia suficiente; esta decisión no restaura la reservación cancelada.",
+        },
+        success: {
+          authorized: "El reembolso quedó autorizado y pendiente de procesamiento.",
+          authorizationAlreadyExists:
+            "Esta autorización ya existía y no se creó otro reembolso.",
+          providerObserved:
+            "Tilopay respondió o el resultado quedó incierto. Revisa el diagnóstico y reconcilia antes de cambiar el pago.",
+          executionFailedSafely:
+            "La solicitud no llegó al proceso de modificación y el intento quedó fallido sin cambiar el pago.",
+          consulted:
+            "La consulta de Tilopay se registró de forma segura. Verifica la evidencia antes de reconciliar.",
+          reconciledApproved:
+            "El reembolso quedó aprobado y el estado financiero del pago fue actualizado.",
+          reconciledFailed:
+            "El intento quedó marcado como fallido sin restaurar la reservación.",
+        },
+        empty: {
+          noRefunds: "Esta cancelación todavía no tiene reembolsos autorizados.",
+          noEligiblePolicy:
+            "La cancelación no tiene un monto positivo autorizado por la política estándar.",
+          cancellationRequired:
+            "Primero debe aprobarse la cancelación para autorizar un reembolso.",
+        },
+        errors: {
+          ADMIN_UNAUTHORIZED: "Tu sesión no tiene autorización administrativa.",
+          INVALID_ADMIN_REFUND_REQUEST:
+            "Revisa el monto, motivo, referencias y datos de confirmación.",
+          ADMIN_REFUND_LIFECYCLE_REQUEST_NOT_FOUND:
+            "No encontramos la solicitud de cancelación seleccionada.",
+          ADMIN_REFUND_NOT_FOUND: "No encontramos el reembolso seleccionado.",
+          ADMIN_REFUND_REQUEST_NOT_COMPLETED:
+            "La solicitud de cancelación todavía no está completada.",
+          ADMIN_REFUND_RESERVATION_NOT_CANCELLED:
+            "La reservación debe estar cancelada antes de autorizar el reembolso.",
+          ADMIN_REFUND_PAYMENT_NOT_FOUND:
+            "No encontramos el pago inicial asociado a esta cancelación.",
+          ADMIN_REFUND_PAYMENT_NOT_REFUNDABLE:
+            "El pago ya no se encuentra en un estado que admita esta operación.",
+          ADMIN_REFUND_POLICY_NOT_ELIGIBLE:
+            "La política registrada no permite autorizar este reembolso.",
+          ADMIN_REFUND_AMOUNT_EXCEEDS_POLICY:
+            "El monto supera lo que todavía permite la política de cancelación.",
+          ADMIN_REFUND_AMOUNT_EXCEEDS_PAYMENT:
+            "El monto supera el saldo reembolsable del pago.",
+          ADMIN_REFUND_STALE:
+            "La solicitud, el pago o el reembolso cambió. Recarga la página antes de continuar.",
+          ADMIN_REFUND_NOT_PENDING:
+            "Solo un reembolso pendiente puede enviarse al proveedor.",
+          ADMIN_REFUND_NOT_PROCESSING:
+            "Solo un reembolso en procesamiento puede consultarse.",
+          ADMIN_REFUND_API_EXECUTION_NOT_ALLOWED:
+            "Este reembolso no está configurado para ejecución mediante la API de Tilopay.",
+          ADMIN_REFUND_API_SANDBOX_ONLY:
+            "La ejecución automática permanece habilitada únicamente para sandbox hasta cerrar el contrato observado.",
+          ADMIN_REFUND_RECONCILIATION_CONFLICT:
+            "El reembolso ya tiene un resultado final distinto.",
+          ADMIN_REFUND_PROVIDER_UNAVAILABLE:
+            "No pudimos consultar Tilopay. No repitas una modificación incierta; verifica primero el proveedor.",
+          ADMIN_REFUND_UNEXPECTED_ERROR:
+            "No pudimos completar la operación de reembolso. Inténtalo nuevamente.",
+        },
+      },
+
       notifications: {
         title: "Entrega de correos",
         description:

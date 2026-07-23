@@ -504,7 +504,7 @@ Corrective addendum: `docs/96-phase-11.1-cancellation-policy-and-tilopay-refund-
 
 ### 11.2 — Lifecycle request persistence and audit foundation
 
-Status: **Not started**
+Status: **Completed**
 
 ```text
 - Add typed cancellation and date-change/stay-extension request persistence.
@@ -519,7 +519,7 @@ Status: **Not started**
 
 ### 11.3 — Admin cancellation decision and availability release
 
-Status: **Not started**
+Status: **Completed**
 
 ```text
 - Add protected cancellation request/decision UI to reservation detail.
@@ -532,7 +532,7 @@ Status: **Not started**
 
 ### 11.4 — Refund authorization and Tilopay reconciliation
 
-Status: **Not started**
+Status: **In progress — implementation prepared; sandbox contract acceptance pending**
 
 ```text
 - Add full/partial refund authorization with cumulative refundable-amount validation.

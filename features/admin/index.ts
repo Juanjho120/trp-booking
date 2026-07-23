@@ -12,6 +12,7 @@ export { AdminPropertyCalendarView } from "./components/admin-property-calendar"
 export { AdminPropertyPhotoManager } from "./components/admin-property-photo-manager";
 export { AdminReservationCancellationSection } from "./components/admin-reservation-cancellation-section";
 export { AdminReservationDetailPage } from "./components/admin-reservation-detail-page";
+export { AdminReservationRefundSection } from "./components/admin-reservation-refund-section";
 export { AdminReservationsPageView } from "./components/admin-reservations-page";
 export { AdminShell } from "./components/admin-shell";
 export { AdminSnackbar } from "./components/admin-snackbar";

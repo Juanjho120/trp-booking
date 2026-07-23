@@ -6,13 +6,13 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
-Current subphase: 11.3 Admin cancellation decision and availability release — In progress
-Current focus: validate protected cancellation-request creation, standard-policy snapshots, serializable approval/rejection, availability release, arrival-notification suppression, idempotency, and unchanged payment/refund state
+Current subphase: 11.4 Refund authorization and Tilopay reconciliation — In progress
+Current focus: validate cumulative refund authorization, sandbox processModification observations, uncertain-result handling, consult/portal reconciliation, payment financial-state transitions, idempotency, and unchanged cancelled reservation state
 Last updated: 2026-07-23
-Last completed subphase: 11.2 Lifecycle request persistence and audit foundation
-11.2 accepted commit: 2495aa891fd26938550960f94fdbea700151350f
-11.2 implementation document: docs/97-phase-11.2-lifecycle-request-persistence-and-audit-foundation.md
+Last completed subphase: 11.3 Admin cancellation decision and availability release
+11.3 accepted commit: c609ea0e5b4654da86436dba79477455681d7b14
 11.3 implementation document: docs/98-phase-11.3-admin-cancellation-decision-and-availability-release.md
+11.4 implementation document: docs/99-phase-11.4-refund-authorization-and-tilopay-reconciliation.md
 Last completed phase: Phase 10 — Email Notifications
 Phase 10 closure document: docs/94-phase-10-validation-and-documentation-closure.md
 ```
@@ -326,7 +326,7 @@ The database owns permanent email deduplication and Resend receives the same sta
 Provider network calls run only after the reservation-confirmation transaction commits.
 Guest RESERVATION_CONFIRMED and ADMIN_NEW_RESERVATION are the initial automatic messages.
 PAYMENT_APPROVED is not sent separately.
-Automatic rejected/failed-payment emails are deferred from the initial MVP to avoid duplicate or noisy messages across retries.
+Automatic rejected/failed-payment emails are deferred from the initial MVP to avoid duplicate or noisy messages across payment retries.
 Arrival instructions remain a later Phase 10 subphase pending explicit timing and content approval.
 Transactional email copy stays centralized in messages/es.ts and messages/en.ts.
 The server-side environment contract will support disabled, test-recipient-override, and production delivery modes.
@@ -547,14 +547,15 @@ docs/96-phase-11.1-cancellation-policy-and-tilopay-refund-contract-correction.md
 ## Next Recommended Work
 
 ```text
-1. Run the Phase 11.3 local/test acceptance matrix and commit the accepted implementation.
-2. Verify exact 168-hour and 72-hour policy boundaries using the property check-in time in America/Guatemala.
-3. Verify request/decision idempotency, stale-tab protection, concurrent submission handling, and audit actions.
-4. Verify approved cancellation releases direct stay, preparation-buffer, and composed-listing availability without creating a Refund or changing Payment financial state.
-5. After acceptance, mark 11.3 completed and begin 11.4 refund authorization and Tilopay reconciliation.
-6. Validate processModification through the approved sandbox matrix before production execution.
-7. Keep date-change repricing, negative-difference behavior, and temporary hold duration assigned to 11.5.
-8. Keep lifecycle email templates and orchestration assigned to 11.6.
+1. Apply the Phase 11.4 package and run env, Prisma, lint, build, and admin authorization/reconciliation acceptance tests.
+2. Create controlled sandbox orders for full, partial, repeated partial, exact remaining, over-refund, and already-refunded scenarios.
+3. Run sequential and concurrent identical processModification observations and record whether Tilopay provides idempotency.
+4. Run timeout/uncertain-result recovery without blindly repeating the modification call.
+5. Record sanitized HTTP statuses, response shapes, codes, references, financial effects, and consult evidence in docs/99.
+6. Test type 3 reversal only against explicitly planned sandbox transaction states.
+7. Keep production API execution disabled until the observed contract and retry rules are accepted.
+8. After provider acceptance, close 11.4 before beginning 11.5 date changes and stay extensions.
+9. Keep lifecycle email templates and orchestration assigned to 11.6.
 ```
 
 ## Completed Work — Phase 11.2
@@ -573,21 +574,42 @@ Accepted commit: 2495aa891fd26938550960f94fdbea700151350f.
 Implementation document: docs/97-phase-11.2-lifecycle-request-persistence-and-audit-foundation.md.
 ```
 
-## In Progress — Phase 11.3
+## Completed Work — Phase 11.3
 
 ### Phase 11.3 — Admin Cancellation Decision and Availability Release
 
-Status: **In progress — implementation prepared for local/test acceptance**
+Status: **Completed and accepted**
 
 ```text
 Protected admin routes record and decide cancellation requests using strict Zod validation and safe error codes.
 Creation snapshots the confirmed reservation, validated initial payment, and exact standard cancellation-policy outcome.
 Approval changes Reservation to CANCELLED and completes the request inside a serializable transaction.
 Rejection preserves the reservation and availability.
-Cancellation releases direct stay and preparation-buffer availability through the existing status-driven availability model.
+Cancellation releases direct stay, preparation-buffer, and composed-listing availability through the existing status-driven model.
 Pending and failed arrival-instruction notifications are skipped without rewriting SENT history.
-No Refund row, Tilopay modification, Payment refund state, lifecycle email, public self-service endpoint, or PMS behavior is added.
+Local/test policy-boundary, idempotency, concurrency, audit, and availability-release tests were reported successful.
+No Refund row, Tilopay modification, Payment refund state, lifecycle email, public self-service endpoint, or PMS behavior was added.
+Accepted commit: c609ea0e5b4654da86436dba79477455681d7b14.
 Implementation document: docs/98-phase-11.3-admin-cancellation-decision-and-availability-release.md.
+```
+
+## In Progress — Phase 11.4
+
+### Phase 11.4 — Refund Authorization and Tilopay Reconciliation
+
+Status: **In progress — implementation prepared; provider contract acceptance pending**
+
+```text
+Full/partial PENDING refund authorization is protected, idempotent, and constrained by policy and captured-payment cumulative balances.
+Provider and portal actions occur only after the Refund authorization transaction commits.
+Tilopay processModification type 2 execution is intentionally sandbox-only.
+Unknown responses and timeouts remain PROCESSING until explicit consult/portal reconciliation.
+Only APPROVED reconciliation changes Payment to PARTIALLY_REFUNDED or REFUNDED.
+FAILED attempts preserve history and never restore the cancelled Reservation.
+Safe diagnostics omit credentials and raw provider values.
+A controlled CLI supports the required full/partial/reversal/error/duplicate/timeout sandbox observation matrix.
+No migration, dependency, environment variable, refund email, public mutation endpoint, or PMS behavior is added.
+Implementation document: docs/99-phase-11.4-refund-authorization-and-tilopay-reconciliation.md.
 ```
 
 ## Continuity Notes for New Conversations
@@ -617,9 +639,14 @@ docs/95-phase-11-lifecycle-strategy-and-roadmap.md
 docs/96-phase-11.1-cancellation-policy-and-tilopay-refund-contract-correction.md
 docs/97-phase-11.2-lifecycle-request-persistence-and-audit-foundation.md
 docs/98-phase-11.3-admin-cancellation-decision-and-availability-release.md
+docs/99-phase-11.4-refund-authorization-and-tilopay-reconciliation.md
 lib/admin/reservation-cancellation.ts
 lib/reservations/cancellation-policy.ts
 types/admin-reservation-cancellation.ts
+lib/admin/refunds.ts
+lib/payments/tilopay-api-client.ts
+types/admin-refund.ts
+scripts/observe-tilopay-modification.ts
 config/site.ts
 lib/env/server.ts
 lib/reservations/pending-holds.ts
