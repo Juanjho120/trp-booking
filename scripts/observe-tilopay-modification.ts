@@ -56,6 +56,7 @@ type Arguments = Readonly<{
   keyMode: TilopayObservationKeyMode;
   repeat: number;
   concurrent: number;
+  timeoutMs: number;
 }>;
 
 function option(name: string): string | undefined {
@@ -108,6 +109,7 @@ function parseArguments(): Arguments {
     ),
     repeat: positiveInteger("repeat", 1, 10),
     concurrent: positiveInteger("concurrent", 1, 5),
+    timeoutMs: positiveInteger("timeout", 20_000, 120_000),
   };
 }
 
@@ -132,6 +134,7 @@ async function runObservation(
       {
         authorizationMode: args.authorizationMode,
         keyMode: args.keyMode,
+        timeoutMs: args.timeoutMs,
       },
     );
 
@@ -144,6 +147,7 @@ async function runObservation(
         amount: args.amount ?? null,
         authorizationMode: args.authorizationMode,
         keyMode: args.keyMode,
+        timeoutMs: args.timeoutMs,
       },
       observation,
     };
@@ -157,6 +161,7 @@ async function runObservation(
         amount: args.amount ?? null,
         authorizationMode: args.authorizationMode,
         keyMode: args.keyMode,
+        timeoutMs: args.timeoutMs,
       },
       error:
         error instanceof TilopayApiClientError
