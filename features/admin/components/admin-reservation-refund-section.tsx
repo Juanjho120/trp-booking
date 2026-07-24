@@ -163,6 +163,22 @@ export function AdminReservationRefundSection({
       remainingPolicyAmount > 0,
   );
   const isBusy = busyAction !== null;
+  const reconciliationConsultClassification =
+    reconciliationTarget?.diagnostics?.source === "tilopay_refund_consult"
+      ? reconciliationTarget.diagnostics.resultClassification
+      : null;
+  const reconciliationConsultOutcome =
+    reconciliationConsultClassification === "PROVIDER_ACCEPTED"
+      ? "APPROVED"
+      : reconciliationConsultClassification === "PROVIDER_REJECTED"
+        ? "FAILED"
+        : null;
+  const hasConclusiveConsultEvidence = Boolean(
+    reconciliationConsultOutcome &&
+      reconciliationTarget?.diagnostics?.providerReference &&
+      reconciliationTarget.diagnostics.modificationType === "2" &&
+      reconciliationTarget.diagnostics.amount,
+  );
 
   function clearFeedback(): void {
     setErrorFeedback(null);
@@ -191,6 +207,14 @@ export function AdminReservationRefundSection({
 
   function modeLabel(mode: string): string {
     return copy.processingModes[mode as keyof typeof copy.processingModes] ?? mode;
+  }
+
+  function classificationLabel(classification: string): string {
+    return (
+      copy.resultClassifications[
+        classification as keyof typeof copy.resultClassifications
+      ] ?? classification
+    );
   }
 
   function errorMessage(code: AdminRefundErrorCode | undefined): string {
@@ -229,17 +253,32 @@ export function AdminReservationRefundSection({
   function openReconciliation(refund: AdminRefundSummary): void {
     clearFeedback();
     setReconciliationRequestId(crypto.randomUUID());
+    const consultClassification =
+      refund.diagnostics?.source === "tilopay_refund_consult"
+        ? refund.diagnostics.resultClassification
+        : null;
+    const consultOutcome =
+      consultClassification === "PROVIDER_ACCEPTED"
+        ? "APPROVED"
+        : consultClassification === "PROVIDER_REJECTED"
+          ? "FAILED"
+          : null;
+    const useConsultEvidence = Boolean(
+      consultOutcome &&
+        refund.diagnostics?.providerReference &&
+        refund.diagnostics.modificationType === "2" &&
+        refund.diagnostics.amount,
+    );
+
     setReconciliationDraft({
-      outcome: "APPROVED",
-      source:
-        refund.processingMode === "TILOPAY_PORTAL_FALLBACK"
-          ? "TILOPAY_PORTAL"
-          : "TILOPAY_CONSULT",
-      finalProcessingMode:
-        refund.processingMode === "TILOPAY_PORTAL_FALLBACK"
-          ? "TILOPAY_PORTAL_FALLBACK"
-          : "TILOPAY_API",
-      providerRefundId: refund.providerRefundId ?? "",
+      outcome: useConsultEvidence ? (consultOutcome ?? "APPROVED") : "APPROVED",
+      source: useConsultEvidence ? "TILOPAY_CONSULT" : "TILOPAY_PORTAL",
+      finalProcessingMode: useConsultEvidence
+        ? "TILOPAY_API"
+        : "TILOPAY_PORTAL_FALLBACK",
+      providerRefundId: useConsultEvidence
+        ? (refund.diagnostics?.providerReference ?? "")
+        : (refund.providerRefundId ?? ""),
       note: "",
     });
     setReconciliationTarget(refund);
@@ -332,10 +371,21 @@ export function AdminReservationRefundSection({
 
       setExecutionTarget(null);
 
+      const classification =
+        payload.result.refund.diagnostics?.resultClassification;
+
       if (payload.result.refund.status === "FAILED") {
-        setErrorFeedback(copy.success.executionFailedSafely);
+        setErrorFeedback(
+          classification === "PROVIDER_REJECTED"
+            ? copy.success.providerRejected
+            : copy.success.executionFailedSafely,
+        );
       } else {
-        setSuccessFeedback(copy.success.providerObserved);
+        setSuccessFeedback(
+          classification === "PROVIDER_ACCEPTED_PENDING_CONFIRMATION"
+            ? copy.success.providerAcceptedPending
+            : copy.success.providerUncertain,
+        );
       }
 
       router.refresh();
@@ -371,7 +421,16 @@ export function AdminReservationRefundSection({
         return;
       }
 
-      setSuccessFeedback(copy.success.consulted);
+      const classification =
+        payload.result.refund.diagnostics?.resultClassification;
+
+      setSuccessFeedback(
+        classification === "PROVIDER_ACCEPTED"
+          ? copy.success.consultedAccepted
+          : classification === "PROVIDER_REJECTED"
+            ? copy.success.consultedRejected
+            : copy.success.consultedInconclusive,
+      );
       router.refresh();
     } catch {
       setErrorFeedback(copy.errors.ADMIN_REFUND_UNEXPECTED_ERROR);
@@ -516,6 +575,7 @@ export function AdminReservationRefundSection({
                 <RefundCard
                   busyAction={busyAction}
                   copy={copy}
+                  classificationLabel={classificationLabel}
                   formatDateTime={formatDateTime}
                   formatMoney={formatMoney}
                   key={refund.id}
@@ -663,7 +723,7 @@ export function AdminReservationRefundSection({
           <div className="grid gap-5 overflow-y-auto px-6 py-2">
             <FormField label={copy.labels.outcome}>
               <Select
-                disabled={isBusy}
+                disabled={isBusy || reconciliationDraft.source === "TILOPAY_CONSULT"}
                 onValueChange={(value) =>
                   setReconciliationDraft((current) => ({
                     ...current,
@@ -682,43 +742,58 @@ export function AdminReservationRefundSection({
             <FormField label={copy.labels.reconciliationSource}>
               <Select
                 disabled={isBusy}
-                onValueChange={(value) =>
-                  setReconciliationDraft((current) => ({
-                    ...current,
-                    source: value as AdminRefundReconciliationSource,
-                  }))
-                }
+                onValueChange={(value) => {
+                  const source = value as AdminRefundReconciliationSource;
+
+                  setReconciliationDraft((current) =>
+                    source === "TILOPAY_CONSULT" &&
+                    hasConclusiveConsultEvidence &&
+                    reconciliationConsultOutcome
+                      ? {
+                          ...current,
+                          source,
+                          outcome: reconciliationConsultOutcome,
+                          finalProcessingMode: "TILOPAY_API",
+                          providerRefundId:
+                            reconciliationTarget?.diagnostics
+                              ?.providerReference ?? "",
+                        }
+                      : {
+                          ...current,
+                          source: "TILOPAY_PORTAL",
+                          finalProcessingMode: "TILOPAY_PORTAL_FALLBACK",
+                          providerRefundId:
+                            reconciliationTarget?.providerRefundId ?? "",
+                        },
+                  );
+                }}
                 value={reconciliationDraft.source}
               >
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="TILOPAY_CONSULT">{copy.sources.TILOPAY_CONSULT}</SelectItem>
-                  <SelectItem value="TILOPAY_PORTAL">{copy.sources.TILOPAY_PORTAL}</SelectItem>
+                  {hasConclusiveConsultEvidence ? (
+                    <SelectItem value="TILOPAY_CONSULT">
+                      {copy.sources.TILOPAY_CONSULT}
+                    </SelectItem>
+                  ) : null}
+                  <SelectItem value="TILOPAY_PORTAL">
+                    {copy.sources.TILOPAY_PORTAL}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </FormField>
-            <FormField label={copy.labels.finalProcessingMode}>
-              <Select
-                disabled={isBusy}
-                onValueChange={(value) =>
-                  setReconciliationDraft((current) => ({
-                    ...current,
-                    finalProcessingMode: value as AdminRefundProcessingMode,
-                  }))
-                }
-                value={reconciliationDraft.finalProcessingMode}
-              >
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="TILOPAY_API">{copy.processingModes.TILOPAY_API}</SelectItem>
-                  <SelectItem value="TILOPAY_PORTAL_FALLBACK">{copy.processingModes.TILOPAY_PORTAL_FALLBACK}</SelectItem>
-                </SelectContent>
-              </Select>
-            </FormField>
+            <div className="rounded-2xl border border-border bg-muted/30 p-4">
+              <DetailValue
+                label={copy.labels.finalProcessingMode}
+                value={modeLabel(reconciliationDraft.finalProcessingMode)}
+              />
+            </div>
             <FormField label={copy.labels.providerRefundId}>
               <input
                 className={inputClassName}
-                disabled={isBusy}
+                disabled={
+                  isBusy || reconciliationDraft.source === "TILOPAY_CONSULT"
+                }
                 maxLength={180}
                 onChange={(event) =>
                   setReconciliationDraft((current) => ({
@@ -771,6 +846,7 @@ function RefundCard({
   copy,
   statusLabel,
   modeLabel,
+  classificationLabel,
   formatMoney,
   formatDateTime,
   busyAction,
@@ -784,6 +860,7 @@ function RefundCard({
   copy: ReturnType<typeof useLocale>["messages"]["admin"]["reservationsPage"]["refunds"];
   statusLabel: string;
   modeLabel: string;
+  classificationLabel: (classification: string) => string;
   formatMoney: (value: string, currency: string) => string;
   formatDateTime: (value: string | null) => string;
   busyAction: string | null;
@@ -836,7 +913,14 @@ function RefundCard({
         <div className="mt-4 grid gap-4 rounded-xl border border-border/70 bg-background/60 p-4 sm:grid-cols-2 xl:grid-cols-4">
           <DetailValue label={copy.labels.diagnosticSource} value={refund.diagnostics.source} />
           <DetailValue label={copy.labels.responseCode} value={refund.diagnostics.responseCode ?? copy.labels.unavailable} />
-          <DetailValue label={copy.labels.resultClassification} value={refund.diagnostics.resultClassification ?? copy.labels.unavailable} />
+          <DetailValue
+            label={copy.labels.resultClassification}
+            value={
+              refund.diagnostics.resultClassification
+                ? classificationLabel(refund.diagnostics.resultClassification)
+                : copy.labels.unavailable
+            }
+          />
           <DetailValue label={copy.labels.observedAt} value={formatDateTime(refund.diagnostics.observedAt)} />
           {refund.diagnostics.orderNumber ? (
             <DetailValue label={copy.labels.observedOrder} value={refund.diagnostics.orderNumber} />
@@ -847,6 +931,18 @@ function RefundCard({
               value={refund.diagnostics.currency
                 ? formatMoney(refund.diagnostics.amount, refund.diagnostics.currency)
                 : refund.diagnostics.amount}
+            />
+          ) : null}
+          {refund.diagnostics.modificationType ? (
+            <DetailValue
+              label={copy.labels.modificationType}
+              value={refund.diagnostics.modificationType}
+            />
+          ) : null}
+          {refund.diagnostics.candidateCount !== null ? (
+            <DetailValue
+              label={copy.labels.candidateCount}
+              value={String(refund.diagnostics.candidateCount)}
             />
           ) : null}
           {refund.diagnostics.description ? (

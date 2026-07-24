@@ -6,13 +6,14 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
-Current subphase: 11.4 Refund authorization and Tilopay reconciliation — In progress
-Current focus: validate cumulative refund authorization, sandbox processModification observations, uncertain-result handling, consult/portal reconciliation, payment financial-state transitions, idempotency, and unchanged cancelled reservation state
-Last updated: 2026-07-23
+Current subphase: 11.4.1 Observed Tilopay contract and evidence-based reconciliation — In progress
+Current focus: classify observed provider responses, safely enumerate /consult candidates, enforce evidence-derived reconciliation, retain portal fallback, and validate financial-state transitions
+Last updated: 2026-07-24
 Last completed subphase: 11.3 Admin cancellation decision and availability release
 11.3 accepted commit: c609ea0e5b4654da86436dba79477455681d7b14
 11.3 implementation document: docs/98-phase-11.3-admin-cancellation-decision-and-availability-release.md
 11.4 implementation document: docs/99-phase-11.4-refund-authorization-and-tilopay-reconciliation.md
+11.4.1 correction document: docs/100-phase-11.4.1-observed-tilopay-contract-and-evidence-based-reconciliation.md
 Last completed phase: Phase 10 — Email Notifications
 Phase 10 closure document: docs/94-phase-10-validation-and-documentation-closure.md
 ```
@@ -597,19 +598,41 @@ Implementation document: docs/98-phase-11.3-admin-cancellation-decision-and-avai
 
 ### Phase 11.4 — Refund Authorization and Tilopay Reconciliation
 
-Status: **In progress — implementation prepared; provider contract acceptance pending**
+Status: **In progress — cases 1–16 accepted as observed sandbox evidence; 11.4.1 correction and `/consult` acceptance pending**
 
 ```text
 Full/partial PENDING refund authorization is protected, idempotent, and constrained by policy and captured-payment cumulative balances.
 Provider and portal actions occur only after the Refund authorization transaction commits.
 Tilopay processModification type 2 execution is intentionally sandbox-only.
-Unknown responses and timeouts remain PROCESSING until explicit consult/portal reconciliation.
-Only APPROVED reconciliation changes Payment to PARTIALLY_REFUNDED or REFUNDED.
+Observed 1101 / Transaction is approved responses remain PROCESSING until evidence reconciliation.
+Known rejected codes 12 and 96 become FAILED without changing Payment; unknown responses and timeouts remain PROCESSING.
+Only evidence-backed APPROVED reconciliation changes Payment to PARTIALLY_REFUNDED or REFUNDED.
 FAILED attempts preserve history and never restore the cancelled Reservation.
 Safe diagnostics omit credentials and raw provider values.
-A controlled CLI supports the required full/partial/reversal/error/duplicate/timeout sandbox observation matrix.
+Controlled CLIs support processModification matrix execution and safe `/consult` candidate observation.
 No migration, dependency, environment variable, refund email, public mutation endpoint, or PMS behavior is added.
 Implementation document: docs/99-phase-11.4-refund-authorization-and-tilopay-reconciliation.md.
+```
+
+## In Progress — Phase 11.4.1
+
+### Phase 11.4.1 — Observed Tilopay Contract and Evidence-Based Reconciliation
+
+Status: **In progress — correction prepared; `/consult` evidence pending**
+
+```text
+Cases 1–16 were completed using sanitized processModification output plus Tilopay merchant-portal financial verification.
+The accepted sandbox response contract is HTTP 200 + code 1101 + Transaction is approved + provider reference.
+Known code 12 and 96 responses are rejected even when HTTP is 200 and an attempt reference exists.
+Accepted responses remain PROCESSING; known rejected responses become FAILED; uncertain responses remain PROCESSING with no retry.
+Sequential duplicate calls produced multiple refunds, so TRP Booking remains the mandatory idempotency owner.
+A safe /consult observer now returns bounded candidates and response shape without raw payload or secrets.
+Consult reconciliation is valid only when the provider reference, order, type 2, signed amount, currency, code, and description match.
+The admin UI locks consult-derived outcomes/references and uses portal verification for inconclusive evidence.
+Type 3 remains outside the application refund path.
+No migration, dependency, environment variable, production execution, email, public mutation, or PMS behavior is added.
+Correction document: docs/100-phase-11.4.1-observed-tilopay-contract-and-evidence-based-reconciliation.md.
+Remaining acceptance: execute case 17, compare candidates with portal, test accepted/inconclusive UI consult, and verify audit/state transitions.
 ```
 
 ## Continuity Notes for New Conversations
@@ -640,6 +663,7 @@ docs/96-phase-11.1-cancellation-policy-and-tilopay-refund-contract-correction.md
 docs/97-phase-11.2-lifecycle-request-persistence-and-audit-foundation.md
 docs/98-phase-11.3-admin-cancellation-decision-and-availability-release.md
 docs/99-phase-11.4-refund-authorization-and-tilopay-reconciliation.md
+docs/100-phase-11.4.1-observed-tilopay-contract-and-evidence-based-reconciliation.md
 lib/admin/reservation-cancellation.ts
 lib/reservations/cancellation-policy.ts
 types/admin-reservation-cancellation.ts
@@ -647,6 +671,7 @@ lib/admin/refunds.ts
 lib/payments/tilopay-api-client.ts
 types/admin-refund.ts
 scripts/observe-tilopay-modification.ts
+scripts/observe-tilopay-consult.ts
 config/site.ts
 lib/env/server.ts
 lib/reservations/pending-holds.ts

@@ -1,12 +1,18 @@
 export {
+  classifyTilopayConsultCandidate,
+  classifyTilopayModificationObservation,
   consultTilopayTransaction,
   describeTilopayConsultObservation,
+  observeTilopayConsultTransaction,
   observeTilopayModificationSandbox,
   processTilopayModification,
   TilopayApiClientError,
 } from "./tilopay-api-client";
 export type {
+  TilopayConsultCandidate,
+  TilopayConsultObservation,
   TilopayModificationObservation,
+  TilopayModificationResultClassification,
 } from "./tilopay-api-client";
 export {
   createTilopayOrderHash,

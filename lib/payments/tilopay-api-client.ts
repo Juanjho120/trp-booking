@@ -4,9 +4,24 @@ const TILOPAY_API_BASE_URL = "https://app.tilopay.com/api/v1";
 const DEFAULT_MODIFICATION_TIMEOUT_MS = 20_000;
 const SAFE_DESCRIPTION_MAX_LENGTH = 240;
 const SAFE_REFERENCE_MAX_LENGTH = 180;
+const TILOPAY_MODIFICATION_APPROVED_CODE = "1101";
+const TILOPAY_MODIFICATION_APPROVED_DESCRIPTION = "Transaction is approved";
+const TILOPAY_MODIFICATION_REJECTED_CODES = new Set(["12", "96"]);
+const CONSULT_RECORD_LIMIT = 100;
+const CONSULT_CONTAINER_KEYS = [
+  "response",
+  "transactions",
+  "data",
+  "results",
+  "items",
+] as const;
 
 type JsonRecord = Record<string, unknown>;
 export type TilopayModificationType = "2" | "3";
+export type TilopayModificationResultClassification =
+  | "PROVIDER_ACCEPTED"
+  | "PROVIDER_REJECTED"
+  | "RESULT_UNCERTAIN";
 export type TilopayObservationAuthorizationMode = "valid" | "invalid" | "missing";
 export type TilopayObservationKeyMode = "valid" | "invalid" | "missing";
 
@@ -36,6 +51,23 @@ export type TilopayConsultResult = Readonly<{
   currency: string | null;
   email: string | null;
   rawPayload: JsonRecord;
+}>;
+
+export type TilopayConsultCandidate = Readonly<{
+  responseCode: string | null;
+  description: string | null;
+  providerReference: string | null;
+  orderNumber: string | null;
+  type: string | null;
+  amount: string | null;
+  currency: string | null;
+  status: string | null;
+}>;
+
+export type TilopayConsultObservation = Readonly<{
+  candidates: readonly TilopayConsultCandidate[];
+  responseShape: Readonly<Record<string, unknown>>;
+  observedAt: string;
 }>;
 
 export type TilopayModificationObservation = Readonly<{
@@ -86,7 +118,14 @@ function getString(payload: JsonRecord, keys: readonly string[]): string | null 
 }
 
 function getAmount(payload: JsonRecord): string | null {
-  const value = getString(payload, ["amount", "total", "transactionAmount"]);
+  const value = getString(payload, [
+    "amount",
+    "Amount",
+    "total",
+    "Total",
+    "transactionAmount",
+    "TransactionAmount",
+  ]);
 
   if (!value) {
     return null;
@@ -101,8 +140,171 @@ function getAmount(payload: JsonRecord): string | null {
   return numericValue.toFixed(2);
 }
 
+function getSignedAmount(payload: JsonRecord): string | null {
+  const value = getString(payload, [
+    "amount",
+    "Amount",
+    "total",
+    "Total",
+    "transactionAmount",
+    "TransactionAmount",
+    "refundAmount",
+    "RefundAmount",
+  ]);
+
+  if (!value) {
+    return null;
+  }
+
+  const numericValue = Number(value);
+
+  if (!Number.isFinite(numericValue)) {
+    return null;
+  }
+
+  return numericValue.toFixed(2);
+}
+
+function hasConsultCandidateFields(record: JsonRecord): boolean {
+  return [
+    "transactionId",
+    "TransactionId",
+    "orderId",
+    "tpt",
+    "id_tilopay",
+    "tilopay-transaction",
+    "amount",
+    "Amount",
+    "transactionAmount",
+    "TransactionAmount",
+    "refundAmount",
+    "RefundAmount",
+    "type",
+    "Type",
+    "ReasonCode",
+    "ReasonCodeDescription",
+    "external_order_id",
+    "externalOrderId",
+    "orderNumber",
+    "OrderNumber",
+  ].some((key) => key in record);
+}
+
+function collectConsultRecords(
+  value: unknown,
+  depth = 0,
+  records: JsonRecord[] = [],
+): JsonRecord[] {
+  if (depth > 3 || records.length >= CONSULT_RECORD_LIMIT) {
+    return records;
+  }
+
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      collectConsultRecords(item, depth + 1, records);
+
+      if (records.length >= CONSULT_RECORD_LIMIT) {
+        break;
+      }
+    }
+
+    return records;
+  }
+
+  if (!isJsonRecord(value)) {
+    return records;
+  }
+
+  if (hasConsultCandidateFields(value)) {
+    records.push(value);
+  }
+
+  for (const key of CONSULT_CONTAINER_KEYS) {
+    if (key in value) {
+      collectConsultRecords(value[key], depth + 1, records);
+    }
+  }
+
+  return records;
+}
+
+function normalizeConsultCandidate(
+  record: JsonRecord,
+): TilopayConsultCandidate {
+  return {
+    responseCode: trimSafe(
+      getString(record, [
+        "responseCode",
+        "ReasonCode",
+        "code",
+        "statusCode",
+      ]),
+      100,
+    ),
+    description: trimSafe(
+      getString(record, [
+        "description",
+        "ReasonCodeDescription",
+        "message",
+        "responseMessage",
+        "response",
+      ]),
+      SAFE_DESCRIPTION_MAX_LENGTH,
+    ),
+    providerReference: trimSafe(
+      getString(record, [
+        "refundId",
+        "reversalId",
+        "transactionId",
+        "TransactionId",
+        "orderId",
+        "tpt",
+        "id_tilopay",
+        "tilopay-transaction",
+        "auth",
+        "authorization",
+      ]),
+      SAFE_REFERENCE_MAX_LENGTH,
+    ),
+    orderNumber: trimSafe(
+      getString(record, [
+        "external_order_id",
+        "externalOrderId",
+        "orderNumber",
+        "OrderNumber",
+        "order",
+      ]),
+      SAFE_REFERENCE_MAX_LENGTH,
+    ),
+    type: trimSafe(
+      getString(record, [
+        "type",
+        "Type",
+        "transactionType",
+        "operationType",
+      ]),
+      40,
+    ),
+    amount: getSignedAmount(record),
+    currency: trimSafe(getString(record, ["currency", "Currency"]), 10),
+    status: trimSafe(
+      getString(record, [
+        "status",
+        "Status",
+        "transactionStatus",
+        "state",
+      ]),
+      100,
+    ),
+  };
+}
+
 function getConsultRecord(payload: JsonRecord): JsonRecord {
   const response = payload.response;
+
+  if (isJsonRecord(response)) {
+    return response;
+  }
 
   if (Array.isArray(response) && response.length > 0 && isJsonRecord(response[0])) {
     return response[0];
@@ -246,9 +448,9 @@ async function requestTilopayApiToken(): Promise<TilopayApiToken> {
   };
 }
 
-export async function consultTilopayTransaction(
+async function requestTilopayConsultPayload(
   orderNumber: string,
-): Promise<TilopayConsultResult> {
+): Promise<JsonRecord> {
   const env = getTilopayEnv();
   const token = await requestTilopayApiToken();
   let response: Response;
@@ -287,16 +489,50 @@ export async function consultTilopayTransaction(
     throw new TilopayApiClientError("TILOPAY_CONSULT_INVALID_RESPONSE");
   }
 
+  return payload;
+}
+
+export async function observeTilopayConsultTransaction(
+  orderNumber: string,
+): Promise<TilopayConsultObservation> {
+  const payload = await requestTilopayConsultPayload(orderNumber);
+  const records = collectConsultRecords(payload);
+  const candidateMap = new Map<string, TilopayConsultCandidate>();
+
+  for (const record of records) {
+    const candidate = normalizeConsultCandidate(record);
+    const key = JSON.stringify(candidate);
+
+    if (!candidateMap.has(key)) {
+      candidateMap.set(key, candidate);
+    }
+  }
+
+  return {
+    candidates: Array.from(candidateMap.values()),
+    responseShape: {
+      body: describeResponseShape(payload),
+    },
+    observedAt: new Date().toISOString(),
+  };
+}
+
+export async function consultTilopayTransaction(
+  orderNumber: string,
+): Promise<TilopayConsultResult> {
+  const payload = await requestTilopayConsultPayload(orderNumber);
   const consultRecord = getConsultRecord(payload);
 
   return {
     responseCode: getString(consultRecord, [
       "responseCode",
+      "ReasonCode",
       "code",
       "statusCode",
     ]),
     description: getString(consultRecord, [
       "description",
+      "ReasonCodeDescription",
       "message",
       "responseMessage",
       "response",
@@ -319,7 +555,7 @@ export async function consultTilopayTransaction(
       "tilopay-transaction",
     ]),
     amount: getAmount(consultRecord),
-    currency: getString(consultRecord, ["currency"]),
+    currency: getString(consultRecord, ["currency", "Currency"]),
     email: getString(consultRecord, [
       "email",
       "billToEmail",
@@ -448,6 +684,57 @@ export async function observeTilopayModificationSandbox(
   } finally {
     clearTimeout(timeout);
   }
+}
+
+export function classifyTilopayModificationObservation(
+  observation: TilopayModificationObservation,
+): TilopayModificationResultClassification {
+  const description = observation.description?.trim() ?? "";
+
+  if (
+    observation.httpStatus === 200 &&
+    observation.ok &&
+    observation.responseCode === TILOPAY_MODIFICATION_APPROVED_CODE &&
+    description === TILOPAY_MODIFICATION_APPROVED_DESCRIPTION &&
+    Boolean(observation.providerReference)
+  ) {
+    return "PROVIDER_ACCEPTED";
+  }
+
+  if (
+    (observation.httpStatus >= 400 && observation.httpStatus < 500) ||
+    (observation.responseCode !== null &&
+      TILOPAY_MODIFICATION_REJECTED_CODES.has(observation.responseCode) &&
+      description !== TILOPAY_MODIFICATION_APPROVED_DESCRIPTION)
+  ) {
+    return "PROVIDER_REJECTED";
+  }
+
+  return "RESULT_UNCERTAIN";
+}
+
+export function classifyTilopayConsultCandidate(
+  candidate: TilopayConsultCandidate,
+): TilopayModificationResultClassification {
+  const description = candidate.description?.trim() ?? "";
+
+  if (
+    candidate.responseCode === TILOPAY_MODIFICATION_APPROVED_CODE &&
+    description === TILOPAY_MODIFICATION_APPROVED_DESCRIPTION &&
+    Boolean(candidate.providerReference)
+  ) {
+    return "PROVIDER_ACCEPTED";
+  }
+
+  if (
+    candidate.responseCode !== null &&
+    TILOPAY_MODIFICATION_REJECTED_CODES.has(candidate.responseCode) &&
+    description !== TILOPAY_MODIFICATION_APPROVED_DESCRIPTION
+  ) {
+    return "PROVIDER_REJECTED";
+  }
+
+  return "RESULT_UNCERTAIN";
 }
 
 export async function processTilopayModification(input: Readonly<{

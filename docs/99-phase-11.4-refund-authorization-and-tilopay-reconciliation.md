@@ -5,8 +5,8 @@
 ```text
 Phase: Phase 11 — Cancellation, Refund, and Change Request Rules
 Subphase: 11.4 Refund authorization and Tilopay reconciliation
-Status: In progress — implementation prepared; sandbox response contract still requires real observations
-Implementation date: 2026-07-23
+Status: In progress — cases 1–16 observed; 11.4.1 correction prepared; `/consult` evidence pending
+Implementation dates: 2026-07-23 through 2026-07-24
 Base commit: c609ea0e5b4654da86436dba79477455681d7b14
 Previous accepted subphase: 11.3 Admin cancellation decision and availability release
 Previous accepted commit: c609ea0e5b4654da86436dba79477455681d7b14
@@ -33,14 +33,16 @@ A cancelled reservation remains CANCELLED even if a refund fails.
 - Independent cumulative validation against the captured Payment amount.
 - Idempotent PENDING Refund creation before any provider or portal operation.
 - Sandbox-only Tilopay processModification type 2 execution.
-- Safe response-shape observation without treating an unknown response as success.
-- Timeout/network uncertainty preserved as PROCESSING without automatic retry.
-- Existing Tilopay consult path reused for safe reconciliation evidence.
-- Consult order, original amount, and currency checked against the source Payment before the evidence is accepted.
-- Explicit APPROVED/FAILED reconciliation through consult or portal evidence.
+- Safe response-shape observation plus centralized provider-accepted, provider-rejected, and uncertain classification.
+- A 1101 / Transaction is approved response remains PROCESSING until matching evidence is reconciled.
+- Known rejected codes 12 and 96 become FAILED without changing Payment.
+- Timeout/network uncertainty remains PROCESSING without automatic retry.
+- Safe Tilopay consult candidate enumeration without assuming the first response record is the refund.
+- Consult reference, order, type 2, signed refund amount, currency, code, and description checked before evidence is accepted.
+- Evidence-derived APPROVED/FAILED reconciliation through consult, with explicit portal fallback.
 - Payment PARTIALLY_REFUNDED/REFUNDED transition only after APPROVED reconciliation.
 - AdminAuditLog history for authorization, execution, observation, uncertainty, consult, and reconciliation.
-- A sandbox observation CLI for the provider contract test matrix.
+- Sandbox observation CLIs for processModification and `/consult` candidate discovery.
 - No refund email; lifecycle notifications remain assigned to 11.6.
 ```
 
@@ -143,23 +145,43 @@ The request body follows the approved project-supplied contract:
 
 The bearer token and integration key remain server-side.
 
-## Unknown Response Contract
+## Observed Response Contract
 
-No success response field, response code, provider reference, or idempotency guarantee is invented in this package.
+The original 11.4 package deliberately treated every provider response as unknown. Cases 1–16 now establish a bounded sandbox contract without treating HTTP 200 by itself as success.
 
 After `processModification` returns, TRP Booking stores only:
 
 ```text
 - HTTP status.
 - Whether the HTTP response was 2xx.
-- Bounded candidate response code.
-- Bounded candidate description.
-- Bounded candidate provider reference.
+- Bounded response code.
+- Bounded description.
+- Bounded provider reference.
 - Response field/type shape without raw values.
 - Observation timestamp.
+- Centralized result classification.
 ```
 
-The Refund remains PROCESSING with `TILOPAY_REFUND_RECONCILIATION_REQUIRED`. Payment remains unchanged.
+Classification:
+
+```text
+PROVIDER_ACCEPTED
+- HTTP 200 and ok=true.
+- responseCode 1101.
+- description Transaction is approved.
+- provider reference present.
+- Refund remains PROCESSING until matching evidence is reconciled.
+
+PROVIDER_REJECTED
+- Known code 12 or 96 with a non-approved description, or explicit HTTP 4xx.
+- Refund becomes FAILED.
+- Payment remains unchanged.
+
+RESULT_UNCERTAIN
+- Timeout/network uncertainty, unknown contract, HTTP 5xx without a known rejection code, or incomplete accepted-looking response.
+- Refund remains PROCESSING.
+- Automatic retry remains prohibited.
+```
 
 ## Timeout and Uncertain Outcomes
 
@@ -178,7 +200,19 @@ A login or pre-request failure is safe to classify as FAILED because the modific
 
 ## Reconciliation
 
-A PENDING or PROCESSING Refund receives a final result only through explicit protected reconciliation. Consult evidence is accepted only when its order matches `Payment.providerReference` and any returned original amount/currency match the source Payment.
+A PENDING or PROCESSING Refund receives a final result only through explicit protected reconciliation. `TILOPAY_CONSULT` evidence is accepted only when the server finds the exact modification candidate rather than assuming the first returned transaction belongs to the Refund.
+
+Required consult identity and financial evidence:
+
+```text
+providerReference = Refund.providerRefundId
+orderNumber matches Payment.providerReference when returned
+type = 2
+absolute signed amount = Refund.amount
+currency matches when returned
+```
+
+An APPROVED consult outcome additionally requires code 1101, description `Transaction is approved`, and a negative amount. A FAILED consult outcome requires a known rejected code/description and a zero or positive amount. Missing, unmatched, or incomplete candidates remain inconclusive and cannot mutate Payment.
 
 Sources:
 
@@ -338,6 +372,59 @@ Before enabling automatic production execution or interpreting any response as f
 
 Do not run destructive duplicate/full/reversal scenarios against the same order without planning the expected financial effect first.
 
+## Observed Sandbox Contract — Cases 1–16
+
+The controlled matrix was executed on 2026-07-23 and 2026-07-24 using sanitized `processModification` output plus financial-effect verification in the Tilopay merchant portal.
+
+The completed evidence shows:
+
+```text
+Accepted provider response:
+- HTTP 200.
+- responseCode 1101.
+- description Transaction is approved.
+- Unique transactionId/provider reference.
+- Negative movement amount in the portal.
+- Payment balance reduced.
+
+Known rejected provider response:
+- HTTP may still be 200.
+- responseCode 12 or 96.
+- Description differs from Transaction is approved.
+- A provider attempt/reference may still be created.
+- Movement amount remains positive when displayed.
+- Payment balance is unchanged.
+
+Portal status:
+- Modification records may display REJECTED even when money moved.
+- The portal status label alone is not a valid success/failure signal.
+```
+
+Duplicate behavior is not idempotent:
+
+```text
+- Five sequential identical requests produced five approved refunds.
+- Two concurrent identical requests both reached Tilopay; one approved and one returned Capture error.
+- TRP Booking must atomically own idempotency before the provider call.
+```
+
+Amount and type findings:
+
+```text
+- Tilopay accepted three decimal places, but TRP Booking keeps its stricter two-decimal validation.
+- Type 2 supports full and partial refunds and rejects amounts above the remaining balance.
+- Type 3 returns the remaining amount but does not behave like a visual annulment of the original transaction.
+- Type 3 remains outside the normal application refund flow.
+```
+
+The detailed evidence, response classification, consult matching rules, and corrected UI/server behavior are recorded in:
+
+```text
+docs/100-phase-11.4.1-observed-tilopay-contract-and-evidence-based-reconciliation.md
+```
+
+Cases 17 and 18 remain pending. The cases 1–16 portal observations are `TILOPAY_PORTAL` evidence, not API `/consult` evidence.
+
 ## Acceptance Scenarios
 
 ### Authorization
@@ -356,7 +443,9 @@ Do not run destructive duplicate/full/reversal scenarios against the same order 
 ```text
 - PENDING API refund becomes PROCESSING before the network call.
 - Production environment rejects automatic execution.
-- A provider response does not automatically approve the refund.
+- A 1101 / Transaction is approved response remains PROCESSING until matching evidence is reconciled.
+- Known rejected codes 12 and 96 become FAILED without changing Payment.
+- Unknown responses and HTTP 5xx outcomes remain PROCESSING and uncertain.
 - Timeout remains PROCESSING and does not automatically retry.
 - Login/pre-request failure becomes FAILED without changing Payment.
 ```
@@ -364,6 +453,8 @@ Do not run destructive duplicate/full/reversal scenarios against the same order 
 ### Reconciliation
 
 ```text
+- TILOPAY_CONSULT reconciliation requires a matching reference, type 2, signed amount, code, and description.
+- Portal reconciliation requires an explicit admin note and provider/portal reference for APPROVED.
 - APPROVED requires a reference and updates Payment cumulatively.
 - Exact cumulative captured amount sets Payment REFUNDED.
 - Smaller cumulative amount sets Payment PARTIALLY_REFUNDED.
@@ -404,10 +495,11 @@ No migration command is required for this package.
 11.4 must remain **In progress** until:
 
 ```text
-- The real sandbox matrix has been executed with controlled orders.
+- Cases 1–16 of the real sandbox matrix have been executed with controlled orders.
 - Sanitized success/error response contracts have been recorded.
 - Duplicate and timeout behavior is understood.
 - Type 2 versus type 3 behavior is explicitly accepted.
+- Case 17 `/consult` candidate evidence is captured and compared with the portal.
 - The reconciliation evidence used for final approval is documented.
 - Production API execution rules are separately accepted.
 ```

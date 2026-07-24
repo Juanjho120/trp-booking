@@ -659,6 +659,8 @@ export const enMessages = {
           observedAt: "Observed at",
           observedOrder: "Observed order",
           observedAmount: "Observed amount",
+          modificationType: "Modification type",
+          candidateCount: "Observed candidates",
           safeDescription: "Safe detail",
           outcome: "Confirmed outcome",
           reconciliationSource: "Verification source",
@@ -683,6 +685,25 @@ export const enMessages = {
         outcomes: {
           APPROVED: "Refund confirmed",
           FAILED: "Refund not completed",
+        },
+        resultClassifications: {
+          PROVIDER_ACCEPTED_PENDING_CONFIRMATION:
+            "Accepted by Tilopay; confirmation pending",
+          PROVIDER_ACCEPTED: "Approved evidence found",
+          PROVIDER_REJECTED: "Rejected by Tilopay",
+          RESULT_UNCERTAIN: "Uncertain result",
+          UNCERTAIN: "Uncertain result",
+          FAILED_BEFORE_PROVIDER_REQUEST:
+            "Failed before contacting the provider",
+          CONSULT_MATCH_INCONCLUSIVE:
+            "The consult matched the reference but lacked sufficient evidence",
+          CONSULT_NO_MATCH:
+            "The consult did not find the modification reference",
+          CONSULT_REFERENCE_MISSING:
+            "No reference is available to correlate the consult",
+          APPROVED: "Reconciled as approved",
+          FAILED: "Reconciled as failed",
+          RECONCILIATION_REQUIRED: "Reconciliation required",
         },
         sources: {
           TILOPAY_CONSULT: "Tilopay consult",
@@ -725,25 +746,33 @@ export const enMessages = {
           description:
             "A type 2 modification will be sent for this refund's order and amount.",
           warning:
-            "The processModification response contract is still being observed. The refund remains PROCESSING and the payment does not change until a verified result is reconciled. Do not repeat the call after a timeout.",
+            "Tilopay does not provide idempotency for repeated requests. A 1101 / Transaction is approved response remains PROCESSING until the movement is verified; observed rejections become FAILED. Never repeat the call after a timeout or uncertain result.",
         },
         reconciliationDialog: {
           title: "Reconcile refund",
           description:
-            "Confirm the outcome only after checking Tilopay consult data or the operation in its portal.",
+            "API consult evidence can only confirm the outcome derived from a matching movement. Portal verification keeps a manual decision with a required reference and note.",
           warning:
-            "Approving changes the payment to partially or fully refunded. Record a reference and sufficient evidence; this decision never restores the cancelled reservation.",
+            "Approval changes the payment to partially or fully refunded. Evidence must match the reference, type 2, amount, and movement sign; this decision never restores the cancelled reservation.",
         },
         success: {
           authorized: "The refund was authorized and is pending processing.",
           authorizationAlreadyExists:
             "This authorization already existed, so another refund was not created.",
-          providerObserved:
-            "Tilopay responded or the result became uncertain. Review diagnostics and reconcile before changing the payment.",
+          providerAcceptedPending:
+            "Tilopay accepted the modification. The payment will not change until the movement is confirmed through consult or portal evidence.",
+          providerRejected:
+            "Tilopay rejected the modification, and the attempt failed without changing the payment.",
+          providerUncertain:
+            "The result is uncertain. Do not repeat the modification; verify Tilopay before continuing.",
           executionFailedSafely:
             "The request did not reach the modification operation, and the attempt failed without changing the payment.",
-          consulted:
-            "The Tilopay consult observation was stored safely. Verify the evidence before reconciliation.",
+          consultedAccepted:
+            "The consult found matching evidence for an approved refund. Review and confirm the derived reconciliation.",
+          consultedRejected:
+            "The consult found matching evidence for a rejected attempt. Review and confirm the failed outcome.",
+          consultedInconclusive:
+            "The consult was recorded but did not provide enough evidence for reconciliation. Verify the Tilopay portal.",
           reconciledApproved:
             "The refund was approved and the payment's financial status was updated.",
           reconciledFailed:

@@ -12,10 +12,12 @@ import {
 import { prisma } from "@/lib/db/prisma";
 import { getTilopayEnv } from "@/lib/env/server";
 import {
-  consultTilopayTransaction,
-  describeTilopayConsultObservation,
+  classifyTilopayConsultCandidate,
+  classifyTilopayModificationObservation,
+  observeTilopayConsultTransaction,
   processTilopayModification,
   TilopayApiClientError,
+  type TilopayConsultCandidate,
   type TilopayModificationObservation,
 } from "@/lib/payments";
 import type { AdminActor } from "@/types/admin";
@@ -207,6 +209,8 @@ function buildSafeDiagnostics(input: Readonly<{
   orderNumber?: string | null;
   amount?: string | null;
   currency?: string | null;
+  modificationType?: string | null;
+  candidateCount?: number | null;
   resultClassification: string;
   responseShape?: Readonly<Record<string, unknown>> | null;
   requestId?: string;
@@ -234,6 +238,13 @@ function buildSafeDiagnostics(input: Readonly<{
     ),
     amount: normalizeOptionalText(input.amount, 40),
     currency: normalizeOptionalText(input.currency, 10),
+    modificationType: normalizeOptionalText(input.modificationType, 40),
+    candidateCount:
+      typeof input.candidateCount === "number" &&
+      Number.isInteger(input.candidateCount) &&
+      input.candidateCount >= 0
+        ? input.candidateCount
+        : null,
     resultClassification: input.resultClassification,
     responseShape: input.responseShape ?? null,
     requestId: input.requestId ?? null,
@@ -275,6 +286,15 @@ function toDiagnostics(rawPayload: Prisma.JsonValue | null) {
     amount: typeof rawPayload.amount === "string" ? rawPayload.amount : null,
     currency:
       typeof rawPayload.currency === "string" ? rawPayload.currency : null,
+    modificationType:
+      typeof rawPayload.modificationType === "string"
+        ? rawPayload.modificationType
+        : null,
+    candidateCount:
+      typeof rawPayload.candidateCount === "number" &&
+      Number.isInteger(rawPayload.candidateCount)
+        ? rawPayload.candidateCount
+        : null,
     resultClassification:
       typeof rawPayload.resultClassification === "string"
         ? rawPayload.resultClassification
@@ -668,6 +688,29 @@ async function recordExecutionObservation(
   actor: AdminActor,
   requestId: string,
 ): Promise<AdminRefundSummary> {
+  const classification = classifyTilopayModificationObservation(observation);
+  const parsedObservedAt = new Date(observation.observedAt);
+  const observedAt = Number.isNaN(parsedObservedAt.getTime())
+    ? new Date()
+    : parsedObservedAt;
+  const providerReference = normalizeOptionalText(
+    observation.providerReference,
+    PROVIDER_REFERENCE_MAX_LENGTH,
+  );
+  const failureCode =
+    classification === "PROVIDER_ACCEPTED"
+      ? "TILOPAY_REFUND_CONFIRMATION_PENDING"
+      : classification === "PROVIDER_REJECTED"
+        ? normalizeRequiredText(
+            `TILOPAY_REFUND_REJECTED_${observation.responseCode ?? "UNKNOWN"}`,
+            SAFE_CODE_MAX_LENGTH,
+          )
+        : "TILOPAY_REFUND_RESULT_UNCERTAIN";
+  const resultClassification =
+    classification === "PROVIDER_ACCEPTED"
+      ? "PROVIDER_ACCEPTED_PENDING_CONFIRMATION"
+      : classification;
+
   return prisma.$transaction(
     async (transaction) => {
       const adminActor = await resolveAdminActor(transaction, actor);
@@ -676,20 +719,43 @@ async function recordExecutionObservation(
           id: refundId,
           status: RefundStatus.PROCESSING,
         },
-        data: {
-          failureCode: "TILOPAY_REFUND_RECONCILIATION_REQUIRED",
-          rawPayload: buildSafeDiagnostics({
-            source: "tilopay_process_modification",
-            observedAt: observation.observedAt,
-            httpStatus: observation.httpStatus,
-            responseCode: observation.responseCode,
-            description: observation.description,
-            providerReference: observation.providerReference,
-            resultClassification: "RECONCILIATION_REQUIRED",
-            responseShape: observation.responseShape,
-            requestId,
-          }),
-        },
+        data:
+          classification === "PROVIDER_REJECTED"
+            ? {
+                status: RefundStatus.FAILED,
+                processingStartedAt: null,
+                providerRefundId: providerReference,
+                failedAt: observedAt,
+                failureCode,
+                rawPayload: buildSafeDiagnostics({
+                  source: "tilopay_process_modification",
+                  observedAt: observedAt.toISOString(),
+                  httpStatus: observation.httpStatus,
+                  responseCode: observation.responseCode,
+                  description: observation.description,
+                  providerReference,
+                  modificationType: "2",
+                  resultClassification,
+                  responseShape: observation.responseShape,
+                  requestId,
+                }),
+              }
+            : {
+                providerRefundId: providerReference,
+                failureCode,
+                rawPayload: buildSafeDiagnostics({
+                  source: "tilopay_process_modification",
+                  observedAt: observedAt.toISOString(),
+                  httpStatus: observation.httpStatus,
+                  responseCode: observation.responseCode,
+                  description: observation.description,
+                  providerReference,
+                  modificationType: "2",
+                  resultClassification,
+                  responseShape: observation.responseShape,
+                  requestId,
+                }),
+              },
       });
 
       if (updated.count !== 1) {
@@ -708,9 +774,13 @@ async function recordExecutionObservation(
             httpStatus: observation.httpStatus,
             providerOk: observation.ok,
             responseCode: observation.responseCode,
-            providerReferenceObserved: Boolean(observation.providerReference),
+            providerReferenceObserved: Boolean(providerReference),
             responseShape: observation.responseShape,
-            resultClassification: "RECONCILIATION_REQUIRED",
+            resultClassification,
+            refundStatus:
+              classification === "PROVIDER_REJECTED"
+                ? RefundStatus.FAILED
+                : RefundStatus.PROCESSING,
             paymentStatusChanged: false,
           }),
         },
@@ -746,7 +816,7 @@ async function recordExecutionFailure(
                 source: "tilopay_process_modification",
                 observedAt: observedAt.toISOString(),
                 description: error.code,
-                resultClassification: "UNCERTAIN",
+                resultClassification: "RESULT_UNCERTAIN",
                 requestId,
               }),
             }
@@ -905,7 +975,7 @@ export async function executeAdminTilopayRefund(
     return {
       refund: summary,
       providerRequestSent: true,
-      requiresReconciliation: true,
+      requiresReconciliation: summary.status === RefundStatus.PROCESSING,
       alreadyProcessed: false,
     };
   } catch (error) {
@@ -939,47 +1009,119 @@ function providerOrderNumberMatches(
   return observed === expected || observed.endsWith(`-${expected}`);
 }
 
-function assertConsultMatchesPayment(
+function parseConsultAmount(value: string | null): Prisma.Decimal | null {
+  if (!value?.trim()) {
+    return null;
+  }
+
+  try {
+    return new Prisma.Decimal(value.trim());
+  } catch {
+    return null;
+  }
+}
+
+function candidateMatchesRefundIdentity(
   refund: RefundForAction,
-  observation: Readonly<Record<string, unknown>>,
-): void {
-  const orderNumber =
-    typeof observation.orderNumber === "string"
-      ? observation.orderNumber.trim()
-      : "";
+  candidate: TilopayConsultCandidate,
+): boolean {
+  const expectedProviderReference = refund.providerRefundId?.trim();
 
   if (
-    !refund.payment.providerReference ||
-    !orderNumber ||
+    !expectedProviderReference ||
+    candidate.providerReference?.trim() !== expectedProviderReference
+  ) {
+    return false;
+  }
+
+  if (
+    candidate.orderNumber &&
+    refund.payment.providerReference &&
     !providerOrderNumberMatches(
-      orderNumber,
+      candidate.orderNumber,
       refund.payment.providerReference,
     )
   ) {
-    throw new AdminRefundError("ADMIN_REFUND_RECONCILIATION_CONFLICT");
-  }
-
-  if (typeof observation.amount === "string" && observation.amount.trim()) {
-    let observedAmount: Prisma.Decimal;
-
-    try {
-      observedAmount = new Prisma.Decimal(observation.amount.trim());
-    } catch {
-      throw new AdminRefundError("ADMIN_REFUND_RECONCILIATION_CONFLICT");
-    }
-
-    if (!observedAmount.equals(refund.payment.amount)) {
-      throw new AdminRefundError("ADMIN_REFUND_RECONCILIATION_CONFLICT");
-    }
+    return false;
   }
 
   if (
-    typeof observation.currency === "string" &&
-    observation.currency.trim() &&
-    observation.currency.trim() !== refund.payment.currency
+    candidate.currency &&
+    candidate.currency.trim() !== refund.payment.currency
   ) {
-    throw new AdminRefundError("ADMIN_REFUND_RECONCILIATION_CONFLICT");
+    return false;
   }
+
+  return true;
+}
+
+function classifyConsultEvidence(
+  refund: RefundForAction,
+  candidates: readonly TilopayConsultCandidate[],
+): Readonly<{
+  candidate: TilopayConsultCandidate | null;
+  resultClassification:
+    | "PROVIDER_ACCEPTED"
+    | "PROVIDER_REJECTED"
+    | "CONSULT_MATCH_INCONCLUSIVE"
+    | "CONSULT_NO_MATCH"
+    | "CONSULT_REFERENCE_MISSING";
+}> {
+  if (!refund.providerRefundId?.trim()) {
+    return {
+      candidate: null,
+      resultClassification: "CONSULT_REFERENCE_MISSING",
+    };
+  }
+
+  const identityMatches = candidates.filter((candidate) =>
+    candidateMatchesRefundIdentity(refund, candidate),
+  );
+
+  if (identityMatches.length === 0) {
+    return {
+      candidate: null,
+      resultClassification: "CONSULT_NO_MATCH",
+    };
+  }
+
+  for (const candidate of identityMatches) {
+    const providerClassification =
+      classifyTilopayConsultCandidate(candidate);
+    const amount = parseConsultAmount(candidate.amount);
+    const amountMatches =
+      amount !== null && amount.abs().equals(refund.amount);
+    const typeMatches = candidate.type?.trim() === "2";
+
+    if (
+      providerClassification === "PROVIDER_ACCEPTED" &&
+      amountMatches &&
+      amount?.isNegative() &&
+      typeMatches
+    ) {
+      return {
+        candidate,
+        resultClassification: "PROVIDER_ACCEPTED",
+      };
+    }
+
+    if (
+      providerClassification === "PROVIDER_REJECTED" &&
+      amountMatches &&
+      !amount?.isNegative() &&
+      typeMatches
+    ) {
+      return {
+        candidate,
+        resultClassification: "PROVIDER_REJECTED",
+      };
+    }
+  }
+
+  return {
+    candidate: identityMatches[0] ?? null,
+    resultClassification: "CONSULT_MATCH_INCONCLUSIVE",
+  };
 }
 
 export async function consultAdminTilopayRefund(
@@ -1005,15 +1147,17 @@ export async function consultAdminTilopayRefund(
   }
 
   try {
-    const consult = await consultTilopayTransaction(
+    const observation = await observeTilopayConsultTransaction(
       refund.payment.providerReference,
     );
-    const observation = describeTilopayConsultObservation(consult);
-    assertConsultMatchesPayment(refund, observation);
-    const observedAt =
-      typeof observation.observedAt === "string"
-        ? observation.observedAt
-        : new Date().toISOString();
+    const evidence = classifyConsultEvidence(refund, observation.candidates);
+    const candidate = evidence.candidate;
+    const failureCode =
+      evidence.resultClassification === "PROVIDER_ACCEPTED"
+        ? "TILOPAY_REFUND_CONSULT_ACCEPTED"
+        : evidence.resultClassification === "PROVIDER_REJECTED"
+          ? "TILOPAY_REFUND_CONSULT_REJECTED"
+          : "TILOPAY_REFUND_CONSULT_INCONCLUSIVE";
 
     const summary = await prisma.$transaction(
       async (transaction) => {
@@ -1025,38 +1169,21 @@ export async function consultAdminTilopayRefund(
             updatedAt: refund.updatedAt,
           },
           data: {
-            failureCode: "TILOPAY_REFUND_RECONCILIATION_REQUIRED",
+            failureCode,
             rawPayload: buildSafeDiagnostics({
               source: "tilopay_refund_consult",
-              observedAt,
-              responseCode:
-                typeof observation.responseCode === "string"
-                  ? observation.responseCode
-                  : null,
-              description:
-                typeof observation.description === "string"
-                  ? observation.description
-                  : null,
+              observedAt: observation.observedAt,
+              responseCode: candidate?.responseCode ?? null,
+              description: candidate?.description ?? null,
               providerReference:
-                typeof observation.providerReference === "string"
-                  ? observation.providerReference
-                  : null,
-              orderNumber:
-                typeof observation.orderNumber === "string"
-                  ? observation.orderNumber
-                  : null,
-              amount:
-                typeof observation.amount === "string"
-                  ? observation.amount
-                  : null,
-              currency:
-                typeof observation.currency === "string"
-                  ? observation.currency
-                  : null,
-              resultClassification: "RECONCILIATION_REQUIRED",
-              responseShape: isJsonRecord(observation.responseShape)
-                ? observation.responseShape
-                : null,
+                candidate?.providerReference ?? refund.providerRefundId,
+              orderNumber: candidate?.orderNumber ?? null,
+              amount: candidate?.amount ?? null,
+              currency: candidate?.currency ?? null,
+              modificationType: candidate?.type ?? null,
+              candidateCount: observation.candidates.length,
+              resultClassification: evidence.resultClassification,
+              responseShape: observation.responseShape,
               requestId: input.requestId,
             }),
           },
@@ -1075,12 +1202,10 @@ export async function consultAdminTilopayRefund(
             metadata: toSafeJson({
               actorEmail: adminActor.email,
               requestId: input.requestId,
-              responseCode: observation.responseCode ?? null,
-              providerReferenceObserved: Boolean(
-                observation.providerReference,
-              ),
-              responseShape: observation.responseShape ?? null,
-              resultClassification: "RECONCILIATION_REQUIRED",
+              candidateCount: observation.candidates.length,
+              matchedProviderReference: Boolean(candidate?.providerReference),
+              responseCode: candidate?.responseCode ?? null,
+              resultClassification: evidence.resultClassification,
               paymentStatusChanged: false,
             }),
           },
@@ -1198,12 +1323,38 @@ export async function reconcileAdminRefund(
       }
 
       const currentDiagnostics = toDiagnostics(refund.rawPayload);
+      const providerRefundId = normalizeOptionalText(
+        input.providerRefundId,
+        PROVIDER_REFERENCE_MAX_LENGTH,
+      );
 
-      if (
-        input.source === "TILOPAY_CONSULT" &&
-        currentDiagnostics?.source !== "tilopay_refund_consult"
-      ) {
-        throw new AdminRefundError("ADMIN_REFUND_RECONCILIATION_CONFLICT");
+      if (input.source === "TILOPAY_CONSULT") {
+        const expectedClassification =
+          input.outcome === "APPROVED"
+            ? "PROVIDER_ACCEPTED"
+            : "PROVIDER_REJECTED";
+        const observedAmount = parseConsultAmount(
+          currentDiagnostics?.amount ?? null,
+        );
+        const amountMatches =
+          observedAmount !== null &&
+          observedAmount.abs().equals(refund.amount);
+        const signMatches =
+          input.outcome === "APPROVED"
+            ? Boolean(observedAmount?.isNegative())
+            : Boolean(observedAmount && !observedAmount.isNegative());
+
+        if (
+          currentDiagnostics?.source !== "tilopay_refund_consult" ||
+          currentDiagnostics.resultClassification !== expectedClassification ||
+          currentDiagnostics.modificationType !== "2" ||
+          !currentDiagnostics.providerReference ||
+          providerRefundId !== currentDiagnostics.providerReference ||
+          !amountMatches ||
+          !signMatches
+        ) {
+          throw new AdminRefundError("ADMIN_REFUND_RECONCILIATION_CONFLICT");
+        }
       }
 
       if (input.outcome === "APPROVED") {
@@ -1211,10 +1362,6 @@ export async function reconcileAdminRefund(
       }
 
       const reconciledAt = new Date();
-      const providerRefundId = normalizeOptionalText(
-        input.providerRefundId,
-        PROVIDER_REFERENCE_MAX_LENGTH,
-      );
       const note = normalizeRequiredText(
         input.note,
         RECONCILIATION_NOTE_MAX_LENGTH,

@@ -659,6 +659,8 @@ export const esMessages = {
           observedAt: "Observado",
           observedOrder: "Orden observada",
           observedAmount: "Monto observado",
+          modificationType: "Tipo de modificación",
+          candidateCount: "Candidatos observados",
           safeDescription: "Detalle seguro",
           outcome: "Resultado confirmado",
           reconciliationSource: "Fuente de verificación",
@@ -683,6 +685,25 @@ export const esMessages = {
         outcomes: {
           APPROVED: "Reembolso confirmado",
           FAILED: "Reembolso no realizado",
+        },
+        resultClassifications: {
+          PROVIDER_ACCEPTED_PENDING_CONFIRMATION:
+            "Aceptado por Tilopay; confirmación pendiente",
+          PROVIDER_ACCEPTED: "Evidencia de aprobación encontrada",
+          PROVIDER_REJECTED: "Rechazado por Tilopay",
+          RESULT_UNCERTAIN: "Resultado incierto",
+          UNCERTAIN: "Resultado incierto",
+          FAILED_BEFORE_PROVIDER_REQUEST:
+            "Falló antes de contactar al proveedor",
+          CONSULT_MATCH_INCONCLUSIVE:
+            "La consulta encontró la referencia, pero no evidencia suficiente",
+          CONSULT_NO_MATCH:
+            "La consulta no encontró la referencia de la modificación",
+          CONSULT_REFERENCE_MISSING:
+            "No existe una referencia para correlacionar la consulta",
+          APPROVED: "Reconciliado como aprobado",
+          FAILED: "Reconciliado como fallido",
+          RECONCILIATION_REQUIRED: "Reconciliación requerida",
         },
         sources: {
           TILOPAY_CONSULT: "Consulta de Tilopay",
@@ -725,25 +746,33 @@ export const esMessages = {
           description:
             "Se enviará una modificación tipo 2 para la orden y el monto de este reembolso.",
           warning:
-            "La respuesta de processModification todavía está en observación. La solicitud quedará PROCESSING y no cambiará el pago hasta reconciliar un resultado verificado. No repitas la llamada ante un timeout.",
+            "Tilopay no ofrece idempotencia para solicitudes repetidas. Una respuesta 1101 / Transaction is approved quedará PROCESSING hasta verificar el movimiento; los rechazos observados quedarán FAILED. Nunca repitas la llamada ante un timeout o resultado incierto.",
         },
         reconciliationDialog: {
           title: "Reconciliar reembolso",
           description:
-            "Confirma el resultado únicamente después de verificar la consulta de Tilopay o la operación en su portal.",
+            "La consulta API solo permite confirmar el resultado derivado de un movimiento coincidente. La verificación mediante portal conserva una decisión manual con referencia y nota obligatorias.",
           warning:
-            "Marcar como aprobado cambia el pago a parcial o totalmente reembolsado. Registra una referencia y evidencia suficiente; esta decisión no restaura la reservación cancelada.",
+            "Aprobar cambia el pago a parcial o totalmente reembolsado. La evidencia debe coincidir con la referencia, el tipo 2, el monto y el signo del movimiento; esta decisión nunca restaura la reservación cancelada.",
         },
         success: {
           authorized: "El reembolso quedó autorizado y pendiente de procesamiento.",
           authorizationAlreadyExists:
             "Esta autorización ya existía y no se creó otro reembolso.",
-          providerObserved:
-            "Tilopay respondió o el resultado quedó incierto. Revisa el diagnóstico y reconcilia antes de cambiar el pago.",
+          providerAcceptedPending:
+            "Tilopay aceptó la modificación. El pago no cambiará hasta confirmar el movimiento mediante consulta o portal.",
+          providerRejected:
+            "Tilopay rechazó la modificación y el intento quedó fallido sin cambiar el pago.",
+          providerUncertain:
+            "El resultado es incierto. No repitas la modificación; verifica Tilopay antes de continuar.",
           executionFailedSafely:
             "La solicitud no llegó al proceso de modificación y el intento quedó fallido sin cambiar el pago.",
-          consulted:
-            "La consulta de Tilopay se registró de forma segura. Verifica la evidencia antes de reconciliar.",
+          consultedAccepted:
+            "La consulta encontró evidencia coincidente de un reembolso aprobado. Revisa y confirma la reconciliación derivada.",
+          consultedRejected:
+            "La consulta encontró evidencia coincidente de un intento rechazado. Revisa y confirma el resultado fallido.",
+          consultedInconclusive:
+            "La consulta quedó registrada, pero no encontró evidencia suficiente para reconciliar automáticamente. Verifica el portal de Tilopay.",
           reconciledApproved:
             "El reembolso quedó aprobado y el estado financiero del pago fue actualizado.",
           reconciledFailed:

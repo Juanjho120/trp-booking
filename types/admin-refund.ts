@@ -58,6 +58,8 @@ export type AdminRefundDiagnostics = Readonly<{
   orderNumber: string | null;
   amount: string | null;
   currency: string | null;
+  modificationType: string | null;
+  candidateCount: number | null;
   resultClassification: string | null;
   responseShape: Readonly<Record<string, unknown>> | null;
 }>;

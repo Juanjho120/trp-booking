@@ -15,12 +15,13 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
-Current subphase: 11.4 Refund authorization and Tilopay reconciliation — In progress
-Current focus: validate cumulative refund authorization, sandbox processModification observations, uncertain-result handling, consult/portal reconciliation, payment financial-state transitions, idempotency, and unchanged cancelled reservation state
+Current subphase: 11.4.1 Observed Tilopay contract and evidence-based reconciliation — In progress
+Current focus: apply the observed processModification contract, verify safe /consult candidates, lock consult-derived reconciliation evidence, preserve portal fallback, and validate Payment/Refund/Reservation state transitions
 Last completed subphase: 11.3 Admin cancellation decision and availability release
 11.3 accepted commit: c609ea0e5b4654da86436dba79477455681d7b14
 11.3 implementation document: docs/98-phase-11.3-admin-cancellation-decision-and-availability-release.md
 11.4 implementation document: docs/99-phase-11.4-refund-authorization-and-tilopay-reconciliation.md
+11.4.1 correction document: docs/100-phase-11.4.1-observed-tilopay-contract-and-evidence-based-reconciliation.md
 Last completed phase: Phase 10 — Email Notifications
 Phase 10 closure document: docs/94-phase-10-validation-and-documentation-closure.md
 ```
@@ -481,6 +482,7 @@ Subphase status:
 11.2 Lifecycle request persistence and audit foundation — Completed
 11.3 Admin cancellation decision and availability release — Completed
 11.4 Refund authorization and Tilopay reconciliation — In progress
+11.4.1 Observed Tilopay contract and evidence-based reconciliation — In progress
 11.5 Authorized date changes and stay extensions — Not started
 11.6 Lifecycle notifications and admin operational history — Not started
 11.7 Validation and documentation closure — Not started
@@ -564,8 +566,25 @@ Phase 11 rules:
 - Payment changes to PARTIALLY_REFUNDED or REFUNDED only after an approved reconciliation; Reservation remains CANCELLED.
 - Safe diagnostics expose bounded codes, descriptions, references, and response shapes without raw provider values or credentials.
 - No Prisma migration, dependency, environment variable, refund email, public mutation endpoint, or PMS behavior is added.
-- Real sandbox full/partial/reversal/error/duplicate/timeout observations remain required before 11.4 completion or production API execution.
+- Cases 1–16 of the real sandbox full/partial/reversal/error/duplicate/timeout matrix are complete; `/consult` evidence and final UI acceptance remain required before 11.4 completion or production API execution.
 - The implementation record is docs/99-phase-11.4-refund-authorization-and-tilopay-reconciliation.md.
+```
+
+### Phase 11.4.1 correction prepared
+
+```text
+- Cases 1–16 establish the sandbox processModification contract through sanitized responses and Tilopay portal financial verification.
+- HTTP 200 alone is not success; 1101 / Transaction is approved / provider reference is the accepted response contract.
+- Known codes 12 and 96 are rejected outcomes even when HTTP is 200 and a provider attempt reference is created.
+- Accepted responses remain PROCESSING until matching evidence is reconciled; known rejected responses become FAILED without changing Payment.
+- Sequential duplicate requests are not idempotent and concurrent duplicates can both reach Tilopay.
+- A safe /consult observer enumerates bounded candidate records instead of assuming the first response row is the refund.
+- Consult reconciliation requires exact reference, type 2, signed amount, currency when returned, code, and description evidence.
+- The UI locks consult-derived outcome/reference and defaults inconclusive cases to explicit portal fallback.
+- Type 3 remains outside the normal refund workflow.
+- No migration, dependency, environment variable, production execution, lifecycle email, public mutation, or PMS behavior is added.
+- The correction record is docs/100-phase-11.4.1-observed-tilopay-contract-and-evidence-based-reconciliation.md.
+- Case 17 /consult evidence and final UI acceptance remain required before completion.
 ```
 
 ---
