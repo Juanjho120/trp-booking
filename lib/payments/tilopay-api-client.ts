@@ -393,7 +393,13 @@ export async function observeTilopayModificationSandbox(
       ok: response.ok,
       responseCode: record
         ? trimSafe(
-            getString(record, ["responseCode", "code", "statusCode", "status"]),
+            getString(record, [
+              "responseCode",
+              "ReasonCode",
+              "code",
+              "statusCode",
+              "status",
+            ]),
             100,
           )
         : null,
@@ -401,6 +407,7 @@ export async function observeTilopayModificationSandbox(
         ? trimSafe(
             getString(record, [
               "description",
+              "ReasonCodeDescription",
               "message",
               "responseMessage",
               "detail",

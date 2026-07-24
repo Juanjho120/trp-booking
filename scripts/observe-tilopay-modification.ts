@@ -1,9 +1,52 @@
+import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
+import { z } from "zod";
+
+import { formatEnvValidationError } from "../lib/env/server";
+
 import {
   observeTilopayModificationSandbox,
   TilopayApiClientError,
   type TilopayObservationAuthorizationMode,
   type TilopayObservationKeyMode,
 } from "../lib/payments/tilopay-api-client";
+
+function loadEnvFile(fileName: string): void {
+  const envPath = resolve(process.cwd(), fileName);
+
+  if (!existsSync(envPath)) {
+    return;
+  }
+
+  const envFileContent = readFileSync(envPath, "utf8");
+
+  for (const rawLine of envFileContent.split(/\r?\n/)) {
+    const line = rawLine.trim();
+
+    if (!line || line.startsWith("#")) {
+      continue;
+    }
+
+    const match = line.match(/^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/);
+
+    if (!match) {
+      continue;
+    }
+
+    const [, key, rawValue] = match;
+
+    if (process.env[key] !== undefined) {
+      continue;
+    }
+
+    process.env[key] = rawValue
+      .trim()
+      .replace(/^["']|["']$/g, "");
+  }
+}
+
+loadEnvFile(".env.local");
+loadEnvFile(".env");
 
 type Arguments = Readonly<{
   orderNumber?: string;
@@ -115,16 +158,27 @@ async function runObservation(
         authorizationMode: args.authorizationMode,
         keyMode: args.keyMode,
       },
-      error: {
-        code:
-          error instanceof TilopayApiClientError
-            ? error.code
-            : "TILOPAY_OBSERVATION_UNEXPECTED_ERROR",
-        requestMayHaveReachedProvider:
-          error instanceof TilopayApiClientError
-            ? error.requestMayHaveReachedProvider
-            : false,
-      },
+      error:
+        error instanceof TilopayApiClientError
+          ? {
+              code: error.code,
+              requestMayHaveReachedProvider:
+                error.requestMayHaveReachedProvider,
+            }
+          : error instanceof z.ZodError
+            ? {
+                code: "TILOPAY_OBSERVATION_ENV_INVALID",
+                requestMayHaveReachedProvider: false,
+                details: formatEnvValidationError(error),
+              }
+            : {
+                code: "TILOPAY_OBSERVATION_UNEXPECTED_ERROR",
+                requestMayHaveReachedProvider: false,
+                errorName:
+                  error instanceof Error
+                    ? error.name
+                    : "UnknownError",
+              },
     };
   }
 }
