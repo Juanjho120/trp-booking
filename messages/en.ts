@@ -733,7 +733,7 @@ export const enMessages = {
         },
         placeholders: {
           reason:
-            "Explain why this amount is authorized and which cancellation request supports it.",
+            "Explain why this amount is authorized and document the administrative decision that supports it.",
           providerRefundId:
             "Reference visible in the Tilopay response or portal",
           reconciliationNote:
@@ -741,7 +741,7 @@ export const enMessages = {
         },
         notes: {
           separateLifecycle:
-            "The reservation remains cancelled even when a refund attempt fails. Only confirmed refunds change the payment's financial status.",
+            "A refund does not change the reservation lifecycle status. A confirmed reservation remains confirmed and a cancelled reservation remains cancelled; only an approved reconciliation changes the payment's financial status.",
         },
         authorizationDialog: {
           title: "Authorize policy refund",
@@ -749,9 +749,9 @@ export const enMessages = {
             "Create a PENDING record within the remaining allowance of the applied cancellation policy.",
           extraordinaryTitle: "Authorize extraordinary refund",
           extraordinaryDescription:
-            "Authorize an administrative refund outside the standard policy, limited only by the payment's remaining unrefunded balance.",
+            "Authorize an administrative compensation outside the standard policy for a confirmed or cancelled reservation, limited by the payment's remaining unrefunded balance.",
           extraordinaryNotice:
-            "This refund is not part of the applied cancellation policy. It must represent an exceptional administrative decision and include a clear internal reason.",
+            "This refund is not part of the applied cancellation policy and does not cancel the reservation. It may be used as compensation before or during the stay, or after a cancellation, and must include a clear internal reason.",
           warning:
             "This action does not move money yet. Pending, processing, and approved standard refunds reserve the policy balance to prevent over-refunding.",
           extraordinaryWarning:
@@ -769,7 +769,7 @@ export const enMessages = {
           description:
             "API consult evidence can only confirm the outcome derived from a matching movement. Portal verification keeps a manual decision with a required reference and note.",
           warning:
-            "Approval changes the payment to partially or fully refunded. Evidence must match the reference, refund type, and observed amount; this decision never restores the cancelled reservation.",
+            "Approval changes the payment to partially or fully refunded. Evidence must match the reference, refund type, and observed amount; this decision does not change the reservation lifecycle status.",
           consultEvidenceLocked:
             "Tilopay returned conclusive evidence for this movement. The outcome, source, mode, and reference are locked and will be validated again by the server.",
         },
@@ -794,14 +794,16 @@ export const enMessages = {
           reconciledApproved:
             "The refund was approved and the payment's financial status was updated.",
           reconciledFailed:
-            "The attempt was marked failed without restoring the reservation.",
+            "The attempt was marked failed without changing the reservation status.",
         },
         empty: {
-          noRefunds: "This cancellation does not have authorized refunds yet.",
+          noRefunds: "This reservation does not have authorized refunds yet.",
           noEligiblePolicy:
             "The standard policy has no refundable balance. An administrator may still authorize an extraordinary refund while the payment has an unrefunded balance.",
+          noRefundablePayment:
+            "There is no initial payment with a refundable balance available for a refund authorization.",
           cancellationRequired:
-            "The cancellation must be approved before a refund can be authorized.",
+            "Cancellation is required only for a policy refund. An extraordinary refund may be authorized while a refundable initial payment remains.",
         },
         errors: {
           ADMIN_UNAUTHORIZED: "Your session is not authorized for administration.",
@@ -813,9 +815,11 @@ export const enMessages = {
           ADMIN_REFUND_REQUEST_NOT_COMPLETED:
             "The cancellation request has not been completed yet.",
           ADMIN_REFUND_RESERVATION_NOT_CANCELLED:
-            "The reservation must be cancelled before authorizing a refund.",
+            "The reservation must be cancelled before authorizing a policy refund.",
+          ADMIN_REFUND_RESERVATION_NOT_ELIGIBLE:
+            "Extraordinary refunds may only be authorized while the reservation is confirmed or cancelled.",
           ADMIN_REFUND_PAYMENT_NOT_FOUND:
-            "The original payment associated with this cancellation was not found.",
+            "A validated initial payment associated with this reservation was not found.",
           ADMIN_REFUND_PAYMENT_NOT_REFUNDABLE:
             "The payment is no longer in a state that supports this operation.",
           ADMIN_REFUND_POLICY_NOT_ELIGIBLE:

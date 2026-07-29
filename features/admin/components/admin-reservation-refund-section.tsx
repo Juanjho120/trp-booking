@@ -120,6 +120,12 @@ export function AdminReservationRefundSection({
         (payment) => payment.id === eligibleRequest.sourcePaymentId,
       ) ?? null
     : null;
+  const extraordinaryPayment =
+    (sourcePayment && refundablePaymentStatuses.has(sourcePayment.status)
+      ? sourcePayment
+      : reservation.payments.find((payment) =>
+          refundablePaymentStatuses.has(payment.status),
+        )) ?? null;
   const standardCommittedAmount = eligibleRequest
     ? reservation.refunds
         .filter(
@@ -130,11 +136,11 @@ export function AdminReservationRefundSection({
         )
         .reduce((total, refund) => total + amountNumber(refund.amount), 0)
     : 0;
-  const paymentCommittedAmount = sourcePayment
+  const paymentCommittedAmount = extraordinaryPayment
     ? reservation.refunds
         .filter(
           (refund) =>
-            refund.paymentId === sourcePayment.id &&
+            refund.paymentId === extraordinaryPayment.id &&
             committedRefundStatuses.has(refund.status),
         )
         .reduce((total, refund) => total + amountNumber(refund.amount), 0)
@@ -146,10 +152,10 @@ export function AdminReservationRefundSection({
           standardCommittedAmount,
       )
     : 0;
-  const remainingPaymentAmount = sourcePayment
+  const remainingPaymentAmount = extraordinaryPayment
     ? Math.max(
         0,
-        amountNumber(sourcePayment.amount) - paymentCommittedAmount,
+        amountNumber(extraordinaryPayment.amount) - paymentCommittedAmount,
       )
     : 0;
   const [authorizationOpen, setAuthorizationOpen] = useState(false);
@@ -178,16 +184,20 @@ export function AdminReservationRefundSection({
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [errorFeedback, setErrorFeedback] = useState<string | null>(null);
   const [successFeedback, setSuccessFeedback] = useState<string | null>(null);
-  const authorizationBaseAvailable = Boolean(
+  const canAuthorizeStandard = Boolean(
     eligibleRequest &&
       sourcePayment &&
       reservation.status === "CANCELLED" &&
-      refundablePaymentStatuses.has(sourcePayment.status),
+      refundablePaymentStatuses.has(sourcePayment.status) &&
+      remainingPolicyAmount > 0,
   );
-  const canAuthorizeStandard =
-    authorizationBaseAvailable && remainingPolicyAmount > 0;
-  const canAuthorizeExtraordinary =
-    authorizationBaseAvailable && remainingPaymentAmount > 0;
+  const canAuthorizeExtraordinary = Boolean(
+    extraordinaryPayment &&
+      (reservation.status === "CONFIRMED" ||
+        reservation.status === "CANCELLED") &&
+      refundablePaymentStatuses.has(extraordinaryPayment.status) &&
+      remainingPaymentAmount > 0,
+  );
   const isBusy = busyAction !== null;
   const reconciliationConsultClassification =
     reconciliationTarget?.diagnostics?.source === "tilopay_refund_consult"
@@ -268,7 +278,17 @@ export function AdminReservationRefundSection({
   function openAuthorization(
     authorizationType: AdminRefundAuthorizationType,
   ): void {
-    if (!eligibleRequest || !sourcePayment) return;
+    const payment =
+      authorizationType === "STANDARD_POLICY"
+        ? sourcePayment
+        : extraordinaryPayment;
+
+    if (
+      !payment ||
+      (authorizationType === "STANDARD_POLICY" && !eligibleRequest)
+    ) {
+      return;
+    }
 
     clearFeedback();
     setAuthorizationRequestId(crypto.randomUUID());
@@ -279,7 +299,7 @@ export function AdminReservationRefundSection({
           ? fixedAmount(remainingPolicyAmount)
           : "0.00",
       reason: "",
-      processingMode: sourcePayment.providerReference
+      processingMode: payment.providerReference
         ? "TILOPAY_API"
         : "TILOPAY_PORTAL_FALLBACK",
     });
@@ -327,9 +347,13 @@ export function AdminReservationRefundSection({
   }
 
   async function authorizeRefund(): Promise<void> {
+    const isExtraordinary =
+      authorizationDraft.authorizationType === "EXTRAORDINARY";
+    const payment = isExtraordinary ? extraordinaryPayment : sourcePayment;
+
     if (
-      !eligibleRequest ||
-      !sourcePayment ||
+      !payment ||
+      (!isExtraordinary && !eligibleRequest) ||
       isBusy ||
       !authorizationDraft.reason.trim() ||
       amountNumber(authorizationDraft.amount) <= 0
@@ -342,22 +366,35 @@ export function AdminReservationRefundSection({
     setBusyAction("authorize");
 
     try {
-      const response = await fetch(
-        `/api/admin/reservation-lifecycle-requests/${encodeURIComponent(
-          eligibleRequest.id,
-        )}/refunds`,
-        {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({
+      const url = isExtraordinary
+        ? `/api/admin/reservations/${encodeURIComponent(
+            reservation.id,
+          )}/refunds/extraordinary`
+        : `/api/admin/reservation-lifecycle-requests/${encodeURIComponent(
+            eligibleRequest?.id ?? "",
+          )}/refunds`;
+      const body = isExtraordinary
+        ? {
+            paymentId: payment.id,
+            amount: authorizationDraft.amount,
+            reason: authorizationDraft.reason,
+            processingMode: authorizationDraft.processingMode,
+            requestId: authorizationRequestId,
+            expectedReservationUpdatedAt: reservation.updatedAt,
+            expectedPaymentUpdatedAt: payment.updatedAt,
+          }
+        : {
             ...authorizationDraft,
             requestId: authorizationRequestId,
-            expectedRequestVersion: eligibleRequest.version,
-            expectedRequestUpdatedAt: eligibleRequest.updatedAt,
-            expectedPaymentUpdatedAt: sourcePayment.updatedAt,
-          }),
-        },
-      );
+            expectedRequestVersion: eligibleRequest?.version,
+            expectedRequestUpdatedAt: eligibleRequest?.updatedAt,
+            expectedPaymentUpdatedAt: payment.updatedAt,
+          };
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body),
+      });
       const payload = (await response.json()) as RefundApiResponse<AdminRefundAuthorizationResult>;
 
       if (!response.ok || !payload.result) {
@@ -614,24 +651,40 @@ export function AdminReservationRefundSection({
               <DetailValue
                 label={copy.labels.paymentRemainingAmount}
                 value={
-                  sourcePayment
+                  extraordinaryPayment
                     ? formatMoney(
                         fixedAmount(remainingPaymentAmount),
-                        sourcePayment.currency,
+                        extraordinaryPayment.currency,
                       )
                     : copy.labels.unavailable
                 }
               />
               <DetailValue
                 label={copy.labels.paymentStatus}
-                value={sourcePayment ? statusLabel(sourcePayment.status) : copy.labels.unavailable}
+                value={
+                  extraordinaryPayment
+                    ? statusLabel(extraordinaryPayment.status)
+                    : copy.labels.unavailable
+                }
+              />
+            </div>
+          ) : extraordinaryPayment ? (
+            <div className="grid gap-4 rounded-2xl border border-border bg-muted/20 p-4 sm:grid-cols-2">
+              <DetailValue
+                label={copy.labels.paymentRemainingAmount}
+                value={formatMoney(
+                  fixedAmount(remainingPaymentAmount),
+                  extraordinaryPayment.currency,
+                )}
+              />
+              <DetailValue
+                label={copy.labels.paymentStatus}
+                value={statusLabel(extraordinaryPayment.status)}
               />
             </div>
           ) : (
             <p className="text-sm leading-6 text-muted-foreground">
-              {reservation.status === "CANCELLED"
-                ? copy.empty.noEligiblePolicy
-                : copy.empty.cancellationRequired}
+              {copy.empty.noRefundablePayment}
             </p>
           )}
 
@@ -663,7 +716,7 @@ export function AdminReservationRefundSection({
                 />
               ))}
             </div>
-          ) : eligibleRequest ? (
+          ) : eligibleRequest || extraordinaryPayment ? (
             <p className="text-sm text-muted-foreground">{copy.empty.noRefunds}</p>
           ) : null}
         </CardContent>
@@ -708,7 +761,9 @@ export function AdminReservationRefundSection({
                       ? remainingPaymentAmount
                       : remainingPolicyAmount,
                   ),
-                  sourcePayment?.currency ??
+                  (authorizationDraft.authorizationType === "EXTRAORDINARY"
+                    ? extraordinaryPayment?.currency
+                    : sourcePayment?.currency) ??
                     eligibleRequest?.policy.currency ??
                     "USD",
                 )}

@@ -18,19 +18,18 @@ export const runtime = "nodejs";
 const idSchema = z.string().trim().min(1).max(120);
 const requestSchema = z
   .object({
-    authorizationType: z.literal("STANDARD_POLICY"),
+    paymentId: idSchema,
     amount: z.string().trim().regex(/^\d{1,8}(?:\.\d{1,2})?$/),
     reason: z.string().trim().min(1).max(2_000),
     processingMode: z.enum(adminRefundProcessingModes),
     requestId: z.uuid(),
-    expectedRequestVersion: z.number().int().min(1),
-    expectedRequestUpdatedAt: z.iso.datetime(),
+    expectedReservationUpdatedAt: z.iso.datetime(),
     expectedPaymentUpdatedAt: z.iso.datetime(),
   })
   .strict();
 
 type RouteContext = Readonly<{
-  params: Promise<{ requestId: string }>;
+  params: Promise<{ reservationId: string }>;
 }>;
 
 function errorStatus(code: AdminRefundErrorCode): number {
@@ -89,17 +88,18 @@ export async function POST(request: Request, context: RouteContext) {
   }
 
   try {
-    const { requestId: lifecycleRequestId } = await context.params;
-    const parsedLifecycleRequestId = idSchema.safeParse(lifecycleRequestId);
+    const { reservationId } = await context.params;
+    const parsedReservationId = idSchema.safeParse(reservationId);
     const parsedRequest = requestSchema.safeParse(await readJson(request));
 
-    if (!parsedLifecycleRequestId.success || !parsedRequest.success) {
+    if (!parsedReservationId.success || !parsedRequest.success) {
       return adminApiErrorResponse("INVALID_ADMIN_REFUND_REQUEST", 400);
     }
 
     const result = await createAdminRefundAuthorization(
       {
-        lifecycleRequestId: parsedLifecycleRequestId.data,
+        reservationId: parsedReservationId.data,
+        authorizationType: "EXTRAORDINARY",
         ...parsedRequest.data,
       },
       actor,

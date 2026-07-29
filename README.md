@@ -331,7 +331,7 @@ Accepted Phase 11 foundation:
 - New flows must not use Reservation.PARTIALLY_REFUNDED for an active stay because availability currently depends on CONFIRMED.
 - Guests cannot directly edit confirmed dates or invoke unauthenticated lifecycle mutations.
 - Initial requests are admin-recorded from approved support channels.
-- Cancellation and refund are separate decisions; refund failure never restores a cancelled reservation.
+- Cancellation and refund are separate decisions; refund authorization, failure, or approval never changes the Reservation lifecycle status.
 - The approved cancellation matrix is 100% refund at 7 or more days before check-in, 50% from 72 hours through less than 7 days, and 0% below 72 hours.
 - Cancellation timing is evaluated against the property's configured check-in time in America/Guatemala.
 - Date changes and stay extensions require availability revalidation and additional payment when the difference is positive.
@@ -340,7 +340,9 @@ Accepted Phase 11 foundation:
 - Sandbox support, response shapes, errors, duplicate behavior, retry safety, and provider idempotency are validated during 11.4 before production execution.
 - Merchant-portal processing remains an operational fallback, not the only assumed integration path.
 - Lifecycle emails are added only after the underlying transition is accepted.
-- Extraordinary refund authorization is an explicit admin exception: it may exceed or bypass the standard policy allowance but never the remaining captured-payment balance. The completed cancellation-policy snapshot remains unchanged.
+- Phase 11.6 must send separate guest/admin cancellation notifications after cancellation commit and separate guest/admin refund notifications only after an APPROVED reconciliation.
+- Extraordinary refund authorization is an explicit admin compensation independent from cancellation: it may be applied to a CONFIRMED or CANCELLED reservation, never changes the reservation lifecycle status, and never exceeds the remaining captured-payment balance.
+- Standard refunds remain linked to completed cancellations and the frozen policy allowance; extraordinary refunds link directly to the validated initial payment.
 - Fee treatment and date-change repricing remain explicit decisions for their corresponding implementation subphases.
 - No PMS behavior is added.
 ```
@@ -401,7 +403,7 @@ docs/101-phase-11.4.2-extraordinary-refund-authorization-and-consult-evidence-lo
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
 Current subphase: 11.4.2 Extraordinary refund authorization and consult evidence lock — In progress
-Current focus: validate consult-derived field locking, extraordinary authorization outside policy, cumulative payment protection, migration behavior, and audit/state transitions
+Current focus: validate extraordinary refunds on CONFIRMED/CANCELLED reservations, consult-derived field locking, cumulative payment protection, and audit/state transitions
 Last completed subphase: 11.3 Admin cancellation decision and availability release
 11.3 accepted commit: c609ea0e5b4654da86436dba79477455681d7b14
 11.3 implementation document: docs/98-phase-11.3-admin-cancellation-decision-and-availability-release.md

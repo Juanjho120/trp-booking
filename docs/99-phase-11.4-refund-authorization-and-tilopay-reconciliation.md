@@ -490,16 +490,37 @@ The original authorization ceiling combined the cancellation-policy allowance an
 
 ```text
 - STANDARD_POLICY Refunds remain limited by both policy and payment balances.
-- EXTRAORDINARY Refunds may be authorized when the policy balance is zero or exhausted.
-- Extraordinary amounts do not rewrite or consume the standard policy allowance or mutate the completed cancellation-policy snapshot.
+- EXTRAORDINARY Refunds may be authorized against the validated initial Payment while Reservation is CONFIRMED or CANCELLED, including when the policy balance is zero or exhausted.
+- Extraordinary amounts do not require a cancellation request, do not rewrite or consume the standard policy allowance, and do not mutate Reservation lifecycle status.
 - All committed Refunds together remain limited by the captured Payment amount.
 - Existing rows are migrated as LEGACY_UNSPECIFIED and count conservatively with standard-policy commitments.
-- The admin form explicitly states that an extraordinary refund is outside the applied cancellation policy and requires a reason.
+- The admin form explicitly states that an extraordinary refund is outside the applied cancellation policy, does not cancel the reservation, and requires a reason.
 ```
 
 UI-1 also exposed that the UI recognized only modification type `2`, while the observed consult contract returns `Refund`. Phase 11.4.2 normalizes both values, locks all evidence-derived fields, and adds a server-side prohibition against switching conclusive consult evidence to portal fallback.
 
 Implementation record: `docs/101-phase-11.4.2-extraordinary-refund-authorization-and-consult-evidence-lock.md`.
+
+
+### Corrected extraordinary authorization boundary
+
+```text
+STANDARD_POLICY
+-> cancellation lifecycle endpoint
+-> completed cancellation required
+-> lifecycleRequestId retained
+-> policy and payment ceilings enforced
+
+EXTRAORDINARY
+-> dedicated reservation endpoint
+-> validated INITIAL_RESERVATION Payment required
+-> Reservation CONFIRMED or CANCELLED
+-> lifecycleRequestId = null for new independent compensation
+-> payment ceiling enforced; policy ceiling not used
+-> Reservation status remains unchanged
+```
+
+Phase 11.6 notification requirements are documented but not implemented here. Cancellation guest/admin intents are created only after cancellation commit; refund guest/admin intents are created only when reconciliation commits `Refund.status = APPROVED`. No refund email may be emitted for pending, processing, uncertain, inconclusive, or failed outcomes.
 
 ## Acceptance Scenarios
 
@@ -511,7 +532,7 @@ Implementation record: `docs/101-phase-11.4.2-extraordinary-refund-authorization
 - Zero, negative, malformed, or over-limit amount is rejected.
 - Same UUID returns the same Refund.
 - Concurrent standard authorizations cannot exceed policy/payment balance.
-- Extraordinary authorization is allowed with zero/exhausted policy allowance but cannot exceed remaining Payment balance.
+- Extraordinary authorization is allowed for CONFIRMED/CANCELLED reservations with zero/exhausted policy allowance but cannot exceed remaining Payment balance.
 - Standard/legacy and extraordinary commitments remain distinguishable and auditable.
 - Provider is not contacted during authorization.
 ```

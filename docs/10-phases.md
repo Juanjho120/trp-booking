@@ -16,7 +16,7 @@ Deferred — Intentionally postponed.
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
 Current subphase: 11.4.2 Extraordinary refund authorization and consult evidence lock — In progress
-Current focus: validate consult-derived field locking, extraordinary refunds outside policy, migration compatibility, cumulative payment protection, and audit/state transitions
+Current focus: validate extraordinary refunds on CONFIRMED/CANCELLED reservations, consult-derived field locking, cumulative payment protection, and audit/state transitions
 Last completed subphase: 11.3 Admin cancellation decision and availability release
 11.3 accepted commit: c609ea0e5b4654da86436dba79477455681d7b14
 11.3 implementation document: docs/98-phase-11.3-admin-cancellation-decision-and-availability-release.md
@@ -497,7 +497,7 @@ Phase 11 rules:
 - Guests do not edit confirmed dates directly from the public website.
 - Initial cancellation/change/extension requests are recorded and decided by authorized admins.
 - Cancellation and refund are separate, auditable decisions.
-- Refund failure never restores a cancelled reservation or rewrites historical attempts.
+- Refund authorization, failure, or approval never changes the Reservation lifecycle status or rewrites historical attempts.
 - The approved cancellation matrix returns 100% at 7 or more days before check-in, 50% from 72 hours through less than 7 days, and 0% below 72 hours.
 - Policy timing uses the property's configured check-in time in America/Guatemala.
 - Full and partial refunds cannot exceed the validated captured payment amount.
@@ -565,7 +565,7 @@ Phase 11 rules:
 - Tilopay processModification type 2 execution is sandbox-only and occurs only after the Refund transaction commits.
 - Unknown provider responses and timeouts remain PROCESSING and require explicit reconciliation; they are never blindly retried or treated as success.
 - Existing Tilopay consult and audited portal evidence can reconcile APPROVED/FAILED outcomes.
-- Payment changes to PARTIALLY_REFUNDED or REFUNDED only after an approved reconciliation; Reservation remains CANCELLED.
+- Payment changes to PARTIALLY_REFUNDED or REFUNDED only after an approved reconciliation; standard cancellation refunds preserve CANCELLED, while extraordinary compensation preserves the current CONFIRMED or CANCELLED reservation state.
 - Safe diagnostics expose bounded codes, descriptions, references, and response shapes without raw provider values or credentials.
 - The original 11.4 package added no migration; 11.4.2 adds only the Refund authorization-type migration. No dependency, environment variable, refund email, public mutation endpoint, or PMS behavior is added.
 - Cases 1–17 of the real sandbox matrix are complete; case 18 is documented as not required because `/consult` returned all required movements; final UI acceptance remains required before 11.4 completion or production API execution.
@@ -594,16 +594,32 @@ Phase 11 rules:
 ```text
 - Refund.authorizationType distinguishes LEGACY_UNSPECIFIED, STANDARD_POLICY, and EXTRAORDINARY authorizations.
 - Existing rows migrate conservatively as LEGACY_UNSPECIFIED; new rows default to STANDARD_POLICY.
-- Legacy and standard committed Refunds consume the frozen policy allowance; extraordinary Refunds do not.
+- Standard refunds remain linked to a completed cancellation and consume the frozen policy allowance.
+- Extraordinary refunds use a dedicated reservation endpoint, link directly to the validated initial Payment, and set lifecycleRequestId = null.
+- Extraordinary refunds are available while Reservation is CONFIRMED or CANCELLED and never change that lifecycle status.
+- Legacy and standard committed Refunds consume policy allowance; extraordinary Refunds do not.
 - Every committed Refund type consumes the remaining captured-payment balance, so cumulative refunds cannot exceed Payment.amount.
-- Admins may authorize an extraordinary refund after the policy allowance is exhausted or when the policy amount is zero.
-- The extraordinary form identifies the exception, requires a reason, and warns that it is outside the applied cancellation policy.
+- Admins may authorize an extraordinary refund after the policy allowance is exhausted, when policy is zero, or as compensation during an active stay.
+- The extraordinary form identifies the exception, requires a reason, and warns that it is outside policy and does not cancel the reservation.
 - Conclusive `/consult` evidence recognizes both Refund and 2 movement types and locks outcome, source, mode, and provider reference.
 - The server rejects switching conclusive consult evidence to portal fallback or altering its derived outcome/reference.
 - Authorization type is retained through provider and reconciliation audit events.
-- A Prisma migration is required; no dependency, environment variable, production execution, lifecycle email, public mutation, or PMS behavior is added.
+- The existing 11.4.2 authorization-type migration is retained; this scope correction needs no additional migration, dependency, environment variable, lifecycle-email implementation, public mutation, or PMS behavior.
 - The implementation record is docs/101-phase-11.4.2-extraordinary-refund-authorization-and-consult-evidence-lock.md.
 - Final UI, migration, financial-state, and audit acceptance remains required before closing 11.4.
+```
+
+
+### Phase 11.6 requirements accepted during 11.4.2
+
+```text
+- RESERVATION_CANCELLED goes to the guest only after the cancellation transaction commits and must not promise an unconfirmed refund.
+- ADMIN_RESERVATION_CANCELLED uses a separate administrative template with policy, decision, actor, payment state, and protected reservation detail.
+- REFUND_PROCESSED goes to the guest only after reconciliation commits Refund.status = APPROVED and Payment becomes PARTIALLY_REFUNDED or REFUNDED.
+- ADMIN_REFUND_PROCESSED uses a separate administrative template with refund type, amount, reason, actors, reconciliation source, safe reference, and payment transition.
+- No refund email is created for PENDING, PROCESSING, provider-accepted-pending, inconclusive consult, or FAILED outcomes.
+- Phase 11.6 must add typed optional lifecycleRequestId/refundId EmailNotification links and stable per-recipient deduplication keys.
+- Implementation remains deferred to 11.6 and must reuse the Phase 10 post-commit Resend, retry, test-routing, and recovery foundation.
 ```
 
 ---

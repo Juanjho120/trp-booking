@@ -733,7 +733,7 @@ export const esMessages = {
         },
         placeholders: {
           reason:
-            "Explica por qué se autoriza este monto y qué solicitud de cancelación lo respalda.",
+            "Explica por qué se autoriza este monto y documenta la decisión administrativa que lo respalda.",
           providerRefundId:
             "Referencia visible en la respuesta o portal de Tilopay",
           reconciliationNote:
@@ -741,7 +741,7 @@ export const esMessages = {
         },
         notes: {
           separateLifecycle:
-            "La reservación permanece cancelada aunque un intento de reembolso falle. Solo los reembolsos confirmados cambian el estado financiero del pago.",
+            "El reembolso no cambia el estado operativo de la reservación. Una reservación confirmada permanece confirmada y una cancelada permanece cancelada; solo una reconciliación aprobada cambia el estado financiero del pago.",
         },
         authorizationDialog: {
           title: "Autorizar reembolso según política",
@@ -749,9 +749,9 @@ export const esMessages = {
             "Crea un registro PENDING dentro del saldo permitido por la política de cancelación aplicada.",
           extraordinaryTitle: "Autorizar reembolso extraordinario",
           extraordinaryDescription:
-            "Autoriza una devolución administrativa fuera de la política estándar, limitada únicamente por el saldo no devuelto del pago.",
+            "Autoriza una compensación administrativa fuera de la política estándar para una reservación confirmada o cancelada, limitada por el saldo no devuelto del pago.",
           extraordinaryNotice:
-            "Este reembolso no forma parte de la política de cancelación aplicada. Debe responder a una decisión administrativa excepcional y quedar respaldado por un motivo interno claro.",
+            "Este reembolso no forma parte de la política de cancelación aplicada y no cancela la reservación. Puede utilizarse como compensación antes o durante la estadía, o después de una cancelación, y debe quedar respaldado por un motivo interno claro.",
           warning:
             "Esta acción todavía no mueve dinero. Los reembolsos estándar pendientes, procesando y aprobados reservan el saldo de la política para impedir sobre-reembolsos.",
           extraordinaryWarning:
@@ -769,7 +769,7 @@ export const esMessages = {
           description:
             "La consulta API solo permite confirmar el resultado derivado de un movimiento coincidente. La verificación mediante portal conserva una decisión manual con referencia y nota obligatorias.",
           warning:
-            "Aprobar cambia el pago a parcial o totalmente reembolsado. La evidencia debe coincidir con la referencia, el tipo de reembolso y el monto observado; esta decisión nunca restaura la reservación cancelada.",
+            "Aprobar cambia el pago a parcial o totalmente reembolsado. La evidencia debe coincidir con la referencia, el tipo de reembolso y el monto observado; esta decisión no cambia el estado operativo de la reservación.",
           consultEvidenceLocked:
             "Tilopay devolvió evidencia concluyente para este movimiento. El resultado, la fuente, el modo y la referencia están bloqueados y serán validados nuevamente por el servidor.",
         },
@@ -794,14 +794,16 @@ export const esMessages = {
           reconciledApproved:
             "El reembolso quedó aprobado y el estado financiero del pago fue actualizado.",
           reconciledFailed:
-            "El intento quedó marcado como fallido sin restaurar la reservación.",
+            "El intento quedó marcado como fallido sin cambiar el estado de la reservación.",
         },
         empty: {
-          noRefunds: "Esta cancelación todavía no tiene reembolsos autorizados.",
+          noRefunds: "Esta reservación todavía no tiene reembolsos autorizados.",
           noEligiblePolicy:
             "La política estándar no tiene saldo reembolsable. Un administrador todavía puede autorizar un reembolso extraordinario mientras exista saldo no devuelto en el pago.",
+          noRefundablePayment:
+            "No existe un pago inicial con saldo reembolsable para autorizar una devolución.",
           cancellationRequired:
-            "Primero debe aprobarse la cancelación para autorizar un reembolso.",
+            "La cancelación solo es obligatoria para un reembolso según política. Un reembolso extraordinario puede autorizarse mientras exista un pago inicial reembolsable.",
         },
         errors: {
           ADMIN_UNAUTHORIZED: "Tu sesión no tiene autorización administrativa.",
@@ -813,9 +815,11 @@ export const esMessages = {
           ADMIN_REFUND_REQUEST_NOT_COMPLETED:
             "La solicitud de cancelación todavía no está completada.",
           ADMIN_REFUND_RESERVATION_NOT_CANCELLED:
-            "La reservación debe estar cancelada antes de autorizar el reembolso.",
+            "La reservación debe estar cancelada antes de autorizar un reembolso según política.",
+          ADMIN_REFUND_RESERVATION_NOT_ELIGIBLE:
+            "Los reembolsos extraordinarios solo pueden autorizarse mientras la reservación esté confirmada o cancelada.",
           ADMIN_REFUND_PAYMENT_NOT_FOUND:
-            "No encontramos el pago inicial asociado a esta cancelación.",
+            "No encontramos un pago inicial validado asociado a esta reservación.",
           ADMIN_REFUND_PAYMENT_NOT_REFUNDABLE:
             "El pago ya no se encuentra en un estado que admita esta operación.",
           ADMIN_REFUND_POLICY_NOT_ELIGIBLE:

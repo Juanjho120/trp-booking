@@ -37,6 +37,7 @@ export type AdminRefundErrorCode =
   | "ADMIN_REFUND_NOT_FOUND"
   | "ADMIN_REFUND_REQUEST_NOT_COMPLETED"
   | "ADMIN_REFUND_RESERVATION_NOT_CANCELLED"
+  | "ADMIN_REFUND_RESERVATION_NOT_ELIGIBLE"
   | "ADMIN_REFUND_PAYMENT_NOT_FOUND"
   | "ADMIN_REFUND_PAYMENT_NOT_REFUNDABLE"
   | "ADMIN_REFUND_POLICY_NOT_ELIGIBLE"
@@ -118,9 +119,9 @@ export type AdminRefundReconciliationResult = Readonly<{
   alreadyProcessed: boolean;
 }>;
 
-export type CreateAdminRefundInput = Readonly<{
+export type CreateAdminStandardRefundInput = Readonly<{
   lifecycleRequestId: string;
-  authorizationType: AdminRefundAuthorizationType;
+  authorizationType: "STANDARD_POLICY";
   amount: string;
   reason: string;
   processingMode: AdminRefundProcessingMode;
@@ -129,6 +130,22 @@ export type CreateAdminRefundInput = Readonly<{
   expectedRequestUpdatedAt: string;
   expectedPaymentUpdatedAt: string;
 }>;
+
+export type CreateAdminExtraordinaryRefundInput = Readonly<{
+  reservationId: string;
+  paymentId: string;
+  authorizationType: "EXTRAORDINARY";
+  amount: string;
+  reason: string;
+  processingMode: AdminRefundProcessingMode;
+  requestId: string;
+  expectedReservationUpdatedAt: string;
+  expectedPaymentUpdatedAt: string;
+}>;
+
+export type CreateAdminRefundInput =
+  | CreateAdminStandardRefundInput
+  | CreateAdminExtraordinaryRefundInput;
 
 export type ExecuteAdminRefundInput = Readonly<{
   refundId: string;

@@ -608,7 +608,7 @@ Tilopay processModification type 2 execution is intentionally sandbox-only.
 Observed 1101 / Transaction is approved responses remain PROCESSING until evidence reconciliation.
 Known rejected codes 12 and 96 become FAILED without changing Payment; unknown responses and timeouts remain PROCESSING.
 Only evidence-backed APPROVED reconciliation changes Payment to PARTIALLY_REFUNDED or REFUNDED.
-FAILED attempts preserve history and never restore the cancelled Reservation.
+FAILED attempts preserve history and never change the Reservation lifecycle status.
 Safe diagnostics omit credentials and raw provider values.
 Controlled CLIs support processModification matrix execution and safe `/consult` candidate observation.
 The original 11.4 package added no migration; 11.4.2 adds only the Refund authorization-type migration. No dependency, environment variable, refund email, public mutation endpoint, or PMS behavior is added.
@@ -646,15 +646,15 @@ Status: **In progress — implementation prepared; migration and final UI/financ
 Refund authorization is persisted as LEGACY_UNSPECIFIED, STANDARD_POLICY, or EXTRAORDINARY.
 Existing Refund rows migrate conservatively as legacy/unspecified while new rows default to standard policy.
 Standard and legacy committed Refunds consume policy allowance; extraordinary Refunds bypass policy but never payment balance.
-An extraordinary refund can be authorized after policy allowance is exhausted or when the applied policy amount is zero.
-The admin form clearly identifies that an extraordinary refund is outside the cancellation policy and requires a reason.
+An extraordinary refund can be authorized while the Reservation is CONFIRMED or CANCELLED, including during an active stay, after policy allowance is exhausted, or when the applied policy amount is zero.
+The admin form clearly identifies that an extraordinary refund is outside the cancellation policy, does not cancel the reservation, and requires a reason.
 Conclusive consult evidence recognizes Refund/2 and locks outcome, source, final mode, and provider reference.
 The server rejects source/outcome/reference manipulation when conclusive consult evidence exists.
 All committed Refund types remain cumulatively bounded by the captured Payment amount.
 Authorization type is included in provider and reconciliation audit metadata.
 A Prisma migration is required; no dependency, environment variable, production execution, email, public mutation, or PMS behavior is added.
 Implementation document: docs/101-phase-11.4.2-extraordinary-refund-authorization-and-consult-evidence-lock.md.
-Remaining acceptance: migration, accepted/rejected consult lock, manipulation rejection, policy-zero extraordinary authorization, policy-exhausted extraordinary authorization, cumulative payment ceiling, and final entity/audit verification.
+Remaining acceptance: accepted/rejected consult lock, manipulation rejection, CONFIRMED-stay extraordinary authorization, CANCELLED extraordinary authorization, policy-zero/policy-exhausted authorization, cumulative payment ceiling, and final entity/audit verification.
 ```
 
 ## Continuity Notes for New Conversations
@@ -705,4 +705,18 @@ types/admin-arrival-instructions.ts
 types/reservation-pending-hold.ts
 messages/es.ts
 messages/en.ts
+```
+
+
+### Phase 11.4.2 scope correction — Extraordinary compensation without cancellation
+
+```text
+- Standard refunds remain bound to a completed cancellation request and frozen policy allowance.
+- Extraordinary refunds use a dedicated reservation endpoint and the validated initial Payment; new records use lifecycleRequestId = null.
+- Reservation.status may be CONFIRMED or CANCELLED and is never changed by refund authorization, execution, consultation, or reconciliation.
+- A confirmed active stay may receive an authorized partial or full compensation without releasing availability.
+- All committed refunds remain bounded by Payment.amount and protected by idempotency, serializable transactions, stale-state fences, and audit history.
+- No additional migration is required beyond the existing Refund.authorizationType migration.
+- Phase 11.6 requirements are now explicit: guest/admin cancellation emails after cancellation commit and guest/admin refund emails only after APPROVED reconciliation.
+- Notification implementation, typed EmailNotification lifecycleRequestId/refundId links, templates, and orchestration remain deferred to 11.6.
 ```
