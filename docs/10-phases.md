@@ -15,13 +15,14 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
-Current subphase: 11.4.1 Observed Tilopay contract and evidence-based reconciliation — In progress
-Current focus: apply the observed processModification contract, verify safe /consult candidates, lock consult-derived reconciliation evidence, preserve portal fallback, and validate Payment/Refund/Reservation state transitions
+Current subphase: 11.4.2 Extraordinary refund authorization and consult evidence lock — In progress
+Current focus: validate consult-derived field locking, extraordinary refunds outside policy, migration compatibility, cumulative payment protection, and audit/state transitions
 Last completed subphase: 11.3 Admin cancellation decision and availability release
 11.3 accepted commit: c609ea0e5b4654da86436dba79477455681d7b14
 11.3 implementation document: docs/98-phase-11.3-admin-cancellation-decision-and-availability-release.md
 11.4 implementation document: docs/99-phase-11.4-refund-authorization-and-tilopay-reconciliation.md
 11.4.1 correction document: docs/100-phase-11.4.1-observed-tilopay-contract-and-evidence-based-reconciliation.md
+11.4.2 implementation document: docs/101-phase-11.4.2-extraordinary-refund-authorization-and-consult-evidence-lock.md
 Last completed phase: Phase 10 — Email Notifications
 Phase 10 closure document: docs/94-phase-10-validation-and-documentation-closure.md
 ```
@@ -483,6 +484,7 @@ Subphase status:
 11.3 Admin cancellation decision and availability release — Completed
 11.4 Refund authorization and Tilopay reconciliation — In progress
 11.4.1 Observed Tilopay contract and evidence-based reconciliation — In progress
+11.4.2 Extraordinary refund authorization and consult evidence lock — In progress
 11.5 Authorized date changes and stay extensions — Not started
 11.6 Lifecycle notifications and admin operational history — Not started
 11.7 Validation and documentation closure — Not started
@@ -565,7 +567,7 @@ Phase 11 rules:
 - Existing Tilopay consult and audited portal evidence can reconcile APPROVED/FAILED outcomes.
 - Payment changes to PARTIALLY_REFUNDED or REFUNDED only after an approved reconciliation; Reservation remains CANCELLED.
 - Safe diagnostics expose bounded codes, descriptions, references, and response shapes without raw provider values or credentials.
-- No Prisma migration, dependency, environment variable, refund email, public mutation endpoint, or PMS behavior is added.
+- The original 11.4 package added no migration; 11.4.2 adds only the Refund authorization-type migration. No dependency, environment variable, refund email, public mutation endpoint, or PMS behavior is added.
 - Cases 1–17 of the real sandbox matrix are complete; case 18 is documented as not required because `/consult` returned all required movements; final UI acceptance remains required before 11.4 completion or production API execution.
 - The implementation record is docs/99-phase-11.4-refund-authorization-and-tilopay-reconciliation.md.
 ```
@@ -582,9 +584,26 @@ Phase 11 rules:
 - Consult reconciliation requires exact reference, normalized Refund/2 type, absolute amount, currency when returned, code, and description evidence.
 - The UI locks consult-derived outcome/reference and defaults inconclusive cases to explicit portal fallback.
 - Type 3 remains outside the normal refund workflow.
-- No migration, dependency, environment variable, production execution, lifecycle email, public mutation, or PMS behavior is added.
+- The original 11.4.1 correction added no migration; the 11.4.2 follow-up adds only the authorization-type migration. No dependency, environment variable, production execution, lifecycle email, public mutation, or PMS behavior is added.
 - The correction record is docs/100-phase-11.4.1-observed-tilopay-contract-and-evidence-based-reconciliation.md.
 - Case 17 confirms that `/consult` returns the original Payment and all known Refund attempts; case 18 `consultTransactions` is not required. Final UI acceptance remains required before completion.
+```
+
+### Phase 11.4.2 implementation prepared
+
+```text
+- Refund.authorizationType distinguishes LEGACY_UNSPECIFIED, STANDARD_POLICY, and EXTRAORDINARY authorizations.
+- Existing rows migrate conservatively as LEGACY_UNSPECIFIED; new rows default to STANDARD_POLICY.
+- Legacy and standard committed Refunds consume the frozen policy allowance; extraordinary Refunds do not.
+- Every committed Refund type consumes the remaining captured-payment balance, so cumulative refunds cannot exceed Payment.amount.
+- Admins may authorize an extraordinary refund after the policy allowance is exhausted or when the policy amount is zero.
+- The extraordinary form identifies the exception, requires a reason, and warns that it is outside the applied cancellation policy.
+- Conclusive `/consult` evidence recognizes both Refund and 2 movement types and locks outcome, source, mode, and provider reference.
+- The server rejects switching conclusive consult evidence to portal fallback or altering its derived outcome/reference.
+- Authorization type is retained through provider and reconciliation audit events.
+- A Prisma migration is required; no dependency, environment variable, production execution, lifecycle email, public mutation, or PMS behavior is added.
+- The implementation record is docs/101-phase-11.4.2-extraordinary-refund-authorization-and-consult-evidence-lock.md.
+- Final UI, migration, financial-state, and audit acceptance remains required before closing 11.4.
 ```
 
 ---

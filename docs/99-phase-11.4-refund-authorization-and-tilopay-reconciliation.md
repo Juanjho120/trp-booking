@@ -66,7 +66,7 @@ Refund.requestedByAdminId
 
 `Refund.rawPayload` is used only for a bounded object marked with `safe: true` and `schemaVersion: 1`. The admin loader refuses to expose historical or provider-raw payloads that do not carry this marker.
 
-No migration, seed change, dependency, or environment variable is introduced by 11.4.
+The original 11.4 package introduced no migration. Phase 11.4.2 adds one migration to persist standard versus extraordinary authorization; it adds no seed change, dependency, or environment variable.
 
 ## Authorization Contract
 
@@ -484,6 +484,23 @@ Case 18 was not executed and is documented as **not required**:
 
 `consultTransactions` remains deferred and must be reconsidered only if a later provider observation shows that `/consult` omits required movements or cannot distinguish them safely.
 
+## Phase 11.4.2 Follow-up — Extraordinary Authorization
+
+The original authorization ceiling combined the cancellation-policy allowance and payment balance. UI acceptance established the need for a separate extraordinary administrative decision.
+
+```text
+- STANDARD_POLICY Refunds remain limited by both policy and payment balances.
+- EXTRAORDINARY Refunds may be authorized when the policy balance is zero or exhausted.
+- Extraordinary amounts do not rewrite or consume the standard policy allowance or mutate the completed cancellation-policy snapshot.
+- All committed Refunds together remain limited by the captured Payment amount.
+- Existing rows are migrated as LEGACY_UNSPECIFIED and count conservatively with standard-policy commitments.
+- The admin form explicitly states that an extraordinary refund is outside the applied cancellation policy and requires a reason.
+```
+
+UI-1 also exposed that the UI recognized only modification type `2`, while the observed consult contract returns `Refund`. Phase 11.4.2 normalizes both values, locks all evidence-derived fields, and adds a server-side prohibition against switching conclusive consult evidence to portal fallback.
+
+Implementation record: `docs/101-phase-11.4.2-extraordinary-refund-authorization-and-consult-evidence-lock.md`.
+
 ## Acceptance Scenarios
 
 ### Authorization
@@ -493,7 +510,9 @@ Case 18 was not executed and is documented as **not required**:
 - Smaller positive amount creates a partial PENDING Refund.
 - Zero, negative, malformed, or over-limit amount is rejected.
 - Same UUID returns the same Refund.
-- Concurrent authorizations cannot exceed policy/payment balance.
+- Concurrent standard authorizations cannot exceed policy/payment balance.
+- Extraordinary authorization is allowed with zero/exhausted policy allowance but cannot exceed remaining Payment balance.
+- Standard/legacy and extraordinary commitments remain distinguishable and auditable.
 - Provider is not contacted during authorization.
 ```
 
@@ -513,6 +532,7 @@ Case 18 was not executed and is documented as **not required**:
 
 ```text
 - TILOPAY_CONSULT reconciliation requires a matching reference, normalized Refund/2 type, absolute amount, code, and description.
+- Conclusive consult evidence locks outcome/source/mode/reference and cannot be downgraded to portal fallback by a modified request.
 - Portal reconciliation requires an explicit admin note and provider/portal reference for APPROVED.
 - APPROVED requires a reference and updates Payment cumulatively.
 - Exact cumulative captured amount sets Payment REFUNDED.
@@ -540,6 +560,7 @@ Case 18 was not executed and is documented as **not required**:
 npm run env:validate
 npm run db:format
 npm run db:validate
+npm run db:migrate:dev
 npm run db:generate
 npm run lint
 npm run build
@@ -547,7 +568,7 @@ git diff --check
 git status --short
 ```
 
-No migration command is required for this package.
+Phase 11.4.2 requires applying the included Prisma migration before final validation.
 
 ## Completion Boundary
 

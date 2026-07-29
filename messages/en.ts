@@ -637,14 +637,16 @@ export const enMessages = {
         badge: "Refunds",
         title: "Refund authorization and reconciliation",
         description:
-          "Authorize amounts within the approved policy, observe Tilopay sandbox behavior, and confirm financial results only after explicit verification.",
+          "Authorize standard or extraordinary refunds, observe Tilopay sandbox behavior, and confirm financial results only after explicit verification.",
         labels: {
           refund: "Refund",
           payment: "Payment",
           paymentStatus: "Payment status",
           policyAmount: "Policy-authorized amount",
-          committedAmount: "Committed amount",
-          remainingAmount: "Still authorizable",
+          committedAmount: "Standard amount committed",
+          remainingAmount: "Standard policy balance",
+          paymentRemainingAmount: "Refundable payment balance",
+          authorizationType: "Authorization type",
           amount: "Amount",
           reason: "Internal reason",
           processingMode: "Processing mode",
@@ -676,6 +678,11 @@ export const enMessages = {
           MANUAL: "Historical manual",
           REFUNDED: "Refunded",
           PARTIALLY_REFUNDED: "Partially refunded",
+        },
+        authorizationTypes: {
+          LEGACY_UNSPECIFIED: "Historical unspecified",
+          STANDARD_POLICY: "Cancellation-policy refund",
+          EXTRAORDINARY: "Extraordinary refund",
         },
         processingModes: {
           TILOPAY_API: "Tilopay API",
@@ -711,6 +718,8 @@ export const enMessages = {
         },
         actions: {
           authorize: "Authorize refund",
+          authorizeStandard: "Authorize by policy",
+          authorizeExtraordinary: "Authorize extraordinary",
           authorizing: "Authorizing...",
           confirmAuthorization: "Create authorization",
           executeSandbox: "Send to sandbox",
@@ -735,11 +744,18 @@ export const enMessages = {
             "The reservation remains cancelled even when a refund attempt fails. Only confirmed refunds change the payment's financial status.",
         },
         authorizationDialog: {
-          title: "Authorize refund",
+          title: "Authorize policy refund",
           description:
-            "Create a PENDING record before any external action. You may authorize the full allowed amount or part of the remaining balance.",
+            "Create a PENDING record within the remaining allowance of the applied cancellation policy.",
+          extraordinaryTitle: "Authorize extraordinary refund",
+          extraordinaryDescription:
+            "Authorize an administrative refund outside the standard policy, limited only by the payment's remaining unrefunded balance.",
+          extraordinaryNotice:
+            "This refund is not part of the applied cancellation policy. It must represent an exceptional administrative decision and include a clear internal reason.",
           warning:
-            "This action does not move money yet. Pending, processing, and approved amounts reserve the cumulative limit to prevent over-refunding.",
+            "This action does not move money yet. Pending, processing, and approved standard refunds reserve the policy balance to prevent over-refunding.",
+          extraordinaryWarning:
+            "This action does not move money yet. The extraordinary amount will reserve the payment's total refundable balance, not the policy allowance. All refunds combined can never exceed the captured payment.",
         },
         executionDialog: {
           title: "Send request to Tilopay sandbox",
@@ -753,7 +769,9 @@ export const enMessages = {
           description:
             "API consult evidence can only confirm the outcome derived from a matching movement. Portal verification keeps a manual decision with a required reference and note.",
           warning:
-            "Approval changes the payment to partially or fully refunded. Evidence must match the reference, type 2, amount, and movement sign; this decision never restores the cancelled reservation.",
+            "Approval changes the payment to partially or fully refunded. Evidence must match the reference, refund type, and observed amount; this decision never restores the cancelled reservation.",
+          consultEvidenceLocked:
+            "Tilopay returned conclusive evidence for this movement. The outcome, source, mode, and reference are locked and will be validated again by the server.",
         },
         success: {
           authorized: "The refund was authorized and is pending processing.",
@@ -781,7 +799,7 @@ export const enMessages = {
         empty: {
           noRefunds: "This cancellation does not have authorized refunds yet.",
           noEligiblePolicy:
-            "The cancellation does not have a positive amount authorized by the standard policy.",
+            "The standard policy has no refundable balance. An administrator may still authorize an extraordinary refund while the payment has an unrefunded balance.",
           cancellationRequired:
             "The cancellation must be approved before a refund can be authorized.",
         },

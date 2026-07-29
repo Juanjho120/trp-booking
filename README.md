@@ -318,6 +318,7 @@ Planned subphases:
 11.3 Admin cancellation decision and availability release — Completed
 11.4 Refund authorization and Tilopay reconciliation — In progress
 11.4.1 Observed Tilopay contract and evidence-based reconciliation — In progress
+11.4.2 Extraordinary refund authorization and consult evidence lock — In progress
 11.5 Authorized date changes and stay extensions — Not started
 11.6 Lifecycle notifications and admin operational history — Not started
 11.7 Validation and documentation closure — Not started
@@ -339,7 +340,8 @@ Accepted Phase 11 foundation:
 - Sandbox support, response shapes, errors, duplicate behavior, retry safety, and provider idempotency are validated during 11.4 before production execution.
 - Merchant-portal processing remains an operational fallback, not the only assumed integration path.
 - Lifecycle emails are added only after the underlying transition is accepted.
-- Fee treatment, admin exceptions, and date-change repricing remain explicit decisions for their corresponding implementation subphases.
+- Extraordinary refund authorization is an explicit admin exception: it may exceed or bypass the standard policy allowance but never the remaining captured-payment balance. The completed cancellation-policy snapshot remains unchanged.
+- Fee treatment and date-change repricing remain explicit decisions for their corresponding implementation subphases.
 - No PMS behavior is added.
 ```
 
@@ -391,19 +393,21 @@ docs/97-phase-11.2-lifecycle-request-persistence-and-audit-foundation.md
 docs/98-phase-11.3-admin-cancellation-decision-and-availability-release.md
 docs/99-phase-11.4-refund-authorization-and-tilopay-reconciliation.md
 docs/100-phase-11.4.1-observed-tilopay-contract-and-evidence-based-reconciliation.md
+docs/101-phase-11.4.2-extraordinary-refund-authorization-and-consult-evidence-lock.md
 ```
 
 ## Development Status
 
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
-Current subphase: 11.4.1 Observed Tilopay contract and evidence-based reconciliation — In progress
-Current focus: validate the corrected case-17 `/consult` contract through the admin UI, preserve portal fallback, and verify Payment/Refund/Reservation/AdminAuditLog state transitions
+Current subphase: 11.4.2 Extraordinary refund authorization and consult evidence lock — In progress
+Current focus: validate consult-derived field locking, extraordinary authorization outside policy, cumulative payment protection, migration behavior, and audit/state transitions
 Last completed subphase: 11.3 Admin cancellation decision and availability release
 11.3 accepted commit: c609ea0e5b4654da86436dba79477455681d7b14
 11.3 implementation document: docs/98-phase-11.3-admin-cancellation-decision-and-availability-release.md
 11.4 implementation document: docs/99-phase-11.4-refund-authorization-and-tilopay-reconciliation.md
 11.4.1 correction document: docs/100-phase-11.4.1-observed-tilopay-contract-and-evidence-based-reconciliation.md
+11.4.2 implementation document: docs/101-phase-11.4.2-extraordinary-refund-authorization-and-consult-evidence-lock.md
 Last completed phase: Phase 10 — Email Notifications
 Phase 10 closure document: docs/94-phase-10-validation-and-documentation-closure.md
 ```

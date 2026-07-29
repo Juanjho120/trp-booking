@@ -8,6 +8,7 @@ import {
   getAdminSessionActor,
 } from "@/lib/admin";
 import {
+  adminRefundAuthorizationTypes,
   adminRefundProcessingModes,
   type AdminRefundErrorCode,
 } from "@/types/admin-refund";
@@ -18,6 +19,7 @@ export const runtime = "nodejs";
 const idSchema = z.string().trim().min(1).max(120);
 const requestSchema = z
   .object({
+    authorizationType: z.enum(adminRefundAuthorizationTypes),
     amount: z.string().trim().regex(/^\d{1,8}(?:\.\d{1,2})?$/),
     reason: z.string().trim().min(1).max(2_000),
     processingMode: z.enum(adminRefundProcessingModes),

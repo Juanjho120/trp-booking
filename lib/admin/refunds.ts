@@ -2,6 +2,7 @@ import {
   PaymentPurpose,
   PaymentStatus,
   Prisma,
+  RefundAuthorizationType,
   RefundProcessingMode,
   RefundStatus,
   ReservationLifecycleRequestStatus,
@@ -66,6 +67,7 @@ const refundSummarySelect = {
   paymentId: true,
   lifecycleRequestId: true,
   clientRequestId: true,
+  authorizationType: true,
   providerRefundId: true,
   amount: true,
   currency: true,
@@ -324,6 +326,7 @@ export function toAdminRefundSummary(
       ? toAdminSummary(refund.requestedByAdmin)
       : null,
     clientRequestId: refund.clientRequestId,
+    authorizationType: refund.authorizationType,
     amount: refund.amount.toFixed(2),
     currency: refund.currency,
     reason: refund.reason,
@@ -409,13 +412,8 @@ function assertLifecycleRequestEligible(
   if (
     request.currency !== request.sourcePayment.currency ||
     request.standardRefundPercentage === null ||
-    !request.standardRefundAmount ||
-    request.policyExceptionApplied
+    !request.standardRefundAmount
   ) {
-    throw new AdminRefundError("ADMIN_REFUND_POLICY_NOT_ELIGIBLE");
-  }
-
-  if (!request.standardRefundAmount.greaterThan(0)) {
     throw new AdminRefundError("ADMIN_REFUND_POLICY_NOT_ELIGIBLE");
   }
 }
@@ -460,7 +458,9 @@ async function createRefundAuthorizationTransaction(
         if (
           existing.lifecycleRequestId !== lifecycleRequestId ||
           existing.clientRequestId !== requestId ||
-          !existing.amount.equals(amount)
+          existing.authorizationType !== input.authorizationType ||
+          !existing.amount.equals(amount) ||
+          existing.processingMode !== input.processingMode
         ) {
           throw new AdminRefundError("ADMIN_REFUND_UNEXPECTED_ERROR");
         }
@@ -485,24 +485,42 @@ async function createRefundAuthorizationTransaction(
 
       assertLifecycleRequestEligible(lifecycleRequest, input);
       const payment = lifecycleRequest.sourcePayment;
-      const approvedPolicyAmount =
-        lifecycleRequest.approvedRefundAmount ??
-        lifecycleRequest.standardRefundAmount;
-      const requestCommittedAmount = await sumRefundAmounts(transaction, {
+      const standardPolicyAmount = lifecycleRequest.standardRefundAmount;
+      const standardCommittedAmount = await sumRefundAmounts(transaction, {
         lifecycleRequestId,
+        authorizationType: {
+          in: [
+            RefundAuthorizationType.LEGACY_UNSPECIFIED,
+            RefundAuthorizationType.STANDARD_POLICY,
+          ],
+        },
         status: { in: [...COMMITTED_REFUND_STATUSES] },
       });
       const paymentCommittedAmount = await sumRefundAmounts(transaction, {
         paymentId: payment.id,
         status: { in: [...COMMITTED_REFUND_STATUSES] },
       });
-      const remainingPolicyAmount = approvedPolicyAmount.sub(
-        requestCommittedAmount,
-      );
-      const remainingPaymentAmount = payment.amount.sub(paymentCommittedAmount);
+      const policyDifference = standardPolicyAmount.sub(standardCommittedAmount);
+      const paymentDifference = payment.amount.sub(paymentCommittedAmount);
+      const remainingPolicyAmount = policyDifference.greaterThan(0)
+        ? policyDifference
+        : new Prisma.Decimal(0);
+      const remainingPaymentAmount = paymentDifference.greaterThan(0)
+        ? paymentDifference
+        : new Prisma.Decimal(0);
 
-      if (amount.greaterThan(remainingPolicyAmount)) {
-        throw new AdminRefundError("ADMIN_REFUND_AMOUNT_EXCEEDS_POLICY");
+      if (
+        input.authorizationType === RefundAuthorizationType.STANDARD_POLICY &&
+        (lifecycleRequest.policyExceptionApplied ||
+          !standardPolicyAmount.greaterThan(0) ||
+          amount.greaterThan(remainingPolicyAmount))
+      ) {
+        throw new AdminRefundError(
+          lifecycleRequest.policyExceptionApplied ||
+            !standardPolicyAmount.greaterThan(0)
+            ? "ADMIN_REFUND_POLICY_NOT_ELIGIBLE"
+            : "ADMIN_REFUND_AMOUNT_EXCEEDS_POLICY",
+        );
       }
 
       if (amount.greaterThan(remainingPaymentAmount)) {
@@ -516,6 +534,10 @@ async function createRefundAuthorizationTransaction(
         throw new AdminRefundError("ADMIN_REFUND_PAYMENT_NOT_FOUND");
       }
 
+      const normalizedReason = normalizeRequiredText(
+        input.reason,
+        REFUND_REASON_MAX_LENGTH,
+      );
       const requestFence =
         await transaction.reservationLifecycleRequest.updateMany({
           where: {
@@ -524,13 +546,19 @@ async function createRefundAuthorizationTransaction(
             updatedAt: lifecycleRequest.updatedAt,
             status: ReservationLifecycleRequestStatus.COMPLETED,
           },
-          data: {
-            approvedRefundPercentage:
-              lifecycleRequest.approvedRefundPercentage ??
-              lifecycleRequest.standardRefundPercentage,
-            approvedRefundAmount: approvedPolicyAmount,
-            version: { increment: 1 },
-          },
+          data:
+            input.authorizationType === RefundAuthorizationType.EXTRAORDINARY
+              ? {
+                  version: { increment: 1 },
+                }
+              : {
+                  approvedRefundPercentage:
+                    lifecycleRequest.approvedRefundPercentage ??
+                    lifecycleRequest.standardRefundPercentage,
+                  approvedRefundAmount:
+                    lifecycleRequest.approvedRefundAmount ?? standardPolicyAmount,
+                  version: { increment: 1 },
+                },
         });
 
       const paymentFence = await transaction.payment.updateMany({
@@ -555,9 +583,10 @@ async function createRefundAuthorizationTransaction(
           requestedByAdminId: adminActor.id,
           clientRequestId: requestId,
           idempotencyKey,
+          authorizationType: input.authorizationType,
           amount,
           currency: payment.currency,
-          reason: normalizeRequiredText(input.reason, REFUND_REASON_MAX_LENGTH),
+          reason: normalizedReason,
           status: RefundStatus.PENDING,
           processingMode: input.processingMode,
         },
@@ -567,7 +596,10 @@ async function createRefundAuthorizationTransaction(
       await transaction.adminAuditLog.create({
         data: {
           userId: adminActor.id,
-          action: "REFUND_AUTHORIZED",
+          action:
+            input.authorizationType === RefundAuthorizationType.EXTRAORDINARY
+              ? "REFUND_EXTRAORDINARY_AUTHORIZED"
+              : "REFUND_AUTHORIZED",
           entityType: "Refund",
           entityId: refund.id,
           metadata: {
@@ -578,10 +610,15 @@ async function createRefundAuthorizationTransaction(
             clientRequestId: requestId,
             amount: amount.toFixed(2),
             currency: payment.currency,
+            authorizationType: input.authorizationType,
             processingMode: input.processingMode,
-            approvedPolicyAmount: approvedPolicyAmount.toFixed(2),
+            standardPolicyAmount: standardPolicyAmount.toFixed(2),
+            standardPolicyCommittedBefore: standardCommittedAmount.toFixed(2),
             policyRemainingBefore: remainingPolicyAmount.toFixed(2),
+            paymentCommittedBefore: paymentCommittedAmount.toFixed(2),
             paymentRemainingBefore: remainingPaymentAmount.toFixed(2),
+            outsideCancellationPolicy:
+              input.authorizationType === RefundAuthorizationType.EXTRAORDINARY,
             providerCalled: false,
           },
         },
@@ -626,6 +663,7 @@ export async function createAdminRefundAuthorization(
         if (
           existing.lifecycleRequestId !== lifecycleRequestId ||
           existing.clientRequestId !== requestId ||
+          existing.authorizationType !== input.authorizationType ||
           !existing.amount.equals(requestedAmount) ||
           existing.processingMode !== input.processingMode
         ) {
@@ -685,6 +723,7 @@ function assertPaymentCanReceiveApprovedRefund(refund: RefundForAction): void {
 
 async function recordExecutionObservation(
   refundId: string,
+  authorizationType: RefundAuthorizationType,
   observation: TilopayModificationObservation,
   actor: AdminActor,
   requestId: string,
@@ -772,6 +811,7 @@ async function recordExecutionObservation(
           metadata: toSafeJson({
             actorEmail: adminActor.email,
             requestId,
+            authorizationType,
             httpStatus: observation.httpStatus,
             providerOk: observation.ok,
             responseCode: observation.responseCode,
@@ -795,6 +835,7 @@ async function recordExecutionObservation(
 
 async function recordExecutionFailure(
   refundId: string,
+  authorizationType: RefundAuthorizationType,
   error: TilopayApiClientError,
   actor: AdminActor,
   requestId: string,
@@ -851,6 +892,7 @@ async function recordExecutionFailure(
           metadata: {
             actorEmail: adminActor.email,
             requestId,
+            authorizationType,
             failureCode: error.code,
             requestMayHaveReachedProvider: uncertain,
             paymentStatusChanged: false,
@@ -945,6 +987,7 @@ export async function executeAdminTilopayRefund(
             orderNumber: refund.payment.providerReference,
             amount: refund.amount.toFixed(2),
             currency: refund.currency,
+            authorizationType: refund.authorizationType,
             modificationType: "2",
             environment: env.TILOPAY_ENVIRONMENT,
           },
@@ -968,6 +1011,7 @@ export async function executeAdminTilopayRefund(
     });
     const summary = await recordExecutionObservation(
       refund.id,
+      refund.authorizationType,
       observation,
       actor,
       input.requestId,
@@ -986,6 +1030,7 @@ export async function executeAdminTilopayRefund(
 
     const summary = await recordExecutionFailure(
       refund.id,
+      refund.authorizationType,
       error,
       actor,
       input.requestId,
@@ -1201,6 +1246,7 @@ export async function consultAdminTilopayRefund(
             metadata: toSafeJson({
               actorEmail: adminActor.email,
               requestId: input.requestId,
+              authorizationType: refund.authorizationType,
               candidateCount: observation.candidates.length,
               matchedProviderReference: Boolean(candidate?.providerReference),
               responseCode: candidate?.responseCode ?? null,
@@ -1326,6 +1372,21 @@ export async function reconcileAdminRefund(
         input.providerRefundId,
         PROVIDER_REFERENCE_MAX_LENGTH,
       );
+      const hasConclusiveConsultEvidence = Boolean(
+        currentDiagnostics?.source === "tilopay_refund_consult" &&
+          (currentDiagnostics.resultClassification === "PROVIDER_ACCEPTED" ||
+            currentDiagnostics.resultClassification === "PROVIDER_REJECTED") &&
+          currentDiagnostics.providerReference &&
+          isTilopayRefundConsultType(currentDiagnostics.modificationType) &&
+          currentDiagnostics.amount,
+      );
+
+      if (
+        hasConclusiveConsultEvidence &&
+        input.source !== "TILOPAY_CONSULT"
+      ) {
+        throw new AdminRefundError("ADMIN_REFUND_RECONCILIATION_CONFLICT");
+      }
 
       if (input.source === "TILOPAY_CONSULT") {
         const expectedClassification =
@@ -1471,6 +1532,7 @@ export async function reconcileAdminRefund(
             paymentId: refund.paymentId,
             amount: refund.amount.toFixed(2),
             currency: refund.currency,
+            authorizationType: refund.authorizationType,
             source: input.source,
             finalProcessingMode: input.finalProcessingMode,
             providerReferenceRecorded: Boolean(providerRefundId),

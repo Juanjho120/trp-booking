@@ -73,6 +73,14 @@ enum PaymentClientEventType {
   @@map("payment_client_event_type")
 }
 
+enum RefundAuthorizationType {
+  LEGACY_UNSPECIFIED
+  STANDARD_POLICY
+  EXTRAORDINARY
+
+  @@map("refund_authorization_type")
+}
+
 enum RefundStatus {
   PENDING
   PROCESSING
@@ -283,9 +291,9 @@ model Property {
   deletedAt             DateTime?      @map("deleted_at")
   deletedById           String?        @map("deleted_by_id")
 
-  deletedBy             User?                        @relation("PropertyDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull)
-  parentComponents      PropertyComponent[]          @relation("ParentProperty")
-  componentOf           PropertyComponent[]          @relation("ComponentProperty")
+  deletedBy             User?                         @relation("PropertyDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull)
+  parentComponents      PropertyComponent[]           @relation("ParentProperty")
+  componentOf           PropertyComponent[]           @relation("ComponentProperty")
   images                PropertyImage[]
   amenities             PropertyAmenity[]
   rules                 PropertyRule[]
@@ -493,8 +501,8 @@ model Payment {
   createdAt             DateTime        @default(now()) @map("created_at")
   updatedAt             DateTime        @updatedAt @map("updated_at")
 
-  reservation                Reservation                   @relation(fields: [reservationId], references: [id], onDelete: Restrict)
-  lifecycleRequest           ReservationLifecycleRequest?  @relation("LifecycleAdjustmentPayments", fields: [lifecycleRequestId], references: [id], onDelete: SetNull)
+  reservation               Reservation                  @relation(fields: [reservationId], references: [id], onDelete: Restrict)
+  lifecycleRequest          ReservationLifecycleRequest? @relation("LifecycleAdjustmentPayments", fields: [lifecycleRequestId], references: [id], onDelete: SetNull)
   sourceForLifecycleRequests ReservationLifecycleRequest[] @relation("LifecycleSourcePayment")
   refunds                    Refund[]
   clientEvents               PaymentClientEvent[]
@@ -543,6 +551,7 @@ model Refund {
   clientRequestId     String?              @unique @map("client_request_id")
   idempotencyKey      String?              @unique @map("idempotency_key")
   providerRefundId    String?              @map("provider_refund_id")
+  authorizationType   RefundAuthorizationType @default(STANDARD_POLICY) @map("authorization_type")
   amount              Decimal              @db.Decimal(10, 2)
   currency            String               @default("USD")
   reason              String?
@@ -562,88 +571,89 @@ model Refund {
 
   @@index([paymentId])
   @@index([lifecycleRequestId])
+  @@index([lifecycleRequestId, authorizationType, status])
   @@index([requestedByAdminId])
   @@index([status, processingMode])
   @@map("refunds")
 }
 
 model ReservationLifecycleRequest {
-  id              String                             @id @default(cuid())
-  reservationId   String                             @map("reservation_id")
-  sourcePaymentId String?                            @map("source_payment_id")
-  requestType     ReservationLifecycleRequestType    @map("request_type")
-  status          ReservationLifecycleRequestStatus  @default(PENDING_REVIEW)
-  channel         ReservationLifecycleRequestChannel
-  requesterName   String                             @map("requester_name") @db.VarChar(160)
-  requesterEmail  String?                            @map("requester_email") @db.VarChar(254)
-  requesterPhone  String?                            @map("requester_phone") @db.VarChar(40)
-  requestNote     String?                            @map("request_note") @db.Text
-  clientRequestId String                             @unique @map("client_request_id") @db.VarChar(120)
-  idempotencyKey  String                             @unique @map("idempotency_key") @db.VarChar(180)
+  id                           String                            @id @default(cuid())
+  reservationId                String                            @map("reservation_id")
+  sourcePaymentId              String?                           @map("source_payment_id")
+  requestType                  ReservationLifecycleRequestType   @map("request_type")
+  status                       ReservationLifecycleRequestStatus @default(PENDING_REVIEW)
+  channel                      ReservationLifecycleRequestChannel
+  requesterName                String                            @map("requester_name") @db.VarChar(160)
+  requesterEmail               String?                           @map("requester_email") @db.VarChar(254)
+  requesterPhone               String?                           @map("requester_phone") @db.VarChar(40)
+  requestNote                  String?                           @map("request_note") @db.Text
+  clientRequestId              String                            @unique @map("client_request_id") @db.VarChar(120)
+  idempotencyKey               String                            @unique @map("idempotency_key") @db.VarChar(180)
 
-  originalReservationStatus ReservationStatus @map("original_reservation_status")
-  originalCheckInDate       DateTime          @map("original_check_in_date") @db.Date
-  originalCheckOutDate      DateTime          @map("original_check_out_date") @db.Date
-  originalGuestName         String            @map("original_guest_name") @db.VarChar(160)
-  originalGuestEmail        String            @map("original_guest_email") @db.VarChar(254)
-  originalGuestPhone        String?           @map("original_guest_phone") @db.VarChar(40)
-  originalGuestCountry      String?           @map("original_guest_country") @db.VarChar(100)
-  originalPreferredLocale   String            @map("original_preferred_locale") @db.VarChar(10)
-  originalGuestCount        Int               @map("original_guest_count")
-  originalSubtotal          Decimal           @map("original_subtotal") @db.Decimal(10, 2)
-  originalCleaningFee       Decimal           @map("original_cleaning_fee") @db.Decimal(10, 2)
-  originalTaxes             Decimal           @map("original_taxes") @db.Decimal(10, 2)
-  originalDiscounts         Decimal           @map("original_discounts") @db.Decimal(10, 2)
-  originalTotal             Decimal           @map("original_total") @db.Decimal(10, 2)
-  currency                  String            @default("USD") @db.VarChar(3)
+  originalReservationStatus    ReservationStatus                 @map("original_reservation_status")
+  originalCheckInDate          DateTime                          @map("original_check_in_date") @db.Date
+  originalCheckOutDate         DateTime                          @map("original_check_out_date") @db.Date
+  originalGuestName            String                            @map("original_guest_name") @db.VarChar(160)
+  originalGuestEmail           String                            @map("original_guest_email") @db.VarChar(254)
+  originalGuestPhone           String?                           @map("original_guest_phone") @db.VarChar(40)
+  originalGuestCountry         String?                           @map("original_guest_country") @db.VarChar(100)
+  originalPreferredLocale      String                            @map("original_preferred_locale") @db.VarChar(10)
+  originalGuestCount           Int                               @map("original_guest_count")
+  originalSubtotal             Decimal                           @map("original_subtotal") @db.Decimal(10, 2)
+  originalCleaningFee          Decimal                           @map("original_cleaning_fee") @db.Decimal(10, 2)
+  originalTaxes                Decimal                           @map("original_taxes") @db.Decimal(10, 2)
+  originalDiscounts            Decimal                           @map("original_discounts") @db.Decimal(10, 2)
+  originalTotal                Decimal                           @map("original_total") @db.Decimal(10, 2)
+  currency                     String                            @default("USD") @db.VarChar(3)
 
-  requestedCheckInDate  DateTime? @map("requested_check_in_date") @db.Date
-  requestedCheckOutDate DateTime? @map("requested_check_out_date") @db.Date
-  requestedGuestCount   Int?      @map("requested_guest_count")
-  requestedSubtotal     Decimal?  @map("requested_subtotal") @db.Decimal(10, 2)
-  requestedCleaningFee  Decimal?  @map("requested_cleaning_fee") @db.Decimal(10, 2)
-  requestedTaxes        Decimal?  @map("requested_taxes") @db.Decimal(10, 2)
-  requestedDiscounts    Decimal?  @map("requested_discounts") @db.Decimal(10, 2)
-  requestedTotal        Decimal?  @map("requested_total") @db.Decimal(10, 2)
-  financialDifference   Decimal?  @map("financial_difference") @db.Decimal(10, 2)
+  requestedCheckInDate         DateTime?                         @map("requested_check_in_date") @db.Date
+  requestedCheckOutDate        DateTime?                         @map("requested_check_out_date") @db.Date
+  requestedGuestCount          Int?                              @map("requested_guest_count")
+  requestedSubtotal            Decimal?                          @map("requested_subtotal") @db.Decimal(10, 2)
+  requestedCleaningFee         Decimal?                          @map("requested_cleaning_fee") @db.Decimal(10, 2)
+  requestedTaxes               Decimal?                          @map("requested_taxes") @db.Decimal(10, 2)
+  requestedDiscounts           Decimal?                          @map("requested_discounts") @db.Decimal(10, 2)
+  requestedTotal               Decimal?                          @map("requested_total") @db.Decimal(10, 2)
+  financialDifference          Decimal?                          @map("financial_difference") @db.Decimal(10, 2)
 
-  cancellationPolicyVersion CancellationPolicyVersion?   @map("cancellation_policy_version")
-  policyTimezone            String?                      @map("policy_timezone") @db.VarChar(64)
-  policyCalculatedAt        DateTime?                    @map("policy_calculated_at")
-  policyCheckInAt           DateTime?                    @map("policy_check_in_at")
-  policyHoursBeforeCheckIn  Decimal?                     @map("policy_hours_before_check_in") @db.Decimal(12, 6)
-  policyReasonCode          CancellationPolicyReasonCode @default(NOT_APPLICABLE) @map("policy_reason_code")
-  standardRefundPercentage  Int?                         @map("standard_refund_percentage")
-  standardRefundAmount      Decimal?                     @map("standard_refund_amount") @db.Decimal(10, 2)
-  approvedRefundPercentage  Int?                         @map("approved_refund_percentage")
-  approvedRefundAmount      Decimal?                     @map("approved_refund_amount") @db.Decimal(10, 2)
-  policyExceptionApplied    Boolean                      @default(false) @map("policy_exception_applied")
-  policyExceptionReason     String?                      @map("policy_exception_reason") @db.Text
+  cancellationPolicyVersion    CancellationPolicyVersion?        @map("cancellation_policy_version")
+  policyTimezone               String?                            @map("policy_timezone") @db.VarChar(64)
+  policyCalculatedAt           DateTime?                          @map("policy_calculated_at")
+  policyCheckInAt              DateTime?                          @map("policy_check_in_at")
+  policyHoursBeforeCheckIn     Decimal?                           @map("policy_hours_before_check_in") @db.Decimal(12, 6)
+  policyReasonCode             CancellationPolicyReasonCode      @default(NOT_APPLICABLE) @map("policy_reason_code")
+  standardRefundPercentage     Int?                               @map("standard_refund_percentage")
+  standardRefundAmount         Decimal?                           @map("standard_refund_amount") @db.Decimal(10, 2)
+  approvedRefundPercentage     Int?                               @map("approved_refund_percentage")
+  approvedRefundAmount         Decimal?                           @map("approved_refund_amount") @db.Decimal(10, 2)
+  policyExceptionApplied       Boolean                            @default(false) @map("policy_exception_applied")
+  policyExceptionReason        String?                            @map("policy_exception_reason") @db.Text
 
-  createdByAdminId             String    @map("created_by_admin_id")
-  reviewedByAdminId            String?   @map("reviewed_by_admin_id")
-  decisionReasonCode           String?   @map("decision_reason_code") @db.VarChar(100)
-  decisionNote                 String?   @map("decision_note") @db.Text
-  failureCode                  String?   @map("failure_code") @db.VarChar(100)
-  requestedAt                  DateTime  @default(now()) @map("requested_at")
-  reviewedAt                   DateTime? @map("reviewed_at")
-  decidedAt                    DateTime? @map("decided_at")
-  completedAt                  DateTime? @map("completed_at")
-  failedAt                     DateTime? @map("failed_at")
-  withdrawnAt                  DateTime? @map("withdrawn_at")
-  expiredAt                    DateTime? @map("expired_at")
-  expectedReservationUpdatedAt DateTime  @map("expected_reservation_updated_at")
-  version                      Int       @default(1)
-  createdAt                    DateTime  @default(now()) @map("created_at")
-  updatedAt                    DateTime  @updatedAt @map("updated_at")
+  createdByAdminId             String                             @map("created_by_admin_id")
+  reviewedByAdminId            String?                            @map("reviewed_by_admin_id")
+  decisionReasonCode           String?                            @map("decision_reason_code") @db.VarChar(100)
+  decisionNote                 String?                            @map("decision_note") @db.Text
+  failureCode                  String?                            @map("failure_code") @db.VarChar(100)
+  requestedAt                  DateTime                           @default(now()) @map("requested_at")
+  reviewedAt                   DateTime?                          @map("reviewed_at")
+  decidedAt                    DateTime?                          @map("decided_at")
+  completedAt                  DateTime?                          @map("completed_at")
+  failedAt                     DateTime?                          @map("failed_at")
+  withdrawnAt                  DateTime?                          @map("withdrawn_at")
+  expiredAt                    DateTime?                          @map("expired_at")
+  expectedReservationUpdatedAt DateTime                           @map("expected_reservation_updated_at")
+  version                      Int                                @default(1)
+  createdAt                    DateTime                           @default(now()) @map("created_at")
+  updatedAt                    DateTime                           @updatedAt @map("updated_at")
 
-  reservation        Reservation           @relation(fields: [reservationId], references: [id], onDelete: Restrict)
-  sourcePayment      Payment?              @relation("LifecycleSourcePayment", fields: [sourcePaymentId], references: [id], onDelete: Restrict)
-  createdByAdmin     User                  @relation("LifecycleRequestCreatedByAdmin", fields: [createdByAdminId], references: [id], onDelete: Restrict)
-  reviewedByAdmin    User?                 @relation("LifecycleRequestReviewedByAdmin", fields: [reviewedByAdminId], references: [id], onDelete: SetNull)
+  reservation       Reservation           @relation(fields: [reservationId], references: [id], onDelete: Restrict)
+  sourcePayment     Payment?               @relation("LifecycleSourcePayment", fields: [sourcePaymentId], references: [id], onDelete: Restrict)
+  createdByAdmin    User                   @relation("LifecycleRequestCreatedByAdmin", fields: [createdByAdminId], references: [id], onDelete: Restrict)
+  reviewedByAdmin   User?                  @relation("LifecycleRequestReviewedByAdmin", fields: [reviewedByAdminId], references: [id], onDelete: SetNull)
   adjustmentPayments Payment[]             @relation("LifecycleAdjustmentPayments")
-  refunds            Refund[]
-  hold               LifecycleRequestHold?
+  refunds           Refund[]
+  hold              LifecycleRequestHold?
 
   @@index([reservationId, status])
   @@index([requestType, status])

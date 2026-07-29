@@ -1,3 +1,11 @@
+export const adminRefundAuthorizationTypes = [
+  "STANDARD_POLICY",
+  "EXTRAORDINARY",
+] as const;
+
+export type AdminRefundAuthorizationType =
+  (typeof adminRefundAuthorizationTypes)[number];
+
 export const adminRefundProcessingModes = [
   "TILOPAY_API",
   "TILOPAY_PORTAL_FALLBACK",
@@ -70,6 +78,7 @@ export type AdminRefundSummary = Readonly<{
   lifecycleRequestId: string | null;
   requestedByAdmin: AdminRefundAdminSummary | null;
   clientRequestId: string | null;
+  authorizationType: AdminRefundAuthorizationType | string;
   amount: string;
   currency: string;
   reason: string | null;
@@ -111,6 +120,7 @@ export type AdminRefundReconciliationResult = Readonly<{
 
 export type CreateAdminRefundInput = Readonly<{
   lifecycleRequestId: string;
+  authorizationType: AdminRefundAuthorizationType;
   amount: string;
   reason: string;
   processingMode: AdminRefundProcessingMode;

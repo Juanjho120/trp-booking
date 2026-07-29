@@ -637,14 +637,16 @@ export const esMessages = {
         badge: "Reembolsos",
         title: "Autorización y reconciliación de reembolsos",
         description:
-          "Autoriza montos dentro de la política aprobada, observa Tilopay en sandbox y confirma el resultado financiero solo después de una verificación explícita.",
+          "Autoriza reembolsos estándar o extraordinarios, observa Tilopay en sandbox y confirma el resultado financiero solo después de una verificación explícita.",
         labels: {
           refund: "Reembolso",
           payment: "Pago",
           paymentStatus: "Estado del pago",
           policyAmount: "Monto permitido por política",
-          committedAmount: "Monto comprometido",
-          remainingAmount: "Monto todavía autorizable",
+          committedAmount: "Monto estándar comprometido",
+          remainingAmount: "Saldo estándar de la política",
+          paymentRemainingAmount: "Saldo reembolsable del pago",
+          authorizationType: "Tipo de autorización",
           amount: "Monto",
           reason: "Motivo interno",
           processingMode: "Modo de procesamiento",
@@ -676,6 +678,11 @@ export const esMessages = {
           MANUAL: "Manual histórico",
           REFUNDED: "Reembolsado",
           PARTIALLY_REFUNDED: "Parcialmente reembolsado",
+        },
+        authorizationTypes: {
+          LEGACY_UNSPECIFIED: "Histórico sin clasificación",
+          STANDARD_POLICY: "Según política de cancelación",
+          EXTRAORDINARY: "Reembolso extraordinario",
         },
         processingModes: {
           TILOPAY_API: "API de Tilopay",
@@ -711,6 +718,8 @@ export const esMessages = {
         },
         actions: {
           authorize: "Autorizar reembolso",
+          authorizeStandard: "Autorizar según política",
+          authorizeExtraordinary: "Autorizar extraordinario",
           authorizing: "Autorizando...",
           confirmAuthorization: "Crear autorización",
           executeSandbox: "Enviar a sandbox",
@@ -735,11 +744,18 @@ export const esMessages = {
             "La reservación permanece cancelada aunque un intento de reembolso falle. Solo los reembolsos confirmados cambian el estado financiero del pago.",
         },
         authorizationDialog: {
-          title: "Autorizar reembolso",
+          title: "Autorizar reembolso según política",
           description:
-            "Crea un registro PENDING antes de cualquier acción externa. Puedes autorizar el total permitido o una parte del monto restante.",
+            "Crea un registro PENDING dentro del saldo permitido por la política de cancelación aplicada.",
+          extraordinaryTitle: "Autorizar reembolso extraordinario",
+          extraordinaryDescription:
+            "Autoriza una devolución administrativa fuera de la política estándar, limitada únicamente por el saldo no devuelto del pago.",
+          extraordinaryNotice:
+            "Este reembolso no forma parte de la política de cancelación aplicada. Debe responder a una decisión administrativa excepcional y quedar respaldado por un motivo interno claro.",
           warning:
-            "Esta acción todavía no mueve dinero. El monto pendiente, procesando y aprobado se reserva contra el límite acumulado para impedir sobre-reembolsos.",
+            "Esta acción todavía no mueve dinero. Los reembolsos estándar pendientes, procesando y aprobados reservan el saldo de la política para impedir sobre-reembolsos.",
+          extraordinaryWarning:
+            "Esta acción todavía no mueve dinero. El monto extraordinario se reservará contra el saldo total del pago, no contra el monto permitido por la política. La suma de todos los reembolsos nunca puede superar el pago capturado.",
         },
         executionDialog: {
           title: "Enviar solicitud a Tilopay sandbox",
@@ -753,7 +769,9 @@ export const esMessages = {
           description:
             "La consulta API solo permite confirmar el resultado derivado de un movimiento coincidente. La verificación mediante portal conserva una decisión manual con referencia y nota obligatorias.",
           warning:
-            "Aprobar cambia el pago a parcial o totalmente reembolsado. La evidencia debe coincidir con la referencia, el tipo 2, el monto y el signo del movimiento; esta decisión nunca restaura la reservación cancelada.",
+            "Aprobar cambia el pago a parcial o totalmente reembolsado. La evidencia debe coincidir con la referencia, el tipo de reembolso y el monto observado; esta decisión nunca restaura la reservación cancelada.",
+          consultEvidenceLocked:
+            "Tilopay devolvió evidencia concluyente para este movimiento. El resultado, la fuente, el modo y la referencia están bloqueados y serán validados nuevamente por el servidor.",
         },
         success: {
           authorized: "El reembolso quedó autorizado y pendiente de procesamiento.",
@@ -781,7 +799,7 @@ export const esMessages = {
         empty: {
           noRefunds: "Esta cancelación todavía no tiene reembolsos autorizados.",
           noEligiblePolicy:
-            "La cancelación no tiene un monto positivo autorizado por la política estándar.",
+            "La política estándar no tiene saldo reembolsable. Un administrador todavía puede autorizar un reembolso extraordinario mientras exista saldo no devuelto en el pago.",
           cancellationRequired:
             "Primero debe aprobarse la cancelación para autorizar un reembolso.",
         },

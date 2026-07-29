@@ -38,6 +38,7 @@ import {
 import { useLocale } from "@/features/i18n";
 import type {
   AdminRefundAuthorizationResult,
+  AdminRefundAuthorizationType,
   AdminRefundConsultResult,
   AdminRefundErrorCode,
   AdminRefundExecutionResult,
@@ -68,6 +69,7 @@ type RefundApiResponse<Result> = Readonly<{
 }>;
 
 type AuthorizationDraft = Readonly<{
+  authorizationType: AdminRefundAuthorizationType;
   amount: string;
   reason: string;
   processingMode: AdminRefundProcessingMode;
@@ -94,6 +96,11 @@ function fixedAmount(value: number): string {
   return Math.max(0, Math.round(value * 100) / 100).toFixed(2);
 }
 
+function isRefundConsultType(value: string | null | undefined): boolean {
+  const normalized = value?.trim().toLowerCase();
+  return normalized === "2" || normalized === "refund";
+}
+
 export function AdminReservationRefundSection({
   reservation,
 }: Readonly<{ reservation: AdminReservationDetailData }>) {
@@ -104,9 +111,7 @@ export function AdminReservationRefundSection({
   const eligibleRequest = useMemo(
     () =>
       reservation.cancellationRequests.find(
-        (request) =>
-          request.status === "COMPLETED" &&
-          amountNumber(request.policy.refundAmount) > 0,
+        (request) => request.status === "COMPLETED",
       ) ?? null,
     [reservation.cancellationRequests],
   );
@@ -115,11 +120,21 @@ export function AdminReservationRefundSection({
         (payment) => payment.id === eligibleRequest.sourcePaymentId,
       ) ?? null
     : null;
-  const committedAmount = eligibleRequest
+  const standardCommittedAmount = eligibleRequest
     ? reservation.refunds
         .filter(
           (refund) =>
             refund.lifecycleRequestId === eligibleRequest.id &&
+            refund.authorizationType !== "EXTRAORDINARY" &&
+            committedRefundStatuses.has(refund.status),
+        )
+        .reduce((total, refund) => total + amountNumber(refund.amount), 0)
+    : 0;
+  const paymentCommittedAmount = sourcePayment
+    ? reservation.refunds
+        .filter(
+          (refund) =>
+            refund.paymentId === sourcePayment.id &&
             committedRefundStatuses.has(refund.status),
         )
         .reduce((total, refund) => total + amountNumber(refund.amount), 0)
@@ -127,13 +142,21 @@ export function AdminReservationRefundSection({
   const remainingPolicyAmount = eligibleRequest
     ? Math.max(
         0,
-        amountNumber(eligibleRequest.policy.refundAmount) - committedAmount,
+        amountNumber(eligibleRequest.policy.refundAmount) -
+          standardCommittedAmount,
+      )
+    : 0;
+  const remainingPaymentAmount = sourcePayment
+    ? Math.max(
+        0,
+        amountNumber(sourcePayment.amount) - paymentCommittedAmount,
       )
     : 0;
   const [authorizationOpen, setAuthorizationOpen] = useState(false);
   const [authorizationRequestId, setAuthorizationRequestId] = useState("");
   const [authorizationDraft, setAuthorizationDraft] =
     useState<AuthorizationDraft>({
+      authorizationType: "STANDARD_POLICY",
       amount: "0.00",
       reason: "",
       processingMode: "TILOPAY_API",
@@ -155,13 +178,16 @@ export function AdminReservationRefundSection({
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [errorFeedback, setErrorFeedback] = useState<string | null>(null);
   const [successFeedback, setSuccessFeedback] = useState<string | null>(null);
-  const canAuthorize = Boolean(
+  const authorizationBaseAvailable = Boolean(
     eligibleRequest &&
       sourcePayment &&
       reservation.status === "CANCELLED" &&
-      refundablePaymentStatuses.has(sourcePayment.status) &&
-      remainingPolicyAmount > 0,
+      refundablePaymentStatuses.has(sourcePayment.status),
   );
+  const canAuthorizeStandard =
+    authorizationBaseAvailable && remainingPolicyAmount > 0;
+  const canAuthorizeExtraordinary =
+    authorizationBaseAvailable && remainingPaymentAmount > 0;
   const isBusy = busyAction !== null;
   const reconciliationConsultClassification =
     reconciliationTarget?.diagnostics?.source === "tilopay_refund_consult"
@@ -176,7 +202,9 @@ export function AdminReservationRefundSection({
   const hasConclusiveConsultEvidence = Boolean(
     reconciliationConsultOutcome &&
       reconciliationTarget?.diagnostics?.providerReference &&
-      reconciliationTarget.diagnostics.modificationType === "2" &&
+      isRefundConsultType(
+        reconciliationTarget.diagnostics.modificationType,
+      ) &&
       reconciliationTarget.diagnostics.amount,
   );
 
@@ -209,6 +237,14 @@ export function AdminReservationRefundSection({
     return copy.processingModes[mode as keyof typeof copy.processingModes] ?? mode;
   }
 
+  function authorizationTypeLabel(type: string): string {
+    return (
+      copy.authorizationTypes[
+        type as keyof typeof copy.authorizationTypes
+      ] ?? type
+    );
+  }
+
   function classificationLabel(classification: string): string {
     return (
       copy.resultClassifications[
@@ -229,13 +265,19 @@ export function AdminReservationRefundSection({
     return reservation.payments.find((payment) => payment.id === refund.paymentId) ?? null;
   }
 
-  function openAuthorization(): void {
+  function openAuthorization(
+    authorizationType: AdminRefundAuthorizationType,
+  ): void {
     if (!eligibleRequest || !sourcePayment) return;
 
     clearFeedback();
     setAuthorizationRequestId(crypto.randomUUID());
     setAuthorizationDraft({
-      amount: fixedAmount(remainingPolicyAmount),
+      authorizationType,
+      amount:
+        authorizationType === "STANDARD_POLICY"
+          ? fixedAmount(remainingPolicyAmount)
+          : "0.00",
       reason: "",
       processingMode: sourcePayment.providerReference
         ? "TILOPAY_API"
@@ -266,7 +308,7 @@ export function AdminReservationRefundSection({
     const useConsultEvidence = Boolean(
       consultOutcome &&
         refund.diagnostics?.providerReference &&
-        refund.diagnostics.modificationType === "2" &&
+        isRefundConsultType(refund.diagnostics.modificationType) &&
         refund.diagnostics.amount,
     );
 
@@ -521,16 +563,33 @@ export function AdminReservationRefundSection({
             <CardTitle>{copy.title}</CardTitle>
             <CardDescription>{copy.description}</CardDescription>
           </div>
-          {canAuthorize ? (
-            <Button onClick={openAuthorization} type="button">
-              <ShieldCheck aria-hidden="true" />
-              {copy.actions.authorize}
-            </Button>
+          {canAuthorizeStandard || canAuthorizeExtraordinary ? (
+            <div className="flex flex-wrap justify-end gap-2">
+              {canAuthorizeStandard ? (
+                <Button
+                  onClick={() => openAuthorization("STANDARD_POLICY")}
+                  type="button"
+                >
+                  <ShieldCheck aria-hidden="true" />
+                  {copy.actions.authorizeStandard}
+                </Button>
+              ) : null}
+              {canAuthorizeExtraordinary ? (
+                <Button
+                  onClick={() => openAuthorization("EXTRAORDINARY")}
+                  type="button"
+                  variant="outline"
+                >
+                  <CircleDollarSign aria-hidden="true" />
+                  {copy.actions.authorizeExtraordinary}
+                </Button>
+              ) : null}
+            </div>
           ) : null}
         </CardHeader>
         <CardContent className="grid gap-5">
           {eligibleRequest ? (
-            <div className="grid gap-4 rounded-2xl border border-border bg-muted/20 p-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="grid gap-4 rounded-2xl border border-border bg-muted/20 p-4 sm:grid-cols-2 xl:grid-cols-5">
               <DetailValue
                 label={copy.labels.policyAmount}
                 value={formatMoney(
@@ -541,7 +600,7 @@ export function AdminReservationRefundSection({
               <DetailValue
                 label={copy.labels.committedAmount}
                 value={formatMoney(
-                  fixedAmount(committedAmount),
+                  fixedAmount(standardCommittedAmount),
                   eligibleRequest.policy.currency,
                 )}
               />
@@ -551,6 +610,17 @@ export function AdminReservationRefundSection({
                   fixedAmount(remainingPolicyAmount),
                   eligibleRequest.policy.currency,
                 )}
+              />
+              <DetailValue
+                label={copy.labels.paymentRemainingAmount}
+                value={
+                  sourcePayment
+                    ? formatMoney(
+                        fixedAmount(remainingPaymentAmount),
+                        sourcePayment.currency,
+                      )
+                    : copy.labels.unavailable
+                }
               />
               <DetailValue
                 label={copy.labels.paymentStatus}
@@ -579,6 +649,9 @@ export function AdminReservationRefundSection({
                   formatDateTime={formatDateTime}
                   formatMoney={formatMoney}
                   key={refund.id}
+                  authorizationTypeLabel={authorizationTypeLabel(
+                    refund.authorizationType,
+                  )}
                   modeLabel={modeLabel(refund.processingMode)}
                   apiExecutionEnabled={reservation.refundApiExecutionEnabled}
                   onConsult={() => void consultRefund(refund)}
@@ -604,10 +677,48 @@ export function AdminReservationRefundSection({
       >
         <SheetContent closeLabel={messages.admin.feedback.dismiss}>
           <SheetHeader>
-            <SheetTitle>{copy.authorizationDialog.title}</SheetTitle>
-            <SheetDescription>{copy.authorizationDialog.description}</SheetDescription>
+            <SheetTitle>
+              {authorizationDraft.authorizationType === "EXTRAORDINARY"
+                ? copy.authorizationDialog.extraordinaryTitle
+                : copy.authorizationDialog.title}
+            </SheetTitle>
+            <SheetDescription>
+              {authorizationDraft.authorizationType === "EXTRAORDINARY"
+                ? copy.authorizationDialog.extraordinaryDescription
+                : copy.authorizationDialog.description}
+            </SheetDescription>
           </SheetHeader>
           <div className="grid gap-5 overflow-y-auto px-6 py-2">
+            <div className="grid gap-4 rounded-2xl border border-border bg-muted/30 p-4 sm:grid-cols-2">
+              <DetailValue
+                label={copy.labels.authorizationType}
+                value={authorizationTypeLabel(
+                  authorizationDraft.authorizationType,
+                )}
+              />
+              <DetailValue
+                label={
+                  authorizationDraft.authorizationType === "EXTRAORDINARY"
+                    ? copy.labels.paymentRemainingAmount
+                    : copy.labels.remainingAmount
+                }
+                value={formatMoney(
+                  fixedAmount(
+                    authorizationDraft.authorizationType === "EXTRAORDINARY"
+                      ? remainingPaymentAmount
+                      : remainingPolicyAmount,
+                  ),
+                  sourcePayment?.currency ??
+                    eligibleRequest?.policy.currency ??
+                    "USD",
+                )}
+              />
+            </div>
+            {authorizationDraft.authorizationType === "EXTRAORDINARY" ? (
+              <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4 text-sm leading-6">
+                {copy.authorizationDialog.extraordinaryNotice}
+              </div>
+            ) : null}
             <FormField label={copy.labels.amount}>
               <input
                 className={inputClassName}
@@ -660,7 +771,9 @@ export function AdminReservationRefundSection({
               />
             </FormField>
             <div className="rounded-2xl border border-border bg-muted/30 p-4 text-sm leading-6 text-muted-foreground">
-              {copy.authorizationDialog.warning}
+              {authorizationDraft.authorizationType === "EXTRAORDINARY"
+                ? copy.authorizationDialog.extraordinaryWarning
+                : copy.authorizationDialog.warning}
             </div>
           </div>
           <SheetFooter>
@@ -723,7 +836,7 @@ export function AdminReservationRefundSection({
           <div className="grid gap-5 overflow-y-auto px-6 py-2">
             <FormField label={copy.labels.outcome}>
               <Select
-                disabled={isBusy || reconciliationDraft.source === "TILOPAY_CONSULT"}
+                disabled={isBusy || hasConclusiveConsultEvidence}
                 onValueChange={(value) =>
                   setReconciliationDraft((current) => ({
                     ...current,
@@ -741,7 +854,7 @@ export function AdminReservationRefundSection({
             </FormField>
             <FormField label={copy.labels.reconciliationSource}>
               <Select
-                disabled={isBusy}
+                disabled={isBusy || hasConclusiveConsultEvidence}
                 onValueChange={(value) => {
                   const source = value as AdminRefundReconciliationSource;
 
@@ -792,7 +905,7 @@ export function AdminReservationRefundSection({
               <input
                 className={inputClassName}
                 disabled={
-                  isBusy || reconciliationDraft.source === "TILOPAY_CONSULT"
+                  isBusy || hasConclusiveConsultEvidence
                 }
                 maxLength={180}
                 onChange={(event) =>
@@ -805,6 +918,11 @@ export function AdminReservationRefundSection({
                 value={reconciliationDraft.providerRefundId}
               />
             </FormField>
+            {hasConclusiveConsultEvidence ? (
+              <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4 text-sm leading-6">
+                {copy.reconciliationDialog.consultEvidenceLocked}
+              </div>
+            ) : null}
             <FormField label={copy.labels.reconciliationNote}>
               <textarea
                 className={textareaClassName}
@@ -845,6 +963,7 @@ function RefundCard({
   apiExecutionEnabled,
   copy,
   statusLabel,
+  authorizationTypeLabel,
   modeLabel,
   classificationLabel,
   formatMoney,
@@ -859,6 +978,7 @@ function RefundCard({
   apiExecutionEnabled: boolean;
   copy: ReturnType<typeof useLocale>["messages"]["admin"]["reservationsPage"]["refunds"];
   statusLabel: string;
+  authorizationTypeLabel: string;
   modeLabel: string;
   classificationLabel: (classification: string) => string;
   formatMoney: (value: string, currency: string) => string;
@@ -896,6 +1016,10 @@ function RefundCard({
       </div>
       <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <DetailValue label={copy.labels.amount} value={formatMoney(refund.amount, refund.currency)} />
+        <DetailValue
+          label={copy.labels.authorizationType}
+          value={authorizationTypeLabel}
+        />
         <DetailValue label={copy.labels.processingMode} value={modeLabel} />
         <DetailValue label={copy.labels.requestedBy} value={requestedBy} />
         <DetailValue label={copy.labels.createdAt} value={formatDateTime(refund.createdAt)} />
