@@ -566,11 +566,11 @@ Phase 11 rules:
 - Payment changes to PARTIALLY_REFUNDED or REFUNDED only after an approved reconciliation; Reservation remains CANCELLED.
 - Safe diagnostics expose bounded codes, descriptions, references, and response shapes without raw provider values or credentials.
 - No Prisma migration, dependency, environment variable, refund email, public mutation endpoint, or PMS behavior is added.
-- Cases 1–16 of the real sandbox full/partial/reversal/error/duplicate/timeout matrix are complete; `/consult` evidence and final UI acceptance remain required before 11.4 completion or production API execution.
+- Cases 1–17 of the real sandbox matrix are complete; case 18 is documented as not required because `/consult` returned all required movements; final UI acceptance remains required before 11.4 completion or production API execution.
 - The implementation record is docs/99-phase-11.4-refund-authorization-and-tilopay-reconciliation.md.
 ```
 
-### Phase 11.4.1 correction prepared
+### Phase 11.4.1 correction updated
 
 ```text
 - Cases 1–16 establish the sandbox processModification contract through sanitized responses and Tilopay portal financial verification.
@@ -578,13 +578,13 @@ Phase 11 rules:
 - Known codes 12 and 96 are rejected outcomes even when HTTP is 200 and a provider attempt reference is created.
 - Accepted responses remain PROCESSING until matching evidence is reconciled; known rejected responses become FAILED without changing Payment.
 - Sequential duplicate requests are not idempotent and concurrent duplicates can both reach Tilopay.
-- A safe /consult observer enumerates bounded candidate records instead of assuming the first response row is the refund.
-- Consult reconciliation requires exact reference, type 2, signed amount, currency when returned, code, and description evidence.
+- A safe /consult observer enumerates bounded financial candidates and excludes the top-level response wrapper.
+- Consult reconciliation requires exact reference, normalized Refund/2 type, absolute amount, currency when returned, code, and description evidence.
 - The UI locks consult-derived outcome/reference and defaults inconclusive cases to explicit portal fallback.
 - Type 3 remains outside the normal refund workflow.
 - No migration, dependency, environment variable, production execution, lifecycle email, public mutation, or PMS behavior is added.
 - The correction record is docs/100-phase-11.4.1-observed-tilopay-contract-and-evidence-based-reconciliation.md.
-- Case 17 /consult evidence and final UI acceptance remain required before completion.
+- Case 17 confirms that `/consult` returns the original Payment and all known Refund attempts; case 18 `consultTransactions` is not required. Final UI acceptance remains required before completion.
 ```
 
 ---

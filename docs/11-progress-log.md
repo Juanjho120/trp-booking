@@ -598,7 +598,7 @@ Implementation document: docs/98-phase-11.3-admin-cancellation-decision-and-avai
 
 ### Phase 11.4 — Refund Authorization and Tilopay Reconciliation
 
-Status: **In progress — cases 1–16 accepted as observed sandbox evidence; 11.4.1 correction and `/consult` acceptance pending**
+Status: **In progress — cases 1–17 accepted as observed sandbox evidence; case 18 not required; final 11.4.1 UI acceptance pending**
 
 ```text
 Full/partial PENDING refund authorization is protected, idempotent, and constrained by policy and captured-payment cumulative balances.
@@ -618,21 +618,21 @@ Implementation document: docs/99-phase-11.4-refund-authorization-and-tilopay-rec
 
 ### Phase 11.4.1 — Observed Tilopay Contract and Evidence-Based Reconciliation
 
-Status: **In progress — correction prepared; `/consult` evidence pending**
+Status: **In progress — case-17 contract applied; corrected UI acceptance pending**
 
 ```text
-Cases 1–16 were completed using sanitized processModification output plus Tilopay merchant-portal financial verification.
+Cases 1–16 were completed using sanitized processModification output plus Tilopay merchant-portal financial verification; case 17 established the `/consult` contract.
 The accepted sandbox response contract is HTTP 200 + code 1101 + Transaction is approved + provider reference.
 Known code 12 and 96 responses are rejected even when HTTP is 200 and an attempt reference exists.
 Accepted responses remain PROCESSING; known rejected responses become FAILED; uncertain responses remain PROCESSING with no retry.
 Sequential duplicate calls produced multiple refunds, so TRP Booking remains the mandatory idempotency owner.
-A safe /consult observer now returns bounded candidates and response shape without raw payload or secrets.
-Consult reconciliation is valid only when the provider reference, order, type 2, signed amount, currency, code, and description match.
+A safe /consult observer returns bounded financial candidates, excludes the top-level wrapper, and preserves response shape without raw payload or secrets.
+Consult reconciliation is valid only when the provider reference, order, normalized Refund/2 type, absolute amount, currency, code, and description match.
 The admin UI locks consult-derived outcomes/references and uses portal verification for inconclusive evidence.
 Type 3 remains outside the application refund path.
 No migration, dependency, environment variable, production execution, email, public mutation, or PMS behavior is added.
 Correction document: docs/100-phase-11.4.1-observed-tilopay-contract-and-evidence-based-reconciliation.md.
-Remaining acceptance: execute case 17, compare candidates with portal, test accepted/inconclusive UI consult, and verify audit/state transitions.
+Case 17 returned the original Payment plus approved and rejected Refund candidates in one response. Case 18 `consultTransactions` is not required. Remaining acceptance: test accepted/rejected/inconclusive UI consult and verify audit/state transitions.
 ```
 
 ## Continuity Notes for New Conversations

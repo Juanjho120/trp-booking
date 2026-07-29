@@ -165,29 +165,38 @@ function getSignedAmount(payload: JsonRecord): string | null {
   return numericValue.toFixed(2);
 }
 
+function hasAnyKey(record: JsonRecord, keys: readonly string[]): boolean {
+  return keys.some((key) => key in record);
+}
+
 function hasConsultCandidateFields(record: JsonRecord): boolean {
-  return [
+  const hasProviderReference = hasAnyKey(record, [
     "transactionId",
     "TransactionId",
     "orderId",
     "tpt",
     "id_tilopay",
     "tilopay-transaction",
+    "auth",
+    "authorization",
+  ]);
+  const hasOrderNumber = hasAnyKey(record, [
+    "external_order_id",
+    "externalOrderId",
+    "orderNumber",
+    "OrderNumber",
+    "order",
+  ]);
+  const hasAmount = hasAnyKey(record, [
     "amount",
     "Amount",
     "transactionAmount",
     "TransactionAmount",
     "refundAmount",
     "RefundAmount",
-    "type",
-    "Type",
-    "ReasonCode",
-    "ReasonCodeDescription",
-    "external_order_id",
-    "externalOrderId",
-    "orderNumber",
-    "OrderNumber",
-  ].some((key) => key in record);
+  ]);
+
+  return hasProviderReference || (hasOrderNumber && hasAmount);
 }
 
 function collectConsultRecords(
@@ -711,6 +720,14 @@ export function classifyTilopayModificationObservation(
   }
 
   return "RESULT_UNCERTAIN";
+}
+
+export function isTilopayRefundConsultType(
+  value: string | null | undefined,
+): boolean {
+  const normalized = value?.trim().toLowerCase();
+
+  return normalized === "2" || normalized === "refund";
 }
 
 export function classifyTilopayConsultCandidate(

@@ -14,6 +14,7 @@ import { getTilopayEnv } from "@/lib/env/server";
 import {
   classifyTilopayConsultCandidate,
   classifyTilopayModificationObservation,
+  isTilopayRefundConsultType,
   observeTilopayConsultTransaction,
   processTilopayModification,
   TilopayApiClientError,
@@ -1091,12 +1092,11 @@ function classifyConsultEvidence(
     const amount = parseConsultAmount(candidate.amount);
     const amountMatches =
       amount !== null && amount.abs().equals(refund.amount);
-    const typeMatches = candidate.type?.trim() === "2";
+    const typeMatches = isTilopayRefundConsultType(candidate.type);
 
     if (
       providerClassification === "PROVIDER_ACCEPTED" &&
       amountMatches &&
-      amount?.isNegative() &&
       typeMatches
     ) {
       return {
@@ -1108,7 +1108,6 @@ function classifyConsultEvidence(
     if (
       providerClassification === "PROVIDER_REJECTED" &&
       amountMatches &&
-      !amount?.isNegative() &&
       typeMatches
     ) {
       return {
@@ -1339,19 +1338,17 @@ export async function reconcileAdminRefund(
         const amountMatches =
           observedAmount !== null &&
           observedAmount.abs().equals(refund.amount);
-        const signMatches =
-          input.outcome === "APPROVED"
-            ? Boolean(observedAmount?.isNegative())
-            : Boolean(observedAmount && !observedAmount.isNegative());
+        const typeMatches = isTilopayRefundConsultType(
+          currentDiagnostics?.modificationType ?? null,
+        );
 
         if (
           currentDiagnostics?.source !== "tilopay_refund_consult" ||
           currentDiagnostics.resultClassification !== expectedClassification ||
-          currentDiagnostics.modificationType !== "2" ||
+          !typeMatches ||
           !currentDiagnostics.providerReference ||
           providerRefundId !== currentDiagnostics.providerReference ||
-          !amountMatches ||
-          !signMatches
+          !amountMatches
         ) {
           throw new AdminRefundError("ADMIN_REFUND_RECONCILIATION_CONFLICT");
         }

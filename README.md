@@ -398,7 +398,7 @@ docs/100-phase-11.4.1-observed-tilopay-contract-and-evidence-based-reconciliatio
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
 Current subphase: 11.4.1 Observed Tilopay contract and evidence-based reconciliation — In progress
-Current focus: apply the observed response contract, validate safe /consult candidates, enforce evidence-derived reconciliation, preserve portal fallback, and verify Payment/Refund/Reservation state transitions
+Current focus: validate the corrected case-17 `/consult` contract through the admin UI, preserve portal fallback, and verify Payment/Refund/Reservation/AdminAuditLog state transitions
 Last completed subphase: 11.3 Admin cancellation decision and availability release
 11.3 accepted commit: c609ea0e5b4654da86436dba79477455681d7b14
 11.3 implementation document: docs/98-phase-11.3-admin-cancellation-decision-and-availability-release.md

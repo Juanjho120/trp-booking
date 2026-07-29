@@ -5,7 +5,7 @@
 ```text
 Phase: Phase 11 — Cancellation, Refund, and Change Request Rules
 Subphase: 11.4 Refund authorization and Tilopay reconciliation
-Status: In progress — cases 1–16 observed; 11.4.1 correction prepared; `/consult` evidence pending
+Status: In progress — cases 1–17 observed; case 18 not required; corrected 11.4.1 UI acceptance pending
 Implementation dates: 2026-07-23 through 2026-07-24
 Base commit: c609ea0e5b4654da86436dba79477455681d7b14
 Previous accepted subphase: 11.3 Admin cancellation decision and availability release
@@ -38,7 +38,7 @@ A cancelled reservation remains CANCELLED even if a refund fails.
 - Known rejected codes 12 and 96 become FAILED without changing Payment.
 - Timeout/network uncertainty remains PROCESSING without automatic retry.
 - Safe Tilopay consult candidate enumeration without assuming the first response record is the refund.
-- Consult reference, order, type 2, signed refund amount, currency, code, and description checked before evidence is accepted.
+- Consult reference, order, normalized Refund/2 type, absolute refund amount, currency, code, and description checked before evidence is accepted.
 - Evidence-derived APPROVED/FAILED reconciliation through consult, with explicit portal fallback.
 - Payment PARTIALLY_REFUNDED/REFUNDED transition only after APPROVED reconciliation.
 - AdminAuditLog history for authorization, execution, observation, uncertainty, consult, and reconciliation.
@@ -206,13 +206,13 @@ Required consult identity and financial evidence:
 
 ```text
 providerReference = Refund.providerRefundId
-orderNumber matches Payment.providerReference when returned
-type = 2
-absolute signed amount = Refund.amount
+orderNumber matches Payment.providerReference when returned, including the observed R- prefix
+type normalizes to Refund or 2
+absolute amount = Refund.amount
 currency matches when returned
 ```
 
-An APPROVED consult outcome additionally requires code 1101, description `Transaction is approved`, and a negative amount. A FAILED consult outcome requires a known rejected code/description and a zero or positive amount. Missing, unmatched, or incomplete candidates remain inconclusive and cannot mutate Payment.
+An APPROVED consult outcome additionally requires code 1101 and description `Transaction is approved`. A FAILED consult outcome requires a known rejected code/description. `/consult` returned positive amounts for both approved and rejected refund records, so amount sign is not used for API reconciliation. Missing, unmatched, or incomplete candidates remain inconclusive and cannot mutate Payment.
 
 Sources:
 
@@ -423,7 +423,66 @@ The detailed evidence, response classification, consult matching rules, and corr
 docs/100-phase-11.4.1-observed-tilopay-contract-and-evidence-based-reconciliation.md
 ```
 
-Cases 17 and 18 remain pending. The cases 1–16 portal observations are `TILOPAY_PORTAL` evidence, not API `/consult` evidence.
+## Observed `/consult` Contract — Case 17
+
+Case 17 was executed on 2026-07-29 using a controlled order with one successful full type-2 refund and one later rejected refund attempt.
+
+The sanitized `/consult` response returned three movement records in one array:
+
+```text
+1. Successful Refund:
+   - responseCode 1101
+   - description Transaction is approved
+   - unique provider reference matching processModification transactionId
+   - order number prefixed with R-
+   - type Refund
+   - positive amount
+   - currency USD
+
+2. Rejected Refund:
+   - responseCode 12
+   - transaction-closed description
+   - separate provider reference
+   - order number prefixed with R-
+   - type Refund
+   - positive amount
+
+3. Original Payment:
+   - responseCode 1
+   - description Transaction is approved
+   - separate payment reference
+   - original order number
+   - type Payment
+   - positive amount
+```
+
+The top-level `message = success` / `type = 200` wrapper is not a financial candidate and is excluded by the corrected collector.
+
+Accepted reconciliation rules derived from case 17:
+
+```text
+- Match the exact Refund.providerRefundId.
+- Match the original order number, accepting the observed R- prefix.
+- Normalize consult type Refund and request type 2 as the same refund operation.
+- Match the absolute amount to Refund.amount.
+- Match currency when returned.
+- Use responseCode and description to classify accepted versus rejected.
+- Do not use amount sign for /consult evidence.
+```
+
+The cases 1–16 portal observations remain `TILOPAY_PORTAL` evidence. Case 17 is the accepted `TILOPAY_CONSULT` evidence contract.
+
+## Case 18 Decision — `consultTransactions`
+
+Case 18 was not executed and is documented as **not required**:
+
+```text
+- /consult returned the original payment and all known refund attempts.
+- Successful and rejected refunds were separately identifiable by provider reference.
+- No movement required for reconciliation was missing.
+```
+
+`consultTransactions` remains deferred and must be reconsidered only if a later provider observation shows that `/consult` omits required movements or cannot distinguish them safely.
 
 ## Acceptance Scenarios
 
@@ -453,7 +512,7 @@ Cases 17 and 18 remain pending. The cases 1–16 portal observations are `TILOPA
 ### Reconciliation
 
 ```text
-- TILOPAY_CONSULT reconciliation requires a matching reference, type 2, signed amount, code, and description.
+- TILOPAY_CONSULT reconciliation requires a matching reference, normalized Refund/2 type, absolute amount, code, and description.
 - Portal reconciliation requires an explicit admin note and provider/portal reference for APPROVED.
 - APPROVED requires a reference and updates Payment cumulatively.
 - Exact cumulative captured amount sets Payment REFUNDED.
@@ -500,6 +559,8 @@ No migration command is required for this package.
 - Duplicate and timeout behavior is understood.
 - Type 2 versus type 3 behavior is explicitly accepted.
 - Case 17 `/consult` candidate evidence is captured and compared with the portal.
+- Case 18 is explicitly documented as not required because `/consult` returned all required movements.
+- The corrected evidence-based reconciliation is validated through the admin UI.
 - The reconciliation evidence used for final approval is documented.
 - Production API execution rules are separately accepted.
 ```

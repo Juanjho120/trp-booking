@@ -3,6 +3,7 @@ export {
   classifyTilopayModificationObservation,
   consultTilopayTransaction,
   describeTilopayConsultObservation,
+  isTilopayRefundConsultType,
   observeTilopayConsultTransaction,
   observeTilopayModificationSandbox,
   processTilopayModification,
