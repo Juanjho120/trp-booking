@@ -1218,11 +1218,13 @@ export async function getAdminDateMutationBlockedDates(input: Readonly<{
     accommodationId,
     startDate,
     endDate,
-    blockedDates: blockingRecordsToDateOnlyStrings(
-      blockingRecords,
-      startDate,
-      endDate,
-    ),
+    blockedDates: [
+      ...blockingRecordsToDateOnlyStrings(
+        blockingRecords,
+        startDate,
+        endDate,
+      ),
+    ],
   };
 }
 
