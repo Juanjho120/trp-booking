@@ -1269,7 +1269,11 @@ function assertDateMutationDecisionRequest(
   request: DateMutationRequestForDecision,
   input: DecideAdminDateMutationRequestInput,
   now: Date,
-): void {
+): asserts request is DateMutationRequestForDecision & {
+  sourcePayment: NonNullable<
+    DateMutationRequestForDecision["sourcePayment"]
+  >;
+} {
   if (
     request.reservationId !== input.reservationId.trim() ||
     (request.requestType !== ReservationLifecycleRequestType.DATE_CHANGE &&
