@@ -6,10 +6,12 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
-Current subphase: 11.5 Authorized date changes and stay extensions — Not started
-Current focus: define the 11.5 date-change, extension, availability, pricing, hold, and adjustment-payment contract before implementation
+Current subphase: 11.5.2 Admin request creation, quote, and availability validation — Not started
+Current focus: implement protected request creation, immutable snapshots, server-side quote calculation, current-reservation exclusion, and requested-range availability validation according to the accepted 11.5.1 contract
 Last updated: 2026-07-30
-Last completed subphase: 11.4.2 Extraordinary refund authorization and consult evidence lock
+Last completed subphase: 11.5.1 Strategy, pricing, independent holds, and financial-adjustment contract
+11.5.1 strategy base commit: 3d1487f31ca74fc5a41573b4ab206ce9ad838bb5
+11.5.1 strategy document: docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md
 11.4 accepted implementation commit: 06e857df9d36e77c26557bb7b2057661979809dc
 11.4 implementation document: docs/99-phase-11.4-refund-authorization-and-tilopay-reconciliation.md
 11.4.1 correction document: docs/100-phase-11.4.1-observed-tilopay-contract-and-evidence-based-reconciliation.md
@@ -546,17 +548,17 @@ docs/95-phase-11-lifecycle-strategy-and-roadmap.md
 docs/96-phase-11.1-cancellation-policy-and-tilopay-refund-contract-correction.md
 ```
 
-## Next Recommended Work
+## Phase 11.5 Implementation Sequence
 
 ```text
-1. Begin 11.5 with a documentation-first contract for authorized date changes and stay extensions.
-2. Preserve the original Reservation ID and complete operational history.
-3. Revalidate requested dates, preparation buffers, composed-listing dependencies, and active lifecycle holds before any mutation.
-4. Define server-side repricing for positive, zero, and negative price differences.
-5. Require an approved linked ADJUSTMENT payment before applying a positive price difference.
-6. Define how temporary requested-date holds expire, supersede, and release without blocking unrelated availability.
-7. Keep guest self-service date mutation unavailable; requests remain admin-recorded from approved support channels.
-8. Keep cancellation and refund notifications assigned to 11.6 and production Tilopay execution assigned to Phase 12.
+1. 11.5.1 Strategy, pricing, independent holds, and financial-adjustment contract — Completed.
+2. 11.5.2 Admin request creation, immutable snapshots, server quote, and requested-range availability validation.
+3. 11.5.3 Approval/rejection, independent 60-minute lifecycle hold, purpose-bound adjustment checkout, and payment attempts.
+4. 11.5.4 Final serializable completion for positive and zero differences while preserving Reservation ID and CONFIRMED status, plus the shared completion framework used by the next subphase.
+5. 11.5.5 Negative-difference completion, RefundAuthorizationType.LIFECYCLE_ADJUSTMENT, and compensating refunds for approved payments whose date transition cannot complete.
+6. 11.5.6 Local/test acceptance for pricing, holds, expiry, idempotency, concurrency, availability, payments, refunds, audit, and documentation.
+7. Keep the normal public pending-reservation hold fixed at 15 minutes; its constant and Reservation.expiresAt flow are independent from the 60-minute LifecycleRequestHold.
+8. Keep date-update and extension notification implementation assigned to 11.6 and production Tilopay execution assigned to Phase 12.
 ```
 
 ## Completed Work — Phase 11.2
@@ -661,6 +663,29 @@ Implementation document: docs/101-phase-11.4.2-extraordinary-refund-authorizatio
 Closure document: docs/102-phase-11.4-refund-acceptance-and-documentation-closure.md.
 ```
 
+## Completed Work — Phase 11.5.1
+
+### Phase 11.5.1 — Strategy, Pricing, Independent Holds, and Financial-Adjustment Contract
+
+Status: **Completed and accepted**
+
+```text
+The normal public pending-reservation hold remains exactly 15 minutes through PENDING_RESERVATION_HOLD_DURATION_MINUTES and Reservation.expiresAt.
+The lifecycle-adjustment hold is a separate 60-minute future constant and uses LifecycleRequestHold.expiresAt; neither timer reads, aliases, or modifies the other.
+Full date changes reprice the complete requested stay using current server-side pricing.
+Stay extensions preserve originalTotal and charge only the added nights using current server-side pricing.
+PENDING_REVIEW requests expire after 24 hours; requested dates cannot extend beyond 365 days from the Guatemala business date.
+Positive differences require a linked Payment with purpose LIFECYCLE_ADJUSTMENT and an active 60-minute requested-date hold.
+Zero differences complete without a payment or lifecycle hold.
+Negative differences require an exact Refund authorization with the future LIFECYCLE_ADJUSTMENT authorization type; refund failure never restores old dates.
+An approved adjustment payment that cannot complete its date transition requires a compensating lifecycle-adjustment refund while the original Reservation remains unchanged.
+Only the current Reservation's own effective blockers may be excluded during quote validation; every unrelated reservation, calendar block, composed dependency, preparation buffer, and active lifecycle hold remains authoritative.
+The current Reservation ID and CONFIRMED status remain unchanged after successful date changes and extensions.
+No application code, Prisma schema, migration, dependency, environment variable, visible copy, payment request, date mutation, email delivery, or PMS behavior was added by 11.5.1.
+Strategy base commit: 3d1487f31ca74fc5a41573b4ab206ce9ad838bb5.
+Strategy document: docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md.
+```
+
 ## Continuity Notes for New Conversations
 
 Minimum context files:
@@ -692,6 +717,7 @@ docs/99-phase-11.4-refund-authorization-and-tilopay-reconciliation.md
 docs/100-phase-11.4.1-observed-tilopay-contract-and-evidence-based-reconciliation.md
 docs/101-phase-11.4.2-extraordinary-refund-authorization-and-consult-evidence-lock.md
 docs/102-phase-11.4-refund-acceptance-and-documentation-closure.md
+docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md
 lib/admin/reservation-cancellation.ts
 lib/reservations/cancellation-policy.ts
 types/admin-reservation-cancellation.ts

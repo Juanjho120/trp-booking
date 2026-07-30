@@ -15,9 +15,11 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
-Current subphase: 11.5 Authorized date changes and stay extensions — Not started
-Current focus: define the 11.5 date-change, extension, availability, pricing, hold, and adjustment-payment contract before implementation
-Last completed subphase: 11.4.2 Extraordinary refund authorization and consult evidence lock
+Current subphase: 11.5.2 Admin request creation, quote, and availability validation — Not started
+Current focus: implement protected request creation, immutable snapshots, server-side quote calculation, current-reservation exclusion, and requested-range availability validation according to the accepted 11.5.1 contract
+Last completed subphase: 11.5.1 Strategy, pricing, independent holds, and financial-adjustment contract
+11.5.1 strategy base commit: 3d1487f31ca74fc5a41573b4ab206ce9ad838bb5
+11.5.1 strategy document: docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md
 11.4 accepted implementation commit: 06e857df9d36e77c26557bb7b2057661979809dc
 11.4 implementation document: docs/99-phase-11.4-refund-authorization-and-tilopay-reconciliation.md
 11.4.1 correction document: docs/100-phase-11.4.1-observed-tilopay-contract-and-evidence-based-reconciliation.md
@@ -485,7 +487,13 @@ Subphase status:
 11.4 Refund authorization and Tilopay reconciliation — Completed
 11.4.1 Observed Tilopay contract and evidence-based reconciliation — Completed
 11.4.2 Extraordinary refund authorization and consult evidence lock — Completed
-11.5 Authorized date changes and stay extensions — Not started
+11.5 Authorized date changes and stay extensions — In progress
+11.5.1 Strategy, pricing, independent holds, and financial-adjustment contract — Completed
+11.5.2 Admin request creation, quote, and availability validation — Not started
+11.5.3 Approval, requested-date hold, and adjustment payment — Not started
+11.5.4 Final date-change and stay-extension completion — Not started
+11.5.5 Negative-difference and failed-completion refund integration — Not started
+11.5.6 Acceptance tests and documentation — Not started
 11.6 Lifecycle notifications and admin operational history — Not started
 11.7 Validation and documentation closure — Not started
 ```
@@ -505,7 +513,9 @@ Phase 11 rules:
 - Sandbox responses, errors, duplicate behavior, retries, and idempotency are validated in 11.4 before production execution.
 - Merchant-portal processing remains an operational fallback.
 - Authorized date changes and extensions revalidate availability, composed dependencies, buffers, and server-side pricing.
-- A positive financial difference must be paid before new dates are applied.
+- The existing 15-minute public pending-reservation hold and the accepted 60-minute lifecycle-adjustment hold are separate timers with separate constants and persistence; neither duration may change the other.
+- Full date changes reprice the complete requested stay at current pricing; stay extensions preserve the confirmed original total and price only added nights at current pricing.
+- A positive financial difference must be paid before new dates are applied; zero differences require no payment; negative differences create a separate exact lifecycle-adjustment refund authorization without rolling back completed dates.
 - Lifecycle emails are created only after the underlying transition commits and never determine that transition.
 - No hard deletion, raw provider exposure, card-data handling, unauthenticated lifecycle mutation, or PMS behavior is added.
 ```
@@ -623,6 +633,29 @@ Phase 11 rules:
 - UI-8 approved portal fallback passed through an externally executed controlled sandbox movement and audited portal reconciliation.
 - Accepted implementation commit: 06e857df9d36e77c26557bb7b2057661979809dc.
 - Closure record: docs/102-phase-11.4-refund-acceptance-and-documentation-closure.md.
+```
+
+
+### Phase 11.5.1 accepted strategy and pricing contract
+
+```text
+- 11.5 is split into strategy, request/quote, approval/payment, completion, refund-integration, and acceptance subphases.
+- DATE_CHANGE and STAY_EXTENSION remain admin-recorded requests for CONFIRMED direct reservations; guest self-service mutation remains unavailable.
+- Initial 11.5 scope changes dates only. Property and guest count remain unchanged.
+- DATE_CHANGE must be requested before the original check-in; STAY_EXTENSION keeps the original check-in and may be approved before the current check-out, including during an active stay.
+- Requested check-out cannot exceed 365 days from the Guatemala business date.
+- PENDING_REVIEW requests expire after 24 hours if not decided.
+- PENDING_RESERVATION_HOLD_DURATION_MINUTES remains 15 for new public reservations.
+- LIFECYCLE_ADJUSTMENT_HOLD_DURATION_MINUTES is a separate future constant of 60 minutes for approved positive-difference requests only.
+- The lifecycle hold uses LifecycleRequestHold and never changes Reservation.expiresAt or the normal pending-reservation timeout.
+- Full date changes use a fresh server-side quote for the complete requested stay.
+- Stay extensions preserve originalTotal and add only the current server-side price of the added nights.
+- Positive differences create a linked LIFECYCLE_ADJUSTMENT Payment and hold; dates apply only after APPROVED payment and final serializable availability revalidation.
+- Zero differences complete in one serializable operation without Payment or LifecycleRequestHold.
+- Negative differences require a separate RefundAuthorizationType.LIFECYCLE_ADJUSTMENT path for the exact absolute difference; refund execution remains independent and failure never restores old dates.
+- If an adjustment Payment is approved after hold expiry or final completion cannot apply, the original dates remain and the approved adjustment payment requires a compensating lifecycle-adjustment refund.
+- The current Reservation ID and CONFIRMED status are preserved after a completed date change or extension.
+- The accepted strategy record is docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md.
 ```
 
 

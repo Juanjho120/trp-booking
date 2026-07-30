@@ -319,7 +319,13 @@ Planned subphases:
 11.4 Refund authorization and Tilopay reconciliation — Completed
 11.4.1 Observed Tilopay contract and evidence-based reconciliation — Completed
 11.4.2 Extraordinary refund authorization and consult evidence lock — Completed
-11.5 Authorized date changes and stay extensions — Not started
+11.5 Authorized date changes and stay extensions — In progress
+11.5.1 Strategy, pricing, independent holds, and financial-adjustment contract — Completed
+11.5.2 Admin request creation, quote, and availability validation — Not started
+11.5.3 Approval, requested-date hold, and adjustment payment — Not started
+11.5.4 Final date-change and stay-extension completion — Not started
+11.5.5 Negative-difference and failed-completion refund integration — Not started
+11.5.6 Acceptance tests and documentation — Not started
 11.6 Lifecycle notifications and admin operational history — Not started
 11.7 Validation and documentation closure — Not started
 ```
@@ -335,7 +341,11 @@ Accepted Phase 11 foundation:
 - The approved cancellation matrix is 100% refund at 7 or more days before check-in, 50% from 72 hours through less than 7 days, and 0% below 72 hours.
 - Cancellation timing is evaluated against the property's configured check-in time in America/Guatemala.
 - Date changes and stay extensions require availability revalidation and additional payment when the difference is positive.
-- Requested dates awaiting payment require a temporary lifecycle-request hold.
+- The normal public pending-reservation hold remains 15 minutes and is not changed or reused by Phase 11.5.
+- A positive lifecycle adjustment uses a separate 60-minute LifecycleRequestHold with independent storage, expiry, and constants.
+- Full date changes reprice the complete requested stay using current pricing; stay extensions preserve the confirmed original total and price only added nights using current pricing.
+- Zero differences complete without a payment or lifecycle hold; negative differences complete operationally with a separate exact lifecycle-adjustment refund authorization.
+- Requested dates awaiting an adjustment payment require the independent lifecycle-request hold.
 - Tilopay officially documents POST /api/v1/processModification with type 2 for refund and type 3 for reversal.
 - Sandbox support, response shapes, errors, duplicate behavior, retry safety, and provider idempotency are validated during 11.4 before production execution.
 - Merchant-portal processing remains an operational fallback, not the only assumed integration path.
@@ -343,7 +353,8 @@ Accepted Phase 11 foundation:
 - Phase 11.6 must send separate guest/admin cancellation notifications after cancellation commit and separate guest/admin refund notifications only after an APPROVED reconciliation.
 - Extraordinary refund authorization is an explicit admin compensation independent from cancellation: it may be applied to a CONFIRMED or CANCELLED reservation, never changes the reservation lifecycle status, and never exceeds the remaining captured-payment balance.
 - Standard refunds remain linked to completed cancellations and the frozen policy allowance; extraordinary refunds link directly to the validated initial payment.
-- Fee treatment and date-change repricing remain explicit decisions for their corresponding implementation subphases.
+- The 11.5.1 pricing, hold-duration, request-lifetime, horizon, and positive/zero/negative difference rules are accepted in docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md.
+- Cleaning fee, taxes, and discounts remain at their current values; any future nonzero or one-time fee treatment requires a separate documented decision.
 - No PMS behavior is added.
 ```
 
@@ -397,15 +408,18 @@ docs/99-phase-11.4-refund-authorization-and-tilopay-reconciliation.md
 docs/100-phase-11.4.1-observed-tilopay-contract-and-evidence-based-reconciliation.md
 docs/101-phase-11.4.2-extraordinary-refund-authorization-and-consult-evidence-lock.md
 docs/102-phase-11.4-refund-acceptance-and-documentation-closure.md
+docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md
 ```
 
 ## Development Status
 
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
-Current subphase: 11.5 Authorized date changes and stay extensions — Not started
-Current focus: define the 11.5 date-change, extension, availability, pricing, hold, and adjustment-payment contract before implementation
-Last completed subphase: 11.4.2 Extraordinary refund authorization and consult evidence lock
+Current subphase: 11.5.2 Admin request creation, quote, and availability validation — Not started
+Current focus: implement protected request creation, immutable snapshots, server-side quote calculation, current-reservation exclusion, and requested-range availability validation according to the accepted 11.5.1 contract
+Last completed subphase: 11.5.1 Strategy, pricing, independent holds, and financial-adjustment contract
+11.5.1 strategy base commit: 3d1487f31ca74fc5a41573b4ab206ce9ad838bb5
+11.5.1 strategy document: docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md
 11.4 accepted implementation commit: 06e857df9d36e77c26557bb7b2057661979809dc
 11.4 implementation document: docs/99-phase-11.4-refund-authorization-and-tilopay-reconciliation.md
 11.4.1 correction document: docs/100-phase-11.4.1-observed-tilopay-contract-and-evidence-based-reconciliation.md
