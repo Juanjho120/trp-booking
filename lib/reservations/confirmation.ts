@@ -1,4 +1,10 @@
-import { PaymentStatus, ReservationStatus, type Prisma } from "@prisma/client";
+import {
+  PaymentPurpose,
+  PaymentStatus,
+  ReservationLifecycleRequestStatus,
+  ReservationStatus,
+  type Prisma,
+} from "@prisma/client";
 
 import { prisma } from "@/lib/db/prisma";
 import {
@@ -31,15 +37,13 @@ export class ReservationConfirmationError extends Error {
   }
 }
 
-function assertReservationCanBeConfirmed(
-  input: Readonly<{
-    paymentId: string;
-    reservationId: string;
-    status: ReservationStatus;
-    expiresAt: Date | null;
-    now: Date;
-  }>,
-): void {
+function assertReservationCanBeConfirmed(input: Readonly<{
+  paymentId: string;
+  reservationId: string;
+  status: ReservationStatus;
+  expiresAt: Date | null;
+  now: Date;
+}>): void {
   if (input.status !== ReservationStatus.PENDING_PAYMENT) {
     throw new ReservationConfirmationError("RESERVATION_NOT_CONFIRMABLE", {
       paymentId: input.paymentId,
@@ -100,11 +104,11 @@ export async function confirmReservationAfterApprovedPayment(
     await prisma.$transaction(async (tx) => {
       const now = new Date();
       const payment = await tx.payment.findUnique({
-        where: {
-          id: paymentId,
-        },
+        where: { id: paymentId },
         select: {
           id: true,
+          purpose: true,
+          lifecycleRequestId: true,
           status: true,
           paidAt: true,
           reservation: {
@@ -115,6 +119,13 @@ export async function confirmReservationAfterApprovedPayment(
               expiresAt: true,
               guestEmail: true,
               preferredLocale: true,
+            },
+          },
+          lifecycleRequest: {
+            select: {
+              id: true,
+              reservationId: true,
+              status: true,
             },
           },
         },
@@ -131,6 +142,50 @@ export async function confirmReservationAfterApprovedPayment(
           paymentId: payment.id,
           reservationId: payment.reservation.id,
         });
+      }
+
+      if (payment.purpose === PaymentPurpose.LIFECYCLE_ADJUSTMENT) {
+        if (
+          !payment.lifecycleRequestId ||
+          !payment.lifecycleRequest ||
+          payment.lifecycleRequest.id !== payment.lifecycleRequestId ||
+          payment.lifecycleRequest.reservationId !== payment.reservation.id ||
+          payment.lifecycleRequest.status !==
+            ReservationLifecycleRequestStatus.AWAITING_ADJUSTMENT_PAYMENT ||
+          payment.reservation.status !== ReservationStatus.CONFIRMED ||
+          !payment.reservation.confirmedAt
+        ) {
+          throw new ReservationConfirmationError(
+            "RESERVATION_CONFIRMATION_UNEXPECTED_ERROR",
+            {
+              paymentId: payment.id,
+              reservationId: payment.reservation.id,
+            },
+          );
+        }
+
+        return {
+          confirmation: {
+            paymentId: payment.id,
+            reservationId: payment.reservation.id,
+            reservationStatus: "CONFIRMED",
+            confirmedAt: payment.reservation.confirmedAt.toISOString(),
+            alreadyConfirmed: true,
+            phaseBoundary:
+              "LIFECYCLE_ADJUSTMENT_PAYMENT_APPROVED_AWAITING_COMPLETION",
+          },
+          notificationIds: [],
+        };
+      }
+
+      if (payment.purpose !== PaymentPurpose.INITIAL_RESERVATION) {
+        throw new ReservationConfirmationError(
+          "RESERVATION_CONFIRMATION_UNEXPECTED_ERROR",
+          {
+            paymentId: payment.id,
+            reservationId: payment.reservation.id,
+          },
+        );
       }
 
       if (
@@ -170,9 +225,7 @@ export async function confirmReservationAfterApprovedPayment(
 
       const confirmedAt = payment.paidAt ?? now;
       const reservation = await tx.reservation.update({
-        where: {
-          id: payment.reservation.id,
-        },
+        where: { id: payment.reservation.id },
         data: {
           status: ReservationStatus.CONFIRMED,
           confirmedAt,
@@ -220,12 +273,14 @@ export async function confirmReservationAfterApprovedPayment(
       };
     });
 
-  try {
-    await deliverReservationConfirmationNotificationsBestEffort(
-      transactionResult.notificationIds,
-    );
-  } catch {
-    // Reservation confirmation is already committed and must remain successful.
+  if (transactionResult.notificationIds.length > 0) {
+    try {
+      await deliverReservationConfirmationNotificationsBestEffort(
+        transactionResult.notificationIds,
+      );
+    } catch {
+      // Reservation confirmation is committed and must remain successful.
+    }
   }
 
   return transactionResult.confirmation;

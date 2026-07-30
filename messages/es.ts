@@ -295,15 +295,45 @@ export const esMessages = {
       acceptedCards: "Tarjetas aceptadas: Visa, Mastercard y American Express",
       cardExpiration: "Vencimiento",
       cardCvv: "CVV",
-      pay: "Pagar reserva",
+      pay: "Pagar de forma segura",
       processingPayment: "Procesando pago...",
       paymentSubmitted:
         "El pago fue enviado a Tilopay. Espera la respuesta del formulario seguro antes de cerrar esta página.",
       providerNote:
-        "La reserva se confirmará únicamente después de validar el resultado del pago en el servidor.",
+        "El resultado se aplicará únicamente después de validar el pago en el servidor. Un ajuste aprobado no cambia fechas hasta completar su transición autorizada.",
       sessionError: "No pudimos preparar el formulario de pago. Inténtalo de nuevo.",
       sdkError: "No pudimos inicializar el formulario seguro de Tilopay. Inténtalo de nuevo.",
       paymentError: "No pudimos enviar el pago a Tilopay. Revisa los datos e inténtalo de nuevo.",
+    },
+    lifecycleAdjustment: {
+      title: "Pagar diferencia de la estadía",
+      description:
+        "El administrador aprobó las fechas solicitadas. Completa únicamente la diferencia indicada antes de que venza el hold.",
+      approvedTitle: "Pago de diferencia aprobado",
+      approvedDescription:
+        "Tilopay aprobó el pago adicional. La reservación continúa confirmada con sus fechas originales hasta que el sistema complete la actualización autorizada.",
+      approvedNote:
+        "No necesitas volver a pagar. La aplicación final de las fechas se procesa por separado y conserva el historial de la reservación.",
+      unavailableTitle: "Enlace de ajuste no disponible",
+      originalDates: "Fechas confirmadas actuales",
+      requestedDates: "Fechas solicitadas",
+      holdRemaining: "Tiempo restante del hold",
+      securityNote:
+        "Este enlace es privado, está ligado a esta solicitud y a este intento de pago, y vence junto con el hold de 60 minutos.",
+      requestTypes: {
+        DATE_CHANGE: "Cambio de fechas",
+        STAY_EXTENSION: "Extensión de estadía",
+      },
+      errors: {
+        INVALID_LIFECYCLE_ADJUSTMENT_HANDOFF:
+          "El enlace no es válido o fue alterado. Solicita un enlace nuevo al administrador.",
+        LIFECYCLE_ADJUSTMENT_HANDOFF_EXPIRED:
+          "El hold de 60 minutos venció. Las fechas originales permanecen sin cambios.",
+        LIFECYCLE_ADJUSTMENT_NOT_PAYABLE:
+          "Este ajuste ya no admite otro pago. Verifica el estado con el administrador.",
+        LIFECYCLE_ADJUSTMENT_PAYMENT_MISMATCH:
+          "El pago ya no coincide con la solicitud aprobada. No se realizó ningún cargo nuevo.",
+      },
     },
     retry: {
       page: {
@@ -659,6 +689,8 @@ export const esMessages = {
           availability: "Disponibilidad",
           reviewExpiresAt: "Revisión vence",
           createdBy: "Registrada por",
+          decisionNote: "Nota de decisión",
+          holdRemaining: "Tiempo restante del hold de ajuste",
         },
         requestTypes: {
           DATE_CHANGE: "Cambio completo de fechas",
@@ -709,6 +741,8 @@ export const esMessages = {
         placeholders: {
           requestReason:
             "Describe las fechas solicitadas y el contexto necesario para que un administrador revise la solicitud.",
+          decisionNote:
+            "Documenta el motivo de la aprobación o del rechazo sin incluir datos sensibles del pago.",
         },
         help: {
           dateFormat: "Usa el formato YYYY-MM-DD.",
@@ -720,6 +754,13 @@ export const esMessages = {
           creating: "Registrando...",
           confirmCreate: "Calcular y registrar",
           close: "Cerrar",
+          approve: "Aprobar",
+          reject: "Rechazar",
+          deciding: "Procesando...",
+          confirmApprove: "Confirmar aprobación",
+          confirmReject: "Confirmar rechazo",
+          openPaymentLink: "Abrir enlace de pago",
+          copyPaymentLink: "Copiar enlace de pago",
         },
         createDialog: {
           title: "Registrar cambio de fechas o extensión",
@@ -730,6 +771,18 @@ export const esMessages = {
           pendingNote:
             "La solicitud quedará pendiente de revisión durante 24 horas. Esta fase no crea el hold de 60 minutos, no cobra diferencias y no cambia las fechas.",
         },
+        decisionDialog: {
+          approveTitle: "Aprobar solicitud",
+          approveDescription:
+            "La disponibilidad se validará nuevamente antes de aceptar la decisión.",
+          rejectTitle: "Rechazar solicitud",
+          rejectDescription:
+            "El rechazo cierra esta solicitud sin cambiar la reservación ni crear movimientos financieros.",
+          approvalBoundary:
+            "Una diferencia positiva crea un hold independiente de 60 minutos y un pago pendiente exacto. Una diferencia cero o negativa queda aprobada para su finalización en las siguientes subfases. Esta decisión todavía no cambia fechas ni precios.",
+          rejectionBoundary:
+            "El rechazo conserva las fechas, precios, estado Confirmado, pagos y disponibilidad actuales.",
+        },
         notes: {
           serverQuote:
             "Los precios, noches y diferencias se calculan exclusivamente en el servidor. El navegador no envía totales ni tarifas.",
@@ -737,6 +790,8 @@ export const esMessages = {
             "La validación excluye solamente la estadía y buffers derivados de esta reservación; las demás reservas, Airbnb, mantenimiento, bloqueos manuales, dependencias y holds continúan bloqueando.",
           noMutation:
             "Registrar la solicitud no crea pagos, reembolsos ni holds y no modifica las fechas, el precio ni el estado Confirmado de la reservación.",
+          paymentLink:
+            "Comparte este enlace privado únicamente con el huésped. Vence con el hold de 60 minutos y no modifica el hold público de 15 minutos.",
         },
         states: {
           reservationNotEligible:
@@ -749,6 +804,9 @@ export const esMessages = {
         success: {
           requestCreated:
             "La solicitud quedó registrada con su cotización y validación de disponibilidad.",
+          requestApproved: "La solicitud fue aprobada correctamente.",
+          requestRejected: "La solicitud fue rechazada correctamente.",
+          paymentLinkCopied: "El enlace privado de pago fue copiado.",
         },
         errors: {
           ADMIN_UNAUTHORIZED: "Tu sesión no tiene autorización administrativa.",
@@ -774,6 +832,18 @@ export const esMessages = {
             "El check-out solicitado supera el límite de 365 días.",
           ADMIN_DATE_MUTATION_DATES_UNAVAILABLE:
             "Las fechas solicitadas, sus buffers o una dependencia del alojamiento ya no están disponibles.",
+          ADMIN_DATE_MUTATION_REQUEST_NOT_FOUND:
+            "No encontramos la solicitud de cambio seleccionada.",
+          ADMIN_DATE_MUTATION_REQUEST_NOT_PENDING:
+            "La solicitud ya no está pendiente de revisión.",
+          ADMIN_DATE_MUTATION_REQUEST_EXPIRED:
+            "La solicitud o su ventana de revisión ya expiró.",
+          ADMIN_DATE_MUTATION_DECISION_CONFLICT:
+            "La solicitud ya recibió una decisión diferente o alcanzó un estado final.",
+          ADMIN_DATE_MUTATION_ADJUSTMENT_PAYMENT_CONFLICT:
+            "La solicitud ya tiene un hold o pago de ajuste incompatible. Recarga antes de continuar.",
+          ADMIN_DATE_MUTATION_REFUND_BALANCE_INSUFFICIENT:
+            "El pago inicial ya no tiene saldo capturado suficiente para devolver exactamente la diferencia negativa.",
           ADMIN_DATE_MUTATION_REQUEST_ALREADY_ACTIVE:
             "Ya existe un cambio de fechas o extensión activo para esta reservación.",
           ADMIN_DATE_MUTATION_CANCELLATION_ACTIVE:

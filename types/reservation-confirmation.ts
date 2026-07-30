@@ -20,5 +20,7 @@ export type ConfirmedReservationAfterPayment = Readonly<{
   reservationStatus: ReservationConfirmationStatus;
   confirmedAt: string;
   alreadyConfirmed: boolean;
-  phaseBoundary: "RESERVATION_CONFIRMED_AFTER_VALIDATED_PAYMENT";
+  phaseBoundary:
+    | "RESERVATION_CONFIRMED_AFTER_VALIDATED_PAYMENT"
+    | "LIFECYCLE_ADJUSTMENT_PAYMENT_APPROVED_AWAITING_COMPLETION";
 }>;

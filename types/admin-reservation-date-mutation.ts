@@ -27,6 +27,10 @@ export const adminDateMutationPricingModes = [
 export type AdminDateMutationPricingMode =
   (typeof adminDateMutationPricingModes)[number];
 
+export const adminDateMutationDecisions = ["APPROVE", "REJECT"] as const;
+export type AdminDateMutationDecision =
+  (typeof adminDateMutationDecisions)[number];
+
 export type AdminDateMutationErrorCode =
   | "ADMIN_UNAUTHORIZED"
   | "INVALID_ADMIN_DATE_MUTATION_REQUEST"
@@ -40,6 +44,12 @@ export type AdminDateMutationErrorCode =
   | "ADMIN_DATE_MUTATION_STAY_ENDED"
   | "ADMIN_DATE_MUTATION_DATE_HORIZON_EXCEEDED"
   | "ADMIN_DATE_MUTATION_DATES_UNAVAILABLE"
+  | "ADMIN_DATE_MUTATION_REQUEST_NOT_FOUND"
+  | "ADMIN_DATE_MUTATION_REQUEST_NOT_PENDING"
+  | "ADMIN_DATE_MUTATION_REQUEST_EXPIRED"
+  | "ADMIN_DATE_MUTATION_DECISION_CONFLICT"
+  | "ADMIN_DATE_MUTATION_ADJUSTMENT_PAYMENT_CONFLICT"
+  | "ADMIN_DATE_MUTATION_REFUND_BALANCE_INSUFFICIENT"
   | "ADMIN_DATE_MUTATION_REQUEST_ALREADY_ACTIVE"
   | "ADMIN_DATE_MUTATION_CANCELLATION_ACTIVE"
   | "ADMIN_DATE_MUTATION_STALE"
@@ -58,6 +68,15 @@ export type CreateAdminDateMutationRequestInput = Readonly<{
   requestNote: string;
   expectedReservationUpdatedAt: string;
   requestId: string;
+}>;
+
+export type DecideAdminDateMutationRequestInput = Readonly<{
+  reservationId: string;
+  requestId: string;
+  decision: AdminDateMutationDecision;
+  decisionNote: string;
+  expectedRequestVersion: number;
+  expectedReservationUpdatedAt: string;
 }>;
 
 export type AdminDateMutationAdminSummary = Readonly<{
@@ -88,6 +107,39 @@ export type AdminDateMutationAvailabilitySummary = Readonly<{
   blockingAccommodationIds: readonly AccommodationId[];
 }>;
 
+export type AdminDateMutationHoldSummary = Readonly<{
+  id: string;
+  status: "ACTIVE" | "RELEASED" | "EXPIRED";
+  startDate: DateOnlyString;
+  endDate: DateOnlyString;
+  preparationDaysBefore: number;
+  preparationDaysAfter: number;
+  expiresAt: string;
+  releasedAt: string | null;
+  expiredAt: string | null;
+  releaseReasonCode: string | null;
+  version: number;
+}>;
+
+export type AdminDateMutationPaymentSummary = Readonly<{
+  id: string;
+  purpose: "LIFECYCLE_ADJUSTMENT";
+  status:
+    | "PENDING"
+    | "APPROVED"
+    | "REJECTED"
+    | "FAILED"
+    | "REFUNDED"
+    | "PARTIALLY_REFUNDED";
+  amount: string;
+  currency: string;
+  providerReference: string | null;
+  paidAt: string | null;
+  failedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}>;
+
 export type AdminDateMutationRequestSummary = Readonly<{
   id: string;
   reservationId: string;
@@ -105,11 +157,28 @@ export type AdminDateMutationRequestSummary = Readonly<{
   pricingMode: AdminDateMutationPricingMode;
   availability: AdminDateMutationAvailabilitySummary;
   createdByAdmin: AdminDateMutationAdminSummary;
+  reviewedByAdmin: AdminDateMutationAdminSummary | null;
+  decisionReasonCode: string | null;
+  decisionNote: string | null;
   requestedAt: string;
+  reviewedAt: string | null;
+  decidedAt: string | null;
   reviewExpiresAt: string;
   reviewExpired: boolean;
+  hold: AdminDateMutationHoldSummary | null;
+  adjustmentPayments: readonly AdminDateMutationPaymentSummary[];
+  paymentHandoffPath: string | null;
   version: number;
   expectedReservationUpdatedAt: string;
   createdAt: string;
   updatedAt: string;
+}>;
+
+export type AdminDateMutationDecisionResult = Readonly<{
+  request: AdminDateMutationRequestSummary;
+  decision: AdminDateMutationDecision;
+  financialBranch: "POSITIVE" | "ZERO" | "NEGATIVE";
+  holdCreated: boolean;
+  paymentCreated: boolean;
+  alreadyProcessed: boolean;
 }>;

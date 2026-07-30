@@ -1,5 +1,11 @@
-import type { PaymentAttemptErrorCode, PaymentAttemptStatus } from "@/types/payment-attempt";
-import type { ReservationQuote, ReservationQuoteAmount } from "@/types/reservation-quote";
+import type {
+  PaymentAttemptErrorCode,
+  PaymentAttemptStatus,
+} from "@/types/payment-attempt";
+import type {
+  ReservationQuote,
+  ReservationQuoteAmount,
+} from "@/types/reservation-quote";
 
 export type TilopaySdkSessionErrorCode =
   | PaymentAttemptErrorCode
@@ -59,7 +65,9 @@ export type TilopaySdkSession = Readonly<{
   environment: "sandbox" | "production";
   sdkScriptUrl: string;
   initConfig: TilopaySdkInitConfig;
-  phaseBoundary: "TILOPAY_SDK_V2_CHECKOUT_FOUNDATION";
+  phaseBoundary:
+    | "TILOPAY_SDK_V2_CHECKOUT_FOUNDATION"
+    | "LIFECYCLE_ADJUSTMENT_CHECKOUT_READY";
 }>;
 
 export type CreateTilopaySdkSessionApiSuccessResponse = Readonly<{

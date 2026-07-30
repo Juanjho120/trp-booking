@@ -50,6 +50,7 @@ import type { BlockedDatesApiResponse } from "@/types/availability-blocked-dates
 import type { DateOnlyString } from "@/types/availability";
 import type { Locale } from "@/types/locale";
 
+import { AdminReservationDateMutationDecisionControls } from "./admin-reservation-date-mutation-decision-controls";
 import { AdminSnackbar } from "./admin-snackbar";
 
 const inputClassName =
@@ -922,6 +923,8 @@ function DateMutationRequestCard({
           value={request.requestNote ?? copy.labels.unavailable}
         />
       </div>
+
+      <AdminReservationDateMutationDecisionControls request={request} />
     </div>
   );
 }

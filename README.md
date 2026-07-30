@@ -413,6 +413,7 @@ docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md
 docs/104-phase-11.5.2-admin-request-creation-quote-and-availability-validation.md
 docs/105-phase-11.5.2.1-admin-availability-datepicker-and-own-reservation-exclusion.md
 docs/106-phase-11.5.2-and-11.5.2.1-acceptance-closure.md
+docs/107-phase-11.5.3-approval-hold-and-adjustment-payment.md
 ```
 
 ## Development Status
@@ -433,6 +434,7 @@ Last completed subphase: 11.5.2.1 Admin availability datepicker and own-reservat
 11.5.2.1 type-safety follow-ups: f57a777f26ab919e95098dfc13ee11b44f423b02, 56023423f4545914f43856ea44398e8d90301820
 11.5.2/11.5.2.1 accepted head: 56023423f4545914f43856ea44398e8d90301820
 11.5.2/11.5.2.1 closure document: docs/106-phase-11.5.2-and-11.5.2.1-acceptance-closure.md
+11.5.3 implementation document: docs/107-phase-11.5.3-approval-hold-and-adjustment-payment.md
 11.4 accepted implementation commit: 06e857df9d36e77c26557bb7b2057661979809dc
 11.4 implementation document: docs/99-phase-11.4-refund-authorization-and-tilopay-reconciliation.md
 11.4.1 correction document: docs/100-phase-11.4.1-observed-tilopay-contract-and-evidence-based-reconciliation.md

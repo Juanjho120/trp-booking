@@ -742,6 +742,20 @@ Hold expiry must not update Reservation.expiresAt or alter the public 15-minute 
 Reservation dates, pricing, status, confirmedAt, arrival notifications, refunds, and lifecycle emails remain unchanged in 11.5.3.
 ```
 
+Implementation prepared on accepted head `56023423f4545914f43856ea44398e8d90301820`.
+
+```text
+- Admin decision endpoint and styled approval/rejection controls.
+- Exact positive-difference hold/payment creation with independent 60-minute expiration.
+- Zero/negative APPROVED states without final Reservation mutation.
+- Negative captured-balance precheck.
+- Opaque encrypted guest payment handoff and retry rotation.
+- Lifecycle-aware Tilopay SDK session, preflight, telemetry, redirect, and approved-payment isolation.
+- No Prisma/dependency/environment changes and no public-hold change.
+```
+
+Implementation document: docs/107-phase-11.5.3-approval-hold-and-adjustment-payment.md.
+
 ## Continuity Notes for New Conversations
 
 Minimum context files:

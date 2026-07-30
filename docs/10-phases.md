@@ -708,6 +708,21 @@ Phase 11 rules:
 ```
 
 
+
+### Phase 11.5.3 implementation prepared
+
+```text
+- Protected idempotent approval/rejection is implemented for pending DATE_CHANGE and STAY_EXTENSION requests.
+- Positive approval creates one independent 60-minute ACTIVE LifecycleRequestHold and one exact PENDING Payment with purpose LIFECYCLE_ADJUSTMENT.
+- Zero and negative approvals remain APPROVED without applying dates; negative approval first checks exact remaining captured refund balance.
+- An AES-256-GCM opaque handoff binds request, hold, payment, purpose, and expiration without guest-email/reservation lookup.
+- Existing Tilopay SDK session, preflight, telemetry, redirect, and server validation branch safely for lifecycle adjustment tokens.
+- Approved adjustment payments never confirm a new reservation, mutate dates/prices/status/expiresAt, or create reservation-confirmation/arrival email intents.
+- Hold expiry converges hold/request/pending-payment state without touching Reservation.expiresAt or the public 15-minute hold.
+- The implementation record is docs/107-phase-11.5.3-approval-hold-and-adjustment-payment.md.
+- Local/test acceptance remains required before 11.5.3 can be completed and 11.5.4 can begin.
+```
+
 ### Phase 11.6 requirements accepted during 11.4.2
 
 ```text

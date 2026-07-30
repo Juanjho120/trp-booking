@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { createTilopaySdkSession, TilopaySdkSessionError } from "@/lib/payments/tilopay-sdk-session";
+import {
+  createTilopaySdkSession,
+  TilopaySdkSessionError,
+} from "@/lib/payments/tilopay-sdk-session";
 import { enMessages } from "@/messages/en";
 import { esMessages } from "@/messages/es";
 import type { TilopaySdkSessionErrorCode } from "@/types/tilopay-sdk-session";
@@ -10,9 +13,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const localeSchema = z.enum(["es", "en"]).catch("es");
-
 const createTilopaySdkSessionRequestSchema = z.object({
-  reservationId: z.string().trim().min(1).max(120),
+  reservationId: z.string().trim().min(1).max(4_096),
   locale: localeSchema,
 });
 
@@ -21,7 +23,6 @@ function getTilopaySdkErrorMessage(
   locale: "es" | "en",
 ): string {
   const messages = locale === "en" ? enMessages : esMessages;
-
   return messages.errors.payment.tilopaySdk[code];
 }
 
@@ -31,12 +32,7 @@ function toErrorResponse(
   status: number,
 ): NextResponse {
   return NextResponse.json(
-    {
-      error: {
-        code,
-        message: getTilopaySdkErrorMessage(code, locale),
-      },
-    },
+    { error: { code, message: getTilopaySdkErrorMessage(code, locale) } },
     { status },
   );
 }
@@ -69,7 +65,9 @@ export async function POST(request: Request) {
   }
 
   const locale = localeSchema.parse(
-    typeof body === "object" && body !== null && "locale" in body ? body.locale : "es",
+    typeof body === "object" && body !== null && "locale" in body
+      ? body.locale
+      : "es",
   );
   const parsedRequest = createTilopaySdkSessionRequestSchema.safeParse(body);
 
@@ -79,7 +77,6 @@ export async function POST(request: Request) {
 
   try {
     const tilopaySdkSession = await createTilopaySdkSession(parsedRequest.data);
-
     return NextResponse.json(
       { tilopaySdkSession },
       { status: tilopaySdkSession.existingPaymentAttempt ? 200 : 201 },
@@ -89,6 +86,10 @@ export async function POST(request: Request) {
       return toErrorResponse(error.code, locale, resolveErrorStatus(error.code));
     }
 
-    return toErrorResponse("TILOPAY_SDK_SESSION_UNEXPECTED_ERROR", locale, 500);
+    return toErrorResponse(
+      "TILOPAY_SDK_SESSION_UNEXPECTED_ERROR",
+      locale,
+      500,
+    );
   }
 }

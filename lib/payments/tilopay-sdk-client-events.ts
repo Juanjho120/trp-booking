@@ -3,6 +3,11 @@ import { randomUUID } from "crypto";
 import { PaymentProvider, Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/db/prisma";
+import {
+  isLifecycleAdjustmentHandoffToken,
+  LifecycleAdjustmentHandoffError,
+  resolveLifecycleAdjustmentClientEventReservation,
+} from "@/lib/payments/lifecycle-adjustment-handoff";
 import type {
   TilopaySdkClientEventRequest,
   TilopaySdkClientEventType,
@@ -11,13 +16,14 @@ import type {
 const MAX_SHORT_TEXT_LENGTH = 160;
 const MAX_MESSAGE_LENGTH = 1000;
 const MAX_PAYLOAD_STRING_LENGTH = 500;
-
 type StoredSdkPayload = Prisma.InputJsonObject;
 
 export class TilopaySdkClientEventError extends Error {
   readonly code: "PAYMENT_NOT_FOUND" | "PAYMENT_CLIENT_EVENT_UNEXPECTED_ERROR";
 
-  constructor(code: "PAYMENT_NOT_FOUND" | "PAYMENT_CLIENT_EVENT_UNEXPECTED_ERROR") {
+  constructor(
+    code: "PAYMENT_NOT_FOUND" | "PAYMENT_CLIENT_EVENT_UNEXPECTED_ERROR",
+  ) {
     super(code);
     this.name = "TilopaySdkClientEventError";
     this.code = code;
@@ -29,12 +35,7 @@ function normalizeOptionalString(
   maxLength = MAX_SHORT_TEXT_LENGTH,
 ): string | null {
   const normalizedValue = value?.trim();
-
-  if (!normalizedValue) {
-    return null;
-  }
-
-  return normalizedValue.slice(0, maxLength);
+  return normalizedValue ? normalizedValue.slice(0, maxLength) : null;
 }
 
 function normalizeOptionalDate(value: string | null | undefined): Date | null {
@@ -45,11 +46,12 @@ function normalizeOptionalDate(value: string | null | undefined): Date | null {
   }
 
   const date = new Date(normalizedValue);
-
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
-function normalizeEventType(value: TilopaySdkClientEventType): TilopaySdkClientEventType {
+function normalizeEventType(
+  value: TilopaySdkClientEventType,
+): TilopaySdkClientEventType {
   return value;
 }
 
@@ -78,9 +80,7 @@ function sanitizeSdkPayload(value: unknown): StoredSdkPayload | null {
   }
 
   if (typeof value === "string") {
-    return {
-      message: value.slice(0, MAX_MESSAGE_LENGTH),
-    };
+    return { message: value.slice(0, MAX_MESSAGE_LENGTH) };
   }
 
   if (typeof value !== "object" || Array.isArray(value)) {
@@ -89,15 +89,15 @@ function sanitizeSdkPayload(value: unknown): StoredSdkPayload | null {
 
   const result: Record<string, Prisma.InputJsonValue> = {};
 
-  for (const [key, rawValue] of Object.entries(value as Record<string, unknown>)) {
+  for (const [key, rawValue] of Object.entries(
+    value as Record<string, unknown>,
+  )) {
     const normalizedKey = key.trim();
     const lowerKey = normalizedKey.toLowerCase();
 
-    if (!normalizedKey || lowerKey.includes("card")) {
-      continue;
-    }
-
     if (
+      !normalizedKey ||
+      lowerKey.includes("card") ||
       lowerKey.includes("cvv") ||
       lowerKey.includes("expiration") ||
       lowerKey.includes("expiry") ||
@@ -117,25 +117,43 @@ function sanitizeSdkPayload(value: unknown): StoredSdkPayload | null {
 }
 
 function toJsonSql(value: StoredSdkPayload | null): Prisma.Sql {
-  if (!value) {
-    return Prisma.sql`NULL`;
+  return value
+    ? Prisma.sql`CAST(${JSON.stringify(value)} AS jsonb)`
+    : Prisma.sql`NULL`;
+}
+
+async function resolveReservationId(
+  input: TilopaySdkClientEventRequest,
+): Promise<string> {
+  if (!isLifecycleAdjustmentHandoffToken(input.reservationId)) {
+    return input.reservationId;
   }
 
-  return Prisma.sql`CAST(${JSON.stringify(value)} AS jsonb)`;
+  try {
+    return await resolveLifecycleAdjustmentClientEventReservation(
+      input.reservationId,
+      input.paymentId,
+    );
+  } catch (error) {
+    if (error instanceof LifecycleAdjustmentHandoffError) {
+      throw new TilopaySdkClientEventError("PAYMENT_NOT_FOUND");
+    }
+
+    throw error;
+  }
 }
 
 export async function recordTilopaySdkClientEvent(
   input: TilopaySdkClientEventRequest,
 ): Promise<void> {
+  const reservationId = await resolveReservationId(input);
   const payment = await prisma.payment.findFirst({
     where: {
       id: input.paymentId,
       provider: PaymentProvider.TILOPAY,
-      reservationId: input.reservationId,
+      reservationId,
     },
-    select: {
-      id: true,
-    },
+    select: { id: true },
   });
 
   if (!payment) {
@@ -146,26 +164,12 @@ export async function recordTilopaySdkClientEvent(
 
   await prisma.$executeRaw`
     INSERT INTO "payment_client_events" (
-      "id",
-      "payment_id",
-      "reservation_id",
-      "provider",
-      "event_type",
-      "environment",
-      "locale",
-      "payment_method_id",
-      "payment_method_name",
-      "payment_method_type",
-      "detected_card_brand",
-      "sdk_message",
-      "sdk_payload",
-      "preflight_status",
-      "preflight_expires_at"
-    )
-    VALUES (
-      ${randomUUID()},
-      ${input.paymentId},
-      ${input.reservationId},
+      "id", "payment_id", "reservation_id", "provider", "event_type",
+      "environment", "locale", "payment_method_id", "payment_method_name",
+      "payment_method_type", "detected_card_brand", "sdk_message",
+      "sdk_payload", "preflight_status", "preflight_expires_at"
+    ) VALUES (
+      ${randomUUID()}, ${input.paymentId}, ${reservationId},
       ${PaymentProvider.TILOPAY}::payment_provider,
       ${normalizeEventType(input.eventType)}::payment_client_event_type,
       ${normalizeOptionalString(input.environment)},

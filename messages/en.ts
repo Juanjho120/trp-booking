@@ -295,15 +295,45 @@ export const enMessages = {
       acceptedCards: "Accepted cards: Visa, Mastercard, and American Express",
       cardExpiration: "Expiration",
       cardCvv: "CVV",
-      pay: "Pay reservation",
+      pay: "Pay securely",
       processingPayment: "Processing payment...",
       paymentSubmitted:
         "The payment was sent to Tilopay. Wait for the secure form response before closing this page.",
       providerNote:
-        "The reservation will only be confirmed after the payment result is validated on the server.",
+        "The result is applied only after server-side payment validation. An approved adjustment does not change dates until its authorized transition is completed.",
       sessionError: "We could not prepare the payment form. Please try again.",
       sdkError: "We could not initialize the Tilopay secure form. Please try again.",
       paymentError: "We could not send the payment to Tilopay. Review the details and try again.",
+    },
+    lifecycleAdjustment: {
+      title: "Pay the stay adjustment",
+      description:
+        "The administrator approved the requested dates. Complete only the displayed difference before the hold expires.",
+      approvedTitle: "Adjustment payment approved",
+      approvedDescription:
+        "Tilopay approved the additional payment. The reservation remains confirmed with its original dates until the authorized update is completed by the system.",
+      approvedNote:
+        "You do not need to pay again. Final date application is processed separately and preserves the reservation history.",
+      unavailableTitle: "Adjustment link unavailable",
+      originalDates: "Current confirmed dates",
+      requestedDates: "Requested dates",
+      holdRemaining: "Hold time remaining",
+      securityNote:
+        "This private link is bound to this request and payment attempt and expires with the independent 60-minute hold.",
+      requestTypes: {
+        DATE_CHANGE: "Date change",
+        STAY_EXTENSION: "Stay extension",
+      },
+      errors: {
+        INVALID_LIFECYCLE_ADJUSTMENT_HANDOFF:
+          "The link is invalid or was altered. Request a new link from the administrator.",
+        LIFECYCLE_ADJUSTMENT_HANDOFF_EXPIRED:
+          "The 60-minute hold expired. The original dates remain unchanged.",
+        LIFECYCLE_ADJUSTMENT_NOT_PAYABLE:
+          "This adjustment no longer accepts another payment. Check its status with the administrator.",
+        LIFECYCLE_ADJUSTMENT_PAYMENT_MISMATCH:
+          "The payment no longer matches the approved request. No new charge was made.",
+      },
     },
     retry: {
       page: {
@@ -659,6 +689,8 @@ export const enMessages = {
           availability: "Availability",
           reviewExpiresAt: "Review expires",
           createdBy: "Recorded by",
+          decisionNote: "Decision note",
+          holdRemaining: "Adjustment hold remaining",
         },
         requestTypes: {
           DATE_CHANGE: "Full date change",
@@ -708,6 +740,8 @@ export const enMessages = {
         placeholders: {
           requestReason:
             "Describe the requested dates and the context an administrator needs to review the request.",
+          decisionNote:
+            "Document the approval or rejection reason without including sensitive payment data.",
         },
         help: {
           dateFormat: "Use YYYY-MM-DD format.",
@@ -719,6 +753,13 @@ export const enMessages = {
           creating: "Recording...",
           confirmCreate: "Calculate and record",
           close: "Close",
+          approve: "Approve",
+          reject: "Reject",
+          deciding: "Processing...",
+          confirmApprove: "Confirm approval",
+          confirmReject: "Confirm rejection",
+          openPaymentLink: "Open payment link",
+          copyPaymentLink: "Copy payment link",
         },
         createDialog: {
           title: "Record a date change or stay extension",
@@ -729,6 +770,18 @@ export const enMessages = {
           pendingNote:
             "The request will remain pending review for 24 hours. This phase does not create the 60-minute hold, charge a difference, or change reservation dates.",
         },
+        decisionDialog: {
+          approveTitle: "Approve request",
+          approveDescription:
+            "Availability will be validated again before the decision is accepted.",
+          rejectTitle: "Reject request",
+          rejectDescription:
+            "Rejection closes this request without changing the reservation or creating financial movements.",
+          approvalBoundary:
+            "A positive difference creates an independent 60-minute hold and an exact pending payment. A zero or negative difference remains approved for completion in later subphases. This decision does not change dates or prices yet.",
+          rejectionBoundary:
+            "Rejection preserves the current dates, prices, Confirmed status, payments, and availability.",
+        },
         notes: {
           serverQuote:
             "Prices, nights, and differences are calculated only on the server. The browser does not submit totals or rates.",
@@ -736,6 +789,8 @@ export const enMessages = {
             "Validation excludes only this reservation's stay and derived buffers; every other reservation, Airbnb event, maintenance block, manual block, dependency, and hold remains blocking.",
           noMutation:
             "Recording a request creates no payment, refund, or hold and does not change the reservation dates, price, or Confirmed status.",
+          paymentLink:
+            "Share this private link only with the guest. It expires with the 60-minute hold and does not change the public 15-minute hold.",
         },
         states: {
           reservationNotEligible:
@@ -748,6 +803,9 @@ export const enMessages = {
         success: {
           requestCreated:
             "The request was recorded with its quote and availability validation.",
+          requestApproved: "The request was approved successfully.",
+          requestRejected: "The request was rejected successfully.",
+          paymentLinkCopied: "The private payment link was copied.",
         },
         errors: {
           ADMIN_UNAUTHORIZED: "Your session is not authorized for admin actions.",
@@ -773,6 +831,18 @@ export const enMessages = {
             "The requested check-out exceeds the 365-day limit.",
           ADMIN_DATE_MUTATION_DATES_UNAVAILABLE:
             "The requested dates, their buffers, or an accommodation dependency are no longer available.",
+          ADMIN_DATE_MUTATION_REQUEST_NOT_FOUND:
+            "We could not find the selected date-mutation request.",
+          ADMIN_DATE_MUTATION_REQUEST_NOT_PENDING:
+            "The request is no longer pending review.",
+          ADMIN_DATE_MUTATION_REQUEST_EXPIRED:
+            "The request or its review window has expired.",
+          ADMIN_DATE_MUTATION_DECISION_CONFLICT:
+            "The request already received a different decision or reached a final state.",
+          ADMIN_DATE_MUTATION_ADJUSTMENT_PAYMENT_CONFLICT:
+            "The request already has an incompatible adjustment hold or payment. Reload before continuing.",
+          ADMIN_DATE_MUTATION_REFUND_BALANCE_INSUFFICIENT:
+            "The initial payment no longer has enough captured balance to return the exact negative difference.",
           ADMIN_DATE_MUTATION_REQUEST_ALREADY_ACTIVE:
             "This reservation already has an active date change or stay extension.",
           ADMIN_DATE_MUTATION_CANCELLATION_ACTIVE:

@@ -1,9 +1,15 @@
 import { prisma } from "@/lib/db/prisma";
 import { getTilopayEnv } from "@/lib/env/server";
 import {
+  isLifecycleAdjustmentHandoffToken,
+  LifecycleAdjustmentHandoffError,
+  prepareLifecycleAdjustmentPayment,
+} from "@/lib/payments/lifecycle-adjustment-handoff";
+import {
   createPaymentAttemptForPendingReservation,
   PaymentAttemptCreationError,
 } from "@/lib/payments/payment-attempts";
+import type { ReservationQuoteAmount } from "@/types/reservation-quote";
 import type {
   CreateTilopaySdkSessionInput,
   TilopaySdkInitConfig,
@@ -12,7 +18,8 @@ import type {
 } from "@/types/tilopay-sdk-session";
 
 const TILOPAY_API_BASE_URL = "https://app.tilopay.com/api/v1";
-const TILOPAY_SDK_SCRIPT_URL = "https://app.tilopay.com/sdk/v2/sdk_tpay.min.js";
+const TILOPAY_SDK_SCRIPT_URL =
+  "https://app.tilopay.com/sdk/v2/sdk_tpay.min.js";
 
 const defaultBillingAddress = {
   address: "Panajachel",
@@ -55,7 +62,6 @@ function getAccessToken(payload: unknown): string {
 
 async function requestTilopaySdkToken(): Promise<string> {
   const env = getTilopayEnv();
-
   const response = await fetch(`${TILOPAY_API_BASE_URL}/loginSdk`, {
     body: JSON.stringify({
       apiuser: env.TILOPAY_API_USER,
@@ -73,9 +79,7 @@ async function requestTilopaySdkToken(): Promise<string> {
     throw new TilopaySdkSessionError("TILOPAY_SDK_TOKEN_UNAVAILABLE");
   }
 
-  const payload = (await response.json()) as unknown;
-
-  return getAccessToken(payload);
+  return getAccessToken((await response.json()) as unknown);
 }
 
 function normalizeText(value: string | null | undefined): string {
@@ -87,7 +91,9 @@ function splitGuestName(guestName: string): Readonly<{
   lastName: string;
 }> {
   const normalizedName = normalizeText(guestName);
-  const [firstName, ...lastNameParts] = normalizedName.split(" ").filter(Boolean);
+  const [firstName, ...lastNameParts] = normalizedName
+    .split(" ")
+    .filter(Boolean);
   const lastName = lastNameParts.join(" ");
 
   return {
@@ -98,8 +104,9 @@ function splitGuestName(guestName: string): Readonly<{
 
 function normalizeCountry(value: string | null | undefined): string {
   const normalizedCountry = normalizeText(value).toUpperCase();
-
-  return /^[A-Z]{2}$/.test(normalizedCountry) ? normalizedCountry : defaultBillingAddress.country;
+  return /^[A-Z]{2}$/.test(normalizedCountry)
+    ? normalizedCountry
+    : defaultBillingAddress.country;
 }
 
 function buildProviderReference(paymentId: string): string {
@@ -124,16 +131,10 @@ async function ensurePaymentProviderReference(
   }
 
   const providerReference = buildProviderReference(paymentId);
-
   await prisma.payment.update({
-    data: {
-      providerReference,
-    },
-    where: {
-      id: paymentId,
-    },
+    data: { providerReference },
+    where: { id: paymentId },
   });
-
   return providerReference;
 }
 
@@ -176,10 +177,112 @@ function buildSdkInitConfig(input: Readonly<{
   };
 }
 
+function toQuoteAmount(value: Readonly<{ toString: () => string }>): ReservationQuoteAmount {
+  const amount = Number(value.toString());
+
+  if (!Number.isFinite(amount) || amount <= 0) {
+    throw new TilopaySdkSessionError("PAYMENT_ATTEMPT_AMOUNT_MISMATCH");
+  }
+
+  return {
+    currency: "USD",
+    amountCents: Math.round(amount * 100),
+    amount: amount.toFixed(2),
+  };
+}
+
+function mapLifecycleHandoffError(
+  error: LifecycleAdjustmentHandoffError,
+): TilopaySdkSessionError {
+  switch (error.code) {
+    case "LIFECYCLE_ADJUSTMENT_HANDOFF_EXPIRED":
+      return new TilopaySdkSessionError("PENDING_HOLD_EXPIRED");
+    case "LIFECYCLE_ADJUSTMENT_NOT_PAYABLE":
+      return new TilopaySdkSessionError("PENDING_HOLD_NOT_PAYABLE");
+    case "LIFECYCLE_ADJUSTMENT_PAYMENT_MISMATCH":
+      return new TilopaySdkSessionError("PAYMENT_ATTEMPT_AMOUNT_MISMATCH");
+    case "INVALID_LIFECYCLE_ADJUSTMENT_HANDOFF":
+    default:
+      return new TilopaySdkSessionError("INVALID_PAYMENT_HANDOFF_REQUEST");
+  }
+}
+
+async function createLifecycleAdjustmentTilopaySdkSession(
+  input: CreateTilopaySdkSessionInput,
+): Promise<TilopaySdkSession> {
+  let prepared;
+
+  try {
+    prepared = await prepareLifecycleAdjustmentPayment(input.reservationId);
+  } catch (error) {
+    if (error instanceof LifecycleAdjustmentHandoffError) {
+      throw mapLifecycleHandoffError(error);
+    }
+
+    throw error;
+  }
+
+  if (prepared.payment.currency !== "USD") {
+    throw new TilopaySdkSessionError("PAYMENT_ATTEMPT_AMOUNT_MISMATCH");
+  }
+
+  const amount = toQuoteAmount(prepared.payment.amount);
+  const existingPaymentAttempt = Boolean(
+    prepared.payment.providerReference,
+  );
+  const providerReference = await ensurePaymentProviderReference(
+    prepared.payment.id,
+    prepared.payment.providerReference,
+  );
+  const token = await requestTilopaySdkToken();
+  const env = getTilopayEnv();
+  const returnData = buildReturnData({
+    locale: input.locale,
+    orderNumber: providerReference,
+    paymentId: prepared.payment.id,
+    reservationId: prepared.token,
+  });
+  const initConfig = buildSdkInitConfig({
+    amount,
+    currency: "USD",
+    guestCountry: prepared.reservation.guestCountry,
+    guestEmail: prepared.reservation.guestEmail,
+    guestName: prepared.reservation.guestName,
+    guestPhone: prepared.reservation.guestPhone,
+    locale: input.locale,
+    orderNumber: providerReference,
+    redirectUrl: env.TILOPAY_REDIRECT_URL,
+    returnData,
+    token,
+  });
+
+  return {
+    paymentId: prepared.payment.id,
+    reservationId: prepared.token,
+    provider: "TILOPAY",
+    providerReference,
+    paymentStatus: "PENDING",
+    amount,
+    currency: "USD",
+    expiresAt: prepared.expiresAt,
+    existingPaymentAttempt,
+    environment: env.TILOPAY_ENVIRONMENT,
+    sdkScriptUrl: TILOPAY_SDK_SCRIPT_URL,
+    initConfig,
+    phaseBoundary: "LIFECYCLE_ADJUSTMENT_CHECKOUT_READY",
+  };
+}
+
 export async function createTilopaySdkSession(
   input: CreateTilopaySdkSessionInput,
 ): Promise<TilopaySdkSession> {
-  let paymentAttempt: Awaited<ReturnType<typeof createPaymentAttemptForPendingReservation>>;
+  if (isLifecycleAdjustmentHandoffToken(input.reservationId)) {
+    return createLifecycleAdjustmentTilopaySdkSession(input);
+  }
+
+  let paymentAttempt: Awaited<
+    ReturnType<typeof createPaymentAttemptForPendingReservation>
+  >;
 
   try {
     paymentAttempt = await createPaymentAttemptForPendingReservation(input);
@@ -204,13 +307,13 @@ export async function createTilopaySdkSession(
         },
       },
     },
-    where: {
-      id: paymentAttempt.id,
-    },
+    where: { id: paymentAttempt.id },
   });
 
   if (!payment) {
-    throw new TilopaySdkSessionError("TILOPAY_SDK_SESSION_UNEXPECTED_ERROR");
+    throw new TilopaySdkSessionError(
+      "TILOPAY_SDK_SESSION_UNEXPECTED_ERROR",
+    );
   }
 
   const providerReference = await ensurePaymentProviderReference(

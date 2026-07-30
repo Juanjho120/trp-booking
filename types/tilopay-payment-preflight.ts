@@ -7,7 +7,9 @@ export type TilopayPaymentPreflight = Readonly<{
   reservationId: string;
   status: "READY_FOR_PAYMENT";
   expiresAt: string;
-  phaseBoundary: "TILOPAY_PREFLIGHT_READY";
+  phaseBoundary:
+    | "TILOPAY_PREFLIGHT_READY"
+    | "LIFECYCLE_ADJUSTMENT_PREFLIGHT_READY";
 }>;
 
 export type TilopayPaymentPreflightApiSuccessResponse = Readonly<{

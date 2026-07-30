@@ -13,9 +13,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const localeSchema = z.enum(["es", "en"]).catch("es");
-
 const tilopayPaymentPreflightRequestSchema = z.object({
-  reservationId: z.string().trim().min(1).max(120),
+  reservationId: z.string().trim().min(1).max(4_096),
   paymentId: z.string().trim().min(1).max(120),
   locale: localeSchema,
 });
@@ -25,7 +24,6 @@ function getTilopayPreflightErrorMessage(
   locale: "es" | "en",
 ): string {
   const messages = locale === "en" ? enMessages : esMessages;
-
   return messages.errors.payment.tilopaySdk[code];
 }
 
@@ -35,12 +33,7 @@ function toErrorResponse(
   status: number,
 ): NextResponse {
   return NextResponse.json(
-    {
-      error: {
-        code,
-        message: getTilopayPreflightErrorMessage(code, locale),
-      },
-    },
+    { error: { code, message: getTilopayPreflightErrorMessage(code, locale) } },
     { status },
   );
 }
@@ -72,7 +65,9 @@ export async function POST(request: Request) {
   }
 
   const locale = localeSchema.parse(
-    typeof body === "object" && body !== null && "locale" in body ? body.locale : "es",
+    typeof body === "object" && body !== null && "locale" in body
+      ? body.locale
+      : "es",
   );
   const parsedRequest = tilopayPaymentPreflightRequestSchema.safeParse(body);
 
@@ -81,14 +76,10 @@ export async function POST(request: Request) {
   }
 
   try {
-    const tilopayPaymentPreflight = await validateTilopayPaymentPreflight(parsedRequest.data);
-
-    return NextResponse.json(
-      {
-        tilopayPaymentPreflight,
-      },
-      { status: 200 },
+    const tilopayPaymentPreflight = await validateTilopayPaymentPreflight(
+      parsedRequest.data,
     );
+    return NextResponse.json({ tilopayPaymentPreflight }, { status: 200 });
   } catch (error) {
     if (error instanceof TilopayPaymentPreflightError) {
       return toErrorResponse(error.code, locale, resolveErrorStatus(error.code));

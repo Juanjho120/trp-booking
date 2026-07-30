@@ -1,8 +1,11 @@
 import {
+  LifecycleRequestHoldStatus,
+  PaymentProvider,
   PaymentPurpose,
   PaymentStatus,
   Prisma,
   PropertyStatus,
+  RefundStatus,
   ReservationLifecycleRequestChannel,
   ReservationLifecycleRequestStatus,
   ReservationLifecycleRequestType,
@@ -25,16 +28,24 @@ import {
 import { prisma } from "@/lib/db/prisma";
 import { getArrivalCheckInDateTime } from "@/lib/email";
 import { normalizeTimeOfDay } from "@/lib/email/time-of-day";
+import { createLifecycleAdjustmentHandoffToken } from "@/lib/payments/lifecycle-adjustment-handoff";
+import {
+  buildLifecycleAdjustmentHoldExpiresAt,
+  expireLifecycleAdjustmentRequestIfNeeded,
+  LIFECYCLE_ADJUSTMENT_HOLD_DURATION_MINUTES,
+} from "@/lib/reservations/lifecycle-adjustment-holds";
 import type { AccommodationId } from "@/types/accommodation";
 import type { AdminActor } from "@/types/admin";
 import type {
   AdminDateMutationAdminSummary,
   AdminDateMutationChannel,
+  AdminDateMutationDecisionResult,
   AdminDateMutationErrorCode,
   AdminDateMutationPricingMode,
   AdminDateMutationRequestSummary,
   AdminDateMutationRequestType,
   CreateAdminDateMutationRequestInput,
+  DecideAdminDateMutationRequestInput,
 } from "@/types/admin-reservation-date-mutation";
 import type {
   AvailabilityBlockingRecord,
@@ -107,6 +118,49 @@ const dateMutationRequestSummarySelect = {
       email: true,
     },
   },
+  reviewedByAdmin: {
+    select: {
+      name: true,
+      email: true,
+    },
+  },
+  decisionReasonCode: true,
+  decisionNote: true,
+  reviewedAt: true,
+  decidedAt: true,
+  hold: {
+    select: {
+      id: true,
+      status: true,
+      startDate: true,
+      endDate: true,
+      preparationDaysBefore: true,
+      preparationDaysAfter: true,
+      expiresAt: true,
+      releasedAt: true,
+      expiredAt: true,
+      releaseReasonCode: true,
+      version: true,
+    },
+  },
+  adjustmentPayments: {
+    where: {
+      purpose: PaymentPurpose.LIFECYCLE_ADJUSTMENT,
+    },
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    select: {
+      id: true,
+      purpose: true,
+      status: true,
+      amount: true,
+      currency: true,
+      providerReference: true,
+      paidAt: true,
+      failedAt: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  },
   requestedAt: true,
   expiredAt: true,
   expectedReservationUpdatedAt: true,
@@ -123,6 +177,49 @@ const dateMutationRequestSummarySelect = {
 type DateMutationRequestSummaryRecord =
   Prisma.ReservationLifecycleRequestGetPayload<{
     select: typeof dateMutationRequestSummarySelect;
+  }>;
+
+const dateMutationRequestForDecisionSelect = {
+  ...dateMutationRequestSummarySelect,
+  originalReservationStatus: true,
+  reservation: {
+    select: {
+      id: true,
+      propertyId: true,
+      status: true,
+      confirmedAt: true,
+      cancelledAt: true,
+      checkInDate: true,
+      checkOutDate: true,
+      updatedAt: true,
+      property: {
+        select: {
+          id: true,
+          status: true,
+          deletedAt: true,
+          checkInTime: true,
+          checkOutTime: true,
+          preparationDaysBefore: true,
+          preparationDaysAfter: true,
+        },
+      },
+    },
+  },
+  sourcePayment: {
+    select: {
+      id: true,
+      reservationId: true,
+      purpose: true,
+      status: true,
+      amount: true,
+      currency: true,
+    },
+  },
+} satisfies Prisma.ReservationLifecycleRequestSelect;
+
+type DateMutationRequestForDecision =
+  Prisma.ReservationLifecycleRequestGetPayload<{
+    select: typeof dateMutationRequestForDecisionSelect;
   }>;
 
 const reservationForDateMutationSelect = {
@@ -155,6 +252,8 @@ const reservationForDateMutationSelect = {
       currency: true,
       checkInTime: true,
       checkOutTime: true,
+      preparationDaysBefore: true,
+      preparationDaysAfter: true,
     },
   },
   payments: {
@@ -456,12 +555,59 @@ export function toAdminDateMutationRequestSummary(
       blockingAccommodationIds: getBlockingAccommodationIds(propertyId),
     },
     createdByAdmin: toAdminSummary(request.createdByAdmin),
+    reviewedByAdmin: request.reviewedByAdmin
+      ? toAdminSummary(request.reviewedByAdmin)
+      : null,
+    decisionReasonCode: request.decisionReasonCode,
+    decisionNote: request.decisionNote,
     requestedAt: requestedAt.toISOString(),
+    reviewedAt: request.reviewedAt?.toISOString() ?? null,
+    decidedAt: request.decidedAt?.toISOString() ?? null,
     reviewExpiresAt: reviewExpiresAt.toISOString(),
     reviewExpired:
       request.status === ReservationLifecycleRequestStatus.EXPIRED ||
       (request.status === ReservationLifecycleRequestStatus.PENDING_REVIEW &&
         reviewExpiresAt <= now),
+    hold: request.hold
+      ? {
+          id: request.hold.id,
+          status: request.hold.status,
+          startDate: dateOnlyFromDate(request.hold.startDate),
+          endDate: dateOnlyFromDate(request.hold.endDate),
+          preparationDaysBefore: request.hold.preparationDaysBefore,
+          preparationDaysAfter: request.hold.preparationDaysAfter,
+          expiresAt: request.hold.expiresAt.toISOString(),
+          releasedAt: request.hold.releasedAt?.toISOString() ?? null,
+          expiredAt: request.hold.expiredAt?.toISOString() ?? null,
+          releaseReasonCode: request.hold.releaseReasonCode,
+          version: request.hold.version,
+        }
+      : null,
+    adjustmentPayments: request.adjustmentPayments.map((payment) => ({
+      id: payment.id,
+      purpose: "LIFECYCLE_ADJUSTMENT" as const,
+      status: payment.status,
+      amount: payment.amount.toFixed(2),
+      currency: payment.currency,
+      providerReference: payment.providerReference,
+      paidAt: payment.paidAt?.toISOString() ?? null,
+      failedAt: payment.failedAt?.toISOString() ?? null,
+      createdAt: payment.createdAt.toISOString(),
+      updatedAt: payment.updatedAt.toISOString(),
+    })),
+    paymentHandoffPath:
+      request.status ===
+        ReservationLifecycleRequestStatus.AWAITING_ADJUSTMENT_PAYMENT &&
+      request.hold?.status === LifecycleRequestHoldStatus.ACTIVE &&
+      request.hold.expiresAt > now &&
+      request.adjustmentPayments[0]
+        ? `/reservas/ajuste/${createLifecycleAdjustmentHandoffToken({
+            lifecycleRequestId: request.id,
+            holdId: request.hold.id,
+            paymentId: request.adjustmentPayments[0].id,
+            expiresAt: request.hold.expiresAt.toISOString(),
+          })}`
+        : null,
     version: request.version,
     expectedReservationUpdatedAt:
       request.expectedReservationUpdatedAt.toISOString(),
@@ -1095,6 +1241,687 @@ export async function createAdminDateMutationRequest(
   }
 }
 
+function financialBranch(
+  difference: Prisma.Decimal,
+): AdminDateMutationDecisionResult["financialBranch"] {
+  if (difference.greaterThan(0)) {
+    return "POSITIVE";
+  }
+
+  if (difference.lessThan(0)) {
+    return "NEGATIVE";
+  }
+
+  return "ZERO";
+}
+
+function isApprovedDecisionState(
+  status: ReservationLifecycleRequestStatus,
+): boolean {
+  return (
+    status === ReservationLifecycleRequestStatus.APPROVED ||
+    status ===
+      ReservationLifecycleRequestStatus.AWAITING_ADJUSTMENT_PAYMENT
+  );
+}
+
+function assertDateMutationDecisionRequest(
+  request: DateMutationRequestForDecision,
+  input: DecideAdminDateMutationRequestInput,
+  now: Date,
+): void {
+  if (
+    request.reservationId !== input.reservationId.trim() ||
+    (request.requestType !== ReservationLifecycleRequestType.DATE_CHANGE &&
+      request.requestType !== ReservationLifecycleRequestType.STAY_EXTENSION)
+  ) {
+    throw new AdminReservationDateMutationError(
+      "ADMIN_DATE_MUTATION_REQUEST_NOT_FOUND",
+    );
+  }
+
+  if (
+    input.decision === "APPROVE" &&
+    isApprovedDecisionState(request.status)
+  ) {
+    return;
+  }
+
+  if (
+    input.decision === "REJECT" &&
+    request.status === ReservationLifecycleRequestStatus.REJECTED
+  ) {
+    return;
+  }
+
+  if (request.status !== ReservationLifecycleRequestStatus.PENDING_REVIEW) {
+    if (
+      request.status === ReservationLifecycleRequestStatus.EXPIRED ||
+      request.status === ReservationLifecycleRequestStatus.FAILED
+    ) {
+      throw new AdminReservationDateMutationError(
+        "ADMIN_DATE_MUTATION_REQUEST_EXPIRED",
+      );
+    }
+
+    throw new AdminReservationDateMutationError(
+      "ADMIN_DATE_MUTATION_DECISION_CONFLICT",
+    );
+  }
+
+  const reviewExpiresAt = new Date(
+    request.requestedAt.getTime() +
+      DATE_MUTATION_REVIEW_DURATION_HOURS * MILLISECONDS_PER_HOUR,
+  );
+
+  if (reviewExpiresAt <= now) {
+    throw new AdminReservationDateMutationError(
+      "ADMIN_DATE_MUTATION_REQUEST_EXPIRED",
+    );
+  }
+
+  if (
+    request.version !== input.expectedRequestVersion ||
+    request.expectedReservationUpdatedAt.toISOString() !==
+      input.expectedReservationUpdatedAt ||
+    request.reservation.updatedAt.toISOString() !==
+      input.expectedReservationUpdatedAt
+  ) {
+    throw new AdminReservationDateMutationError("ADMIN_DATE_MUTATION_STALE");
+  }
+
+  if (
+    request.originalReservationStatus !== ReservationStatus.CONFIRMED ||
+    request.reservation.status !== ReservationStatus.CONFIRMED ||
+    !request.reservation.confirmedAt ||
+    request.reservation.cancelledAt
+  ) {
+    throw new AdminReservationDateMutationError(
+      "ADMIN_DATE_MUTATION_RESERVATION_NOT_CONFIRMED",
+    );
+  }
+
+  if (
+    request.reservation.property.status !== PropertyStatus.ACTIVE ||
+    request.reservation.property.deletedAt ||
+    request.reservation.property.id !== request.reservation.propertyId ||
+    !isAdminAccommodationId(request.reservation.propertyId)
+  ) {
+    throw new AdminReservationDateMutationError(
+      "ADMIN_DATE_MUTATION_PROPERTY_NOT_ELIGIBLE",
+    );
+  }
+
+  if (
+    !request.sourcePayment ||
+    request.sourcePayment.reservationId !== request.reservationId ||
+    request.sourcePayment.purpose !== PaymentPurpose.INITIAL_RESERVATION ||
+    !VALIDATED_INITIAL_PAYMENT_STATUSES.some(
+      (status) => status === request.sourcePayment!.status,
+    ) ||
+    request.sourcePayment.currency !== request.currency
+  ) {
+    throw new AdminReservationDateMutationError(
+      "ADMIN_DATE_MUTATION_SOURCE_PAYMENT_NOT_FOUND",
+    );
+  }
+
+  const requestedCheckInDate = requireRequestedDate(
+    request.requestedCheckInDate,
+  );
+  const requestedCheckOutDate = requireRequestedDate(
+    request.requestedCheckOutDate,
+  );
+  requireRequestedDecimal(request.requestedTotal);
+  requireRequestedDecimal(request.financialDifference);
+
+  if (request.requestType === ReservationLifecycleRequestType.DATE_CHANGE) {
+    const originalCheckInAt = getArrivalCheckInDateTime(
+      request.originalCheckInDate,
+      request.reservation.property.checkInTime,
+    );
+    const requestedCheckInAt = getArrivalCheckInDateTime(
+      requestedCheckInDate,
+      request.reservation.property.checkInTime,
+    );
+
+    if (!originalCheckInAt || !requestedCheckInAt) {
+      throw new AdminReservationDateMutationError(
+        "ADMIN_DATE_MUTATION_PROPERTY_NOT_ELIGIBLE",
+      );
+    }
+
+    if (now >= originalCheckInAt || now >= requestedCheckInAt) {
+      throw new AdminReservationDateMutationError(
+        "ADMIN_DATE_MUTATION_REQUEST_EXPIRED",
+      );
+    }
+  } else {
+    const checkOutBoundary = toGuatemalaDateTime(
+      request.reservation.checkOutDate,
+      request.reservation.property.checkOutTime,
+      true,
+    );
+
+    if (!checkOutBoundary || now >= checkOutBoundary) {
+      throw new AdminReservationDateMutationError(
+        "ADMIN_DATE_MUTATION_REQUEST_EXPIRED",
+      );
+    }
+
+    if (
+      dateOnlyFromDate(requestedCheckInDate) !==
+        dateOnlyFromDate(request.originalCheckInDate) ||
+      requestedCheckOutDate <= request.originalCheckOutDate
+    ) {
+      throw new AdminReservationDateMutationError(
+        "ADMIN_DATE_MUTATION_EXTENSION_INVALID",
+      );
+    }
+  }
+}
+
+async function expirePendingReviewDecisionRequest(
+  transaction: Prisma.TransactionClient,
+  request: DateMutationRequestForDecision,
+  now: Date,
+  adminActor: Readonly<{ id: string; email: string }>,
+): Promise<boolean> {
+  if (request.status !== ReservationLifecycleRequestStatus.PENDING_REVIEW) {
+    return false;
+  }
+
+  const reviewExpiresAt = new Date(
+    request.requestedAt.getTime() +
+      DATE_MUTATION_REVIEW_DURATION_HOURS * MILLISECONDS_PER_HOUR,
+  );
+
+  if (reviewExpiresAt > now) {
+    return false;
+  }
+
+  const update = await transaction.reservationLifecycleRequest.updateMany({
+    where: {
+      id: request.id,
+      status: ReservationLifecycleRequestStatus.PENDING_REVIEW,
+      version: request.version,
+    },
+    data: {
+      status: ReservationLifecycleRequestStatus.EXPIRED,
+      expiredAt: now,
+      failureCode: PENDING_REVIEW_EXPIRED_FAILURE_CODE,
+      version: { increment: 1 },
+    },
+  });
+
+  if (update.count === 1) {
+    await transaction.adminAuditLog.create({
+      data: {
+        userId: adminActor.id,
+        action: "LIFECYCLE_REQUEST_EXPIRED",
+        entityType: "ReservationLifecycleRequest",
+        entityId: request.id,
+        metadata: {
+          actorEmail: adminActor.email,
+          reservationId: request.reservationId,
+          lifecycleRequestId: request.id,
+          requestType: request.requestType,
+          requestedAt: request.requestedAt.toISOString(),
+          expiredAt: now.toISOString(),
+          reasonCode: PENDING_REVIEW_EXPIRED_FAILURE_CODE,
+        },
+      },
+    });
+  }
+
+  return update.count === 1;
+}
+
+async function readDateMutationSummaryById(
+  transaction: Prisma.TransactionClient,
+  requestId: string,
+  now: Date,
+): Promise<AdminDateMutationRequestSummary> {
+  const request = await transaction.reservationLifecycleRequest.findUnique({
+    where: { id: requestId },
+    select: dateMutationRequestSummarySelect,
+  });
+
+  if (!request) {
+    throw new AdminReservationDateMutationError(
+      "ADMIN_DATE_MUTATION_REQUEST_NOT_FOUND",
+    );
+  }
+
+  return toAdminDateMutationRequestSummary(request, now);
+}
+
+async function decideDateMutationRequestTransaction(
+  input: DecideAdminDateMutationRequestInput,
+  actor: AdminActor,
+): Promise<AdminDateMutationDecisionResult | null> {
+  return prisma.$transaction(
+    async (transaction) => {
+      const adminActor = await resolveAdminActor(transaction, actor);
+      const request = await transaction.reservationLifecycleRequest.findUnique({
+        where: { id: input.requestId.trim() },
+        select: dateMutationRequestForDecisionSelect,
+      });
+
+      if (!request) {
+        throw new AdminReservationDateMutationError(
+          "ADMIN_DATE_MUTATION_REQUEST_NOT_FOUND",
+        );
+      }
+
+      const now = new Date();
+      const expired = await expirePendingReviewDecisionRequest(
+        transaction,
+        request,
+        now,
+        adminActor,
+      );
+
+      if (expired) {
+        return null;
+      }
+
+      assertDateMutationDecisionRequest(request, input, now);
+      const difference = requireRequestedDecimal(request.financialDifference);
+      const branch = financialBranch(difference);
+
+      if (
+        input.decision === "APPROVE" &&
+        isApprovedDecisionState(request.status)
+      ) {
+        return {
+          request: toAdminDateMutationRequestSummary(request, now),
+          decision: input.decision,
+          financialBranch: branch,
+          holdCreated: Boolean(request.hold),
+          paymentCreated: request.adjustmentPayments.length > 0,
+          alreadyProcessed: true,
+        };
+      }
+
+      if (
+        input.decision === "REJECT" &&
+        request.status === ReservationLifecycleRequestStatus.REJECTED
+      ) {
+        return {
+          request: toAdminDateMutationRequestSummary(request, now),
+          decision: input.decision,
+          financialBranch: branch,
+          holdCreated: false,
+          paymentCreated: false,
+          alreadyProcessed: true,
+        };
+      }
+
+      const decisionNote = normalizeRequiredText(input.decisionNote, 2_000);
+
+      if (!decisionNote) {
+        throw new AdminReservationDateMutationError(
+          "INVALID_ADMIN_DATE_MUTATION_REQUEST",
+        );
+      }
+
+      if (input.decision === "REJECT") {
+        const update = await transaction.reservationLifecycleRequest.updateMany({
+          where: {
+            id: request.id,
+            status: ReservationLifecycleRequestStatus.PENDING_REVIEW,
+            version: input.expectedRequestVersion,
+          },
+          data: {
+            status: ReservationLifecycleRequestStatus.REJECTED,
+            reviewedByAdminId: adminActor.id,
+            reviewedAt: now,
+            decidedAt: now,
+            decisionReasonCode: "DATE_MUTATION_REJECTED",
+            decisionNote,
+            version: { increment: 1 },
+          },
+        });
+
+        if (update.count !== 1) {
+          throw new AdminReservationDateMutationError(
+            "ADMIN_DATE_MUTATION_STALE",
+          );
+        }
+
+        await transaction.adminAuditLog.create({
+          data: {
+            userId: adminActor.id,
+            action: "LIFECYCLE_REQUEST_REJECTED",
+            entityType: "ReservationLifecycleRequest",
+            entityId: request.id,
+            metadata: {
+              actorEmail: adminActor.email,
+              reservationId: request.reservationId,
+              lifecycleRequestId: request.id,
+              requestType: request.requestType,
+              financialDifference: difference.toFixed(2),
+              currency: request.currency,
+              decisionNote,
+              requestVersion: input.expectedRequestVersion,
+              reservationDatesChanged: false,
+              holdCreated: false,
+              adjustmentPaymentCreated: false,
+            },
+          },
+        });
+
+        return {
+          request: await readDateMutationSummaryById(
+            transaction,
+            request.id,
+            now,
+          ),
+          decision: input.decision,
+          financialBranch: branch,
+          holdCreated: false,
+          paymentCreated: false,
+          alreadyProcessed: false,
+        };
+      }
+
+      const accommodationId = request.reservation.propertyId as AccommodationId;
+      const requestedCheckInDate = dateOnlyFromDate(
+        requireRequestedDate(request.requestedCheckInDate),
+      );
+      const requestedCheckOutDate = dateOnlyFromDate(
+        requireRequestedDate(request.requestedCheckOutDate),
+      );
+      const availability = await checkAccommodationAvailability(
+        {
+          accommodationId,
+          startDate: requestedCheckInDate,
+          endDate: requestedCheckOutDate,
+          excludeReservationId: request.reservationId,
+        },
+        { prismaClient: transaction, now },
+      );
+
+      if (!availability.available) {
+        throw new AdminReservationDateMutationError(
+          "ADMIN_DATE_MUTATION_DATES_UNAVAILABLE",
+        );
+      }
+
+      if (request.adjustmentPayments.length > 0 || request.hold) {
+        throw new AdminReservationDateMutationError(
+          "ADMIN_DATE_MUTATION_ADJUSTMENT_PAYMENT_CONFLICT",
+        );
+      }
+
+      if (branch === "NEGATIVE") {
+        const committedRefunds = await transaction.refund.aggregate({
+          where: {
+            paymentId: request.sourcePayment.id,
+            status: {
+              in: [
+                RefundStatus.PENDING,
+                RefundStatus.PROCESSING,
+                RefundStatus.APPROVED,
+                RefundStatus.MANUAL,
+              ],
+            },
+          },
+          _sum: { amount: true },
+        });
+        const committedAmount =
+          committedRefunds._sum.amount ?? new Prisma.Decimal(0);
+        const remainingCapturedBalance = request.sourcePayment.amount
+          .sub(committedAmount)
+          .toDecimalPlaces(2);
+
+        if (remainingCapturedBalance.lessThan(difference.abs())) {
+          throw new AdminReservationDateMutationError(
+            "ADMIN_DATE_MUTATION_REFUND_BALANCE_INSUFFICIENT",
+          );
+        }
+      }
+
+      const nextStatus =
+        branch === "POSITIVE"
+          ? ReservationLifecycleRequestStatus.AWAITING_ADJUSTMENT_PAYMENT
+          : ReservationLifecycleRequestStatus.APPROVED;
+      const update = await transaction.reservationLifecycleRequest.updateMany({
+        where: {
+          id: request.id,
+          status: ReservationLifecycleRequestStatus.PENDING_REVIEW,
+          version: input.expectedRequestVersion,
+        },
+        data: {
+          status: nextStatus,
+          reviewedByAdminId: adminActor.id,
+          reviewedAt: now,
+          decidedAt: now,
+          decisionReasonCode:
+            branch === "POSITIVE"
+              ? "DATE_MUTATION_APPROVED_REQUIRES_PAYMENT"
+              : branch === "ZERO"
+                ? "DATE_MUTATION_APPROVED_ZERO_DIFFERENCE"
+                : "DATE_MUTATION_APPROVED_NEGATIVE_DIFFERENCE",
+          decisionNote,
+          version: { increment: 1 },
+        },
+      });
+
+      if (update.count !== 1) {
+        throw new AdminReservationDateMutationError(
+          "ADMIN_DATE_MUTATION_STALE",
+        );
+      }
+
+      let holdId: string | null = null;
+      let holdExpiresAt: Date | null = null;
+      let paymentId: string | null = null;
+
+      if (branch === "POSITIVE") {
+        holdExpiresAt = buildLifecycleAdjustmentHoldExpiresAt(now);
+        const hold = await transaction.lifecycleRequestHold.create({
+          data: {
+            lifecycleRequestId: request.id,
+            propertyId: request.reservation.propertyId,
+            startDate: requireRequestedDate(request.requestedCheckInDate),
+            endDate: requireRequestedDate(request.requestedCheckOutDate),
+            preparationDaysBefore:
+              request.reservation.property.preparationDaysBefore,
+            preparationDaysAfter:
+              request.reservation.property.preparationDaysAfter,
+            status: LifecycleRequestHoldStatus.ACTIVE,
+            expiresAt: holdExpiresAt,
+          },
+          select: { id: true },
+        });
+        holdId = hold.id;
+
+        const payment = await transaction.payment.create({
+          data: {
+            reservationId: request.reservationId,
+            lifecycleRequestId: request.id,
+            provider: PaymentProvider.TILOPAY,
+            purpose: PaymentPurpose.LIFECYCLE_ADJUSTMENT,
+            status: PaymentStatus.PENDING,
+            amount: difference,
+            currency: request.currency,
+          },
+          select: { id: true },
+        });
+        paymentId = payment.id;
+
+        await transaction.adminAuditLog.createMany({
+          data: [
+            {
+              userId: adminActor.id,
+              action: "LIFECYCLE_ADJUSTMENT_HOLD_CREATED",
+              entityType: "LifecycleRequestHold",
+              entityId: hold.id,
+              metadata: {
+                actorEmail: adminActor.email,
+                reservationId: request.reservationId,
+                lifecycleRequestId: request.id,
+                requestType: request.requestType,
+                startDate: requestedCheckInDate,
+                endDate: requestedCheckOutDate,
+                preparationDaysBefore:
+                  request.reservation.property.preparationDaysBefore,
+                preparationDaysAfter:
+                  request.reservation.property.preparationDaysAfter,
+                expiresAt: holdExpiresAt.toISOString(),
+                durationMinutes:
+                  LIFECYCLE_ADJUSTMENT_HOLD_DURATION_MINUTES,
+                publicPendingReservationHoldChanged: false,
+              },
+            },
+            {
+              userId: adminActor.id,
+              action: "LIFECYCLE_ADJUSTMENT_PAYMENT_CREATED",
+              entityType: "Payment",
+              entityId: payment.id,
+              metadata: {
+                actorEmail: adminActor.email,
+                reservationId: request.reservationId,
+                lifecycleRequestId: request.id,
+                requestType: request.requestType,
+                purpose: PaymentPurpose.LIFECYCLE_ADJUSTMENT,
+                amount: difference.toFixed(2),
+                currency: request.currency,
+                holdId: hold.id,
+                holdExpiresAt: holdExpiresAt.toISOString(),
+                providerCalled: false,
+              },
+            },
+          ],
+        });
+      }
+
+      await transaction.adminAuditLog.create({
+        data: {
+          userId: adminActor.id,
+          action: "LIFECYCLE_REQUEST_APPROVED",
+          entityType: "ReservationLifecycleRequest",
+          entityId: request.id,
+          metadata: {
+            actorEmail: adminActor.email,
+            reservationId: request.reservationId,
+            lifecycleRequestId: request.id,
+            requestType: request.requestType,
+            previousStatus: ReservationLifecycleRequestStatus.PENDING_REVIEW,
+            status: nextStatus,
+            originalCheckInDate: dateOnlyFromDate(
+              request.originalCheckInDate,
+            ),
+            originalCheckOutDate: dateOnlyFromDate(
+              request.originalCheckOutDate,
+            ),
+            requestedCheckInDate,
+            requestedCheckOutDate,
+            originalTotal: request.originalTotal.toFixed(2),
+            requestedTotal: requireRequestedDecimal(
+              request.requestedTotal,
+            ).toFixed(2),
+            financialDifference: difference.toFixed(2),
+            financialBranch: branch,
+            currency: request.currency,
+            holdId,
+            holdExpiresAt: holdExpiresAt?.toISOString() ?? null,
+            paymentId,
+            requestVersion: input.expectedRequestVersion,
+            reservationVersion:
+              request.reservation.updatedAt.toISOString(),
+            reservationDatesChanged: false,
+            reservationPricingChanged: false,
+          },
+        },
+      });
+
+      return {
+        request: await readDateMutationSummaryById(
+          transaction,
+          request.id,
+          now,
+        ),
+        decision: input.decision,
+        financialBranch: branch,
+        holdCreated: branch === "POSITIVE",
+        paymentCreated: branch === "POSITIVE",
+        alreadyProcessed: false,
+      };
+    },
+    { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+  );
+}
+
+export async function decideAdminDateMutationRequest(
+  input: DecideAdminDateMutationRequestInput,
+  actor: AdminActor,
+): Promise<AdminDateMutationDecisionResult> {
+  try {
+    const result = await decideDateMutationRequestTransaction(input, actor);
+
+    if (!result) {
+      throw new AdminReservationDateMutationError(
+        "ADMIN_DATE_MUTATION_REQUEST_EXPIRED",
+      );
+    }
+
+    return result;
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      (error.code === "P2002" || error.code === "P2034")
+    ) {
+      const existing = await prisma.reservationLifecycleRequest.findUnique({
+        where: { id: input.requestId.trim() },
+        select: dateMutationRequestSummarySelect,
+      });
+
+      if (existing) {
+        const difference = requireRequestedDecimal(
+          existing.financialDifference,
+        );
+
+        if (
+          input.decision === "APPROVE" &&
+          isApprovedDecisionState(existing.status)
+        ) {
+          return {
+            request: toAdminDateMutationRequestSummary(existing),
+            decision: input.decision,
+            financialBranch: financialBranch(difference),
+            holdCreated: Boolean(existing.hold),
+            paymentCreated: existing.adjustmentPayments.length > 0,
+            alreadyProcessed: true,
+          };
+        }
+
+        if (
+          input.decision === "REJECT" &&
+          existing.status === ReservationLifecycleRequestStatus.REJECTED
+        ) {
+          return {
+            request: toAdminDateMutationRequestSummary(existing),
+            decision: input.decision,
+            financialBranch: financialBranch(difference),
+            holdCreated: false,
+            paymentCreated: false,
+            alreadyProcessed: true,
+          };
+        }
+      }
+
+      throw new AdminReservationDateMutationError(
+        "ADMIN_DATE_MUTATION_STALE",
+      );
+    }
+
+    throw error;
+  }
+}
+
 function maxDateOnly(
   left: DateOnlyString,
   right: DateOnlyString,
@@ -1238,6 +2065,25 @@ export async function getAdminDateMutationRequestsForReservation(
   }
 
   const now = new Date();
+  const awaitingRequests = await prisma.reservationLifecycleRequest.findMany({
+    where: {
+      reservationId: id,
+      requestType: {
+        in: [
+          ReservationLifecycleRequestType.DATE_CHANGE,
+          ReservationLifecycleRequestType.STAY_EXTENSION,
+        ],
+      },
+      status:
+        ReservationLifecycleRequestStatus.AWAITING_ADJUSTMENT_PAYMENT,
+    },
+    select: { id: true },
+  });
+
+  for (const request of awaitingRequests) {
+    await expireLifecycleAdjustmentRequestIfNeeded(request.id, now);
+  }
+
   const requests = await prisma.reservationLifecycleRequest.findMany({
     where: {
       reservationId: id,
