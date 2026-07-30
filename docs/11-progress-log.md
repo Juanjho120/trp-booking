@@ -6,17 +6,21 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
-Current subphase: 11.5.2.1 Admin availability datepicker and own-reservation exclusion UX — In progress
-Current focus: validate the protected admin range calendar, own-reservation stay/buffer exclusion, unrelated blocker visibility, fixed-check-in extension behavior, month loading, bilingual copy, and unchanged financial/lifecycle state
+Current subphase: 11.5.3 Approval, requested-date hold, and adjustment payment — In progress
+Current focus: implement idempotent admin approval/rejection, the independent 60-minute LifecycleRequestHold, exact LIFECYCLE_ADJUSTMENT Payment creation, secure purpose-bound payment handoff, hold expiration, and unchanged Reservation dates/pricing
 Last updated: 2026-07-30
-Last completed subphase: 11.5.1 Strategy, pricing, independent holds, and financial-adjustment contract
+Last completed subphase: 11.5.2.1 Admin availability datepicker and own-reservation exclusion UX
 11.5.1 strategy base commit: 3d1487f31ca74fc5a41573b4ab206ce9ad838bb5
 11.5.1 strategy document: docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md
 11.5.1 accepted commit: e0b77658c74ee2d7a30c96f529d5f7f4451ab045
 11.5.2 implementation document: docs/104-phase-11.5.2-admin-request-creation-quote-and-availability-validation.md
 11.5.2 implementation commit: 1a57fbbfb71533c16c8b58bceb8546a70a88599f
-11.5.2 backend acceptance: Passed on 2026-07-30; calendar UX correction tracked in 11.5.2.1
+11.5.2 acceptance: Completed on 2026-07-30 after backend and reduced calendar matrices passed
 11.5.2.1 correction document: docs/105-phase-11.5.2.1-admin-availability-datepicker-and-own-reservation-exclusion.md
+11.5.2.1 implementation commit: ab432fdc1e9d3ffb1ff868fd43a6fe70c5999a5e
+11.5.2.1 type-safety follow-ups: f57a777f26ab919e95098dfc13ee11b44f423b02, 56023423f4545914f43856ea44398e8d90301820
+11.5.2/11.5.2.1 accepted head: 56023423f4545914f43856ea44398e8d90301820
+11.5.2/11.5.2.1 closure document: docs/106-phase-11.5.2-and-11.5.2.1-acceptance-closure.md
 11.4 accepted implementation commit: 06e857df9d36e77c26557bb7b2057661979809dc
 11.4 implementation document: docs/99-phase-11.4-refund-authorization-and-tilopay-reconciliation.md
 11.4.1 correction document: docs/100-phase-11.4.1-observed-tilopay-contract-and-evidence-based-reconciliation.md
@@ -692,58 +696,50 @@ Strategy document: docs/103-phase-11.5.1-date-change-extension-strategy-and-pric
 ```
 
 
-## In Progress — Phase 11.5.2
+## Completed Work — Phase 11.5.2
 
 ### Phase 11.5.2 — Admin Request Creation, Quote, and Availability Validation
 
-Status: **In progress — backend acceptance passed; admin calendar correction 11.5.2.1 pending acceptance**
+Status: **Completed and accepted**
 
 ```text
-Protected POST creation exists for DATE_CHANGE and STAY_EXTENSION requests.
-The server validates CONFIRMED Reservation eligibility, supported ACTIVE property state, validated initial Payment, date rules, horizon, active cancellation/date-mutation conflicts, and expected Reservation.updatedAt.
-Original Reservation/guest/date/pricing/currency snapshots are copied into typed ReservationLifecycleRequest columns.
-DATE_CHANGE reprices the entire requested stay at the current nightly price.
-STAY_EXTENSION preserves original pricing and adds only newly requested nights at the current nightly price.
-Availability excludes only the current Reservation and retains every unrelated reservation, Airbnb/calendar block, maintenance/manual block, preparation buffer, composed dependency, and active lifecycle hold.
-Successful requests remain PENDING_REVIEW; no Reservation, Payment, Refund, LifecycleRequestHold, provider, or email state changes.
-Same UUID/same payload is idempotent; changed replay is rejected; serializable fencing protects concurrent creation.
-The protected admin UI displays original/requested stay, quote, difference, pricing mode, availability evidence, request state, expiry, actor, channel, and reason in ES/EN.
-Implementation base commit: e0b77658c74ee2d7a30c96f529d5f7f4451ab045.
+Protected DATE_CHANGE and STAY_EXTENSION creation, immutable snapshots, server-side quote calculation, own-reservation-only availability exclusion, 24-hour expiry, stale-state protection, idempotency, concurrency, audit metadata, and bilingual admin history were accepted.
+Positive, zero, and negative quote scenarios passed. A positive PENDING_REVIEW quote correctly creates no Payment before approval.
+Property.checkOutTime remains authoritative for extension eligibility, with end-of-day America/Guatemala fallback when null, blank, or invalid.
+Implementation commit: 1a57fbbfb71533c16c8b58bceb8546a70a88599f.
+Accepted head after the calendar correction and type-safety follow-ups: 56023423f4545914f43856ea44398e8d90301820.
 Implementation document: docs/104-phase-11.5.2-admin-request-creation-quote-and-availability-validation.md.
 ```
 
-Reported acceptance on 2026-07-30:
-
-```text
-All documented backend/local scenarios passed: positive/zero/negative DATE_CHANGE, STAY_EXTENSION pricing and invalid rules, own-reservation overlap, unrelated blockers, check-in/check-out boundaries, 365-day horizon, active request/cancellation conflicts, stale state, identical and altered replay, concurrency, 24-hour expiry, audit metadata, bilingual parity, and unchanged Reservation/Payment/Refund/Hold state.
-A positive PENDING_REVIEW quote correctly did not create a Payment; that remains assigned to 11.5.3 after approval.
-Property.checkOutTime is already used when valid, with end-of-day America/Guatemala fallback when null/blank/invalid.
-The remaining blocker is the admin free-text date UX, corrected by 11.5.2.1.
-```
-
-## In Progress — Phase 11.5.2.1
+## Completed Work — Phase 11.5.2.1
 
 ### Phase 11.5.2.1 — Admin Availability Datepicker and Own-Reservation Exclusion UX
 
-Status: **In progress — implementation prepared; reduced local/test acceptance pending**
+Status: **Completed and accepted**
 
 ```text
-A styled date-range calendar replaces the admin YYYY-MM-DD free-text inputs.
-A protected reservation-scoped blocked-dates endpoint derives property and exclusion server-side.
-The calendar excludes only the current Reservation and its derived buffers while retaining all unrelated blockers.
-DATE_CHANGE permits a complete replacement range.
-STAY_EXTENSION keeps the original check-in fixed and permits only a later check-out.
-Availability is loaded per month and retained while the request dialog remains open.
-Availability-load failures prevent submission and use centralized ES/EN feedback.
-No Payment, LifecycleRequestHold, Tilopay call, Reservation mutation, Refund, email, Prisma migration, dependency, environment variable, or public hold change is added.
-Implementation base commit: 1a57fbbfb71533c16c8b58bceb8546a70a88599f.
-Correction document: docs/105-phase-11.5.2.1-admin-availability-datepicker-and-own-reservation-exclusion.md.
+The styled admin range calendar replaces free-text dates and uses a protected reservation-scoped blocked-dates endpoint.
+The current reservation stay and preparation buffers are selectable only in the admin proposal calendar when no unrelated blocker exists.
+Other reservations, Airbnb/manual/maintenance blocks, other buffers, composed dependencies, and active lifecycle holds remain disabled.
+DATE_CHANGE, fixed-check-in STAY_EXTENSION, month navigation/cache, load-failure protection, unchanged backend quote/financial state, public-calendar regression, and ES/EN parity passed.
+Implementation commit: ab432fdc1e9d3ffb1ff868fd43a6fe70c5999a5e.
+Type-safety follow-ups: f57a777f26ab919e95098dfc13ee11b44f423b02 and 56023423f4545914f43856ea44398e8d90301820.
+Closure document: docs/106-phase-11.5.2-and-11.5.2.1-acceptance-closure.md.
 ```
 
-Remaining acceptance:
+## In Progress — Phase 11.5.3
+
+### Phase 11.5.3 — Approval, Requested-Date Hold, and Adjustment Payment
+
+Status: **In progress**
 
 ```text
-Run the reduced calendar matrix in docs/105, including own stay/buffers, unrelated blockers, date-change selection, fixed-start extension, month navigation, load failure, unchanged backend quote/isolation, public calendar regression, and ES/EN parity.
+Implement protected idempotent approval/rejection for pending date mutations.
+Positive differences must create one independent 60-minute ACTIVE LifecycleRequestHold and one exact PENDING Payment with purpose LIFECYCLE_ADJUSTMENT.
+Zero and negative differences may become APPROVED but must not apply dates in 11.5.3; completion remains assigned to 11.5.4/11.5.5.
+The adjustment-payment handoff must be opaque, purpose-bound, request-bound, payment-bound, and expire no later than the lifecycle hold.
+Hold expiry must not update Reservation.expiresAt or alter the public 15-minute pending-reservation hold.
+Reservation dates, pricing, status, confirmedAt, arrival notifications, refunds, and lifecycle emails remain unchanged in 11.5.3.
 ```
 
 ## Continuity Notes for New Conversations
@@ -780,6 +776,7 @@ docs/102-phase-11.4-refund-acceptance-and-documentation-closure.md
 docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md
 docs/104-phase-11.5.2-admin-request-creation-quote-and-availability-validation.md
 docs/105-phase-11.5.2.1-admin-availability-datepicker-and-own-reservation-exclusion.md
+docs/106-phase-11.5.2-and-11.5.2.1-acceptance-closure.md
 lib/admin/reservation-cancellation.ts
 lib/admin/reservation-date-mutation.ts
 types/admin-reservation-date-mutation.ts

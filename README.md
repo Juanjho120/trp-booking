@@ -321,9 +321,9 @@ Planned subphases:
 11.4.2 Extraordinary refund authorization and consult evidence lock — Completed
 11.5 Authorized date changes and stay extensions — In progress
 11.5.1 Strategy, pricing, independent holds, and financial-adjustment contract — Completed
-11.5.2 Admin request creation, quote, and availability validation — In progress
-11.5.2.1 Admin availability datepicker and own-reservation exclusion UX — In progress
-11.5.3 Approval, requested-date hold, and adjustment payment — Not started
+11.5.2 Admin request creation, quote, and availability validation — Completed
+11.5.2.1 Admin availability datepicker and own-reservation exclusion UX — Completed
+11.5.3 Approval, requested-date hold, and adjustment payment — In progress
 11.5.4 Final date-change and stay-extension completion — Not started
 11.5.5 Negative-difference and failed-completion refund integration — Not started
 11.5.6 Acceptance tests and documentation — Not started
@@ -412,22 +412,27 @@ docs/102-phase-11.4-refund-acceptance-and-documentation-closure.md
 docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md
 docs/104-phase-11.5.2-admin-request-creation-quote-and-availability-validation.md
 docs/105-phase-11.5.2.1-admin-availability-datepicker-and-own-reservation-exclusion.md
+docs/106-phase-11.5.2-and-11.5.2.1-acceptance-closure.md
 ```
 
 ## Development Status
 
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
-Current subphase: 11.5.2.1 Admin availability datepicker and own-reservation exclusion UX — In progress
-Current focus: validate the protected admin range calendar, own-reservation stay/buffer exclusion, unrelated blocker visibility, fixed-check-in extension behavior, month loading, bilingual copy, and unchanged financial/lifecycle state
-Last completed subphase: 11.5.1 Strategy, pricing, independent holds, and financial-adjustment contract
+Current subphase: 11.5.3 Approval, requested-date hold, and adjustment payment — In progress
+Current focus: implement idempotent admin approval/rejection, the independent 60-minute LifecycleRequestHold, exact LIFECYCLE_ADJUSTMENT Payment creation, secure purpose-bound payment handoff, hold expiration, and unchanged Reservation dates/pricing
+Last completed subphase: 11.5.2.1 Admin availability datepicker and own-reservation exclusion UX
 11.5.1 strategy base commit: 3d1487f31ca74fc5a41573b4ab206ce9ad838bb5
 11.5.1 strategy document: docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md
 11.5.1 accepted commit: e0b77658c74ee2d7a30c96f529d5f7f4451ab045
 11.5.2 implementation document: docs/104-phase-11.5.2-admin-request-creation-quote-and-availability-validation.md
 11.5.2 implementation commit: 1a57fbbfb71533c16c8b58bceb8546a70a88599f
-11.5.2 backend acceptance: Passed on 2026-07-30; calendar UX correction tracked in 11.5.2.1
+11.5.2 acceptance: Completed on 2026-07-30 after backend and reduced calendar matrices passed
 11.5.2.1 correction document: docs/105-phase-11.5.2.1-admin-availability-datepicker-and-own-reservation-exclusion.md
+11.5.2.1 implementation commit: ab432fdc1e9d3ffb1ff868fd43a6fe70c5999a5e
+11.5.2.1 type-safety follow-ups: f57a777f26ab919e95098dfc13ee11b44f423b02, 56023423f4545914f43856ea44398e8d90301820
+11.5.2/11.5.2.1 accepted head: 56023423f4545914f43856ea44398e8d90301820
+11.5.2/11.5.2.1 closure document: docs/106-phase-11.5.2-and-11.5.2.1-acceptance-closure.md
 11.4 accepted implementation commit: 06e857df9d36e77c26557bb7b2057661979809dc
 11.4 implementation document: docs/99-phase-11.4-refund-authorization-and-tilopay-reconciliation.md
 11.4.1 correction document: docs/100-phase-11.4.1-observed-tilopay-contract-and-evidence-based-reconciliation.md
