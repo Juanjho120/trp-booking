@@ -5,7 +5,7 @@
 ```text
 Phase: Phase 11 — Cancellation, Refund, and Change Request Rules
 Subphase: 11.4 Refund authorization and Tilopay reconciliation
-Status: In progress — cases 1–17 observed; case 18 not required; corrected 11.4.1 UI acceptance pending
+Status: Completed and accepted — cases 1–17 observed; case 18 not required; final acceptance suite passed on 2026-07-30
 Implementation dates: 2026-07-23 through 2026-07-24
 Base commit: c609ea0e5b4654da86436dba79477455681d7b14
 Previous accepted subphase: 11.3 Admin cancellation decision and availability release
@@ -561,7 +561,7 @@ Phase 11.6 notification requirements are documented but not implemented here. Ca
 - FAILED leaves Payment unchanged.
 - Repeated accepted outcome is idempotent.
 - Opposite final outcome is rejected.
-- Reservation always remains CANCELLED.
+- Standard cancellation refunds preserve CANCELLED; extraordinary refunds preserve the existing CONFIRMED or CANCELLED Reservation status.
 ```
 
 ### Security and scope
@@ -591,20 +591,25 @@ git status --short
 
 Phase 11.4.2 requires applying the included Prisma migration before final validation.
 
-## Completion Boundary
+## Acceptance Closure
 
-11.4 must remain **In progress** until:
+Phase 11.4 is **Completed and accepted**.
 
 ```text
-- Cases 1–16 of the real sandbox matrix have been executed with controlled orders.
-- Sanitized success/error response contracts have been recorded.
-- Duplicate and timeout behavior is understood.
-- Type 2 versus type 3 behavior is explicitly accepted.
-- Case 17 `/consult` candidate evidence is captured and compared with the portal.
-- Case 18 is explicitly documented as not required because `/consult` returned all required movements.
-- The corrected evidence-based reconciliation is validated through the admin UI.
-- The reconciliation evidence used for final approval is documented.
-- Production API execution rules are separately accepted.
+- Cases 1–17 were executed and documented with sanitized sandbox evidence.
+- Case 18 is explicitly not required because `/consult` returned all required movements.
+- Standard partial accumulation and cumulative policy/payment ceilings passed.
+- Accepted and inconclusive consult handling passed; known execution rejections became FAILED without changing Payment.
+- Portal fallback FAILED and APPROVED reconciliation passed.
+- Conclusive consult fields were locked in UI and backend.
+- Outcome, source, and provider-reference tampering were rejected with ADMIN_REFUND_RECONCILIATION_CONFLICT.
+- Authorization, provider execution, and reconciliation replay tests were idempotent.
+- Concurrent authorizations remained bounded by Payment.amount.
+- Extraordinary eligibility, non-initial-payment rejection, and FAILED balance release passed.
+- Payment, Refund, Reservation, and AdminAuditLog transitions were verified.
+- Production API execution remains disabled and belongs to Phase 12 operational acceptance.
 ```
 
-Until then, the implementation deliberately favors safe observation and explicit reconciliation over guessed automation.
+Accepted implementation commit: `06e857df9d36e77c26557bb7b2057661979809dc`.
+
+Closure record: `docs/102-phase-11.4-refund-acceptance-and-documentation-closure.md`.

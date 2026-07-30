@@ -316,9 +316,9 @@ Planned subphases:
 11.1 Lifecycle strategy, policy, and provider boundary — Completed
 11.2 Lifecycle request persistence and audit foundation — Completed
 11.3 Admin cancellation decision and availability release — Completed
-11.4 Refund authorization and Tilopay reconciliation — In progress
-11.4.1 Observed Tilopay contract and evidence-based reconciliation — In progress
-11.4.2 Extraordinary refund authorization and consult evidence lock — In progress
+11.4 Refund authorization and Tilopay reconciliation — Completed
+11.4.1 Observed Tilopay contract and evidence-based reconciliation — Completed
+11.4.2 Extraordinary refund authorization and consult evidence lock — Completed
 11.5 Authorized date changes and stay extensions — Not started
 11.6 Lifecycle notifications and admin operational history — Not started
 11.7 Validation and documentation closure — Not started
@@ -396,20 +396,21 @@ docs/98-phase-11.3-admin-cancellation-decision-and-availability-release.md
 docs/99-phase-11.4-refund-authorization-and-tilopay-reconciliation.md
 docs/100-phase-11.4.1-observed-tilopay-contract-and-evidence-based-reconciliation.md
 docs/101-phase-11.4.2-extraordinary-refund-authorization-and-consult-evidence-lock.md
+docs/102-phase-11.4-refund-acceptance-and-documentation-closure.md
 ```
 
 ## Development Status
 
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
-Current subphase: 11.4.2 Extraordinary refund authorization and consult evidence lock — In progress
-Current focus: validate extraordinary refunds on CONFIRMED/CANCELLED reservations, consult-derived field locking, cumulative payment protection, and audit/state transitions
-Last completed subphase: 11.3 Admin cancellation decision and availability release
-11.3 accepted commit: c609ea0e5b4654da86436dba79477455681d7b14
-11.3 implementation document: docs/98-phase-11.3-admin-cancellation-decision-and-availability-release.md
+Current subphase: 11.5 Authorized date changes and stay extensions — Not started
+Current focus: define the 11.5 date-change, extension, availability, pricing, hold, and adjustment-payment contract before implementation
+Last completed subphase: 11.4.2 Extraordinary refund authorization and consult evidence lock
+11.4 accepted implementation commit: 06e857df9d36e77c26557bb7b2057661979809dc
 11.4 implementation document: docs/99-phase-11.4-refund-authorization-and-tilopay-reconciliation.md
 11.4.1 correction document: docs/100-phase-11.4.1-observed-tilopay-contract-and-evidence-based-reconciliation.md
 11.4.2 implementation document: docs/101-phase-11.4.2-extraordinary-refund-authorization-and-consult-evidence-lock.md
+11.4 closure document: docs/102-phase-11.4-refund-acceptance-and-documentation-closure.md
 Last completed phase: Phase 10 — Email Notifications
 Phase 10 closure document: docs/94-phase-10-validation-and-documentation-closure.md
 ```
