@@ -4,6 +4,7 @@ import { getTilopayEnv } from "@/lib/env/server";
 import type { AdminReservationDetailData } from "@/types/admin-reservation-detail";
 
 import { getAdminCancellationRequestsForReservation } from "./reservation-cancellation";
+import { getAdminDateMutationRequestsForReservation } from "./reservation-date-mutation";
 import { getAdminRefundsForReservation } from "./refunds";
 
 const PROVIDER_MESSAGE_ID_MAX_LENGTH = 180;
@@ -129,10 +130,12 @@ export async function getAdminReservationDetail(
     return null;
   }
 
-  const [cancellationRequests, refunds] = await Promise.all([
-    getAdminCancellationRequestsForReservation(reservation.id),
-    getAdminRefundsForReservation(reservation.id),
-  ]);
+  const [cancellationRequests, dateMutationRequests, refunds] =
+    await Promise.all([
+      getAdminCancellationRequestsForReservation(reservation.id),
+      getAdminDateMutationRequestsForReservation(reservation.id),
+      getAdminRefundsForReservation(reservation.id),
+    ]);
   const refundApiExecutionEnabled =
     getTilopayEnv().TILOPAY_ENVIRONMENT === "sandbox";
 
@@ -214,6 +217,7 @@ export async function getAdminReservationDetail(
       updatedAt: notification.updatedAt.toISOString(),
     })),
     cancellationRequests,
+    dateMutationRequests,
     refunds,
     refundApiExecutionEnabled,
   };

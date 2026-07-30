@@ -1,4 +1,5 @@
 import type { AdminPropertyOption } from "@/types/admin";
+import type { AdminDateMutationRequestSummary } from "@/types/admin-reservation-date-mutation";
 import type { AdminCancellationRequestSummary } from "@/types/admin-reservation-cancellation";
 import type { AdminRefundSummary } from "@/types/admin-refund";
 import type { DateOnlyString } from "@/types/availability";
@@ -73,6 +74,7 @@ export type AdminReservationDetailData = Readonly<{
   payments: readonly AdminReservationDetailPayment[];
   emailNotifications: readonly AdminReservationDetailEmailNotification[];
   cancellationRequests: readonly AdminCancellationRequestSummary[];
+  dateMutationRequests: readonly AdminDateMutationRequestSummary[];
   refunds: readonly AdminRefundSummary[];
   refundApiExecutionEnabled: boolean;
 }>;

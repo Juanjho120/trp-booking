@@ -633,6 +633,145 @@ export const enMessages = {
         },
         empty: "This reservation does not have cancellation requests yet.",
       },
+      dateMutation: {
+        badge: "Authorized changes",
+        title: "Date changes and stay extensions",
+        description:
+          "Record requests received through authorized channels, calculate the new server-side quote, and validate availability without changing the reservation yet.",
+        labels: {
+          unavailable: "Unavailable",
+          requestType: "Request type",
+          requestedCheckInDate: "New check-in",
+          requestedCheckOutDate: "New check-out",
+          channel: "Request channel",
+          requesterName: "Requester name",
+          requesterEmail: "Optional contact email",
+          requesterPhone: "Optional contact phone",
+          requesterContact: "Requester contact",
+          requestReason: "Reported reason",
+          originalStay: "Confirmed stay",
+          requestedStay: "Requested stay",
+          checkInDate: "Check-in",
+          checkOutDate: "Check-out",
+          total: "Total",
+          financialDifference: "Financial difference",
+          pricingMode: "Pricing rule",
+          availability: "Availability",
+          reviewExpiresAt: "Review expires",
+          createdBy: "Recorded by",
+        },
+        requestTypes: {
+          DATE_CHANGE: "Full date change",
+          STAY_EXTENSION: "Stay extension",
+        },
+        channels: {
+          EMAIL: "Email",
+          PHONE: "Phone",
+          WHATSAPP: "WhatsApp",
+          OTHER: "Other authorized channel",
+        },
+        statuses: {
+          PENDING_REVIEW: "Pending review",
+          APPROVED: "Approved",
+          REJECTED: "Rejected",
+          AWAITING_ADJUSTMENT_PAYMENT: "Awaiting adjustment payment",
+          COMPLETED: "Completed",
+          WITHDRAWN: "Withdrawn",
+          EXPIRED: "Expired",
+          FAILED: "Failed",
+        },
+        pricingModes: {
+          FULL_STAY_CURRENT_PRICE: "Entire stay at the current price",
+          ADDED_NIGHTS_CURRENT_PRICE:
+            "Original total plus added nights at the current price",
+        },
+        availability: {
+          available: "Available when recorded",
+          validated:
+            "The stay, its buffers, and the accommodation dependencies were available when the request was recorded.",
+        },
+        placeholders: {
+          requestReason:
+            "Describe the requested dates and the context an administrator needs to review the request.",
+        },
+        help: {
+          dateFormat: "Use YYYY-MM-DD format.",
+          extensionCheckIn:
+            "A stay extension must keep the confirmed check-in date.",
+        },
+        actions: {
+          createRequest: "Record change or extension",
+          creating: "Recording...",
+          confirmCreate: "Calculate and record",
+          close: "Close",
+        },
+        createDialog: {
+          title: "Record a date change or stay extension",
+          description:
+            "The server will validate eligibility, calculate pricing, and check availability while excluding only this reservation's own blockers.",
+          quoteNote:
+            "A full date change uses the current price for the entire stay. An extension preserves the confirmed total and adds only the extra nights at the current price.",
+          pendingNote:
+            "The request will remain pending review for 24 hours. This phase does not create the 60-minute hold, charge a difference, or change reservation dates.",
+        },
+        notes: {
+          serverQuote:
+            "Prices, nights, and differences are calculated only on the server. The browser does not submit totals or rates.",
+          availability:
+            "Validation excludes only this reservation's stay and derived buffers; every other reservation, Airbnb event, maintenance block, manual block, dependency, and hold remains blocking.",
+          noMutation:
+            "Recording a request creates no payment, refund, or hold and does not change the reservation dates, price, or Confirmed status.",
+        },
+        states: {
+          reservationNotEligible:
+            "Only a confirmed reservation can record a date change or stay extension.",
+          activeCancellation:
+            "A cancellation request is active and must be resolved before recording a date change or extension.",
+          activeRequest:
+            "This reservation already has an active date change or stay extension.",
+        },
+        success: {
+          requestCreated:
+            "The request was recorded with its quote and availability validation.",
+        },
+        errors: {
+          ADMIN_UNAUTHORIZED: "Your session is not authorized for admin actions.",
+          INVALID_ADMIN_DATE_MUTATION_REQUEST:
+            "Review the request type, dates, channel, contact details, and reason.",
+          ADMIN_DATE_MUTATION_RESERVATION_NOT_FOUND:
+            "We could not find the selected reservation.",
+          ADMIN_DATE_MUTATION_RESERVATION_NOT_CONFIRMED:
+            "The reservation is no longer confirmed or eligible for a date change.",
+          ADMIN_DATE_MUTATION_PROPERTY_NOT_ELIGIBLE:
+            "The accommodation is no longer active or its configuration cannot price this change.",
+          ADMIN_DATE_MUTATION_SOURCE_PAYMENT_NOT_FOUND:
+            "We could not find a validated initial payment for this reservation.",
+          ADMIN_DATE_MUTATION_DATES_UNCHANGED:
+            "The requested dates are the same as the confirmed dates.",
+          ADMIN_DATE_MUTATION_DATE_CHANGE_AFTER_CHECK_IN:
+            "A full date change must be recorded before both the original and requested check-in times.",
+          ADMIN_DATE_MUTATION_EXTENSION_INVALID:
+            "An extension must keep the current check-in and use a check-out after the confirmed one.",
+          ADMIN_DATE_MUTATION_STAY_ENDED:
+            "The stay has ended and can no longer be extended from this reservation.",
+          ADMIN_DATE_MUTATION_DATE_HORIZON_EXCEEDED:
+            "The requested check-out exceeds the 365-day limit.",
+          ADMIN_DATE_MUTATION_DATES_UNAVAILABLE:
+            "The requested dates, their buffers, or an accommodation dependency are no longer available.",
+          ADMIN_DATE_MUTATION_REQUEST_ALREADY_ACTIVE:
+            "This reservation already has an active date change or stay extension.",
+          ADMIN_DATE_MUTATION_CANCELLATION_ACTIVE:
+            "An active cancellation request must be resolved first.",
+          ADMIN_DATE_MUTATION_STALE:
+            "The reservation changed after you opened this page. Reload before continuing.",
+          ADMIN_DATE_MUTATION_IDEMPOTENCY_CONFLICT:
+            "This operation identifier was already used with different data.",
+          ADMIN_DATE_MUTATION_UNEXPECTED_ERROR:
+            "We could not record the date change. Please try again.",
+        },
+        empty:
+          "This reservation does not have any date-change or stay-extension requests yet.",
+      },
       refunds: {
         badge: "Refunds",
         title: "Refund authorization and reconciliation",

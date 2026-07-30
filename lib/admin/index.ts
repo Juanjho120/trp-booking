@@ -74,6 +74,12 @@ export {
   toAdminCancellationRequestSummary,
 } from "./reservation-cancellation";
 export {
+  AdminReservationDateMutationError,
+  createAdminDateMutationRequest,
+  getAdminDateMutationRequestsForReservation,
+  toAdminDateMutationRequestSummary,
+} from "./reservation-date-mutation";
+export {
   AdminRefundError,
   consultAdminTilopayRefund,
   createAdminRefundAuthorization,

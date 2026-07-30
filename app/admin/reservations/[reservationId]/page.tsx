@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import {
   AdminReservationCancellationSection,
+  AdminReservationDateMutationSection,
   AdminReservationDetailPage,
   AdminReservationRefundSection,
 } from "@/features/admin";
@@ -39,6 +40,7 @@ export default async function AdminReservationDetailRoute({
     <>
       <AdminReservationDetailPage reservation={reservation} />
       <AdminReservationCancellationSection reservation={reservation} />
+      <AdminReservationDateMutationSection reservation={reservation} />
       <AdminReservationRefundSection reservation={reservation} />
     </>
   );

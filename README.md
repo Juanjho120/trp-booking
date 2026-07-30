@@ -321,7 +321,7 @@ Planned subphases:
 11.4.2 Extraordinary refund authorization and consult evidence lock — Completed
 11.5 Authorized date changes and stay extensions — In progress
 11.5.1 Strategy, pricing, independent holds, and financial-adjustment contract — Completed
-11.5.2 Admin request creation, quote, and availability validation — Not started
+11.5.2 Admin request creation, quote, and availability validation — In progress
 11.5.3 Approval, requested-date hold, and adjustment payment — Not started
 11.5.4 Final date-change and stay-extension completion — Not started
 11.5.5 Negative-difference and failed-completion refund integration — Not started
@@ -409,17 +409,20 @@ docs/100-phase-11.4.1-observed-tilopay-contract-and-evidence-based-reconciliatio
 docs/101-phase-11.4.2-extraordinary-refund-authorization-and-consult-evidence-lock.md
 docs/102-phase-11.4-refund-acceptance-and-documentation-closure.md
 docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md
+docs/104-phase-11.5.2-admin-request-creation-quote-and-availability-validation.md
 ```
 
 ## Development Status
 
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
-Current subphase: 11.5.2 Admin request creation, quote, and availability validation — Not started
-Current focus: implement protected request creation, immutable snapshots, server-side quote calculation, current-reservation exclusion, and requested-range availability validation according to the accepted 11.5.1 contract
+Current subphase: 11.5.2 Admin request creation, quote, and availability validation — In progress
+Current focus: validate protected DATE_CHANGE/STAY_EXTENSION request creation, immutable snapshots, server-side pricing, current-reservation-only availability exclusion, idempotency, concurrency, audit history, and unchanged Reservation/Payment/Refund state
 Last completed subphase: 11.5.1 Strategy, pricing, independent holds, and financial-adjustment contract
 11.5.1 strategy base commit: 3d1487f31ca74fc5a41573b4ab206ce9ad838bb5
 11.5.1 strategy document: docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md
+11.5.1 accepted commit: e0b77658c74ee2d7a30c96f529d5f7f4451ab045
+11.5.2 implementation document: docs/104-phase-11.5.2-admin-request-creation-quote-and-availability-validation.md
 11.4 accepted implementation commit: 06e857df9d36e77c26557bb7b2057661979809dc
 11.4 implementation document: docs/99-phase-11.4-refund-authorization-and-tilopay-reconciliation.md
 11.4.1 correction document: docs/100-phase-11.4.1-observed-tilopay-contract-and-evidence-based-reconciliation.md

@@ -633,6 +633,146 @@ export const esMessages = {
         },
         empty: "Esta reserva todavía no tiene solicitudes de cancelación.",
       },
+      dateMutation: {
+        badge: "Cambios autorizados",
+        title: "Cambios de fechas y extensiones",
+        description:
+          "Registra solicitudes recibidas por canales autorizados, calcula la nueva cotización en el servidor y valida disponibilidad sin modificar todavía la reservación.",
+        labels: {
+          unavailable: "No disponible",
+          requestType: "Tipo de solicitud",
+          requestedCheckInDate: "Nuevo check-in",
+          requestedCheckOutDate: "Nuevo check-out",
+          channel: "Canal de solicitud",
+          requesterName: "Nombre de quien solicita",
+          requesterEmail: "Correo de contacto opcional",
+          requesterPhone: "Teléfono de contacto opcional",
+          requesterContact: "Contacto del solicitante",
+          requestReason: "Motivo informado",
+          originalStay: "Estadía confirmada",
+          requestedStay: "Estadía solicitada",
+          checkInDate: "Check-in",
+          checkOutDate: "Check-out",
+          total: "Total",
+          financialDifference: "Diferencia financiera",
+          pricingMode: "Regla de precio",
+          availability: "Disponibilidad",
+          reviewExpiresAt: "Revisión vence",
+          createdBy: "Registrada por",
+        },
+        requestTypes: {
+          DATE_CHANGE: "Cambio completo de fechas",
+          STAY_EXTENSION: "Extensión de estadía",
+        },
+        channels: {
+          EMAIL: "Correo electrónico",
+          PHONE: "Teléfono",
+          WHATSAPP: "WhatsApp",
+          OTHER: "Otro canal autorizado",
+        },
+        statuses: {
+          PENDING_REVIEW: "Pendiente de revisión",
+          APPROVED: "Aprobada",
+          REJECTED: "Rechazada",
+          AWAITING_ADJUSTMENT_PAYMENT: "Esperando pago de diferencia",
+          COMPLETED: "Completada",
+          WITHDRAWN: "Retirada",
+          EXPIRED: "Expirada",
+          FAILED: "Fallida",
+        },
+        pricingModes: {
+          FULL_STAY_CURRENT_PRICE:
+            "Toda la estadía con el precio vigente",
+          ADDED_NIGHTS_CURRENT_PRICE:
+            "Total original más noches agregadas al precio vigente",
+        },
+        availability: {
+          available: "Disponible al registrar",
+          validated:
+            "La estadía, sus buffers y las dependencias del alojamiento estaban disponibles al registrar la solicitud.",
+        },
+        placeholders: {
+          requestReason:
+            "Describe las fechas solicitadas y el contexto necesario para que un administrador revise la solicitud.",
+        },
+        help: {
+          dateFormat: "Usa el formato YYYY-MM-DD.",
+          extensionCheckIn:
+            "Una extensión conserva obligatoriamente el check-in confirmado.",
+        },
+        actions: {
+          createRequest: "Registrar cambio o extensión",
+          creating: "Registrando...",
+          confirmCreate: "Calcular y registrar",
+          close: "Cerrar",
+        },
+        createDialog: {
+          title: "Registrar cambio de fechas o extensión",
+          description:
+            "El servidor validará elegibilidad, calculará el precio y comprobará disponibilidad excluyendo únicamente los bloqueos de esta misma reservación.",
+          quoteNote:
+            "Un cambio completo usa el precio vigente para toda la estadía. Una extensión conserva el total confirmado y suma únicamente las noches agregadas al precio vigente.",
+          pendingNote:
+            "La solicitud quedará pendiente de revisión durante 24 horas. Esta fase no crea el hold de 60 minutos, no cobra diferencias y no cambia las fechas.",
+        },
+        notes: {
+          serverQuote:
+            "Los precios, noches y diferencias se calculan exclusivamente en el servidor. El navegador no envía totales ni tarifas.",
+          availability:
+            "La validación excluye solamente la estadía y buffers derivados de esta reservación; las demás reservas, Airbnb, mantenimiento, bloqueos manuales, dependencias y holds continúan bloqueando.",
+          noMutation:
+            "Registrar la solicitud no crea pagos, reembolsos ni holds y no modifica las fechas, el precio ni el estado Confirmado de la reservación.",
+        },
+        states: {
+          reservationNotEligible:
+            "Solo una reservación confirmada puede registrar un cambio de fechas o una extensión.",
+          activeCancellation:
+            "Existe una cancelación pendiente. Debe resolverse antes de registrar un cambio de fechas o extensión.",
+          activeRequest:
+            "Ya existe un cambio de fechas o extensión activo para esta reservación.",
+        },
+        success: {
+          requestCreated:
+            "La solicitud quedó registrada con su cotización y validación de disponibilidad.",
+        },
+        errors: {
+          ADMIN_UNAUTHORIZED: "Tu sesión no tiene autorización administrativa.",
+          INVALID_ADMIN_DATE_MUTATION_REQUEST:
+            "Revisa el tipo de solicitud, las fechas, el canal, los datos de contacto y el motivo.",
+          ADMIN_DATE_MUTATION_RESERVATION_NOT_FOUND:
+            "No encontramos la reservación seleccionada.",
+          ADMIN_DATE_MUTATION_RESERVATION_NOT_CONFIRMED:
+            "La reservación ya no está confirmada o dejó de ser elegible para cambiar fechas.",
+          ADMIN_DATE_MUTATION_PROPERTY_NOT_ELIGIBLE:
+            "El alojamiento ya no está activo o su configuración no permite calcular este cambio.",
+          ADMIN_DATE_MUTATION_SOURCE_PAYMENT_NOT_FOUND:
+            "No encontramos un pago inicial validado asociado a esta reservación.",
+          ADMIN_DATE_MUTATION_DATES_UNCHANGED:
+            "Las fechas solicitadas son iguales a las fechas confirmadas.",
+          ADMIN_DATE_MUTATION_DATE_CHANGE_AFTER_CHECK_IN:
+            "Un cambio completo debe registrarse antes del check-in original y antes del check-in solicitado.",
+          ADMIN_DATE_MUTATION_EXTENSION_INVALID:
+            "La extensión debe conservar el check-in actual y elegir un check-out posterior al confirmado.",
+          ADMIN_DATE_MUTATION_STAY_ENDED:
+            "La estadía ya finalizó y no puede extenderse desde esta reservación.",
+          ADMIN_DATE_MUTATION_DATE_HORIZON_EXCEEDED:
+            "El check-out solicitado supera el límite de 365 días.",
+          ADMIN_DATE_MUTATION_DATES_UNAVAILABLE:
+            "Las fechas solicitadas, sus buffers o una dependencia del alojamiento ya no están disponibles.",
+          ADMIN_DATE_MUTATION_REQUEST_ALREADY_ACTIVE:
+            "Ya existe un cambio de fechas o extensión activo para esta reservación.",
+          ADMIN_DATE_MUTATION_CANCELLATION_ACTIVE:
+            "Existe una solicitud de cancelación activa que debe resolverse primero.",
+          ADMIN_DATE_MUTATION_STALE:
+            "La reservación cambió después de que abriste esta página. Recarga antes de continuar.",
+          ADMIN_DATE_MUTATION_IDEMPOTENCY_CONFLICT:
+            "El identificador de esta operación ya fue utilizado con datos diferentes.",
+          ADMIN_DATE_MUTATION_UNEXPECTED_ERROR:
+            "No pudimos registrar el cambio de fechas. Inténtalo nuevamente.",
+        },
+        empty:
+          "Esta reservación todavía no tiene solicitudes de cambio de fechas o extensión.",
+      },
       refunds: {
         badge: "Reembolsos",
         title: "Autorización y reconciliación de reembolsos",

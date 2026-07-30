@@ -6,12 +6,14 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
-Current subphase: 11.5.2 Admin request creation, quote, and availability validation — Not started
-Current focus: implement protected request creation, immutable snapshots, server-side quote calculation, current-reservation exclusion, and requested-range availability validation according to the accepted 11.5.1 contract
+Current subphase: 11.5.2 Admin request creation, quote, and availability validation — In progress
+Current focus: validate protected DATE_CHANGE/STAY_EXTENSION request creation, immutable snapshots, server-side pricing, current-reservation-only availability exclusion, idempotency, concurrency, audit history, and unchanged Reservation/Payment/Refund state
 Last updated: 2026-07-30
 Last completed subphase: 11.5.1 Strategy, pricing, independent holds, and financial-adjustment contract
 11.5.1 strategy base commit: 3d1487f31ca74fc5a41573b4ab206ce9ad838bb5
 11.5.1 strategy document: docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md
+11.5.1 accepted commit: e0b77658c74ee2d7a30c96f529d5f7f4451ab045
+11.5.2 implementation document: docs/104-phase-11.5.2-admin-request-creation-quote-and-availability-validation.md
 11.4 accepted implementation commit: 06e857df9d36e77c26557bb7b2057661979809dc
 11.4 implementation document: docs/99-phase-11.4-refund-authorization-and-tilopay-reconciliation.md
 11.4.1 correction document: docs/100-phase-11.4.1-observed-tilopay-contract-and-evidence-based-reconciliation.md
@@ -686,6 +688,33 @@ Strategy base commit: 3d1487f31ca74fc5a41573b4ab206ce9ad838bb5.
 Strategy document: docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md.
 ```
 
+
+## In Progress — Phase 11.5.2
+
+### Phase 11.5.2 — Admin Request Creation, Quote, and Availability Validation
+
+Status: **In progress — implementation prepared; local/test acceptance pending**
+
+```text
+Protected POST creation exists for DATE_CHANGE and STAY_EXTENSION requests.
+The server validates CONFIRMED Reservation eligibility, supported ACTIVE property state, validated initial Payment, date rules, horizon, active cancellation/date-mutation conflicts, and expected Reservation.updatedAt.
+Original Reservation/guest/date/pricing/currency snapshots are copied into typed ReservationLifecycleRequest columns.
+DATE_CHANGE reprices the entire requested stay at the current nightly price.
+STAY_EXTENSION preserves original pricing and adds only newly requested nights at the current nightly price.
+Availability excludes only the current Reservation and retains every unrelated reservation, Airbnb/calendar block, maintenance/manual block, preparation buffer, composed dependency, and active lifecycle hold.
+Successful requests remain PENDING_REVIEW; no Reservation, Payment, Refund, LifecycleRequestHold, provider, or email state changes.
+Same UUID/same payload is idempotent; changed replay is rejected; serializable fencing protects concurrent creation.
+The protected admin UI displays original/requested stay, quote, difference, pricing mode, availability evidence, request state, expiry, actor, channel, and reason in ES/EN.
+Implementation base commit: e0b77658c74ee2d7a30c96f529d5f7f4451ab045.
+Implementation document: docs/104-phase-11.5.2-admin-request-creation-quote-and-availability-validation.md.
+```
+
+Remaining acceptance:
+
+```text
+Run the documented local/test matrix for pricing, own-reservation overlap, unrelated blockers, date boundaries, 365-day horizon, active-request conflicts, stale state, idempotency, concurrency, expiry, audit metadata, and unchanged Reservation/Payment/Refund/Hold state.
+```
+
 ## Continuity Notes for New Conversations
 
 Minimum context files:
@@ -718,7 +747,10 @@ docs/100-phase-11.4.1-observed-tilopay-contract-and-evidence-based-reconciliatio
 docs/101-phase-11.4.2-extraordinary-refund-authorization-and-consult-evidence-lock.md
 docs/102-phase-11.4-refund-acceptance-and-documentation-closure.md
 docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md
+docs/104-phase-11.5.2-admin-request-creation-quote-and-availability-validation.md
 lib/admin/reservation-cancellation.ts
+lib/admin/reservation-date-mutation.ts
+types/admin-reservation-date-mutation.ts
 lib/reservations/cancellation-policy.ts
 types/admin-reservation-cancellation.ts
 lib/admin/refunds.ts
