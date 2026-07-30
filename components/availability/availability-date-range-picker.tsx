@@ -191,7 +191,7 @@ export function AvailabilityDateRangePicker({
             excludeDisabled
             mode="range"
             modifiers={{
-              blocked: blockedDates,
+              blocked: [...blockedDates],
               preview_range: (date) =>
                 previewRange
                   ? isDateInRange(date, previewRange.from, previewRange.to)
