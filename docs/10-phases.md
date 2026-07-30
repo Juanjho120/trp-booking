@@ -15,13 +15,16 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
-Current subphase: 11.5.2 Admin request creation, quote, and availability validation — In progress
-Current focus: validate protected DATE_CHANGE/STAY_EXTENSION request creation, immutable snapshots, server-side pricing, current-reservation-only availability exclusion, idempotency, concurrency, audit history, and unchanged Reservation/Payment/Refund state
+Current subphase: 11.5.2.1 Admin availability datepicker and own-reservation exclusion UX — In progress
+Current focus: validate the protected admin range calendar, own-reservation stay/buffer exclusion, unrelated blocker visibility, fixed-check-in extension behavior, month loading, bilingual copy, and unchanged financial/lifecycle state
 Last completed subphase: 11.5.1 Strategy, pricing, independent holds, and financial-adjustment contract
 11.5.1 strategy base commit: 3d1487f31ca74fc5a41573b4ab206ce9ad838bb5
 11.5.1 strategy document: docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md
 11.5.1 accepted commit: e0b77658c74ee2d7a30c96f529d5f7f4451ab045
 11.5.2 implementation document: docs/104-phase-11.5.2-admin-request-creation-quote-and-availability-validation.md
+11.5.2 implementation commit: 1a57fbbfb71533c16c8b58bceb8546a70a88599f
+11.5.2 backend acceptance: Passed on 2026-07-30; calendar UX correction tracked in 11.5.2.1
+11.5.2.1 correction document: docs/105-phase-11.5.2.1-admin-availability-datepicker-and-own-reservation-exclusion.md
 11.4 accepted implementation commit: 06e857df9d36e77c26557bb7b2057661979809dc
 11.4 implementation document: docs/99-phase-11.4-refund-authorization-and-tilopay-reconciliation.md
 11.4.1 correction document: docs/100-phase-11.4.1-observed-tilopay-contract-and-evidence-based-reconciliation.md
@@ -492,6 +495,7 @@ Subphase status:
 11.5 Authorized date changes and stay extensions — In progress
 11.5.1 Strategy, pricing, independent holds, and financial-adjustment contract — Completed
 11.5.2 Admin request creation, quote, and availability validation — In progress
+11.5.2.1 Admin availability datepicker and own-reservation exclusion UX — In progress
 11.5.3 Approval, requested-date hold, and adjustment payment — Not started
 11.5.4 Final date-change and stay-extension completion — Not started
 11.5.5 Negative-difference and failed-completion refund integration — Not started
@@ -674,7 +678,25 @@ Phase 11 rules:
 - Request creation records bounded LIFECYCLE_DATE_CHANGE_REQUESTED or LIFECYCLE_STAY_EXTENSION_REQUESTED audit metadata.
 - No approval/rejection, 60-minute LifecycleRequestHold, LIFECYCLE_ADJUSTMENT Payment, Reservation mutation, Refund, provider call, lifecycle email, Prisma migration, dependency, environment variable, or PMS behavior is added.
 - The implementation record is docs/104-phase-11.5.2-admin-request-creation-quote-and-availability-validation.md.
-- Local/test acceptance remains required before 11.5.2 can be completed and 11.5.3 can begin.
+- The complete backend/local matrix passed on 2026-07-30, including pricing, availability, boundaries, conflicts, idempotency, concurrency, expiry, audit, and unchanged financial/lifecycle state.
+- A positive PENDING_REVIEW quote correctly creates no Payment; adjustment payment creation remains assigned to 11.5.3 after approval.
+- The configured Property.checkOutTime is authoritative for extension eligibility; end of the Guatemala calendar day remains the null/blank fallback.
+- Admin free-text dates require the 11.5.2.1 availability-datepicker correction before 11.5.2 can close.
+```
+
+
+### Phase 11.5.2.1 implementation prepared
+
+```text
+- The admin request dialog replaces free-text dates with a styled availability-aware range calendar.
+- A protected reservation-scoped endpoint loads blocked dates while deriving propertyId and excludeReservationId on the server.
+- The current Reservation stay and derived buffers are excluded only from the admin proposal calendar; unrelated blockers remain disabled.
+- DATE_CHANGE selects a complete replacement range; STAY_EXTENSION fixes the original check-in and accepts only a later check-out.
+- Month loading is accumulated during the open dialog and failures prevent request submission.
+- The public blocked-dates endpoint, public booking calendar, 15-minute pending hold, and server-side request validation remain unchanged.
+- No approval, 60-minute hold, adjustment Payment, Tilopay call, Reservation mutation, Refund, email, Prisma migration, dependency, environment variable, or PMS behavior is added.
+- The correction record is docs/105-phase-11.5.2.1-admin-availability-datepicker-and-own-reservation-exclusion.md.
+- Reduced local/test acceptance remains required before 11.5.2 and 11.5.2.1 can be completed and 11.5.3 can begin.
 ```
 
 

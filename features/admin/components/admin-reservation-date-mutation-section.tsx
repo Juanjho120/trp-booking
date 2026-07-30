@@ -10,8 +10,10 @@ import {
   Plus,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { type ReactNode, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
+import type { DateRange } from "react-day-picker";
 
+import { AvailabilityDateRangePicker } from "@/components/availability/availability-date-range-picker";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -44,6 +46,8 @@ import type {
   AdminDateMutationRequestType,
 } from "@/types/admin-reservation-date-mutation";
 import type { AdminReservationDetailData } from "@/types/admin-reservation-detail";
+import type { BlockedDatesApiResponse } from "@/types/availability-blocked-dates";
+import type { DateOnlyString } from "@/types/availability";
 import type { Locale } from "@/types/locale";
 
 import { AdminSnackbar } from "./admin-snackbar";
@@ -78,8 +82,82 @@ type CreateDateMutationApiResponse = Readonly<{
   }>;
 }>;
 
+type AdminBlockedDatesApiResponse = Readonly<{
+  blockedDates?: BlockedDatesApiResponse;
+  error?: Readonly<{
+    code?: AdminDateMutationErrorCode;
+  }>;
+}>;
+
 function getIntlLocale(locale: Locale): string {
   return locale === "en" ? "en-US" : "es-GT";
+}
+
+function dateOnlyStringToLocalDate(value: string): Date {
+  const [year, month, day] = value.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function toDateOnlyString(value: Date): DateOnlyString {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}` as DateOnlyString;
+}
+
+function toMonthStartDateOnlyString(value: Date): DateOnlyString {
+  return toDateOnlyString(new Date(value.getFullYear(), value.getMonth(), 1));
+}
+
+function toNextMonthStartDateOnlyString(value: Date): DateOnlyString {
+  return toDateOnlyString(
+    new Date(value.getFullYear(), value.getMonth() + 1, 1),
+  );
+}
+
+function toReservationDateRange(
+  reservation: AdminReservationDetailData,
+): DateRange {
+  return {
+    from: dateOnlyStringToLocalDate(reservation.checkInDate),
+    to: dateOnlyStringToLocalDate(reservation.checkOutDate),
+  };
+}
+
+function addCalendarDays(value: Date, days: number): Date {
+  return new Date(value.getFullYear(), value.getMonth(), value.getDate() + days);
+}
+
+function getGuatemalaBusinessDate(): Date {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    day: "2-digit",
+    month: "2-digit",
+    timeZone: "America/Guatemala",
+    year: "numeric",
+  }).formatToParts(new Date());
+  const values = Object.fromEntries(
+    parts
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, part.value]),
+  );
+
+  return dateOnlyStringToLocalDate(
+    `${values.year}-${values.month}-${values.day}`,
+  );
+}
+
+function buildAdminBlockedDatesUrl(input: Readonly<{
+  reservationId: string;
+  month: Date;
+}>): string {
+  const searchParams = new URLSearchParams({
+    startDate: toMonthStartDateOnlyString(input.month),
+    endDate: toNextMonthStartDateOnlyString(input.month),
+  });
+
+  return `/api/admin/reservations/${encodeURIComponent(
+    input.reservationId,
+  )}/date-mutation-blocked-dates?${searchParams.toString()}`;
 }
 
 function toInitialDraft(
@@ -111,6 +189,19 @@ export function AdminReservationDateMutationSection({
   const [draft, setDraft] = useState<DateMutationDraft>(() =>
     toInitialDraft(reservation),
   );
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(() =>
+    toReservationDateRange(reservation),
+  );
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [visibleMonth, setVisibleMonth] = useState(() =>
+    dateOnlyStringToLocalDate(reservation.checkInDate),
+  );
+  const [blockedDateValues, setBlockedDateValues] = useState<
+    readonly DateOnlyString[]
+  >([]);
+  const [loadedMonthKeys, setLoadedMonthKeys] = useState<readonly string[]>([]);
+  const [availabilityLoading, setAvailabilityLoading] = useState(false);
+  const [availabilityError, setAvailabilityError] = useState(false);
   const [busy, setBusy] = useState(false);
   const [errorFeedback, setErrorFeedback] = useState<string | null>(null);
   const [successFeedback, setSuccessFeedback] = useState<string | null>(null);
@@ -134,6 +225,94 @@ export function AdminReservationDateMutationSection({
     reservation.status === "CONFIRMED" &&
     activeDateMutation === null &&
     activeCancellation === null;
+  const today = useMemo(getGuatemalaBusinessDate, []);
+  const maximumDate = useMemo(() => addCalendarDays(today, 365), [today]);
+  const blockedDates = useMemo(
+    () => blockedDateValues.map(dateOnlyStringToLocalDate),
+    [blockedDateValues],
+  );
+  const originalCheckInDate = useMemo(
+    () => dateOnlyStringToLocalDate(reservation.checkInDate),
+    [reservation.checkInDate],
+  );
+  const originalCheckOutDate = useMemo(
+    () => dateOnlyStringToLocalDate(reservation.checkOutDate),
+    [reservation.checkOutDate],
+  );
+  const selectedDateRangeLabel =
+    dateRange?.from && dateRange.to
+      ? `${formatDate(toDateOnlyString(dateRange.from))} — ${formatDate(
+          toDateOnlyString(dateRange.to),
+        )}`
+      : copy.calendar.placeholder;
+
+  useEffect(() => {
+    if (!createOpen) {
+      return;
+    }
+
+    const monthKey = toMonthStartDateOnlyString(visibleMonth);
+
+    if (loadedMonthKeys.includes(monthKey)) {
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadBlockedDates(): Promise<void> {
+      setAvailabilityLoading(true);
+      setAvailabilityError(false);
+
+      try {
+        const response = await fetch(
+          buildAdminBlockedDatesUrl({
+            reservationId: reservation.id,
+            month: visibleMonth,
+          }),
+          {
+            headers: { accept: "application/json" },
+            method: "GET",
+          },
+        );
+        const payload =
+          (await response.json()) as AdminBlockedDatesApiResponse;
+
+        if (!response.ok || !payload.blockedDates) {
+          throw new Error(payload.error?.code ?? "blocked-dates-error");
+        }
+
+        if (!cancelled) {
+          setBlockedDateValues((current) =>
+            Array.from(
+              new Set([...current, ...payload.blockedDates!.blockedDates]),
+            ).sort(),
+          );
+          setLoadedMonthKeys((current) =>
+            current.includes(monthKey) ? current : [...current, monthKey],
+          );
+        }
+      } catch {
+        if (!cancelled) {
+          setAvailabilityError(true);
+        }
+      } finally {
+        if (!cancelled) {
+          setAvailabilityLoading(false);
+        }
+      }
+    }
+
+    void loadBlockedDates();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    createOpen,
+    loadedMonthKeys,
+    reservation.id,
+    visibleMonth,
+  ]);
 
   function clearFeedback(): void {
     setErrorFeedback(null);
@@ -201,29 +380,84 @@ export function AdminReservationDateMutationSection({
       : copy.errors.ADMIN_DATE_MUTATION_UNEXPECTED_ERROR;
   }
 
+  function resetDateSelection(
+    requestType: AdminDateMutationRequestType,
+  ): void {
+    const initialRange = toReservationDateRange(reservation);
+    setDateRange(initialRange);
+    setDatePickerOpen(false);
+    setVisibleMonth(
+      requestType === "STAY_EXTENSION"
+        ? originalCheckOutDate
+        : originalCheckInDate,
+    );
+    setAvailabilityError(false);
+    setDraft((current) => ({
+      ...current,
+      requestType,
+      requestedCheckInDate: reservation.checkInDate,
+      requestedCheckOutDate: reservation.checkOutDate,
+    }));
+  }
+
   function openCreateRequest(): void {
     clearFeedback();
     setDraft(toInitialDraft(reservation));
+    setDateRange(toReservationDateRange(reservation));
+    setDatePickerOpen(false);
+    setVisibleMonth(originalCheckInDate);
+    setBlockedDateValues([]);
+    setLoadedMonthKeys([]);
+    setAvailabilityError(false);
     setCreateRequestId(crypto.randomUUID());
     setCreateOpen(true);
   }
 
   function changeRequestType(value: string): void {
-    const requestType = value as AdminDateMutationRequestType;
+    resetDateSelection(value as AdminDateMutationRequestType);
+  }
+
+  function selectDateRange(nextRange: DateRange | undefined): void {
+    setDateRange(nextRange);
 
     setDraft((current) => ({
       ...current,
-      requestType,
-      requestedCheckInDate:
-        requestType === "STAY_EXTENSION"
-          ? reservation.checkInDate
-          : current.requestedCheckInDate,
+      requestedCheckInDate: nextRange?.from
+        ? toDateOnlyString(nextRange.from)
+        : "",
+      requestedCheckOutDate: nextRange?.to
+        ? toDateOnlyString(nextRange.to)
+        : "",
+    }));
+  }
+
+  function clearDateRange(): void {
+    if (draft.requestType === "STAY_EXTENSION") {
+      const initialRange = toReservationDateRange(reservation);
+      setDateRange(initialRange);
+      setDraft((current) => ({
+        ...current,
+        requestedCheckInDate: reservation.checkInDate,
+        requestedCheckOutDate: reservation.checkOutDate,
+      }));
+      return;
+    }
+
+    setDateRange(undefined);
+    setDraft((current) => ({
+      ...current,
+      requestedCheckInDate: "",
+      requestedCheckOutDate: "",
     }));
   }
 
   async function createDateMutationRequest(): Promise<void> {
     if (
       busy ||
+      availabilityLoading ||
+      availabilityError ||
+      !dateRange?.from ||
+      !dateRange.to ||
       !draft.requesterName.trim() ||
       !draft.requestNote.trim() ||
       !dateOnlyPattern.test(draft.requestedCheckInDate) ||
@@ -388,51 +622,52 @@ export function AdminReservationDateMutationSection({
               </Select>
             </FormField>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <FormField
-                description={
-                  draft.requestType === "STAY_EXTENSION"
-                    ? copy.help.extensionCheckIn
-                    : copy.help.dateFormat
-                }
-                label={copy.labels.requestedCheckInDate}
-              >
-                <input
-                  className={inputClassName}
-                  disabled={busy || draft.requestType === "STAY_EXTENSION"}
-                  inputMode="numeric"
-                  onChange={(event) =>
-                    setDraft((current) => ({
-                      ...current,
-                      requestedCheckInDate: event.target.value,
-                    }))
-                  }
-                  placeholder="YYYY-MM-DD"
-                  type="text"
-                  value={draft.requestedCheckInDate}
-                />
-              </FormField>
-
-              <FormField
-                description={copy.help.dateFormat}
-                label={copy.labels.requestedCheckOutDate}
-              >
-                <input
-                  className={inputClassName}
-                  disabled={busy}
-                  inputMode="numeric"
-                  onChange={(event) =>
-                    setDraft((current) => ({
-                      ...current,
-                      requestedCheckOutDate: event.target.value,
-                    }))
-                  }
-                  placeholder="YYYY-MM-DD"
-                  type="text"
-                  value={draft.requestedCheckOutDate}
-                />
-              </FormField>
-            </div>
+            <AvailabilityDateRangePicker
+              blockedDates={blockedDates}
+              clearLabel={copy.calendar.clear}
+              disabled={busy}
+              disabledAfter={maximumDate}
+              disabledBefore={
+                draft.requestType === "DATE_CHANGE" ? today : undefined
+              }
+              doneLabel={copy.calendar.done}
+              fixedStartDate={
+                draft.requestType === "STAY_EXTENSION"
+                  ? originalCheckInDate
+                  : undefined
+              }
+              helperText={
+                draft.requestType === "STAY_EXTENSION"
+                  ? copy.calendar.extensionHelper
+                  : copy.calendar.dateChangeHelper
+              }
+              label={copy.calendar.label}
+              minimumFixedEndDate={
+                draft.requestType === "STAY_EXTENSION"
+                  ? originalCheckOutDate
+                  : undefined
+              }
+              month={visibleMonth}
+              onClear={clearDateRange}
+              onDone={() => setDatePickerOpen(false)}
+              onMonthChange={(month) => {
+                setAvailabilityError(false);
+                setVisibleMonth(month);
+              }}
+              onOpenChange={setDatePickerOpen}
+              onSelect={selectDateRange}
+              open={datePickerOpen}
+              selectedLabel={selectedDateRangeLabel}
+              statusMessage={
+                availabilityLoading
+                  ? copy.calendar.loading
+                  : availabilityError
+                    ? copy.calendar.loadError
+                    : copy.calendar.ownReservationExcluded
+              }
+              statusVariant={availabilityError ? "error" : "muted"}
+              value={dateRange}
+            />
 
             <FormField label={copy.labels.channel}>
               <Select
@@ -541,7 +776,7 @@ export function AdminReservationDateMutationSection({
               {copy.actions.close}
             </Button>
             <Button
-              disabled={busy}
+              disabled={busy || availabilityLoading || availabilityError}
               onClick={createDateMutationRequest}
               type="button"
             >

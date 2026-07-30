@@ -76,6 +76,7 @@ export {
 export {
   AdminReservationDateMutationError,
   createAdminDateMutationRequest,
+  getAdminDateMutationBlockedDates,
   getAdminDateMutationRequestsForReservation,
   toAdminDateMutationRequestSummary,
 } from "./reservation-date-mutation";

@@ -686,6 +686,21 @@ export const esMessages = {
           ADDED_NIGHTS_CURRENT_PRICE:
             "Total original más noches agregadas al precio vigente",
         },
+        calendar: {
+          label: "Fechas solicitadas",
+          placeholder: "Selecciona check-in y check-out",
+          clear: "Limpiar",
+          done: "Finalizar",
+          loading: "Cargando disponibilidad del mes...",
+          loadError:
+            "No pudimos cargar la disponibilidad. Cambia de mes o inténtalo nuevamente antes de registrar la solicitud.",
+          ownReservationExcluded:
+            "Las fechas y buffers de esta misma reservación aparecen disponibles; todos los bloqueos ajenos continúan deshabilitados.",
+          dateChangeHelper:
+            "Selecciona el nuevo rango completo. El servidor volverá a validar disponibilidad al registrar la solicitud.",
+          extensionHelper:
+            "El check-in confirmado permanece fijo. Selecciona un check-out posterior al actual.",
+        },
         availability: {
           available: "Disponible al registrar",
           validated:

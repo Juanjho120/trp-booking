@@ -11,6 +11,7 @@ import {
 
 import {
   checkAccommodationAvailability,
+  getAvailabilityBlockingRecords,
 } from "@/lib/availability/service";
 import {
   addDaysToDateOnly,
@@ -35,13 +36,18 @@ import type {
   AdminDateMutationRequestType,
   CreateAdminDateMutationRequestInput,
 } from "@/types/admin-reservation-date-mutation";
-import type { DateOnlyString } from "@/types/availability";
+import type {
+  AvailabilityBlockingRecord,
+  DateOnlyString,
+} from "@/types/availability";
+import type { BlockedDatesApiResponse } from "@/types/availability-blocked-dates";
 
 import { isAdminAccommodationId } from "./accommodations";
 import { resolveAdminActor } from "./admin-actor";
 
 const DATE_MUTATION_REVIEW_DURATION_HOURS = 24;
 const DATE_MUTATION_MAX_HORIZON_DAYS = 365;
+const DATE_MUTATION_CALENDAR_MAX_RANGE_DAYS = 42;
 const GUATEMALA_UTC_OFFSET_HOURS = 6;
 const MILLISECONDS_PER_HOUR = 60 * 60 * 1_000;
 const MILLISECONDS_PER_DAY = 24 * MILLISECONDS_PER_HOUR;
@@ -1087,6 +1093,137 @@ export async function createAdminDateMutationRequest(
 
     throw error;
   }
+}
+
+function maxDateOnly(
+  left: DateOnlyString,
+  right: DateOnlyString,
+): DateOnlyString {
+  return left >= right ? left : right;
+}
+
+function minDateOnly(
+  left: DateOnlyString,
+  right: DateOnlyString,
+): DateOnlyString {
+  return left <= right ? left : right;
+}
+
+function blockingRecordsToDateOnlyStrings(
+  records: readonly AvailabilityBlockingRecord[],
+  startDate: DateOnlyString,
+  endDate: DateOnlyString,
+): readonly DateOnlyString[] {
+  const blockedDates = new Set<DateOnlyString>();
+
+  for (const record of records) {
+    let cursor = maxDateOnly(record.startDate, startDate);
+    const recordEndDate = minDateOnly(record.endDate, endDate);
+
+    while (cursor < recordEndDate) {
+      blockedDates.add(cursor);
+      cursor = addDaysToDateOnly(cursor, 1);
+    }
+  }
+
+  return Array.from(blockedDates).sort();
+}
+
+export async function getAdminDateMutationBlockedDates(input: Readonly<{
+  reservationId: string;
+  startDate: string;
+  endDate: string;
+}>): Promise<BlockedDatesApiResponse> {
+  const reservationId = input.reservationId.trim();
+  const startDate = normalizeDateOnly(input.startDate);
+  const endDate = normalizeDateOnly(input.endDate);
+
+  if (!reservationId || reservationId.length > 120) {
+    throw new AdminReservationDateMutationError(
+      "INVALID_ADMIN_DATE_MUTATION_REQUEST",
+    );
+  }
+
+  try {
+    assertValidAvailabilityDateRange({ startDate, endDate });
+  } catch {
+    throw new AdminReservationDateMutationError(
+      "INVALID_ADMIN_DATE_MUTATION_REQUEST",
+    );
+  }
+
+  if (
+    endDate >
+    addDaysToDateOnly(startDate, DATE_MUTATION_CALENDAR_MAX_RANGE_DAYS)
+  ) {
+    throw new AdminReservationDateMutationError(
+      "INVALID_ADMIN_DATE_MUTATION_REQUEST",
+    );
+  }
+
+  const reservation = await prisma.reservation.findUnique({
+    where: { id: reservationId },
+    select: {
+      id: true,
+      propertyId: true,
+      status: true,
+      confirmedAt: true,
+      cancelledAt: true,
+      property: {
+        select: {
+          id: true,
+          status: true,
+          deletedAt: true,
+        },
+      },
+    },
+  });
+
+  if (!reservation) {
+    throw new AdminReservationDateMutationError(
+      "ADMIN_DATE_MUTATION_RESERVATION_NOT_FOUND",
+    );
+  }
+
+  if (
+    reservation.status !== ReservationStatus.CONFIRMED ||
+    !reservation.confirmedAt ||
+    reservation.cancelledAt
+  ) {
+    throw new AdminReservationDateMutationError(
+      "ADMIN_DATE_MUTATION_RESERVATION_NOT_CONFIRMED",
+    );
+  }
+
+  if (
+    reservation.property.status !== PropertyStatus.ACTIVE ||
+    reservation.property.deletedAt ||
+    reservation.property.id !== reservation.propertyId ||
+    !isAdminAccommodationId(reservation.propertyId)
+  ) {
+    throw new AdminReservationDateMutationError(
+      "ADMIN_DATE_MUTATION_PROPERTY_NOT_ELIGIBLE",
+    );
+  }
+
+  const accommodationId = reservation.propertyId as AccommodationId;
+  const blockingRecords = await getAvailabilityBlockingRecords({
+    accommodationId,
+    startDate,
+    endDate,
+    excludeReservationId: reservation.id,
+  });
+
+  return {
+    accommodationId,
+    startDate,
+    endDate,
+    blockedDates: blockingRecordsToDateOnlyStrings(
+      blockingRecords,
+      startDate,
+      endDate,
+    ),
+  };
 }
 
 export async function getAdminDateMutationRequestsForReservation(

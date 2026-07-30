@@ -685,6 +685,21 @@ export const enMessages = {
           ADDED_NIGHTS_CURRENT_PRICE:
             "Original total plus added nights at the current price",
         },
+        calendar: {
+          label: "Requested dates",
+          placeholder: "Select check-in and check-out",
+          clear: "Clear",
+          done: "Done",
+          loading: "Loading availability for this month...",
+          loadError:
+            "We could not load availability. Change months or try again before recording the request.",
+          ownReservationExcluded:
+            "This reservation's own dates and buffers appear available; every unrelated blocker remains disabled.",
+          dateChangeHelper:
+            "Select the complete new range. The server will validate availability again when the request is recorded.",
+          extensionHelper:
+            "The confirmed check-in remains fixed. Select a check-out after the current one.",
+        },
         availability: {
           available: "Available when recorded",
           validated:
