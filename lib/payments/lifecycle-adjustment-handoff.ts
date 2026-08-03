@@ -56,6 +56,8 @@ export type LifecycleAdjustmentHandoffSummary = Readonly<{
   lifecycleRequestId: string;
   paymentId: string;
   requestType: "DATE_CHANGE" | "STAY_EXTENSION";
+  requestStatus: "AWAITING_ADJUSTMENT_PAYMENT" | "COMPLETED";
+  completedAt: string | null;
   paymentStatus:
     | "PENDING"
     | "APPROVED"
@@ -238,7 +240,10 @@ function toLocale(value: string): "es" | "en" {
 
 async function readValidatedHandoffRecord(
   token: string,
-  options: Readonly<{ allowRetryablePayment: boolean }>,
+  options: Readonly<{
+    allowRetryablePayment: boolean;
+    allowCompleted: boolean;
+  }>,
 ) {
   const payload = readLifecycleAdjustmentHandoffToken(token);
   await expireLifecycleAdjustmentRequestIfNeeded(payload.lifecycleRequestId);
@@ -250,6 +255,7 @@ async function readValidatedHandoffRecord(
       reservationId: true,
       requestType: true,
       status: true,
+      completedAt: true,
       financialDifference: true,
       currency: true,
       originalCheckInDate: true,
@@ -320,12 +326,20 @@ async function readValidatedHandoffRecord(
 
   const now = new Date();
 
+  const activeState =
+    request.status ===
+      ReservationLifecycleRequestStatus.AWAITING_ADJUSTMENT_PAYMENT &&
+    request.hold.status === LifecycleRequestHoldStatus.ACTIVE &&
+    request.hold.expiresAt > now;
+  const completedState =
+    options.allowCompleted &&
+    request.status === ReservationLifecycleRequestStatus.COMPLETED &&
+    request.hold.status === LifecycleRequestHoldStatus.RELEASED &&
+    payment.status === PaymentStatus.APPROVED;
+
   if (
-    request.status !==
-      ReservationLifecycleRequestStatus.AWAITING_ADJUSTMENT_PAYMENT ||
-    request.hold.status !== LifecycleRequestHoldStatus.ACTIVE ||
-    request.hold.expiresAt <= now ||
-    new Date(payload.expiresAt) <= now
+    new Date(payload.expiresAt) <= now ||
+    (!activeState && !completedState)
   ) {
     throw new LifecycleAdjustmentHandoffError(
       "LIFECYCLE_ADJUSTMENT_HANDOFF_EXPIRED",
@@ -357,6 +371,7 @@ export async function getLifecycleAdjustmentHandoffSummary(
 ): Promise<LifecycleAdjustmentHandoffSummary> {
   const record = await readValidatedHandoffRecord(token, {
     allowRetryablePayment: true,
+    allowCompleted: true,
   });
   const { request, payment } = record;
 
@@ -366,6 +381,11 @@ export async function getLifecycleAdjustmentHandoffSummary(
     lifecycleRequestId: request.id,
     paymentId: payment.id,
     requestType: toRequestType(request.requestType),
+    requestStatus:
+      request.status === ReservationLifecycleRequestStatus.COMPLETED
+        ? "COMPLETED"
+        : "AWAITING_ADJUSTMENT_PAYMENT",
+    completedAt: request.completedAt?.toISOString() ?? null,
     paymentStatus: payment.status,
     amount: payment.amount.toFixed(2),
     currency: payment.currency,
@@ -377,7 +397,11 @@ export async function getLifecycleAdjustmentHandoffSummary(
     guestEmail: request.reservation.guestEmail,
     locale: toLocale(request.originalPreferredLocale),
     holdExpiresAt: request.hold!.expiresAt.toISOString(),
-    payable: payment.status !== PaymentStatus.APPROVED,
+    payable:
+      request.status ===
+        ReservationLifecycleRequestStatus.AWAITING_ADJUSTMENT_PAYMENT &&
+      request.hold!.status === LifecycleRequestHoldStatus.ACTIVE &&
+      payment.status !== PaymentStatus.APPROVED,
   };
 }
 
@@ -386,6 +410,7 @@ export async function prepareLifecycleAdjustmentPayment(
 ): Promise<PreparedLifecycleAdjustmentPayment> {
   const initial = await readValidatedHandoffRecord(token, {
     allowRetryablePayment: true,
+    allowCompleted: false,
   });
 
   if (initial.alreadyApproved) {
@@ -542,6 +567,7 @@ export async function resolveLifecycleAdjustmentClientEventReservation(
 ): Promise<string> {
   const record = await readValidatedHandoffRecord(token, {
     allowRetryablePayment: true,
+    allowCompleted: false,
   });
 
   if (record.payment.id !== paymentId) {

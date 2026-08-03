@@ -69,8 +69,11 @@ export function LifecycleAdjustmentPaymentPage({
 
   const copy = messages.payments.lifecycleAdjustment;
   const intlLocale = locale === "en" ? "en-US" : "es-GT";
+  const completed = summary?.requestStatus === "COMPLETED";
   const approved =
-    summary?.paymentStatus === "APPROVED" || paymentResult === "approved";
+    completed ||
+    summary?.paymentStatus === "APPROVED" ||
+    paymentResult === "approved";
   const errorMessage = errorCode ? copy.errors[errorCode] : null;
   const requestTypeLabel = summary
     ? copy.requestTypes[summary.requestType]
@@ -107,16 +110,20 @@ export function LifecycleAdjustmentPaymentPage({
               )}
             </span>
             <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-              {approved
-                ? copy.approvedTitle
-                : errorMessage
-                  ? copy.unavailableTitle
-                  : copy.title}
+              {completed
+                ? copy.completedTitle
+                : approved
+                  ? copy.approvedTitle
+                  : errorMessage
+                    ? copy.unavailableTitle
+                    : copy.title}
             </h1>
             <p className="text-sm leading-6 text-muted-foreground sm:text-base">
-              {approved
-                ? copy.approvedDescription
-                : errorMessage ?? copy.description}
+              {completed
+                ? copy.completedDescription
+                : approved
+                  ? copy.approvedDescription
+                  : errorMessage ?? copy.description}
             </p>
           </div>
 
@@ -162,7 +169,11 @@ export function LifecycleAdjustmentPaymentPage({
               ) : null}
 
               <p className="text-center text-xs leading-5 text-muted-foreground">
-                {approved ? copy.approvedNote : copy.securityNote}
+                {completed
+                  ? copy.completedNote
+                  : approved
+                    ? copy.approvedNote
+                    : copy.securityNote}
               </p>
             </>
           ) : (

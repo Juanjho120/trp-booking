@@ -323,9 +323,9 @@ Planned subphases:
 11.5.1 Strategy, pricing, independent holds, and financial-adjustment contract — Completed
 11.5.2 Admin request creation, quote, and availability validation — Completed
 11.5.2.1 Admin availability datepicker and own-reservation exclusion UX — Completed
-11.5.3 Approval, requested-date hold, and adjustment payment — In progress
-11.5.3.1 Transaction resilience and admin datepicker positioning — In progress
-11.5.4 Final date-change and stay-extension completion — Not started
+11.5.3 Approval, requested-date hold, and adjustment payment — Completed
+11.5.3.1 Transaction resilience and admin datepicker positioning — Completed
+11.5.4 Final date-change and stay-extension completion — In progress
 11.5.5 Negative-difference and failed-completion refund integration — Not started
 11.5.6 Acceptance tests and documentation — Not started
 11.6 Lifecycle notifications and admin operational history — Not started
@@ -416,15 +416,17 @@ docs/105-phase-11.5.2.1-admin-availability-datepicker-and-own-reservation-exclus
 docs/106-phase-11.5.2-and-11.5.2.1-acceptance-closure.md
 docs/107-phase-11.5.3-approval-hold-and-adjustment-payment.md
 docs/108-phase-11.5.3.1-transaction-resilience-and-datepicker-positioning.md
+docs/109-phase-11.5.3-and-11.5.3.1-acceptance-closure.md
+docs/110-phase-11.5.4-final-positive-zero-completion.md
 ```
 
 ## Development Status
 
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
-Current subphase: 11.5.3.1 Transaction resilience and admin datepicker positioning — In progress
-Current focus: remove first-attempt create/decision failures with bounded Serializable transaction wait/timeout and P2034 retry, anchor the availability calendar directly below its trigger, and rerun the focused correction matrix
-Last completed subphase: 11.5.2.1 Admin availability datepicker and own-reservation exclusion UX
+Current subphase: 11.5.4 Final date-change and stay-extension completion — In progress
+Current focus: complete positive paid and zero-difference DATE_CHANGE/STAY_EXTENSION requests with final Serializable availability/version validation, Reservation date/pricing mutation, hold release, and arrival-instruction supersession
+Last completed subphase: 11.5.3.1 Transaction resilience and admin datepicker positioning
 11.5.1 strategy base commit: 3d1487f31ca74fc5a41573b4ab206ce9ad838bb5
 11.5.1 strategy document: docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md
 11.5.1 accepted commit: e0b77658c74ee2d7a30c96f529d5f7f4451ab045
@@ -439,8 +441,11 @@ Last completed subphase: 11.5.2.1 Admin availability datepicker and own-reservat
 11.5.3 implementation commit: bf216e7796151d10a01902efac9dea8d36f29f31
 11.5.3 type-safety follow-up: 9130831029441e024ebd3bc93e4f1e7904ca99c1
 11.5.3 implementation document: docs/107-phase-11.5.3-approval-hold-and-adjustment-payment.md
-11.5.3 functional matrix: Passed on 2026-08-03; closure deferred until 11.5.3.1 first-attempt reliability and datepicker-positioning corrections pass
+11.5.3 functional matrix: Passed on 2026-08-03
+11.5.3.1 accepted head: ece97aa72aec1b0c1eb13f2d21b6b8d862d9c4d4
 11.5.3.1 correction document: docs/108-phase-11.5.3.1-transaction-resilience-and-datepicker-positioning.md
+11.5.3/11.5.3.1 closure document: docs/109-phase-11.5.3-and-11.5.3.1-acceptance-closure.md
+11.5.4 implementation document: docs/110-phase-11.5.4-final-positive-zero-completion.md
 11.4 accepted implementation commit: 06e857df9d36e77c26557bb7b2057661979809dc
 11.4 implementation document: docs/99-phase-11.4-refund-authorization-and-tilopay-reconciliation.md
 11.4.1 correction document: docs/100-phase-11.4.1-observed-tilopay-contract-and-evidence-based-reconciliation.md
@@ -448,4 +453,26 @@ Last completed subphase: 11.5.2.1 Admin availability datepicker and own-reservat
 11.4 closure document: docs/102-phase-11.4-refund-acceptance-and-documentation-closure.md
 Last completed phase: Phase 10 — Email Notifications
 Phase 10 closure document: docs/94-phase-10-validation-and-documentation-closure.md
+```
+
+
+### Phase 11.5.3 and 11.5.3.1 completed and accepted
+
+```text
+- The complete approval/payment/expiration matrix passed on 2026-08-03.
+- First-attempt creation and decision reliability, bounded Serializable retry, and requested-date calendar positioning were accepted at head ece97aa72aec1b0c1eb13f2d21b6b8d862d9c4d4.
+- Closure record: docs/109-phase-11.5.3-and-11.5.3.1-acceptance-closure.md.
+```
+
+### Phase 11.5.4 implementation prepared
+
+```text
+- Zero-difference approval now completes the date mutation inside the same Serializable admin transaction.
+- An exact APPROVED LIFECYCLE_ADJUSTMENT Payment automatically invokes the shared positive completion transaction.
+- Final completion revalidates immutable Reservation snapshots, timing, requested stay, proposed preparation buffers, composed dependencies, unrelated blockers, exact payment, and the active own hold.
+- Successful completion preserves Reservation.id, CONFIRMED, confirmedAt, Payment history, and request snapshots while applying requested dates/pricing.
+- Positive completion releases the own LifecycleRequestHold; zero completion creates no hold or Payment.
+- Old PENDING/FAILED arrival-instruction intents are superseded and one new idempotent intent may be scheduled for the updated check-in.
+- Negative differences, compensating refunds, and lifecycle emails remain assigned to 11.5.5 and 11.6.
+- Implementation record: docs/110-phase-11.5.4-final-positive-zero-completion.md.
 ```

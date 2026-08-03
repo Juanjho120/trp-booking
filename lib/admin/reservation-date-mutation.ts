@@ -34,6 +34,10 @@ import {
   expireLifecycleAdjustmentRequestIfNeeded,
   LIFECYCLE_ADJUSTMENT_HOLD_DURATION_MINUTES,
 } from "@/lib/reservations/lifecycle-adjustment-holds";
+import {
+  completeApprovedZeroDateMutationInTransaction,
+  ReservationDateMutationCompletionError,
+} from "@/lib/reservations/date-mutation-completion";
 import type { AccommodationId } from "@/types/accommodation";
 import type { AdminActor } from "@/types/admin";
 import type {
@@ -1303,7 +1307,8 @@ function isApprovedDecisionState(
   return (
     status === ReservationLifecycleRequestStatus.APPROVED ||
     status ===
-      ReservationLifecycleRequestStatus.AWAITING_ADJUSTMENT_PAYMENT
+      ReservationLifecycleRequestStatus.AWAITING_ADJUSTMENT_PAYMENT ||
+    status === ReservationLifecycleRequestStatus.COMPLETED
   );
 }
 
@@ -1878,11 +1883,28 @@ async function decideDateMutationRequestTransaction(
             requestVersion: input.expectedRequestVersion,
             reservationVersion:
               request.reservation.updatedAt.toISOString(),
-            reservationDatesChanged: false,
-            reservationPricingChanged: false,
+            reservationDatesChanged: branch === "ZERO",
+            reservationPricingChanged: branch === "ZERO",
+            completionTriggered: branch === "ZERO",
           },
         },
       });
+
+      if (branch === "ZERO") {
+        try {
+          await completeApprovedZeroDateMutationInTransaction(
+            transaction,
+            request.id,
+            now,
+          );
+        } catch (error) {
+          if (error instanceof ReservationDateMutationCompletionError) {
+            throw new AdminReservationDateMutationError(error.code);
+          }
+
+          throw error;
+        }
+      }
 
       return {
         request: await readDateMutationSummaryById(

@@ -313,7 +313,12 @@ export const esMessages = {
       approvedDescription:
         "Tilopay aprobó el pago adicional. La reservación continúa confirmada con sus fechas originales hasta que el sistema complete la actualización autorizada.",
       approvedNote:
-        "No necesitas volver a pagar. La aplicación final de las fechas se procesa por separado y conserva el historial de la reservación.",
+        "No necesitas volver a pagar. La aplicación final de las fechas se procesa de forma segura y conserva el historial de la reservación.",
+      completedTitle: "Cambio de estadía completado",
+      completedDescription:
+        "El pago adicional fue validado y las fechas solicitadas ya quedaron aplicadas a la reservación confirmada.",
+      completedNote:
+        "La reservación conserva su identificador e historial. No se requiere otro pago.",
       unavailableTitle: "Enlace de ajuste no disponible",
       originalDates: "Fechas confirmadas actuales",
       requestedDates: "Fechas solicitadas",
@@ -667,7 +672,7 @@ export const esMessages = {
         badge: "Cambios autorizados",
         title: "Cambios de fechas y extensiones",
         description:
-          "Registra solicitudes recibidas por canales autorizados, calcula la nueva cotización en el servidor y valida disponibilidad sin modificar todavía la reservación.",
+          "Registra solicitudes recibidas por canales autorizados, calcula la cotización en el servidor y aplica de forma segura las fechas aprobadas cuando se cumplen las condiciones financieras.",
         labels: {
           unavailable: "No disponible",
           requestType: "Tipo de solicitud",
@@ -769,7 +774,7 @@ export const esMessages = {
           quoteNote:
             "Un cambio completo usa el precio vigente para toda la estadía. Una extensión conserva el total confirmado y suma únicamente las noches agregadas al precio vigente.",
           pendingNote:
-            "La solicitud quedará pendiente de revisión durante 24 horas. Esta fase no crea el hold de 60 minutos, no cobra diferencias y no cambia las fechas.",
+            "La solicitud quedará pendiente de revisión durante 24 horas. Registrar la solicitud no crea el hold de 60 minutos, no cobra diferencias y no cambia las fechas.",
         },
         decisionDialog: {
           approveTitle: "Aprobar solicitud",
@@ -779,7 +784,7 @@ export const esMessages = {
           rejectDescription:
             "El rechazo cierra esta solicitud sin cambiar la reservación ni crear movimientos financieros.",
           approvalBoundary:
-            "Una diferencia positiva crea un hold independiente de 60 minutos y un pago pendiente exacto. Una diferencia cero o negativa queda aprobada para su finalización en las siguientes subfases. Esta decisión todavía no cambia fechas ni precios.",
+            "Una diferencia positiva crea un hold independiente de 60 minutos y un pago exacto; las fechas se aplican automáticamente después de validar el pago. Una diferencia cero se completa dentro de esta aprobación. La diferencia negativa permanece reservada para la integración de reembolso de 11.5.5.",
           rejectionBoundary:
             "El rechazo conserva las fechas, precios, estado Confirmado, pagos y disponibilidad actuales.",
         },
@@ -852,6 +857,16 @@ export const esMessages = {
             "La reservación cambió después de que abriste esta página. Recarga antes de continuar.",
           ADMIN_DATE_MUTATION_IDEMPOTENCY_CONFLICT:
             "El identificador de esta operación ya fue utilizado con datos diferentes.",
+          ADMIN_DATE_MUTATION_COMPLETION_NOT_READY:
+            "La solicitud todavía no cumple las condiciones necesarias para aplicar las fechas.",
+          ADMIN_DATE_MUTATION_ADJUSTMENT_PAYMENT_NOT_APPROVED:
+            "No encontramos un pago de diferencia aprobado y exacto para completar la solicitud.",
+          ADMIN_DATE_MUTATION_HOLD_NOT_ACTIVE:
+            "El hold de las fechas solicitadas ya no está activo o no coincide con la solicitud.",
+          ADMIN_DATE_MUTATION_NEGATIVE_COMPLETION_DEFERRED:
+            "La diferencia negativa requiere la integración de reembolso de la siguiente subfase antes de completar las fechas.",
+          ADMIN_DATE_MUTATION_COMPLETION_CONFLICT:
+            "La finalización ya fue procesada con un estado diferente. Recarga la reservación antes de continuar.",
           ADMIN_DATE_MUTATION_UNEXPECTED_ERROR:
             "No pudimos registrar el cambio de fechas. Inténtalo nuevamente.",
         },

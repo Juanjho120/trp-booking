@@ -1,7 +1,6 @@
 import {
   PaymentPurpose,
   PaymentStatus,
-  ReservationLifecycleRequestStatus,
   ReservationStatus,
   type Prisma,
 } from "@prisma/client";
@@ -12,6 +11,10 @@ import {
   deliverReservationConfirmationNotificationsBestEffort,
 } from "@/lib/email/reservation-confirmation-notifications";
 import { ensureArrivalInstructionsNotificationIntent } from "@/lib/email/arrival-instructions";
+import {
+  completePaidDateMutation,
+  ReservationDateMutationCompletionError,
+} from "@/lib/reservations/date-mutation-completion";
 import type {
   ConfirmedReservationAfterPayment,
   ReservationConfirmationErrorCode,
@@ -100,6 +103,57 @@ async function createNotificationIntents(
 export async function confirmReservationAfterApprovedPayment(
   paymentId: string,
 ): Promise<ConfirmedReservationAfterPayment> {
+  const paymentBoundary = await prisma.payment.findUnique({
+    where: { id: paymentId },
+    select: {
+      id: true,
+      purpose: true,
+      status: true,
+      reservationId: true,
+    },
+  });
+
+  if (!paymentBoundary) {
+    throw new ReservationConfirmationError("PAYMENT_NOT_FOUND", {
+      paymentId,
+    });
+  }
+
+  if (paymentBoundary.status !== PaymentStatus.APPROVED) {
+    throw new ReservationConfirmationError("PAYMENT_NOT_APPROVED", {
+      paymentId: paymentBoundary.id,
+      reservationId: paymentBoundary.reservationId,
+    });
+  }
+
+  if (paymentBoundary.purpose === PaymentPurpose.LIFECYCLE_ADJUSTMENT) {
+    try {
+      const completion = await completePaidDateMutation(paymentBoundary.id);
+
+      return {
+        paymentId: paymentBoundary.id,
+        reservationId: completion.reservationId,
+        reservationStatus: "CONFIRMED",
+        confirmedAt: completion.confirmedAt,
+        alreadyConfirmed: true,
+        phaseBoundary:
+          "LIFECYCLE_DATE_MUTATION_COMPLETED_AFTER_APPROVED_PAYMENT",
+      };
+    } catch (error) {
+      if (error instanceof ReservationDateMutationCompletionError) {
+        throw new ReservationConfirmationError(
+          "RESERVATION_CONFIRMATION_UNEXPECTED_ERROR",
+          {
+            paymentId: paymentBoundary.id,
+            reservationId: paymentBoundary.reservationId,
+          },
+        );
+      }
+
+      throw error;
+    }
+  }
+
   const transactionResult: ConfirmationTransactionResult =
     await prisma.$transaction(async (tx) => {
       const now = new Date();
@@ -142,40 +196,6 @@ export async function confirmReservationAfterApprovedPayment(
           paymentId: payment.id,
           reservationId: payment.reservation.id,
         });
-      }
-
-      if (payment.purpose === PaymentPurpose.LIFECYCLE_ADJUSTMENT) {
-        if (
-          !payment.lifecycleRequestId ||
-          !payment.lifecycleRequest ||
-          payment.lifecycleRequest.id !== payment.lifecycleRequestId ||
-          payment.lifecycleRequest.reservationId !== payment.reservation.id ||
-          payment.lifecycleRequest.status !==
-            ReservationLifecycleRequestStatus.AWAITING_ADJUSTMENT_PAYMENT ||
-          payment.reservation.status !== ReservationStatus.CONFIRMED ||
-          !payment.reservation.confirmedAt
-        ) {
-          throw new ReservationConfirmationError(
-            "RESERVATION_CONFIRMATION_UNEXPECTED_ERROR",
-            {
-              paymentId: payment.id,
-              reservationId: payment.reservation.id,
-            },
-          );
-        }
-
-        return {
-          confirmation: {
-            paymentId: payment.id,
-            reservationId: payment.reservation.id,
-            reservationStatus: "CONFIRMED",
-            confirmedAt: payment.reservation.confirmedAt.toISOString(),
-            alreadyConfirmed: true,
-            phaseBoundary:
-              "LIFECYCLE_ADJUSTMENT_PAYMENT_APPROVED_AWAITING_COMPLETION",
-          },
-          notificationIds: [],
-        };
       }
 
       if (payment.purpose !== PaymentPurpose.INITIAL_RESERVATION) {

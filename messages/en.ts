@@ -313,7 +313,12 @@ export const enMessages = {
       approvedDescription:
         "Tilopay approved the additional payment. The reservation remains confirmed with its original dates until the authorized update is completed by the system.",
       approvedNote:
-        "You do not need to pay again. Final date application is processed separately and preserves the reservation history.",
+        "You do not need to pay again. Final date application is processed safely and preserves the reservation history.",
+      completedTitle: "Stay update completed",
+      completedDescription:
+        "The additional payment was validated and the requested dates have been applied to the confirmed reservation.",
+      completedNote:
+        "The reservation keeps its identifier and history. No additional payment is required.",
       unavailableTitle: "Adjustment link unavailable",
       originalDates: "Current confirmed dates",
       requestedDates: "Requested dates",
@@ -667,7 +672,7 @@ export const enMessages = {
         badge: "Authorized changes",
         title: "Date changes and stay extensions",
         description:
-          "Record requests received through authorized channels, calculate the new server-side quote, and validate availability without changing the reservation yet.",
+          "Record requests received through authorized channels, calculate the server-side quote, and safely apply approved dates once the financial conditions are satisfied.",
         labels: {
           unavailable: "Unavailable",
           requestType: "Request type",
@@ -768,7 +773,7 @@ export const enMessages = {
           quoteNote:
             "A full date change uses the current price for the entire stay. An extension preserves the confirmed total and adds only the extra nights at the current price.",
           pendingNote:
-            "The request will remain pending review for 24 hours. This phase does not create the 60-minute hold, charge a difference, or change reservation dates.",
+            "The request will remain pending review for 24 hours. Recording the request does not create the 60-minute hold, charge a difference, or change reservation dates.",
         },
         decisionDialog: {
           approveTitle: "Approve request",
@@ -778,7 +783,7 @@ export const enMessages = {
           rejectDescription:
             "Rejection closes this request without changing the reservation or creating financial movements.",
           approvalBoundary:
-            "A positive difference creates an independent 60-minute hold and an exact pending payment. A zero or negative difference remains approved for completion in later subphases. This decision does not change dates or prices yet.",
+            "A positive difference creates an independent 60-minute hold and an exact payment; dates are applied automatically after the payment is validated. A zero difference completes inside this approval. The negative branch remains reserved for the 11.5.5 refund integration.",
           rejectionBoundary:
             "Rejection preserves the current dates, prices, Confirmed status, payments, and availability.",
         },
@@ -851,6 +856,16 @@ export const enMessages = {
             "The reservation changed after you opened this page. Reload before continuing.",
           ADMIN_DATE_MUTATION_IDEMPOTENCY_CONFLICT:
             "This operation identifier was already used with different data.",
+          ADMIN_DATE_MUTATION_COMPLETION_NOT_READY:
+            "The request does not yet meet the conditions required to apply the dates.",
+          ADMIN_DATE_MUTATION_ADJUSTMENT_PAYMENT_NOT_APPROVED:
+            "We could not find an approved exact adjustment payment for this request.",
+          ADMIN_DATE_MUTATION_HOLD_NOT_ACTIVE:
+            "The requested-date hold is no longer active or does not match the request.",
+          ADMIN_DATE_MUTATION_NEGATIVE_COMPLETION_DEFERRED:
+            "The negative difference requires the next subphase's refund integration before dates can be completed.",
+          ADMIN_DATE_MUTATION_COMPLETION_CONFLICT:
+            "Completion was already processed with a different state. Reload the reservation before continuing.",
           ADMIN_DATE_MUTATION_UNEXPECTED_ERROR:
             "We could not record the date change. Please try again.",
         },

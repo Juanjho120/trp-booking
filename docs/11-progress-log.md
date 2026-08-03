@@ -6,10 +6,10 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
-Current subphase: 11.5.3.1 Transaction resilience and admin datepicker positioning — In progress
-Current focus: remove first-attempt create/decision failures with bounded Serializable transaction wait/timeout and P2034 retry, anchor the availability calendar directly below its trigger, and rerun the focused correction matrix
+Current subphase: 11.5.4 Final date-change and stay-extension completion — In progress
+Current focus: complete positive paid and zero-difference DATE_CHANGE/STAY_EXTENSION requests with final Serializable availability/version validation, Reservation date/pricing mutation, hold release, and arrival-instruction supersession
 Last updated: 2026-08-03
-Last completed subphase: 11.5.2.1 Admin availability datepicker and own-reservation exclusion UX
+Last completed subphase: 11.5.3.1 Transaction resilience and admin datepicker positioning
 11.5.1 strategy base commit: 3d1487f31ca74fc5a41573b4ab206ce9ad838bb5
 11.5.1 strategy document: docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md
 11.5.1 accepted commit: e0b77658c74ee2d7a30c96f529d5f7f4451ab045
@@ -24,8 +24,11 @@ Last completed subphase: 11.5.2.1 Admin availability datepicker and own-reservat
 11.5.3 implementation commit: bf216e7796151d10a01902efac9dea8d36f29f31
 11.5.3 type-safety follow-up: 9130831029441e024ebd3bc93e4f1e7904ca99c1
 11.5.3 implementation document: docs/107-phase-11.5.3-approval-hold-and-adjustment-payment.md
-11.5.3 functional matrix: Passed on 2026-08-03; closure deferred for 11.5.3.1 corrections
+11.5.3 functional matrix: Passed on 2026-08-03
+11.5.3.1 accepted head: ece97aa72aec1b0c1eb13f2d21b6b8d862d9c4d4
 11.5.3.1 correction document: docs/108-phase-11.5.3.1-transaction-resilience-and-datepicker-positioning.md
+11.5.3/11.5.3.1 closure document: docs/109-phase-11.5.3-and-11.5.3.1-acceptance-closure.md
+11.5.4 implementation document: docs/110-phase-11.5.4-final-positive-zero-completion.md
 11.4 accepted implementation commit: 06e857df9d36e77c26557bb7b2057661979809dc
 11.4 implementation document: docs/99-phase-11.4-refund-authorization-and-tilopay-reconciliation.md
 11.4.1 correction document: docs/100-phase-11.4.1-observed-tilopay-contract-and-evidence-based-reconciliation.md
@@ -732,7 +735,7 @@ Type-safety follow-ups: f57a777f26ab919e95098dfc13ee11b44f423b02 and 56023423f45
 Closure document: docs/106-phase-11.5.2-and-11.5.2.1-acceptance-closure.md.
 ```
 
-## In Progress — Phase 11.5.3.1
+## Completed — Phase 11.5.3 and 11.5.3.1
 
 ### Phase 11.5.3 — Approval, Requested-Date Hold, and Adjustment Payment
 
@@ -761,7 +764,7 @@ Implementation prepared on accepted head `56023423f4545914f43856ea44398e8d903018
 
 Implementation document: docs/107-phase-11.5.3-approval-hold-and-adjustment-payment.md.
 
-The complete acceptance matrix passed on 2026-08-03. Repeated manual operation exposed intermittent first-attempt `500` responses during request creation and approval, while the same immediate retry succeeds, and the datepicker popup opens below helper/status text. 11.5.3 remains open until the correction below passes.
+The complete acceptance matrix passed on 2026-08-03. Repeated manual operation exposed intermittent first-attempt `500` responses during request creation and approval, while the same immediate retry succeeds, and the datepicker popup opens below helper/status text. 11.5.3 is closed after the focused correction below passed at head ece97aa72aec1b0c1eb13f2d21b6b8d862d9c4d4.
 
 ### Phase 11.5.3.1 — Transaction Resilience and Admin Datepicker Positioning
 
@@ -846,4 +849,30 @@ messages/en.ts
 - No additional migration is required beyond the existing Refund.authorizationType migration.
 - Phase 11.6 requirements are now explicit: guest/admin cancellation emails after cancellation commit and guest/admin refund emails only after APPROVED reconciliation.
 - Notification implementation, typed EmailNotification lifecycleRequestId/refundId links, templates, and orchestration remain deferred to 11.6.
+```
+
+
+## Phase 11.5.3 / 11.5.3.1 Acceptance Closure
+
+Status: **Completed**
+
+```text
+Accepted date: 2026-08-03
+Accepted head: ece97aa72aec1b0c1eb13f2d21b6b8d862d9c4d4
+The full 11.5.3 matrix and focused 11.5.3.1 reliability/calendar correction passed.
+Closure record: docs/109-phase-11.5.3-and-11.5.3.1-acceptance-closure.md
+```
+
+## Phase 11.5.4 — Final Positive/Zero Completion
+
+Status: **In progress**
+
+```text
+- Shared Serializable completion service prepared for zero and positive branches.
+- Zero completion runs inside approval; positive completion runs after validated approved adjustment payment.
+- Reservation dates/pricing are applied only after final version, timing, availability, buffer, dependency, payment, and hold validation.
+- Positive hold becomes RELEASED; request becomes COMPLETED; Reservation remains CONFIRMED.
+- Old arrival intents are superseded and an eligible new intent is scheduled idempotently.
+- Negative and failed-positive refund paths remain deferred to 11.5.5.
+- Implementation record: docs/110-phase-11.5.4-final-positive-zero-completion.md.
 ```
