@@ -305,7 +305,6 @@ Phase 10.7 validation and documentation closure completed:
 - The authoritative closure record is docs/94-phase-10-validation-and-documentation-closure.md.
 ```
 
-
 ## Phase 11 — Cancellation, Refund, and Change Request Rules
 
 Phase 11 is in progress. The strategy and explicit subphase roadmap are defined in `docs/95-phase-11-lifecycle-strategy-and-roadmap.md`.
@@ -325,8 +324,8 @@ Planned subphases:
 11.5.2.1 Admin availability datepicker and own-reservation exclusion UX — Completed
 11.5.3 Approval, requested-date hold, and adjustment payment — Completed
 11.5.3.1 Transaction resilience and admin datepicker positioning — Completed
-11.5.4 Final date-change and stay-extension completion — In progress
-11.5.5 Negative-difference and failed-completion refund integration — Not started
+11.5.4 Final date-change and stay-extension completion — Completed
+11.5.5 Negative-difference and failed-completion refund integration — In progress
 11.5.6 Acceptance tests and documentation — Not started
 11.6 Lifecycle notifications and admin operational history — Not started
 11.7 Validation and documentation closure — Not started
@@ -418,15 +417,16 @@ docs/107-phase-11.5.3-approval-hold-and-adjustment-payment.md
 docs/108-phase-11.5.3.1-transaction-resilience-and-datepicker-positioning.md
 docs/109-phase-11.5.3-and-11.5.3.1-acceptance-closure.md
 docs/110-phase-11.5.4-final-positive-zero-completion.md
+docs/111-phase-11.5.4-acceptance-closure.md
 ```
 
 ## Development Status
 
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
-Current subphase: 11.5.4 Final date-change and stay-extension completion — In progress
-Current focus: complete positive paid and zero-difference DATE_CHANGE/STAY_EXTENSION requests with final Serializable availability/version validation, Reservation date/pricing mutation, hold release, and arrival-instruction supersession
-Last completed subphase: 11.5.3.1 Transaction resilience and admin datepicker positioning
+Current subphase: 11.5.5 Negative-difference and failed-completion refund integration — In progress
+Current focus: complete negative-difference DATE_CHANGE/STAY_EXTENSION requests with an exact lifecycle-adjustment Refund authorization and add compensating refunds for APPROVED adjustment Payments whose final date mutation cannot commit
+Last completed subphase: 11.5.4 Final date-change and stay-extension completion
 11.5.1 strategy base commit: 3d1487f31ca74fc5a41573b4ab206ce9ad838bb5
 11.5.1 strategy document: docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md
 11.5.1 accepted commit: e0b77658c74ee2d7a30c96f529d5f7f4451ab045
@@ -445,7 +445,10 @@ Last completed subphase: 11.5.3.1 Transaction resilience and admin datepicker po
 11.5.3.1 accepted head: ece97aa72aec1b0c1eb13f2d21b6b8d862d9c4d4
 11.5.3.1 correction document: docs/108-phase-11.5.3.1-transaction-resilience-and-datepicker-positioning.md
 11.5.3/11.5.3.1 closure document: docs/109-phase-11.5.3-and-11.5.3.1-acceptance-closure.md
+11.5.4 implementation and accepted head: c996716aaad897c4e583a0d83b31b87bfece8e08
 11.5.4 implementation document: docs/110-phase-11.5.4-final-positive-zero-completion.md
+11.5.4 functional matrix: Passed on 2026-08-03; all 17 criteria passed
+11.5.4 closure document: docs/111-phase-11.5.4-acceptance-closure.md
 11.4 accepted implementation commit: 06e857df9d36e77c26557bb7b2057661979809dc
 11.4 implementation document: docs/99-phase-11.4-refund-authorization-and-tilopay-reconciliation.md
 11.4.1 correction document: docs/100-phase-11.4.1-observed-tilopay-contract-and-evidence-based-reconciliation.md
@@ -455,7 +458,6 @@ Last completed phase: Phase 10 — Email Notifications
 Phase 10 closure document: docs/94-phase-10-validation-and-documentation-closure.md
 ```
 
-
 ### Phase 11.5.3 and 11.5.3.1 completed and accepted
 
 ```text
@@ -464,15 +466,28 @@ Phase 10 closure document: docs/94-phase-10-validation-and-documentation-closure
 - Closure record: docs/109-phase-11.5.3-and-11.5.3.1-acceptance-closure.md.
 ```
 
-### Phase 11.5.4 implementation prepared
+### Phase 11.5.4 completed and accepted
 
 ```text
-- Zero-difference approval now completes the date mutation inside the same Serializable admin transaction.
-- An exact APPROVED LIFECYCLE_ADJUSTMENT Payment automatically invokes the shared positive completion transaction.
-- Final completion revalidates immutable Reservation snapshots, timing, requested stay, proposed preparation buffers, composed dependencies, unrelated blockers, exact payment, and the active own hold.
-- Successful completion preserves Reservation.id, CONFIRMED, confirmedAt, Payment history, and request snapshots while applying requested dates/pricing.
-- Positive completion releases the own LifecycleRequestHold; zero completion creates no hold or Payment.
-- Old PENDING/FAILED arrival-instruction intents are superseded and one new idempotent intent may be scheduled for the updated check-in.
-- Negative differences, compensating refunds, and lifecycle emails remain assigned to 11.5.5 and 11.6.
+- Zero DATE_CHANGE and STAY_EXTENSION requests complete atomically inside approval without a Payment or lifecycle hold.
+- Positive requests complete only after an exact server-validated APPROVED LIFECYCLE_ADJUSTMENT Payment and matching active hold.
+- Final Serializable completion revalidates immutable Reservation state, timing, pricing, availability, buffers, dependencies, payment, and hold.
+- Reservation.id, CONFIRMED, and confirmedAt are preserved while requested dates and pricing are applied.
+- Positive holds become RELEASED and replay/concurrent completion is idempotent.
+- Stale snapshots and every invalid completion condition preserve the original Reservation.
+- Arrival-intent supersession is idempotent, the completed opaque page hides checkout, and no lifecycle email is created.
+- All 17 acceptance criteria passed on 2026-08-03, including ES/EN parity and npm run build.
+- Implementation and accepted head: c996716aaad897c4e583a0d83b31b87bfece8e08.
 - Implementation record: docs/110-phase-11.5.4-final-positive-zero-completion.md.
+- Closure record: docs/111-phase-11.5.4-acceptance-closure.md.
+```
+
+### Phase 11.5.5 active
+
+```text
+- Add RefundAuthorizationType.LIFECYCLE_ADJUSTMENT persistence and migration.
+- Complete negative-difference requests with an exact lifecycle-adjustment Refund authorization.
+- Add compensating refunds for APPROVED adjustment Payments whose final date mutation cannot commit.
+- Reuse accepted 11.4 evidence-based provider/reconciliation boundaries without weakening 11.5.4 guarantees.
+- Preserve Reservation.id, CONFIRMED, the public 15-minute hold, and lifecycle-email deferral.
 ```
