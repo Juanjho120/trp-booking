@@ -139,28 +139,83 @@ export function AvailabilityDateRangePicker({
   }
 
   return (
-    <div className="relative grid gap-2 text-sm font-medium text-foreground">
+    <div className="grid gap-2 text-sm font-medium text-foreground">
       <span>{label}</span>
-      <button
-        className="flex h-11 w-full items-center justify-between gap-3 rounded-2xl border border-border/70 bg-background px-4 text-left text-sm text-foreground shadow-sm outline-none transition hover:border-primary/60 focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-50"
-        disabled={disabled}
-        onClick={() => onOpenChange(!open)}
-        type="button"
-      >
-        <span
-          className={
-            value?.from && value.to
-              ? "text-foreground"
-              : "text-muted-foreground"
-          }
+      <div className="relative">
+        <button
+          className="flex h-11 w-full items-center justify-between gap-3 rounded-2xl border border-border/70 bg-background px-4 text-left text-sm text-foreground shadow-sm outline-none transition hover:border-primary/60 focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={disabled}
+          onClick={() => onOpenChange(!open)}
+          type="button"
         >
-          {selectedLabel}
-        </span>
-        <CalendarDays
-          aria-hidden="true"
-          className="size-4 text-muted-foreground"
-        />
-      </button>
+          <span
+            className={
+              value?.from && value.to
+                ? "text-foreground"
+                : "text-muted-foreground"
+            }
+          >
+            {selectedLabel}
+          </span>
+          <CalendarDays
+            aria-hidden="true"
+            className="size-4 text-muted-foreground"
+          />
+        </button>
+
+        {open ? (
+          <div
+            className="absolute left-0 top-full z-[80] mt-2 w-full rounded-[1.5rem] border border-border/70 bg-card p-4 shadow-2xl sm:w-[24rem]"
+            onMouseLeave={() => setHoveredDate(undefined)}
+          >
+            <DayPicker
+              classNames={dayPickerClassNames}
+              disabled={disabledMatchers}
+              excludeDisabled
+              mode="range"
+              modifiers={{
+                blocked: [...blockedDates],
+                preview_range: (date) =>
+                  previewRange
+                    ? isDateInRange(date, previewRange.from, previewRange.to)
+                    : false,
+              }}
+              modifiersClassNames={{
+                blocked:
+                  "pointer-events-none text-muted-foreground/30 line-through",
+                preview_range: "bg-primary/10 text-primary",
+              }}
+              month={month}
+              numberOfMonths={1}
+              onDayMouseEnter={setHoveredDate}
+              onMonthChange={onMonthChange}
+              onSelect={handleSelect}
+              selected={value}
+              weekStartsOn={1}
+            />
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              <Button
+                className="rounded-full"
+                disabled={disabled}
+                onClick={onClear}
+                type="button"
+                variant="ghost"
+              >
+                {clearLabel}
+              </Button>
+              <Button
+                className="rounded-full"
+                disabled={disabled}
+                onClick={onDone}
+                type="button"
+                variant="secondary"
+              >
+                {doneLabel}
+              </Button>
+            </div>
+          </div>
+        ) : null}
+      </div>
 
       {helperText ? (
         <span className="text-xs font-normal leading-5 text-muted-foreground">
@@ -180,58 +235,6 @@ export function AvailabilityDateRangePicker({
         </span>
       ) : null}
 
-      {open ? (
-        <div
-          className="absolute left-0 top-full z-[80] mt-2 w-full rounded-[1.5rem] border border-border/70 bg-card p-4 shadow-2xl sm:w-[24rem]"
-          onMouseLeave={() => setHoveredDate(undefined)}
-        >
-          <DayPicker
-            classNames={dayPickerClassNames}
-            disabled={disabledMatchers}
-            excludeDisabled
-            mode="range"
-            modifiers={{
-              blocked: [...blockedDates],
-              preview_range: (date) =>
-                previewRange
-                  ? isDateInRange(date, previewRange.from, previewRange.to)
-                  : false,
-            }}
-            modifiersClassNames={{
-              blocked:
-                "pointer-events-none text-muted-foreground/30 line-through",
-              preview_range: "bg-primary/10 text-primary",
-            }}
-            month={month}
-            numberOfMonths={1}
-            onDayMouseEnter={setHoveredDate}
-            onMonthChange={onMonthChange}
-            onSelect={handleSelect}
-            selected={value}
-            weekStartsOn={1}
-          />
-          <div className="mt-3 grid gap-2 sm:grid-cols-2">
-            <Button
-              className="rounded-full"
-              disabled={disabled}
-              onClick={onClear}
-              type="button"
-              variant="ghost"
-            >
-              {clearLabel}
-            </Button>
-            <Button
-              className="rounded-full"
-              disabled={disabled}
-              onClick={onDone}
-              type="button"
-              variant="secondary"
-            >
-              {doneLabel}
-            </Button>
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 }

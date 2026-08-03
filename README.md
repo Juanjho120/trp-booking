@@ -324,6 +324,7 @@ Planned subphases:
 11.5.2 Admin request creation, quote, and availability validation — Completed
 11.5.2.1 Admin availability datepicker and own-reservation exclusion UX — Completed
 11.5.3 Approval, requested-date hold, and adjustment payment — In progress
+11.5.3.1 Transaction resilience and admin datepicker positioning — In progress
 11.5.4 Final date-change and stay-extension completion — Not started
 11.5.5 Negative-difference and failed-completion refund integration — Not started
 11.5.6 Acceptance tests and documentation — Not started
@@ -414,14 +415,15 @@ docs/104-phase-11.5.2-admin-request-creation-quote-and-availability-validation.m
 docs/105-phase-11.5.2.1-admin-availability-datepicker-and-own-reservation-exclusion.md
 docs/106-phase-11.5.2-and-11.5.2.1-acceptance-closure.md
 docs/107-phase-11.5.3-approval-hold-and-adjustment-payment.md
+docs/108-phase-11.5.3.1-transaction-resilience-and-datepicker-positioning.md
 ```
 
 ## Development Status
 
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
-Current subphase: 11.5.3 Approval, requested-date hold, and adjustment payment — In progress
-Current focus: implement idempotent admin approval/rejection, the independent 60-minute LifecycleRequestHold, exact LIFECYCLE_ADJUSTMENT Payment creation, secure purpose-bound payment handoff, hold expiration, and unchanged Reservation dates/pricing
+Current subphase: 11.5.3.1 Transaction resilience and admin datepicker positioning — In progress
+Current focus: remove first-attempt create/decision failures with bounded Serializable transaction wait/timeout and P2034 retry, anchor the availability calendar directly below its trigger, and rerun the focused correction matrix
 Last completed subphase: 11.5.2.1 Admin availability datepicker and own-reservation exclusion UX
 11.5.1 strategy base commit: 3d1487f31ca74fc5a41573b4ab206ce9ad838bb5
 11.5.1 strategy document: docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md
@@ -434,7 +436,11 @@ Last completed subphase: 11.5.2.1 Admin availability datepicker and own-reservat
 11.5.2.1 type-safety follow-ups: f57a777f26ab919e95098dfc13ee11b44f423b02, 56023423f4545914f43856ea44398e8d90301820
 11.5.2/11.5.2.1 accepted head: 56023423f4545914f43856ea44398e8d90301820
 11.5.2/11.5.2.1 closure document: docs/106-phase-11.5.2-and-11.5.2.1-acceptance-closure.md
+11.5.3 implementation commit: bf216e7796151d10a01902efac9dea8d36f29f31
+11.5.3 type-safety follow-up: 9130831029441e024ebd3bc93e4f1e7904ca99c1
 11.5.3 implementation document: docs/107-phase-11.5.3-approval-hold-and-adjustment-payment.md
+11.5.3 functional matrix: Passed on 2026-08-03; closure deferred until 11.5.3.1 first-attempt reliability and datepicker-positioning corrections pass
+11.5.3.1 correction document: docs/108-phase-11.5.3.1-transaction-resilience-and-datepicker-positioning.md
 11.4 accepted implementation commit: 06e857df9d36e77c26557bb7b2057661979809dc
 11.4 implementation document: docs/99-phase-11.4-refund-authorization-and-tilopay-reconciliation.md
 11.4.1 correction document: docs/100-phase-11.4.1-observed-tilopay-contract-and-evidence-based-reconciliation.md

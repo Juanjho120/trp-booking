@@ -59,6 +59,10 @@ import { resolveAdminActor } from "./admin-actor";
 const DATE_MUTATION_REVIEW_DURATION_HOURS = 24;
 const DATE_MUTATION_MAX_HORIZON_DAYS = 365;
 const DATE_MUTATION_CALENDAR_MAX_RANGE_DAYS = 42;
+const DATE_MUTATION_TRANSACTION_MAX_ATTEMPTS = 3;
+const DATE_MUTATION_TRANSACTION_MAX_WAIT_MS = 10_000;
+const DATE_MUTATION_TRANSACTION_TIMEOUT_MS = 20_000;
+const DATE_MUTATION_TRANSACTION_RETRY_DELAY_MS = 75;
 const GUATEMALA_UTC_OFFSET_HOURS = 6;
 const MILLISECONDS_PER_HOUR = 60 * 60 * 1_000;
 const MILLISECONDS_PER_DAY = 24 * MILLISECONDS_PER_HOUR;
@@ -944,6 +948,40 @@ async function expireStalePendingDateMutationRequests(
   }
 }
 
+function isDateMutationSerializationFailure(error: unknown): boolean {
+  return (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === "P2034"
+  );
+}
+
+async function runDateMutationTransactionWithRetry<T>(
+  operation: () => Promise<T>,
+): Promise<T> {
+  let attempt = 1;
+
+  while (true) {
+    try {
+      return await operation();
+    } catch (error) {
+      if (
+        !isDateMutationSerializationFailure(error) ||
+        attempt >= DATE_MUTATION_TRANSACTION_MAX_ATTEMPTS
+      ) {
+        throw error;
+      }
+
+      await new Promise<void>((resolve) => {
+        setTimeout(
+          resolve,
+          DATE_MUTATION_TRANSACTION_RETRY_DELAY_MS * attempt,
+        );
+      });
+      attempt += 1;
+    }
+  }
+}
+
 async function createDateMutationRequestTransaction(
   input: NormalizedCreateInput,
   actor: AdminActor,
@@ -1175,6 +1213,8 @@ async function createDateMutationRequestTransaction(
     },
     {
       isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+      maxWait: DATE_MUTATION_TRANSACTION_MAX_WAIT_MS,
+      timeout: DATE_MUTATION_TRANSACTION_TIMEOUT_MS,
     },
   );
 }
@@ -1190,7 +1230,9 @@ export async function createAdminDateMutationRequest(
   );
 
   try {
-    return await createDateMutationRequestTransaction(normalizedInput, actor);
+    return await runDateMutationTransactionWithRetry(() =>
+      createDateMutationRequestTransaction(normalizedInput, actor),
+    );
   } catch (error) {
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -1855,7 +1897,11 @@ async function decideDateMutationRequestTransaction(
         alreadyProcessed: false,
       };
     },
-    { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+    {
+      isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+      maxWait: DATE_MUTATION_TRANSACTION_MAX_WAIT_MS,
+      timeout: DATE_MUTATION_TRANSACTION_TIMEOUT_MS,
+    },
   );
 }
 
@@ -1864,7 +1910,9 @@ export async function decideAdminDateMutationRequest(
   actor: AdminActor,
 ): Promise<AdminDateMutationDecisionResult> {
   try {
-    const result = await decideDateMutationRequestTransaction(input, actor);
+    const result = await runDateMutationTransactionWithRetry(() =>
+      decideDateMutationRequestTransaction(input, actor),
+    );
 
     if (!result) {
       throw new AdminReservationDateMutationError(
