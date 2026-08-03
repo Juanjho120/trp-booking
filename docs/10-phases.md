@@ -15,9 +15,9 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
-Current subphase: 11.5.4 Final date-change and stay-extension completion — In progress
-Current focus: complete positive paid and zero-difference DATE_CHANGE/STAY_EXTENSION requests with final Serializable availability/version validation, Reservation date/pricing mutation, hold release, and arrival-instruction supersession
-Last completed subphase: 11.5.3.1 Transaction resilience and admin datepicker positioning
+Current subphase: 11.5.5 Negative-difference and failed-completion refund integration — In progress
+Current focus: complete negative-difference DATE_CHANGE/STAY_EXTENSION requests with an exact lifecycle-adjustment Refund authorization and add compensating refunds for APPROVED adjustment Payments whose final date mutation cannot commit
+Last completed subphase: 11.5.4 Final date-change and stay-extension completion
 11.5.1 strategy base commit: 3d1487f31ca74fc5a41573b4ab206ce9ad838bb5
 11.5.1 strategy document: docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md
 11.5.1 accepted commit: e0b77658c74ee2d7a30c96f529d5f7f4451ab045
@@ -36,7 +36,10 @@ Last completed subphase: 11.5.3.1 Transaction resilience and admin datepicker po
 11.5.3.1 accepted head: ece97aa72aec1b0c1eb13f2d21b6b8d862d9c4d4
 11.5.3.1 correction document: docs/108-phase-11.5.3.1-transaction-resilience-and-datepicker-positioning.md
 11.5.3/11.5.3.1 closure document: docs/109-phase-11.5.3-and-11.5.3.1-acceptance-closure.md
+11.5.4 implementation and accepted head: c996716aaad897c4e583a0d83b31b87bfece8e08
 11.5.4 implementation document: docs/110-phase-11.5.4-final-positive-zero-completion.md
+11.5.4 acceptance: Completed on 2026-08-03 after all 17 local/test matrix criteria passed
+11.5.4 closure document: docs/111-phase-11.5.4-acceptance-closure.md
 11.4 accepted implementation commit: 06e857df9d36e77c26557bb7b2057661979809dc
 11.4 implementation document: docs/99-phase-11.4-refund-authorization-and-tilopay-reconciliation.md
 11.4.1 correction document: docs/100-phase-11.4.1-observed-tilopay-contract-and-evidence-based-reconciliation.md
@@ -510,8 +513,8 @@ Subphase status:
 11.5.2.1 Admin availability datepicker and own-reservation exclusion UX — Completed
 11.5.3 Approval, requested-date hold, and adjustment payment — Completed
 11.5.3.1 Transaction resilience and admin datepicker positioning — Completed
-11.5.4 Final date-change and stay-extension completion — In progress
-11.5.5 Negative-difference and failed-completion refund integration — Not started
+11.5.4 Final date-change and stay-extension completion — Completed
+11.5.5 Negative-difference and failed-completion refund integration — In progress
 11.5.6 Acceptance tests and documentation — Not started
 11.6 Lifecycle notifications and admin operational history — Not started
 11.7 Validation and documentation closure — Not started
@@ -638,7 +641,6 @@ Phase 11 rules:
 - Migration, standard and extraordinary authorization, consult locking, portal fallback, tampering protection, idempotency, concurrency, financial-state, and audit acceptance passed. The closure record is docs/102-phase-11.4-refund-acceptance-and-documentation-closure.md.
 ```
 
-
 ### Phase 11.4 acceptance closure
 
 ```text
@@ -653,7 +655,6 @@ Phase 11 rules:
 - Accepted implementation commit: 06e857df9d36e77c26557bb7b2057661979809dc.
 - Closure record: docs/102-phase-11.4-refund-acceptance-and-documentation-closure.md.
 ```
-
 
 ### Phase 11.5.1 accepted strategy and pricing contract
 
@@ -677,7 +678,6 @@ Phase 11 rules:
 - The accepted strategy record is docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md.
 ```
 
-
 ### Phase 11.5.2 completed and accepted
 
 ```text
@@ -697,7 +697,6 @@ Phase 11 rules:
 - The backend matrix and the 11.5.2.1 reduced calendar matrix passed; 11.5.2 is completed and accepted at head 56023423f4545914f43856ea44398e8d90301820.
 ```
 
-
 ### Phase 11.5.2.1 completed and accepted
 
 ```text
@@ -716,34 +715,49 @@ Phase 11 rules:
 - Closure record: docs/106-phase-11.5.2-and-11.5.2.1-acceptance-closure.md.
 ```
 
-
-
-### Phase 11.5.3 implementation accepted functionally; correction pending
+### Phase 11.5.3 and 11.5.3.1 completed and accepted
 
 ```text
 - Protected idempotent approval/rejection is implemented for pending DATE_CHANGE and STAY_EXTENSION requests.
 - Positive approval creates one independent 60-minute ACTIVE LifecycleRequestHold and one exact PENDING Payment with purpose LIFECYCLE_ADJUSTMENT.
-- Zero and negative approvals remain APPROVED without applying dates; negative approval first checks exact remaining captured refund balance.
+- Zero and negative approvals remain APPROVED without applying dates in 11.5.3; negative approval first checks exact remaining captured refund balance.
 - An AES-256-GCM opaque handoff binds request, hold, payment, purpose, and expiration without guest-email/reservation lookup.
 - Existing Tilopay SDK session, preflight, telemetry, redirect, and server validation branch safely for lifecycle adjustment tokens.
-- Approved adjustment payments never confirm a new reservation, mutate dates/prices/status/expiresAt, or create reservation-confirmation/arrival email intents.
 - Hold expiry converges hold/request/pending-payment state without touching Reservation.expiresAt or the public 15-minute hold.
-- The implementation record is docs/107-phase-11.5.3-approval-hold-and-adjustment-payment.md.
-- The complete local/test acceptance matrix passed on 2026-08-03, including ES/EN parity and `npm run build`.
-- Repeated manual operation then exposed intermittent first-attempt `500` responses in request creation and approval, while immediate replay succeeds, plus incorrect popup anchoring below helper/status copy.
-- Phase 11.5.3 closed after the 11.5.3.1 transaction-resilience and datepicker-positioning correction passed at head ece97aa72aec1b0c1eb13f2d21b6b8d862d9c4d4.
-- The correction record is docs/108-phase-11.5.3.1-transaction-resilience-and-datepicker-positioning.md.
+- Explicit 10-second maxWait, 20-second timeout, and bounded P2034 retries removed first-attempt transaction failures.
+- The datepicker popup is anchored directly below its trigger.
+- The complete local/test matrix and focused correction passed on 2026-08-03.
+- Accepted head: ece97aa72aec1b0c1eb13f2d21b6b8d862d9c4d4.
+- Closure record: docs/109-phase-11.5.3-and-11.5.3.1-acceptance-closure.md.
 ```
 
-
-### Phase 11.5.3.1 correction prepared
+### Phase 11.5.4 completed and accepted
 
 ```text
-- DATE_CHANGE/STAY_EXTENSION creation and approval continue using Serializable transactions, but now define a bounded 10-second connection wait and 20-second interactive timeout instead of Prisma's implicit defaults.
-- P2034 serialization failures retry the complete idempotent transaction up to three attempts with bounded delay before existing conflict recovery runs.
-- The availability datepicker popup is anchored to the trigger wrapper, so it opens immediately below the input and no longer below helper/status text.
-- No lifecycle business rule, Payment/Hold/Reservation state, database schema, dependency, environment variable, visible copy, public 15-minute hold, or PMS behavior changes.
-- Focused local/test acceptance passed on 2026-08-03; 11.5.3 and 11.5.3.1 are completed and 11.5.4 is active.
+- Positive requests complete only after one exact APPROVED LIFECYCLE_ADJUSTMENT Payment and one matching active unexpired hold pass final validation.
+- Zero-difference requests complete atomically inside the approval transaction with no Payment or hold.
+- The shared Serializable completion transaction applies requested Reservation dates/pricing, preserves Reservation.id, CONFIRMED, and confirmedAt, completes the request, and releases a positive hold.
+- Final availability excludes only the current Reservation and its own hold; all unrelated blockers, buffers, and composed dependencies remain authoritative.
+- Redirect replay and concurrent completion are idempotent and produce one Reservation mutation, one COMPLETED transition, and one RELEASED hold.
+- Stale snapshots, unavailable dates, invalid holds, invalid Payments, and timing-boundary failures preserve the original Reservation.
+- Old PENDING/FAILED arrival intents become SKIPPED, SENT history remains, and at most one new eligible intent is created for the updated check-in.
+- The completed opaque guest page hides checkout and cannot create another payment attempt.
+- No lifecycle email is created; the public checkout and 15-minute hold remain unchanged.
+- All 17 local/test acceptance criteria passed on 2026-08-03, including ES/EN parity and npm run build.
+- Implementation and accepted head: c996716aaad897c4e583a0d83b31b87bfece8e08.
+- Implementation record: docs/110-phase-11.5.4-final-positive-zero-completion.md.
+- Closure record: docs/111-phase-11.5.4-acceptance-closure.md.
+```
+
+### Phase 11.5.5 active scope
+
+```text
+- Add RefundAuthorizationType.LIFECYCLE_ADJUSTMENT persistence and migration.
+- Complete negative-difference requests with an exact lifecycle-adjustment Refund authorization.
+- Add compensating refunds for APPROVED adjustment Payments whose final date mutation cannot commit.
+- Reuse the accepted 11.4 evidence-based refund and reconciliation boundaries without weakening 11.5.4 completion guarantees.
+- Preserve Reservation.id, CONFIRMED status, original dates when positive completion fails, and updated dates after successful negative completion.
+- Keep lifecycle emails deferred to 11.6 and the public 15-minute hold unchanged.
 ```
 
 ### Phase 11.6 requirements accepted during 11.4.2
@@ -763,25 +777,3 @@ Phase 11 rules:
 ## Phase 12 — Production Readiness
 
 Status: **Not started**
-
-
-### Phase 11.5.3 and 11.5.3.1 completed and accepted
-
-```text
-- Approval/rejection, exact positive adjustment payment, independent 60-minute hold, opaque checkout, expiration, idempotency, concurrency, and public-regression acceptance passed.
-- The focused correction removed first-attempt create/decision failures and anchored the requested-date calendar directly below its trigger.
-- Accepted head: ece97aa72aec1b0c1eb13f2d21b6b8d862d9c4d4.
-- Closure record: docs/109-phase-11.5.3-and-11.5.3.1-acceptance-closure.md.
-```
-
-### Phase 11.5.4 implementation prepared
-
-```text
-- Positive requests complete only after one exact APPROVED LIFECYCLE_ADJUSTMENT Payment and one matching active unexpired hold pass final validation.
-- Zero-difference requests complete atomically inside the approval transaction with no Payment or hold.
-- The shared Serializable completion transaction applies requested Reservation dates/pricing, preserves CONFIRMED and confirmedAt, completes the request, and releases a positive hold.
-- Final availability excludes only the current Reservation and its own hold; all unrelated blockers, buffers, and composed dependencies remain authoritative.
-- Arrival instructions tied to the old check-in are superseded without creating lifecycle date-change/extension notifications.
-- Negative completion and failed-positive compensation remain assigned to 11.5.5.
-- Implementation record: docs/110-phase-11.5.4-final-positive-zero-completion.md.
-```
