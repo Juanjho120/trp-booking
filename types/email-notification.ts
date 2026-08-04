@@ -7,6 +7,50 @@ export type ReservationConfirmationNotificationType =
   | "RESERVATION_CONFIRMED"
   | "ADMIN_NEW_RESERVATION";
 
+export type LifecycleGuestNotificationType =
+  | "RESERVATION_CANCELLED"
+  | "RESERVATION_DATES_UPDATED"
+  | "STAY_EXTENSION_CONFIRMED"
+  | "REFUND_PROCESSED";
+
+export type LifecycleAdminNotificationType =
+  | "ADMIN_RESERVATION_CANCELLED"
+  | "ADMIN_RESERVATION_DATES_UPDATED"
+  | "ADMIN_STAY_EXTENSION_CONFIRMED"
+  | "ADMIN_REFUND_PROCESSED";
+
+export type LifecycleNotificationType =
+  | LifecycleGuestNotificationType
+  | LifecycleAdminNotificationType;
+
+export type LifecycleNotificationAudience = "guest" | "admin";
+
+export type LifecycleNotificationRelationKind =
+  | "lifecycle-request"
+  | "refund";
+
+export type LifecycleRequestNotificationDeduplicationInput = Readonly<{
+  type:
+    | "RESERVATION_CANCELLED"
+    | "ADMIN_RESERVATION_CANCELLED"
+    | "RESERVATION_DATES_UPDATED"
+    | "ADMIN_RESERVATION_DATES_UPDATED"
+    | "STAY_EXTENSION_CONFIRMED"
+    | "ADMIN_STAY_EXTENSION_CONFIRMED";
+  lifecycleRequestId: string;
+  recipient: string;
+}>;
+
+export type RefundNotificationDeduplicationInput = Readonly<{
+  type: "REFUND_PROCESSED" | "ADMIN_REFUND_PROCESSED";
+  refundId: string;
+  recipient: string;
+}>;
+
+export type LifecycleNotificationDeduplicationInput =
+  | LifecycleRequestNotificationDeduplicationInput
+  | RefundNotificationDeduplicationInput;
+
 export type ArrivalInstructionsNotificationIntent = Readonly<{
   outcome:
     | "created"

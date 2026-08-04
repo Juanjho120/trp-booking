@@ -11,6 +11,12 @@ export {
   EmailTemplateDataError,
 } from "@/emails";
 
+export {
+  buildLifecycleNotificationDeduplicationKey,
+  getLifecycleNotificationConfiguration,
+  isLifecycleNotificationType,
+  normalizeLifecycleNotificationRecipient,
+} from "./lifecycle-notification-contract";
 export { processEmailNotifications } from "./process-email-notifications";
 export { EmailProviderError } from "./provider";
 export { createResendEmailProvider } from "./resend-provider";
