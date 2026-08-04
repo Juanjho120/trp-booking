@@ -6,10 +6,10 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
-Current subphase: 11.5.5 Negative-difference and failed-completion refund integration — In progress
-Current focus: complete negative-difference DATE_CHANGE/STAY_EXTENSION requests with an exact lifecycle-adjustment Refund authorization and add compensating refunds for APPROVED adjustment Payments whose final date mutation cannot commit
-Last updated: 2026-08-03
-Last completed subphase: 11.5.4 Final date-change and stay-extension completion
+Current subphase: 11.5.6 Integrated acceptance and documentation closure — In progress
+Current focus: consolidate 11.5.2 through 11.5.5 acceptance evidence, execute a reduced integrated regression matrix, and close the complete authorized date-change and stay-extension feature
+Last updated: 2026-08-04
+Last completed subphase: 11.5.5 Negative-difference and failed-completion refund integration
 11.5.1 strategy base commit: 3d1487f31ca74fc5a41573b4ab206ce9ad838bb5
 11.5.1 strategy document: docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md
 11.5.1 accepted commit: e0b77658c74ee2d7a30c96f529d5f7f4451ab045
@@ -32,6 +32,12 @@ Last completed subphase: 11.5.4 Final date-change and stay-extension completion
 11.5.4 implementation document: docs/110-phase-11.5.4-final-positive-zero-completion.md
 11.5.4 functional matrix: Passed on 2026-08-03; all 17 criteria passed
 11.5.4 closure document: docs/111-phase-11.5.4-acceptance-closure.md
+11.5.5 implementation commit: e1e62859bc76a19ba0afb79e397f30b4e8c396fa
+11.5.5 type-safety follow-ups: 5abf48d8ccb5c9f5484de0dca28ca1a546bf8b80, da7bd89acb623da6d7788e3cc9d392710cefc145
+11.5.5 accepted head: da7bd89acb623da6d7788e3cc9d392710cefc145
+11.5.5 implementation document: docs/112-phase-11.5.5-negative-and-compensating-lifecycle-refunds.md
+11.5.5 functional matrix: Passed on 2026-08-04; all 24 criteria passed
+11.5.5 closure document: docs/113-phase-11.5.5-acceptance-closure.md
 11.4 accepted implementation commit: 06e857df9d36e77c26557bb7b2057661979809dc
 11.4 implementation document: docs/99-phase-11.4-refund-authorization-and-tilopay-reconciliation.md
 11.4.1 correction document: docs/100-phase-11.4.1-observed-tilopay-contract-and-evidence-based-reconciliation.md
@@ -402,25 +408,37 @@ Implementation document: docs/110-phase-11.5.4-final-positive-zero-completion.md
 Closure document: docs/111-phase-11.5.4-acceptance-closure.md.
 ```
 
-## Active Work — Phase 11.5.5
-
 ### Phase 11.5.5 — Negative-Difference and Failed-Completion Refund Integration
+
+Status: **Completed and accepted**
+
+```text
+Negative shortened-stay DATE_CHANGE requests apply requested dates/pricing and create one exact lifecycle-adjustment Refund against the initial Payment.
+STAY_EXTENSION preserves check-in, moves check-out later, and prices only added nights; reducing nights is DATE_CHANGE.
+Approved adjustment Payments whose final mutation cannot commit preserve original dates and create one exact compensating Refund.
+Failed negative Refunds preserve completed dates; failed compensation preserves the approved adjustment Payment and original Reservation.
+Replay, concurrency, evidence locking, balance protection, arrival supersession, public-hold regression, no-lifecycle-email boundary, and ES/EN parity passed.
+All 24 acceptance criteria passed on 2026-08-04.
+Accepted head: da7bd89acb623da6d7788e3cc9d392710cefc145.
+Implementation record: docs/112-phase-11.5.5-negative-and-compensating-lifecycle-refunds.md.
+Closure record: docs/113-phase-11.5.5-acceptance-closure.md.
+```
+
+## Active Work — Phase 11.5.6
+
+### Phase 11.5.6 — Integrated Acceptance and Documentation Closure
 
 Status: **In progress**
 
 Accepted scope:
 
 ```text
-Add RefundAuthorizationType.LIFECYCLE_ADJUSTMENT persistence and migration.
-Complete negative-difference requests with an exact lifecycle-adjustment Refund authorization.
-Add compensating refunds for APPROVED adjustment Payments whose final date mutation cannot commit.
-Reuse the accepted 11.4 evidence-based provider execution and reconciliation boundaries.
-Preserve Reservation.id and CONFIRMED status.
-Keep original dates when a positive completion fails after payment approval.
-Keep updated dates after a successful negative completion even if the refund later fails or requires reconciliation.
-Keep lifecycle emails deferred to 11.6.
-Keep the public 15-minute hold and separate 60-minute lifecycle hold unchanged.
-Do not add guest self-service mutation, card-data handling, hard deletion, or PMS behavior.
+Consolidate acceptance evidence from 11.5.2 through 11.5.5 instead of repeating every subphase matrix.
+Run a reduced integrated end-to-end matrix across positive, zero, negative, and failed-positive compensation branches.
+Reconfirm independent 15-minute public and 60-minute lifecycle holds.
+Reconfirm pricing, availability, preparation buffers, composed dependencies, idempotency/concurrency, historical preservation, arrival supersession, and lifecycle-email deferral.
+Reconcile README, phase plan, progress log, implementation records, accepted heads, and closure documents.
+Introduce no application code unless an integrated regression exposes a defect.
 ```
 
 ## Continuity Notes for New Conversations
@@ -463,6 +481,8 @@ docs/108-phase-11.5.3.1-transaction-resilience-and-datepicker-positioning.md
 docs/109-phase-11.5.3-and-11.5.3.1-acceptance-closure.md
 docs/110-phase-11.5.4-final-positive-zero-completion.md
 docs/111-phase-11.5.4-acceptance-closure.md
+docs/112-phase-11.5.5-negative-and-compensating-lifecycle-refunds.md
+docs/113-phase-11.5.5-acceptance-closure.md
 lib/admin/reservation-cancellation.ts
 lib/admin/reservation-date-mutation.ts
 lib/reservations/date-mutation-completion.ts
