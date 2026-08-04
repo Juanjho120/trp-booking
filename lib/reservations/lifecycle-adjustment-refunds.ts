@@ -507,7 +507,12 @@ export async function compensateApprovedLifecycleAdjustmentPayment(
           request.status === ReservationLifecycleRequestStatus.EXPIRED
             ? "EXPIRED"
             : "FAILED",
-        holdStatus: request.hold?.status ?? null,
+        holdStatus:
+          request.hold?.status === LifecycleRequestHoldStatus.EXPIRED
+            ? "EXPIRED"
+            : request.hold?.status === LifecycleRequestHoldStatus.RELEASED
+              ? "RELEASED"
+              : null,
       };
     }
 
