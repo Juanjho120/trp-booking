@@ -6,10 +6,13 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
-Current subphase: 11.6 Lifecycle notifications and admin operational history — In progress
-Current focus: define and implement typed bilingual lifecycle notifications, post-commit delivery orchestration, permanent deduplication, and protected operational history using the accepted Phase 10 email foundation
+Current subphase: 11.6.2 Bilingual lifecycle email templates — In progress
+Current focus: validate the eight bilingual guest/admin HTML and plain-text lifecycle template builders without creating intents, transition hooks, or Resend delivery
 Last updated: 2026-08-04
-Last completed subphase: 11.5.6 Integrated acceptance and documentation closure
+Last completed subphase: 11.6.1 Notification contract and persistence relations
+11.6.1 accepted commit: 8996de10fadd676b1de41951e528c84aa6583f03
+11.6.1 implementation document: docs/115-phase-11.6.1-lifecycle-notification-contract-and-persistence-relations.md
+11.6.2 implementation document: docs/116-phase-11.6.2-bilingual-lifecycle-email-templates.md
 11.5.1 strategy base commit: 3d1487f31ca74fc5a41573b4ab206ce9ad838bb5
 11.5.1 strategy document: docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md
 11.5.1 accepted commit: e0b77658c74ee2d7a30c96f529d5f7f4451ab045
@@ -441,24 +444,37 @@ Accepted feature head: d1f43a34a27ba09b68ceee993581a11649cb1508.
 Closure document: docs/114-phase-11.5-integrated-acceptance-and-documentation-closure.md.
 ```
 
-## Active Work — Phase 11.6
+## Completed Work — Phase 11.6.1
 
-### Phase 11.6 — Lifecycle Notifications and Admin Operational History
+### Phase 11.6.1 — Notification Contract and Persistence Relations
 
-Status: **In progress**
-
-Accepted scope:
+Status: **Completed and accepted**
 
 ```text
-Define and implement bilingual guest/admin cancellation, refund, date-update, and stay-extension notifications.
-Add typed optional lifecycleRequestId/refundId EmailNotification relations where required.
-Create intents transactionally only after the underlying lifecycle transition commits.
-Reuse the accepted Phase 10 post-commit Resend, permanent deduplication, bounded retry, stale-claim recovery, test-recipient routing, manual recovery, and protected history foundation.
-Do not promise a refund in cancellation communication before APPROVED reconciliation.
-Create refund notifications only after Payment becomes PARTIALLY_REFUNDED or REFUNDED.
-Create date-update and extension notifications only after the request becomes COMPLETED.
-Expose typed lifecycle request, adjustment Payment, Refund, and notification history in protected reservation detail.
-Keep guest self-service mutation, raw provider exposure, hard deletion, card-data handling, and PMS behavior out of scope.
+The eight guest/admin lifecycle notification types and authoritative triggers are frozen.
+EmailNotification has optional typed lifecycleRequestId and refundId relations while reservationId remains mandatory.
+Stable normalized per-recipient deduplication keys are centralized for lifecycle-request and refund sources.
+The migration preserved existing history and performed no historical backfill.
+Prisma migration/generation, lint, build, and functional validation passed.
+Accepted commit: 8996de10fadd676b1de41951e528c84aa6583f03.
+Implementation document: docs/115-phase-11.6.1-lifecycle-notification-contract-and-persistence-relations.md.
+```
+
+## Active Work — Phase 11.6.2
+
+### Phase 11.6.2 — Bilingual Lifecycle Email Templates
+
+Status: **In progress — implementation prepared; local/test acceptance pending**
+
+```text
+Adds eight branded guest/admin HTML and plain-text template builders.
+Reuses the accepted Phase 10 layout and centralized ES/EN catalog copy.
+Adds strict lifecycle template inputs, Zod validation, safe normalized view models, localized dates/currency, and protected URL validation.
+Guest output uses Reservation.preferredLocale and excludes internal/admin/provider/card/PMS content.
+Admin output includes bounded request/payment/refund context and the protected reservation-detail URL.
+Cancellation output does not promise an unconfirmed refund; refund builders represent only an already approved result.
+No EmailNotification row, transition hook, Resend call, retry change, migration, dependency, or environment variable is added.
+Implementation document: docs/116-phase-11.6.2-bilingual-lifecycle-email-templates.md.
 ```
 
 ## Continuity Notes for New Conversations
@@ -504,6 +520,8 @@ docs/111-phase-11.5.4-acceptance-closure.md
 docs/112-phase-11.5.5-negative-and-compensating-lifecycle-refunds.md
 docs/113-phase-11.5.5-acceptance-closure.md
 docs/114-phase-11.5-integrated-acceptance-and-documentation-closure.md
+docs/115-phase-11.6.1-lifecycle-notification-contract-and-persistence-relations.md
+docs/116-phase-11.6.2-bilingual-lifecycle-email-templates.md
 lib/admin/reservation-cancellation.ts
 lib/admin/reservation-date-mutation.ts
 lib/reservations/date-mutation-completion.ts

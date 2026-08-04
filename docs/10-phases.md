@@ -15,9 +15,12 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
-Current subphase: 11.6 Lifecycle notifications and admin operational history — In progress
-Current focus: define and implement typed bilingual lifecycle notifications, post-commit delivery orchestration, permanent deduplication, and protected operational history using the accepted Phase 10 email foundation
-Last completed subphase: 11.5.6 Integrated acceptance and documentation closure
+Current subphase: 11.6.2 Bilingual lifecycle email templates — In progress
+Current focus: validate the eight bilingual guest/admin HTML and plain-text lifecycle template builders without creating intents, transition hooks, or Resend delivery
+Last completed subphase: 11.6.1 Notification contract and persistence relations
+11.6.1 accepted commit: 8996de10fadd676b1de41951e528c84aa6583f03
+11.6.1 implementation document: docs/115-phase-11.6.1-lifecycle-notification-contract-and-persistence-relations.md
+11.6.2 implementation document: docs/116-phase-11.6.2-bilingual-lifecycle-email-templates.md
 11.5.1 strategy base commit: 3d1487f31ca74fc5a41573b4ab206ce9ad838bb5
 11.5.1 strategy document: docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md
 11.5.1 accepted commit: e0b77658c74ee2d7a30c96f529d5f7f4451ab045
@@ -526,6 +529,10 @@ Subphase status:
 11.5.5 Negative-difference and failed-completion refund integration — Completed
 11.5.6 Integrated acceptance and documentation closure — Completed
 11.6 Lifecycle notifications and admin operational history — In progress
+11.6.1 Notification contract and persistence relations — Completed
+11.6.2 Bilingual lifecycle email templates — In progress
+11.6.3 Transactional intent orchestration and delivery — Not started
+11.6.4 Protected operational history and acceptance — Not started
 11.7 Validation and documentation closure — Not started
 ```
 
@@ -785,18 +792,30 @@ Phase 11 rules:
 - Closure record: docs/114-phase-11.5-integrated-acceptance-and-documentation-closure.md.
 ```
 
-### Phase 11.6 active scope
+### Phase 11.6.1 result
 
 ```text
-- Add bilingual guest/admin cancellation, refund, date-update, and stay-extension notification contracts.
-- Add typed optional lifecycleRequestId/refundId EmailNotification relations where required.
-- Create notification intents transactionally only after the matching lifecycle transition commits.
-- Reuse the Phase 10 post-commit Resend adapter, permanent deduplication, bounded retry, stale-claim recovery, test-recipient routing, and protected delivery history.
-- Send cancellation notifications only after cancellation commit and without promising an unconfirmed refund.
-- Send refund notifications only after APPROVED reconciliation changes Payment to PARTIALLY_REFUNDED or REFUNDED.
-- Send date-update and stay-extension notifications only after the date mutation is COMPLETED.
-- Add protected typed lifecycle request, adjustment Payment, Refund, and notification history without generic metadata editing.
-- Keep guest self-service mutation, raw provider exposure, card data, hard deletion, and PMS behavior out of scope.
+- Added the four administrative EmailNotificationType values required by the eight-email contract.
+- Added nullable lifecycleRequestId and refundId links with indexed ON DELETE SET NULL foreign keys.
+- Added centralized typed metadata and deduplication-key rules for all guest/admin lifecycle events.
+- Preserved mandatory reservation ownership and all existing notification history.
+- Performed no historical backfill and activated no template or delivery behavior.
+- Accepted commit: 8996de10fadd676b1de41951e528c84aa6583f03.
+- Implementation record: docs/115-phase-11.6.1-lifecycle-notification-contract-and-persistence-relations.md.
+```
+
+### Phase 11.6.2 implementation prepared
+
+```text
+- Adds eight bilingual builders: guest/admin cancellation, date update, stay extension, and approved refund.
+- Produces responsive branded HTML and plain-text alternatives through the accepted Phase 10 email components.
+- Uses strict Zod validation, Guatemala-time formatting, localized currency/date output, and safe URL validation.
+- Reuses copy from messages/es.ts and messages/en.ts without hardcoded visible template text.
+- Guest templates enforce the reservation preferred locale and exclude protected admin context.
+- Admin templates include bounded request/payment/refund context and the protected reservation-detail URL.
+- Cancellation copy never promises an unconfirmed refund; refund copy exists only for an already APPROVED result supplied by later orchestration.
+- Adds no intent creation, lifecycle transaction hook, provider call, retry change, schema migration, environment variable, dependency, or PMS behavior.
+- Implementation record: docs/116-phase-11.6.2-bilingual-lifecycle-email-templates.md.
 ```
 
 ### Phase 11.6 requirements accepted during 11.4.2
