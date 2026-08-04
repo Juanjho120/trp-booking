@@ -8,6 +8,7 @@ import {
   getAdminSessionActor,
 } from "@/lib/admin";
 import { decideAdminNegativeDateMutationRequestIfApplicable } from "@/lib/admin/reservation-date-mutation-negative";
+import { deliverLifecycleRequestNotificationsBestEffort } from "@/lib/email";
 import {
   adminDateMutationDecisions,
   type AdminDateMutationErrorCode,
@@ -114,6 +115,16 @@ export async function POST(request: Request, context: RouteContext) {
     const decisionResult =
       negativeDecision ??
       (await decideAdminDateMutationRequest(decisionInput, actor));
+
+    if (
+      decisionInput.decision === "APPROVE" &&
+      !decisionResult.alreadyProcessed &&
+      decisionResult.request.status === "COMPLETED"
+    ) {
+      await deliverLifecycleRequestNotificationsBestEffort(
+        decisionResult.request.id,
+      );
+    }
 
     return adminApiSuccessResponse({ decisionResult });
   } catch (error) {

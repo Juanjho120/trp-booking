@@ -18,6 +18,7 @@ import {
   dateOnlyFromDate,
 } from "@/lib/availability/rules";
 import {
+  createLifecycleRequestNotificationIntents,
   getArrivalCheckInDateTime,
   getArrivalInstructionsScheduledFor,
 } from "@/lib/email";
@@ -712,6 +713,15 @@ export async function completeApprovedNegativeDateMutationInTransaction(
     );
   }
 
+  const lifecycleNotificationIntents =
+    await createLifecycleRequestNotificationIntents(transaction, {
+      reservationId: request.reservationId,
+      lifecycleRequestId: request.id,
+      requestType: request.requestType,
+      guestEmail: request.reservation.guestEmail,
+      preferredLocale: request.reservation.preferredLocale,
+    });
+
   await transaction.adminAuditLog.create({
     data: {
       userId: actorId,
@@ -745,7 +755,11 @@ export async function completeApprovedNegativeDateMutationInTransaction(
         reservationUpdatedAt: updatedReservation.updatedAt.toISOString(),
         skippedArrivalNotifications: arrival.skippedCount,
         arrivalNotificationId: arrival.notificationId,
-        lifecycleNotificationCreated: false,
+        lifecycleNotificationCreated: true,
+        lifecycleNotificationCount: lifecycleNotificationIntents.length,
+        lifecycleNotificationIds: lifecycleNotificationIntents.map(
+          ({ id }) => id,
+        ),
       },
     },
   });

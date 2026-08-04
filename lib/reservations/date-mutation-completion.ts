@@ -19,6 +19,8 @@ import {
 } from "@/lib/availability/rules";
 import { prisma } from "@/lib/db/prisma";
 import {
+  createLifecycleRequestNotificationIntents,
+  deliverLifecycleNotificationsBestEffort,
   getArrivalCheckInDateTime,
   getArrivalInstructionsScheduledFor,
 } from "@/lib/email";
@@ -203,6 +205,11 @@ type PositiveArtifacts = Readonly<{
 type ArrivalIntentResult = Readonly<{
   skippedCount: number;
   notificationId: string | null;
+}>;
+
+type CompletionTransactionResult = Readonly<{
+  completionResult: ReservationDateMutationCompletionResult;
+  notificationIds: readonly string[];
 }>;
 
 function wait(milliseconds: number): Promise<void> {
@@ -754,7 +761,7 @@ async function completeRequestInTransaction(
     expectedPaymentId: string | null;
     now: Date;
   }>,
-): Promise<ReservationDateMutationCompletionResult> {
+): Promise<CompletionTransactionResult> {
   const request = await transaction.reservationLifecycleRequest.findUnique({
     where: { id: input.lifecycleRequestId.trim() },
     select: completionRequestSelect,
@@ -772,12 +779,15 @@ async function completeRequestInTransaction(
   const snapshot = requestedSnapshot(request);
 
   if (request.status === ReservationLifecycleRequestStatus.COMPLETED) {
-    return assertCompletedState(
-      request,
-      snapshot,
-      branch,
-      input.expectedPaymentId,
-    );
+    return {
+      completionResult: assertCompletedState(
+        request,
+        snapshot,
+        branch,
+        input.expectedPaymentId,
+      ),
+      notificationIds: [],
+    };
   }
 
   if (branch === "NEGATIVE") {
@@ -909,6 +919,14 @@ async function completeRequestInTransaction(
     );
   }
 
+  const lifecycleNotificationIntents =
+    await createLifecycleRequestNotificationIntents(transaction, {
+      reservationId: request.reservationId,
+      lifecycleRequestId: request.id,
+      requestType: request.requestType,
+      guestEmail: request.reservation.guestEmail,
+      preferredLocale: request.reservation.preferredLocale,
+    });
   const actorId = request.reviewedByAdminId ?? request.createdByAdminId;
   const actorEmail = request.reviewedByAdmin?.email ?? null;
 
@@ -966,24 +984,31 @@ async function completeRequestInTransaction(
         reservationUpdatedAt: updatedReservation.updatedAt.toISOString(),
         skippedArrivalNotifications: arrival.skippedCount,
         arrivalNotificationId: arrival.notificationId,
-        lifecycleNotificationCreated: false,
+        lifecycleNotificationCreated: true,
+        lifecycleNotificationCount: lifecycleNotificationIntents.length,
+        lifecycleNotificationIds: lifecycleNotificationIntents.map(
+          ({ id }) => id,
+        ),
       },
     },
   });
 
   return {
-    lifecycleRequestId: request.id,
-    reservationId: request.reservationId,
-    requestType,
-    financialBranch: branch,
-    paymentId: positiveArtifacts?.paymentId ?? null,
-    holdId: positiveArtifacts?.holdId ?? null,
-    completedAt: input.now.toISOString(),
-    reservationUpdatedAt: updatedReservation.updatedAt.toISOString(),
-    confirmedAt: updatedReservation.confirmedAt.toISOString(),
-    skippedArrivalNotifications: arrival.skippedCount,
-    arrivalNotificationId: arrival.notificationId,
-    alreadyCompleted: false,
+    completionResult: {
+      lifecycleRequestId: request.id,
+      reservationId: request.reservationId,
+      requestType,
+      financialBranch: branch,
+      paymentId: positiveArtifacts?.paymentId ?? null,
+      holdId: positiveArtifacts?.holdId ?? null,
+      completedAt: input.now.toISOString(),
+      reservationUpdatedAt: updatedReservation.updatedAt.toISOString(),
+      confirmedAt: updatedReservation.confirmedAt.toISOString(),
+      skippedArrivalNotifications: arrival.skippedCount,
+      arrivalNotificationId: arrival.notificationId,
+      alreadyCompleted: false,
+    },
+    notificationIds: lifecycleNotificationIntents.map(({ id }) => id),
   };
 }
 
@@ -999,13 +1024,13 @@ export async function completeApprovedZeroDateMutationInTransaction(
     now,
   });
 
-  if (result.financialBranch !== "ZERO") {
+  if (result.completionResult.financialBranch !== "ZERO") {
     throw new ReservationDateMutationCompletionError(
       "ADMIN_DATE_MUTATION_COMPLETION_CONFLICT",
     );
   }
 
-  return result;
+  return result.completionResult;
 }
 
 export async function completePaidDateMutation(
@@ -1020,33 +1045,41 @@ export async function completePaidDateMutation(
     );
   }
 
-  return runSerializableCompletionTransaction(async (transaction) => {
-    const payment = await transaction.payment.findUnique({
-      where: { id: normalizedPaymentId },
-      select: {
-        id: true,
-        lifecycleRequestId: true,
-        purpose: true,
-        status: true,
-      },
-    });
+  const transactionResult = await runSerializableCompletionTransaction(
+    async (transaction) => {
+      const payment = await transaction.payment.findUnique({
+        where: { id: normalizedPaymentId },
+        select: {
+          id: true,
+          lifecycleRequestId: true,
+          purpose: true,
+          status: true,
+        },
+      });
 
-    if (
-      !payment ||
-      !payment.lifecycleRequestId ||
-      payment.purpose !== PaymentPurpose.LIFECYCLE_ADJUSTMENT ||
-      payment.status !== PaymentStatus.APPROVED
-    ) {
-      throw new ReservationDateMutationCompletionError(
-        "ADMIN_DATE_MUTATION_ADJUSTMENT_PAYMENT_NOT_APPROVED",
-      );
-    }
+      if (
+        !payment ||
+        !payment.lifecycleRequestId ||
+        payment.purpose !== PaymentPurpose.LIFECYCLE_ADJUSTMENT ||
+        payment.status !== PaymentStatus.APPROVED
+      ) {
+        throw new ReservationDateMutationCompletionError(
+          "ADMIN_DATE_MUTATION_ADJUSTMENT_PAYMENT_NOT_APPROVED",
+        );
+      }
 
-    return completeRequestInTransaction(transaction, {
-      lifecycleRequestId: payment.lifecycleRequestId,
-      trigger: "APPROVED_ADJUSTMENT_PAYMENT",
-      expectedPaymentId: payment.id,
-      now,
-    });
-  });
+      return completeRequestInTransaction(transaction, {
+        lifecycleRequestId: payment.lifecycleRequestId,
+        trigger: "APPROVED_ADJUSTMENT_PAYMENT",
+        expectedPaymentId: payment.id,
+        now,
+      });
+    },
+  );
+
+  await deliverLifecycleNotificationsBestEffort(
+    transactionResult.notificationIds,
+  );
+
+  return transactionResult.completionResult;
 }

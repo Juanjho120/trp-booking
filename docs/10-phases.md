@@ -15,12 +15,13 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
-Current subphase: 11.6.2 Bilingual lifecycle email templates — In progress
-Current focus: validate the eight bilingual guest/admin HTML and plain-text lifecycle template builders without creating intents, transition hooks, or Resend delivery
-Last completed subphase: 11.6.1 Notification contract and persistence relations
-11.6.1 accepted commit: 8996de10fadd676b1de41951e528c84aa6583f03
-11.6.1 implementation document: docs/115-phase-11.6.1-lifecycle-notification-contract-and-persistence-relations.md
+Current subphase: 11.6.3 Transactional intent orchestration and delivery — In progress
+Current focus: create durable lifecycle intents transactionally and deliver them after commit through the accepted Phase 10 pipeline
+Last completed subphase: 11.6.2 Bilingual lifecycle email templates
+11.6.2 accepted commit: 6eb4a18c9e7476266cae8c627318fa83ff27fb0d
+11.6.2 acceptance: Technical lint/build acceptance completed; manual rendering and inbox checks consolidated into 11.6.3
 11.6.2 implementation document: docs/116-phase-11.6.2-bilingual-lifecycle-email-templates.md
+11.6.3 implementation document: docs/117-phase-11.6.3-transactional-intent-orchestration-and-delivery.md
 11.5.1 strategy base commit: 3d1487f31ca74fc5a41573b4ab206ce9ad838bb5
 11.5.1 strategy document: docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md
 11.5.1 accepted commit: e0b77658c74ee2d7a30c96f529d5f7f4451ab045
@@ -530,8 +531,8 @@ Subphase status:
 11.5.6 Integrated acceptance and documentation closure — Completed
 11.6 Lifecycle notifications and admin operational history — In progress
 11.6.1 Notification contract and persistence relations — Completed
-11.6.2 Bilingual lifecycle email templates — In progress
-11.6.3 Transactional intent orchestration and delivery — Not started
+11.6.2 Bilingual lifecycle email templates — Completed
+11.6.3 Transactional intent orchestration and delivery — In progress
 11.6.4 Protected operational history and acceptance — Not started
 11.7 Validation and documentation closure — Not started
 ```
@@ -804,18 +805,25 @@ Phase 11 rules:
 - Implementation record: docs/115-phase-11.6.1-lifecycle-notification-contract-and-persistence-relations.md.
 ```
 
-### Phase 11.6.2 implementation prepared
+### Phase 11.6.2 completed and accepted
 
 ```text
-- Adds eight bilingual builders: guest/admin cancellation, date update, stay extension, and approved refund.
-- Produces responsive branded HTML and plain-text alternatives through the accepted Phase 10 email components.
-- Uses strict Zod validation, Guatemala-time formatting, localized currency/date output, and safe URL validation.
-- Reuses copy from messages/es.ts and messages/en.ts without hardcoded visible template text.
-- Guest templates enforce the reservation preferred locale and exclude protected admin context.
-- Admin templates include bounded request/payment/refund context and the protected reservation-detail URL.
-- Cancellation copy never promises an unconfirmed refund; refund copy exists only for an already APPROVED result supplied by later orchestration.
-- Adds no intent creation, lifecycle transaction hook, provider call, retry change, schema migration, environment variable, dependency, or PMS behavior.
+- Eight bilingual guest/admin lifecycle template builders are committed.
+- Lint and build passed at 6eb4a18c9e7476266cae8c627318fa83ff27fb0d.
+- Manual rendering, content, and inbox acceptance is consolidated into 11.6.3 to avoid duplicate execution.
 - Implementation record: docs/116-phase-11.6.2-bilingual-lifecycle-email-templates.md.
+```
+
+### Phase 11.6.3 implementation prepared
+
+```text
+- Durable guest/admin intents are created in the accepted cancellation, date-mutation/extension completion, and approved-refund transactions.
+- Provider delivery begins only after commit through the accepted Phase 10 Resend, claim, retry, stale-recovery, test-routing, and provider-idempotency foundation.
+- Refund emails require Refund APPROVED and Payment PARTIALLY_REFUNDED or REFUNDED.
+- Replay and concurrent terminal transitions reuse permanent per-recipient deduplication keys.
+- Manual resend preserves lifecycleRequestId/refundId ownership and dispatches through the lifecycle templates.
+- No historical backfill, schema migration, dependency, environment variable, guest mutation, or PMS behavior is added.
+- Implementation record: docs/117-phase-11.6.3-transactional-intent-orchestration-and-delivery.md.
 ```
 
 ### Phase 11.6 requirements accepted during 11.4.2

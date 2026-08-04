@@ -12,7 +12,11 @@ import {
 } from "@prisma/client";
 
 import { prisma } from "@/lib/db/prisma";
-import { getArrivalCheckInDateTime } from "@/lib/email";
+import {
+  createLifecycleRequestNotificationIntents,
+  deliverLifecycleNotificationsBestEffort,
+  getArrivalCheckInDateTime,
+} from "@/lib/email";
 import {
   calculateStandardCancellationPolicyTiming,
   CANCELLATION_POLICY_TIMEZONE,
@@ -152,12 +156,19 @@ const requestForDecisionSelect = {
       confirmedAt: true,
       cancelledAt: true,
       updatedAt: true,
+      guestEmail: true,
+      preferredLocale: true,
     },
   },
 } satisfies Prisma.ReservationLifecycleRequestSelect;
 
 type RequestForDecision = Prisma.ReservationLifecycleRequestGetPayload<{
   select: typeof requestForDecisionSelect;
+}>;
+
+type CancellationDecisionTransactionResult = Readonly<{
+  decisionResult: AdminCancellationDecisionResult;
+  notificationIds: readonly string[];
 }>;
 
 export class AdminReservationCancellationError extends Error {
@@ -627,7 +638,7 @@ function assertPendingDecisionRequest(
 async function decideCancellationRequestTransaction(
   input: DecideAdminCancellationRequestInput,
   actor: AdminActor,
-): Promise<AdminCancellationDecisionResult> {
+): Promise<CancellationDecisionTransactionResult> {
   return prisma.$transaction(
     async (transaction) => {
       const adminActor = await resolveAdminActor(transaction, actor);
@@ -649,12 +660,15 @@ async function decideCancellationRequestTransaction(
         request.status === ReservationLifecycleRequestStatus.COMPLETED
       ) {
         return {
-          request: toAdminCancellationRequestSummary(request),
-          decision: input.decision,
-          reservationStatus: request.reservation.status,
-          cancelledAt: request.reservation.cancelledAt?.toISOString() ?? null,
-          skippedArrivalNotifications: 0,
-          alreadyProcessed: true,
+          decisionResult: {
+            request: toAdminCancellationRequestSummary(request),
+            decision: input.decision,
+            reservationStatus: request.reservation.status,
+            cancelledAt: request.reservation.cancelledAt?.toISOString() ?? null,
+            skippedArrivalNotifications: 0,
+            alreadyProcessed: true,
+          },
+          notificationIds: [],
         };
       }
 
@@ -663,12 +677,15 @@ async function decideCancellationRequestTransaction(
         request.status === ReservationLifecycleRequestStatus.REJECTED
       ) {
         return {
-          request: toAdminCancellationRequestSummary(request),
-          decision: input.decision,
-          reservationStatus: request.reservation.status,
-          cancelledAt: request.reservation.cancelledAt?.toISOString() ?? null,
-          skippedArrivalNotifications: 0,
-          alreadyProcessed: true,
+          decisionResult: {
+            request: toAdminCancellationRequestSummary(request),
+            decision: input.decision,
+            reservationStatus: request.reservation.status,
+            cancelledAt: request.reservation.cancelledAt?.toISOString() ?? null,
+            skippedArrivalNotifications: 0,
+            alreadyProcessed: true,
+          },
+          notificationIds: [],
         };
       }
 
@@ -677,6 +694,7 @@ async function decideCancellationRequestTransaction(
       let skippedArrivalNotifications = 0;
       let reservationStatus = request.reservation.status;
       let cancelledAt: Date | null = request.reservation.cancelledAt;
+      let lifecycleNotificationIntents: readonly { id: string }[] = [];
 
       if (input.decision === "APPROVE") {
         const reservationUpdate = await transaction.reservation.updateMany({
@@ -748,6 +766,14 @@ async function decideCancellationRequestTransaction(
             },
           });
 
+        lifecycleNotificationIntents =
+          await createLifecycleRequestNotificationIntents(transaction, {
+            reservationId: request.reservation.id,
+            lifecycleRequestId: request.id,
+            requestType: ReservationLifecycleRequestType.CANCELLATION,
+            guestEmail: request.reservation.guestEmail,
+            preferredLocale: request.reservation.preferredLocale,
+          });
         skippedArrivalNotifications = skippedNotifications.count;
         reservationStatus = ReservationStatus.CANCELLED;
         cancelledAt = decidedAt;
@@ -775,6 +801,11 @@ async function decideCancellationRequestTransaction(
               refundAuthorized: false,
               refundExecuted: false,
               skippedArrivalNotifications,
+              lifecycleNotificationCreated: true,
+              lifecycleNotificationCount: lifecycleNotificationIntents.length,
+              lifecycleNotificationIds: lifecycleNotificationIntents.map(
+                ({ id }) => id,
+              ),
             },
           },
         });
@@ -832,12 +863,15 @@ async function decideCancellationRequestTransaction(
       }
 
       return {
-        request: await readSummaryById(transaction, request.id),
-        decision: input.decision,
-        reservationStatus,
-        cancelledAt: cancelledAt?.toISOString() ?? null,
-        skippedArrivalNotifications,
-        alreadyProcessed: false,
+        decisionResult: {
+          request: await readSummaryById(transaction, request.id),
+          decision: input.decision,
+          reservationStatus,
+          cancelledAt: cancelledAt?.toISOString() ?? null,
+          skippedArrivalNotifications,
+          alreadyProcessed: false,
+        },
+        notificationIds: lifecycleNotificationIntents.map(({ id }) => id),
       };
     },
     {
@@ -851,7 +885,16 @@ export async function decideAdminCancellationRequest(
   actor: AdminActor,
 ): Promise<AdminCancellationDecisionResult> {
   try {
-    return await decideCancellationRequestTransaction(input, actor);
+    const transactionResult = await decideCancellationRequestTransaction(
+      input,
+      actor,
+    );
+
+    await deliverLifecycleNotificationsBestEffort(
+      transactionResult.notificationIds,
+    );
+
+    return transactionResult.decisionResult;
   } catch (error) {
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&

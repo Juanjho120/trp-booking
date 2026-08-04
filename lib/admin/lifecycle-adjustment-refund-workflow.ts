@@ -11,6 +11,10 @@ import {
 } from "@prisma/client";
 
 import { prisma } from "@/lib/db/prisma";
+import {
+  createRefundNotificationIntents,
+  deliverLifecycleNotificationsBestEffort,
+} from "@/lib/email/lifecycle-notifications";
 import { getTilopayEnv } from "@/lib/env/server";
 import {
   classifyTilopayConsultCandidate,
@@ -125,6 +129,8 @@ const lifecycleRefundForActionSelect = {
         select: {
           id: true,
           status: true,
+          guestEmail: true,
+          preferredLocale: true,
           updatedAt: true,
         },
       },
@@ -134,6 +140,11 @@ const lifecycleRefundForActionSelect = {
 
 type LifecycleRefundForAction = Prisma.RefundGetPayload<{
   select: typeof lifecycleRefundForActionSelect;
+}>;
+
+type LifecycleRefundReconciliationTransactionResult = Readonly<{
+  result: AdminRefundReconciliationResult;
+  lifecycleNotificationIds: readonly string[];
 }>;
 
 function isJsonRecord(value: unknown): value is Record<string, unknown> {
@@ -905,8 +916,10 @@ export async function reconcileAdminLifecycleAdjustmentRefundIfApplicable(
     return null;
   }
 
-  return prisma.$transaction(
-    async (transaction: Prisma.TransactionClient) => {
+  const transactionResult = await prisma.$transaction(
+    async (
+      transaction: Prisma.TransactionClient,
+    ): Promise<LifecycleRefundReconciliationTransactionResult> => {
       const adminActor = await resolveAdminActor(transaction, actor);
       const refund = await transaction.refund.findUnique({
         where: { id: input.refundId.trim() },
@@ -929,10 +942,13 @@ export async function reconcileAdminLifecycleAdjustmentRefundIfApplicable(
         });
 
         return {
-          refund: toAdminRefundSummary(refund),
-          paymentStatus: refund.payment.status,
-          cumulativeApprovedAmount: cumulativeApprovedAmount.toFixed(2),
-          alreadyProcessed: true,
+          result: {
+            refund: toAdminRefundSummary(refund),
+            paymentStatus: refund.payment.status,
+            cumulativeApprovedAmount: cumulativeApprovedAmount.toFixed(2),
+            alreadyProcessed: true,
+          },
+          lifecycleNotificationIds: [],
         };
       }
 
@@ -946,10 +962,13 @@ export async function reconcileAdminLifecycleAdjustmentRefundIfApplicable(
         });
 
         return {
-          refund: toAdminRefundSummary(refund),
-          paymentStatus: refund.payment.status,
-          cumulativeApprovedAmount: cumulativeApprovedAmount.toFixed(2),
-          alreadyProcessed: true,
+          result: {
+            refund: toAdminRefundSummary(refund),
+            paymentStatus: refund.payment.status,
+            cumulativeApprovedAmount: cumulativeApprovedAmount.toFixed(2),
+            alreadyProcessed: true,
+          },
+          lifecycleNotificationIds: [],
         };
       }
 
@@ -1112,6 +1131,17 @@ export async function reconcileAdminLifecycleAdjustmentRefundIfApplicable(
         throw new AdminRefundError("ADMIN_REFUND_STALE");
       }
 
+      const lifecycleNotificationIntents =
+        input.outcome === "APPROVED"
+          ? await createRefundNotificationIntents(transaction, {
+              reservationId: refund.payment.reservationId,
+              lifecycleRequestId: refund.lifecycleRequestId,
+              refundId: refund.id,
+              guestEmail: refund.payment.reservation.guestEmail,
+              preferredLocale: refund.payment.reservation.preferredLocale,
+            })
+          : [];
+
       await transaction.adminAuditLog.create({
         data: {
           userId: adminActor.id,
@@ -1137,17 +1167,34 @@ export async function reconcileAdminLifecycleAdjustmentRefundIfApplicable(
             cumulativeApprovedAmount: cumulativeApprovedAmount.toFixed(2),
             reservationStatus: refund.payment.reservation.status,
             reservationRestored: false,
+            lifecycleNotificationCreated:
+              lifecycleNotificationIntents.length > 0,
+            lifecycleNotificationCount: lifecycleNotificationIntents.length,
+            lifecycleNotificationIds:
+              lifecycleNotificationIntents.map(({ id }) => id),
           },
         },
       });
 
       return {
-        refund: await readRefundSummaryById(transaction, refund.id),
-        paymentStatus,
-        cumulativeApprovedAmount: cumulativeApprovedAmount.toFixed(2),
-        alreadyProcessed: false,
+        result: {
+          refund: await readRefundSummaryById(transaction, refund.id),
+          paymentStatus,
+          cumulativeApprovedAmount: cumulativeApprovedAmount.toFixed(2),
+          alreadyProcessed: false,
+        },
+        lifecycleNotificationIds:
+          lifecycleNotificationIntents.map(({ id }) => id),
       };
     },
     { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
   );
+
+  if (transactionResult.lifecycleNotificationIds.length > 0) {
+    await deliverLifecycleNotificationsBestEffort(
+      transactionResult.lifecycleNotificationIds,
+    );
+  }
+
+  return transactionResult.result;
 }

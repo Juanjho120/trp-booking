@@ -6,13 +6,14 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
-Current subphase: 11.6.2 Bilingual lifecycle email templates — In progress
-Current focus: validate the eight bilingual guest/admin HTML and plain-text lifecycle template builders without creating intents, transition hooks, or Resend delivery
+Current subphase: 11.6.3 Transactional intent orchestration and delivery — In progress
+Current focus: create lifecycle notification intents atomically with terminal domain transitions and deliver them after commit through the Phase 10 pipeline
 Last updated: 2026-08-04
-Last completed subphase: 11.6.1 Notification contract and persistence relations
-11.6.1 accepted commit: 8996de10fadd676b1de41951e528c84aa6583f03
-11.6.1 implementation document: docs/115-phase-11.6.1-lifecycle-notification-contract-and-persistence-relations.md
+Last completed subphase: 11.6.2 Bilingual lifecycle email templates
+11.6.2 accepted commit: 6eb4a18c9e7476266cae8c627318fa83ff27fb0d
+11.6.2 acceptance: Lint/build passed; manual content and inbox checks consolidated into the integrated 11.6.3 matrix
 11.6.2 implementation document: docs/116-phase-11.6.2-bilingual-lifecycle-email-templates.md
+11.6.3 implementation document: docs/117-phase-11.6.3-transactional-intent-orchestration-and-delivery.md
 11.5.1 strategy base commit: 3d1487f31ca74fc5a41573b4ab206ce9ad838bb5
 11.5.1 strategy document: docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md
 11.5.1 accepted commit: e0b77658c74ee2d7a30c96f529d5f7f4451ab045
@@ -460,21 +461,35 @@ Accepted commit: 8996de10fadd676b1de41951e528c84aa6583f03.
 Implementation document: docs/115-phase-11.6.1-lifecycle-notification-contract-and-persistence-relations.md.
 ```
 
-## Active Work — Phase 11.6.2
+## Completed Work — Phase 11.6.2
 
 ### Phase 11.6.2 — Bilingual Lifecycle Email Templates
 
-Status: **In progress — implementation prepared; local/test acceptance pending**
+Status: **Completed and accepted — technical validation**
 
 ```text
-Adds eight branded guest/admin HTML and plain-text template builders.
-Reuses the accepted Phase 10 layout and centralized ES/EN catalog copy.
-Adds strict lifecycle template inputs, Zod validation, safe normalized view models, localized dates/currency, and protected URL validation.
-Guest output uses Reservation.preferredLocale and excludes internal/admin/provider/card/PMS content.
-Admin output includes bounded request/payment/refund context and the protected reservation-detail URL.
-Cancellation output does not promise an unconfirmed refund; refund builders represent only an already approved result.
-No EmailNotification row, transition hook, Resend call, retry change, migration, dependency, or environment variable is added.
+Eight branded guest/admin HTML and plain-text template builders are committed.
+The user's checkout passed lint and build at 6eb4a18c9e7476266cae8c627318fa83ff27fb0d.
+Manual subject, content, HTML/text, ES/EN, and inbox verification is intentionally consolidated into the integrated 11.6.3 matrix.
 Implementation document: docs/116-phase-11.6.2-bilingual-lifecycle-email-templates.md.
+```
+
+## Active Work — Phase 11.6.3
+
+### Phase 11.6.3 — Transactional Intent Orchestration and Delivery
+
+Status: **In progress — implementation prepared; local/inbox acceptance pending**
+
+```text
+Creates one guest intent and one intent per configured admin recipient inside each accepted terminal lifecycle transaction.
+Cancellation intents require Reservation CANCELLED and lifecycle request COMPLETED.
+Date-change and stay-extension intents require request COMPLETED and Reservation CONFIRMED.
+Refund intents require Refund APPROVED and Payment PARTIALLY_REFUNDED or REFUNDED.
+Stable deduplication keys and typed lifecycleRequestId/refundId relations prevent duplicate rows on replay or concurrency.
+Delivery starts only after commit and reuses the Phase 10 immediate claim, bounded retry, stale recovery, test routing, Resend idempotency, and manual resend foundation.
+No provider failure can roll back cancellation, date mutation, extension, or financial reconciliation.
+No historical backfill, migration, dependency, environment variable, guest self-service mutation, or PMS behavior is added.
+Implementation document: docs/117-phase-11.6.3-transactional-intent-orchestration-and-delivery.md.
 ```
 
 ## Continuity Notes for New Conversations
@@ -522,6 +537,7 @@ docs/113-phase-11.5.5-acceptance-closure.md
 docs/114-phase-11.5-integrated-acceptance-and-documentation-closure.md
 docs/115-phase-11.6.1-lifecycle-notification-contract-and-persistence-relations.md
 docs/116-phase-11.6.2-bilingual-lifecycle-email-templates.md
+docs/117-phase-11.6.3-transactional-intent-orchestration-and-delivery.md
 lib/admin/reservation-cancellation.ts
 lib/admin/reservation-date-mutation.ts
 lib/reservations/date-mutation-completion.ts

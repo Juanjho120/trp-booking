@@ -17,6 +17,14 @@ export {
   isLifecycleNotificationType,
   normalizeLifecycleNotificationRecipient,
 } from "./lifecycle-notification-contract";
+export {
+  createLifecycleRequestNotificationIntents,
+  createRefundNotificationIntents,
+  deliverClaimedLifecycleEmailNotification,
+  deliverLifecycleNotificationsBestEffort,
+  deliverLifecycleRequestNotificationsBestEffort,
+  deliverRefundNotificationsBestEffort,
+} from "./lifecycle-notifications";
 export { processEmailNotifications } from "./process-email-notifications";
 export { EmailProviderError } from "./provider";
 export { createResendEmailProvider } from "./resend-provider";

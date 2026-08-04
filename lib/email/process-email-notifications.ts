@@ -1,5 +1,6 @@
 import {
   EmailNotificationStatus,
+  EmailNotificationType,
   type Prisma,
 } from "@prisma/client";
 
@@ -12,6 +13,10 @@ import type {
   EmailNotificationProcessingSummary,
 } from "@/types/email-notification";
 
+import {
+  deliverClaimedLifecycleEmailNotification,
+} from "./lifecycle-notifications";
+import { isLifecycleNotificationType } from "./lifecycle-notification-contract";
 import {
   deliverClaimedEmailNotification,
 } from "./reservation-confirmation-notifications";
@@ -33,6 +38,7 @@ type ProcessEmailNotificationsOptions = Readonly<{
 
 type RetryCandidate = Readonly<{
   id: string;
+  type: EmailNotificationType;
   status: EmailNotificationStatus;
   updatedAt: Date;
 }>;
@@ -144,6 +150,7 @@ async function findEligibleRetryCandidates(
     take: EMAIL_NOTIFICATION_RETRY_BATCH_SIZE,
     select: {
       id: true,
+      type: true,
       status: true,
       updatedAt: true,
     },
@@ -286,13 +293,21 @@ export async function processEmailNotifications(
         staleRecovered += 1;
       }
 
-      const outcome = await deliverClaimedEmailNotification({
-        claim: retryClaim.claim,
-        provider,
-        publicBaseUrl: emailEnv.publicBaseUrl,
-        brandLogoUrl: emailEnv.brandLogoUrl,
-        now,
-      });
+      const outcome = isLifecycleNotificationType(candidate.type)
+        ? await deliverClaimedLifecycleEmailNotification({
+            claim: retryClaim.claim,
+            provider,
+            publicBaseUrl: emailEnv.publicBaseUrl,
+            brandLogoUrl: emailEnv.brandLogoUrl,
+            now,
+          })
+        : await deliverClaimedEmailNotification({
+            claim: retryClaim.claim,
+            provider,
+            publicBaseUrl: emailEnv.publicBaseUrl,
+            brandLogoUrl: emailEnv.brandLogoUrl,
+            now,
+          });
 
       if (outcome.outcome === "sent") {
         sent += 1;

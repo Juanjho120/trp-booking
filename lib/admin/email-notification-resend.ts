@@ -7,7 +7,11 @@ import {
 } from "@prisma/client";
 
 import { prisma } from "@/lib/db/prisma";
-import { deliverPendingEmailNotificationsBestEffort } from "@/lib/email";
+import {
+  deliverLifecycleNotificationsBestEffort,
+  deliverPendingEmailNotificationsBestEffort,
+  isLifecycleNotificationType,
+} from "@/lib/email";
 import type { AdminActor } from "@/types/admin";
 import type {
   AdminEmailNotificationResendErrorCode,
@@ -21,6 +25,24 @@ import { resolveAdminActor } from "./admin-actor";
 const supportedManualResendTypes = new Set<EmailNotificationType>([
   EmailNotificationType.RESERVATION_CONFIRMED,
   EmailNotificationType.ADMIN_NEW_RESERVATION,
+  EmailNotificationType.RESERVATION_CANCELLED,
+  EmailNotificationType.ADMIN_RESERVATION_CANCELLED,
+  EmailNotificationType.RESERVATION_DATES_UPDATED,
+  EmailNotificationType.ADMIN_RESERVATION_DATES_UPDATED,
+  EmailNotificationType.STAY_EXTENSION_CONFIRMED,
+  EmailNotificationType.ADMIN_STAY_EXTENSION_CONFIRMED,
+  EmailNotificationType.REFUND_PROCESSED,
+  EmailNotificationType.ADMIN_REFUND_PROCESSED,
+]);
+
+const cancellationNotificationTypes = new Set<EmailNotificationType>([
+  EmailNotificationType.RESERVATION_CANCELLED,
+  EmailNotificationType.ADMIN_RESERVATION_CANCELLED,
+]);
+
+const refundNotificationTypes = new Set<EmailNotificationType>([
+  EmailNotificationType.REFUND_PROCESSED,
+  EmailNotificationType.ADMIN_REFUND_PROCESSED,
 ]);
 
 const eligibleSourceStatuses = new Set<EmailNotificationStatus>([
@@ -32,6 +54,8 @@ const eligibleSourceStatuses = new Set<EmailNotificationStatus>([
 const notificationSelect = {
   id: true,
   reservationId: true,
+  lifecycleRequestId: true,
+  refundId: true,
   type: true,
   recipient: true,
   locale: true,
@@ -55,6 +79,7 @@ type SourceNotification = Prisma.EmailNotificationGetPayload<{
 
 type PersistedManualRequest = Readonly<{
   notificationId: string;
+  notificationType: EmailNotificationType;
   created: boolean;
 }>;
 
@@ -74,6 +99,60 @@ function buildManualDeduplicationKey(
   requestId: string,
 ): string {
   return `manual-resend/${sourceNotificationId}/${requestId}`;
+}
+
+function assertReservationStateSupportsNotification(
+  source: SourceNotification,
+): void {
+  if (!source.reservation.confirmedAt) {
+    throw new AdminEmailNotificationResendError(
+      "ADMIN_EMAIL_NOTIFICATION_RESERVATION_NOT_CONFIRMED",
+    );
+  }
+
+  if (cancellationNotificationTypes.has(source.type)) {
+    if (source.reservation.status !== ReservationStatus.CANCELLED) {
+      throw new AdminEmailNotificationResendError(
+        "ADMIN_EMAIL_NOTIFICATION_RESEND_NOT_ALLOWED",
+      );
+    }
+    return;
+  }
+
+  if (refundNotificationTypes.has(source.type)) {
+    if (
+      source.reservation.status !== ReservationStatus.CONFIRMED &&
+      source.reservation.status !== ReservationStatus.CANCELLED
+    ) {
+      throw new AdminEmailNotificationResendError(
+        "ADMIN_EMAIL_NOTIFICATION_RESEND_NOT_ALLOWED",
+      );
+    }
+    return;
+  }
+
+  if (source.reservation.status !== ReservationStatus.CONFIRMED) {
+    throw new AdminEmailNotificationResendError(
+      "ADMIN_EMAIL_NOTIFICATION_RESERVATION_NOT_CONFIRMED",
+    );
+  }
+}
+
+function assertSourceRelationIsComplete(source: SourceNotification): void {
+  if (!isLifecycleNotificationType(source.type)) {
+    return;
+  }
+
+  const lifecycleRelationComplete =
+    refundNotificationTypes.has(source.type)
+      ? Boolean(source.refundId)
+      : Boolean(source.lifecycleRequestId);
+
+  if (!lifecycleRelationComplete) {
+    throw new AdminEmailNotificationResendError(
+      "ADMIN_EMAIL_NOTIFICATION_RESEND_NOT_ALLOWED",
+    );
+  }
 }
 
 function assertSourceIsEligible(
@@ -103,14 +182,8 @@ function assertSourceIsEligible(
     );
   }
 
-  if (
-    source.reservation.status !== ReservationStatus.CONFIRMED ||
-    !source.reservation.confirmedAt
-  ) {
-    throw new AdminEmailNotificationResendError(
-      "ADMIN_EMAIL_NOTIFICATION_RESERVATION_NOT_CONFIRMED",
-    );
-  }
+  assertReservationStateSupportsNotification(source);
+  assertSourceRelationIsComplete(source);
 }
 
 async function persistManualResendRequest(
@@ -135,6 +208,7 @@ async function persistManualResendRequest(
             id: true,
             reservationId: true,
             parentNotificationId: true,
+            type: true,
           },
         });
 
@@ -150,6 +224,7 @@ async function persistManualResendRequest(
 
           return {
             notificationId: existing.id,
+            notificationType: existing.type,
             created: false,
           };
         }
@@ -196,6 +271,8 @@ async function persistManualResendRequest(
         const manualNotification = await transaction.emailNotification.create({
           data: {
             reservationId: source.reservationId,
+            lifecycleRequestId: source.lifecycleRequestId,
+            refundId: source.refundId,
             type: source.type,
             recipient: source.recipient,
             locale: source.locale,
@@ -206,7 +283,7 @@ async function persistManualResendRequest(
             requestedAt,
             status: EmailNotificationStatus.PENDING,
           },
-          select: { id: true },
+          select: { id: true, type: true },
         });
 
         await transaction.adminAuditLog.create({
@@ -219,6 +296,8 @@ async function persistManualResendRequest(
               actorEmail: adminActor.email,
               requestId,
               reservationId: source.reservationId,
+              lifecycleRequestId: source.lifecycleRequestId,
+              refundId: source.refundId,
               sourceNotificationId: source.id,
               sourceStatus: source.status,
               notificationType: source.type,
@@ -231,6 +310,7 @@ async function persistManualResendRequest(
 
         return {
           notificationId: manualNotification.id,
+          notificationType: manualNotification.type,
           created: true,
         };
       },
@@ -251,6 +331,7 @@ async function persistManualResendRequest(
           id: true,
           reservationId: true,
           parentNotificationId: true,
+          type: true,
         },
       });
 
@@ -261,6 +342,7 @@ async function persistManualResendRequest(
       ) {
         return {
           notificationId: existing.id,
+          notificationType: existing.type,
           created: false,
         };
       }
@@ -298,9 +380,13 @@ export async function requestAdminEmailNotificationResend(
   actor: AdminActor,
 ): Promise<AdminEmailNotificationResendResult> {
   const persisted = await persistManualResendRequest(input, actor);
-  const delivery = await deliverPendingEmailNotificationsBestEffort([
-    persisted.notificationId,
-  ]);
+  const delivery = isLifecycleNotificationType(persisted.notificationType)
+    ? await deliverLifecycleNotificationsBestEffort([
+        persisted.notificationId,
+      ])
+    : await deliverPendingEmailNotificationsBestEffort([
+        persisted.notificationId,
+      ]);
   const notification = await prisma.emailNotification.findUnique({
     where: { id: persisted.notificationId },
     select: {
