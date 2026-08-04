@@ -171,7 +171,7 @@ export async function confirmReservationAfterApprovedPayment(
   }
 
   const transactionResult: ConfirmationTransactionResult =
-    await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+    await prisma.$transaction(async (tx: Prisma.TransactionClient): Promise<ConfirmationTransactionResult> => {
       const now = new Date();
       const payment = await tx.payment.findUnique({
         where: { id: paymentId },
