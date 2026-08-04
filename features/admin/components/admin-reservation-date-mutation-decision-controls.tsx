@@ -6,6 +6,8 @@ import {
   Copy,
   ExternalLink,
   Loader2,
+  Mail,
+  TriangleAlert,
   X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -21,6 +23,11 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { useLocale } from "@/features/i18n";
+import type {
+  AdminDateMutationPaymentLinkEmailErrorCode,
+  AdminDateMutationPaymentLinkEmailSendResult,
+  AdminDateMutationPaymentLinkEmailState,
+} from "@/types/admin-date-mutation-payment-link-email";
 import type {
   AdminDateMutationDecision,
   AdminDateMutationDecisionResult,
@@ -38,8 +45,14 @@ type DecisionApiResponse = Readonly<{
   error?: Readonly<{ code?: AdminDateMutationErrorCode }>;
 }>;
 
-function formatRemaining(expiresAt: string): string {
-  const remaining = new Date(expiresAt).getTime() - Date.now();
+type PaymentEmailApiResponse = Readonly<{
+  state?: AdminDateMutationPaymentLinkEmailState;
+  result?: AdminDateMutationPaymentLinkEmailSendResult;
+  error?: Readonly<{ code?: AdminDateMutationPaymentLinkEmailErrorCode }>;
+}>;
+
+function formatRemaining(expiresAt: string, now: number): string {
+  const remaining = new Date(expiresAt).getTime() - now;
 
   if (remaining <= 0) {
     return "00:00";
@@ -51,18 +64,15 @@ function formatRemaining(expiresAt: string): string {
   ).padStart(2, "0")}`;
 }
 
-function HoldCountdown({ expiresAt }: Readonly<{ expiresAt: string }>) {
-  const [remaining, setRemaining] = useState(() => formatRemaining(expiresAt));
-
-  useEffect(() => {
-    const interval = window.setInterval(
-      () => setRemaining(formatRemaining(expiresAt)),
-      1_000,
-    );
-    return () => window.clearInterval(interval);
-  }, [expiresAt]);
-
-  return <span className="font-mono font-semibold">{remaining}</span>;
+function HoldCountdown({
+  expiresAt,
+  now,
+}: Readonly<{ expiresAt: string; now: number }>) {
+  return (
+    <span className="font-mono font-semibold">
+      {formatRemaining(expiresAt, now)}
+    </span>
+  );
 }
 
 export function AdminReservationDateMutationDecisionControls({
@@ -80,6 +90,29 @@ export function AdminReservationDateMutationDecisionControls({
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [feedbackError, setFeedbackError] = useState(false);
+  const [paymentEmailOpen, setPaymentEmailOpen] = useState(false);
+  const [paymentEmailBusy, setPaymentEmailBusy] = useState(false);
+  const [paymentEmailState, setPaymentEmailState] =
+    useState<AdminDateMutationPaymentLinkEmailState | null>(null);
+  const [paymentEmailRequestId, setPaymentEmailRequestId] = useState<
+    string | null
+  >(null);
+  const [currentTime, setCurrentTime] = useState(() => Date.now());
+
+  useEffect(() => {
+    if (
+      request.status !== "AWAITING_ADJUSTMENT_PAYMENT" ||
+      !request.hold?.expiresAt
+    ) {
+      return;
+    }
+
+    const interval = window.setInterval(
+      () => setCurrentTime(Date.now()),
+      1_000,
+    );
+    return () => window.clearInterval(interval);
+  }, [request.hold?.expiresAt, request.status]);
 
   function openDecision(nextDecision: AdminDateMutationDecision): void {
     setDecision(nextDecision);
@@ -148,6 +181,95 @@ export function AdminReservationDateMutationDecisionControls({
     }
   }
 
+  function paymentEmailEndpoint(): string {
+    return `/api/admin/reservations/${encodeURIComponent(
+      request.reservationId,
+    )}/date-mutation-requests/${encodeURIComponent(
+      request.id,
+    )}/payment-link-email`;
+  }
+
+  async function openPaymentEmailDialog(): Promise<void> {
+    if (paymentEmailBusy) return;
+    setPaymentEmailBusy(true);
+    setFeedback(null);
+    setFeedbackError(false);
+    try {
+      const response = await fetch(paymentEmailEndpoint(), { method: "GET" });
+      const payload = (await response.json()) as PaymentEmailApiResponse;
+      if (!response.ok || !payload.state) {
+        const code = payload.error?.code;
+        setFeedback(
+          code
+            ? (copy.paymentEmail.errors[code] ??
+                copy.paymentEmail.errors
+                  .ADMIN_DATE_MUTATION_PAYMENT_EMAIL_UNEXPECTED_ERROR)
+            : copy.paymentEmail.errors.ADMIN_DATE_MUTATION_PAYMENT_EMAIL_UNEXPECTED_ERROR,
+        );
+        setFeedbackError(true);
+        return;
+      }
+      setPaymentEmailState(payload.state);
+      setPaymentEmailRequestId(crypto.randomUUID());
+      setPaymentEmailOpen(true);
+    } catch {
+      setFeedback(
+        copy.paymentEmail.errors.ADMIN_DATE_MUTATION_PAYMENT_EMAIL_UNEXPECTED_ERROR,
+      );
+      setFeedbackError(true);
+    } finally {
+      setPaymentEmailBusy(false);
+    }
+  }
+
+  async function sendPaymentLinkEmail(): Promise<void> {
+    if (paymentEmailBusy || !paymentEmailRequestId) return;
+    setPaymentEmailBusy(true);
+    try {
+      const response = await fetch(paymentEmailEndpoint(), {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ requestId: paymentEmailRequestId }),
+      });
+      const payload = (await response.json()) as PaymentEmailApiResponse;
+      if (!response.ok || !payload.result) {
+        const code = payload.error?.code;
+        setFeedback(
+          code
+            ? (copy.paymentEmail.errors[code] ??
+                copy.paymentEmail.errors
+                  .ADMIN_DATE_MUTATION_PAYMENT_EMAIL_UNEXPECTED_ERROR)
+            : copy.paymentEmail.errors.ADMIN_DATE_MUTATION_PAYMENT_EMAIL_UNEXPECTED_ERROR,
+        );
+        setFeedbackError(true);
+        return;
+      }
+      const outcome = payload.result.outcome;
+      setFeedback(
+        outcome === "sent"
+          ? copy.paymentEmail.success.sent
+          : outcome === "queued"
+            ? copy.paymentEmail.success.queued
+            : outcome === "already-processed"
+              ? copy.paymentEmail.success.alreadyProcessed
+              : payload.result.retryScheduled
+                ? copy.paymentEmail.success.failedRetryScheduled
+                : copy.paymentEmail.success.failedTerminal,
+      );
+      setFeedbackError(outcome === "failed");
+      setPaymentEmailOpen(false);
+      setPaymentEmailState(payload.result.state);
+      router.refresh();
+    } catch {
+      setFeedback(
+        copy.paymentEmail.errors.ADMIN_DATE_MUTATION_PAYMENT_EMAIL_UNEXPECTED_ERROR,
+      );
+      setFeedbackError(true);
+    } finally {
+      setPaymentEmailBusy(false);
+    }
+  }
+
   async function copyPaymentLink(): Promise<void> {
     if (!request.paymentHandoffPath) {
       return;
@@ -168,6 +290,7 @@ export function AdminReservationDateMutationDecisionControls({
   const activeHold =
     request.status === "AWAITING_ADJUSTMENT_PAYMENT" &&
     request.hold?.status === "ACTIVE" &&
+    new Date(request.hold.expiresAt).getTime() > currentTime &&
     request.paymentHandoffPath;
 
   return (
@@ -203,7 +326,10 @@ export function AdminReservationDateMutationDecisionControls({
               <Clock3 aria-hidden="true" className="size-4" />
               {copy.labels.holdRemaining}
             </span>
-            <HoldCountdown expiresAt={request.hold!.expiresAt} />
+            <HoldCountdown
+              expiresAt={request.hold!.expiresAt}
+              now={currentTime}
+            />
           </div>
           <div className="flex flex-wrap gap-2">
             <Button asChild size="sm" variant="outline">
@@ -219,6 +345,22 @@ export function AdminReservationDateMutationDecisionControls({
             <Button onClick={copyPaymentLink} size="sm" type="button">
               <Copy aria-hidden="true" />
               {copy.actions.copyPaymentLink}
+            </Button>
+            <Button
+              disabled={paymentEmailBusy}
+              onClick={openPaymentEmailDialog}
+              size="sm"
+              type="button"
+              variant="secondary"
+            >
+              {paymentEmailBusy ? (
+                <Loader2 aria-hidden="true" className="animate-spin" />
+              ) : (
+                <Mail aria-hidden="true" />
+              )}
+              {paymentEmailBusy
+                ? copy.actions.sendingPaymentLinkEmail
+                : copy.actions.sendPaymentLinkEmail}
             </Button>
           </div>
           <p className="text-xs leading-5 text-muted-foreground">
@@ -291,6 +433,69 @@ export function AdminReservationDateMutationDecisionControls({
                 : decision === "APPROVE"
                   ? copy.actions.confirmApprove
                   : copy.actions.confirmReject}
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+
+      <Sheet
+        onOpenChange={(nextOpen: boolean) => {
+          if (!nextOpen && !paymentEmailBusy) setPaymentEmailOpen(false);
+        }}
+        open={paymentEmailOpen}
+      >
+        <SheetContent closeLabel={messages.admin.feedback.dismiss}>
+          <SheetHeader>
+            <SheetTitle>{copy.paymentEmail.dialog.title}</SheetTitle>
+            <SheetDescription>
+              {copy.paymentEmail.dialog.description}
+            </SheetDescription>
+          </SheetHeader>
+          <div className="grid gap-4 overflow-y-auto px-6 py-2 text-sm leading-6">
+            {paymentEmailState?.warning === "DUPLICATE_POSSIBLE" ? (
+              <div className="flex gap-3 rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4 text-amber-950 dark:text-amber-100">
+                <TriangleAlert aria-hidden="true" className="mt-0.5 size-5 shrink-0" />
+                <p>{copy.paymentEmail.dialog.duplicateWarning}</p>
+              </div>
+            ) : paymentEmailState?.warning === "DELIVERY_ACTIVE" ? (
+              <div className="flex gap-3 rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4 text-amber-950 dark:text-amber-100">
+                <TriangleAlert aria-hidden="true" className="mt-0.5 size-5 shrink-0" />
+                <p>{copy.paymentEmail.dialog.activeWarning}</p>
+              </div>
+            ) : paymentEmailState?.hasFailedDelivery ? (
+              <div className="rounded-2xl border border-border bg-muted/20 p-4 text-muted-foreground">
+                {copy.paymentEmail.dialog.failedDeliveryNote}
+              </div>
+            ) : null}
+            <div className="rounded-2xl border border-border bg-muted/20 p-4 text-muted-foreground">
+              {copy.paymentEmail.dialog.historyNote}
+            </div>
+          </div>
+          <SheetFooter>
+            <Button
+              disabled={paymentEmailBusy}
+              onClick={() => setPaymentEmailOpen(false)}
+              type="button"
+              variant="outline"
+            >
+              {copy.paymentEmail.dialog.cancel}
+            </Button>
+            <Button
+              disabled={
+                paymentEmailBusy ||
+                paymentEmailState?.latestStatus === "PROCESSING"
+              }
+              onClick={sendPaymentLinkEmail}
+              type="button"
+            >
+              {paymentEmailBusy ? (
+                <Loader2 aria-hidden="true" className="animate-spin" />
+              ) : (
+                <Mail aria-hidden="true" />
+              )}
+              {paymentEmailBusy
+                ? copy.actions.sendingPaymentLinkEmail
+                : copy.paymentEmail.dialog.confirm}
             </Button>
           </SheetFooter>
         </SheetContent>

@@ -14,12 +14,14 @@ import type {
 } from "@/types/email-notification";
 
 import {
-  deliverClaimedLifecycleEmailNotification,
-} from "./lifecycle-notifications";
+  deliverClaimedLifecycleAdjustmentPaymentEmailNotification,
+  isLifecycleAdjustmentPaymentNotificationType,
+  reconcileLifecycleAdjustmentPaymentDeliveryStatusIntents,
+  reconcileLifecycleAdjustmentPaymentRequiredIntents,
+} from "./lifecycle-adjustment-payment-notifications";
+import { deliverClaimedLifecycleEmailNotification } from "./lifecycle-notifications";
 import { isLifecycleNotificationType } from "./lifecycle-notification-contract";
-import {
-  deliverClaimedEmailNotification,
-} from "./reservation-confirmation-notifications";
+import { deliverClaimedEmailNotification } from "./reservation-confirmation-notifications";
 import { createResendEmailProvider } from "./resend-provider";
 import {
   EMAIL_NOTIFICATION_MAX_ATTEMPTS,
@@ -254,9 +256,12 @@ export async function processEmailNotifications(
   let candidates: readonly RetryCandidate[];
 
   try {
+    await reconcileLifecycleAdjustmentPaymentRequiredIntents(source, startedAt);
+    await reconcileLifecycleAdjustmentPaymentDeliveryStatusIntents(source);
     staleExhausted = await markExhaustedStaleProcessingNotifications(
       staleProcessingCutoff,
     );
+    await reconcileLifecycleAdjustmentPaymentDeliveryStatusIntents(source);
     candidates = await findEligibleRetryCandidates(
       startedAt,
       staleProcessingCutoff,
@@ -293,21 +298,32 @@ export async function processEmailNotifications(
         staleRecovered += 1;
       }
 
-      const outcome = isLifecycleNotificationType(candidate.type)
-        ? await deliverClaimedLifecycleEmailNotification({
+      const outcome = isLifecycleAdjustmentPaymentNotificationType(
+        candidate.type,
+      )
+        ? await deliverClaimedLifecycleAdjustmentPaymentEmailNotification({
             claim: retryClaim.claim,
             provider,
             publicBaseUrl: emailEnv.publicBaseUrl,
             brandLogoUrl: emailEnv.brandLogoUrl,
+            source,
             now,
           })
-        : await deliverClaimedEmailNotification({
-            claim: retryClaim.claim,
-            provider,
-            publicBaseUrl: emailEnv.publicBaseUrl,
-            brandLogoUrl: emailEnv.brandLogoUrl,
-            now,
-          });
+        : isLifecycleNotificationType(candidate.type)
+          ? await deliverClaimedLifecycleEmailNotification({
+              claim: retryClaim.claim,
+              provider,
+              publicBaseUrl: emailEnv.publicBaseUrl,
+              brandLogoUrl: emailEnv.brandLogoUrl,
+              now,
+            })
+          : await deliverClaimedEmailNotification({
+              claim: retryClaim.claim,
+              provider,
+              publicBaseUrl: emailEnv.publicBaseUrl,
+              brandLogoUrl: emailEnv.brandLogoUrl,
+              now,
+            });
 
       if (outcome.outcome === "sent") {
         sent += 1;

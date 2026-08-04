@@ -15,5 +15,6 @@ export function getLifecycleEmailMessages(locale: TransactionalEmailLocale) {
     refunds: messages.admin.reservationsPage.refunds,
     notifications: messages.admin.reservationsPage.notifications,
     lifecycleAdjustment: messages.payments.lifecycleAdjustment,
+    lifecycleAdjustmentPayment: messages.emails.lifecycleAdjustmentPayment,
   } as const;
 }

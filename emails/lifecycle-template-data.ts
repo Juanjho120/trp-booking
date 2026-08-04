@@ -223,8 +223,12 @@ export function buildReservationDatesUpdatedEmailView(input: ReservationDatesUpd
   const parsedInput = dateChangeSchema.safeParse(input);
   if (!parsedInput.success) throw new EmailTemplateDataError();
   const parsed = parsedInput.data as ReservationDatesUpdatedEmailTemplateInput;
+  const difference = Number(parsed.dateChange.financialDifference);
+  const financialBranch =
+    difference > 0 ? "POSITIVE" : difference < 0 ? "NEGATIVE" : "ZERO";
   return {
     ...buildBaseView(parsed),
+    financialBranch,
     originalCheckInDate: formatDate(parsed.dateChange.originalCheckInDate, parsed.locale),
     originalCheckOutDate: formatDate(parsed.dateChange.originalCheckOutDate, parsed.locale),
     requestedCheckInDate: formatDate(parsed.dateChange.requestedCheckInDate, parsed.locale),

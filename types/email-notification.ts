@@ -23,6 +23,18 @@ export type LifecycleNotificationType =
   | LifecycleGuestNotificationType
   | LifecycleAdminNotificationType;
 
+export type LifecycleAdjustmentPaymentGuestNotificationType =
+  | "DATE_CHANGE_PAYMENT_REQUIRED"
+  | "STAY_EXTENSION_PAYMENT_REQUIRED";
+
+export type LifecycleAdjustmentPaymentAdminNotificationType =
+  | "ADMIN_DATE_CHANGE_PAYMENT_LINK_DELIVERY_STATUS"
+  | "ADMIN_STAY_EXTENSION_PAYMENT_LINK_DELIVERY_STATUS";
+
+export type LifecycleAdjustmentPaymentNotificationType =
+  | LifecycleAdjustmentPaymentGuestNotificationType
+  | LifecycleAdjustmentPaymentAdminNotificationType;
+
 export type LifecycleNotificationAudience = "guest" | "admin";
 
 export type LifecycleNotificationRelationKind =

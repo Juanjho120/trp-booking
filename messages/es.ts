@@ -317,6 +317,10 @@ export const esMessages = {
       completedTitle: "Cambio de estadía completado",
       completedDescription:
         "El pago adicional fue validado y las fechas solicitadas ya quedaron aplicadas a la reservación confirmada.",
+      completedZeroDescription:
+        "Las fechas solicitadas ya quedaron aplicadas a la reservación confirmada.",
+      completedNegativeDescription:
+        "Las fechas solicitadas ya quedaron aplicadas a la reservación confirmada. La confirmación del reembolso se enviará por separado cuando el proceso haya sido completado.",
       completedNote:
         "La reservación conserva su identificador e historial. No se requiere otro pago.",
       unavailableTitle: "Enlace de ajuste no disponible",
@@ -766,6 +770,51 @@ export const esMessages = {
           confirmReject: "Confirmar rechazo",
           openPaymentLink: "Abrir enlace de pago",
           copyPaymentLink: "Copiar enlace de pago",
+          sendPaymentLinkEmail: "Enviar enlace por correo",
+          sendingPaymentLinkEmail: "Enviando correo...",
+        },
+        paymentEmail: {
+          dialog: {
+            title: "Enviar enlace de pago por correo",
+            description:
+              "El correo se enviará al huésped registrado con el enlace privado y la diferencia pendiente.",
+            duplicateWarning:
+              "Ya existe al menos un envío aceptado por el proveedor. Continuar puede duplicar el correo al huésped.",
+            activeWarning:
+              "Ya existe un envío pendiente, en procesamiento o programado para reintento. Si está en procesamiento, espera a que finalice; en los demás casos, continuar reutilizará o reemplazará de forma auditable el intento actual.",
+            failedDeliveryNote:
+              "El último envío terminó en estado fallido. Puedes volver a enviarlo sin la advertencia de duplicado.",
+            historyNote:
+              "Cada envío crea o reutiliza una notificación auditable. El historial anterior no se sobrescribe.",
+            cancel: "Cancelar",
+            confirm: "Enviar enlace",
+          },
+          success: {
+            sent: "El proveedor aceptó el correo con el enlace de pago.",
+            queued: "El correo quedó pendiente para entrega.",
+            alreadyProcessed:
+              "La solicitud de envío ya existía y conserva su estado actual.",
+            failedRetryScheduled:
+              "El envío falló temporalmente y quedó programado para reintento.",
+            failedTerminal:
+              "El correo no pudo enviarse y no tiene otro reintento programado.",
+          },
+          errors: {
+            ADMIN_UNAUTHORIZED:
+              "Tu sesión no está autorizada para enviar este correo.",
+            INVALID_ADMIN_DATE_MUTATION_PAYMENT_EMAIL_REQUEST:
+              "La solicitud para enviar el correo no es válida.",
+            ADMIN_DATE_MUTATION_PAYMENT_EMAIL_REQUEST_NOT_FOUND:
+              "No encontramos la solicitud de cambio correspondiente.",
+            ADMIN_DATE_MUTATION_PAYMENT_EMAIL_NOT_AVAILABLE:
+              "El enlace de pago ya no está disponible o el ajuste dejó de estar pendiente.",
+            ADMIN_DATE_MUTATION_PAYMENT_EMAIL_PROCESSING_ACTIVE:
+              "El correo está siendo procesado. Espera a que termine antes de intentar otro envío.",
+            ADMIN_DATE_MUTATION_PAYMENT_EMAIL_STALE:
+              "El historial de envío cambió. Actualiza la página e inténtalo de nuevo.",
+            ADMIN_DATE_MUTATION_PAYMENT_EMAIL_UNEXPECTED_ERROR:
+              "No pudimos enviar el enlace por correo. Inténtalo de nuevo.",
+          },
         },
         createDialog: {
           title: "Registrar cambio de fechas o extensión",
@@ -1120,6 +1169,14 @@ export const esMessages = {
           REFUND_PROCESSED: "Reembolso procesado",
           ARRIVAL_INSTRUCTIONS: "Instrucciones de llegada",
           ADMIN_NEW_RESERVATION: "Nueva reserva para administración",
+          DATE_CHANGE_PAYMENT_REQUIRED:
+            "Pago requerido para cambio de fechas",
+          STAY_EXTENSION_PAYMENT_REQUIRED:
+            "Pago requerido para extensión",
+          ADMIN_DATE_CHANGE_PAYMENT_LINK_DELIVERY_STATUS:
+            "Resultado del correo de pago para cambio de fechas",
+          ADMIN_STAY_EXTENSION_PAYMENT_LINK_DELIVERY_STATUS:
+            "Resultado del correo de pago para extensión",
         },
         locales: {
           es: "Español",
@@ -1608,7 +1665,7 @@ export const esMessages = {
           AMENITY_NOT_FOUND: "No encontramos la amenidad seleccionada.",
           HOUSE_RULE_NOT_FOUND: "No encontramos la regla seleccionada.",
           AMENITY_HOUSE_RULE_STALE:
-            "Las asignaciones cambiaron después de que abriste esta página. Recarga antes de guardar nuevamente.",
+            "Las asignaciones cambiaron después de que abriste la página. Recarga antes de guardar nuevamente.",
           AMENITY_HOUSE_RULE_MINIMUM_REQUIRED:
             "Selecciona al menos una amenidad y una regla para el alojamiento.",
           AMENITY_HOUSE_RULE_UNEXPECTED_ERROR:
@@ -1910,6 +1967,52 @@ export const esMessages = {
       supportDescription:
         "Si tienes dudas antes de llegar, responde a este correo o escríbenos a",
       closing: "Te esperamos en Panajachel. Que tengas un buen viaje.",
+    },
+    lifecycleAdjustmentPayment: {
+      guest: {
+        dateChangeSubjectPrefix:
+          "Pago pendiente para confirmar tu cambio de fechas",
+        stayExtensionSubjectPrefix:
+          "Pago pendiente para confirmar tu extensión",
+        preview: "Completa la diferencia antes de que venza el hold",
+        eyebrow: "Acción requerida",
+        dateChangeTitle: "Completa el pago de tu cambio de fechas",
+        stayExtensionTitle: "Completa el pago de tu extensión",
+        introduction:
+          "La solicitud fue aprobada y la diferencia está lista para pagarse mediante el enlace privado.",
+        pendingNotice:
+          "Las fechas solicitadas todavía no tienen efecto. Se aplicarán únicamente después de que el pago sea aprobado y el sistema complete correctamente la actualización.",
+        summaryTitle: "Resumen del ajuste",
+        amountLabel: "Diferencia por pagar",
+        holdExpiresAtLabel: "Enlace disponible hasta",
+        actionLabel: "Pagar diferencia",
+        actionFallback: "Si el botón no funciona, abre este enlace:",
+        securityNote:
+          "Este enlace es privado y vence junto con el hold de 60 minutos.",
+        supportDescription:
+          "Si necesitas ayuda, responde a este correo o escríbenos a",
+      },
+      adminStatus: {
+        sentSubjectPrefix: "Correo de pago enviado al huésped",
+        failedSubjectPrefix: "Falló el correo de pago al huésped",
+        sentTitle: "El correo con el enlace de pago fue enviado",
+        failedTitle: "El correo con el enlace de pago no pudo enviarse",
+        sentIntroduction:
+          "El sistema de correos aceptó el mensaje dirigido al huésped.",
+        failedIntroduction:
+          "El sistema terminó la entrega sin poder enviar el mensaje dirigido al huésped.",
+        sentNote:
+          "Resend aceptó el mensaje. Esto confirma el envío desde nuestro sistema, no la apertura del correo.",
+        failedNote:
+          "El cambio sigue pendiente de pago y todavía no fue aplicado a la reservación.",
+        sourceTitle: "Resultado de entrega",
+        requestTypeLabel: "Tipo de solicitud",
+        guestRecipientLabel: "Destinatario previsto",
+        sourceNotificationLabel: "Notificación del huésped",
+        attemptsLabel: "Intentos",
+        observedAtLabel: "Resultado observado",
+        errorCodeLabel: "Código seguro de error",
+      },
     },
     adminNewReservation: {
       subjectPrefix: "Nueva reserva confirmada",

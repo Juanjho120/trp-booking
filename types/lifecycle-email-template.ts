@@ -122,3 +122,32 @@ export type RefundProcessedEmailTemplateInput =
         reconciledByAdminName?: string | null;
       }>;
     }>;
+
+export type LifecycleAdjustmentPaymentRequiredEmailTemplateInput =
+  LifecycleEmailTemplateBaseInput &
+    Readonly<{
+      paymentRequest: Readonly<{
+        requestType: "DATE_CHANGE" | "STAY_EXTENSION";
+        originalCheckInDate: string;
+        originalCheckOutDate: string;
+        requestedCheckInDate: string;
+        requestedCheckOutDate: string;
+        amount: string;
+        holdExpiresAt: string;
+        paymentUrl: string;
+      }>;
+    }>;
+
+export type AdminLifecycleAdjustmentPaymentDeliveryStatusEmailTemplateInput =
+  LifecycleEmailTemplateBaseInput &
+    Readonly<{
+      delivery: Readonly<{
+        requestType: "DATE_CHANGE" | "STAY_EXTENSION";
+        outcome: "SENT" | "FAILED";
+        intendedGuestRecipient: string;
+        sourceNotificationId: string;
+        attemptCount: number;
+        observedAt: string;
+        errorCode?: string | null;
+      }>;
+    }>;

@@ -284,7 +284,7 @@ export const enMessages = {
       description:
         "Complete payment inside this page using Tilopay's secure form. We do not store your card details.",
       preparePayment: "Prepare secure payment",
-      preparingPayment: "Preparing secure payment...",
+      preparingPayment: "Preparing payment...",
       initializingPayment: "Initializing Tilopay secure form...",
       cardSectionTitle: "Card details",
       secureFieldsNote:
@@ -317,6 +317,10 @@ export const enMessages = {
       completedTitle: "Stay update completed",
       completedDescription:
         "The additional payment was validated and the requested dates have been applied to the confirmed reservation.",
+      completedZeroDescription:
+        "The requested dates have been applied to the confirmed reservation.",
+      completedNegativeDescription:
+        "The requested dates have been applied to the confirmed reservation. Refund confirmation will be sent separately after the process is completed.",
       completedNote:
         "The reservation keeps its identifier and history. No additional payment is required.",
       unavailableTitle: "Adjustment link unavailable",
@@ -765,6 +769,51 @@ export const enMessages = {
           confirmReject: "Confirm rejection",
           openPaymentLink: "Open payment link",
           copyPaymentLink: "Copy payment link",
+          sendPaymentLinkEmail: "Send link by email",
+          sendingPaymentLinkEmail: "Sending email...",
+        },
+        paymentEmail: {
+          dialog: {
+            title: "Send payment link by email",
+            description:
+              "The email will be sent to the registered guest with the private link and pending amount.",
+            duplicateWarning:
+              "At least one delivery was already accepted by the provider. Continuing may duplicate the email to the guest.",
+            activeWarning:
+              "A delivery is already pending, processing, or scheduled for retry. If it is processing, wait for it to finish; otherwise, continuing will reuse or replace the current attempt while preserving audit history.",
+            failedDeliveryNote:
+              "The latest delivery ended in a failed state. You can send it again without the duplicate warning.",
+            historyNote:
+              "Each send creates or reuses an auditable notification. Previous history is not overwritten.",
+            cancel: "Cancel",
+            confirm: "Send link",
+          },
+          success: {
+            sent: "The provider accepted the payment-link email.",
+            queued: "The email is pending delivery.",
+            alreadyProcessed:
+              "This send request already existed and keeps its current state.",
+            failedRetryScheduled:
+              "Delivery failed temporarily and was scheduled for retry.",
+            failedTerminal:
+              "The email could not be sent and has no additional retry scheduled.",
+          },
+          errors: {
+            ADMIN_UNAUTHORIZED:
+              "Your session is not authorized to send this email.",
+            INVALID_ADMIN_DATE_MUTATION_PAYMENT_EMAIL_REQUEST:
+              "The request to send this email is invalid.",
+            ADMIN_DATE_MUTATION_PAYMENT_EMAIL_REQUEST_NOT_FOUND:
+              "We could not find the related date-change request.",
+            ADMIN_DATE_MUTATION_PAYMENT_EMAIL_NOT_AVAILABLE:
+              "The payment link is no longer available or the adjustment is no longer pending.",
+            ADMIN_DATE_MUTATION_PAYMENT_EMAIL_PROCESSING_ACTIVE:
+              "The email is being processed. Wait for it to finish before sending again.",
+            ADMIN_DATE_MUTATION_PAYMENT_EMAIL_STALE:
+              "The delivery history changed. Refresh the page and try again.",
+            ADMIN_DATE_MUTATION_PAYMENT_EMAIL_UNEXPECTED_ERROR:
+              "We could not send the payment link by email. Please try again.",
+          },
         },
         createDialog: {
           title: "Record a date change or stay extension",
@@ -1119,6 +1168,14 @@ export const enMessages = {
           REFUND_PROCESSED: "Refund processed",
           ARRIVAL_INSTRUCTIONS: "Arrival instructions",
           ADMIN_NEW_RESERVATION: "New reservation for administration",
+          DATE_CHANGE_PAYMENT_REQUIRED:
+            "Payment required for date change",
+          STAY_EXTENSION_PAYMENT_REQUIRED:
+            "Payment required for stay extension",
+          ADMIN_DATE_CHANGE_PAYMENT_LINK_DELIVERY_STATUS:
+            "Date-change payment email delivery result",
+          ADMIN_STAY_EXTENSION_PAYMENT_LINK_DELIVERY_STATUS:
+            "Stay-extension payment email delivery result",
         },
         locales: {
           es: "Spanish",
@@ -1909,6 +1966,52 @@ export const enMessages = {
       supportDescription:
         "For questions before arrival, reply to this email or contact us at",
       closing: "We look forward to welcoming you in Panajachel. Safe travels.",
+    },
+    lifecycleAdjustmentPayment: {
+      guest: {
+        dateChangeSubjectPrefix:
+          "Payment pending to confirm your date change",
+        stayExtensionSubjectPrefix:
+          "Payment pending to confirm your stay extension",
+        preview: "Complete the difference before the hold expires",
+        eyebrow: "Action required",
+        dateChangeTitle: "Complete payment for your date change",
+        stayExtensionTitle: "Complete payment for your stay extension",
+        introduction:
+          "The request was approved and the difference is ready to be paid through the private link.",
+        pendingNotice:
+          "The requested dates are not in effect yet. They will be applied only after the payment is approved and the system successfully completes the update.",
+        summaryTitle: "Adjustment summary",
+        amountLabel: "Amount due",
+        holdExpiresAtLabel: "Link available until",
+        actionLabel: "Pay difference",
+        actionFallback: "If the button does not work, open this link:",
+        securityNote:
+          "This link is private and expires with the 60-minute hold.",
+        supportDescription:
+          "For assistance, reply to this email or contact us at",
+      },
+      adminStatus: {
+        sentSubjectPrefix: "Payment email sent to guest",
+        failedSubjectPrefix: "Payment email to guest failed",
+        sentTitle: "The payment-link email was sent",
+        failedTitle: "The payment-link email could not be sent",
+        sentIntroduction:
+          "The email system accepted the message addressed to the guest.",
+        failedIntroduction:
+          "The email system finished delivery without sending the message addressed to the guest.",
+        sentNote:
+          "Resend accepted the message. This confirms sending from our system, not inbox delivery or opening.",
+        failedNote:
+          "The change is still awaiting payment and has not been applied to the reservation.",
+        sourceTitle: "Delivery result",
+        requestTypeLabel: "Request type",
+        guestRecipientLabel: "Intended recipient",
+        sourceNotificationLabel: "Guest notification",
+        attemptsLabel: "Attempts",
+        observedAtLabel: "Result observed",
+        errorCodeLabel: "Safe error code",
+      },
     },
     adminNewReservation: {
       subjectPrefix: "New confirmed reservation",

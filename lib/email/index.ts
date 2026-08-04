@@ -39,3 +39,15 @@ export {
   EMAIL_NOTIFICATION_PROCESSING_TIMEOUT_MS,
   EMAIL_NOTIFICATION_RETRY_BATCH_SIZE,
 } from "./retry-policy";
+
+export {
+  deliverClaimedLifecycleAdjustmentPaymentEmailNotification,
+  deliverLifecycleAdjustmentPaymentNotificationsBestEffort,
+  ensureAndDeliverLifecycleAdjustmentPaymentRequiredNotificationBestEffort,
+  ensureLifecycleAdjustmentPaymentRequiredNotification,
+  isLifecycleAdjustmentPaymentGuestNotificationType,
+  isLifecycleAdjustmentPaymentNotificationType,
+  lifecycleAdjustmentPaymentGuestNotificationTypes,
+  lifecycleAdjustmentPaymentNotificationTypes,
+  reconcileLifecycleAdjustmentPaymentDeliveryStatusIntents,
+} from "./lifecycle-adjustment-payment-notifications";

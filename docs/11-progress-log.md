@@ -6,14 +6,14 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
-Current subphase: 11.6.3 Transactional intent orchestration and delivery — In progress
-Current focus: create lifecycle notification intents atomically with terminal domain transitions and deliver them after commit through the Phase 10 pipeline
+Current subphase: 11.6.4 Lifecycle adjustment payment-link notifications and email corrections — In progress
+Current focus: send positive adjustment payment links, report final guest-email delivery results to admins, add protected manual sending, and correct zero/negative DATE_CHANGE copy
 Last updated: 2026-08-04
-Last completed subphase: 11.6.2 Bilingual lifecycle email templates
-11.6.2 accepted commit: 6eb4a18c9e7476266cae8c627318fa83ff27fb0d
-11.6.2 acceptance: Lint/build passed; manual content and inbox checks consolidated into the integrated 11.6.3 matrix
-11.6.2 implementation document: docs/116-phase-11.6.2-bilingual-lifecycle-email-templates.md
+Last completed subphase: 11.6.3 Transactional intent orchestration and delivery
+11.6.3 accepted commit: 5fed1ca0423190cd51a9c710d00c9216b65883a9
+11.6.3 acceptance: All integrated lifecycle inbox scenarios passed, including ES/EN rendering, retries, replay safety, and unchanged domain state on email failure
 11.6.3 implementation document: docs/117-phase-11.6.3-transactional-intent-orchestration-and-delivery.md
+11.6.4 implementation document: docs/118-phase-11.6.4-lifecycle-adjustment-payment-link-notifications-and-email-corrections.md
 11.5.1 strategy base commit: 3d1487f31ca74fc5a41573b4ab206ce9ad838bb5
 11.5.1 strategy document: docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md
 11.5.1 accepted commit: e0b77658c74ee2d7a30c96f529d5f7f4451ab045
@@ -474,22 +474,35 @@ Manual subject, content, HTML/text, ES/EN, and inbox verification is intentional
 Implementation document: docs/116-phase-11.6.2-bilingual-lifecycle-email-templates.md.
 ```
 
-## Active Work — Phase 11.6.3
+## Completed Work — Phase 11.6.3
 
 ### Phase 11.6.3 — Transactional Intent Orchestration and Delivery
+
+Status: **Completed and accepted**
+
+```text
+The integrated lifecycle inbox matrix passed successfully on 2026-08-04.
+Guest/admin intent ownership, permanent deduplication, post-commit delivery, test routing, retries, stale recovery, replay safety, and failure isolation were accepted.
+The accepted head is 5fed1ca0423190cd51a9c710d00c9216b65883a9.
+Three follow-up observations were accepted for the next subphase without reopening the completed orchestration contract.
+Implementation document: docs/117-phase-11.6.3-transactional-intent-orchestration-and-delivery.md.
+```
+
+## Active Work — Phase 11.6.4
+
+### Phase 11.6.4 — Lifecycle Adjustment Payment-Link Notifications and Email Corrections
 
 Status: **In progress — implementation prepared; local/inbox acceptance pending**
 
 ```text
-Creates one guest intent and one intent per configured admin recipient inside each accepted terminal lifecycle transaction.
-Cancellation intents require Reservation CANCELLED and lifecycle request COMPLETED.
-Date-change and stay-extension intents require request COMPLETED and Reservation CONFIRMED.
-Refund intents require Refund APPROVED and Payment PARTIALLY_REFUNDED or REFUNDED.
-Stable deduplication keys and typed lifecycleRequestId/refundId relations prevent duplicate rows on replay or concurrency.
-Delivery starts only after commit and reuses the Phase 10 immediate claim, bounded retry, stale recovery, test routing, Resend idempotency, and manual resend foundation.
-No provider failure can roll back cancellation, date mutation, extension, or financial reconciliation.
-No historical backfill, migration, dependency, environment variable, guest self-service mutation, or PMS behavior is added.
-Implementation document: docs/117-phase-11.6.3-transactional-intent-orchestration-and-delivery.md.
+Positive DATE_CHANGE and STAY_EXTENSION requests notify the guest with the private adjustment-payment link while clearly preserving the original dates until payment and successful completion.
+Guest SENT and terminal FAILED results create separate administrative delivery-result notifications without claiming inbox delivery or opening.
+The admin request card adds protected manual email sending beside open/copy actions, with duplicate, active-delivery, and failed-only states.
+Manual sends preserve the source notification and use permanent UUID-based child keys.
+Completed DATE_CHANGE copy differentiates positive, zero, and negative financial branches; REFUND_PROCESSED remains the only final refund confirmation.
+A schema migration adds the new types and sourceNotificationId self-relation.
+The previous protected-history scope moves to Phase 11.6.5.
+Implementation document: docs/118-phase-11.6.4-lifecycle-adjustment-payment-link-notifications-and-email-corrections.md.
 ```
 
 ## Continuity Notes for New Conversations
@@ -538,6 +551,7 @@ docs/114-phase-11.5-integrated-acceptance-and-documentation-closure.md
 docs/115-phase-11.6.1-lifecycle-notification-contract-and-persistence-relations.md
 docs/116-phase-11.6.2-bilingual-lifecycle-email-templates.md
 docs/117-phase-11.6.3-transactional-intent-orchestration-and-delivery.md
+docs/118-phase-11.6.4-lifecycle-adjustment-payment-link-notifications-and-email-corrections.md
 lib/admin/reservation-cancellation.ts
 lib/admin/reservation-date-mutation.ts
 lib/reservations/date-mutation-completion.ts

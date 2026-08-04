@@ -12,3 +12,10 @@ export {
   buildReservationDatesUpdatedEmail,
   buildStayExtensionConfirmedEmail,
 } from "./lifecycle-email-templates";
+
+export {
+  buildAdminDateChangePaymentLinkDeliveryStatusEmail,
+  buildAdminStayExtensionPaymentLinkDeliveryStatusEmail,
+  buildDateChangePaymentRequiredEmail,
+  buildStayExtensionPaymentRequiredEmail,
+} from "./lifecycle-adjustment-payment-email-templates";

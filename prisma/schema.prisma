@@ -222,6 +222,10 @@ enum EmailNotificationType {
   ADMIN_RESERVATION_DATES_UPDATED
   STAY_EXTENSION_CONFIRMED
   ADMIN_STAY_EXTENSION_CONFIRMED
+  DATE_CHANGE_PAYMENT_REQUIRED
+  STAY_EXTENSION_PAYMENT_REQUIRED
+  ADMIN_DATE_CHANGE_PAYMENT_LINK_DELIVERY_STATUS
+  ADMIN_STAY_EXTENSION_PAYMENT_LINK_DELIVERY_STATUS
   REFUND_PROCESSED
   ADMIN_REFUND_PROCESSED
   ARRIVAL_INSTRUCTIONS
@@ -825,6 +829,7 @@ model EmailNotification {
   deduplicationKey               String                  @unique @map("deduplication_key")
   origin                         EmailNotificationOrigin @default(AUTOMATIC)
   parentNotificationId           String?                 @map("parent_notification_id")
+  sourceNotificationId           String?                 @map("source_notification_id")
   requestedByAdminId             String?                 @map("requested_by_admin_id")
   requestedAt                    DateTime?               @map("requested_at")
   scheduledFor                   DateTime?               @map("scheduled_for")
@@ -842,12 +847,14 @@ model EmailNotification {
   createdAt                      DateTime                @default(now()) @map("created_at")
   updatedAt                      DateTime                @updatedAt @map("updated_at")
 
-  reservation        Reservation                  @relation(fields: [reservationId], references: [id], onDelete: Cascade)
-  lifecycleRequest   ReservationLifecycleRequest? @relation(fields: [lifecycleRequestId], references: [id], onDelete: SetNull)
-  refund             Refund?                      @relation(fields: [refundId], references: [id], onDelete: SetNull)
-  parentNotification EmailNotification?           @relation("EmailNotificationManualResends", fields: [parentNotificationId], references: [id], onDelete: SetNull)
-  manualResends      EmailNotification[]          @relation("EmailNotificationManualResends")
-  requestedByAdmin   User?                        @relation("EmailNotificationRequestedByAdmin", fields: [requestedByAdminId], references: [id], onDelete: SetNull)
+  reservation                 Reservation                  @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  lifecycleRequest            ReservationLifecycleRequest? @relation(fields: [lifecycleRequestId], references: [id], onDelete: SetNull)
+  refund                      Refund?                      @relation(fields: [refundId], references: [id], onDelete: SetNull)
+  parentNotification          EmailNotification?           @relation("EmailNotificationManualResends", fields: [parentNotificationId], references: [id], onDelete: SetNull)
+  manualResends               EmailNotification[]          @relation("EmailNotificationManualResends")
+  sourceNotification          EmailNotification?           @relation("EmailNotificationDeliveryStatuses", fields: [sourceNotificationId], references: [id], onDelete: SetNull)
+  deliveryStatusNotifications EmailNotification[]          @relation("EmailNotificationDeliveryStatuses")
+  requestedByAdmin            User?                        @relation("EmailNotificationRequestedByAdmin", fields: [requestedByAdminId], references: [id], onDelete: SetNull)
 
   @@index([reservationId])
   @@index([lifecycleRequestId])
@@ -856,6 +863,7 @@ model EmailNotification {
   @@index([type])
   @@index([origin])
   @@index([parentNotificationId])
+  @@index([sourceNotificationId])
   @@index([requestedByAdminId])
   @@index([scheduledFor])
   @@index([reservationCheckInDateSnapshot])

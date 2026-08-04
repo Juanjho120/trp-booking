@@ -330,8 +330,9 @@ Planned subphases:
 11.6 Lifecycle notifications and admin operational history — In progress
 11.6.1 Notification contract and persistence relations — Completed
 11.6.2 Bilingual lifecycle email templates — Completed
-11.6.3 Transactional intent orchestration and delivery — In progress
-11.6.4 Protected operational history and acceptance — Not started
+11.6.3 Transactional intent orchestration and delivery — Completed
+11.6.4 Lifecycle adjustment payment-link notifications and email corrections — In progress
+11.6.5 Protected operational history and acceptance — Not started
 11.7 Validation and documentation closure — Not started
 ```
 
@@ -407,19 +408,20 @@ docs/114-phase-11.5-integrated-acceptance-and-documentation-closure.md
 docs/115-phase-11.6.1-lifecycle-notification-contract-and-persistence-relations.md
 docs/116-phase-11.6.2-bilingual-lifecycle-email-templates.md
 docs/117-phase-11.6.3-transactional-intent-orchestration-and-delivery.md
+docs/118-phase-11.6.4-lifecycle-adjustment-payment-link-notifications-and-email-corrections.md
 ```
 
 ## Development Status
 
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
-Current subphase: 11.6.3 Transactional intent orchestration and delivery — In progress
-Current focus: create durable guest/admin lifecycle intents in the accepted domain transactions, deliver only after commit, and reuse the Phase 10 claim/retry/test-routing/manual-recovery pipeline
-Last completed subphase: 11.6.2 Bilingual lifecycle email templates
-11.6.2 accepted commit: 6eb4a18c9e7476266cae8c627318fa83ff27fb0d
-11.6.2 acceptance: Completed on 2026-08-04 after lint and build passed; manual rendering and inbox checks were consolidated into 11.6.3
-11.6.2 implementation document: docs/116-phase-11.6.2-bilingual-lifecycle-email-templates.md
+Current subphase: 11.6.4 Lifecycle adjustment payment-link notifications and email corrections — In progress
+Current focus: notify guests about positive lifecycle-adjustment payment links, report final guest-email delivery results to admins, add protected manual sending, and correct zero/negative DATE_CHANGE copy
+Last completed subphase: 11.6.3 Transactional intent orchestration and delivery
+11.6.3 accepted commit: 5fed1ca0423190cd51a9c710d00c9216b65883a9
+11.6.3 acceptance: Integrated ES/EN inbox, deduplication, retry, replay, and failure-safety matrix passed on 2026-08-04
 11.6.3 implementation document: docs/117-phase-11.6.3-transactional-intent-orchestration-and-delivery.md
+11.6.4 implementation document: docs/118-phase-11.6.4-lifecycle-adjustment-payment-link-notifications-and-email-corrections.md
 Last completed phase: Phase 10 — Email Notifications
 Phase 10 closure document: docs/94-phase-10-validation-and-documentation-closure.md
 ```
@@ -444,14 +446,24 @@ Phase 10 closure document: docs/94-phase-10-validation-and-documentation-closure
 - Implementation record: docs/116-phase-11.6.2-bilingual-lifecycle-email-templates.md.
 ```
 
-### Phase 11.6.3 implementation prepared
+### Phase 11.6.3 completed and accepted
 
 ```text
-- Creates guest/admin lifecycle EmailNotification intents inside the cancellation, completed date-mutation/extension, and approved-refund transactions.
-- Uses stable per-recipient deduplication and the typed lifecycleRequestId/refundId relations from 11.6.1.
-- Starts best-effort delivery only after commit and never rolls back domain state when Resend or template delivery fails.
-- Routes lifecycle rows through the accepted Phase 10 immediate claim, retry worker, stale recovery, test-recipient routing, provider idempotency, and manual-resend foundation.
-- Creates refund emails only for APPROVED reconciliation with a final PARTIALLY_REFUNDED or REFUNDED Payment.
-- Performs no historical backfill and adds no schema migration, dependency, environment variable, guest mutation, or PMS behavior.
+- The integrated lifecycle inbox matrix passed for cancellation, date changes, extensions, standard/extraordinary refunds, and lifecycle-adjustment refunds.
+- Guest/admin intents, post-commit delivery, test routing, retry recovery, permanent deduplication, replay safety, and domain failure isolation were accepted.
+- Accepted commit: 5fed1ca0423190cd51a9c710d00c9216b65883a9.
+- Three accepted follow-up requirements were assigned to 11.6.4 without reopening the accepted 11.6.3 orchestration boundary.
 - Implementation record: docs/117-phase-11.6.3-transactional-intent-orchestration-and-delivery.md.
+```
+
+### Phase 11.6.4 implementation prepared
+
+```text
+- Adds guest payment-required emails for positive DATE_CHANGE and STAY_EXTENSION requests with the existing private 60-minute handoff link.
+- Adds terminal SENT/FAILED administrative delivery-result emails without claiming inbox delivery or opening.
+- Adds a protected admin send-email action beside open/copy link controls with duplicate and active-delivery warnings.
+- Adds durable sourceNotificationId relations, stable deduplication, manual resend chains, retry recovery, and post-commit missing-intent reconciliation.
+- Corrects completed DATE_CHANGE copy for positive, zero, and negative financial branches.
+- Moves protected operational history and final acceptance to 11.6.5.
+- Implementation record: docs/118-phase-11.6.4-lifecycle-adjustment-payment-link-notifications-and-email-corrections.md.
 ```

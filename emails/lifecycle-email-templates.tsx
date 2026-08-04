@@ -298,14 +298,20 @@ export async function buildReservationDatesUpdatedEmail(
   requireGuestLocale(view);
   const messages = getLifecycleEmailMessages(view.locale);
   const typeLabel = messages.notifications.types.RESERVATION_DATES_UPDATED;
+  const completionDescription =
+    view.financialBranch === "ZERO"
+      ? messages.lifecycleAdjustment.completedZeroDescription
+      : view.financialBranch === "NEGATIVE"
+        ? messages.lifecycleAdjustment.completedNegativeDescription
+        : messages.lifecycleAdjustment.completedDescription;
 
   return buildLifecycleEmailDocument({
     locale: view.locale,
     subject: `${typeLabel} · ${view.propertyName}`,
-    previewText: messages.lifecycleAdjustment.completedDescription,
+    previewText: completionDescription,
     eyebrow: typeLabel,
     title: messages.lifecycleAdjustment.completedTitle,
-    introduction: messages.lifecycleAdjustment.completedDescription,
+    introduction: completionDescription,
     successNote: messages.lifecycleAdjustment.completedNote,
     greeting: `${messages.reservationConfirmed.greetingPrefix} ${view.guestName}.`,
     brandName: messages.common.brandName,
