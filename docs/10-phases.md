@@ -15,9 +15,9 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
-Current subphase: 11.5.6 Integrated acceptance and documentation closure — In progress
-Current focus: consolidate accepted 11.5.2 through 11.5.5 evidence, execute the reduced integrated regression matrix, and close the authorized date-change and stay-extension feature
-Last completed subphase: 11.5.5 Negative-difference and failed-completion refund integration
+Current subphase: 11.6 Lifecycle notifications and admin operational history — In progress
+Current focus: define and implement typed bilingual lifecycle notifications, post-commit delivery orchestration, permanent deduplication, and protected operational history using the accepted Phase 10 email foundation
+Last completed subphase: 11.5.6 Integrated acceptance and documentation closure
 11.5.1 strategy base commit: 3d1487f31ca74fc5a41573b4ab206ce9ad838bb5
 11.5.1 strategy document: docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md
 11.5.1 accepted commit: e0b77658c74ee2d7a30c96f529d5f7f4451ab045
@@ -46,6 +46,9 @@ Last completed subphase: 11.5.5 Negative-difference and failed-completion refund
 11.5.5 implementation document: docs/112-phase-11.5.5-negative-and-compensating-lifecycle-refunds.md
 11.5.5 acceptance: Completed on 2026-08-04 after all 24 local/test matrix criteria passed
 11.5.5 closure document: docs/113-phase-11.5.5-acceptance-closure.md
+11.5.6 integrated matrix: Passed on 2026-08-04; all 8 reduced end-to-end cases passed
+11.5 accepted feature head: d1f43a34a27ba09b68ceee993581a11649cb1508
+11.5 closure document: docs/114-phase-11.5-integrated-acceptance-and-documentation-closure.md
 11.4 accepted implementation commit: 06e857df9d36e77c26557bb7b2057661979809dc
 11.4 implementation document: docs/99-phase-11.4-refund-authorization-and-tilopay-reconciliation.md
 11.4.1 correction document: docs/100-phase-11.4.1-observed-tilopay-contract-and-evidence-based-reconciliation.md
@@ -513,7 +516,7 @@ Subphase status:
 11.4 Refund authorization and Tilopay reconciliation — Completed
 11.4.1 Observed Tilopay contract and evidence-based reconciliation — Completed
 11.4.2 Extraordinary refund authorization and consult evidence lock — Completed
-11.5 Authorized date changes and stay extensions — In progress
+11.5 Authorized date changes and stay extensions — Completed
 11.5.1 Strategy, pricing, independent holds, and financial-adjustment contract — Completed
 11.5.2 Admin request creation, quote, and availability validation — Completed
 11.5.2.1 Admin availability datepicker and own-reservation exclusion UX — Completed
@@ -521,8 +524,8 @@ Subphase status:
 11.5.3.1 Transaction resilience and admin datepicker positioning — Completed
 11.5.4 Final date-change and stay-extension completion — Completed
 11.5.5 Negative-difference and failed-completion refund integration — Completed
-11.5.6 Integrated acceptance and documentation closure — In progress
-11.6 Lifecycle notifications and admin operational history — Not started
+11.5.6 Integrated acceptance and documentation closure — Completed
+11.6 Lifecycle notifications and admin operational history — In progress
 11.7 Validation and documentation closure — Not started
 ```
 
@@ -769,15 +772,31 @@ Phase 11 rules:
 - Closure record: docs/113-phase-11.5.5-acceptance-closure.md.
 ```
 
-### Phase 11.5.6 active scope
+### Phase 11.5.6 completed and accepted
 
 ```text
-- Integrated acceptance and documentation closure replaces the previous generic acceptance label.
-- Consolidate evidence from 11.5.2 through 11.5.5; do not repeat every already accepted subphase matrix.
-- Run a reduced integrated matrix for positive, zero, negative, and failed-positive compensation branches.
-- Reconfirm public/lifecycle hold isolation, pricing, availability, preparation buffers, composed dependencies, idempotency/concurrency, history preservation, arrival supersession, and lifecycle-email deferral.
-- Reconcile README, docs/10-phases.md, docs/11-progress-log.md, implementation records, accepted heads, and closure documents.
-- Introduce no application code unless an integrated regression exposes a defect.
+- Consolidated the accepted evidence from 11.5.2 through 11.5.5 without repeating every prior matrix.
+- All eight reduced integrated cases passed on 2026-08-04: positive DATE_CHANGE, positive STAY_EXTENSION, zero DATE_CHANGE, shortened-stay negative DATE_CHANGE, failed-positive compensation, 15/60-minute hold isolation, availability/buffer/composed-listing regression, and replay/concurrency regression.
+- Positive, zero, negative, and failed-positive compensation branches operate as one coherent lifecycle feature.
+- Reservation identity/history, Payment/Refund ownership, availability, preparation buffers, composed dependencies, arrival supersession, and lifecycle-email deferral remain intact.
+- Public and lifecycle holds remain independent at 15 and 60 minutes.
+- No application code was required by the integrated closure.
+- Accepted feature head: d1f43a34a27ba09b68ceee993581a11649cb1508.
+- Closure record: docs/114-phase-11.5-integrated-acceptance-and-documentation-closure.md.
+```
+
+### Phase 11.6 active scope
+
+```text
+- Add bilingual guest/admin cancellation, refund, date-update, and stay-extension notification contracts.
+- Add typed optional lifecycleRequestId/refundId EmailNotification relations where required.
+- Create notification intents transactionally only after the matching lifecycle transition commits.
+- Reuse the Phase 10 post-commit Resend adapter, permanent deduplication, bounded retry, stale-claim recovery, test-recipient routing, and protected delivery history.
+- Send cancellation notifications only after cancellation commit and without promising an unconfirmed refund.
+- Send refund notifications only after APPROVED reconciliation changes Payment to PARTIALLY_REFUNDED or REFUNDED.
+- Send date-update and stay-extension notifications only after the date mutation is COMPLETED.
+- Add protected typed lifecycle request, adjustment Payment, Refund, and notification history without generic metadata editing.
+- Keep guest self-service mutation, raw provider exposure, card data, hard deletion, and PMS behavior out of scope.
 ```
 
 ### Phase 11.6 requirements accepted during 11.4.2

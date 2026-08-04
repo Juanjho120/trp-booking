@@ -6,10 +6,10 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
-Current subphase: 11.5.6 Integrated acceptance and documentation closure — In progress
-Current focus: consolidate 11.5.2 through 11.5.5 acceptance evidence, execute a reduced integrated regression matrix, and close the complete authorized date-change and stay-extension feature
+Current subphase: 11.6 Lifecycle notifications and admin operational history — In progress
+Current focus: define and implement typed bilingual lifecycle notifications, post-commit delivery orchestration, permanent deduplication, and protected operational history using the accepted Phase 10 email foundation
 Last updated: 2026-08-04
-Last completed subphase: 11.5.5 Negative-difference and failed-completion refund integration
+Last completed subphase: 11.5.6 Integrated acceptance and documentation closure
 11.5.1 strategy base commit: 3d1487f31ca74fc5a41573b4ab206ce9ad838bb5
 11.5.1 strategy document: docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md
 11.5.1 accepted commit: e0b77658c74ee2d7a30c96f529d5f7f4451ab045
@@ -38,6 +38,9 @@ Last completed subphase: 11.5.5 Negative-difference and failed-completion refund
 11.5.5 implementation document: docs/112-phase-11.5.5-negative-and-compensating-lifecycle-refunds.md
 11.5.5 functional matrix: Passed on 2026-08-04; all 24 criteria passed
 11.5.5 closure document: docs/113-phase-11.5.5-acceptance-closure.md
+11.5.6 integrated matrix: Passed on 2026-08-04; all 8 reduced end-to-end cases passed
+11.5 accepted feature head: d1f43a34a27ba09b68ceee993581a11649cb1508
+11.5 closure document: docs/114-phase-11.5-integrated-acceptance-and-documentation-closure.md
 11.4 accepted implementation commit: 06e857df9d36e77c26557bb7b2057661979809dc
 11.4 implementation document: docs/99-phase-11.4-refund-authorization-and-tilopay-reconciliation.md
 11.4.1 correction document: docs/100-phase-11.4.1-observed-tilopay-contract-and-evidence-based-reconciliation.md
@@ -424,21 +427,38 @@ Implementation record: docs/112-phase-11.5.5-negative-and-compensating-lifecycle
 Closure record: docs/113-phase-11.5.5-acceptance-closure.md.
 ```
 
-## Active Work — Phase 11.5.6
-
 ### Phase 11.5.6 — Integrated Acceptance and Documentation Closure
+
+Status: **Completed and accepted**
+
+```text
+The reduced integrated matrix passed all eight cases on 2026-08-04.
+Positive DATE_CHANGE, positive STAY_EXTENSION, zero DATE_CHANGE, shortened-stay negative DATE_CHANGE, and failed-positive compensation completed with the accepted Payment/Refund ownership rules.
+The 15-minute public hold and 60-minute lifecycle hold remained independent.
+Availability, preparation buffers, composed-listing dependencies, arrival supersession, replay, concurrency, standard/extraordinary Refund regression, public checkout, ES/EN parity, and lifecycle-email deferral remained intact.
+No application code change was required.
+Accepted feature head: d1f43a34a27ba09b68ceee993581a11649cb1508.
+Closure document: docs/114-phase-11.5-integrated-acceptance-and-documentation-closure.md.
+```
+
+## Active Work — Phase 11.6
+
+### Phase 11.6 — Lifecycle Notifications and Admin Operational History
 
 Status: **In progress**
 
 Accepted scope:
 
 ```text
-Consolidate acceptance evidence from 11.5.2 through 11.5.5 instead of repeating every subphase matrix.
-Run a reduced integrated end-to-end matrix across positive, zero, negative, and failed-positive compensation branches.
-Reconfirm independent 15-minute public and 60-minute lifecycle holds.
-Reconfirm pricing, availability, preparation buffers, composed dependencies, idempotency/concurrency, historical preservation, arrival supersession, and lifecycle-email deferral.
-Reconcile README, phase plan, progress log, implementation records, accepted heads, and closure documents.
-Introduce no application code unless an integrated regression exposes a defect.
+Define and implement bilingual guest/admin cancellation, refund, date-update, and stay-extension notifications.
+Add typed optional lifecycleRequestId/refundId EmailNotification relations where required.
+Create intents transactionally only after the underlying lifecycle transition commits.
+Reuse the accepted Phase 10 post-commit Resend, permanent deduplication, bounded retry, stale-claim recovery, test-recipient routing, manual recovery, and protected history foundation.
+Do not promise a refund in cancellation communication before APPROVED reconciliation.
+Create refund notifications only after Payment becomes PARTIALLY_REFUNDED or REFUNDED.
+Create date-update and extension notifications only after the request becomes COMPLETED.
+Expose typed lifecycle request, adjustment Payment, Refund, and notification history in protected reservation detail.
+Keep guest self-service mutation, raw provider exposure, hard deletion, card-data handling, and PMS behavior out of scope.
 ```
 
 ## Continuity Notes for New Conversations
@@ -483,6 +503,7 @@ docs/110-phase-11.5.4-final-positive-zero-completion.md
 docs/111-phase-11.5.4-acceptance-closure.md
 docs/112-phase-11.5.5-negative-and-compensating-lifecycle-refunds.md
 docs/113-phase-11.5.5-acceptance-closure.md
+docs/114-phase-11.5-integrated-acceptance-and-documentation-closure.md
 lib/admin/reservation-cancellation.ts
 lib/admin/reservation-date-mutation.ts
 lib/reservations/date-mutation-completion.ts

@@ -318,7 +318,7 @@ Planned subphases:
 11.4 Refund authorization and Tilopay reconciliation — Completed
 11.4.1 Observed Tilopay contract and evidence-based reconciliation — Completed
 11.4.2 Extraordinary refund authorization and consult evidence lock — Completed
-11.5 Authorized date changes and stay extensions — In progress
+11.5 Authorized date changes and stay extensions — Completed
 11.5.1 Strategy, pricing, independent holds, and financial-adjustment contract — Completed
 11.5.2 Admin request creation, quote, and availability validation — Completed
 11.5.2.1 Admin availability datepicker and own-reservation exclusion UX — Completed
@@ -326,8 +326,8 @@ Planned subphases:
 11.5.3.1 Transaction resilience and admin datepicker positioning — Completed
 11.5.4 Final date-change and stay-extension completion — Completed
 11.5.5 Negative-difference and failed-completion refund integration — Completed
-11.5.6 Integrated acceptance and documentation closure — In progress
-11.6 Lifecycle notifications and admin operational history — Not started
+11.5.6 Integrated acceptance and documentation closure — Completed
+11.6 Lifecycle notifications and admin operational history — In progress
 11.7 Validation and documentation closure — Not started
 ```
 
@@ -335,72 +335,51 @@ Accepted Phase 11 foundation:
 
 ```text
 - Reservation state owns the stay/availability lifecycle; Payment and Refund own financial reversals.
-- New flows must not use Reservation.PARTIALLY_REFUNDED for an active stay because availability currently depends on CONFIRMED.
 - Guests cannot directly edit confirmed dates or invoke unauthenticated lifecycle mutations.
-- Initial requests are admin-recorded from approved support channels.
-- Cancellation and refund are separate decisions; refund authorization, failure, or approval never changes the Reservation lifecycle status.
-- The approved cancellation matrix is 100% refund at 7 or more days before check-in, 50% from 72 hours through less than 7 days, and 0% below 72 hours.
-- Cancellation timing is evaluated against the property's configured check-in time in America/Guatemala.
-- Date changes and stay extensions require availability revalidation and additional payment when the difference is positive.
-- The normal public pending-reservation hold remains 15 minutes and is not changed or reused by Phase 11.5.
-- A positive lifecycle adjustment uses a separate 60-minute LifecycleRequestHold with independent storage, expiry, and constants.
-- Full date changes reprice the complete requested stay using current pricing; stay extensions preserve the confirmed original total and price only added nights using current pricing.
-- Zero differences complete without a payment or lifecycle hold; negative differences complete operationally with a separate exact lifecycle-adjustment refund authorization.
-- Requested dates awaiting an adjustment payment require the independent lifecycle-request hold.
-- Tilopay officially documents POST /api/v1/processModification with type 2 for refund and type 3 for reversal.
-- Sandbox support, response shapes, errors, duplicate behavior, retry safety, and provider idempotency are validated during 11.4 before production execution.
-- Merchant-portal processing remains an operational fallback, not the only assumed integration path.
-- Lifecycle emails are added only after the underlying transition is accepted.
-- Phase 11.6 must send separate guest/admin cancellation notifications after cancellation commit and separate guest/admin refund notifications only after an APPROVED reconciliation.
-- Extraordinary refund authorization is an explicit admin compensation independent from cancellation: it may be applied to a CONFIRMED or CANCELLED reservation, never changes the reservation lifecycle status, and never exceeds the remaining captured-payment balance.
-- Standard refunds remain linked to completed cancellations and the frozen policy allowance; extraordinary refunds link directly to the validated initial payment.
-- The 11.5.1 pricing, hold-duration, request-lifetime, horizon, and positive/zero/negative difference rules are accepted in docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md.
-- Cleaning fee, taxes, and discounts remain at their current values; any future nonzero or one-time fee treatment requires a separate documented decision.
-- No PMS behavior is added.
+- Cancellation and refund remain separate, auditable decisions.
+- The approved cancellation matrix is 100% at 168 hours or more, 50% from 72 through less than 168 hours, and 0% below 72 hours before check-in.
+- Public pending reservations retain an independent 15-minute hold.
+- Positive lifecycle adjustments use a separate 60-minute LifecycleRequestHold.
+- Full DATE_CHANGE requests reprice the complete requested stay using current pricing.
+- STAY_EXTENSION preserves the original check-in and confirmed total, and prices only added nights.
+- Positive differences require an approved adjustment Payment before completion.
+- Zero differences complete without Payment or lifecycle hold.
+- Negative shortened-stay DATE_CHANGE requests complete with an exact lifecycle-adjustment Refund authorization.
+- Approved adjustment Payments whose final mutation cannot commit receive an exact compensating Refund while original dates remain unchanged.
+- Refund execution and reconciliation remain evidence-based and independent from Reservation lifecycle status.
+- Lifecycle emails are created only after the underlying transition commits and never determine that transition.
+- No guest self-service mutation, card-data handling, hard deletion, or PMS behavior is added.
 ```
 
-Subphase 11.1 remains completed as a documentation-only strategy. Its approved-policy and provider-contract correction is recorded in `docs/96-phase-11.1-cancellation-policy-and-tilopay-refund-contract-correction.md` and introduces no schema, provider call, reservation/payment mutation, calendar mutation, UI copy, or email delivery.
+## Phase 11.5 Closure
+
+Phase 11.5 — Authorized date changes and stay extensions is completed and accepted.
+
+```text
+- Admin-recorded DATE_CHANGE and STAY_EXTENSION requests preserve typed snapshots, decision history, idempotency, and optimistic concurrency.
+- Availability, preparation buffers, and composed-listing dependencies are validated during request creation, approval, and final completion.
+- Positive, zero, negative, and failed-positive compensation branches are implemented and accepted.
+- Reservation.id, CONFIRMED, and confirmedAt remain stable across successful date mutations.
+- Original dates remain when an approved positive adjustment cannot complete.
+- Updated dates remain when a negative-difference Refund later fails.
+- Arrival-instruction supersession remains idempotent.
+- Public and lifecycle holds remain independent at 15 and 60 minutes.
+- Replay and concurrent operations do not duplicate Payments, Refunds, holds, or terminal request transitions.
+- No lifecycle email is created before Phase 11.6.
+- All eight integrated acceptance cases passed on 2026-08-04.
+- Accepted feature head: d1f43a34a27ba09b68ceee993581a11649cb1508.
+- Authoritative closure record: docs/114-phase-11.5-integrated-acceptance-and-documentation-closure.md.
+```
 
 ## Documentation
 
-The project documentation lives under `/docs`.
-
-Important tracker and continuity files:
+Important Phase 11 continuity files:
 
 ```text
 AGENTS.md
 README.md
 docs/10-phases.md
 docs/11-progress-log.md
-docs/32-availability-strategy-and-calendar-rules.md
-docs/35-preparation-buffer-and-blocked-date-evaluation.md
-docs/68-phase-9-admin-and-preparation-buffers-roadmap.md
-docs/69-admin-reservation-payment-review.md
-docs/70-automatic-preparation-buffers-in-availability.md
-docs/71-admin-preparation-buffer-settings-and-overrides.md
-docs/72-admin-navigation-and-property-calendar-operations.md
-docs/73-phase-9-documentation-closure.md
-docs/74-brand-identity-refresh.md
-docs/75-reusable-brand-components.md
-docs/76-brand-application-and-metadata-integration.md
-docs/77-responsive-brand-qa-and-closure.md
-docs/78-accommodation-content-management.md
-docs/79-property-photo-management.md
-docs/80-amenities-and-house-rules.md
-docs/81-phase-9.11.4-ui-follow-up.md
-docs/82-catalog-lifecycle-and-photo-selection.md
-docs/83-reservation-and-payment-detail-views.md
-docs/84-phase-9.11-validation-and-documentation-closure.md
-docs/85-email-notification-strategy-and-phase-10-roadmap.md
-docs/86-email-persistence-and-resend-provider-foundation.md
-docs/87-bilingual-branded-reservation-confirmation-templates.md
-docs/88-guest-admin-confirmation-notification-orchestration.md
-docs/89-test-and-production-environment-strategy.md
-docs/90-transactional-email-brand-logo-hosting.md
-docs/91-email-retry-processing-and-admin-delivery-visibility.md
-docs/92-manual-resend-and-delivery-recovery-controls.md
-docs/93-arrival-instructions-scheduling-and-content.md
-docs/94-phase-10-validation-and-documentation-closure.md
 docs/95-phase-11-lifecycle-strategy-and-roadmap.md
 docs/96-phase-11.1-cancellation-policy-and-tilopay-refund-contract-correction.md
 docs/97-phase-11.2-lifecycle-request-persistence-and-audit-foundation.md
@@ -420,96 +399,32 @@ docs/110-phase-11.5.4-final-positive-zero-completion.md
 docs/111-phase-11.5.4-acceptance-closure.md
 docs/112-phase-11.5.5-negative-and-compensating-lifecycle-refunds.md
 docs/113-phase-11.5.5-acceptance-closure.md
+docs/114-phase-11.5-integrated-acceptance-and-documentation-closure.md
 ```
 
 ## Development Status
 
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
-Current subphase: 11.5.6 Integrated acceptance and documentation closure — In progress
-Current focus: consolidate 11.5.2 through 11.5.5 evidence, run the reduced integrated regression matrix, and close the complete authorized date-change and stay-extension feature without repeating every accepted subphase matrix
-Last completed subphase: 11.5.5 Negative-difference and failed-completion refund integration
-11.5.1 strategy base commit: 3d1487f31ca74fc5a41573b4ab206ce9ad838bb5
-11.5.1 strategy document: docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md
-11.5.1 accepted commit: e0b77658c74ee2d7a30c96f529d5f7f4451ab045
-11.5.2 implementation document: docs/104-phase-11.5.2-admin-request-creation-quote-and-availability-validation.md
-11.5.2 implementation commit: 1a57fbbfb71533c16c8b58bceb8546a70a88599f
-11.5.2 acceptance: Completed on 2026-07-30 after backend and reduced calendar matrices passed
-11.5.2.1 correction document: docs/105-phase-11.5.2.1-admin-availability-datepicker-and-own-reservation-exclusion.md
-11.5.2.1 implementation commit: ab432fdc1e9d3ffb1ff868fd43a6fe70c5999a5e
-11.5.2.1 type-safety follow-ups: f57a777f26ab919e95098dfc13ee11b44f423b02, 56023423f4545914f43856ea44398e8d90301820
-11.5.2/11.5.2.1 accepted head: 56023423f4545914f43856ea44398e8d90301820
-11.5.2/11.5.2.1 closure document: docs/106-phase-11.5.2-and-11.5.2.1-acceptance-closure.md
-11.5.3 implementation commit: bf216e7796151d10a01902efac9dea8d36f29f31
-11.5.3 type-safety follow-up: 9130831029441e024ebd3bc93e4f1e7904ca99c1
-11.5.3 implementation document: docs/107-phase-11.5.3-approval-hold-and-adjustment-payment.md
-11.5.3 functional matrix: Passed on 2026-08-03
-11.5.3.1 accepted head: ece97aa72aec1b0c1eb13f2d21b6b8d862d9c4d4
-11.5.3.1 correction document: docs/108-phase-11.5.3.1-transaction-resilience-and-datepicker-positioning.md
-11.5.3/11.5.3.1 closure document: docs/109-phase-11.5.3-and-11.5.3.1-acceptance-closure.md
-11.5.4 implementation and accepted head: c996716aaad897c4e583a0d83b31b87bfece8e08
-11.5.4 implementation document: docs/110-phase-11.5.4-final-positive-zero-completion.md
-11.5.4 functional matrix: Passed on 2026-08-03; all 17 criteria passed
-11.5.4 closure document: docs/111-phase-11.5.4-acceptance-closure.md
-11.5.5 implementation commit: e1e62859bc76a19ba0afb79e397f30b4e8c396fa
-11.5.5 type-safety follow-ups: 5abf48d8ccb5c9f5484de0dca28ca1a546bf8b80, da7bd89acb623da6d7788e3cc9d392710cefc145
-11.5.5 accepted head: da7bd89acb623da6d7788e3cc9d392710cefc145
-11.5.5 implementation document: docs/112-phase-11.5.5-negative-and-compensating-lifecycle-refunds.md
-11.5.5 functional matrix: Passed on 2026-08-04; all 24 criteria passed
-11.5.5 closure document: docs/113-phase-11.5.5-acceptance-closure.md
-11.4 accepted implementation commit: 06e857df9d36e77c26557bb7b2057661979809dc
-11.4 implementation document: docs/99-phase-11.4-refund-authorization-and-tilopay-reconciliation.md
-11.4.1 correction document: docs/100-phase-11.4.1-observed-tilopay-contract-and-evidence-based-reconciliation.md
-11.4.2 implementation document: docs/101-phase-11.4.2-extraordinary-refund-authorization-and-consult-evidence-lock.md
-11.4 closure document: docs/102-phase-11.4-refund-acceptance-and-documentation-closure.md
+Current subphase: 11.6 Lifecycle notifications and admin operational history — In progress
+Current focus: define and implement typed bilingual lifecycle notifications, post-commit delivery orchestration, deduplication, and protected operational history using the accepted Phase 10 email foundation
+Last completed subphase: 11.5.6 Integrated acceptance and documentation closure
+11.5 accepted feature head: d1f43a34a27ba09b68ceee993581a11649cb1508
+11.5 integrated acceptance: Completed on 2026-08-04 after all 8 reduced end-to-end cases passed
+11.5 closure document: docs/114-phase-11.5-integrated-acceptance-and-documentation-closure.md
 Last completed phase: Phase 10 — Email Notifications
 Phase 10 closure document: docs/94-phase-10-validation-and-documentation-closure.md
 ```
 
-### Phase 11.5.3 and 11.5.3.1 completed and accepted
+### Phase 11.6 active
 
 ```text
-- The complete approval/payment/expiration matrix passed on 2026-08-03.
-- First-attempt creation and decision reliability, bounded Serializable retry, and requested-date calendar positioning were accepted at head ece97aa72aec1b0c1eb13f2d21b6b8d862d9c4d4.
-- Closure record: docs/109-phase-11.5.3-and-11.5.3.1-acceptance-closure.md.
-```
-
-### Phase 11.5.4 completed and accepted
-
-```text
-- Zero DATE_CHANGE and STAY_EXTENSION requests complete atomically inside approval without a Payment or lifecycle hold.
-- Positive requests complete only after an exact server-validated APPROVED LIFECYCLE_ADJUSTMENT Payment and matching active hold.
-- Final Serializable completion revalidates immutable Reservation state, timing, pricing, availability, buffers, dependencies, payment, and hold.
-- Reservation.id, CONFIRMED, and confirmedAt are preserved while requested dates and pricing are applied.
-- Positive holds become RELEASED and replay/concurrent completion is idempotent.
-- Stale snapshots and every invalid completion condition preserve the original Reservation.
-- Arrival-intent supersession is idempotent, the completed opaque page hides checkout, and no lifecycle email is created.
-- All 17 acceptance criteria passed on 2026-08-03, including ES/EN parity and npm run build.
-- Implementation and accepted head: c996716aaad897c4e583a0d83b31b87bfece8e08.
-- Implementation record: docs/110-phase-11.5.4-final-positive-zero-completion.md.
-- Closure record: docs/111-phase-11.5.4-acceptance-closure.md.
-```
-
-### Phase 11.5.5 completed and accepted
-
-```text
-- Negative shortened-stay DATE_CHANGE requests apply requested dates/pricing and create one exact lifecycle-adjustment Refund against the initial Payment.
-- STAY_EXTENSION preserves check-in, moves check-out later, and prices only added nights; it is not the technical type for reducing nights.
-- Approved adjustment Payments whose final mutation cannot commit preserve original dates and create one exact compensating Refund.
-- Failed negative Refunds preserve completed dates; failed compensation preserves the approved adjustment Payment and original Reservation.
-- Replay, concurrency, cumulative-balance, evidence-lock, arrival-supersession, public-hold, and ES/EN regressions passed.
-- All 24 criteria passed on 2026-08-04 at accepted head da7bd89acb623da6d7788e3cc9d392710cefc145.
-- Implementation record: docs/112-phase-11.5.5-negative-and-compensating-lifecycle-refunds.md.
-- Closure record: docs/113-phase-11.5.5-acceptance-closure.md.
-```
-
-### Phase 11.5.6 active
-
-```text
-- Integrated acceptance and documentation closure replaces the previous generic “Acceptance tests and documentation” label.
-- Consolidate accepted evidence from 11.5.2 through 11.5.5 instead of repeating every subphase matrix.
-- Run a reduced integrated matrix across positive, zero, negative, and failed-positive compensation branches.
-- Reconfirm 15-minute public and 60-minute lifecycle hold isolation, pricing, availability, buffers, composed dependencies, idempotency/concurrency, arrival supersession, and lifecycle-email deferral.
-- Reconcile README, phase plan, progress log, implementation records, accepted heads, and closure documents.
-- Add no application code unless the integrated regression exposes a defect.
+- Add bilingual guest/admin cancellation, refund, date-update, and stay-extension notification contracts.
+- Add typed optional lifecycleRequestId/refundId notification relationships where required.
+- Create notification intents transactionally only after the matching lifecycle transition commits.
+- Send through the accepted post-commit Resend provider, retry, stale-claim recovery, test-recipient routing, and permanent deduplication foundation.
+- Send refund notifications only after APPROVED reconciliation changes the source Payment financial state.
+- Never promise a refund in a cancellation notification before reconciliation is approved.
+- Show typed lifecycle request, adjustment Payment, Refund, and notification history in protected reservation detail.
+- Keep guest self-service mutation, raw provider exposure, and PMS behavior out of scope.
 ```
