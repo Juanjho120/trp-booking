@@ -7,6 +7,7 @@ import {
   executeAdminTilopayRefund,
   getAdminSessionActor,
 } from "@/lib/admin";
+import { executeAdminLifecycleAdjustmentRefundIfApplicable } from "@/lib/admin/lifecycle-adjustment-refund-workflow";
 import type { AdminRefundErrorCode } from "@/types/admin-refund";
 
 export const dynamic = "force-dynamic";
@@ -71,10 +72,11 @@ export async function POST(request: Request, context: RouteContext) {
       return adminApiErrorResponse("INVALID_ADMIN_REFUND_REQUEST", 400);
     }
 
-    const result = await executeAdminTilopayRefund(
-      { refundId: parsedRefundId.data, ...parsedRequest.data },
-      actor,
-    );
+    const input = { refundId: parsedRefundId.data, ...parsedRequest.data };
+    const lifecycleResult =
+      await executeAdminLifecycleAdjustmentRefundIfApplicable(input, actor);
+    const result =
+      lifecycleResult ?? (await executeAdminTilopayRefund(input, actor));
 
     return adminApiSuccessResponse({ result });
   } catch (error) {

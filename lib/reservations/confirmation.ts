@@ -15,6 +15,10 @@ import {
   completePaidDateMutation,
   ReservationDateMutationCompletionError,
 } from "@/lib/reservations/date-mutation-completion";
+import {
+  compensateApprovedLifecycleAdjustmentPayment,
+  isCompensatableDateMutationCompletionError,
+} from "@/lib/reservations/lifecycle-adjustment-refunds";
 import type {
   ConfirmedReservationAfterPayment,
   ReservationConfirmationErrorCode,
@@ -141,6 +145,18 @@ export async function confirmReservationAfterApprovedPayment(
       };
     } catch (error) {
       if (error instanceof ReservationDateMutationCompletionError) {
+        if (isCompensatableDateMutationCompletionError(error.code)) {
+          try {
+            await compensateApprovedLifecycleAdjustmentPayment(
+              paymentBoundary.id,
+              error.code,
+            );
+          } catch {
+            // The provider-approved payment remains auditable. A later admin
+            // recovery can retry compensation without duplicating a Refund.
+          }
+        }
+
         throw new ReservationConfirmationError(
           "RESERVATION_CONFIRMATION_UNEXPECTED_ERROR",
           {
@@ -155,7 +171,7 @@ export async function confirmReservationAfterApprovedPayment(
   }
 
   const transactionResult: ConfirmationTransactionResult =
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const now = new Date();
       const payment = await tx.payment.findUnique({
         where: { id: paymentId },

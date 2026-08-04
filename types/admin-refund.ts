@@ -1,6 +1,7 @@
 export const adminRefundAuthorizationTypes = [
   "STANDARD_POLICY",
   "EXTRAORDINARY",
+  "LIFECYCLE_ADJUSTMENT",
 ] as const;
 
 export type AdminRefundAuthorizationType =

@@ -101,29 +101,30 @@ export function LifecycleAdjustmentPaymentPage({
         <section className="mx-auto grid max-w-2xl gap-6 rounded-[2rem] border border-primary/20 bg-card p-6 shadow-sm sm:p-8">
           <div className="grid gap-3 text-center">
             <span className="mx-auto flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary">
-              {approved ? (
-                <CheckCircle2 aria-hidden="true" />
-              ) : errorMessage ? (
+              {errorMessage ? (
                 <ShieldAlert aria-hidden="true" />
+              ) : approved ? (
+                <CheckCircle2 aria-hidden="true" />
               ) : (
                 <CalendarClock aria-hidden="true" />
               )}
             </span>
             <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-              {completed
-                ? copy.completedTitle
-                : approved
-                  ? copy.approvedTitle
-                  : errorMessage
-                    ? copy.unavailableTitle
+              {errorMessage
+                ? copy.unavailableTitle
+                : completed
+                  ? copy.completedTitle
+                  : approved
+                    ? copy.approvedTitle
                     : copy.title}
             </h1>
             <p className="text-sm leading-6 text-muted-foreground sm:text-base">
-              {completed
-                ? copy.completedDescription
-                : approved
-                  ? copy.approvedDescription
-                  : errorMessage ?? copy.description}
+              {errorMessage ??
+                (completed
+                  ? copy.completedDescription
+                  : approved
+                    ? copy.approvedDescription
+                    : copy.description)}
             </p>
           </div>
 
@@ -150,7 +151,7 @@ export function LifecycleAdjustmentPaymentPage({
                     </dd>
                   </div>
                 </dl>
-                {!approved ? (
+                {!approved && !errorMessage ? (
                   <div className="flex items-center justify-between gap-4 rounded-2xl bg-muted/40 p-4">
                     <span className="flex items-center gap-2 text-muted-foreground">
                       <Clock3 aria-hidden="true" className="size-4" />
@@ -161,7 +162,7 @@ export function LifecycleAdjustmentPaymentPage({
                 ) : null}
               </div>
 
-              {!approved && summary.payable ? (
+              {!approved && !errorMessage && summary.payable ? (
                 <TilopaySdkCheckout
                   initialIssue={initialIssue}
                   reservationId={summary.token}
@@ -169,11 +170,13 @@ export function LifecycleAdjustmentPaymentPage({
               ) : null}
 
               <p className="text-center text-xs leading-5 text-muted-foreground">
-                {completed
-                  ? copy.completedNote
-                  : approved
-                    ? copy.approvedNote
-                    : copy.securityNote}
+                {errorMessage
+                  ? copy.securityNote
+                  : completed
+                    ? copy.completedNote
+                    : approved
+                      ? copy.approvedNote
+                      : copy.securityNote}
               </p>
             </>
           ) : (

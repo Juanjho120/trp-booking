@@ -7,8 +7,10 @@ import {
   AdminReservationDetailPage,
   AdminReservationRefundSection,
 } from "@/features/admin";
+import { AdminReservationLifecycleAdjustmentRefundSection } from "@/features/admin/components/admin-reservation-lifecycle-adjustment-refund-section";
 import { getAdminReservationDetail } from "@/lib/admin";
 import { esMessages } from "@/messages";
+import type { AdminReservationDetailData } from "@/types/admin-reservation-detail";
 
 type AdminReservationDetailRouteProps = Readonly<{
   params: Promise<{
@@ -30,18 +32,33 @@ export default async function AdminReservationDetailRoute({
   params,
 }: AdminReservationDetailRouteProps) {
   const { reservationId } = await params;
-  const reservation = await getAdminReservationDetail(reservationId);
+  const reservation = (await getAdminReservationDetail(
+    reservationId,
+  )) as AdminReservationDetailData | null;
 
   if (!reservation) {
     notFound();
   }
+
+  const standardRefundReservation: AdminReservationDetailData = {
+    ...reservation,
+    payments: reservation.payments.filter(
+      (payment) => payment.purpose === "INITIAL_RESERVATION",
+    ),
+    refunds: reservation.refunds.filter(
+      (refund) => refund.authorizationType !== "LIFECYCLE_ADJUSTMENT",
+    ),
+  };
 
   return (
     <>
       <AdminReservationDetailPage reservation={reservation} />
       <AdminReservationCancellationSection reservation={reservation} />
       <AdminReservationDateMutationSection reservation={reservation} />
-      <AdminReservationRefundSection reservation={reservation} />
+      <AdminReservationRefundSection reservation={standardRefundReservation} />
+      <AdminReservationLifecycleAdjustmentRefundSection
+        reservation={reservation}
+      />
     </>
   );
 }

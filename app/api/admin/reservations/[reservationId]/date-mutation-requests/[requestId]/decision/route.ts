@@ -7,6 +7,7 @@ import {
   decideAdminDateMutationRequest,
   getAdminSessionActor,
 } from "@/lib/admin";
+import { decideAdminNegativeDateMutationRequestIfApplicable } from "@/lib/admin/reservation-date-mutation-negative";
 import {
   adminDateMutationDecisions,
   type AdminDateMutationErrorCode,
@@ -100,14 +101,19 @@ export async function POST(request: Request, context: RouteContext) {
       );
     }
 
-    const decisionResult = await decideAdminDateMutationRequest(
-      {
-        reservationId: parsedReservationId.data,
-        requestId: parsedRequestId.data,
-        ...parsedDecision.data,
-      },
-      actor,
-    );
+    const decisionInput = {
+      reservationId: parsedReservationId.data,
+      requestId: parsedRequestId.data,
+      ...parsedDecision.data,
+    };
+    const negativeDecision =
+      await decideAdminNegativeDateMutationRequestIfApplicable(
+        decisionInput,
+        actor,
+      );
+    const decisionResult =
+      negativeDecision ??
+      (await decideAdminDateMutationRequest(decisionInput, actor));
 
     return adminApiSuccessResponse({ decisionResult });
   } catch (error) {

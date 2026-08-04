@@ -9,7 +9,7 @@ import {
   X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { type ChangeEvent, useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -235,7 +235,7 @@ export function AdminReservationDateMutationDecisionControls({
       ) : null}
 
       <Sheet
-        onOpenChange={(nextOpen) => {
+        onOpenChange={(nextOpen: boolean) => {
           if (!nextOpen && !busy) {
             setOpen(false);
           }
@@ -262,16 +262,18 @@ export function AdminReservationDateMutationDecisionControls({
                 className={textareaClassName}
                 disabled={busy}
                 maxLength={2_000}
-                onChange={(event) => setDecisionNote(event.target.value)}
+                onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
+                  setDecisionNote(event.target.value)
+                }
                 placeholder={copy.placeholders.decisionNote}
                 value={decisionNote}
               />
             </label>
-            <div className="rounded-2xl border border-border bg-muted/20 p-4 text-sm leading-6 text-muted-foreground">
-              {decision === "APPROVE"
-                ? copy.decisionDialog.approvalBoundary
-                : copy.decisionDialog.rejectionBoundary}
-            </div>
+            {decision === "REJECT" ? (
+              <div className="rounded-2xl border border-border bg-muted/20 p-4 text-sm leading-6 text-muted-foreground">
+                {copy.decisionDialog.rejectionBoundary}
+              </div>
+            ) : null}
           </div>
           <SheetFooter>
             <Button
