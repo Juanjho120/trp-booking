@@ -520,7 +520,7 @@ export async function ensureLifecycleAdjustmentPaymentRequiredNotification(
     );
   } catch (error) {
     const recoveryIdentity = recoveryIdentityRef.current;
-    
+
     if (
       recoveryIdentity &&
       error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -565,6 +565,20 @@ export async function ensureAndDeliverLifecycleAdjustmentPaymentRequiredNotifica
   }
 }
 
+const adminStatusIntentSelect = {
+  id: true,
+  reservationId: true,
+  lifecycleRequestId: true,
+  sourceNotificationId: true,
+  type: true,
+  recipient: true,
+  locale: true,
+} satisfies Prisma.EmailNotificationSelect;
+
+type AdminStatusIntent = Prisma.EmailNotificationGetPayload<{
+  select: typeof adminStatusIntentSelect;
+}>;
+
 async function createAdminStatusIntents(
   transaction: Prisma.TransactionClient,
   sourceNotificationId: string,
@@ -600,30 +614,23 @@ async function createAdminStatusIntents(
   for (const rawRecipient of routing.adminRecipients) {
     const recipient = normalizeRecipient(rawRecipient);
     const key = adminStatusKey(type, sourceNotification.id, recipient);
-    const notification = await transaction.emailNotification.upsert({
-      where: { deduplicationKey: key },
-      update: {},
-      create: {
-        reservationId: sourceNotification.reservationId,
-        lifecycleRequestId: sourceNotification.lifecycleRequestId,
-        sourceNotificationId: sourceNotification.id,
-        type: prismaType(type),
-        recipient,
-        locale: routing.adminLocale,
-        deduplicationKey: key,
-        origin: EmailNotificationOrigin.AUTOMATIC,
-        status: EmailNotificationStatus.PENDING,
-      },
-      select: {
-        id: true,
-        reservationId: true,
-        lifecycleRequestId: true,
-        sourceNotificationId: true,
-        type: true,
-        recipient: true,
-        locale: true,
-      },
-    });
+    const notification: AdminStatusIntent =
+      await transaction.emailNotification.upsert({
+        where: { deduplicationKey: key },
+        update: {},
+        create: {
+          reservationId: sourceNotification.reservationId,
+          lifecycleRequestId: sourceNotification.lifecycleRequestId,
+          sourceNotificationId: sourceNotification.id,
+          type: prismaType(type),
+          recipient,
+          locale: routing.adminLocale,
+          deduplicationKey: key,
+          origin: EmailNotificationOrigin.AUTOMATIC,
+          status: EmailNotificationStatus.PENDING,
+        },
+        select: adminStatusIntentSelect,
+      });
     if (
       notification.reservationId !== sourceNotification.reservationId ||
       notification.lifecycleRequestId !==
