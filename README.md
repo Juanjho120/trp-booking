@@ -327,13 +327,13 @@ Planned subphases:
 11.5.4 Final date-change and stay-extension completion — Completed
 11.5.5 Negative-difference and failed-completion refund integration — Completed
 11.5.6 Integrated acceptance and documentation closure — Completed
-11.6 Lifecycle notifications and admin operational history — In progress
+11.6 Lifecycle notifications and admin operational history — Completed
 11.6.1 Notification contract and persistence relations — Completed
 11.6.2 Bilingual lifecycle email templates — Completed
 11.6.3 Transactional intent orchestration and delivery — Completed
 11.6.4 Lifecycle adjustment payment-link notifications and email corrections — Completed
-11.6.5 Protected operational history and acceptance — In progress
-11.7 Validation and documentation closure — Not started
+11.6.5 Protected operational history and acceptance — Completed
+11.7 Validation and documentation closure — In progress
 ```
 
 Accepted Phase 11 foundation:
@@ -410,23 +410,23 @@ docs/116-phase-11.6.2-bilingual-lifecycle-email-templates.md
 docs/117-phase-11.6.3-transactional-intent-orchestration-and-delivery.md
 docs/118-phase-11.6.4-lifecycle-adjustment-payment-link-notifications-and-email-corrections.md
 docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md
+docs/120-phase-11.7-validation-and-documentation-closure.md
 ```
 
 ## Development Status
 
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
-Current subphase: 11.6.5 Protected operational history and acceptance — In progress
-Current focus: validate the prepared protected read-only operational timeline across lifecycle requests, holds, Payments, Refunds, email delivery, retries, manual resend relations, actors, and timestamps
-Last completed subphase: 11.6.4 Lifecycle adjustment payment-link notifications and email corrections
-11.6.4 implementation commit: ffbed6b8c1b1d3dbd6fc61cee0e0c0f4d21d9c53
-11.6.4 compilation fixes: 92e182e46796502335b8c3c171377c363d5521ae, 308721dd11f87e098cb639dca7356ebc35b0e67f
-11.6.4 accepted head: 308721dd11f87e098cb639dca7356ebc35b0e67f
-11.6.4 acceptance: All 20 local, inbox, retry, idempotency, recovery, copy, security, and domain-isolation criteria passed on 2026-08-05
-11.6.4 implementation and acceptance document: docs/118-phase-11.6.4-lifecycle-adjustment-payment-link-notifications-and-email-corrections.md
-11.6.5 implementation document: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md
-11.6.5 implementation base: 02486b0a9879928d0d823b460a55e9b8c5ee476f
-11.6.5 status: Implementation prepared; local and integrated acceptance pending
+Current subphase: 11.7 Validation and documentation closure — In progress
+Current focus: consolidate final Phase 11 acceptance evidence, run a reduced cross-phase regression, reconcile authoritative documentation, and prepare the handoff to Phase 12 Production Readiness
+Last completed subphase: 11.6.5 Protected operational history and acceptance
+11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
+11.6.5 acceptance: All 15 protected-history, ordering, relation, retry, ES/EN, responsive, security, and integrated criteria passed on 2026-08-05
+11.6.5 implementation and acceptance document: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md
+11.6 status: Completed and accepted
+11.6 accepted feature head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
+11.6 closure record: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md
+11.7 activation document: docs/120-phase-11.7-validation-and-documentation-closure.md
 Last completed phase: Phase 10 — Email Notifications
 Phase 10 closure document: docs/94-phase-10-validation-and-documentation-closure.md
 ```
@@ -476,17 +476,38 @@ Phase 10 closure document: docs/94-phase-10-validation-and-documentation-closure
 - Authoritative record: docs/118-phase-11.6.4-lifecycle-adjustment-payment-link-notifications-and-email-corrections.md.
 ```
 
-### Phase 11.6.5 implementation prepared
+### Phase 11.6.5 completed and accepted
 
 ```text
-- Adds a protected read-only operational timeline to reservation detail without creating a new persistence source.
-- Projects lifecycle requests, holds, initial and adjustment Payments, Refunds, notification delivery, retries, manual parent/child relations, source/result relations, actors, and timestamps.
-- Uses deterministic descending ordering and a stable event-ID tie-breaker.
-- Reads only explicit safe fields and allowlisted refund audit actions; raw payloads and AdminAuditLog.metadata are not selected.
-- Reservations without lifecycle activity show a bilingual empty state.
-- Existing recovery controls remain separate and prior history cannot be edited or deleted.
-- No schema, migration, dependency, environment-variable, public endpoint, or PMS behavior is added.
-- Implementation base: 02486b0a9879928d0d823b460a55e9b8c5ee476f.
-- Local and integrated acceptance remain pending.
-- Implementation record: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md.
+- The protected reservation detail exposes one responsive, read-only operational timeline without creating a new persistence source.
+- Lifecycle requests, holds, initial and adjustment Payments, Refunds, notification delivery, retries, manual parent/child relations, source/result relations, actors, and timestamps render through the accepted typed projection.
+- Deterministic descending ordering and the stable event-ID tie-breaker passed.
+- No-lifecycle empty state, cancellation, positive/zero/negative DATE_CHANGE, STAY_EXTENSION, compensating Refund, notification relations, retry states, existing recovery controls, ES/EN desktop/mobile behavior, and security boundaries passed.
+- Raw provider payloads, private tokens, credentials, card data, full email bodies, and unfiltered AdminAuditLog.metadata remain excluded.
+- No schema, migration, dependency, environment-variable, public endpoint, mutation action, or PMS behavior was added.
+- All 15 acceptance criteria passed on 2026-08-05.
+- Implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f.
+- Implementation and acceptance record: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md.
+```
+
+### Phase 11.6 completed and accepted
+
+```text
+- Phase 11.6.1 through 11.6.5 are completed and accepted.
+- Lifecycle notification contracts, bilingual templates, transactional intent orchestration, post-commit delivery, adjustment-payment links, delivery-result relations, retry/manual recovery, and protected operational history operate through the accepted Phase 10 foundation.
+- Email delivery remains isolated from Reservation, lifecycle-request, hold, Payment, Refund, and date-transition state.
+- Permanent deduplication, test routing, bounded retry, stale recovery, ES/EN output, source/result relations, manual parent/child history, safe diagnostics, and protected admin visibility were accepted.
+- No historical email backfill, guest self-service mutation, raw provider exposure, card-data handling, hard deletion, or PMS behavior was introduced.
+- Accepted feature head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f.
+- Closure record: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md.
+```
+
+### Phase 11.7 activated
+
+```text
+- Consolidate final acceptance evidence from Phase 11.1 through 11.6.
+- Run a reduced cross-phase regression for cancellation, refund, date change, stay extension, availability, payments, emails, operational history, idempotency, concurrency, security, and localization.
+- Reconcile README, the official phase plan, the progress log, implementation records, accepted heads, and deferred Phase 12 operational work.
+- Introduce no application code unless the final regression exposes a real defect.
+- Activation record: docs/120-phase-11.7-validation-and-documentation-closure.md.
 ```
