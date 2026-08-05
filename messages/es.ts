@@ -2130,6 +2130,20 @@ export const esMessages = {
         PENDING_HOLD_UNEXPECTED_ERROR:
           "No pudimos crear la reserva pendiente. Inténtalo de nuevo.",
       },
+      pendingHoldRelease: {
+        INVALID_PENDING_HOLD_RELEASE_REQUEST:
+          "No pudimos validar la solicitud para editar esta reserva. Recarga la página e inténtalo de nuevo.",
+        PENDING_HOLD_NOT_FOUND:
+          "No encontramos esta reserva pendiente.",
+        PENDING_HOLD_NOT_EDITABLE:
+          "Esta reserva ya no puede editarse.",
+        PENDING_HOLD_EDIT_LOCKED_BY_PAYMENT:
+          "Esta reserva ya no puede editarse porque la preparación del pago ya comenzó. Continúa utilizando el enlace de pago disponible.",
+        PENDING_HOLD_RELEASE_STALE:
+          "Esta reserva cambió después de cargar la página. Recarga la página antes de intentarlo nuevamente.",
+        PENDING_HOLD_RELEASE_UNEXPECTED_ERROR:
+          "No pudimos preparar esta reserva para edición. Inténtalo de nuevo.",
+      },
       paymentHandoff: {
         INVALID_PAYMENT_HANDOFF_REQUEST:
           "No pudimos validar esta reserva pendiente. Inténtalo de nuevo.",

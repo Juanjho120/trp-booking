@@ -34,17 +34,25 @@ function formatRemaining(expiresAt: string): string {
 }
 
 function HoldCountdown({ expiresAt }: Readonly<{ expiresAt: string }>) {
-  const [remaining, setRemaining] = useState(() => formatRemaining(expiresAt));
+  const [remaining, setRemaining] = useState<string | null>(null);
 
   useEffect(() => {
-    const interval = window.setInterval(
-      () => setRemaining(formatRemaining(expiresAt)),
-      1_000,
-    );
+    const updateRemaining = () => {
+      setRemaining(formatRemaining(expiresAt));
+    };
+
+    updateRemaining();
+
+    const interval = window.setInterval(updateRemaining, 1_000);
+
     return () => window.clearInterval(interval);
   }, [expiresAt]);
 
-  return <span className="font-mono text-lg font-semibold">{remaining}</span>;
+  return (
+    <span className="font-mono text-lg font-semibold">
+      {remaining ?? "--:--"}
+    </span>
+  );
 }
 
 export function LifecycleAdjustmentPaymentPage({

@@ -122,7 +122,7 @@ function getReleasePendingHoldErrorMessage(
 ): string {
   const messages = locale === "en" ? enMessages : esMessages;
 
-  return messages.errors.payment.tilopaySdk[code];
+  return messages.errors.reservation.pendingHoldRelease[code];
 }
 
 function toReleaseErrorResponse(
@@ -154,13 +154,34 @@ function mapReleaseError(
 }> {
   switch (code) {
     case "PENDING_HOLD_NOT_FOUND":
-      return { code: "PENDING_HOLD_NOT_FOUND", status: 404 };
+      return {
+        code: "PENDING_HOLD_NOT_FOUND",
+        status: 404,
+      };
+
     case "PENDING_HOLD_NOT_MODIFIABLE":
+      return {
+        code: "PENDING_HOLD_NOT_EDITABLE",
+        status: 409,
+      };
+
     case "PENDING_HOLD_PAYMENT_STARTED":
-      return { code: "PENDING_HOLD_NOT_PAYABLE", status: 409 };
+      return {
+        code: "PENDING_HOLD_EDIT_LOCKED_BY_PAYMENT",
+        status: 409,
+      };
+
     case "PENDING_HOLD_STALE":
+      return {
+        code: "PENDING_HOLD_RELEASE_STALE",
+        status: 409,
+      };
+
     default:
-      return { code: "INVALID_PAYMENT_HANDOFF_REQUEST", status: 409 };
+      return {
+        code: "PENDING_HOLD_RELEASE_UNEXPECTED_ERROR",
+        status: 500,
+      };
   }
 }
 
@@ -228,7 +249,7 @@ export async function DELETE(request: Request) {
 
   if (!parsedRequest.success) {
     return toReleaseErrorResponse(
-      "INVALID_PAYMENT_HANDOFF_REQUEST",
+      "INVALID_PENDING_HOLD_RELEASE_REQUEST",
       locale,
       400,
     );
@@ -260,7 +281,7 @@ export async function DELETE(request: Request) {
     }
 
     return toReleaseErrorResponse(
-      "TILOPAY_SDK_SESSION_UNEXPECTED_ERROR",
+      "PENDING_HOLD_RELEASE_UNEXPECTED_ERROR",
       locale,
       500,
     );

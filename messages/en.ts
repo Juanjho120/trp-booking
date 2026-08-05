@@ -2129,6 +2129,20 @@ export const enMessages = {
         PENDING_HOLD_UNEXPECTED_ERROR:
           "We could not create the pending reservation. Please try again.",
       },
+      pendingHoldRelease: {
+        INVALID_PENDING_HOLD_RELEASE_REQUEST:
+          "We could not validate the request to edit this reservation. Refresh the page and try again.",
+        PENDING_HOLD_NOT_FOUND:
+          "We could not find this pending reservation.",
+        PENDING_HOLD_NOT_EDITABLE:
+          "This reservation can no longer be edited.",
+        PENDING_HOLD_EDIT_LOCKED_BY_PAYMENT:
+          "This reservation can no longer be edited because payment preparation has already started. Continue using the available payment link.",
+        PENDING_HOLD_RELEASE_STALE:
+          "This reservation changed after the page was loaded. Refresh the page before trying again.",
+        PENDING_HOLD_RELEASE_UNEXPECTED_ERROR:
+          "We could not prepare this reservation for editing. Please try again.",
+      },
       paymentHandoff: {
         INVALID_PAYMENT_HANDOFF_REQUEST:
           "We could not validate this pending reservation. Please try again.",
