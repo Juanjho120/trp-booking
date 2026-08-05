@@ -14,17 +14,23 @@ Deferred — Intentionally postponed.
 ## Current Phase
 
 ```text
-Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
-Current subphase: 11.7 Validation and documentation closure — In progress
-Current focus: consolidate final Phase 11 acceptance evidence, run a reduced cross-phase regression, reconcile authoritative documentation, and prepare the handoff to Phase 12 Production Readiness
-Last completed subphase: 11.6.5 Protected operational history and acceptance
+Current phase: No active implementation phase — Phase 11 is completed and Phase 12 is not activated
+Current subphase: None
+Current focus: complete a bounded polish of the admin reservations page, then review and prioritize the requested system improvements before activating Phase 12
+Last completed subphase: 11.7 Validation and documentation closure
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 11.6.5 acceptance: All 15 protected-history, ordering, relation, retry, ES/EN, responsive, security, and integrated criteria passed on 2026-08-05
 11.6.5 implementation and acceptance document: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md
 11.6 status: Completed and accepted
 11.6 accepted feature head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 11.6 closure record: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md
-11.7 activation document: docs/120-phase-11.7-validation-and-documentation-closure.md
+11.7 status: Completed and accepted
+11.7 acceptance: All 15 reduced cross-phase and technical-validation criteria passed on 2026-08-05
+11.7 validated closure base: 16cca9e63f5fd8d8af590fc1211dbc69d642f1f6
+Phase 11 accepted feature head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
+Phase 11 closure document: docs/120-phase-11.7-validation-and-documentation-closure.md
+Next planned phase: Phase 12 — Production Readiness
+Phase 12 status: Not started; activation intentionally deferred until the bounded admin-reservations polish and improvement review are complete
 11.5.1 strategy base commit: 3d1487f31ca74fc5a41573b4ab206ce9ad838bb5
 11.5.1 strategy document: docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md
 11.5.1 accepted commit: e0b77658c74ee2d7a30c96f529d5f7f4451ab045
@@ -61,8 +67,8 @@ Last completed subphase: 11.6.5 Protected operational history and acceptance
 11.4.1 correction document: docs/100-phase-11.4.1-observed-tilopay-contract-and-evidence-based-reconciliation.md
 11.4.2 implementation document: docs/101-phase-11.4.2-extraordinary-refund-authorization-and-consult-evidence-lock.md
 11.4 closure document: docs/102-phase-11.4-refund-acceptance-and-documentation-closure.md
-Last completed phase: Phase 10 — Email Notifications
-Phase 10 closure document: docs/94-phase-10-validation-and-documentation-closure.md
+Last completed phase: Phase 11 — Cancellation, Refund, and Change Request Rules
+Phase 11 closure document: docs/120-phase-11.7-validation-and-documentation-closure.md
 ```
 
 ---
@@ -510,7 +516,7 @@ Phase 10 rules:
 
 ## Phase 11 — Cancellation, Refund, and Change Request Rules
 
-Status: **In progress**
+Status: **Completed**
 
 Goal: Add safe, auditable, idempotent cancellation, refund, authorized date-change, and stay-extension workflows without creating unrestricted guest self-service mutation or expanding TRP Booking into a PMS.
 
@@ -538,7 +544,7 @@ Subphase status:
 11.6.3 Transactional intent orchestration and delivery — Completed
 11.6.4 Lifecycle adjustment payment-link notifications and email corrections — Completed
 11.6.5 Protected operational history and acceptance — Completed
-11.7 Validation and documentation closure — In progress
+11.7 Validation and documentation closure — Completed
 ```
 
 Phase 11 rules:
@@ -869,14 +875,26 @@ Phase 11 rules:
 - Closure record: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md.
 ```
 
-### Phase 11.7 active scope
+### Phase 11.7 validation and documentation closure
 
 ```text
-- Consolidate final acceptance evidence from Phase 11.1 through 11.6.
-- Run a reduced cross-phase regression for cancellation, refund, date change, stay extension, availability, payments, emails, operational history, idempotency, concurrency, security, and localization.
-- Reconcile README, the official phase plan, the progress log, implementation records, accepted heads, and deferred Phase 12 operational work.
-- Introduce no application code unless the final regression exposes a real defect.
-- Activation record: docs/120-phase-11.7-validation-and-documentation-closure.md.
+- All 15 reduced cross-phase criteria passed on 2026-08-05.
+- Cancellation, standard/extraordinary refunds, evidence-based reconciliation, positive/zero/negative/failed-positive date mutations, stay extensions, independent holds, availability, buffers, composed dependencies, lifecycle emails, retry/manual recovery, and protected operational history remained coherent.
+- ES/EN responsive and accessible output, centralized copy, safe diagnostics, restricted-data boundaries, idempotency, concurrency protection, and failure isolation passed.
+- Environment validation, Prisma generation/validation/migration status, lint, build, whitespace validation, and clean repository status passed.
+- No application code, schema, migration, seed, dependency, environment variable, or Phase 12 behavior was added.
+- Validated closure base: 16cca9e63f5fd8d8af590fc1211dbc69d642f1f6.
+- Accepted feature head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f.
+- Authoritative closure record: docs/120-phase-11.7-validation-and-documentation-closure.md.
+```
+
+### Phase 11 acceptance closure
+
+```text
+- Phase 11.1 through 11.7 are completed and accepted.
+- Reservation owns stay and availability state; Payment and Refund own financial state; typed lifecycle requests, holds, notifications, and bounded audit evidence preserve operational history.
+- Guest self-service lifecycle mutation, raw provider exposure, card-data handling, hard deletion, history rewrite, and PMS behavior remain excluded.
+- Phase 12 remains Not started by explicit decision while a bounded admin-reservations polish and improvement review are completed.
 ```
 
 ### Phase 11.6 requirements accepted during 11.4.2
@@ -896,3 +914,5 @@ Phase 11 rules:
 ## Phase 12 — Production Readiness
 
 Status: **Not started**
+
+Activation note: Phase 12 is intentionally not active yet. A bounded polish of the admin reservations page and a review of the requested system improvements will be completed first. This inter-phase work does not reopen Phase 11 or introduce production-readiness behavior.

@@ -307,9 +307,9 @@ Phase 10.7 validation and documentation closure completed:
 
 ## Phase 11 — Cancellation, Refund, and Change Request Rules
 
-Phase 11 is in progress. The strategy and explicit subphase roadmap are defined in `docs/95-phase-11-lifecycle-strategy-and-roadmap.md`.
+Phase 11 is completed and accepted. The strategy and explicit subphase roadmap are defined in `docs/95-phase-11-lifecycle-strategy-and-roadmap.md`, and the authoritative closure record is `docs/120-phase-11.7-validation-and-documentation-closure.md`.
 
-Planned subphases:
+Completed subphases:
 
 ```text
 11.1 Lifecycle strategy, policy, and provider boundary — Completed
@@ -333,7 +333,7 @@ Planned subphases:
 11.6.3 Transactional intent orchestration and delivery — Completed
 11.6.4 Lifecycle adjustment payment-link notifications and email corrections — Completed
 11.6.5 Protected operational history and acceptance — Completed
-11.7 Validation and documentation closure — In progress
+11.7 Validation and documentation closure — Completed
 ```
 
 Accepted Phase 11 foundation:
@@ -416,19 +416,16 @@ docs/120-phase-11.7-validation-and-documentation-closure.md
 ## Development Status
 
 ```text
-Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
-Current subphase: 11.7 Validation and documentation closure — In progress
-Current focus: consolidate final Phase 11 acceptance evidence, run a reduced cross-phase regression, reconcile authoritative documentation, and prepare the handoff to Phase 12 Production Readiness
-Last completed subphase: 11.6.5 Protected operational history and acceptance
-11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
-11.6.5 acceptance: All 15 protected-history, ordering, relation, retry, ES/EN, responsive, security, and integrated criteria passed on 2026-08-05
-11.6.5 implementation and acceptance document: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md
-11.6 status: Completed and accepted
-11.6 accepted feature head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
-11.6 closure record: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md
-11.7 activation document: docs/120-phase-11.7-validation-and-documentation-closure.md
-Last completed phase: Phase 10 — Email Notifications
-Phase 10 closure document: docs/94-phase-10-validation-and-documentation-closure.md
+Current phase: No active implementation phase — Phase 11 is completed and Phase 12 is not activated
+Current focus: complete a bounded polish of the admin reservations page, then review and prioritize the requested system improvements before activating Phase 12
+Last completed phase: Phase 11 — Cancellation, Refund, and Change Request Rules
+11.7 status: Completed and accepted
+11.7 acceptance: All 15 reduced cross-phase regression, integration, security, localization, and technical-validation criteria passed on 2026-08-05
+11.7 validated closure base: 16cca9e63f5fd8d8af590fc1211dbc69d642f1f6
+Phase 11 accepted feature head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
+Phase 11 closure record: docs/120-phase-11.7-validation-and-documentation-closure.md
+Next planned phase: Phase 12 — Production Readiness
+Phase 12 status: Not started; activation is intentionally deferred until the bounded admin-reservations polish and improvement review are complete
 ```
 
 ### Phase 11.6.1 completed and accepted
@@ -502,12 +499,28 @@ Phase 10 closure document: docs/94-phase-10-validation-and-documentation-closure
 - Closure record: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md.
 ```
 
-### Phase 11.7 activated
+### Phase 11.7 completed and accepted
 
 ```text
-- Consolidate final acceptance evidence from Phase 11.1 through 11.6.
-- Run a reduced cross-phase regression for cancellation, refund, date change, stay extension, availability, payments, emails, operational history, idempotency, concurrency, security, and localization.
-- Reconcile README, the official phase plan, the progress log, implementation records, accepted heads, and deferred Phase 12 operational work.
-- Introduce no application code unless the final regression exposes a real defect.
-- Activation record: docs/120-phase-11.7-validation-and-documentation-closure.md.
+- All 15 reduced cross-phase criteria passed on 2026-08-05 across cancellation, refunds, date changes, stay extensions, availability, independent holds, payments, lifecycle emails, operational history, idempotency, concurrency, security, localization, and technical validation.
+- Cancellation policy boundaries remained exact at 168 and 72 hours using the property check-in time in America/Guatemala.
+- Standard, extraordinary, negative-difference, and compensating Refund paths remained bounded and evidence-based.
+- Positive, zero, negative, and failed-positive lifecycle branches remained coherent without duplicating Payments, Refunds, holds, notifications, or terminal transitions.
+- The 15-minute public hold and 60-minute lifecycle-adjustment hold remained independent.
+- Preparation buffers, composed-listing dependencies, manual overrides, unrelated blockers, post-commit email delivery, retry/manual recovery, and protected operational history remained intact.
+- ES/EN responsive and accessible output, safe diagnostics, and restricted-data boundaries passed.
+- Environment validation, Prisma generation/validation/migration status, lint, build, whitespace validation, and clean repository status passed.
+- No application code, Prisma schema, migration, seed, dependency, environment variable, or Phase 12 behavior was required.
+- Validated closure base: 16cca9e63f5fd8d8af590fc1211dbc69d642f1f6.
+- Accepted feature head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f.
+- Authoritative closure record: docs/120-phase-11.7-validation-and-documentation-closure.md.
+```
+
+### Phase 11 completed and accepted
+
+```text
+- Phase 11.1 through 11.7 are completed and accepted as one auditable cancellation, refund, authorized date-change, stay-extension, lifecycle-notification, and protected-history feature.
+- Reservation remains the source of truth for stay and availability state; Payment and Refund remain the sources of truth for financial state.
+- Guest self-service lifecycle mutation, raw provider exposure, card-data handling, hard deletion, history rewrite, and PMS expansion remain excluded.
+- Phase 12 is not activated yet. The immediate next work is a bounded polish of the admin reservations page, followed by review and prioritization of the requested improvement list.
 ```
