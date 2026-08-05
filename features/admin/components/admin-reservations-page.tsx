@@ -4,15 +4,15 @@ import Link from "next/link";
 import { ExternalLink, Search } from "lucide-react";
 import { useRef } from "react";
 
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -227,81 +227,84 @@ export function AdminReservationsPageView({
       </div>
 
       {data.reservations.length > 0 ? (
-        <div className="grid gap-4">
-          {data.reservations.map((reservation) => (
-            <Card
-              className="border-border/70 bg-card shadow-sm"
-              key={reservation.id}
-              size="sm"
-            >
-              <CardHeader>
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <CardTitle>{reservation.guestName}</CardTitle>
-                    <CardDescription className="mt-1">
-                      {locale === "en"
-                        ? reservation.property.nameEn
-                        : reservation.property.nameEs}
-                    </CardDescription>
+        <Accordion className="grid gap-3" collapsible type="single">
+          {data.reservations.map((reservation) => {
+            const propertyName =
+              locale === "en"
+                ? reservation.property.nameEn
+                : reservation.property.nameEs;
+            const dateRange = `${formatDate(
+              reservation.checkInDate,
+            )} — ${formatDate(reservation.checkOutDate)}`;
+
+            return (
+              <AccordionItem
+                className="overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm"
+                key={reservation.id}
+                value={reservation.id}
+              >
+                <AccordionTrigger className="px-4 py-3 sm:px-5 sm:py-4">
+                  <div className="grid min-w-0 gap-3 sm:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)_auto] sm:items-center">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold sm:text-base">
+                        {reservation.guestName}
+                      </p>
+                      <p className="mt-0.5 truncate text-sm text-muted-foreground">
+                        {propertyName}
+                      </p>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium">{dateRange}</p>
+                      <p className="mt-0.5 text-sm text-muted-foreground">
+                        {formatMoney(reservation.total, reservation.currency)} ·{" "}
+                        {copy.labels.guests}: {reservation.guestCount}
+                      </p>
+                    </div>
+                    <Badge className="justify-self-start sm:justify-self-end" variant="outline">
+                      {reservationStatusLabel(reservation.status)}
+                    </Badge>
                   </div>
-                  <Badge variant="outline">
-                    {reservationStatusLabel(reservation.status)}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                <SummaryValue
-                  label={copy.labels.dates}
-                  value={`${formatDate(reservation.checkInDate)} — ${formatDate(
-                    reservation.checkOutDate,
-                  )}`}
-                />
-                <div>
-                  <SummaryValue
-                    label={copy.labels.contact}
-                    value={reservation.guestEmail}
-                  />
-                  {reservation.guestPhone ? (
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {reservation.guestPhone}
-                    </p>
-                  ) : null}
-                </div>
-                <div>
-                  <SummaryValue
-                    label={copy.labels.total}
-                    value={formatMoney(reservation.total, reservation.currency)}
-                  />
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {copy.labels.guests}: {reservation.guestCount}
-                  </p>
-                </div>
-                <div>
-                  <SummaryValue
-                    label={copy.labels.reservation}
-                    value={reservation.id}
-                  />
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {copy.labels.latestPayment}:{" "}
-                    {paymentStatusLabel(reservation.latestPaymentStatus)}
-                  </p>
-                </div>
-                <div className="flex justify-end sm:col-span-2 xl:col-span-4">
-                  <Button asChild variant="outline">
-                    <Link
-                      href={`/admin/reservations/${encodeURIComponent(
-                        reservation.id,
-                      )}`}
-                    >
-                      {messages.common.viewDetails}
-                      <ExternalLink aria-hidden="true" />
-                    </Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                </AccordionTrigger>
+                <AccordionContent className="border-t border-border/70 px-4 pt-4 sm:px-5">
+                  <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    <div>
+                      <SummaryValue
+                        label={copy.labels.contact}
+                        value={reservation.guestEmail}
+                      />
+                      {reservation.guestPhone ? (
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          {reservation.guestPhone}
+                        </p>
+                      ) : null}
+                    </div>
+                    <SummaryValue
+                      label={copy.labels.reservation}
+                      value={reservation.id}
+                    />
+                    <SummaryValue
+                      label={copy.labels.latestPayment}
+                      value={paymentStatusLabel(reservation.latestPaymentStatus)}
+                    />
+                    <SummaryValue label={copy.labels.dates} value={dateRange} />
+                  </div>
+                  <div className="mt-4 flex justify-end">
+                    <Button asChild variant="outline">
+                      <Link
+                        href={`/admin/reservations/${encodeURIComponent(
+                          reservation.id,
+                        )}`}
+                      >
+                        {messages.common.viewDetails}
+                        <ExternalLink aria-hidden="true" />
+                      </Link>
+                    </Button>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            );
+          })}
+        </Accordion>
       ) : (
         <Card className="border-dashed bg-muted/20 shadow-none">
           <CardContent className="py-10 text-center text-sm text-muted-foreground">

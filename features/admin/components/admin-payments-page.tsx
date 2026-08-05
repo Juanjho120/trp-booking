@@ -1,18 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronDown, ExternalLink, Search } from "lucide-react";
-import { useRef, useState } from "react";
+import { ExternalLink, Search } from "lucide-react";
+import { useRef } from "react";
 
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -39,7 +39,6 @@ const paymentStatuses = [
 ] as const;
 
 const ALL_FILTER_VALUE = "__all__";
-
 const inputClassName =
   "h-11 w-full rounded-2xl border border-input bg-background px-3 text-sm text-foreground shadow-xs outline-none transition placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50";
 
@@ -57,23 +56,6 @@ export function AdminPaymentsPageView({
   const view = data.filters.view ?? "payments";
   const propertyFilterInputRef = useRef<HTMLInputElement>(null);
   const statusFilterInputRef = useRef<HTMLInputElement>(null);
-  const [expandedDiagnostics, setExpandedDiagnostics] = useState<
-    ReadonlySet<string>
-  >(() => new Set());
-
-  function toggleDiagnostics(paymentId: string) {
-    setExpandedDiagnostics((current) => {
-      const next = new Set(current);
-
-      if (next.has(paymentId)) {
-        next.delete(paymentId);
-      } else {
-        next.add(paymentId);
-      }
-
-      return next;
-    });
-  }
 
   function formatDateTime(value: string | null): string {
     if (!value) {
@@ -296,70 +278,69 @@ export function AdminPaymentsPageView({
 
       {view === "payments" ? (
         data.payments.length > 0 ? (
-          <div className="grid gap-4">
-            {data.payments.map((payment) => (
-              <Card
-                className="border-border/70 bg-card shadow-sm"
-                key={payment.id}
-                size="sm"
-              >
-                <CardHeader>
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                      <CardTitle>{payment.guestName}</CardTitle>
-                      <CardDescription className="mt-1">
-                        {locale === "en"
-                          ? payment.property.nameEn
-                          : payment.property.nameEs}
-                      </CardDescription>
-                    </div>
-                    <Badge variant="outline">
-                      {paymentStatusLabel(payment.status)}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="grid gap-4">
-                  <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                    <SummaryValue
-                      label={copy.labels.amount}
-                      value={formatMoney(payment.amount, payment.currency)}
-                    />
-                    <SummaryValue
-                      label={copy.labels.order}
-                      value={
-                        payment.providerReference ?? copy.labels.unavailable
-                      }
-                    />
-                    <SummaryValue
-                      label={copy.labels.reservation}
-                      value={payment.reservationId}
-                    />
-                    <SummaryValue
-                      label={copy.labels.createdAt}
-                      value={formatDateTime(payment.createdAt)}
-                    />
-                  </div>
+          <Accordion className="grid gap-3" collapsible type="single">
+            {data.payments.map((payment) => {
+              const propertyName =
+                locale === "en"
+                  ? payment.property.nameEn
+                  : payment.property.nameEs;
 
-                  <div className="rounded-2xl border border-border bg-muted/20 p-4">
-                    <Button
-                      aria-expanded={expandedDiagnostics.has(payment.id)}
-                      className="w-full justify-between"
-                      onClick={() => toggleDiagnostics(payment.id)}
-                      type="button"
-                      variant="ghost"
-                    >
-                      {copy.labels.safeDiagnostics}
-                      <ChevronDown
-                        aria-hidden="true"
-                        className={
-                          expandedDiagnostics.has(payment.id)
-                            ? "rotate-180 transition"
-                            : "transition"
+              return (
+                <AccordionItem
+                  className="overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm"
+                  key={payment.id}
+                  value={payment.id}
+                >
+                  <AccordionTrigger className="px-4 py-3 sm:px-5 sm:py-4">
+                    <div className="grid min-w-0 gap-3 sm:grid-cols-[minmax(0,1.25fr)_minmax(0,0.8fr)_auto] sm:items-center">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold sm:text-base">
+                          {payment.guestName}
+                        </p>
+                        <p className="mt-0.5 truncate text-sm text-muted-foreground">
+                          {propertyName}
+                        </p>
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold">
+                          {formatMoney(payment.amount, payment.currency)}
+                        </p>
+                        <p className="mt-0.5 truncate text-sm text-muted-foreground">
+                          {payment.providerReference ?? copy.labels.unavailable}
+                        </p>
+                      </div>
+                      <Badge className="justify-self-start sm:justify-self-end" variant="outline">
+                        {paymentStatusLabel(payment.status)}
+                      </Badge>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="border-t border-border/70 px-4 pt-4 sm:px-5">
+                    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                      <SummaryValue
+                        label={copy.labels.order}
+                        value={
+                          payment.providerReference ?? copy.labels.unavailable
                         }
                       />
-                    </Button>
-                    {expandedDiagnostics.has(payment.id) ? (
-                      <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2 xl:grid-cols-3">
+                      <SummaryValue
+                        label={copy.labels.reservation}
+                        value={payment.reservationId}
+                      />
+                      <SummaryValue
+                        label={copy.labels.createdAt}
+                        value={formatDateTime(payment.createdAt)}
+                      />
+                      <SummaryValue
+                        label={copy.labels.amount}
+                        value={formatMoney(payment.amount, payment.currency)}
+                      />
+                    </div>
+
+                    <div className="mt-4 rounded-2xl border border-border bg-muted/20 p-4">
+                      <p className="text-sm font-semibold">
+                        {copy.labels.safeDiagnostics}
+                      </p>
+                      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                         {Object.entries(payment.diagnostics).map(
                           ([key, value]) => (
                             <SummaryValue
@@ -374,87 +355,101 @@ export function AdminPaymentsPageView({
                           ),
                         )}
                       </div>
-                    ) : null}
-                  </div>
+                    </div>
 
-                  <Button
-                    asChild
-                    className="justify-self-start"
-                    variant="outline"
-                  >
-                    <Link
-                      href={`/admin/payments/${encodeURIComponent(payment.id)}`}
-                    >
-                      {messages.common.viewDetails}
-                      <ExternalLink aria-hidden="true" />
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                    <div className="mt-4 flex justify-end">
+                      <Button asChild variant="outline">
+                        <Link
+                          href={`/admin/payments/${encodeURIComponent(
+                            payment.id,
+                          )}`}
+                        >
+                          {messages.common.viewDetails}
+                          <ExternalLink aria-hidden="true" />
+                        </Link>
+                      </Button>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              );
+            })}
+          </Accordion>
         ) : (
           <EmptyState message={copy.empty.noPayments} />
         )
       ) : data.events.length > 0 ? (
-        <div className="grid gap-4">
-          {data.events.map((event) => (
-            <Card
-              className="border-border/70 bg-card shadow-sm"
-              key={event.id}
-              size="sm"
-            >
-              <CardHeader>
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <CardTitle>{eventLabel(event.eventType)}</CardTitle>
-                    <CardDescription className="mt-1">
-                      {locale === "en"
-                        ? event.property.nameEn
-                        : event.property.nameEs}{" "}
-                      · {event.guestName}
-                    </CardDescription>
+        <Accordion className="grid gap-3" collapsible type="single">
+          {data.events.map((event) => {
+            const propertyName =
+              locale === "en"
+                ? event.property.nameEn
+                : event.property.nameEs;
+
+            return (
+              <AccordionItem
+                className="overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm"
+                key={event.id}
+                value={event.id}
+              >
+                <AccordionTrigger className="px-4 py-3 sm:px-5 sm:py-4">
+                  <div className="grid min-w-0 gap-3 sm:grid-cols-[minmax(0,1.25fr)_minmax(0,0.8fr)_auto] sm:items-center">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold sm:text-base">
+                        {eventLabel(event.eventType)}
+                      </p>
+                      <p className="mt-0.5 truncate text-sm text-muted-foreground">
+                        {propertyName} · {event.guestName}
+                      </p>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium">
+                        {event.paymentId}
+                      </p>
+                      <p className="mt-0.5 truncate text-sm text-muted-foreground">
+                        {event.environment ?? copy.labels.unavailable}
+                      </p>
+                    </div>
+                    <Badge className="justify-self-start sm:justify-self-end" variant="outline">
+                      {formatDateTime(event.createdAt)}
+                    </Badge>
                   </div>
-                  <Badge variant="outline">
-                    {formatDateTime(event.createdAt)}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="grid gap-4">
-                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                  <SummaryValue
-                    label={copy.labels.payment}
-                    value={event.paymentId}
-                  />
-                  <SummaryValue
-                    label={copy.labels.reservation}
-                    value={event.reservationId}
-                  />
-                  <SummaryValue
-                    label={copy.labels.environment}
-                    value={event.environment ?? copy.labels.unavailable}
-                  />
-                  <SummaryValue
-                    label={copy.labels.sdkMessage}
-                    value={event.sdkMessage ?? copy.labels.unavailable}
-                  />
-                </div>
-                <Button
-                  asChild
-                  className="justify-self-start"
-                  variant="outline"
-                >
-                  <Link
-                    href={`/admin/payments/${encodeURIComponent(event.paymentId)}`}
-                  >
-                    {messages.common.viewDetails}
-                    <ExternalLink aria-hidden="true" />
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                </AccordionTrigger>
+                <AccordionContent className="border-t border-border/70 px-4 pt-4 sm:px-5">
+                  <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    <SummaryValue
+                      label={copy.labels.payment}
+                      value={event.paymentId}
+                    />
+                    <SummaryValue
+                      label={copy.labels.reservation}
+                      value={event.reservationId}
+                    />
+                    <SummaryValue
+                      label={copy.labels.environment}
+                      value={event.environment ?? copy.labels.unavailable}
+                    />
+                    <SummaryValue
+                      label={copy.labels.sdkMessage}
+                      value={event.sdkMessage ?? copy.labels.unavailable}
+                    />
+                  </div>
+                  <div className="mt-4 flex justify-end">
+                    <Button asChild variant="outline">
+                      <Link
+                        href={`/admin/payments/${encodeURIComponent(
+                          event.paymentId,
+                        )}`}
+                      >
+                        {messages.common.viewDetails}
+                        <ExternalLink aria-hidden="true" />
+                      </Link>
+                    </Button>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            );
+          })}
+        </Accordion>
       ) : (
         <EmptyState message={copy.empty.noEvents} />
       )}
