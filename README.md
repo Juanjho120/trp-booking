@@ -417,14 +417,16 @@ docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
 Current subphase: 11.6.5 Protected operational history and acceptance — In progress
-Current focus: consolidate a protected read-only operational timeline for lifecycle requests, holds, adjustment Payments, Refunds, notification delivery, retries, manual resend chains, actors, and timestamps
+Current focus: validate the prepared protected read-only operational timeline across lifecycle requests, holds, Payments, Refunds, email delivery, retries, manual resend relations, actors, and timestamps
 Last completed subphase: 11.6.4 Lifecycle adjustment payment-link notifications and email corrections
 11.6.4 implementation commit: ffbed6b8c1b1d3dbd6fc61cee0e0c0f4d21d9c53
 11.6.4 compilation fixes: 92e182e46796502335b8c3c171377c363d5521ae, 308721dd11f87e098cb639dca7356ebc35b0e67f
 11.6.4 accepted head: 308721dd11f87e098cb639dca7356ebc35b0e67f
 11.6.4 acceptance: All 20 local, inbox, retry, idempotency, recovery, copy, security, and domain-isolation criteria passed on 2026-08-05
 11.6.4 implementation and acceptance document: docs/118-phase-11.6.4-lifecycle-adjustment-payment-link-notifications-and-email-corrections.md
-11.6.5 activation document: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md
+11.6.5 implementation document: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md
+11.6.5 implementation base: 02486b0a9879928d0d823b460a55e9b8c5ee476f
+11.6.5 status: Implementation prepared; local and integrated acceptance pending
 Last completed phase: Phase 10 — Email Notifications
 Phase 10 closure document: docs/94-phase-10-validation-and-documentation-closure.md
 ```
@@ -474,12 +476,17 @@ Phase 10 closure document: docs/94-phase-10-validation-and-documentation-closure
 - Authoritative record: docs/118-phase-11.6.4-lifecycle-adjustment-payment-link-notifications-and-email-corrections.md.
 ```
 
-### Phase 11.6.5 activated
+### Phase 11.6.5 implementation prepared
 
 ```text
-- Build a protected read-only operational timeline in the reservation detail.
-- Consolidate lifecycle requests, holds, adjustment Payments, Refunds, EmailNotifications, source/result relations, retries, manual resend chains, actors, and timestamps.
-- Preserve existing recovery controls without making history entries editable.
-- Exclude card data, private payment tokens, provider credentials, and raw Tilopay/Resend payloads.
-- Activation document: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md.
+- Adds a protected read-only operational timeline to reservation detail without creating a new persistence source.
+- Projects lifecycle requests, holds, initial and adjustment Payments, Refunds, notification delivery, retries, manual parent/child relations, source/result relations, actors, and timestamps.
+- Uses deterministic descending ordering and a stable event-ID tie-breaker.
+- Reads only explicit safe fields and allowlisted refund audit actions; raw payloads and AdminAuditLog.metadata are not selected.
+- Reservations without lifecycle activity show a bilingual empty state.
+- Existing recovery controls remain separate and prior history cannot be edited or deleted.
+- No schema, migration, dependency, environment-variable, public endpoint, or PMS behavior is added.
+- Implementation base: 02486b0a9879928d0d823b460a55e9b8c5ee476f.
+- Local and integrated acceptance remain pending.
+- Implementation record: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md.
 ```

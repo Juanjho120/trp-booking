@@ -5,6 +5,7 @@ import {
   AdminReservationCancellationSection,
   AdminReservationDateMutationSection,
   AdminReservationDetailPage,
+  AdminReservationOperationalHistorySection,
   AdminReservationRefundSection,
 } from "@/features/admin";
 import { AdminReservationLifecycleAdjustmentRefundSection } from "@/features/admin/components/admin-reservation-lifecycle-adjustment-refund-section";
@@ -59,6 +60,7 @@ export default async function AdminReservationDetailRoute({
       <AdminReservationLifecycleAdjustmentRefundSection
         reservation={reservation}
       />
+      <AdminReservationOperationalHistorySection reservation={reservation} />
     </>
   );
 }

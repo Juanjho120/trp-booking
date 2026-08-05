@@ -7,7 +7,7 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
 Current subphase: 11.6.5 Protected operational history and acceptance — In progress
-Current focus: consolidate a protected read-only operational timeline for lifecycle requests, holds, adjustment Payments, Refunds, notification delivery, retries, manual resend chains, actors, and timestamps
+Current focus: validate the prepared protected read-only operational timeline across lifecycle requests, holds, Payments, Refunds, email delivery, retries, manual resend relations, actors, and timestamps
 Last updated: 2026-08-05
 Last completed subphase: 11.6.4 Lifecycle adjustment payment-link notifications and email corrections
 11.6.4 implementation commit: ffbed6b8c1b1d3dbd6fc61cee0e0c0f4d21d9c53
@@ -15,7 +15,9 @@ Last completed subphase: 11.6.4 Lifecycle adjustment payment-link notifications 
 11.6.4 accepted head: 308721dd11f87e098cb639dca7356ebc35b0e67f
 11.6.4 acceptance: All 20 local/inbox criteria passed, including guest/admin ES/EN delivery, retry and terminal failure behavior, manual UUID idempotency, missing-intent recovery, branch-specific copy, security, and unchanged domain state on email failure
 11.6.4 implementation and acceptance document: docs/118-phase-11.6.4-lifecycle-adjustment-payment-link-notifications-and-email-corrections.md
-11.6.5 activation document: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md
+11.6.5 implementation document: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md
+11.6.5 implementation base: 02486b0a9879928d0d823b460a55e9b8c5ee476f
+11.6.5 status: Implementation prepared; local and integrated acceptance pending
 11.5.1 strategy base commit: 3d1487f31ca74fc5a41573b4ab206ce9ad838bb5
 11.5.1 strategy document: docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md
 11.5.1 accepted commit: e0b77658c74ee2d7a30c96f529d5f7f4451ab045
@@ -512,15 +514,19 @@ Authoritative record: docs/118-phase-11.6.4-lifecycle-adjustment-payment-link-no
 
 ### Phase 11.6.5 — Protected Operational History and Acceptance
 
-Status: **In progress — scope activated; implementation not started**
+Status: **In progress — implementation prepared; local and integrated acceptance pending**
 
 ```text
-Build a protected read-only timeline in the reservation detail.
-Consolidate lifecycle requests, holds, adjustment Payments, Refunds, EmailNotifications, source/result relations, retries, manual resend chains, actors, and timestamps.
-Keep existing recovery controls available without making timeline entries editable.
-Use deterministic ordering and bounded safe summaries instead of raw provider payloads.
-Exclude card data, private payment tokens, provider credentials, and raw Tilopay or Resend responses.
-Activation document: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md.
+A responsive protected timeline is added to the authenticated reservation detail.
+A dedicated typed projection consolidates lifecycle requests, holds, initial and adjustment Payments, Refunds, EmailNotifications, retries, manual parent/child links, source/result links, actors, and timestamps.
+No-lifecycle reservations show a bilingual empty state; lifecycle reservations include base reservation and initial-payment context.
+Ordering is deterministic by descending occurredAt and stable event ID.
+Only explicit safe fields and allowlisted Refund audit actions are selected; raw payloads and AdminAuditLog.metadata remain excluded.
+Existing recovery controls remain separate and history entries are immutable.
+No schema, migration, dependency, environment-variable, public endpoint, or PMS behavior is added.
+Implementation base: 02486b0a9879928d0d823b460a55e9b8c5ee476f.
+Local and integrated acceptance remain pending.
+Implementation document: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md.
 ```
 
 ## Continuity Notes for New Conversations

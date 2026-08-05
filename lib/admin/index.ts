@@ -91,5 +91,6 @@ export {
   toAdminRefundSummary,
 } from "./refunds";
 export { getAdminReservationDetail } from "./reservation-detail";
+export { getAdminReservationOperationalHistory } from "./reservation-operational-history";
 export { getAdminReservationsPage } from "./reservations";
 export { getAdminSessionActor } from "./session";

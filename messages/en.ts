@@ -1236,6 +1236,298 @@ export const enMessages = {
         },
         empty: "This reservation does not have email notifications yet.",
       },
+      operationalHistory: {
+        badge: "Protected operational history",
+        title: "Reservation operational history",
+        description: "Chronological sequence of requests, holds, payments, refunds, emails, and recovery activity. This history is read-only and does not execute business transitions.",
+        listAriaLabel: "Reservation operational events",
+        empty: "This reservation does not have operational events to display yet.",
+        categories: {
+          RESERVATION: "Reservation",
+          REQUEST: "Request",
+          HOLD: "Hold",
+          PAYMENT: "Payment",
+          REFUND: "Refund",
+          EMAIL: "Email",
+          RECOVERY: "Recovery",
+        },
+        labels: {
+          actor: "Actor",
+          reference: "Primary reference",
+          requestType: "Request type",
+          paymentPurpose: "Payment purpose",
+          refundAuthorizationType: "Refund type",
+          amount: "Amount",
+          notificationType: "Email type",
+          recipient: "Intended recipient",
+          locale: "Language",
+          origin: "Origin",
+          attempts: "Attempts",
+          nextAttempt: "Next attempt",
+          expiresAt: "Expires",
+          scheduledFor: "Scheduled for",
+          errorCode: "Safe code",
+          providerReference: "Safe provider reference",
+          originalDates: "Original dates",
+          requestedDates: "Requested dates",
+        },
+        actor: {
+          system: "System",
+        },
+        referenceKinds: {
+          RESERVATION: "Reservation",
+          LIFECYCLE_REQUEST: "Request",
+          HOLD: "Hold",
+          PAYMENT: "Payment",
+          REFUND: "Refund",
+          EMAIL_NOTIFICATION: "Notification",
+        },
+        relationKinds: {
+          LIFECYCLE_REQUEST: "Related request",
+          HOLD: "Related hold",
+          PAYMENT: "Related payment",
+          REFUND: "Related refund",
+          PARENT_NOTIFICATION: "Original notification",
+          SOURCE_NOTIFICATION: "Source notification",
+        },
+        statuses: {
+          PENDING_REVIEW: "Pending review",
+          APPROVED: "Approved",
+          REJECTED: "Rejected",
+          AWAITING_ADJUSTMENT_PAYMENT: "Awaiting adjustment payment",
+          COMPLETED: "Completed",
+          WITHDRAWN: "Withdrawn",
+          EXPIRED: "Expired",
+          FAILED: "Failed",
+          ACTIVE: "Active",
+          RELEASED: "Released",
+          PENDING: "Pending",
+          PROCESSING: "Processing",
+          SENT: "Sent",
+          SKIPPED: "Skipped",
+          CONFIRMED: "Confirmed",
+          CANCELLED: "Cancelled",
+          PARTIALLY_REFUNDED: "Partially refunded",
+          REFUNDED: "Refunded",
+        },
+        requestTypes: {
+          CANCELLATION: "Cancellation",
+          DATE_CHANGE: "Date change",
+          STAY_EXTENSION: "Stay extension",
+        },
+        paymentPurposes: {
+          INITIAL_RESERVATION: "Initial reservation payment",
+          LIFECYCLE_ADJUSTMENT: "Adjustment payment",
+        },
+        refundAuthorizationTypes: {
+          LEGACY_UNSPECIFIED: "Unclassified legacy",
+          STANDARD_POLICY: "Cancellation policy",
+          EXTRAORDINARY: "Extraordinary",
+          LIFECYCLE_ADJUSTMENT: "Stay adjustment",
+        },
+        events: {
+          RESERVATION_CREATED: {
+            title: "Reservation created",
+            description: "The direct reservation record was created.",
+          },
+          RESERVATION_CONFIRMED: {
+            title: "Reservation confirmed",
+            description: "A validated payment confirmed the reservation and its availability.",
+          },
+          RESERVATION_CANCELLED: {
+            title: "Reservation cancelled",
+            description: "The authorized cancellation changed the reservation's operational status.",
+          },
+          CANCELLATION_REQUESTED: {
+            title: "Cancellation requested",
+            description: "An administrative cancellation request was recorded.",
+          },
+          CANCELLATION_APPROVED: {
+            title: "Cancellation approved",
+            description: "An administrator approved the cancellation request.",
+          },
+          CANCELLATION_REJECTED: {
+            title: "Cancellation rejected",
+            description: "An administrator rejected the request and preserved the reservation.",
+          },
+          CANCELLATION_COMPLETED: {
+            title: "Cancellation completed",
+            description: "The cancellation transition completed successfully.",
+          },
+          CANCELLATION_FAILED: {
+            title: "Cancellation failed",
+            description: "The request ended with a safe, audited failure.",
+          },
+          CANCELLATION_EXPIRED: {
+            title: "Cancellation request expired",
+            description: "The request stopped being eligible before a decision.",
+          },
+          CANCELLATION_WITHDRAWN: {
+            title: "Cancellation request withdrawn",
+            description: "The request was withdrawn without changing the reservation.",
+          },
+          DATE_CHANGE_REQUESTED: {
+            title: "Date change requested",
+            description: "Alternative dates and a server-side quote were recorded.",
+          },
+          DATE_CHANGE_APPROVED: {
+            title: "Date change approved",
+            description: "An administrator authorized the requested change to continue.",
+          },
+          DATE_CHANGE_REJECTED: {
+            title: "Date change rejected",
+            description: "The request was rejected and the confirmed dates were preserved.",
+          },
+          DATE_CHANGE_COMPLETED: {
+            title: "Date change completed",
+            description: "The authorized dates were applied to the confirmed reservation.",
+          },
+          DATE_CHANGE_FAILED: {
+            title: "Date change failed",
+            description: "Completion could not be applied and preserved the corresponding safe state.",
+          },
+          DATE_CHANGE_EXPIRED: {
+            title: "Date change request expired",
+            description: "The request expired before completion.",
+          },
+          DATE_CHANGE_WITHDRAWN: {
+            title: "Date change request withdrawn",
+            description: "The request was withdrawn without applying the proposed dates.",
+          },
+          STAY_EXTENSION_REQUESTED: {
+            title: "Stay extension requested",
+            description: "A request to extend the stay was recorded.",
+          },
+          STAY_EXTENSION_APPROVED: {
+            title: "Stay extension approved",
+            description: "An administrator authorized the extension to continue.",
+          },
+          STAY_EXTENSION_REJECTED: {
+            title: "Stay extension rejected",
+            description: "The extension was rejected and the confirmed checkout was preserved.",
+          },
+          STAY_EXTENSION_COMPLETED: {
+            title: "Stay extension completed",
+            description: "The new checkout date was applied to the reservation.",
+          },
+          STAY_EXTENSION_FAILED: {
+            title: "Stay extension failed",
+            description: "Extension completion ended with a safe failure.",
+          },
+          STAY_EXTENSION_EXPIRED: {
+            title: "Stay extension request expired",
+            description: "The request expired before completion.",
+          },
+          STAY_EXTENSION_WITHDRAWN: {
+            title: "Stay extension request withdrawn",
+            description: "The request was withdrawn without extending the stay.",
+          },
+          LIFECYCLE_HOLD_CREATED: {
+            title: "Date hold created",
+            description: "The requested dates were temporarily held while the adjustment was completed.",
+          },
+          LIFECYCLE_HOLD_RELEASED: {
+            title: "Date hold released",
+            description: "The temporary hold stopped participating in availability.",
+          },
+          LIFECYCLE_HOLD_EXPIRED: {
+            title: "Date hold expired",
+            description: "The temporary hold expired without a valid completion.",
+          },
+          PAYMENT_CREATED: {
+            title: "Payment recorded",
+            description: "A payment attempt associated with the reservation was created.",
+          },
+          PAYMENT_APPROVED: {
+            title: "Payment approved",
+            description: "The provider approved the payment and the server validated its result.",
+          },
+          PAYMENT_REJECTED: {
+            title: "Payment rejected",
+            description: "The provider rejected the payment attempt.",
+          },
+          PAYMENT_FAILED: {
+            title: "Payment failed",
+            description: "The attempt ended safely without assuming approval.",
+          },
+          PAYMENT_PARTIALLY_REFUNDED: {
+            title: "Payment partially refunded",
+            description: "An approved reconciliation updated the payment's financial balance.",
+          },
+          PAYMENT_REFUNDED: {
+            title: "Payment refunded",
+            description: "The captured amount became fully refunded.",
+          },
+          REFUND_AUTHORIZED: {
+            title: "Refund authorized",
+            description: "An administrator created a pending refund authorization.",
+          },
+          REFUND_PROVIDER_EXECUTION_STARTED: {
+            title: "Refund execution started",
+            description: "The controlled provider modification submission was started.",
+          },
+          REFUND_PROVIDER_RESPONSE_OBSERVED: {
+            title: "Provider response observed",
+            description: "The system recorded a safe classification of the provider response.",
+          },
+          REFUND_PROVIDER_RESULT_UNCERTAIN: {
+            title: "Provider result uncertain",
+            description: "The result requires explicit verification before changing financial state.",
+          },
+          REFUND_PROVIDER_EXECUTION_FAILED: {
+            title: "Provider execution failed",
+            description: "Execution ended safely without confirming a refund.",
+          },
+          REFUND_PROVIDER_CONSULT_OBSERVED: {
+            title: "Provider consultation observed",
+            description: "An administrator reviewed allowlisted provider financial evidence.",
+          },
+          REFUND_RECONCILED_APPROVED: {
+            title: "Refund reconciled as approved",
+            description: "The evidence was confirmed and the payment updated its financial status.",
+          },
+          REFUND_RECONCILED_FAILED: {
+            title: "Refund reconciled as failed",
+            description: "The evidence confirmed that the refund was not completed.",
+          },
+          REFUND_APPROVED: {
+            title: "Refund approved",
+            description: "The refund record reached an approved financial outcome.",
+          },
+          REFUND_FAILED: {
+            title: "Refund failed",
+            description: "The attempt remained failed without changing the reservation.",
+          },
+          EMAIL_CREATED: {
+            title: "Notification created",
+            description: "A durable email intent was created without causing a business transition.",
+          },
+          EMAIL_PROCESSING: {
+            title: "Email processing",
+            description: "A worker acquired the delivery claim for this notification.",
+          },
+          EMAIL_RETRY_SCHEDULED: {
+            title: "Email retry scheduled",
+            description: "Delivery failed temporarily and another attempt was scheduled.",
+          },
+          EMAIL_SENT: {
+            title: "Email accepted by provider",
+            description: "Resend accepted the message from TRP Booking; this does not confirm reading or opening.",
+          },
+          EMAIL_FAILED: {
+            title: "Email delivery failed",
+            description: "Delivery failed and retained normalized, safe diagnostics.",
+          },
+          EMAIL_SKIPPED: {
+            title: "Email skipped",
+            description: "The notification stopped being current before delivery.",
+          },
+          EMAIL_MANUAL_RESEND_REQUESTED: {
+            title: "Manual resend requested",
+            description: "An administrator created a child notification without rewriting original history.",
+          },
+        },
+      },
       empty: {
         noResults: "No reservations match these filters.",
       },

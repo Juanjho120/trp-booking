@@ -13,6 +13,7 @@ export { AdminPropertyPhotoManager } from "./components/admin-property-photo-man
 export { AdminReservationCancellationSection } from "./components/admin-reservation-cancellation-section";
 export { AdminReservationDateMutationSection } from "./components/admin-reservation-date-mutation-section";
 export { AdminReservationDetailPage } from "./components/admin-reservation-detail-page";
+export { AdminReservationOperationalHistorySection } from "./components/admin-reservation-operational-history-section";
 export { AdminReservationRefundSection } from "./components/admin-reservation-refund-section";
 export { AdminReservationsPageView } from "./components/admin-reservations-page";
 export { AdminShell } from "./components/admin-shell";

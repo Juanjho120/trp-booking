@@ -1237,6 +1237,298 @@ export const esMessages = {
         },
         empty: "Esta reserva todavía no tiene notificaciones por correo.",
       },
+      operationalHistory: {
+        badge: "Historial operativo protegido",
+        title: "Historial operativo de la reservación",
+        description: "Secuencia cronológica de solicitudes, holds, pagos, reembolsos, correos y recuperaciones. Este historial es de solo lectura y no ejecuta transiciones de negocio.",
+        listAriaLabel: "Eventos operativos de la reservación",
+        empty: "Esta reservación todavía no tiene eventos operativos para mostrar.",
+        categories: {
+          RESERVATION: "Reservación",
+          REQUEST: "Solicitud",
+          HOLD: "Hold",
+          PAYMENT: "Pago",
+          REFUND: "Reembolso",
+          EMAIL: "Correo",
+          RECOVERY: "Recuperación",
+        },
+        labels: {
+          actor: "Actor",
+          reference: "Referencia principal",
+          requestType: "Tipo de solicitud",
+          paymentPurpose: "Propósito del pago",
+          refundAuthorizationType: "Tipo de reembolso",
+          amount: "Monto",
+          notificationType: "Tipo de correo",
+          recipient: "Destinatario previsto",
+          locale: "Idioma",
+          origin: "Origen",
+          attempts: "Intentos",
+          nextAttempt: "Próximo intento",
+          expiresAt: "Expira",
+          scheduledFor: "Programado para",
+          errorCode: "Código seguro",
+          providerReference: "Referencia segura del proveedor",
+          originalDates: "Fechas originales",
+          requestedDates: "Fechas solicitadas",
+        },
+        actor: {
+          system: "Sistema",
+        },
+        referenceKinds: {
+          RESERVATION: "Reservación",
+          LIFECYCLE_REQUEST: "Solicitud",
+          HOLD: "Hold",
+          PAYMENT: "Pago",
+          REFUND: "Reembolso",
+          EMAIL_NOTIFICATION: "Notificación",
+        },
+        relationKinds: {
+          LIFECYCLE_REQUEST: "Solicitud relacionada",
+          HOLD: "Hold relacionado",
+          PAYMENT: "Pago relacionado",
+          REFUND: "Reembolso relacionado",
+          PARENT_NOTIFICATION: "Notificación original",
+          SOURCE_NOTIFICATION: "Notificación fuente",
+        },
+        statuses: {
+          PENDING_REVIEW: "Pendiente de revisión",
+          APPROVED: "Aprobado",
+          REJECTED: "Rechazado",
+          AWAITING_ADJUSTMENT_PAYMENT: "Esperando pago de diferencia",
+          COMPLETED: "Completado",
+          WITHDRAWN: "Retirado",
+          EXPIRED: "Expirado",
+          FAILED: "Fallido",
+          ACTIVE: "Activo",
+          RELEASED: "Liberado",
+          PENDING: "Pendiente",
+          PROCESSING: "Procesando",
+          SENT: "Enviado",
+          SKIPPED: "Omitido",
+          CONFIRMED: "Confirmada",
+          CANCELLED: "Cancelada",
+          PARTIALLY_REFUNDED: "Parcialmente reembolsado",
+          REFUNDED: "Reembolsado",
+        },
+        requestTypes: {
+          CANCELLATION: "Cancelación",
+          DATE_CHANGE: "Cambio de fechas",
+          STAY_EXTENSION: "Extensión de estadía",
+        },
+        paymentPurposes: {
+          INITIAL_RESERVATION: "Pago inicial de reservación",
+          LIFECYCLE_ADJUSTMENT: "Pago de diferencia",
+        },
+        refundAuthorizationTypes: {
+          LEGACY_UNSPECIFIED: "Histórico sin clasificación",
+          STANDARD_POLICY: "Según política de cancelación",
+          EXTRAORDINARY: "Extraordinario",
+          LIFECYCLE_ADJUSTMENT: "Ajuste de estadía",
+        },
+        events: {
+          RESERVATION_CREATED: {
+            title: "Reservación creada",
+            description: "Se creó el registro de la reservación directa.",
+          },
+          RESERVATION_CONFIRMED: {
+            title: "Reservación confirmada",
+            description: "El pago validado confirmó la reservación y su disponibilidad.",
+          },
+          RESERVATION_CANCELLED: {
+            title: "Reservación cancelada",
+            description: "La cancelación autorizada cambió el estado operativo de la reservación.",
+          },
+          CANCELLATION_REQUESTED: {
+            title: "Cancelación solicitada",
+            description: "Se registró una solicitud administrativa de cancelación.",
+          },
+          CANCELLATION_APPROVED: {
+            title: "Cancelación aprobada",
+            description: "Un administrador aprobó la solicitud de cancelación.",
+          },
+          CANCELLATION_REJECTED: {
+            title: "Cancelación rechazada",
+            description: "Un administrador rechazó la solicitud y conservó la reservación.",
+          },
+          CANCELLATION_COMPLETED: {
+            title: "Cancelación completada",
+            description: "La transición de cancelación terminó correctamente.",
+          },
+          CANCELLATION_FAILED: {
+            title: "Cancelación fallida",
+            description: "La solicitud terminó con un fallo seguro y auditado.",
+          },
+          CANCELLATION_EXPIRED: {
+            title: "Solicitud de cancelación expirada",
+            description: "La solicitud dejó de ser elegible antes de una decisión.",
+          },
+          CANCELLATION_WITHDRAWN: {
+            title: "Solicitud de cancelación retirada",
+            description: "La solicitud fue retirada sin cambiar la reservación.",
+          },
+          DATE_CHANGE_REQUESTED: {
+            title: "Cambio de fechas solicitado",
+            description: "Se registraron fechas alternativas y una cotización del servidor.",
+          },
+          DATE_CHANGE_APPROVED: {
+            title: "Cambio de fechas aprobado",
+            description: "Un administrador autorizó continuar con el cambio solicitado.",
+          },
+          DATE_CHANGE_REJECTED: {
+            title: "Cambio de fechas rechazado",
+            description: "La solicitud fue rechazada y las fechas confirmadas se conservaron.",
+          },
+          DATE_CHANGE_COMPLETED: {
+            title: "Cambio de fechas completado",
+            description: "Las fechas autorizadas quedaron aplicadas a la reservación confirmada.",
+          },
+          DATE_CHANGE_FAILED: {
+            title: "Cambio de fechas fallido",
+            description: "La finalización no pudo aplicarse y conservó el estado seguro correspondiente.",
+          },
+          DATE_CHANGE_EXPIRED: {
+            title: "Solicitud de cambio expirada",
+            description: "La solicitud venció antes de completarse.",
+          },
+          DATE_CHANGE_WITHDRAWN: {
+            title: "Solicitud de cambio retirada",
+            description: "La solicitud fue retirada sin aplicar las fechas propuestas.",
+          },
+          STAY_EXTENSION_REQUESTED: {
+            title: "Extensión solicitada",
+            description: "Se registró una solicitud para ampliar la estadía.",
+          },
+          STAY_EXTENSION_APPROVED: {
+            title: "Extensión aprobada",
+            description: "Un administrador autorizó continuar con la extensión.",
+          },
+          STAY_EXTENSION_REJECTED: {
+            title: "Extensión rechazada",
+            description: "La extensión fue rechazada y la salida confirmada se conservó.",
+          },
+          STAY_EXTENSION_COMPLETED: {
+            title: "Extensión completada",
+            description: "La nueva fecha de salida quedó aplicada a la reservación.",
+          },
+          STAY_EXTENSION_FAILED: {
+            title: "Extensión fallida",
+            description: "La finalización de la extensión terminó con un fallo seguro.",
+          },
+          STAY_EXTENSION_EXPIRED: {
+            title: "Solicitud de extensión expirada",
+            description: "La solicitud venció antes de completarse.",
+          },
+          STAY_EXTENSION_WITHDRAWN: {
+            title: "Solicitud de extensión retirada",
+            description: "La solicitud fue retirada sin ampliar la estadía.",
+          },
+          LIFECYCLE_HOLD_CREATED: {
+            title: "Hold de fechas creado",
+            description: "Las fechas solicitadas quedaron apartadas temporalmente para completar el ajuste.",
+          },
+          LIFECYCLE_HOLD_RELEASED: {
+            title: "Hold de fechas liberado",
+            description: "El bloqueo temporal dejó de participar en disponibilidad.",
+          },
+          LIFECYCLE_HOLD_EXPIRED: {
+            title: "Hold de fechas expirado",
+            description: "El bloqueo temporal venció sin una finalización válida.",
+          },
+          PAYMENT_CREATED: {
+            title: "Pago registrado",
+            description: "Se creó un intento de pago asociado a la reservación.",
+          },
+          PAYMENT_APPROVED: {
+            title: "Pago aprobado",
+            description: "El proveedor aprobó el pago y el servidor validó su resultado.",
+          },
+          PAYMENT_REJECTED: {
+            title: "Pago rechazado",
+            description: "El proveedor rechazó el intento de pago.",
+          },
+          PAYMENT_FAILED: {
+            title: "Pago fallido",
+            description: "El intento terminó con un fallo seguro sin asumir aprobación.",
+          },
+          PAYMENT_PARTIALLY_REFUNDED: {
+            title: "Pago parcialmente reembolsado",
+            description: "Una reconciliación aprobada actualizó el saldo financiero del pago.",
+          },
+          PAYMENT_REFUNDED: {
+            title: "Pago reembolsado",
+            description: "El monto capturado quedó completamente reembolsado.",
+          },
+          REFUND_AUTHORIZED: {
+            title: "Reembolso autorizado",
+            description: "Un administrador creó una autorización de reembolso pendiente.",
+          },
+          REFUND_PROVIDER_EXECUTION_STARTED: {
+            title: "Ejecución de reembolso iniciada",
+            description: "Se inició el envío controlado de la modificación al proveedor.",
+          },
+          REFUND_PROVIDER_RESPONSE_OBSERVED: {
+            title: "Respuesta del proveedor observada",
+            description: "El sistema registró una clasificación segura de la respuesta del proveedor.",
+          },
+          REFUND_PROVIDER_RESULT_UNCERTAIN: {
+            title: "Resultado del proveedor incierto",
+            description: "El resultado requiere verificación explícita antes de cambiar el estado financiero.",
+          },
+          REFUND_PROVIDER_EXECUTION_FAILED: {
+            title: "Ejecución del proveedor fallida",
+            description: "La ejecución terminó de forma segura sin confirmar un reembolso.",
+          },
+          REFUND_PROVIDER_CONSULT_OBSERVED: {
+            title: "Consulta del proveedor observada",
+            description: "Un administrador consultó evidencia financiera allowlisted del proveedor.",
+          },
+          REFUND_RECONCILED_APPROVED: {
+            title: "Reembolso reconciliado como aprobado",
+            description: "La evidencia fue confirmada y el pago actualizó su estado financiero.",
+          },
+          REFUND_RECONCILED_FAILED: {
+            title: "Reembolso reconciliado como fallido",
+            description: "La evidencia confirmó que el reembolso no se realizó.",
+          },
+          REFUND_APPROVED: {
+            title: "Reembolso aprobado",
+            description: "El registro de reembolso alcanzó un resultado financiero aprobado.",
+          },
+          REFUND_FAILED: {
+            title: "Reembolso fallido",
+            description: "El intento quedó en estado fallido sin alterar la reservación.",
+          },
+          EMAIL_CREATED: {
+            title: "Notificación creada",
+            description: "Se creó un intent durable de correo sin ejecutar una transición de negocio.",
+          },
+          EMAIL_PROCESSING: {
+            title: "Correo en procesamiento",
+            description: "Un worker adquirió el claim de entrega de esta notificación.",
+          },
+          EMAIL_RETRY_SCHEDULED: {
+            title: "Reintento de correo programado",
+            description: "La entrega falló temporalmente y quedó programada para otro intento.",
+          },
+          EMAIL_SENT: {
+            title: "Correo aceptado por el proveedor",
+            description: "Resend aceptó el mensaje desde TRP Booking; esto no confirma lectura ni apertura.",
+          },
+          EMAIL_FAILED: {
+            title: "Entrega de correo fallida",
+            description: "La entrega falló y conserva diagnóstico normalizado y seguro.",
+          },
+          EMAIL_SKIPPED: {
+            title: "Correo omitido",
+            description: "La notificación dejó de ser vigente antes de su entrega.",
+          },
+          EMAIL_MANUAL_RESEND_REQUESTED: {
+            title: "Reenvío manual solicitado",
+            description: "Un administrador creó una notificación hija sin reescribir el historial original.",
+          },
+        },
+      },
       empty: {
         noResults: "No encontramos reservas con estos filtros.",
       },

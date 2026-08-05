@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db/prisma";
 import { getTilopayEnv } from "@/lib/env/server";
 import type { AdminReservationDetailData } from "@/types/admin-reservation-detail";
 
+import { getAdminReservationOperationalHistory } from "./reservation-operational-history";
 import { getAdminCancellationRequestsForReservation } from "./reservation-cancellation";
 import { getAdminDateMutationRequestsForReservation } from "./reservation-date-mutation";
 import { getAdminRefundsForReservation } from "./refunds";
@@ -130,12 +131,17 @@ export async function getAdminReservationDetail(
     return null;
   }
 
-  const [cancellationRequests, dateMutationRequests, refunds] =
-    await Promise.all([
-      getAdminCancellationRequestsForReservation(reservation.id),
-      getAdminDateMutationRequestsForReservation(reservation.id),
-      getAdminRefundsForReservation(reservation.id),
-    ]);
+  const [
+    cancellationRequests,
+    dateMutationRequests,
+    refunds,
+    operationalHistory,
+  ] = await Promise.all([
+    getAdminCancellationRequestsForReservation(reservation.id),
+    getAdminDateMutationRequestsForReservation(reservation.id),
+    getAdminRefundsForReservation(reservation.id),
+    getAdminReservationOperationalHistory(reservation.id),
+  ]);
   const refundApiExecutionEnabled =
     getTilopayEnv().TILOPAY_ENVIRONMENT === "sandbox";
 
@@ -219,6 +225,7 @@ export async function getAdminReservationDetail(
     cancellationRequests,
     dateMutationRequests,
     refunds,
+    operationalHistory,
     refundApiExecutionEnabled,
   };
 }

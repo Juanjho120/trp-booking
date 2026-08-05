@@ -16,14 +16,16 @@ Deferred — Intentionally postponed.
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
 Current subphase: 11.6.5 Protected operational history and acceptance — In progress
-Current focus: build a protected read-only operational timeline across lifecycle requests, holds, adjustment Payments, Refunds, notification delivery, retries, manual resend chains, actors, and timestamps
+Current focus: validate the prepared protected read-only operational timeline across lifecycle requests, holds, Payments, Refunds, email delivery, retries, manual resend relations, actors, and timestamps
 Last completed subphase: 11.6.4 Lifecycle adjustment payment-link notifications and email corrections
 11.6.4 implementation commit: ffbed6b8c1b1d3dbd6fc61cee0e0c0f4d21d9c53
 11.6.4 compilation fixes: 92e182e46796502335b8c3c171377c363d5521ae, 308721dd11f87e098cb639dca7356ebc35b0e67f
 11.6.4 accepted head: 308721dd11f87e098cb639dca7356ebc35b0e67f
 11.6.4 acceptance: All 20 local/inbox criteria passed on 2026-08-05, including retry, terminal failure, UUID idempotency, worker recovery, ES/EN copy, security, and domain isolation
 11.6.4 implementation and acceptance document: docs/118-phase-11.6.4-lifecycle-adjustment-payment-link-notifications-and-email-corrections.md
-11.6.5 activation document: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md
+11.6.5 implementation document: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md
+11.6.5 implementation base: 02486b0a9879928d0d823b460a55e9b8c5ee476f
+11.6.5 status: Implementation prepared; local and integrated acceptance pending
 11.5.1 strategy base commit: 3d1487f31ca74fc5a41573b4ab206ce9ad838bb5
 11.5.1 strategy document: docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md
 11.5.1 accepted commit: e0b77658c74ee2d7a30c96f529d5f7f4451ab045
@@ -842,14 +844,19 @@ Phase 11 rules:
 - Authoritative record: docs/118-phase-11.6.4-lifecycle-adjustment-payment-link-notifications-and-email-corrections.md.
 ```
 
-### Phase 11.6.5 active scope
+### Phase 11.6.5 implementation prepared
 
 ```text
-- Present a protected read-only operational history in the reservation detail.
-- Consolidate lifecycle requests, holds, adjustment Payments, Refunds, notification source/result relationships, retry attempts, manual resend chains, actors, and timestamps.
-- Preserve existing domain ownership and recovery actions; the history itself is immutable.
-- Exclude raw provider payloads, credentials, private payment tokens, and card data.
-- Activation record: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md.
+- Reservation detail gains a responsive, protected, read-only operational timeline.
+- A dedicated typed projection consolidates lifecycle requests, holds, Payments, Refunds, EmailNotifications, retry state, manual parent/child links, source/result links, actors, and timestamps.
+- Deterministic descending ordering uses occurredAt followed by a stable event identifier.
+- No-lifecycle reservations show a bilingual empty state; lifecycle reservations include base reservation and initial-payment context.
+- Refund audit projection is restricted to allowlisted actions and does not select metadata.
+- Raw provider payloads, private tokens, credentials, card data, and email bodies remain excluded.
+- No schema, migration, dependency, environment-variable, public endpoint, or PMS behavior is added.
+- Implementation base: 02486b0a9879928d0d823b460a55e9b8c5ee476f.
+- Local and integrated acceptance remain pending.
+- Implementation record: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md.
 ```
 
 ### Phase 11.6 requirements accepted during 11.4.2
