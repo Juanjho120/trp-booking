@@ -7,7 +7,7 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 ```text
 Current phase: No active implementation phase — Phase 11 is completed and Phase 12 is not activated
 Current subphase: None
-Current focus: complete a bounded polish of the admin reservations page, then review and prioritize the requested system improvements before activating Phase 12
+Current focus: Pre-Phase-12 Improvement Track — implement Packages A, B, C, E, and F before deciding whether to activate Phase 12; Package D is deferred pending financial-policy decisions
 Last updated: 2026-08-05
 Last completed subphase: 11.7 Validation and documentation closure
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
@@ -23,6 +23,15 @@ Phase 11 accepted feature head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 Phase 11 closure document: docs/120-phase-11.7-validation-and-documentation-closure.md
 Next planned phase: Phase 12 — Production Readiness
 Phase 12 status: Not started; activation intentionally deferred until the bounded admin-reservations polish and improvement review are complete
+Pre-Phase-12 Improvement Track status: Planned — approved for implementation
+Pre-Phase-12 Improvement Track registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
+Pre-Phase-12 Improvement Track plan: docs/121-pre-phase-12-improvement-track.md
+Package A status: Not started — immediate public-flow and UI corrections
+Package B status: Not started — durable payment-attempt history
+Package C status: Not started — admin cron console and generic execution history
+Package D status: Deferred — awaiting financial policy decisions
+Package E status: Not started — public location and map configuration
+Package F status: Not started — inbound/outbound email center and threaded replies
 11.5.1 strategy base commit: 3d1487f31ca74fc5a41573b4ab206ce9ad838bb5
 11.5.1 strategy document: docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md
 11.5.1 accepted commit: e0b77658c74ee2d7a30c96f529d5f7f4451ab045
