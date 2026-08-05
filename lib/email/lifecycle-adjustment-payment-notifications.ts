@@ -432,7 +432,11 @@ export async function ensureLifecycleAdjustmentPaymentRequiredNotification(
   source: NodeJS.ProcessEnv = process.env,
 ): Promise<Readonly<{ id: string; created: boolean }>> {
   const now = new Date();
-  let recoveryIdentity: GuestIntentIdentity | null = null;
+  const recoveryIdentityRef: {
+    current: GuestIntentIdentity | null;
+  } = {
+    current: null,
+  };
 
   try {
     return await prisma.$transaction(
@@ -460,7 +464,7 @@ export async function ensureLifecycleAdjustmentPaymentRequiredNotification(
           recipient,
           locale,
         };
-        recoveryIdentity = identity;
+        recoveryIdentityRef.current = identity;
         const existing = await transaction.emailNotification.findUnique({
           where: { deduplicationKey: identity.deduplicationKey },
           select: {
@@ -515,6 +519,8 @@ export async function ensureLifecycleAdjustmentPaymentRequiredNotification(
       { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
     );
   } catch (error) {
+    const recoveryIdentity = recoveryIdentityRef.current;
+    
     if (
       recoveryIdentity &&
       error instanceof Prisma.PrismaClientKnownRequestError &&
