@@ -1165,6 +1165,7 @@ export const esMessages = {
           PAYMENT_FAILED: "Pago fallido",
           RESERVATION_CANCELLED: "Reserva cancelada",
           RESERVATION_DATES_UPDATED: "Fechas de reserva actualizadas",
+          ADMIN_RESERVATION_DATES_UPDATED: "Fechas de reserva actualizadas para administración",
           STAY_EXTENSION_CONFIRMED: "Extensión de estadía confirmada",
           REFUND_PROCESSED: "Reembolso procesado",
           ARRIVAL_INSTRUCTIONS: "Instrucciones de llegada",

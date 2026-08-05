@@ -1164,6 +1164,7 @@ export const enMessages = {
           PAYMENT_FAILED: "Payment failed",
           RESERVATION_CANCELLED: "Reservation cancelled",
           RESERVATION_DATES_UPDATED: "Reservation dates updated",
+          ADMIN_RESERVATION_DATES_UPDATED: "Reservation dates updated for administration",
           STAY_EXTENSION_CONFIRMED: "Stay extension confirmed",
           REFUND_PROCESSED: "Refund processed",
           ARRIVAL_INSTRUCTIONS: "Arrival instructions",
