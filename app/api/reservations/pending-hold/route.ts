@@ -98,9 +98,14 @@ function resolveErrorStatus(code: PendingHoldErrorCode): number {
   }
 }
 
+type PublicPendingReservationHoldErrorCode = Extract<
+  PendingHoldErrorCode,
+  PendingReservationHoldError["code"]
+>;
+
 function isPublicPendingHoldErrorCode(
   code: PendingReservationHoldError["code"],
-): code is PendingHoldErrorCode {
+): code is PublicPendingReservationHoldErrorCode {
   return (
     code === "INVALID_PENDING_HOLD_REQUEST" ||
     code === "INVALID_ACCOMMODATION" ||
