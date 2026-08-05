@@ -4,10 +4,16 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
+  CalendarClock,
+  CreditCard,
   ExternalLink,
+  History,
   Loader2,
+  Mail,
+  RefreshCcw,
   RotateCcw,
   Send,
+  ShieldCheck,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -28,6 +34,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocale } from "@/features/i18n";
 import type {
   AdminEmailNotificationResendErrorCode,
@@ -40,6 +47,11 @@ import type {
 import type { Locale } from "@/types/locale";
 
 import { AdminPageHeader } from "./admin-page-header";
+import { AdminReservationCancellationSection } from "./admin-reservation-cancellation-section";
+import { AdminReservationDateMutationSection } from "./admin-reservation-date-mutation-section";
+import { AdminReservationLifecycleAdjustmentRefundSection } from "./admin-reservation-lifecycle-adjustment-refund-section";
+import { AdminReservationOperationalHistorySection } from "./admin-reservation-operational-history-section";
+import { AdminReservationRefundSection } from "./admin-reservation-refund-section";
 import { AdminSnackbar } from "./admin-snackbar";
 
 const manuallyResendableTypes = new Set([
@@ -143,7 +155,9 @@ export function AdminReservationDetailPage({
   }
 
   function emailNotificationTypeLabel(type: string): string {
-    return notificationCopy.types[type as keyof typeof notificationCopy.types] ?? type;
+    return (
+      notificationCopy.types[type as keyof typeof notificationCopy.types] ?? type
+    );
   }
 
   function emailNotificationLocaleLabel(value: string): string {
@@ -259,6 +273,15 @@ export function AdminReservationDetailPage({
     locale === "en" ? reservation.property.nameEn : reservation.property.nameEs;
   const resendTargetWasSent =
     manualResendTarget?.notification.status === "SENT";
+  const standardRefundReservation: AdminReservationDetailData = {
+    ...reservation,
+    payments: reservation.payments.filter(
+      (payment) => payment.purpose === "INITIAL_RESERVATION",
+    ),
+    refunds: reservation.refunds.filter(
+      (refund) => refund.authorizationType !== "LIFECYCLE_ADJUSTMENT",
+    ),
+  };
 
   return (
     <>
@@ -283,8 +306,48 @@ export function AdminReservationDetailPage({
         variant={errorFeedback ? "error" : "success"}
       />
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(20rem,0.8fr)]">
-        <div className="grid gap-6">
+      <Tabs className="mt-6" defaultValue="reservation">
+        <div className="-mx-1 overflow-x-auto px-1 pb-2">
+          <TabsList
+            aria-label={reservationCopy.title}
+            className="inline-flex h-auto min-w-full justify-start gap-1 rounded-2xl border border-border/70 bg-muted/40 p-1.5"
+          >
+            <TabsTrigger className="min-h-10 shrink-0 gap-2" value="reservation">
+              <ShieldCheck aria-hidden="true" className="size-4 shrink-0" />
+              {reservationCopy.labels.reservation}
+            </TabsTrigger>
+            <TabsTrigger className="min-h-10 shrink-0 gap-2" value="financial">
+              <CreditCard aria-hidden="true" className="size-4 shrink-0" />
+              {paymentCopy.title}
+            </TabsTrigger>
+            <TabsTrigger className="min-h-10 shrink-0 gap-2" value="emails">
+              <Mail aria-hidden="true" className="size-4 shrink-0" />
+              {notificationCopy.title}
+            </TabsTrigger>
+            <TabsTrigger className="min-h-10 shrink-0 gap-2" value="lifecycle">
+              <ShieldCheck aria-hidden="true" className="size-4 shrink-0" />
+              {reservationCopy.cancellation.badge}
+            </TabsTrigger>
+            <TabsTrigger className="min-h-10 shrink-0 gap-2" value="refunds">
+              <RefreshCcw aria-hidden="true" className="size-4 shrink-0" />
+              {reservationCopy.refunds.badge}
+            </TabsTrigger>
+            <TabsTrigger className="min-h-10 shrink-0 gap-2" value="changes">
+              <CalendarClock aria-hidden="true" className="size-4 shrink-0" />
+              {reservationCopy.dateMutation.title}
+            </TabsTrigger>
+            <TabsTrigger className="min-h-10 shrink-0 gap-2" value="history">
+              <History aria-hidden="true" className="size-4 shrink-0" />
+              {reservationCopy.operationalHistory.badge}
+            </TabsTrigger>
+          </TabsList>
+        </div>
+
+        <TabsContent
+          className="mt-4 data-[state=inactive]:hidden sm:mt-6"
+          forceMount
+          value="reservation"
+        >
           <Card className="border-border/70 bg-card shadow-sm">
             <CardHeader>
               <CardTitle>{reservation.guestName}</CardTitle>
@@ -342,148 +405,221 @@ export function AdminReservationDetailPage({
               ) : null}
             </CardContent>
           </Card>
+        </TabsContent>
 
+        <TabsContent
+          className="mt-4 data-[state=inactive]:hidden sm:mt-6"
+          forceMount
+          value="financial"
+        >
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(20rem,0.8fr)]">
+            <Card className="border-border/70 bg-card shadow-sm">
+              <CardHeader>
+                <CardTitle>{requestCopy.quoteTitle}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <dl className="grid gap-4 sm:grid-cols-2">
+                  <MoneyRow
+                    label={requestCopy.quoteRows.subtotal}
+                    value={formatMoney(
+                      reservation.subtotal,
+                      reservation.currency,
+                    )}
+                  />
+                  <MoneyRow
+                    label={requestCopy.quoteRows.cleaningFee}
+                    value={formatMoney(
+                      reservation.cleaningFee,
+                      reservation.currency,
+                    )}
+                  />
+                  <MoneyRow
+                    label={requestCopy.quoteRows.taxes}
+                    value={formatMoney(reservation.taxes, reservation.currency)}
+                  />
+                  <MoneyRow
+                    label={requestCopy.quoteRows.discounts}
+                    value={formatMoney(
+                      reservation.discounts,
+                      reservation.currency,
+                    )}
+                  />
+                  <MoneyRow
+                    emphasized
+                    label={requestCopy.quoteRows.total}
+                    value={formatMoney(reservation.total, reservation.currency)}
+                  />
+                </dl>
+              </CardContent>
+            </Card>
+
+            <Card className="h-fit border-border/70 bg-card shadow-sm">
+              <CardHeader>
+                <CardTitle>{paymentCopy.title}</CardTitle>
+                <CardDescription>{paymentCopy.description}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {reservation.payments.length > 0 ? (
+                  <div className="grid gap-4">
+                    {reservation.payments.map((payment) => (
+                      <div
+                        className="rounded-2xl border border-border bg-muted/20 p-4"
+                        key={payment.id}
+                      >
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div>
+                            <p className="break-all text-sm font-medium">
+                              {payment.id}
+                            </p>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                              {formatMoney(payment.amount, payment.currency)}
+                            </p>
+                          </div>
+                          <Badge variant="outline">
+                            {paymentStatusLabel(payment.status)}
+                          </Badge>
+                        </div>
+                        <div className="mt-4 grid gap-3 text-sm">
+                          <DetailValue
+                            label={paymentCopy.labels.order}
+                            value={
+                              payment.providerReference ??
+                              paymentCopy.labels.unavailable
+                            }
+                          />
+                          <DetailValue
+                            label={paymentCopy.labels.createdAt}
+                            value={formatDateTime(payment.createdAt)}
+                          />
+                        </div>
+                        <Button
+                          asChild
+                          className="mt-4 w-full"
+                          variant="outline"
+                        >
+                          <Link
+                            href={`/admin/payments/${encodeURIComponent(
+                              payment.id,
+                            )}`}
+                          >
+                            {messages.common.viewDetails}
+                            <ExternalLink aria-hidden="true" />
+                          </Link>
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    {paymentCopy.empty.noPayments}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent
+          className="mt-4 data-[state=inactive]:hidden sm:mt-6"
+          forceMount
+          value="emails"
+        >
           <Card className="border-border/70 bg-card shadow-sm">
             <CardHeader>
-              <CardTitle>{requestCopy.quoteTitle}</CardTitle>
+              <CardTitle>{notificationCopy.title}</CardTitle>
+              <CardDescription>{notificationCopy.description}</CardDescription>
             </CardHeader>
             <CardContent>
-              <dl className="grid gap-4 sm:grid-cols-2">
-                <MoneyRow
-                  label={requestCopy.quoteRows.subtotal}
-                  value={formatMoney(
-                    reservation.subtotal,
-                    reservation.currency,
-                  )}
-                />
-                <MoneyRow
-                  label={requestCopy.quoteRows.cleaningFee}
-                  value={formatMoney(
-                    reservation.cleaningFee,
-                    reservation.currency,
-                  )}
-                />
-                <MoneyRow
-                  label={requestCopy.quoteRows.taxes}
-                  value={formatMoney(reservation.taxes, reservation.currency)}
-                />
-                <MoneyRow
-                  label={requestCopy.quoteRows.discounts}
-                  value={formatMoney(
-                    reservation.discounts,
-                    reservation.currency,
-                  )}
-                />
-                <MoneyRow
-                  emphasized
-                  label={requestCopy.quoteRows.total}
-                  value={formatMoney(reservation.total, reservation.currency)}
-                />
-              </dl>
+              {reservation.emailNotifications.length > 0 ? (
+                <div className="grid gap-4">
+                  {reservation.emailNotifications.map((notification) => (
+                    <EmailNotificationCard
+                      actionLabel={
+                        notification.status === "SENT"
+                          ? notificationCopy.actions.sendAgain
+                          : notificationCopy.actions.retryNow
+                      }
+                      busy={busyNotificationId === notification.id}
+                      canResend={canManuallyResend(
+                        notification,
+                        reservation.status,
+                      )}
+                      formatDateTime={formatDateTime}
+                      key={notification.id}
+                      labels={notificationCopy.labels}
+                      localeLabel={emailNotificationLocaleLabel(
+                        notification.locale,
+                      )}
+                      notification={notification}
+                      onRequestResend={() => openManualResend(notification)}
+                      originLabel={emailNotificationOriginLabel(
+                        notification.origin,
+                      )}
+                      sendingLabel={notificationCopy.actions.sending}
+                      statusLabel={emailNotificationStatusLabel(
+                        notification.status,
+                      )}
+                      typeLabel={emailNotificationTypeLabel(notification.type)}
+                      unavailableLabel={reservationCopy.labels.unavailable}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  {notificationCopy.empty}
+                </p>
+              )}
             </CardContent>
           </Card>
-        </div>
+        </TabsContent>
 
-        <Card className="h-fit border-border/70 bg-card shadow-sm">
-          <CardHeader>
-            <CardTitle>{paymentCopy.title}</CardTitle>
-            <CardDescription>{paymentCopy.description}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {reservation.payments.length > 0 ? (
-              <div className="grid gap-4">
-                {reservation.payments.map((payment) => (
-                  <div
-                    className="rounded-2xl border border-border bg-muted/20 p-4"
-                    key={payment.id}
-                  >
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <p className="break-all text-sm font-medium">
-                          {payment.id}
-                        </p>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          {formatMoney(payment.amount, payment.currency)}
-                        </p>
-                      </div>
-                      <Badge variant="outline">
-                        {paymentStatusLabel(payment.status)}
-                      </Badge>
-                    </div>
-                    <div className="mt-4 grid gap-3 text-sm">
-                      <DetailValue
-                        label={paymentCopy.labels.order}
-                        value={
-                          payment.providerReference ??
-                          paymentCopy.labels.unavailable
-                        }
-                      />
-                      <DetailValue
-                        label={paymentCopy.labels.createdAt}
-                        value={formatDateTime(payment.createdAt)}
-                      />
-                    </div>
-                    <Button asChild className="mt-4 w-full" variant="outline">
-                      <Link
-                        href={`/admin/payments/${encodeURIComponent(payment.id)}`}
-                      >
-                        {messages.common.viewDetails}
-                        <ExternalLink aria-hidden="true" />
-                      </Link>
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                {paymentCopy.empty.noPayments}
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+        <TabsContent
+          className="mt-4 data-[state=inactive]:hidden sm:mt-6"
+          forceMount
+          value="lifecycle"
+        >
+          <div className="-mt-6">
+            <AdminReservationCancellationSection reservation={reservation} />
+          </div>
+        </TabsContent>
 
-      <Card className="mt-6 border-border/70 bg-card shadow-sm">
-        <CardHeader>
-          <CardTitle>{notificationCopy.title}</CardTitle>
-          <CardDescription>{notificationCopy.description}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {reservation.emailNotifications.length > 0 ? (
-            <div className="grid gap-4">
-              {reservation.emailNotifications.map((notification) => (
-                <EmailNotificationCard
-                  actionLabel={
-                    notification.status === "SENT"
-                      ? notificationCopy.actions.sendAgain
-                      : notificationCopy.actions.retryNow
-                  }
-                  busy={busyNotificationId === notification.id}
-                  canResend={canManuallyResend(
-                    notification,
-                    reservation.status,
-                  )}
-                  formatDateTime={formatDateTime}
-                  key={notification.id}
-                  labels={notificationCopy.labels}
-                  localeLabel={emailNotificationLocaleLabel(notification.locale)}
-                  notification={notification}
-                  onRequestResend={() => openManualResend(notification)}
-                  originLabel={emailNotificationOriginLabel(notification.origin)}
-                  sendingLabel={notificationCopy.actions.sending}
-                  statusLabel={emailNotificationStatusLabel(notification.status)}
-                  typeLabel={emailNotificationTypeLabel(notification.type)}
-                  unavailableLabel={reservationCopy.labels.unavailable}
-                />
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              {notificationCopy.empty}
-            </p>
-          )}
-        </CardContent>
-      </Card>
+        <TabsContent
+          className="mt-4 data-[state=inactive]:hidden sm:mt-6"
+          forceMount
+          value="refunds"
+        >
+          <div className="-mt-6">
+            <AdminReservationRefundSection
+              reservation={standardRefundReservation}
+            />
+            <AdminReservationLifecycleAdjustmentRefundSection
+              reservation={reservation}
+            />
+          </div>
+        </TabsContent>
+
+        <TabsContent
+          className="mt-4 data-[state=inactive]:hidden sm:mt-6"
+          forceMount
+          value="changes"
+        >
+          <div className="-mt-6">
+            <AdminReservationDateMutationSection reservation={reservation} />
+          </div>
+        </TabsContent>
+
+        <TabsContent
+          className="mt-4 data-[state=inactive]:hidden sm:mt-6"
+          forceMount
+          value="history"
+        >
+          <div className="-mt-6">
+            <AdminReservationOperationalHistorySection
+              reservation={reservation}
+            />
+          </div>
+        </TabsContent>
+      </Tabs>
 
       <Sheet
         onOpenChange={(open) => {
