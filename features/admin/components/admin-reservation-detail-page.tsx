@@ -15,7 +15,7 @@ import {
   Send,
   ShieldCheck,
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import {
   Accordion,
@@ -122,9 +122,28 @@ export function AdminReservationDetailPage({
   const [successFeedback, setSuccessFeedback] = useState<string | null>(null);
   const isBusy = busyNotificationId !== null;
   const paymentPagination = useAdminRecordPagination(reservation.payments);
-  const emailPagination = useAdminRecordPagination(
-    reservation.emailNotifications,
+  const emailNotificationGroups = useMemo(() => {
+    const guest: AdminReservationDetailEmailNotification[] = [];
+    const administration: AdminReservationDetailEmailNotification[] = [];
+
+    reservation.emailNotifications.forEach((notification) => {
+      if (notification.type.startsWith("ADMIN_")) {
+        administration.push(notification);
+      } else {
+        guest.push(notification);
+      }
+    });
+
+    return { administration, guest } as const;
+  }, [reservation.emailNotifications]);
+  const guestEmailPagination = useAdminRecordPagination(
+    emailNotificationGroups.guest,
   );
+  const adminEmailPagination = useAdminRecordPagination(
+    emailNotificationGroups.administration,
+  );
+  const defaultEmailGroup =
+    emailNotificationGroups.guest.length > 0 ? "guest" : "administration";
   const paginationLabels = {
     next: reservationCopy.actions.next,
     of: reservationCopy.labels.of,
@@ -289,6 +308,33 @@ export function AdminReservationDetailPage({
     } finally {
       setBusyNotificationId(null);
     }
+  }
+
+  function renderEmailNotification(
+    notification: AdminReservationDetailEmailNotification,
+  ) {
+    return (
+      <EmailNotificationCard
+        actionLabel={
+          notification.status === "SENT"
+            ? notificationCopy.actions.sendAgain
+            : notificationCopy.actions.retryNow
+        }
+        busy={busyNotificationId === notification.id}
+        canResend={canManuallyResend(notification, reservation.status)}
+        formatDateTime={formatDateTime}
+        key={notification.id}
+        labels={notificationCopy.labels}
+        localeLabel={emailNotificationLocaleLabel(notification.locale)}
+        notification={notification}
+        onRequestResend={() => openManualResend(notification)}
+        originLabel={emailNotificationOriginLabel(notification.origin)}
+        sendingLabel={notificationCopy.actions.sending}
+        statusLabel={emailNotificationStatusLabel(notification.status)}
+        typeLabel={emailNotificationTypeLabel(notification.type)}
+        unavailableLabel={reservationCopy.labels.unavailable}
+      />
+    );
   }
 
   const propertyName =
@@ -600,55 +646,110 @@ export function AdminReservationDetailPage({
             </CardHeader>
             <CardContent>
               {reservation.emailNotifications.length > 0 ? (
-                <>
-                  <Accordion
-                    className="grid gap-3"
-                    collapsible
-                    key={`${emailPagination.page}-${emailPagination.pageSize}`}
-                    type="single"
+                <Tabs defaultValue={defaultEmailGroup}>
+                  <div className="-mx-1 overflow-x-auto px-1 pb-2">
+                    <TabsList
+                      aria-label={notificationCopy.title}
+                      className="inline-flex h-auto min-w-full justify-start gap-1 rounded-2xl border border-border/70 bg-muted/40 p-1.5 sm:min-w-0"
+                    >
+                      <TabsTrigger
+                        className="min-h-10 shrink-0 gap-2"
+                        value="guest"
+                      >
+                        <Mail aria-hidden="true" className="size-4 shrink-0" />
+                        {reservationCopy.labels.guests}
+                        <Badge variant="secondary">
+                          {emailNotificationGroups.guest.length}
+                        </Badge>
+                      </TabsTrigger>
+                      <TabsTrigger
+                        className="min-h-10 shrink-0 gap-2"
+                        value="administration"
+                      >
+                        <ShieldCheck
+                          aria-hidden="true"
+                          className="size-4 shrink-0"
+                        />
+                        {messages.footer.adminEmailLabel}
+                        <Badge variant="secondary">
+                          {emailNotificationGroups.administration.length}
+                        </Badge>
+                      </TabsTrigger>
+                    </TabsList>
+                  </div>
+
+                  <TabsContent
+                    className="mt-4 data-[state=inactive]:hidden"
+                    forceMount
+                    value="guest"
                   >
-                  {emailPagination.pageItems.map((notification) => (
-                    <EmailNotificationCard
-                      actionLabel={
-                        notification.status === "SENT"
-                          ? notificationCopy.actions.sendAgain
-                          : notificationCopy.actions.retryNow
-                      }
-                      busy={busyNotificationId === notification.id}
-                      canResend={canManuallyResend(
-                        notification,
-                        reservation.status,
-                      )}
-                      formatDateTime={formatDateTime}
-                      key={notification.id}
-                      labels={notificationCopy.labels}
-                      localeLabel={emailNotificationLocaleLabel(
-                        notification.locale,
-                      )}
-                      notification={notification}
-                      onRequestResend={() => openManualResend(notification)}
-                      originLabel={emailNotificationOriginLabel(
-                        notification.origin,
-                      )}
-                      sendingLabel={notificationCopy.actions.sending}
-                      statusLabel={emailNotificationStatusLabel(
-                        notification.status,
-                      )}
-                      typeLabel={emailNotificationTypeLabel(notification.type)}
-                      unavailableLabel={reservationCopy.labels.unavailable}
-                    />
-                  ))}
-                  </Accordion>
-                  <AdminRecordPagination
-                    labels={paginationLabels}
-                    onPageChange={emailPagination.setPage}
-                    onPageSizeChange={emailPagination.changePageSize}
-                    page={emailPagination.page}
-                    pageSize={emailPagination.pageSize}
-                    totalItems={emailPagination.totalItems}
-                    totalPages={emailPagination.totalPages}
-                  />
-                </>
+                    {emailNotificationGroups.guest.length > 0 ? (
+                      <>
+                        <Accordion
+                          className="grid gap-3"
+                          collapsible
+                          key={`guest-${guestEmailPagination.page}-${guestEmailPagination.pageSize}`}
+                          type="single"
+                        >
+                          {guestEmailPagination.pageItems.map(
+                            renderEmailNotification,
+                          )}
+                        </Accordion>
+                        <AdminRecordPagination
+                          labels={paginationLabels}
+                          onPageChange={guestEmailPagination.setPage}
+                          onPageSizeChange={
+                            guestEmailPagination.changePageSize
+                          }
+                          page={guestEmailPagination.page}
+                          pageSize={guestEmailPagination.pageSize}
+                          totalItems={guestEmailPagination.totalItems}
+                          totalPages={guestEmailPagination.totalPages}
+                        />
+                      </>
+                    ) : (
+                      <EmailGroupEmptyState
+                        label={reservationCopy.labels.results}
+                      />
+                    )}
+                  </TabsContent>
+
+                  <TabsContent
+                    className="mt-4 data-[state=inactive]:hidden"
+                    forceMount
+                    value="administration"
+                  >
+                    {emailNotificationGroups.administration.length > 0 ? (
+                      <>
+                        <Accordion
+                          className="grid gap-3"
+                          collapsible
+                          key={`administration-${adminEmailPagination.page}-${adminEmailPagination.pageSize}`}
+                          type="single"
+                        >
+                          {adminEmailPagination.pageItems.map(
+                            renderEmailNotification,
+                          )}
+                        </Accordion>
+                        <AdminRecordPagination
+                          labels={paginationLabels}
+                          onPageChange={adminEmailPagination.setPage}
+                          onPageSizeChange={
+                            adminEmailPagination.changePageSize
+                          }
+                          page={adminEmailPagination.page}
+                          pageSize={adminEmailPagination.pageSize}
+                          totalItems={adminEmailPagination.totalItems}
+                          totalPages={adminEmailPagination.totalPages}
+                        />
+                      </>
+                    ) : (
+                      <EmailGroupEmptyState
+                        label={reservationCopy.labels.results}
+                      />
+                    )}
+                  </TabsContent>
+                </Tabs>
               ) : (
                 <p className="text-sm text-muted-foreground">
                   {notificationCopy.empty}
@@ -782,6 +883,14 @@ export function AdminReservationDetailPage({
         </SheetContent>
       </Sheet>
     </>
+  );
+}
+
+function EmailGroupEmptyState({ label }: Readonly<{ label: string }>) {
+  return (
+    <div className="rounded-2xl border border-dashed border-border bg-muted/10 px-4 py-8 text-center text-sm text-muted-foreground">
+      {label}: 0
+    </div>
   );
 }
 
