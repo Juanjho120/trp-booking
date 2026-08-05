@@ -6,14 +6,16 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
-Current subphase: 11.6.4 Lifecycle adjustment payment-link notifications and email corrections — In progress
-Current focus: send positive adjustment payment links, report final guest-email delivery results to admins, add protected manual sending, and correct zero/negative DATE_CHANGE copy
-Last updated: 2026-08-04
-Last completed subphase: 11.6.3 Transactional intent orchestration and delivery
-11.6.3 accepted commit: 5fed1ca0423190cd51a9c710d00c9216b65883a9
-11.6.3 acceptance: All integrated lifecycle inbox scenarios passed, including ES/EN rendering, retries, replay safety, and unchanged domain state on email failure
-11.6.3 implementation document: docs/117-phase-11.6.3-transactional-intent-orchestration-and-delivery.md
-11.6.4 implementation document: docs/118-phase-11.6.4-lifecycle-adjustment-payment-link-notifications-and-email-corrections.md
+Current subphase: 11.6.5 Protected operational history and acceptance — In progress
+Current focus: consolidate a protected read-only operational timeline for lifecycle requests, holds, adjustment Payments, Refunds, notification delivery, retries, manual resend chains, actors, and timestamps
+Last updated: 2026-08-05
+Last completed subphase: 11.6.4 Lifecycle adjustment payment-link notifications and email corrections
+11.6.4 implementation commit: ffbed6b8c1b1d3dbd6fc61cee0e0c0f4d21d9c53
+11.6.4 compilation fixes: 92e182e46796502335b8c3c171377c363d5521ae, 308721dd11f87e098cb639dca7356ebc35b0e67f
+11.6.4 accepted head: 308721dd11f87e098cb639dca7356ebc35b0e67f
+11.6.4 acceptance: All 20 local/inbox criteria passed, including guest/admin ES/EN delivery, retry and terminal failure behavior, manual UUID idempotency, missing-intent recovery, branch-specific copy, security, and unchanged domain state on email failure
+11.6.4 implementation and acceptance document: docs/118-phase-11.6.4-lifecycle-adjustment-payment-link-notifications-and-email-corrections.md
+11.6.5 activation document: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md
 11.5.1 strategy base commit: 3d1487f31ca74fc5a41573b4ab206ce9ad838bb5
 11.5.1 strategy document: docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md
 11.5.1 accepted commit: e0b77658c74ee2d7a30c96f529d5f7f4451ab045
@@ -488,21 +490,37 @@ Three follow-up observations were accepted for the next subphase without reopeni
 Implementation document: docs/117-phase-11.6.3-transactional-intent-orchestration-and-delivery.md.
 ```
 
-## Active Work — Phase 11.6.4
+## Completed Work — Phase 11.6.4
 
 ### Phase 11.6.4 — Lifecycle Adjustment Payment-Link Notifications and Email Corrections
 
-Status: **In progress — implementation prepared; local/inbox acceptance pending**
+Status: **Completed and accepted**
 
 ```text
-Positive DATE_CHANGE and STAY_EXTENSION requests notify the guest with the private adjustment-payment link while clearly preserving the original dates until payment and successful completion.
+Positive DATE_CHANGE and STAY_EXTENSION requests notify the guest with the private adjustment-payment link while preserving the original dates until payment and successful completion.
 Guest SENT and terminal FAILED results create separate administrative delivery-result notifications without claiming inbox delivery or opening.
-The admin request card adds protected manual email sending beside open/copy actions, with duplicate, active-delivery, and failed-only states.
-Manual sends preserve the source notification and use permanent UUID-based child keys.
+Protected manual sending, duplicate and active-delivery warnings, failed-only behavior, UUID idempotency, source preservation, and missing-intent worker recovery passed.
 Completed DATE_CHANGE copy differentiates positive, zero, and negative financial branches; REFUND_PROCESSED remains the only final refund confirmation.
-A schema migration adds the new types and sourceNotificationId self-relation.
-The previous protected-history scope moves to Phase 11.6.5.
-Implementation document: docs/118-phase-11.6.4-lifecycle-adjustment-payment-link-notifications-and-email-corrections.md.
+All 20 local, inbox, retry, idempotency, recovery, copy, security, and domain-isolation criteria passed on 2026-08-05.
+Implementation commit: ffbed6b8c1b1d3dbd6fc61cee0e0c0f4d21d9c53.
+Compilation fixes: 92e182e46796502335b8c3c171377c363d5521ae, 308721dd11f87e098cb639dca7356ebc35b0e67f.
+Accepted head: 308721dd11f87e098cb639dca7356ebc35b0e67f.
+Authoritative record: docs/118-phase-11.6.4-lifecycle-adjustment-payment-link-notifications-and-email-corrections.md.
+```
+
+## Active Work — Phase 11.6.5
+
+### Phase 11.6.5 — Protected Operational History and Acceptance
+
+Status: **In progress — scope activated; implementation not started**
+
+```text
+Build a protected read-only timeline in the reservation detail.
+Consolidate lifecycle requests, holds, adjustment Payments, Refunds, EmailNotifications, source/result relations, retries, manual resend chains, actors, and timestamps.
+Keep existing recovery controls available without making timeline entries editable.
+Use deterministic ordering and bounded safe summaries instead of raw provider payloads.
+Exclude card data, private payment tokens, provider credentials, and raw Tilopay or Resend responses.
+Activation document: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md.
 ```
 
 ## Continuity Notes for New Conversations
@@ -552,6 +570,7 @@ docs/115-phase-11.6.1-lifecycle-notification-contract-and-persistence-relations.
 docs/116-phase-11.6.2-bilingual-lifecycle-email-templates.md
 docs/117-phase-11.6.3-transactional-intent-orchestration-and-delivery.md
 docs/118-phase-11.6.4-lifecycle-adjustment-payment-link-notifications-and-email-corrections.md
+docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md
 lib/admin/reservation-cancellation.ts
 lib/admin/reservation-date-mutation.ts
 lib/reservations/date-mutation-completion.ts

@@ -15,13 +15,15 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 11 — Cancellation, Refund, and Change Request Rules
-Current subphase: 11.6.4 Lifecycle adjustment payment-link notifications and email corrections — In progress
-Current focus: send positive adjustment payment links, report terminal guest-email delivery results to admins, expose protected manual sending, and correct financial-branch date-update copy
-Last completed subphase: 11.6.3 Transactional intent orchestration and delivery
-11.6.3 accepted commit: 5fed1ca0423190cd51a9c710d00c9216b65883a9
-11.6.3 acceptance: Integrated inbox matrix passed on 2026-08-04, including ES/EN rendering, retries, replay safety, and unchanged domain state on delivery failure
-11.6.3 implementation document: docs/117-phase-11.6.3-transactional-intent-orchestration-and-delivery.md
-11.6.4 implementation document: docs/118-phase-11.6.4-lifecycle-adjustment-payment-link-notifications-and-email-corrections.md
+Current subphase: 11.6.5 Protected operational history and acceptance — In progress
+Current focus: build a protected read-only operational timeline across lifecycle requests, holds, adjustment Payments, Refunds, notification delivery, retries, manual resend chains, actors, and timestamps
+Last completed subphase: 11.6.4 Lifecycle adjustment payment-link notifications and email corrections
+11.6.4 implementation commit: ffbed6b8c1b1d3dbd6fc61cee0e0c0f4d21d9c53
+11.6.4 compilation fixes: 92e182e46796502335b8c3c171377c363d5521ae, 308721dd11f87e098cb639dca7356ebc35b0e67f
+11.6.4 accepted head: 308721dd11f87e098cb639dca7356ebc35b0e67f
+11.6.4 acceptance: All 20 local/inbox criteria passed on 2026-08-05, including retry, terminal failure, UUID idempotency, worker recovery, ES/EN copy, security, and domain isolation
+11.6.4 implementation and acceptance document: docs/118-phase-11.6.4-lifecycle-adjustment-payment-link-notifications-and-email-corrections.md
+11.6.5 activation document: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md
 11.5.1 strategy base commit: 3d1487f31ca74fc5a41573b4ab206ce9ad838bb5
 11.5.1 strategy document: docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md
 11.5.1 accepted commit: e0b77658c74ee2d7a30c96f529d5f7f4451ab045
@@ -533,8 +535,8 @@ Subphase status:
 11.6.1 Notification contract and persistence relations — Completed
 11.6.2 Bilingual lifecycle email templates — Completed
 11.6.3 Transactional intent orchestration and delivery — Completed
-11.6.4 Lifecycle adjustment payment-link notifications and email corrections — In progress
-11.6.5 Protected operational history and acceptance — Not started
+11.6.4 Lifecycle adjustment payment-link notifications and email corrections — Completed
+11.6.5 Protected operational history and acceptance — In progress
 11.7 Validation and documentation closure — Not started
 ```
 
@@ -825,16 +827,29 @@ Phase 11 rules:
 - Implementation record: docs/117-phase-11.6.3-transactional-intent-orchestration-and-delivery.md.
 ```
 
-### Phase 11.6.4 implementation prepared
+### Phase 11.6.4 completed and accepted
 
 ```text
-- Positive DATE_CHANGE and STAY_EXTENSION approvals create/recover a guest payment-link notification and deliver it after the domain commit.
-- Final guest SENT or terminal FAILED results create one administrative result notification per configured recipient.
-- The admin request card exposes an always-available send-email button while the hold/link is valid, with duplicate and active-delivery warnings.
-- Manual sends preserve source history and use stable UUID-based child deduplication.
-- Completed DATE_CHANGE guest copy now differentiates positive, zero, and negative financial branches.
-- Protected operational history and final Phase 11.6 acceptance move to 11.6.5.
-- Implementation record: docs/118-phase-11.6.4-lifecycle-adjustment-payment-link-notifications-and-email-corrections.md.
+- Positive DATE_CHANGE and STAY_EXTENSION approvals create/recover and deliver one guest payment-link notification after the domain commit.
+- Guest SENT and terminal FAILED outcomes create one administrative result notification per configured recipient without claiming inbox delivery or opening.
+- Open, copy, protected manual email, duplicate-warning, active-delivery, failed-only, UUID idempotency, source preservation, and worker recovery behavior passed.
+- Completed DATE_CHANGE copy correctly differentiates positive, zero, and negative financial branches in ES and EN HTML/plain text.
+- Email failures do not roll back or alter Reservation, lifecycle request, hold, Payment, Refund, or completed dates.
+- All 20 acceptance criteria passed on 2026-08-05.
+- Implementation commit: ffbed6b8c1b1d3dbd6fc61cee0e0c0f4d21d9c53.
+- Compilation fixes: 92e182e46796502335b8c3c171377c363d5521ae, 308721dd11f87e098cb639dca7356ebc35b0e67f.
+- Accepted head: 308721dd11f87e098cb639dca7356ebc35b0e67f.
+- Authoritative record: docs/118-phase-11.6.4-lifecycle-adjustment-payment-link-notifications-and-email-corrections.md.
+```
+
+### Phase 11.6.5 active scope
+
+```text
+- Present a protected read-only operational history in the reservation detail.
+- Consolidate lifecycle requests, holds, adjustment Payments, Refunds, notification source/result relationships, retry attempts, manual resend chains, actors, and timestamps.
+- Preserve existing domain ownership and recovery actions; the history itself is immutable.
+- Exclude raw provider payloads, credentials, private payment tokens, and card data.
+- Activation record: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md.
 ```
 
 ### Phase 11.6 requirements accepted during 11.4.2
