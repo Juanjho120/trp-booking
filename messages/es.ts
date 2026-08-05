@@ -2200,6 +2200,8 @@ export const esMessages = {
       checkIn: "Entrada",
       checkOut: "Salida",
       checkInTime: "Hora de check-in",
+      checkOutTime: "Hora de check-out",
+      flexibleCheckOut: "Libre",
       exactAddress: "Dirección exacta",
       houseRules: "Reglas de la casa",
       nights: "Duración",

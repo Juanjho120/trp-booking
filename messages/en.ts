@@ -2199,6 +2199,8 @@ export const enMessages = {
       checkIn: "Check-in",
       checkOut: "Check-out",
       checkInTime: "Check-in time",
+      checkOutTime: "Check-out time",
+      flexibleCheckOut: "Flexible",
       exactAddress: "Exact address",
       houseRules: "House rules",
       nights: "Length of stay",
