@@ -11,6 +11,12 @@ import {
 import { useRouter } from "next/navigation";
 import { type ReactNode, useMemo, useState } from "react";
 
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -60,7 +66,12 @@ const inputClassName =
   "h-11 w-full rounded-2xl border border-input bg-background px-3 text-sm text-foreground shadow-xs outline-none transition focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50";
 const textareaClassName =
   "min-h-28 w-full resize-y rounded-2xl border border-input bg-background px-3 py-3 text-sm leading-6 text-foreground shadow-xs outline-none transition focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50";
-const committedRefundStatuses = new Set(["PENDING", "PROCESSING", "APPROVED", "MANUAL"]);
+const committedRefundStatuses = new Set([
+  "PENDING",
+  "PROCESSING",
+  "APPROVED",
+  "MANUAL",
+]);
 const refundablePaymentStatuses = new Set(["APPROVED", "PARTIALLY_REFUNDED"]);
 
 type RefundApiResponse<Result> = Readonly<{
@@ -244,7 +255,9 @@ export function AdminReservationRefundSection({
   }
 
   function modeLabel(mode: string): string {
-    return copy.processingModes[mode as keyof typeof copy.processingModes] ?? mode;
+    return (
+      copy.processingModes[mode as keyof typeof copy.processingModes] ?? mode
+    );
   }
 
   function authorizationTypeLabel(type: string): string {
@@ -272,7 +285,11 @@ export function AdminReservationRefundSection({
   function paymentForRefund(
     refund: AdminRefundSummary,
   ): AdminReservationDetailPayment | null {
-    return reservation.payments.find((payment) => payment.id === refund.paymentId) ?? null;
+    return (
+      reservation.payments.find(
+        (payment) => payment.id === refund.paymentId,
+      ) ?? null
+    );
   }
 
   function openAuthorization(
@@ -395,7 +412,8 @@ export function AdminReservationRefundSection({
         headers: { "content-type": "application/json" },
         body: JSON.stringify(body),
       });
-      const payload = (await response.json()) as RefundApiResponse<AdminRefundAuthorizationResult>;
+      const payload =
+        (await response.json()) as RefundApiResponse<AdminRefundAuthorizationResult>;
 
       if (!response.ok || !payload.result) {
         setErrorFeedback(errorMessage(payload.error?.code));
@@ -441,7 +459,8 @@ export function AdminReservationRefundSection({
           }),
         },
       );
-      const payload = (await response.json()) as RefundApiResponse<AdminRefundExecutionResult>;
+      const payload =
+        (await response.json()) as RefundApiResponse<AdminRefundExecutionResult>;
 
       if (!response.ok || !payload.result) {
         setErrorFeedback(errorMessage(payload.error?.code));
@@ -493,7 +512,8 @@ export function AdminReservationRefundSection({
           }),
         },
       );
-      const payload = (await response.json()) as RefundApiResponse<AdminRefundConsultResult>;
+      const payload =
+        (await response.json()) as RefundApiResponse<AdminRefundConsultResult>;
 
       if (!response.ok || !payload.result) {
         setErrorFeedback(errorMessage(payload.error?.code));
@@ -560,7 +580,8 @@ export function AdminReservationRefundSection({
           }),
         },
       );
-      const payload = (await response.json()) as RefundApiResponse<AdminRefundReconciliationResult>;
+      const payload =
+        (await response.json()) as RefundApiResponse<AdminRefundReconciliationResult>;
 
       if (!response.ok || !payload.result) {
         setErrorFeedback(errorMessage(payload.error?.code));
@@ -693,20 +714,20 @@ export function AdminReservationRefundSection({
           </p>
 
           {reservation.refunds.length > 0 ? (
-            <div className="grid gap-4">
+            <Accordion className="grid gap-3" collapsible type="single">
               {reservation.refunds.map((refund) => (
                 <RefundCard
-                  busyAction={busyAction}
-                  copy={copy}
-                  classificationLabel={classificationLabel}
-                  formatDateTime={formatDateTime}
-                  formatMoney={formatMoney}
-                  key={refund.id}
+                  apiExecutionEnabled={reservation.refundApiExecutionEnabled}
                   authorizationTypeLabel={authorizationTypeLabel(
                     refund.authorizationType,
                   )}
+                  busyAction={busyAction}
+                  classificationLabel={classificationLabel}
+                  copy={copy}
+                  formatDateTime={formatDateTime}
+                  formatMoney={formatMoney}
+                  key={refund.id}
                   modeLabel={modeLabel(refund.processingMode)}
-                  apiExecutionEnabled={reservation.refundApiExecutionEnabled}
                   onConsult={() => void consultRefund(refund)}
                   onExecute={() => openExecution(refund)}
                   onReconcile={() => openReconciliation(refund)}
@@ -715,9 +736,11 @@ export function AdminReservationRefundSection({
                   statusLabel={statusLabel(refund.status)}
                 />
               ))}
-            </div>
+            </Accordion>
           ) : eligibleRequest || extraordinaryPayment ? (
-            <p className="text-sm text-muted-foreground">{copy.empty.noRefunds}</p>
+            <p className="text-sm text-muted-foreground">
+              {copy.empty.noRefunds}
+            </p>
           ) : null}
         </CardContent>
       </Card>
@@ -799,7 +822,9 @@ export function AdminReservationRefundSection({
                 }
                 value={authorizationDraft.processingMode}
               >
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="TILOPAY_API">
                     {copy.processingModes.TILOPAY_API}
@@ -832,12 +857,27 @@ export function AdminReservationRefundSection({
             </div>
           </div>
           <SheetFooter>
-            <Button disabled={isBusy} onClick={() => setAuthorizationOpen(false)} type="button" variant="outline">
+            <Button
+              disabled={isBusy}
+              onClick={() => setAuthorizationOpen(false)}
+              type="button"
+              variant="outline"
+            >
               {copy.actions.close}
             </Button>
-            <Button disabled={isBusy} onClick={() => void authorizeRefund()} type="button">
-              {busyAction === "authorize" ? <Loader2 aria-hidden="true" className="animate-spin" /> : <ShieldCheck aria-hidden="true" />}
-              {busyAction === "authorize" ? copy.actions.authorizing : copy.actions.confirmAuthorization}
+            <Button
+              disabled={isBusy}
+              onClick={() => void authorizeRefund()}
+              type="button"
+            >
+              {busyAction === "authorize" ? (
+                <Loader2 aria-hidden="true" className="animate-spin" />
+              ) : (
+                <ShieldCheck aria-hidden="true" />
+              )}
+              {busyAction === "authorize"
+                ? copy.actions.authorizing
+                : copy.actions.confirmAuthorization}
             </Button>
           </SheetFooter>
         </SheetContent>
@@ -857,8 +897,17 @@ export function AdminReservationRefundSection({
           <div className="grid gap-5 overflow-y-auto px-6 py-2">
             {executionTarget ? (
               <div className="grid gap-4 rounded-2xl border border-border bg-muted/30 p-4 sm:grid-cols-2">
-                <DetailValue label={copy.labels.amount} value={formatMoney(executionTarget.amount, executionTarget.currency)} />
-                <DetailValue label={copy.labels.refund} value={executionTarget.id} />
+                <DetailValue
+                  label={copy.labels.amount}
+                  value={formatMoney(
+                    executionTarget.amount,
+                    executionTarget.currency,
+                  )}
+                />
+                <DetailValue
+                  label={copy.labels.refund}
+                  value={executionTarget.id}
+                />
               </div>
             ) : null}
             <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-4 text-sm leading-6">
@@ -866,12 +915,28 @@ export function AdminReservationRefundSection({
             </div>
           </div>
           <SheetFooter>
-            <Button disabled={isBusy} onClick={() => setExecutionTarget(null)} type="button" variant="outline">
+            <Button
+              disabled={isBusy}
+              onClick={() => setExecutionTarget(null)}
+              type="button"
+              variant="outline"
+            >
               {copy.actions.close}
             </Button>
-            <Button disabled={isBusy} onClick={() => void executeRefund()} type="button" variant="destructive">
-              {busyAction?.startsWith("execute:") ? <Loader2 aria-hidden="true" className="animate-spin" /> : <RotateCcw aria-hidden="true" />}
-              {busyAction?.startsWith("execute:") ? copy.actions.executing : copy.actions.executeSandbox}
+            <Button
+              disabled={isBusy}
+              onClick={() => void executeRefund()}
+              type="button"
+              variant="destructive"
+            >
+              {busyAction?.startsWith("execute:") ? (
+                <Loader2 aria-hidden="true" className="animate-spin" />
+              ) : (
+                <RotateCcw aria-hidden="true" />
+              )}
+              {busyAction?.startsWith("execute:")
+                ? copy.actions.executing
+                : copy.actions.executeSandbox}
             </Button>
           </SheetFooter>
         </SheetContent>
@@ -886,7 +951,9 @@ export function AdminReservationRefundSection({
         <SheetContent closeLabel={messages.admin.feedback.dismiss}>
           <SheetHeader>
             <SheetTitle>{copy.reconciliationDialog.title}</SheetTitle>
-            <SheetDescription>{copy.reconciliationDialog.description}</SheetDescription>
+            <SheetDescription>
+              {copy.reconciliationDialog.description}
+            </SheetDescription>
           </SheetHeader>
           <div className="grid gap-5 overflow-y-auto px-6 py-2">
             <FormField label={copy.labels.outcome}>
@@ -900,10 +967,16 @@ export function AdminReservationRefundSection({
                 }
                 value={reconciliationDraft.outcome}
               >
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="APPROVED">{copy.outcomes.APPROVED}</SelectItem>
-                  <SelectItem value="FAILED">{copy.outcomes.FAILED}</SelectItem>
+                  <SelectItem value="APPROVED">
+                    {copy.outcomes.APPROVED}
+                  </SelectItem>
+                  <SelectItem value="FAILED">
+                    {copy.outcomes.FAILED}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </FormField>
@@ -937,7 +1010,9 @@ export function AdminReservationRefundSection({
                 }}
                 value={reconciliationDraft.source}
               >
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   {hasConclusiveConsultEvidence ? (
                     <SelectItem value="TILOPAY_CONSULT">
@@ -959,9 +1034,7 @@ export function AdminReservationRefundSection({
             <FormField label={copy.labels.providerRefundId}>
               <input
                 className={inputClassName}
-                disabled={
-                  isBusy || hasConclusiveConsultEvidence
-                }
+                disabled={isBusy || hasConclusiveConsultEvidence}
                 maxLength={180}
                 onChange={(event) =>
                   setReconciliationDraft((current) => ({
@@ -998,12 +1071,32 @@ export function AdminReservationRefundSection({
             </div>
           </div>
           <SheetFooter>
-            <Button disabled={isBusy} onClick={() => setReconciliationTarget(null)} type="button" variant="outline">
+            <Button
+              disabled={isBusy}
+              onClick={() => setReconciliationTarget(null)}
+              type="button"
+              variant="outline"
+            >
               {copy.actions.close}
             </Button>
-            <Button disabled={isBusy} onClick={() => void reconcileRefund()} type="button" variant={reconciliationDraft.outcome === "APPROVED" ? "destructive" : "default"}>
-              {busyAction?.startsWith("reconcile:") ? <Loader2 aria-hidden="true" className="animate-spin" /> : <ShieldCheck aria-hidden="true" />}
-              {busyAction?.startsWith("reconcile:") ? copy.actions.reconciling : copy.actions.confirmReconciliation}
+            <Button
+              disabled={isBusy}
+              onClick={() => void reconcileRefund()}
+              type="button"
+              variant={
+                reconciliationDraft.outcome === "APPROVED"
+                  ? "destructive"
+                  : "default"
+              }
+            >
+              {busyAction?.startsWith("reconcile:") ? (
+                <Loader2 aria-hidden="true" className="animate-spin" />
+              ) : (
+                <ShieldCheck aria-hidden="true" />
+              )}
+              {busyAction?.startsWith("reconcile:")
+                ? copy.actions.reconciling
+                : copy.actions.confirmReconciliation}
             </Button>
           </SheetFooter>
         </SheetContent>
@@ -1053,7 +1146,8 @@ function RefundCard({
     refund.processingMode === "TILOPAY_API" &&
     apiExecutionEnabled &&
     Boolean(payment?.providerReference);
-  const canReconcile = refund.status === "PENDING" || refund.status === "PROCESSING";
+  const canReconcile =
+    refund.status === "PENDING" || refund.status === "PROCESSING";
   const requestedBy = refund.requestedByAdmin
     ? refund.requestedByAdmin.name
       ? `${refund.requestedByAdmin.name} · ${refund.requestedByAdmin.email}`
@@ -1061,103 +1155,193 @@ function RefundCard({
     : copy.labels.unavailable;
 
   return (
-    <div className="rounded-2xl border border-border bg-muted/20 p-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">{copy.labels.refund}</p>
-          <p className="mt-1 break-all text-sm font-semibold">{refund.id}</p>
+    <AccordionItem
+      className="overflow-hidden rounded-2xl border border-border bg-muted/20 last:border-b"
+      value={refund.id}
+    >
+      <AccordionTrigger className="px-4 py-3 hover:bg-muted/40 sm:px-5">
+        <div className="grid min-w-0 flex-1 gap-3 pr-2 sm:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)_minmax(0,1fr)_auto] sm:items-center">
+          <div className="min-w-0">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+              {copy.labels.refund}
+            </p>
+            <p className="mt-1 break-all text-sm font-semibold">{refund.id}</p>
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+              {copy.labels.amount}
+            </p>
+            <p className="mt-1 text-sm font-semibold">
+              {formatMoney(refund.amount, refund.currency)}
+            </p>
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+              {copy.labels.authorizationType}
+            </p>
+            <p className="mt-1 break-words text-sm font-medium">
+              {authorizationTypeLabel}
+            </p>
+          </div>
+          <Badge className="justify-self-start sm:justify-self-end" variant="outline">
+            {statusLabel}
+          </Badge>
         </div>
-        <Badge variant="outline">{statusLabel}</Badge>
-      </div>
-      <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <DetailValue label={copy.labels.amount} value={formatMoney(refund.amount, refund.currency)} />
-        <DetailValue
-          label={copy.labels.authorizationType}
-          value={authorizationTypeLabel}
-        />
-        <DetailValue label={copy.labels.processingMode} value={modeLabel} />
-        <DetailValue label={copy.labels.requestedBy} value={requestedBy} />
-        <DetailValue label={copy.labels.createdAt} value={formatDateTime(refund.createdAt)} />
-        <DetailValue label={copy.labels.payment} value={refund.paymentId} />
-        <DetailValue label={copy.labels.providerOrder} value={payment?.providerReference ?? copy.labels.unavailable} />
-        <DetailValue label={copy.labels.providerRefundId} value={refund.providerRefundId ?? copy.labels.unavailable} />
-        <DetailValue label={copy.labels.updatedAt} value={formatDateTime(refund.updatedAt)} />
-      </div>
-      {refund.reason ? (
-        <div className="mt-4 rounded-xl border border-border/70 bg-background/60 p-4">
-          <DetailValue label={copy.labels.reason} value={refund.reason} />
-        </div>
-      ) : null}
-      {refund.diagnostics ? (
-        <div className="mt-4 grid gap-4 rounded-xl border border-border/70 bg-background/60 p-4 sm:grid-cols-2 xl:grid-cols-4">
-          <DetailValue label={copy.labels.diagnosticSource} value={refund.diagnostics.source} />
-          <DetailValue label={copy.labels.responseCode} value={refund.diagnostics.responseCode ?? copy.labels.unavailable} />
+      </AccordionTrigger>
+      <AccordionContent className="border-t border-border/70 px-4 pt-4 sm:px-5">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <DetailValue
-            label={copy.labels.resultClassification}
-            value={
-              refund.diagnostics.resultClassification
-                ? classificationLabel(refund.diagnostics.resultClassification)
-                : copy.labels.unavailable
-            }
+            label={copy.labels.amount}
+            value={formatMoney(refund.amount, refund.currency)}
           />
-          <DetailValue label={copy.labels.observedAt} value={formatDateTime(refund.diagnostics.observedAt)} />
-          {refund.diagnostics.orderNumber ? (
-            <DetailValue label={copy.labels.observedOrder} value={refund.diagnostics.orderNumber} />
-          ) : null}
-          {refund.diagnostics.amount ? (
-            <DetailValue
-              label={copy.labels.observedAmount}
-              value={refund.diagnostics.currency
-                ? formatMoney(refund.diagnostics.amount, refund.diagnostics.currency)
-                : refund.diagnostics.amount}
-            />
-          ) : null}
-          {refund.diagnostics.modificationType ? (
-            <DetailValue
-              label={copy.labels.modificationType}
-              value={refund.diagnostics.modificationType}
-            />
-          ) : null}
-          {refund.diagnostics.candidateCount !== null ? (
-            <DetailValue
-              label={copy.labels.candidateCount}
-              value={String(refund.diagnostics.candidateCount)}
-            />
-          ) : null}
-          {refund.diagnostics.description ? (
-            <div className="sm:col-span-2 xl:col-span-4">
-              <DetailValue label={copy.labels.safeDescription} value={refund.diagnostics.description} />
-            </div>
-          ) : null}
+          <DetailValue
+            label={copy.labels.authorizationType}
+            value={authorizationTypeLabel}
+          />
+          <DetailValue label={copy.labels.processingMode} value={modeLabel} />
+          <DetailValue label={copy.labels.requestedBy} value={requestedBy} />
+          <DetailValue
+            label={copy.labels.createdAt}
+            value={formatDateTime(refund.createdAt)}
+          />
+          <DetailValue label={copy.labels.payment} value={refund.paymentId} />
+          <DetailValue
+            label={copy.labels.providerOrder}
+            value={payment?.providerReference ?? copy.labels.unavailable}
+          />
+          <DetailValue
+            label={copy.labels.providerRefundId}
+            value={refund.providerRefundId ?? copy.labels.unavailable}
+          />
+          <DetailValue
+            label={copy.labels.updatedAt}
+            value={formatDateTime(refund.updatedAt)}
+          />
         </div>
-      ) : null}
-      {canExecute || canConsult || canReconcile ? (
-        <div className="mt-4 flex flex-wrap justify-end gap-3 border-t border-border/70 pt-4">
-          {canConsult ? (
-            <Button disabled={busyAction !== null} onClick={onConsult} type="button" variant="outline">
-              {busyAction === `consult:${refund.id}` ? <Loader2 aria-hidden="true" className="animate-spin" /> : <RefreshCw aria-hidden="true" />}
-              {busyAction === `consult:${refund.id}` ? copy.actions.consulting : copy.actions.consult}
-            </Button>
-          ) : null}
-          {canReconcile ? (
-            <Button disabled={busyAction !== null} onClick={onReconcile} type="button" variant="outline">
-              <ExternalLink aria-hidden="true" />
-              {copy.actions.reconcile}
-            </Button>
-          ) : null}
-          {canExecute ? (
-            <Button disabled={busyAction !== null} onClick={onExecute} type="button" variant="destructive">
-              <RotateCcw aria-hidden="true" />
-              {copy.actions.executeSandbox}
-            </Button>
-          ) : null}
-        </div>
-      ) : null}
-    </div>
+        {refund.reason ? (
+          <div className="mt-4 rounded-xl border border-border/70 bg-background/60 p-4">
+            <DetailValue label={copy.labels.reason} value={refund.reason} />
+          </div>
+        ) : null}
+        {refund.diagnostics ? (
+          <div className="mt-4 grid gap-4 rounded-xl border border-border/70 bg-background/60 p-4 sm:grid-cols-2 xl:grid-cols-4">
+            <DetailValue
+              label={copy.labels.diagnosticSource}
+              value={refund.diagnostics.source}
+            />
+            <DetailValue
+              label={copy.labels.responseCode}
+              value={
+                refund.diagnostics.responseCode ?? copy.labels.unavailable
+              }
+            />
+            <DetailValue
+              label={copy.labels.resultClassification}
+              value={
+                refund.diagnostics.resultClassification
+                  ? classificationLabel(
+                      refund.diagnostics.resultClassification,
+                    )
+                  : copy.labels.unavailable
+              }
+            />
+            <DetailValue
+              label={copy.labels.observedAt}
+              value={formatDateTime(refund.diagnostics.observedAt)}
+            />
+            {refund.diagnostics.orderNumber ? (
+              <DetailValue
+                label={copy.labels.observedOrder}
+                value={refund.diagnostics.orderNumber}
+              />
+            ) : null}
+            {refund.diagnostics.amount ? (
+              <DetailValue
+                label={copy.labels.observedAmount}
+                value={
+                  refund.diagnostics.currency
+                    ? formatMoney(
+                        refund.diagnostics.amount,
+                        refund.diagnostics.currency,
+                      )
+                    : refund.diagnostics.amount
+                }
+              />
+            ) : null}
+            {refund.diagnostics.modificationType ? (
+              <DetailValue
+                label={copy.labels.modificationType}
+                value={refund.diagnostics.modificationType}
+              />
+            ) : null}
+            {refund.diagnostics.candidateCount !== null ? (
+              <DetailValue
+                label={copy.labels.candidateCount}
+                value={String(refund.diagnostics.candidateCount)}
+              />
+            ) : null}
+            {refund.diagnostics.description ? (
+              <div className="sm:col-span-2 xl:col-span-4">
+                <DetailValue
+                  label={copy.labels.safeDescription}
+                  value={refund.diagnostics.description}
+                />
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+        {canExecute || canConsult || canReconcile ? (
+          <div className="mt-4 flex flex-wrap justify-end gap-3 border-t border-border/70 pt-4">
+            {canConsult ? (
+              <Button
+                disabled={busyAction !== null}
+                onClick={onConsult}
+                type="button"
+                variant="outline"
+              >
+                {busyAction === `consult:${refund.id}` ? (
+                  <Loader2 aria-hidden="true" className="animate-spin" />
+                ) : (
+                  <RefreshCw aria-hidden="true" />
+                )}
+                {busyAction === `consult:${refund.id}`
+                  ? copy.actions.consulting
+                  : copy.actions.consult}
+              </Button>
+            ) : null}
+            {canReconcile ? (
+              <Button
+                disabled={busyAction !== null}
+                onClick={onReconcile}
+                type="button"
+                variant="outline"
+              >
+                <ExternalLink aria-hidden="true" />
+                {copy.actions.reconcile}
+              </Button>
+            ) : null}
+            {canExecute ? (
+              <Button
+                disabled={busyAction !== null}
+                onClick={onExecute}
+                type="button"
+                variant="destructive"
+              >
+                <RotateCcw aria-hidden="true" />
+                {copy.actions.executeSandbox}
+              </Button>
+            ) : null}
+          </div>
+        ) : null}
+      </AccordionContent>
+    </AccordionItem>
   );
 }
 
-function FormField({ label, children }: Readonly<{ label: string; children: ReactNode }>) {
+function FormField({
+  label,
+  children,
+}: Readonly<{ label: string; children: ReactNode }>) {
   return (
     <label className="grid gap-2 text-sm font-medium">
       <span>{label}</span>
@@ -1166,10 +1350,15 @@ function FormField({ label, children }: Readonly<{ label: string; children: Reac
   );
 }
 
-function DetailValue({ label, value }: Readonly<{ label: string; value: string }>) {
+function DetailValue({
+  label,
+  value,
+}: Readonly<{ label: string; value: string }>) {
   return (
     <div className="min-w-0">
-      <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="text-xs uppercase tracking-wide text-muted-foreground">
+        {label}
+      </p>
       <p className="mt-1 break-words text-sm font-medium">{value}</p>
     </div>
   );

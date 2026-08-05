@@ -17,6 +17,12 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -531,7 +537,7 @@ export function AdminReservationDetailPage({
             </CardHeader>
             <CardContent>
               {reservation.emailNotifications.length > 0 ? (
-                <div className="grid gap-4">
+                <Accordion className="grid gap-3" collapsible type="single">
                   {reservation.emailNotifications.map((notification) => (
                     <EmailNotificationCard
                       actionLabel={
@@ -563,7 +569,7 @@ export function AdminReservationDetailPage({
                       unavailableLabel={reservationCopy.labels.unavailable}
                     />
                   ))}
-                </div>
+                </Accordion>
               ) : (
                 <p className="text-sm text-muted-foreground">
                   {notificationCopy.empty}
@@ -755,98 +761,119 @@ function EmailNotificationCard({
     : unavailableLabel;
 
   return (
-    <div className="rounded-2xl border border-border bg-muted/20 p-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">
-            {labels.type}
-          </p>
-          <p className="mt-1 break-words text-sm font-semibold">{typeLabel}</p>
+    <AccordionItem
+      className="overflow-hidden rounded-2xl border border-border bg-muted/20 last:border-b"
+      value={notification.id}
+    >
+      <AccordionTrigger className="px-4 py-3 hover:bg-muted/40 sm:px-5">
+        <div className="grid min-w-0 flex-1 gap-3 pr-2 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_auto] sm:items-center">
+          <div className="min-w-0">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+              {labels.type}
+            </p>
+            <p className="mt-1 break-words text-sm font-semibold">
+              {typeLabel}
+            </p>
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+              {labels.recipient}
+            </p>
+            <p className="mt-1 break-all text-sm font-medium">
+              {notification.recipient}
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+            <Badge variant="outline">{statusLabel}</Badge>
+            <span className="text-xs text-muted-foreground">
+              {labels.attempts}: {notification.attemptCount}
+            </span>
+          </div>
         </div>
-        <Badge variant="outline">{statusLabel}</Badge>
-      </div>
+      </AccordionTrigger>
+      <AccordionContent className="border-t border-border/70 px-4 pt-4 sm:px-5">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <DetailValue label={labels.recipient} value={notification.recipient} />
+          <DetailValue label={labels.locale} value={localeLabel} />
+          <DetailValue label={labels.origin} value={originLabel} />
+          <DetailValue
+            label={labels.createdAt}
+            value={formatDateTime(notification.createdAt)}
+          />
+          <DetailValue label={labels.status} value={statusLabel} />
+          <DetailValue
+            label={labels.attempts}
+            value={String(notification.attemptCount)}
+          />
+          <DetailValue
+            label={labels.lastAttempt}
+            value={formatDateTime(notification.lastAttemptAt)}
+          />
+          <DetailValue
+            label={labels.nextAttempt}
+            value={formatDateTime(notification.nextAttemptAt)}
+          />
+          <DetailValue
+            label={labels.scheduledFor}
+            value={formatDateTime(notification.scheduledFor)}
+          />
+          <DetailValue
+            label={labels.sentAt}
+            value={formatDateTime(notification.sentAt)}
+          />
+          <DetailValue
+            label={labels.providerMessageId}
+            value={notification.providerMessageId ?? unavailableLabel}
+          />
+          {notification.origin === "MANUAL" ? (
+            <>
+              <DetailValue label={labels.requestedBy} value={requestedBy} />
+              <DetailValue
+                label={labels.requestedAt}
+                value={formatDateTime(notification.requestedAt)}
+              />
+              <DetailValue
+                label={labels.parentNotification}
+                value={notification.parentNotificationId ?? unavailableLabel}
+              />
+            </>
+          ) : null}
+        </div>
 
-      <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <DetailValue label={labels.recipient} value={notification.recipient} />
-        <DetailValue label={labels.locale} value={localeLabel} />
-        <DetailValue label={labels.origin} value={originLabel} />
-        <DetailValue
-          label={labels.createdAt}
-          value={formatDateTime(notification.createdAt)}
-        />
-        <DetailValue label={labels.status} value={statusLabel} />
-        <DetailValue
-          label={labels.attempts}
-          value={String(notification.attemptCount)}
-        />
-        <DetailValue
-          label={labels.lastAttempt}
-          value={formatDateTime(notification.lastAttemptAt)}
-        />
-        <DetailValue
-          label={labels.nextAttempt}
-          value={formatDateTime(notification.nextAttemptAt)}
-        />
-        <DetailValue
-          label={labels.scheduledFor}
-          value={formatDateTime(notification.scheduledFor)}
-        />
-        <DetailValue
-          label={labels.sentAt}
-          value={formatDateTime(notification.sentAt)}
-        />
-        <DetailValue
-          label={labels.providerMessageId}
-          value={notification.providerMessageId ?? unavailableLabel}
-        />
-        {notification.origin === "MANUAL" ? (
-          <>
-            <DetailValue label={labels.requestedBy} value={requestedBy} />
+        {hasError ? (
+          <div className="mt-4 grid gap-4 rounded-xl border border-border/70 bg-background/60 p-4 sm:grid-cols-2">
             <DetailValue
-              label={labels.requestedAt}
-              value={formatDateTime(notification.requestedAt)}
+              label={labels.errorCode}
+              value={notification.errorCode ?? unavailableLabel}
             />
             <DetailValue
-              label={labels.parentNotification}
-              value={notification.parentNotificationId ?? unavailableLabel}
+              label={labels.errorMessage}
+              value={notification.errorMessage ?? unavailableLabel}
             />
-          </>
+          </div>
         ) : null}
-      </div>
 
-      {hasError ? (
-        <div className="mt-4 grid gap-4 rounded-xl border border-border/70 bg-background/60 p-4 sm:grid-cols-2">
-          <DetailValue
-            label={labels.errorCode}
-            value={notification.errorCode ?? unavailableLabel}
-          />
-          <DetailValue
-            label={labels.errorMessage}
-            value={notification.errorMessage ?? unavailableLabel}
-          />
-        </div>
-      ) : null}
-
-      {canResend ? (
-        <div className="mt-4 flex justify-end border-t border-border/70 pt-4">
-          <Button
-            disabled={busy}
-            onClick={onRequestResend}
-            type="button"
-            variant={notification.status === "SENT" ? "outline" : "default"}
-          >
-            {busy ? (
-              <Loader2 aria-hidden="true" className="animate-spin" />
-            ) : notification.status === "SENT" ? (
-              <Send aria-hidden="true" />
-            ) : (
-              <RotateCcw aria-hidden="true" />
-            )}
-            {busy ? sendingLabel : actionLabel}
-          </Button>
-        </div>
-      ) : null}
-    </div>
+        {canResend ? (
+          <div className="mt-4 flex justify-end border-t border-border/70 pt-4">
+            <Button
+              disabled={busy}
+              onClick={onRequestResend}
+              type="button"
+              variant={notification.status === "SENT" ? "outline" : "default"}
+            >
+              {busy ? (
+                <Loader2 aria-hidden="true" className="animate-spin" />
+              ) : notification.status === "SENT" ? (
+                <Send aria-hidden="true" />
+              ) : (
+                <RotateCcw aria-hidden="true" />
+              )}
+              {busy ? sendingLabel : actionLabel}
+            </Button>
+          </div>
+        ) : null}
+      </AccordionContent>
+    </AccordionItem>
   );
 }
 

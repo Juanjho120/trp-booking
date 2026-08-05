@@ -11,6 +11,12 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -152,7 +158,12 @@ export function AdminReservationOperationalHistorySection({
       </CardHeader>
       <CardContent>
         {reservation.operationalHistory.length > 0 ? (
-          <ol className="grid gap-4" aria-label={copy.listAriaLabel}>
+          <Accordion
+            aria-label={copy.listAriaLabel}
+            className="grid gap-3"
+            collapsible
+            type="single"
+          >
             {reservation.operationalHistory.map((event) => {
               const localizedEvent = eventCopy(event);
               const relations = event.relations.map((item) => ({
@@ -164,166 +175,169 @@ export function AdminReservationOperationalHistorySection({
               }));
 
               return (
-                <li
-                  className="rounded-2xl border border-border bg-muted/10 p-4 sm:p-5"
+                <AccordionItem
+                  className="overflow-hidden rounded-2xl border border-border bg-muted/10"
                   key={event.id}
+                  value={event.id}
                 >
-                  <div className="flex items-start gap-3 sm:gap-4">
-                    <div className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-background">
-                      {categoryIcon(event.category)}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Badge variant="outline">
-                          {categoryIcon(event.category)}
-                          {copy.categories[event.category]}
-                        </Badge>
-                        {event.status ? (
-                          <Badge variant="secondary">
-                            {statusLabel(event.status)}
-                          </Badge>
-                        ) : null}
+                  <AccordionTrigger className="px-4 py-3 hover:bg-muted/40 sm:px-5">
+                    <div className="flex min-w-0 flex-1 items-start gap-3 pr-2 text-left">
+                      <div className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-background">
+                        {categoryIcon(event.category)}
                       </div>
-
-                      <h3 className="mt-3 text-base font-semibold">
-                        {localizedEvent.title}
-                      </h3>
-                      <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                        {localizedEvent.description}
-                      </p>
-                      <p className="mt-2 text-sm font-medium">
-                        {formatDateTime(event.occurredAt)}
-                      </p>
-
-                      <dl className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                        <HistoryDetail
-                          label={copy.labels.actor}
-                          value={actorLabel(event)}
-                        />
-                        <HistoryDetail
-                          label={copy.labels.reference}
-                          value={`${
-                            copy.referenceKinds[event.reference.kind]
-                          }: ${event.reference.id}`}
-                        />
-                        {event.requestType ? (
-                          <HistoryDetail
-                            label={copy.labels.requestType}
-                            value={requestTypeLabel(event.requestType)}
-                          />
-                        ) : null}
-                        {event.paymentPurpose ? (
-                          <HistoryDetail
-                            label={copy.labels.paymentPurpose}
-                            value={paymentPurposeLabel(event.paymentPurpose)}
-                          />
-                        ) : null}
-                        {event.refundAuthorizationType ? (
-                          <HistoryDetail
-                            label={copy.labels.refundAuthorizationType}
-                            value={refundAuthorizationTypeLabel(
-                              event.refundAuthorizationType,
-                            )}
-                          />
-                        ) : null}
-                        {event.amount && event.currency ? (
-                          <HistoryDetail
-                            label={copy.labels.amount}
-                            value={formatMoney(event.amount, event.currency)}
-                          />
-                        ) : null}
-                        {event.notificationType ? (
-                          <HistoryDetail
-                            label={copy.labels.notificationType}
-                            value={notificationTypeLabel(event.notificationType)}
-                          />
-                        ) : null}
-                        {event.recipient ? (
-                          <HistoryDetail
-                            label={copy.labels.recipient}
-                            value={event.recipient}
-                          />
-                        ) : null}
-                        {event.locale ? (
-                          <HistoryDetail
-                            label={copy.labels.locale}
-                            value={notificationLocaleLabel(event.locale)}
-                          />
-                        ) : null}
-                        {event.origin ? (
-                          <HistoryDetail
-                            label={copy.labels.origin}
-                            value={notificationOriginLabel(event.origin)}
-                          />
-                        ) : null}
-                        {event.attemptCount !== null ? (
-                          <HistoryDetail
-                            label={copy.labels.attempts}
-                            value={String(event.attemptCount)}
-                          />
-                        ) : null}
-                        {event.nextAttemptAt ? (
-                          <HistoryDetail
-                            label={copy.labels.nextAttempt}
-                            value={formatDateTime(event.nextAttemptAt)}
-                          />
-                        ) : null}
-                        {event.expiresAt ? (
-                          <HistoryDetail
-                            label={copy.labels.expiresAt}
-                            value={formatDateTime(event.expiresAt)}
-                          />
-                        ) : null}
-                        {event.scheduledFor ? (
-                          <HistoryDetail
-                            label={copy.labels.scheduledFor}
-                            value={formatDateTime(event.scheduledFor)}
-                          />
-                        ) : null}
-                        {event.errorCode ? (
-                          <HistoryDetail
-                            label={copy.labels.errorCode}
-                            value={event.errorCode}
-                          />
-                        ) : null}
-                        {event.providerReference ? (
-                          <HistoryDetail
-                            label={copy.labels.providerReference}
-                            value={event.providerReference}
-                          />
-                        ) : null}
-                        {event.originalCheckInDate &&
-                        event.originalCheckOutDate ? (
-                          <HistoryDetail
-                            label={copy.labels.originalDates}
-                            value={`${formatDate(
-                              event.originalCheckInDate,
-                            )} — ${formatDate(event.originalCheckOutDate)}`}
-                          />
-                        ) : null}
-                        {event.requestedCheckInDate &&
-                        event.requestedCheckOutDate ? (
-                          <HistoryDetail
-                            label={copy.labels.requestedDates}
-                            value={`${formatDate(
-                              event.requestedCheckInDate,
-                            )} — ${formatDate(event.requestedCheckOutDate)}`}
-                          />
-                        ) : null}
-                        {relations.map((item) => (
-                          <HistoryDetail
-                            key={`${event.id}/${item.kind}/${item.id}`}
-                            label={item.label}
-                            value={item.id}
-                          />
-                        ))}
-                      </dl>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge variant="outline">
+                            {categoryIcon(event.category)}
+                            {copy.categories[event.category]}
+                          </Badge>
+                          {event.status ? (
+                            <Badge variant="secondary">
+                              {statusLabel(event.status)}
+                            </Badge>
+                          ) : null}
+                        </div>
+                        <p className="mt-2 break-words text-sm font-semibold sm:text-base">
+                          {localizedEvent.title}
+                        </p>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          {formatDateTime(event.occurredAt)}
+                        </p>
+                      </div>
+                      {event.amount && event.currency ? (
+                        <p className="hidden shrink-0 text-right text-sm font-semibold md:block">
+                          {formatMoney(event.amount, event.currency)}
+                        </p>
+                      ) : null}
                     </div>
-                  </div>
-                </li>
+                  </AccordionTrigger>
+                  <AccordionContent className="border-t border-border/70 px-4 pt-4 sm:px-5">
+                    <p className="text-sm leading-6 text-muted-foreground">
+                      {localizedEvent.description}
+                    </p>
+
+                    <dl className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                      <HistoryDetail
+                        label={copy.labels.actor}
+                        value={actorLabel(event)}
+                      />
+                      <HistoryDetail
+                        label={copy.labels.reference}
+                        value={`${copy.referenceKinds[event.reference.kind]}: ${event.reference.id}`}
+                      />
+                      {event.requestType ? (
+                        <HistoryDetail
+                          label={copy.labels.requestType}
+                          value={requestTypeLabel(event.requestType)}
+                        />
+                      ) : null}
+                      {event.paymentPurpose ? (
+                        <HistoryDetail
+                          label={copy.labels.paymentPurpose}
+                          value={paymentPurposeLabel(event.paymentPurpose)}
+                        />
+                      ) : null}
+                      {event.refundAuthorizationType ? (
+                        <HistoryDetail
+                          label={copy.labels.refundAuthorizationType}
+                          value={refundAuthorizationTypeLabel(
+                            event.refundAuthorizationType,
+                          )}
+                        />
+                      ) : null}
+                      {event.amount && event.currency ? (
+                        <HistoryDetail
+                          label={copy.labels.amount}
+                          value={formatMoney(event.amount, event.currency)}
+                        />
+                      ) : null}
+                      {event.notificationType ? (
+                        <HistoryDetail
+                          label={copy.labels.notificationType}
+                          value={notificationTypeLabel(event.notificationType)}
+                        />
+                      ) : null}
+                      {event.recipient ? (
+                        <HistoryDetail
+                          label={copy.labels.recipient}
+                          value={event.recipient}
+                        />
+                      ) : null}
+                      {event.locale ? (
+                        <HistoryDetail
+                          label={copy.labels.locale}
+                          value={notificationLocaleLabel(event.locale)}
+                        />
+                      ) : null}
+                      {event.origin ? (
+                        <HistoryDetail
+                          label={copy.labels.origin}
+                          value={notificationOriginLabel(event.origin)}
+                        />
+                      ) : null}
+                      {event.attemptCount !== null ? (
+                        <HistoryDetail
+                          label={copy.labels.attempts}
+                          value={String(event.attemptCount)}
+                        />
+                      ) : null}
+                      {event.nextAttemptAt ? (
+                        <HistoryDetail
+                          label={copy.labels.nextAttempt}
+                          value={formatDateTime(event.nextAttemptAt)}
+                        />
+                      ) : null}
+                      {event.expiresAt ? (
+                        <HistoryDetail
+                          label={copy.labels.expiresAt}
+                          value={formatDateTime(event.expiresAt)}
+                        />
+                      ) : null}
+                      {event.scheduledFor ? (
+                        <HistoryDetail
+                          label={copy.labels.scheduledFor}
+                          value={formatDateTime(event.scheduledFor)}
+                        />
+                      ) : null}
+                      {event.errorCode ? (
+                        <HistoryDetail
+                          label={copy.labels.errorCode}
+                          value={event.errorCode}
+                        />
+                      ) : null}
+                      {event.providerReference ? (
+                        <HistoryDetail
+                          label={copy.labels.providerReference}
+                          value={event.providerReference}
+                        />
+                      ) : null}
+                      {event.originalCheckInDate &&
+                      event.originalCheckOutDate ? (
+                        <HistoryDetail
+                          label={copy.labels.originalDates}
+                          value={`${formatDate(event.originalCheckInDate)} — ${formatDate(event.originalCheckOutDate)}`}
+                        />
+                      ) : null}
+                      {event.requestedCheckInDate &&
+                      event.requestedCheckOutDate ? (
+                        <HistoryDetail
+                          label={copy.labels.requestedDates}
+                          value={`${formatDate(event.requestedCheckInDate)} — ${formatDate(event.requestedCheckOutDate)}`}
+                        />
+                      ) : null}
+                      {relations.map((item) => (
+                        <HistoryDetail
+                          key={`${event.id}/${item.kind}/${item.id}`}
+                          label={item.label}
+                          value={item.id}
+                        />
+                      ))}
+                    </dl>
+                  </AccordionContent>
+                </AccordionItem>
               );
             })}
-          </ol>
+          </Accordion>
         ) : (
           <p className="text-sm text-muted-foreground">{copy.empty}</p>
         )}

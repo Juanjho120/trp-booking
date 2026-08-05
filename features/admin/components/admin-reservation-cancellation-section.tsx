@@ -12,6 +12,12 @@ import {
 import { useRouter } from "next/navigation";
 import { type ReactNode, useMemo, useState } from "react";
 
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -349,7 +355,7 @@ export function AdminReservationCancellationSection({
           ) : null}
 
           {reservation.cancellationRequests.length > 0 ? (
-            <div className="grid gap-4">
+            <Accordion className="grid gap-3" collapsible type="single">
               {reservation.cancellationRequests.map((request) => (
                 <CancellationRequestCard
                   canDecide={
@@ -369,7 +375,7 @@ export function AdminReservationCancellationSection({
                   statusLabel={statusLabel(request.status)}
                 />
               ))}
-            </div>
+            </Accordion>
           ) : (
             <p className="text-sm text-muted-foreground">{copy.empty}</p>
           )}
@@ -650,82 +656,121 @@ function CancellationRequestCard({
     : copy.labels.unavailable;
 
   return (
-    <div className="rounded-2xl border border-border bg-muted/20 p-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">
-            {copy.labels.request}
-          </p>
-          <p className="mt-1 break-all text-sm font-semibold">{request.id}</p>
+    <AccordionItem
+      className="overflow-hidden rounded-2xl border border-border bg-muted/20 last:border-b"
+      value={request.id}
+    >
+      <AccordionTrigger className="px-4 py-3 hover:bg-muted/40 sm:px-5">
+        <div className="grid min-w-0 flex-1 gap-3 pr-2 sm:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,0.8fr)_auto] sm:items-center">
+          <div className="min-w-0">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+              {copy.labels.request}
+            </p>
+            <p className="mt-1 break-all text-sm font-semibold">{request.id}</p>
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+              {copy.labels.requesterName}
+            </p>
+            <p className="mt-1 break-words text-sm font-medium">
+              {request.requesterName}
+            </p>
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+              {copy.labels.standardRefund}
+            </p>
+            <p className="mt-1 text-sm font-semibold">
+              {formatMoney(request.policy.refundAmount, request.policy.currency)}
+            </p>
+          </div>
+          <Badge className="justify-self-start sm:justify-self-end" variant="outline">
+            {statusLabel}
+          </Badge>
         </div>
-        <Badge variant="outline">{statusLabel}</Badge>
-      </div>
-
-      <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <DetailValue label={copy.labels.channel} value={channelLabel} />
-        <DetailValue
-          label={copy.labels.requestedAt}
-          value={formatDateTime(request.requestedAt)}
-        />
-        <DetailValue label={copy.labels.requesterName} value={request.requesterName} />
-        <DetailValue label={copy.labels.requesterContact} value={requesterContact} />
-        <DetailValue label={copy.labels.createdBy} value={createdBy} />
-        <DetailValue label={copy.labels.policyOutcome} value={policyReasonLabel} />
-        <DetailValue
-          label={copy.labels.hoursBeforeCheckIn}
-          value={formatHours(request.policy.hoursBeforeCheckIn)}
-        />
-        <DetailValue
-          label={copy.labels.standardRefund}
-          value={formatMoney(
-            request.policy.refundAmount,
-            request.policy.currency,
-          )}
-        />
-        <DetailValue
-          label={copy.labels.policyCalculatedAt}
-          value={formatDateTime(request.policy.calculatedAt)}
-        />
-        <DetailValue
-          label={copy.labels.checkInAt}
-          value={formatDateTime(request.policy.checkInAt)}
-        />
-        <DetailValue label={copy.labels.reviewedBy} value={reviewedBy} />
-        <DetailValue
-          label={copy.labels.decidedAt}
-          value={formatDateTime(request.decidedAt)}
-        />
-      </div>
-
-      {request.requestNote ? (
-        <div className="mt-4 rounded-xl border border-border/70 bg-background/60 p-4">
-          <DetailValue label={copy.labels.requestReason} value={request.requestNote} />
+      </AccordionTrigger>
+      <AccordionContent className="border-t border-border/70 px-4 pt-4 sm:px-5">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <DetailValue label={copy.labels.channel} value={channelLabel} />
+          <DetailValue
+            label={copy.labels.requestedAt}
+            value={formatDateTime(request.requestedAt)}
+          />
+          <DetailValue
+            label={copy.labels.requesterName}
+            value={request.requesterName}
+          />
+          <DetailValue
+            label={copy.labels.requesterContact}
+            value={requesterContact}
+          />
+          <DetailValue label={copy.labels.createdBy} value={createdBy} />
+          <DetailValue
+            label={copy.labels.policyOutcome}
+            value={policyReasonLabel}
+          />
+          <DetailValue
+            label={copy.labels.hoursBeforeCheckIn}
+            value={formatHours(request.policy.hoursBeforeCheckIn)}
+          />
+          <DetailValue
+            label={copy.labels.standardRefund}
+            value={formatMoney(
+              request.policy.refundAmount,
+              request.policy.currency,
+            )}
+          />
+          <DetailValue
+            label={copy.labels.policyCalculatedAt}
+            value={formatDateTime(request.policy.calculatedAt)}
+          />
+          <DetailValue
+            label={copy.labels.checkInAt}
+            value={formatDateTime(request.policy.checkInAt)}
+          />
+          <DetailValue label={copy.labels.reviewedBy} value={reviewedBy} />
+          <DetailValue
+            label={copy.labels.decidedAt}
+            value={formatDateTime(request.decidedAt)}
+          />
         </div>
-      ) : null}
 
-      {request.decisionNote ? (
-        <div className="mt-4 rounded-xl border border-border/70 bg-background/60 p-4">
-          <DetailValue label={copy.labels.decisionNote} value={request.decisionNote} />
-        </div>
-      ) : null}
+        {request.requestNote ? (
+          <div className="mt-4 rounded-xl border border-border/70 bg-background/60 p-4">
+            <DetailValue
+              label={copy.labels.requestReason}
+              value={request.requestNote}
+            />
+          </div>
+        ) : null}
 
-      <p className="mt-4 text-sm leading-6 text-muted-foreground">
-        {copy.notes.refundSeparate}
-      </p>
+        {request.decisionNote ? (
+          <div className="mt-4 rounded-xl border border-border/70 bg-background/60 p-4">
+            <DetailValue
+              label={copy.labels.decisionNote}
+              value={request.decisionNote}
+            />
+          </div>
+        ) : null}
 
-      {canDecide ? (
-        <div className="mt-4 flex flex-wrap justify-end gap-3 border-t border-border/70 pt-4">
-          <Button onClick={onReject} type="button" variant="outline">
-            <XCircle aria-hidden="true" />
-            {copy.actions.reject}
-          </Button>
-          <Button onClick={onApprove} type="button" variant="destructive">
-            <CheckCircle2 aria-hidden="true" />
-            {copy.actions.approve}
-          </Button>
-        </div>
-      ) : null}
-    </div>
+        <p className="mt-4 text-sm leading-6 text-muted-foreground">
+          {copy.notes.refundSeparate}
+        </p>
+
+        {canDecide ? (
+          <div className="mt-4 flex flex-wrap justify-end gap-3 border-t border-border/70 pt-4">
+            <Button onClick={onReject} type="button" variant="outline">
+              <XCircle aria-hidden="true" />
+              {copy.actions.reject}
+            </Button>
+            <Button onClick={onApprove} type="button" variant="destructive">
+              <CheckCircle2 aria-hidden="true" />
+              {copy.actions.approve}
+            </Button>
+          </div>
+        ) : null}
+      </AccordionContent>
+    </AccordionItem>
   );
 }
 

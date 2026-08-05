@@ -14,6 +14,12 @@ import { type ReactNode, useEffect, useMemo, useState } from "react";
 import type { DateRange } from "react-day-picker";
 
 import { AvailabilityDateRangePicker } from "@/components/availability/availability-date-range-picker";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -565,7 +571,7 @@ export function AdminReservationDateMutationSection({
           ) : null}
 
           {reservation.dateMutationRequests.length > 0 ? (
-            <div className="grid gap-4">
+            <Accordion className="grid gap-3" collapsible type="single">
               {reservation.dateMutationRequests.map((request) => (
                 <DateMutationRequestCard
                   channelLabel={channelLabel(request.channel)}
@@ -581,7 +587,7 @@ export function AdminReservationDateMutationSection({
                   statusLabel={statusLabel(request.status)}
                 />
               ))}
-            </div>
+            </Accordion>
           ) : (
             <p className="text-sm text-muted-foreground">{copy.empty}</p>
           )}
@@ -811,7 +817,6 @@ function StateNotice({
 }
 
 function DateMutationRequestCard({
-  channelLabel,
   copy,
   formatDate,
   formatDateTime,
@@ -836,96 +841,110 @@ function DateMutationRequestCard({
   const currency = request.original.pricing.currency;
 
   return (
-    <div className="rounded-2xl border border-border bg-muted/10 p-4 sm:p-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="outline">{requestTypeLabel}</Badge>
-            <Badge variant="secondary">{statusLabel}</Badge>
-            {request.reviewExpired && request.status === "PENDING_REVIEW" ? (
-              <Badge variant="outline">{copy.statuses.EXPIRED}</Badge>
-            ) : null}
+    <AccordionItem
+      className="overflow-hidden rounded-2xl border border-border bg-muted/10 last:border-b"
+      value={request.id}
+    >
+      <AccordionTrigger className="px-4 py-3 hover:bg-muted/30 sm:px-5">
+        <div className="grid min-w-0 flex-1 gap-3 pr-2 sm:grid-cols-[minmax(0,1.2fr)_minmax(0,1.4fr)_minmax(0,0.8fr)_auto] sm:items-center">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="outline">{requestTypeLabel}</Badge>
+              <Badge variant="secondary">{statusLabel}</Badge>
+              {request.reviewExpired && request.status === "PENDING_REVIEW" ? (
+                <Badge variant="outline">{copy.statuses.EXPIRED}</Badge>
+              ) : null}
+            </div>
+            <p className="mt-2 break-all text-xs text-muted-foreground">
+              {request.id}
+            </p>
           </div>
-          <p className="mt-3 break-all text-sm font-medium">{request.id}</p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {channelLabel} · {formatDateTime(request.requestedAt)}
-          </p>
+          <div className="min-w-0">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+              {copy.labels.requestedStay}
+            </p>
+            <p className="mt-1 break-words text-sm font-medium">
+              {formatDate(request.requested.checkInDate)} — {formatDate(request.requested.checkOutDate)}
+            </p>
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+              {copy.labels.financialDifference}
+            </p>
+            <p className="mt-1 text-sm font-semibold">
+              {formatSignedMoney(request.financialDifference, currency)}
+            </p>
+          </div>
+          <span className="text-xs text-muted-foreground sm:text-right">
+            {formatDateTime(request.requestedAt)}
+          </span>
         </div>
-        <div className="text-right">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            {copy.labels.financialDifference}
-          </p>
-          <p className="mt-1 text-lg font-semibold">
-            {formatSignedMoney(request.financialDifference, currency)}
-          </p>
+      </AccordionTrigger>
+      <AccordionContent className="border-t border-border/70 px-4 pt-4 sm:px-5">
+        <div className="grid gap-4 lg:grid-cols-[1fr_auto_1fr] lg:items-stretch">
+          <StaySnapshot
+            copy={copy}
+            formatDate={formatDate}
+            formatMoney={formatMoney}
+            label={copy.labels.originalStay}
+            stay={request.original}
+          />
+          <div className="hidden items-center justify-center text-muted-foreground lg:flex">
+            <ArrowRight aria-hidden="true" />
+          </div>
+          <StaySnapshot
+            copy={copy}
+            formatDate={formatDate}
+            formatMoney={formatMoney}
+            label={copy.labels.requestedStay}
+            stay={request.requested}
+          />
         </div>
-      </div>
 
-      <div className="mt-5 grid gap-4 lg:grid-cols-[1fr_auto_1fr] lg:items-stretch">
-        <StaySnapshot
-          copy={copy}
-          formatDate={formatDate}
-          formatMoney={formatMoney}
-          label={copy.labels.originalStay}
-          stay={request.original}
-        />
-        <div className="hidden items-center justify-center text-muted-foreground lg:flex">
-          <ArrowRight aria-hidden="true" />
+        <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <DetailValue label={copy.labels.pricingMode} value={pricingModeLabel} />
+          <DetailValue
+            label={copy.labels.availability}
+            value={copy.availability.available}
+          />
+          <DetailValue
+            label={copy.labels.reviewExpiresAt}
+            value={formatDateTime(request.reviewExpiresAt)}
+          />
+          <DetailValue
+            label={copy.labels.createdBy}
+            value={request.createdByAdmin.name ?? request.createdByAdmin.email}
+          />
         </div>
-        <StaySnapshot
-          copy={copy}
-          formatDate={formatDate}
-          formatMoney={formatMoney}
-          label={copy.labels.requestedStay}
-          stay={request.requested}
-        />
-      </div>
 
-      <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <DetailValue label={copy.labels.pricingMode} value={pricingModeLabel} />
-        <DetailValue
-          label={copy.labels.availability}
-          value={copy.availability.available}
-        />
-        <DetailValue
-          label={copy.labels.reviewExpiresAt}
-          value={formatDateTime(request.reviewExpiresAt)}
-        />
-        <DetailValue
-          label={copy.labels.createdBy}
-          value={
-            request.createdByAdmin.name ?? request.createdByAdmin.email
-          }
-        />
-      </div>
-
-      <div className="mt-4 flex items-start gap-3 rounded-2xl border border-border bg-background/60 p-4 text-sm">
-        <CheckCircle2 aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
-        <div>
-          <p className="font-medium">{copy.availability.validated}</p>
-          <p className="mt-1 text-muted-foreground">
-            {formatDateTime(request.availability.validatedAt)}
-          </p>
+        <div className="mt-4 flex items-start gap-3 rounded-2xl border border-border bg-background/60 p-4 text-sm">
+          <CheckCircle2 aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
+          <div>
+            <p className="font-medium">{copy.availability.validated}</p>
+            <p className="mt-1 text-muted-foreground">
+              {formatDateTime(request.availability.validatedAt)}
+            </p>
+          </div>
         </div>
-      </div>
 
-      <div className="mt-4 grid gap-3 text-sm">
-        <DetailValue
-          label={copy.labels.requesterContact}
-          value={
-            request.requesterEmail ??
-            request.requesterPhone ??
-            copy.labels.unavailable
-          }
-        />
-        <DetailValue
-          label={copy.labels.requestReason}
-          value={request.requestNote ?? copy.labels.unavailable}
-        />
-      </div>
+        <div className="mt-4 grid gap-3 text-sm">
+          <DetailValue
+            label={copy.labels.requesterContact}
+            value={
+              request.requesterEmail ??
+              request.requesterPhone ??
+              copy.labels.unavailable
+            }
+          />
+          <DetailValue
+            label={copy.labels.requestReason}
+            value={request.requestNote ?? copy.labels.unavailable}
+          />
+        </div>
 
-      <AdminReservationDateMutationDecisionControls request={request} />
-    </div>
+        <AdminReservationDateMutationDecisionControls request={request} />
+      </AccordionContent>
+    </AccordionItem>
   );
 }
 
