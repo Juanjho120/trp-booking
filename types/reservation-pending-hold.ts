@@ -1,8 +1,12 @@
 import type { AccommodationId } from "@/types/accommodation";
 import type { DateOnlyString } from "@/types/availability";
-import type { ReservationQuote, ReservationQuoteAmount } from "@/types/reservation-quote";
+import type {
+  ReservationQuote,
+  ReservationQuoteAmount,
+} from "@/types/reservation-quote";
 
 export type PendingReservationHoldStatus = "PENDING_PAYMENT";
+export type ReleasedPendingReservationHoldStatus = "EXPIRED";
 
 export type PendingHoldErrorCode =
   | "INVALID_PENDING_HOLD_REQUEST"
@@ -12,6 +16,12 @@ export type PendingHoldErrorCode =
   | "UNAVAILABLE_DATES"
   | "PENDING_HOLD_CONFLICT"
   | "PENDING_HOLD_UNEXPECTED_ERROR";
+
+export type ReleasePendingHoldErrorCode =
+  | "INVALID_PAYMENT_HANDOFF_REQUEST"
+  | "PENDING_HOLD_NOT_FOUND"
+  | "PENDING_HOLD_NOT_PAYABLE"
+  | "TILOPAY_SDK_SESSION_UNEXPECTED_ERROR";
 
 export type CreatePendingReservationHoldInput = Readonly<{
   accommodationId: AccommodationId;
@@ -27,10 +37,16 @@ export type CreatePendingReservationHoldInput = Readonly<{
   locale: "es" | "en";
 }>;
 
+export type ReleasePendingReservationHoldInput = Readonly<{
+  reservationId: string;
+  expectedUpdatedAt: string;
+}>;
+
 export type PendingReservationHold = Readonly<{
   reservationId: string;
   status: PendingReservationHoldStatus;
   expiresAt: string;
+  updatedAt: string;
   accommodationId: AccommodationId;
   accommodationSlug: string;
   checkInDate: DateOnlyString;
@@ -41,8 +57,18 @@ export type PendingReservationHold = Readonly<{
   quote: ReservationQuote;
 }>;
 
+export type ReleasedPendingReservationHold = Readonly<{
+  reservationId: string;
+  status: ReleasedPendingReservationHoldStatus;
+  releasedAt: string;
+}>;
+
 export type PendingReservationHoldApiSuccessResponse = Readonly<{
   pendingHold: PendingReservationHold;
+}>;
+
+export type ReleasePendingReservationHoldApiSuccessResponse = Readonly<{
+  releasedHold: ReleasedPendingReservationHold;
 }>;
 
 export type PendingReservationHoldApiErrorResponse = Readonly<{
@@ -55,3 +81,14 @@ export type PendingReservationHoldApiErrorResponse = Readonly<{
 export type PendingReservationHoldApiResponse =
   | PendingReservationHoldApiSuccessResponse
   | PendingReservationHoldApiErrorResponse;
+
+export type ReleasePendingReservationHoldApiErrorResponse = Readonly<{
+  error: Readonly<{
+    code: ReleasePendingHoldErrorCode;
+    message: string;
+  }>;
+}>;
+
+export type ReleasePendingReservationHoldApiResponse =
+  | ReleasePendingReservationHoldApiSuccessResponse
+  | ReleasePendingReservationHoldApiErrorResponse;

@@ -7,7 +7,7 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 ```text
 Current phase: No active implementation phase — Phase 11 is completed and Phase 12 is not activated
 Current subphase: None
-Current focus: Pre-Phase-12 Improvement Track — implement Packages A, B, C, E, and F before deciding whether to activate Phase 12; Package D is deferred pending financial-policy decisions
+Current focus: validate Package A public pending-hold replacement, check-out email output, branded 404, hidden development indicator, and uniform Tilopay auto-scroll before starting Package B
 Last updated: 2026-08-05
 Last completed subphase: 11.7 Validation and documentation closure
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
@@ -22,11 +22,12 @@ Last completed subphase: 11.7 Validation and documentation closure
 Phase 11 accepted feature head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 Phase 11 closure document: docs/120-phase-11.7-validation-and-documentation-closure.md
 Next planned phase: Phase 12 — Production Readiness
-Phase 12 status: Not started; activation intentionally deferred until the bounded admin-reservations polish and improvement review are complete
-Pre-Phase-12 Improvement Track status: Planned — approved for implementation
+Phase 12 status: Not started; activation intentionally deferred until Packages A, B, C, E, and F are implemented and accepted or the gate is explicitly revised
+Pre-Phase-12 Improvement Track status: In progress — Package A implementation prepared
 Pre-Phase-12 Improvement Track registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
 Pre-Phase-12 Improvement Track plan: docs/121-pre-phase-12-improvement-track.md
-Package A status: Not started — immediate public-flow and UI corrections
+Package A implementation record: docs/122-pre-phase-12-package-a-public-flow-and-ui-corrections.md
+Package A status: Implementation prepared — validation pending
 Package B status: Not started — durable payment-attempt history
 Package C status: Not started — admin cron console and generic execution history
 Package D status: Deferred — awaiting financial policy decisions
@@ -586,18 +587,21 @@ Phase 11.1 through 11.7 are completed and accepted as one coherent lifecycle fea
 Reservation owns stay and availability state; Payment and Refund own financial state; typed requests, holds, notifications, and bounded audit evidence preserve operational history.
 Guest self-service lifecycle mutation, raw provider exposure, card-data handling, hard deletion, history rewrite, and PMS behavior remain excluded.
 Phase 12 remains Not started by explicit decision.
-The immediate next work is a bounded polish of the admin reservations page, followed by review and prioritization of the requested system improvements.
+The registered Pre-Phase-12 Improvement Track is the active inter-phase work; Package A is implementation prepared and validation pending.
 ```
 
-## Inter-Phase Work — Pre-Phase-12 Polish
+## Inter-Phase Work — Pre-Phase-12 Improvement Track
 
-Status: **Planned — not an official implementation phase**
+Status: **In progress — Package A implementation prepared**
 
 ```text
-Scope begins with a small UX/UI polish of the protected admin reservations page.
-A broader user-provided improvement list will then be reviewed, grouped, prioritized, and assigned to the appropriate future phase or bounded polish scope.
-This work must preserve the accepted Phase 11 domain contracts and must not activate production credentials, webhooks, real-recipient email delivery, real Airbnb iCal operations, or other Phase 12 behavior.
-Phase 12 will be activated explicitly only after this polish and improvement review are complete.
+Packages A, B, C, E, and F are approved for implementation before the Phase 12 activation decision.
+Package D remains deferred until the owner confirms future financial policies.
+Package A now has a controlled pending-hold release path, check-out email output, branded 404 page, hidden Next.js development indicator, and shared Tilopay form-ready auto-scroll.
+Package A remains validation pending and must not be marked accepted before the complete matrix and technical checks pass.
+Phase 12 remains Not started and is not activated by this work.
+Implementation plan: docs/121-pre-phase-12-improvement-track.md.
+Package A implementation record: docs/122-pre-phase-12-package-a-public-flow-and-ui-corrections.md.
 ```
 
 ## Continuity Notes for New Conversations
@@ -649,6 +653,8 @@ docs/117-phase-11.6.3-transactional-intent-orchestration-and-delivery.md
 docs/118-phase-11.6.4-lifecycle-adjustment-payment-link-notifications-and-email-corrections.md
 docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md
 docs/120-phase-11.7-validation-and-documentation-closure.md
+docs/121-pre-phase-12-improvement-track.md
+docs/122-pre-phase-12-package-a-public-flow-and-ui-corrections.md
 lib/admin/reservation-cancellation.ts
 lib/admin/reservation-date-mutation.ts
 lib/reservations/date-mutation-completion.ts

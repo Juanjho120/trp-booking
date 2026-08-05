@@ -5,10 +5,14 @@ import { isDateOnlyString } from "@/lib/availability/rules";
 import {
   createPendingReservationHold,
   PendingReservationHoldError,
+  releasePendingReservationHold,
 } from "@/lib/reservations/pending-holds";
 import { enMessages } from "@/messages/en";
 import { esMessages } from "@/messages/es";
-import type { PendingHoldErrorCode } from "@/types/reservation-pending-hold";
+import type {
+  PendingHoldErrorCode,
+  ReleasePendingHoldErrorCode,
+} from "@/types/reservation-pending-hold";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -35,6 +39,19 @@ const pendingHoldRequestSchema = z.object({
   locale: localeSchema,
 });
 
+const releasePendingHoldRequestSchema = z
+  .object({
+    reservationId: z
+      .string()
+      .trim()
+      .min(1)
+      .max(128)
+      .regex(/^[A-Za-z0-9_-]+$/),
+    expectedUpdatedAt: z.iso.datetime(),
+    locale: localeSchema,
+  })
+  .strict();
+
 function getPendingHoldErrorMessage(
   code: PendingHoldErrorCode,
   locale: "es" | "en",
@@ -56,7 +73,12 @@ function toErrorResponse(
         message: getPendingHoldErrorMessage(code, locale),
       },
     },
-    { status },
+    {
+      status,
+      headers: {
+        "cache-control": "no-store, max-age=0",
+      },
+    },
   );
 }
 
@@ -65,6 +87,8 @@ function resolveErrorStatus(code: PendingHoldErrorCode): number {
     case "UNAVAILABLE_DATES":
     case "PENDING_HOLD_CONFLICT":
       return 409;
+    case "PENDING_HOLD_UNEXPECTED_ERROR":
+      return 500;
     case "INVALID_PENDING_HOLD_REQUEST":
     case "INVALID_ACCOMMODATION":
     case "INVALID_DATE_RANGE":
@@ -74,17 +98,81 @@ function resolveErrorStatus(code: PendingHoldErrorCode): number {
   }
 }
 
-export async function POST(request: Request) {
-  let body: unknown;
+function isPublicPendingHoldErrorCode(
+  code: PendingReservationHoldError["code"],
+): code is PendingHoldErrorCode {
+  return (
+    code === "INVALID_PENDING_HOLD_REQUEST" ||
+    code === "INVALID_ACCOMMODATION" ||
+    code === "INVALID_DATE_RANGE" ||
+    code === "INVALID_GUEST_COUNT" ||
+    code === "UNAVAILABLE_DATES" ||
+    code === "PENDING_HOLD_CONFLICT"
+  );
+}
 
-  try {
-    body = await request.json();
-  } catch {
-    return toErrorResponse("INVALID_PENDING_HOLD_REQUEST", "es", 400);
+function getReleasePendingHoldErrorMessage(
+  code: ReleasePendingHoldErrorCode,
+  locale: "es" | "en",
+): string {
+  const messages = locale === "en" ? enMessages : esMessages;
+
+  return messages.errors.payment.tilopaySdk[code];
+}
+
+function toReleaseErrorResponse(
+  code: ReleasePendingHoldErrorCode,
+  locale: "es" | "en",
+  status: number,
+): NextResponse {
+  return NextResponse.json(
+    {
+      error: {
+        code,
+        message: getReleasePendingHoldErrorMessage(code, locale),
+      },
+    },
+    {
+      status,
+      headers: {
+        "cache-control": "no-store, max-age=0",
+      },
+    },
+  );
+}
+
+function mapReleaseError(
+  code: PendingReservationHoldError["code"],
+): Readonly<{
+  code: ReleasePendingHoldErrorCode;
+  status: number;
+}> {
+  switch (code) {
+    case "PENDING_HOLD_NOT_FOUND":
+      return { code: "PENDING_HOLD_NOT_FOUND", status: 404 };
+    case "PENDING_HOLD_NOT_MODIFIABLE":
+    case "PENDING_HOLD_PAYMENT_STARTED":
+      return { code: "PENDING_HOLD_NOT_PAYABLE", status: 409 };
+    case "PENDING_HOLD_STALE":
+    default:
+      return { code: "INVALID_PAYMENT_HANDOFF_REQUEST", status: 409 };
   }
+}
 
+async function readJson(request: Request): Promise<unknown> {
+  try {
+    return await request.json();
+  } catch {
+    return null;
+  }
+}
+
+export async function POST(request: Request) {
+  const body = await readJson(request);
   const locale = localeSchema.parse(
-    typeof body === "object" && body !== null && "locale" in body ? body.locale : "es",
+    typeof body === "object" && body !== null && "locale" in body
+      ? body.locale
+      : "es",
   );
   const parsedRequest = pendingHoldRequestSchema.safeParse(body);
 
@@ -103,12 +191,73 @@ export async function POST(request: Request) {
       guestEmail: parsedRequest.data.guestEmail.toLowerCase(),
     });
 
-    return NextResponse.json({ pendingHold }, { status: 201 });
+    return NextResponse.json(
+      { pendingHold },
+      {
+        status: 201,
+        headers: {
+          "cache-control": "no-store, max-age=0",
+        },
+      },
+    );
   } catch (error) {
-    if (error instanceof PendingReservationHoldError) {
+    if (
+      error instanceof PendingReservationHoldError &&
+      isPublicPendingHoldErrorCode(error.code)
+    ) {
       return toErrorResponse(error.code, locale, resolveErrorStatus(error.code));
     }
 
     return toErrorResponse("PENDING_HOLD_UNEXPECTED_ERROR", locale, 500);
+  }
+}
+
+export async function DELETE(request: Request) {
+  const body = await readJson(request);
+  const locale = localeSchema.parse(
+    typeof body === "object" && body !== null && "locale" in body
+      ? body.locale
+      : "es",
+  );
+  const parsedRequest = releasePendingHoldRequestSchema.safeParse(body);
+
+  if (!parsedRequest.success) {
+    return toReleaseErrorResponse(
+      "INVALID_PAYMENT_HANDOFF_REQUEST",
+      locale,
+      400,
+    );
+  }
+
+  try {
+    const releasedHold = await releasePendingReservationHold({
+      reservationId: parsedRequest.data.reservationId,
+      expectedUpdatedAt: parsedRequest.data.expectedUpdatedAt,
+    });
+
+    return NextResponse.json(
+      { releasedHold },
+      {
+        status: 200,
+        headers: {
+          "cache-control": "no-store, max-age=0",
+        },
+      },
+    );
+  } catch (error) {
+    if (error instanceof PendingReservationHoldError) {
+      const mappedError = mapReleaseError(error.code);
+      return toReleaseErrorResponse(
+        mappedError.code,
+        locale,
+        mappedError.status,
+      );
+    }
+
+    return toReleaseErrorResponse(
+      "TILOPAY_SDK_SESSION_UNEXPECTED_ERROR",
+      locale,
+      500,
+    );
   }
 }

@@ -1,4 +1,7 @@
-import { Prisma, ReservationStatus } from "@prisma/client";
+import {
+  Prisma,
+  ReservationStatus,
+} from "@prisma/client";
 
 import { checkAccommodationAvailability } from "@/lib/availability/service";
 import { prisma } from "@/lib/db/prisma";
@@ -16,6 +19,8 @@ import type {
 import type {
   CreatePendingReservationHoldInput,
   PendingReservationHold,
+  ReleasePendingReservationHoldInput,
+  ReleasedPendingReservationHold,
 } from "@/types/reservation-pending-hold";
 
 export const PENDING_RESERVATION_HOLD_DURATION_MINUTES = 15;
@@ -26,7 +31,11 @@ export type PendingReservationHoldErrorCode =
   | "INVALID_DATE_RANGE"
   | "INVALID_GUEST_COUNT"
   | "UNAVAILABLE_DATES"
-  | "PENDING_HOLD_CONFLICT";
+  | "PENDING_HOLD_CONFLICT"
+  | "PENDING_HOLD_NOT_FOUND"
+  | "PENDING_HOLD_NOT_MODIFIABLE"
+  | "PENDING_HOLD_PAYMENT_STARTED"
+  | "PENDING_HOLD_STALE";
 
 export class PendingReservationHoldError extends Error {
   readonly code: PendingReservationHoldErrorCode;
@@ -52,6 +61,7 @@ const reusablePendingReservationSelect = {
   total: true,
   currency: true,
   expiresAt: true,
+  updatedAt: true,
 } satisfies Prisma.ReservationSelect;
 
 type ReusablePendingReservation = Prisma.ReservationGetPayload<{
@@ -135,10 +145,6 @@ function assertGuestDetails(input: CreatePendingReservationHoldInput): void {
   }
 
   if (!isValidArrivalTime(input.arrivalTimeEstimate.trim())) {
-    throw new PendingReservationHoldError("INVALID_PENDING_HOLD_REQUEST");
-  }
-
-  if (input.locale !== "es" && input.locale !== "en") {
     throw new PendingReservationHoldError("INVALID_PENDING_HOLD_REQUEST");
   }
 }
@@ -248,6 +254,7 @@ async function buildPendingReservationHoldFromReservation(
     reservationId: reservation.id,
     status: "PENDING_PAYMENT",
     expiresAt: reservation.expiresAt.toISOString(),
+    updatedAt: reservation.updatedAt.toISOString(),
     accommodationId,
     accommodationSlug: getLocalizedValue(quote.accommodationSlug, "en"),
     checkInDate: quoteWithStoredAmounts.checkInDate,
@@ -400,6 +407,7 @@ async function createPendingReservationHoldAttempt(
           id: true,
           status: true,
           expiresAt: true,
+          updatedAt: true,
         },
       });
 
@@ -411,6 +419,7 @@ async function createPendingReservationHoldAttempt(
         reservationId: reservation.id,
         status: "PENDING_PAYMENT",
         expiresAt: reservation.expiresAt.toISOString(),
+        updatedAt: reservation.updatedAt.toISOString(),
         accommodationId: input.accommodationId,
         accommodationSlug: getLocalizedValue(quote.accommodationSlug, "en"),
         checkInDate: input.checkInDate,
@@ -443,6 +452,123 @@ export async function createPendingReservationHold(
   } catch (secondError) {
     if (isSerializableTransactionConflict(secondError)) {
       throw new PendingReservationHoldError("PENDING_HOLD_CONFLICT");
+    }
+
+    throw secondError;
+  }
+}
+
+function parseExpectedUpdatedAt(value: string): Date {
+  const expectedUpdatedAt = new Date(value);
+
+  if (!Number.isFinite(expectedUpdatedAt.getTime())) {
+    throw new PendingReservationHoldError("INVALID_PENDING_HOLD_REQUEST");
+  }
+
+  return expectedUpdatedAt;
+}
+
+async function releasePendingReservationHoldAttempt(
+  input: ReleasePendingReservationHoldInput,
+): Promise<ReleasedPendingReservationHold> {
+  const expectedUpdatedAt = parseExpectedUpdatedAt(input.expectedUpdatedAt);
+
+  return prisma.$transaction(
+    async (tx) => {
+      const reservation = await tx.reservation.findUnique({
+        where: {
+          id: input.reservationId,
+        },
+        select: {
+          id: true,
+          status: true,
+          expiresAt: true,
+          updatedAt: true,
+          payments: {
+            select: {
+              id: true,
+            },
+            take: 1,
+          },
+        },
+      });
+
+      if (!reservation) {
+        throw new PendingReservationHoldError("PENDING_HOLD_NOT_FOUND");
+      }
+
+      if (reservation.payments.length > 0) {
+        throw new PendingReservationHoldError(
+          "PENDING_HOLD_PAYMENT_STARTED",
+        );
+      }
+
+      if (reservation.status === ReservationStatus.EXPIRED) {
+        return {
+          reservationId: reservation.id,
+          status: "EXPIRED",
+          releasedAt: reservation.updatedAt.toISOString(),
+        };
+      }
+
+      if (reservation.status !== ReservationStatus.PENDING_PAYMENT) {
+        throw new PendingReservationHoldError(
+          "PENDING_HOLD_NOT_MODIFIABLE",
+        );
+      }
+
+      if (reservation.updatedAt.getTime() !== expectedUpdatedAt.getTime()) {
+        throw new PendingReservationHoldError("PENDING_HOLD_STALE");
+      }
+
+      const releasedAt = new Date();
+      const updated = await tx.reservation.updateMany({
+        where: {
+          id: reservation.id,
+          status: ReservationStatus.PENDING_PAYMENT,
+          updatedAt: expectedUpdatedAt,
+          payments: {
+            none: {},
+          },
+        },
+        data: {
+          status: ReservationStatus.EXPIRED,
+          expiresAt: releasedAt,
+        },
+      });
+
+      if (updated.count !== 1) {
+        throw new PendingReservationHoldError("PENDING_HOLD_STALE");
+      }
+
+      return {
+        reservationId: reservation.id,
+        status: "EXPIRED",
+        releasedAt: releasedAt.toISOString(),
+      };
+    },
+    {
+      isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+    },
+  );
+}
+
+export async function releasePendingReservationHold(
+  input: ReleasePendingReservationHoldInput,
+): Promise<ReleasedPendingReservationHold> {
+  try {
+    return await releasePendingReservationHoldAttempt(input);
+  } catch (firstError) {
+    if (!isSerializableTransactionConflict(firstError)) {
+      throw firstError;
+    }
+  }
+
+  try {
+    return await releasePendingReservationHoldAttempt(input);
+  } catch (secondError) {
+    if (isSerializableTransactionConflict(secondError)) {
+      throw new PendingReservationHoldError("PENDING_HOLD_STALE");
     }
 
     throw secondError;

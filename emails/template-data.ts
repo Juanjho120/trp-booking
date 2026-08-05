@@ -123,7 +123,16 @@ const optionalNormalizedTextSchema = z.preprocess((value) => {
   return normalized.length > 0 ? normalized : null;
 }, z.string().max(160).nullable());
 
-const normalizedMultilineSchema = (minimumLength: number, maximumLength: number) =>
+const optionalArrivalTimeSchema = z.preprocess(
+  (value) =>
+    typeof value === "string" && value.trim() ? value.trim() : null,
+  arrivalTimeSchema.nullable(),
+);
+
+const normalizedMultilineSchema = (
+  minimumLength: number,
+  maximumLength: number,
+) =>
   z
     .string()
     .transform((value) => value.replace(/\r\n/g, "\n").trim())
@@ -177,12 +186,9 @@ const reservationTemplateSchema = z
         .max(100),
       checkInDate: dateOnlySchema,
       checkOutDate: dateOnlySchema,
+      checkOutTime: optionalArrivalTimeSchema,
       guestCount: z.number().int().min(1).max(100),
-      arrivalTimeEstimate: z.preprocess(
-        (value) =>
-          typeof value === "string" && value.trim() ? value.trim() : null,
-        arrivalTimeSchema.nullable(),
-      ),
+      arrivalTimeEstimate: optionalArrivalTimeSchema,
       total: amountSchema,
       currency: currencySchema,
       confirmedAt: z.string().datetime({ offset: true }),
@@ -347,6 +353,7 @@ export function buildReservationEmailTemplateViewModel(
     })),
     checkInDate: formatDateOnly(reservation.checkInDate, locale),
     checkOutDate: formatDateOnly(reservation.checkOutDate, locale),
+    checkOutTime: formatArrivalTime(reservation.checkOutTime, locale),
     nights: calculateNights(reservation.checkInDate, reservation.checkOutDate),
     guestCount: reservation.guestCount,
     arrivalTimeEstimate: formatArrivalTime(
@@ -394,4 +401,3 @@ export function buildArrivalInstructionsEmailTemplateViewModel(
     instructions: parsedInput.data.arrival.instructions,
   };
 }
-

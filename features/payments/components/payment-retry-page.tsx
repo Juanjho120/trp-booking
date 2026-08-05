@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useRef } from "react";
 
 import { SiteFooter, SiteHeader } from "@/components/layout";
 import { useLocale } from "@/features/i18n";
+import { scrollPaymentFormIntoViewportCenter } from "@/features/payments/components/payment-form-auto-scroll";
 import { TilopaySdkCheckout } from "@/features/payments/components/tilopay-sdk-checkout";
 import type { TilopayRetryPaymentIssue } from "@/types/tilopay-retry-payment";
 
@@ -12,9 +14,13 @@ type PaymentRetryPageProps = Readonly<{
   paymentIssue: TilopayRetryPaymentIssue | null;
 }>;
 
-export function PaymentRetryPage({ reservationId, paymentIssue }: PaymentRetryPageProps) {
+export function PaymentRetryPage({
+  reservationId,
+  paymentIssue,
+}: PaymentRetryPageProps) {
   const { messages } = useLocale();
   const copy = messages.payments.retry.page;
+  const paymentSectionRef = useRef<HTMLDivElement>(null);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -26,7 +32,9 @@ export function PaymentRetryPage({ reservationId, paymentIssue }: PaymentRetryPa
               {reservationId ? copy.title : copy.missingReservationTitle}
             </h1>
             <p className="text-sm leading-6 text-muted-foreground sm:text-base">
-              {reservationId ? copy.description : copy.missingReservationDescription}
+              {reservationId
+                ? copy.description
+                : copy.missingReservationDescription}
             </p>
           </div>
 
@@ -37,11 +45,23 @@ export function PaymentRetryPage({ reservationId, paymentIssue }: PaymentRetryPa
                   <dt className="font-medium text-foreground">
                     {messages.reservations.pendingHold.reservationId}
                   </dt>
-                  <dd className="break-all text-muted-foreground">{reservationId}</dd>
+                  <dd className="break-all text-muted-foreground">
+                    {reservationId}
+                  </dd>
                 </div>
               </dl>
 
-              <TilopaySdkCheckout initialIssue={paymentIssue} reservationId={reservationId} />
+              <div className="scroll-mt-24" ref={paymentSectionRef}>
+                <TilopaySdkCheckout
+                  initialIssue={paymentIssue}
+                  onPaymentFormReady={() =>
+                    scrollPaymentFormIntoViewportCenter(
+                      paymentSectionRef.current,
+                    )
+                  }
+                  reservationId={reservationId}
+                />
+              </div>
 
               <p className="text-center text-xs leading-5 text-muted-foreground">
                 {copy.supportNote}

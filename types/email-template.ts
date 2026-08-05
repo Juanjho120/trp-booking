@@ -31,6 +31,7 @@ export type ReservationEmailTemplateReservation = Readonly<{
   houseRules: readonly ReservationEmailTemplateHouseRule[];
   checkInDate: DateOnlyString;
   checkOutDate: DateOnlyString;
+  checkOutTime: string | null;
   guestCount: number;
   arrivalTimeEstimate: string | null;
   total: string;
@@ -69,6 +70,7 @@ export type ReservationEmailTemplateViewModel = Readonly<{
   houseRules: readonly ReservationEmailTemplateHouseRuleViewModel[];
   checkInDate: string;
   checkOutDate: string;
+  checkOutTime: string | null;
   nights: number;
   guestCount: number;
   arrivalTimeEstimate: string | null;
@@ -99,6 +101,8 @@ export type TransactionalEmailMessages = Readonly<{
     checkIn: string;
     checkOut: string;
     checkInTime: string;
+    checkOutTime: string;
+    flexibleCheckOut: string;
     exactAddress: string;
     houseRules: string;
     nights: string;

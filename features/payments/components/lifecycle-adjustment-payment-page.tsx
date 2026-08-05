@@ -1,12 +1,18 @@
 "use client";
 
-import { CalendarClock, CheckCircle2, Clock3, ShieldAlert } from "lucide-react";
+import {
+  CalendarClock,
+  CheckCircle2,
+  Clock3,
+  ShieldAlert,
+} from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { SiteFooter, SiteHeader } from "@/components/layout";
 import { Badge } from "@/components/ui/badge";
 import { useLocale } from "@/features/i18n";
+import { scrollPaymentFormIntoViewportCenter } from "@/features/payments/components/payment-form-auto-scroll";
 import { TilopaySdkCheckout } from "@/features/payments/components/tilopay-sdk-checkout";
 import type {
   LifecycleAdjustmentHandoffErrorCode,
@@ -54,6 +60,7 @@ export function LifecycleAdjustmentPaymentPage({
 }>) {
   const { locale, messages, setLocale } = useLocale();
   const preferredLocaleAppliedRef = useRef(false);
+  const paymentSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (preferredLocaleAppliedRef.current || !summary) {
@@ -133,18 +140,24 @@ export function LifecycleAdjustmentPaymentPage({
               <div className="grid gap-4 rounded-3xl border border-border/70 bg-background p-4 text-sm sm:p-5">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <Badge variant="secondary">{requestTypeLabel}</Badge>
-                  <span className="text-lg font-semibold">{formattedAmount}</span>
+                  <span className="text-lg font-semibold">
+                    {formattedAmount}
+                  </span>
                 </div>
                 <dl className="grid gap-3 sm:grid-cols-2">
                   <div>
-                    <dt className="text-muted-foreground">{copy.originalDates}</dt>
+                    <dt className="text-muted-foreground">
+                      {copy.originalDates}
+                    </dt>
                     <dd className="font-medium">
                       {formatDate(summary.originalCheckInDate)} —{" "}
                       {formatDate(summary.originalCheckOutDate)}
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-muted-foreground">{copy.requestedDates}</dt>
+                    <dt className="text-muted-foreground">
+                      {copy.requestedDates}
+                    </dt>
                     <dd className="font-medium">
                       {formatDate(summary.requestedCheckInDate)} —{" "}
                       {formatDate(summary.requestedCheckOutDate)}
@@ -163,10 +176,17 @@ export function LifecycleAdjustmentPaymentPage({
               </div>
 
               {!approved && !errorMessage && summary.payable ? (
-                <TilopaySdkCheckout
-                  initialIssue={initialIssue}
-                  reservationId={summary.token}
-                />
+                <div className="scroll-mt-24" ref={paymentSectionRef}>
+                  <TilopaySdkCheckout
+                    initialIssue={initialIssue}
+                    onPaymentFormReady={() =>
+                      scrollPaymentFormIntoViewportCenter(
+                        paymentSectionRef.current,
+                      )
+                    }
+                    reservationId={summary.token}
+                  />
+                </div>
               ) : null}
 
               <p className="text-center text-xs leading-5 text-muted-foreground">

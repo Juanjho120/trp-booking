@@ -4,7 +4,7 @@
 
 ```text
 Track: Pre-Phase-12 Improvement Track
-Status: Planned — approved for implementation
+Status: In progress — Package A implementation prepared
 Registered on: 2026-08-05
 Registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
 Current phase: No active implementation phase
@@ -28,7 +28,7 @@ Package D is deliberately deferred until the owner confirms the future financial
 
 | Package | Scope | Status | Phase 12 gate |
 | --- | --- | --- | --- |
-| A | Immediate public-flow and UI corrections | Not started | Required |
+| A | Immediate public-flow and UI corrections | Implementation prepared — validation pending | Required |
 | B | Durable payment-attempt history | Not started | Required |
 | C | Admin cron console and generic execution history | Not started | Required |
 | D | Future financial-policy and refundable-line contract | Deferred — awaiting financial policy decisions | Not part of the current implementation gate |
@@ -49,7 +49,7 @@ Package D is deliberately deferred until the owner confirms the future financial
 ### Safety rules
 
 - Never silently overwrite a persisted `PENDING_PAYMENT` reservation.
-- A hold may be replaced only while it remains eligible, unpaid, and version-current.
+- A hold may be replaced only while it remains eligible, has no Payment attempt, and is version-current.
 - Do not delete reservation, payment, or diagnostic history.
 - Do not create a second active hold for the same blocked dates without safely releasing the first eligible hold.
 - Do not alter payment confirmation, availability, preparation-buffer, or Tilopay validation rules.
@@ -244,6 +244,8 @@ A Phase 12 activation decision may be made only after Packages A, B, C, E, and F
 
 Package D is outside the current gate because its business policies are intentionally unresolved. It must be completed before any non-zero cleaning fee, tax, discount, or non-refundable-charge behavior is enabled.
 
-## Next action
+## Current action
 
-Begin Package A with the pending-hold lifecycle correction. The first implementation must prevent the public form from losing the persisted hold reference and must provide a controlled, auditable replacement path without creating duplicate active holds.
+Validate Package A against the complete public-flow, email-template, 404, development-indicator, and Tilopay auto-scroll acceptance matrix. Do not mark Package A accepted or start Package B until the implementation is reported working and the required technical checks pass.
+
+Package A implementation record: `docs/122-pre-phase-12-package-a-public-flow-and-ui-corrections.md`.

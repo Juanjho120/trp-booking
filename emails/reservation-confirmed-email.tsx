@@ -61,6 +61,8 @@ export async function buildReservationConfirmedEmail(
     messages.common.guestPlural,
   );
   const arrivalTime = view.arrivalTimeEstimate ?? messages.common.notProvided;
+  const checkOutTime =
+    view.checkOutTime ?? messages.common.flexibleCheckOut;
   const subject = `${messages.reservationConfirmed.subjectPrefix} · ${view.propertyName}`;
   const previewText = `${messages.reservationConfirmed.previewPrefix} ${view.checkInDate}.`;
 
@@ -104,6 +106,10 @@ export async function buildReservationConfirmedEmail(
         <EmailDetailRow
           label={messages.common.checkOut}
           value={view.checkOutDate}
+        />
+        <EmailDetailRow
+          label={messages.common.checkOutTime}
+          value={checkOutTime}
         />
         <EmailDetailRow label={messages.common.nights} value={nights} />
         <EmailDetailRow label={messages.common.guests} value={guests} />
@@ -167,6 +173,7 @@ export async function buildReservationConfirmedEmail(
       { label: messages.common.accommodation, value: view.propertyName },
       { label: messages.common.checkIn, value: view.checkInDate },
       { label: messages.common.checkOut, value: view.checkOutDate },
+      { label: messages.common.checkOutTime, value: checkOutTime },
       { label: messages.common.nights, value: nights },
       { label: messages.common.guests, value: guests },
       { label: messages.common.arrivalTime, value: arrivalTime },

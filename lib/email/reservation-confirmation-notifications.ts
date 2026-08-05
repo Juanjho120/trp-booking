@@ -341,6 +341,7 @@ async function readClaimedNotification(claim: EmailNotificationClaim) {
               nameEs: true,
               nameEn: true,
               checkInTime: true,
+              checkOutTime: true,
               rules: {
                 select: {
                   rule: {
@@ -430,6 +431,7 @@ function buildTemplateReservation(
       })),
     checkInDate: toDateOnlyString(reservation.checkInDate),
     checkOutDate: toDateOnlyString(reservation.checkOutDate),
+    checkOutTime: reservation.property.checkOutTime,
     guestCount: reservation.guestCount,
     arrivalTimeEstimate: reservation.arrivalTimeEstimate,
     total: reservation.total.toString(),
@@ -531,7 +533,8 @@ function getArrivalInstructionsSkipReason(
   ) {
     return {
       code: "EMAIL_ARRIVAL_INSTRUCTIONS_SUPERSEDED",
-      message: SAFE_DELIVERY_ERROR_MESSAGES.EMAIL_ARRIVAL_INSTRUCTIONS_SUPERSEDED,
+      message:
+        SAFE_DELIVERY_ERROR_MESSAGES.EMAIL_ARRIVAL_INSTRUCTIONS_SUPERSEDED,
     };
   }
 

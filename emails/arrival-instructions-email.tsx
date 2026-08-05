@@ -50,6 +50,8 @@ export async function buildArrivalInstructionsEmail(
   }
 
   const messages = getTransactionalEmailMessages(view.locale);
+  const checkOutTime =
+    view.checkOutTime ?? messages.common.flexibleCheckOut;
   const subject = `${messages.arrivalInstructions.subjectPrefix} · ${view.propertyName}`;
   const previewText = `${messages.arrivalInstructions.previewPrefix} ${view.checkInDate}.`;
 
@@ -87,8 +89,12 @@ export async function buildArrivalInstructionsEmail(
         />
         <EmailDetailRow
           label={messages.common.checkInTime}
-          last
           value={view.checkInTime}
+        />
+        <EmailDetailRow
+          label={messages.common.checkOutTime}
+          last
+          value={checkOutTime}
         />
       </EmailSection>
 
@@ -158,6 +164,7 @@ export async function buildArrivalInstructionsEmail(
       { label: messages.common.accommodation, value: view.propertyName },
       { label: messages.common.checkIn, value: view.checkInDate },
       { label: messages.common.checkInTime, value: view.checkInTime },
+      { label: messages.common.checkOutTime, value: checkOutTime },
       { label: messages.common.exactAddress, value: view.exactAddress },
     ]),
     view.mapUrl
