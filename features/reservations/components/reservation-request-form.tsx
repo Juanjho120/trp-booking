@@ -841,7 +841,10 @@ export function ReservationRequestForm({
         }}
         open={modifySheetOpen}
       >
-        <SheetContent className="overflow-y-auto">
+        <SheetContent
+          className="overflow-y-auto"
+          closeLabel={pendingHoldCopy.cancelModification}
+        >
           <SheetHeader>
             <SheetTitle>{pendingHoldCopy.modifyTitle}</SheetTitle>
             <SheetDescription>
