@@ -33,6 +33,11 @@ import type {
 } from "@/types/admin-reservation-operational-history";
 import type { Locale } from "@/types/locale";
 
+import {
+  AdminRecordPagination,
+  useAdminRecordPagination,
+} from "./admin-record-pagination";
+
 function getIntlLocale(locale: Locale): string {
   return locale === "en" ? "en-US" : "es-GT";
 }
@@ -67,6 +72,17 @@ export function AdminReservationOperationalHistorySection({
   const copy = messages.admin.reservationsPage.operationalHistory;
   const notificationCopy = messages.admin.reservationsPage.notifications;
   const intlLocale = getIntlLocale(locale);
+  const historyPagination = useAdminRecordPagination(
+    reservation.operationalHistory,
+  );
+  const paginationCopy = messages.admin.reservationsPage;
+  const paginationLabels = {
+    next: paginationCopy.actions.next,
+    of: paginationCopy.labels.of,
+    page: paginationCopy.labels.page,
+    previous: paginationCopy.actions.previous,
+    results: paginationCopy.labels.results,
+  } as const;
 
   function formatDateTime(value: string): string {
     return new Intl.DateTimeFormat(intlLocale, {
@@ -158,13 +174,15 @@ export function AdminReservationOperationalHistorySection({
       </CardHeader>
       <CardContent>
         {reservation.operationalHistory.length > 0 ? (
-          <Accordion
-            aria-label={copy.listAriaLabel}
-            className="grid gap-3"
-            collapsible
-            type="single"
-          >
-            {reservation.operationalHistory.map((event) => {
+          <>
+            <Accordion
+              aria-label={copy.listAriaLabel}
+              className="grid gap-3"
+              collapsible
+              key={`${historyPagination.page}-${historyPagination.pageSize}`}
+              type="single"
+            >
+            {historyPagination.pageItems.map((event) => {
               const localizedEvent = eventCopy(event);
               const relations = event.relations.map((item) => ({
                 ...item,
@@ -337,7 +355,17 @@ export function AdminReservationOperationalHistorySection({
                 </AccordionItem>
               );
             })}
-          </Accordion>
+            </Accordion>
+            <AdminRecordPagination
+              labels={paginationLabels}
+              onPageChange={historyPagination.setPage}
+              onPageSizeChange={historyPagination.changePageSize}
+              page={historyPagination.page}
+              pageSize={historyPagination.pageSize}
+              totalItems={historyPagination.totalItems}
+              totalPages={historyPagination.totalPages}
+            />
+          </>
         ) : (
           <p className="text-sm text-muted-foreground">{copy.empty}</p>
         )}

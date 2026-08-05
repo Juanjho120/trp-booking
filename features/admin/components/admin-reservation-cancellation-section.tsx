@@ -52,6 +52,10 @@ import type {
 import type { AdminReservationDetailData } from "@/types/admin-reservation-detail";
 import type { Locale } from "@/types/locale";
 
+import {
+  AdminRecordPagination,
+  useAdminRecordPagination,
+} from "./admin-record-pagination";
 import { AdminSnackbar } from "./admin-snackbar";
 
 const inputClassName =
@@ -135,6 +139,17 @@ export function AdminReservationCancellationSection({
   const canCreateRequest =
     reservation.status === "CONFIRMED" && activeRequest === null;
   const isBusy = busyAction !== null;
+  const requestPagination = useAdminRecordPagination(
+    reservation.cancellationRequests,
+  );
+  const paginationCopy = messages.admin.reservationsPage;
+  const paginationLabels = {
+    next: paginationCopy.actions.next,
+    of: paginationCopy.labels.of,
+    page: paginationCopy.labels.page,
+    previous: paginationCopy.actions.previous,
+    results: paginationCopy.labels.results,
+  } as const;
 
   function clearFeedback(): void {
     setErrorFeedback(null);
@@ -355,8 +370,14 @@ export function AdminReservationCancellationSection({
           ) : null}
 
           {reservation.cancellationRequests.length > 0 ? (
-            <Accordion className="grid gap-3" collapsible type="single">
-              {reservation.cancellationRequests.map((request) => (
+            <>
+              <Accordion
+                className="grid gap-3"
+                collapsible
+                key={`${requestPagination.page}-${requestPagination.pageSize}`}
+                type="single"
+              >
+              {requestPagination.pageItems.map((request) => (
                 <CancellationRequestCard
                   canDecide={
                     request.status === "PENDING_REVIEW" &&
@@ -375,7 +396,17 @@ export function AdminReservationCancellationSection({
                   statusLabel={statusLabel(request.status)}
                 />
               ))}
-            </Accordion>
+              </Accordion>
+              <AdminRecordPagination
+                labels={paginationLabels}
+                onPageChange={requestPagination.setPage}
+                onPageSizeChange={requestPagination.changePageSize}
+                page={requestPagination.page}
+                pageSize={requestPagination.pageSize}
+                totalItems={requestPagination.totalItems}
+                totalPages={requestPagination.totalPages}
+              />
+            </>
           ) : (
             <p className="text-sm text-muted-foreground">{copy.empty}</p>
           )}

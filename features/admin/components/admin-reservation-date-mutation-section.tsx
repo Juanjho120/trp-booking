@@ -57,6 +57,10 @@ import type { DateOnlyString } from "@/types/availability";
 import type { Locale } from "@/types/locale";
 
 import { AdminReservationDateMutationDecisionControls } from "./admin-reservation-date-mutation-decision-controls";
+import {
+  AdminRecordPagination,
+  useAdminRecordPagination,
+} from "./admin-record-pagination";
 import { AdminSnackbar } from "./admin-snackbar";
 
 const inputClassName =
@@ -252,6 +256,17 @@ export function AdminReservationDateMutationSection({
           toDateOnlyString(dateRange.to),
         )}`
       : copy.calendar.placeholder;
+  const requestPagination = useAdminRecordPagination(
+    reservation.dateMutationRequests,
+  );
+  const paginationCopy = messages.admin.reservationsPage;
+  const paginationLabels = {
+    next: paginationCopy.actions.next,
+    of: paginationCopy.labels.of,
+    page: paginationCopy.labels.page,
+    previous: paginationCopy.actions.previous,
+    results: paginationCopy.labels.results,
+  } as const;
 
   useEffect(() => {
     if (!createOpen) {
@@ -571,8 +586,14 @@ export function AdminReservationDateMutationSection({
           ) : null}
 
           {reservation.dateMutationRequests.length > 0 ? (
-            <Accordion className="grid gap-3" collapsible type="single">
-              {reservation.dateMutationRequests.map((request) => (
+            <>
+              <Accordion
+                className="grid gap-3"
+                collapsible
+                key={`${requestPagination.page}-${requestPagination.pageSize}`}
+                type="single"
+              >
+              {requestPagination.pageItems.map((request) => (
                 <DateMutationRequestCard
                   channelLabel={channelLabel(request.channel)}
                   copy={copy}
@@ -587,7 +608,17 @@ export function AdminReservationDateMutationSection({
                   statusLabel={statusLabel(request.status)}
                 />
               ))}
-            </Accordion>
+              </Accordion>
+              <AdminRecordPagination
+                labels={paginationLabels}
+                onPageChange={requestPagination.setPage}
+                onPageSizeChange={requestPagination.changePageSize}
+                page={requestPagination.page}
+                pageSize={requestPagination.pageSize}
+                totalItems={requestPagination.totalItems}
+                totalPages={requestPagination.totalPages}
+              />
+            </>
           ) : (
             <p className="text-sm text-muted-foreground">{copy.empty}</p>
           )}

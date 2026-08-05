@@ -1167,7 +1167,9 @@ export const esMessages = {
           RESERVATION_DATES_UPDATED: "Fechas de reserva actualizadas",
           ADMIN_RESERVATION_DATES_UPDATED: "Fechas de reserva actualizadas para administración",
           STAY_EXTENSION_CONFIRMED: "Extensión de estadía confirmada",
+          ADMIN_STAY_EXTENSION_CONFIRMED: "Extensión de estadía confirmada para administración",
           REFUND_PROCESSED: "Reembolso procesado",
+          ADMIN_REFUND_PROCESSED: "Reembolso procesado para administración",
           ARRIVAL_INSTRUCTIONS: "Instrucciones de llegada",
           ADMIN_NEW_RESERVATION: "Nueva reserva para administración",
           DATE_CHANGE_PAYMENT_REQUIRED:

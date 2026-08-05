@@ -53,6 +53,10 @@ import type {
 import type { Locale } from "@/types/locale";
 
 import { AdminPageHeader } from "./admin-page-header";
+import {
+  AdminRecordPagination,
+  useAdminRecordPagination,
+} from "./admin-record-pagination";
 import { AdminReservationCancellationSection } from "./admin-reservation-cancellation-section";
 import { AdminReservationDateMutationSection } from "./admin-reservation-date-mutation-section";
 import { AdminReservationLifecycleAdjustmentRefundSection } from "./admin-reservation-lifecycle-adjustment-refund-section";
@@ -65,6 +69,7 @@ const manuallyResendableTypes = new Set([
   "ADMIN_NEW_RESERVATION",
 ]);
 const manuallyResendableStatuses = new Set(["PENDING", "FAILED", "SENT"]);
+const effectiveRefundStatuses = new Set(["APPROVED", "MANUAL"]);
 
 type ManualResendTarget = Readonly<{
   notification: AdminReservationDetailEmailNotification;
@@ -116,6 +121,17 @@ export function AdminReservationDetailPage({
   const [errorFeedback, setErrorFeedback] = useState<string | null>(null);
   const [successFeedback, setSuccessFeedback] = useState<string | null>(null);
   const isBusy = busyNotificationId !== null;
+  const paymentPagination = useAdminRecordPagination(reservation.payments);
+  const emailPagination = useAdminRecordPagination(
+    reservation.emailNotifications,
+  );
+  const paginationLabels = {
+    next: reservationCopy.actions.next,
+    of: reservationCopy.labels.of,
+    page: reservationCopy.labels.page,
+    previous: reservationCopy.actions.previous,
+    results: reservationCopy.labels.results,
+  } as const;
 
   function formatDate(value: string): string {
     return new Intl.DateTimeFormat(intlLocale, {
@@ -288,6 +304,17 @@ export function AdminReservationDetailPage({
       (refund) => refund.authorizationType !== "LIFECYCLE_ADJUSTMENT",
     ),
   };
+  const effectiveRefundAmount = reservation.refunds
+    .filter(
+      (refund) =>
+        refund.currency === reservation.currency &&
+        effectiveRefundStatuses.has(refund.status),
+    )
+    .reduce((total, refund) => total + Number(refund.amount), 0);
+  const netReservationTotal = Math.max(
+    0,
+    Number(reservation.total) - effectiveRefundAmount,
+  );
 
   return (
     <>
@@ -451,9 +478,19 @@ export function AdminReservationDetailPage({
                     )}
                   />
                   <MoneyRow
+                    label={reservationCopy.refunds.badge}
+                    value={formatMoney(
+                      (-effectiveRefundAmount).toFixed(2),
+                      reservation.currency,
+                    )}
+                  />
+                  <MoneyRow
                     emphasized
                     label={requestCopy.quoteRows.total}
-                    value={formatMoney(reservation.total, reservation.currency)}
+                    value={formatMoney(
+                      netReservationTotal.toFixed(2),
+                      reservation.currency,
+                    )}
                   />
                 </dl>
               </CardContent>
@@ -466,55 +503,81 @@ export function AdminReservationDetailPage({
               </CardHeader>
               <CardContent>
                 {reservation.payments.length > 0 ? (
-                  <div className="grid gap-4">
-                    {reservation.payments.map((payment) => (
-                      <div
-                        className="rounded-2xl border border-border bg-muted/20 p-4"
-                        key={payment.id}
-                      >
-                        <div className="flex flex-wrap items-start justify-between gap-3">
-                          <div>
-                            <p className="break-all text-sm font-medium">
-                              {payment.id}
-                            </p>
-                            <p className="mt-1 text-sm text-muted-foreground">
-                              {formatMoney(payment.amount, payment.currency)}
-                            </p>
-                          </div>
-                          <Badge variant="outline">
-                            {paymentStatusLabel(payment.status)}
-                          </Badge>
-                        </div>
-                        <div className="mt-4 grid gap-3 text-sm">
-                          <DetailValue
-                            label={paymentCopy.labels.order}
-                            value={
-                              payment.providerReference ??
-                              paymentCopy.labels.unavailable
-                            }
-                          />
-                          <DetailValue
-                            label={paymentCopy.labels.createdAt}
-                            value={formatDateTime(payment.createdAt)}
-                          />
-                        </div>
-                        <Button
-                          asChild
-                          className="mt-4 w-full"
-                          variant="outline"
+                  <>
+                    <Accordion
+                      className="grid gap-3"
+                      collapsible
+                      key={`${paymentPagination.page}-${paymentPagination.pageSize}`}
+                      type="single"
+                    >
+                      {paymentPagination.pageItems.map((payment) => (
+                        <AccordionItem
+                          className="overflow-hidden rounded-2xl border border-border bg-muted/20 last:border-b"
+                          key={payment.id}
+                          value={payment.id}
                         >
-                          <Link
-                            href={`/admin/payments/${encodeURIComponent(
-                              payment.id,
-                            )}`}
-                          >
-                            {messages.common.viewDetails}
-                            <ExternalLink aria-hidden="true" />
-                          </Link>
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
+                          <AccordionTrigger className="px-4 py-3 hover:bg-muted/40 sm:px-5">
+                            <div className="grid min-w-0 flex-1 gap-3 pr-2 sm:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)_auto] sm:items-center">
+                              <div className="min-w-0">
+                                <p className="break-all text-sm font-semibold">
+                                  {payment.id}
+                                </p>
+                                <p className="mt-1 truncate text-sm text-muted-foreground">
+                                  {payment.providerReference ??
+                                    paymentCopy.labels.unavailable}
+                                </p>
+                              </div>
+                              <p className="text-sm font-semibold">
+                                {formatMoney(payment.amount, payment.currency)}
+                              </p>
+                              <Badge
+                                className="justify-self-start sm:justify-self-end"
+                                variant="outline"
+                              >
+                                {paymentStatusLabel(payment.status)}
+                              </Badge>
+                            </div>
+                          </AccordionTrigger>
+                          <AccordionContent className="border-t border-border/70 px-4 pt-4 sm:px-5">
+                            <div className="grid gap-4 sm:grid-cols-2">
+                              <DetailValue
+                                label={paymentCopy.labels.order}
+                                value={
+                                  payment.providerReference ??
+                                  paymentCopy.labels.unavailable
+                                }
+                              />
+                              <DetailValue
+                                label={paymentCopy.labels.createdAt}
+                                value={formatDateTime(payment.createdAt)}
+                              />
+                            </div>
+                            <div className="mt-4 flex justify-end">
+                              <Button asChild variant="outline">
+                                <Link
+                                  href={`/admin/payments/${encodeURIComponent(
+                                    payment.id,
+                                  )}`}
+                                >
+                                  {messages.common.viewDetails}
+                                  <ExternalLink aria-hidden="true" />
+                                </Link>
+                              </Button>
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
+                    <AdminRecordPagination
+                      labels={paginationLabels}
+                      onPageChange={paymentPagination.setPage}
+                      onPageSizeChange={paymentPagination.changePageSize}
+                      page={paymentPagination.page}
+                      pageSize={paymentPagination.pageSize}
+                      totalItems={paymentPagination.totalItems}
+                      totalPages={paymentPagination.totalPages}
+                    />
+                  </>
                 ) : (
                   <p className="text-sm text-muted-foreground">
                     {paymentCopy.empty.noPayments}
@@ -537,8 +600,14 @@ export function AdminReservationDetailPage({
             </CardHeader>
             <CardContent>
               {reservation.emailNotifications.length > 0 ? (
-                <Accordion className="grid gap-3" collapsible type="single">
-                  {reservation.emailNotifications.map((notification) => (
+                <>
+                  <Accordion
+                    className="grid gap-3"
+                    collapsible
+                    key={`${emailPagination.page}-${emailPagination.pageSize}`}
+                    type="single"
+                  >
+                  {emailPagination.pageItems.map((notification) => (
                     <EmailNotificationCard
                       actionLabel={
                         notification.status === "SENT"
@@ -569,7 +638,17 @@ export function AdminReservationDetailPage({
                       unavailableLabel={reservationCopy.labels.unavailable}
                     />
                   ))}
-                </Accordion>
+                  </Accordion>
+                  <AdminRecordPagination
+                    labels={paginationLabels}
+                    onPageChange={emailPagination.setPage}
+                    onPageSizeChange={emailPagination.changePageSize}
+                    page={emailPagination.page}
+                    pageSize={emailPagination.pageSize}
+                    totalItems={emailPagination.totalItems}
+                    totalPages={emailPagination.totalPages}
+                  />
+                </>
               ) : (
                 <p className="text-sm text-muted-foreground">
                   {notificationCopy.empty}

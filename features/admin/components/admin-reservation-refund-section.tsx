@@ -60,6 +60,10 @@ import type {
 } from "@/types/admin-reservation-detail";
 import type { Locale } from "@/types/locale";
 
+import {
+  AdminRecordPagination,
+  useAdminRecordPagination,
+} from "./admin-record-pagination";
 import { AdminSnackbar } from "./admin-snackbar";
 
 const inputClassName =
@@ -228,6 +232,15 @@ export function AdminReservationRefundSection({
       ) &&
       reconciliationTarget.diagnostics.amount,
   );
+  const refundPagination = useAdminRecordPagination(reservation.refunds);
+  const paginationCopy = messages.admin.reservationsPage;
+  const paginationLabels = {
+    next: paginationCopy.actions.next,
+    of: paginationCopy.labels.of,
+    page: paginationCopy.labels.page,
+    previous: paginationCopy.actions.previous,
+    results: paginationCopy.labels.results,
+  } as const;
 
   function clearFeedback(): void {
     setErrorFeedback(null);
@@ -714,8 +727,14 @@ export function AdminReservationRefundSection({
           </p>
 
           {reservation.refunds.length > 0 ? (
-            <Accordion className="grid gap-3" collapsible type="single">
-              {reservation.refunds.map((refund) => (
+            <>
+              <Accordion
+                className="grid gap-3"
+                collapsible
+                key={`${refundPagination.page}-${refundPagination.pageSize}`}
+                type="single"
+              >
+              {refundPagination.pageItems.map((refund) => (
                 <RefundCard
                   apiExecutionEnabled={reservation.refundApiExecutionEnabled}
                   authorizationTypeLabel={authorizationTypeLabel(
@@ -736,7 +755,17 @@ export function AdminReservationRefundSection({
                   statusLabel={statusLabel(refund.status)}
                 />
               ))}
-            </Accordion>
+              </Accordion>
+              <AdminRecordPagination
+                labels={paginationLabels}
+                onPageChange={refundPagination.setPage}
+                onPageSizeChange={refundPagination.changePageSize}
+                page={refundPagination.page}
+                pageSize={refundPagination.pageSize}
+                totalItems={refundPagination.totalItems}
+                totalPages={refundPagination.totalPages}
+              />
+            </>
           ) : eligibleRequest || extraordinaryPayment ? (
             <p className="text-sm text-muted-foreground">
               {copy.empty.noRefunds}

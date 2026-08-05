@@ -63,6 +63,10 @@ import type {
 } from "@/types/admin-reservation-detail";
 import type { Locale } from "@/types/locale";
 
+import {
+  AdminRecordPagination,
+  useAdminRecordPagination,
+} from "./admin-record-pagination";
 import { AdminSnackbar } from "./admin-snackbar";
 
 const inputClassName =
@@ -164,6 +168,26 @@ export function AdminReservationLifecycleAdjustmentRefundSection({
       ) &&
       reconciliationTarget.diagnostics.amount,
   );
+  const paginationEntries = useMemo(
+    () => [
+      ...pendingNegativeRequests.map((request) => `request:${request.id}`),
+      ...refunds.map((refund) => `refund:${refund.id}`),
+    ],
+    [pendingNegativeRequests, refunds],
+  );
+  const entryPagination = useAdminRecordPagination(paginationEntries);
+  const visibleEntryIds = useMemo(
+    () => new Set(entryPagination.pageItems),
+    [entryPagination.pageItems],
+  );
+  const paginationCopy = messages.admin.reservationsPage;
+  const paginationLabels = {
+    next: paginationCopy.actions.next,
+    of: paginationCopy.labels.of,
+    page: paginationCopy.labels.page,
+    previous: paginationCopy.actions.previous,
+    results: paginationCopy.labels.results,
+  } as const;
 
   if (refunds.length === 0 && pendingNegativeRequests.length === 0) {
     return null;
@@ -519,8 +543,15 @@ export function AdminReservationLifecycleAdjustmentRefundSection({
           <CardDescription>{dateMutationCopy.description}</CardDescription>
         </CardHeader>
         <CardContent>
-          <Accordion className="grid gap-3" collapsible type="single">
-            {pendingNegativeRequests.map((request) => (
+          <Accordion
+            className="grid gap-3"
+            collapsible
+            key={`${entryPagination.page}-${entryPagination.pageSize}`}
+            type="single"
+          >
+            {pendingNegativeRequests
+              .filter((request) => visibleEntryIds.has(`request:${request.id}`))
+              .map((request) => (
               <AccordionItem
                 className="overflow-hidden rounded-2xl border border-border bg-muted/20"
                 key={request.id}
@@ -592,7 +623,9 @@ export function AdminReservationLifecycleAdjustmentRefundSection({
               </AccordionItem>
             ))}
 
-            {refunds.map((refund) => {
+            {refunds
+              .filter((refund) => visibleEntryIds.has(`refund:${refund.id}`))
+              .map((refund) => {
               const payment = paymentForRefund(refund);
               const canExecute =
                 refund.status === "PENDING" &&
@@ -769,6 +802,15 @@ export function AdminReservationLifecycleAdjustmentRefundSection({
               );
             })}
           </Accordion>
+          <AdminRecordPagination
+            labels={paginationLabels}
+            onPageChange={entryPagination.setPage}
+            onPageSizeChange={entryPagination.changePageSize}
+            page={entryPagination.page}
+            pageSize={entryPagination.pageSize}
+            totalItems={entryPagination.totalItems}
+            totalPages={entryPagination.totalPages}
+          />
         </CardContent>
       </Card>
 

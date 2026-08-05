@@ -1166,7 +1166,9 @@ export const enMessages = {
           RESERVATION_DATES_UPDATED: "Reservation dates updated",
           ADMIN_RESERVATION_DATES_UPDATED: "Reservation dates updated for administration",
           STAY_EXTENSION_CONFIRMED: "Stay extension confirmed",
+          ADMIN_STAY_EXTENSION_CONFIRMED: "Stay extension confirmed for administration",
           REFUND_PROCESSED: "Refund processed",
+          ADMIN_REFUND_PROCESSED: "Refund processed for administration",
           ARRIVAL_INSTRUCTIONS: "Arrival instructions",
           ADMIN_NEW_RESERVATION: "New reservation for administration",
           DATE_CHANGE_PAYMENT_REQUIRED:
