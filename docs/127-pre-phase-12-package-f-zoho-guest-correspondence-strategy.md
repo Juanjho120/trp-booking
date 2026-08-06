@@ -6,12 +6,13 @@
 Track: Pre-Phase-12 Improvement Track
 Package: F — Zoho guest correspondence and reservation navigation
 Subpackage: F.1 Strategy, provider boundary, and environment contract
-Status: Completed and accepted — implementation not started
+Status: Completed and accepted — F.2 operational setup in progress
 Strategy and acceptance date: 2026-08-06
 Strategy base head: cab7d71e34d230cdf49e013921764f6386d3fa2f
 Previous accepted package: Package E — Public location and map configuration
 Previous closure: docs/126-pre-phase-12-package-e-acceptance-closure.md
-Next subpackage: F.2 Test Zoho Mail setup and DNS validation
+Active subpackage: F.2 Test Zoho Mail setup and DNS validation
+F.2 record: docs/128-pre-phase-12-package-f-2-test-zoho-mail-setup-and-dns-validation.md
 Phase 12: Not started and not activated
 ```
 
@@ -423,7 +424,7 @@ F.1 Strategy, provider boundary, and environment contract
     Status: Completed and accepted on 2026-08-06
 
 F.2 Test Zoho Mail setup and DNS validation
-    Status: Not started
+    Status: In progress — owner-assisted operational setup and evidence collection
     Scope: configure juantzun.dev, mailbox, aliases, filters, mobile access, MFA,
     DNS authentication, and controlled send/receive validation
 
@@ -526,9 +527,6 @@ https://www.zoho.com/developer/oauth/web-server-apps/overview.html
 
 ## Handoff to F.2
 
-Package F.1 is completed and accepted. Package F implementation has not started.
+Package F.1 is completed and accepted. Package F.2 is now in progress as an owner-assisted operational setup; no TRP application implementation has started.
 
-The next work is the owner-assisted test Zoho setup for `juantzun.dev`. F.2 must
-capture the real Zoho data center, exact generated DNS records, mailbox and alias
-validation, mobile access, and controlled send/receive evidence without recording any
-password, DKIM private material, OAuth secret, or recovery code in the repository.
+F.2 follows `docs/128-pre-phase-12-package-f-2-test-zoho-mail-setup-and-dns-validation.md`. It must capture the real Zoho data center, exact generated public DNS records, mailbox and alias validation, reply-from-the-received-address behavior, mobile access, MFA, filters, and controlled send/receive evidence without recording any password, DKIM private material, OAuth secret, recovery code, or mailbox content in the repository.

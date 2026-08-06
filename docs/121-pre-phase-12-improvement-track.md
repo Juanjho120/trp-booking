@@ -4,7 +4,7 @@
 
 ```text
 Track: Pre-Phase-12 Improvement Track
-Status: In progress — Packages A, B, C, and E accepted; Package F.1 strategy completed and accepted; F.2 not started
+Status: In progress — Packages A, B, C, and E accepted; Package F.1 strategy completed and accepted; F.2 operational setup in progress
 Registered on: 2026-08-05
 Registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
 Current phase: No active implementation phase
@@ -33,7 +33,7 @@ Package D is deliberately deferred until the owner confirms the future financial
 | C | Admin cron console and generic execution history | Completed and accepted | Required |
 | D | Future financial-policy and refundable-line contract | Deferred — awaiting financial policy decisions | Not part of the current implementation gate |
 | E | Public location and map configuration | Completed and accepted | Required |
-| F | Zoho guest correspondence and reservation navigation | In progress — F.1 strategy accepted; implementation not started | Required |
+| F | Zoho guest correspondence and reservation navigation | In progress — F.1 accepted; F.2 operational setup in progress | Required |
 
 ## Package A — Immediate public-flow and UI corrections
 
@@ -279,7 +279,7 @@ separate owner approval.
 
 ```text
 F.1 Strategy, provider boundary, and environment contract — Completed and accepted
-F.2 Test Zoho Mail setup and DNS validation — Not started
+F.2 Test Zoho Mail setup and DNS validation — In progress
 F.3 Transactional Reply-To alignment — Not started
 F.4 Reservation-to-Zoho navigation — Not started
 F.5 Integrated validation and documentation closure — Not started
@@ -343,7 +343,7 @@ Package D is outside the current gate because its business policies are intentio
 
 ## Current action
 
-Begin Package F.2 with owner-assisted Zoho Mail Lite setup for juantzun.dev: verify the domain, review and configure root MX/SPF/DKIM/DMARC, create admin@ with reservas@ and reservations@ aliases, validate reply-from-alias behavior and mobile access, and preserve the independent Resend sending subdomain. Do not add TRP application code, OAuth credentials, or production Zoho configuration during F.2.
+Execute Package F.2 using `docs/128-pre-phase-12-package-f-2-test-zoho-mail-setup-and-dns-validation.md`: configure the isolated Zoho Mail Lite test organization for juantzun.dev, preserve a before-change DNS inventory, verify the domain, configure exact Zoho root MX/SPF/DKIM and staged DMARC, create admin@ with reservas@ and reservations@ aliases, enable reply-from-the-received-address behavior, configure filters, mobile access and MFA, and collect controlled send/receive evidence. Do not add TRP application code, OAuth credentials, IMAP credentials, production Zoho configuration, or changes to the independent Resend sending subdomain during F.2.
 
 Package A accepted head: `ec1e6ce7f43099864788f28ae30a87214afe554d`.
 
@@ -367,3 +367,5 @@ Package E closure record: `docs/126-pre-phase-12-package-e-acceptance-closure.md
 Package F strategy base head: `cab7d71e34d230cdf49e013921764f6386d3fa2f`.
 
 Package F strategy record: `docs/127-pre-phase-12-package-f-zoho-guest-correspondence-strategy.md`.
+
+Package F.2 operational record: `docs/128-pre-phase-12-package-f-2-test-zoho-mail-setup-and-dns-validation.md`.
