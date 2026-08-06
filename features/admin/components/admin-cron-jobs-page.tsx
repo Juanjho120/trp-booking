@@ -393,7 +393,7 @@ function CronJobCard({
   return (
     <Card className="border-border/70 bg-card shadow-sm">
       <CardHeader>
-        <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
           <div className="flex min-w-0 items-start gap-3">
             <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
               <TimerReset aria-hidden="true" className="size-5" />
@@ -405,7 +405,11 @@ function CronJobCard({
               </CardDescription>
             </div>
           </div>
-          <Badge variant="outline">
+
+          <Badge
+            className="w-fit sm:justify-self-end"
+            variant="outline"
+          >
             {latest ? statusLabel(latest.status) : copy.statuses.NEVER_RUN}
           </Badge>
         </div>
