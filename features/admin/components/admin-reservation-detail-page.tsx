@@ -63,6 +63,10 @@ import { AdminReservationLifecycleAdjustmentRefundSection } from "./admin-reserv
 import { AdminReservationOperationalHistorySection } from "./admin-reservation-operational-history-section";
 import { AdminReservationRefundSection } from "./admin-reservation-refund-section";
 import { AdminSnackbar } from "./admin-snackbar";
+import type {
+  AdminPaymentSubmissionAttemptHistory as AdminPaymentSubmissionAttemptHistoryData,
+} from "@/types/admin-payment-submission-attempt";
+import { AdminPaymentSubmissionAttemptHistory } from "./admin-payment-submission-attempt-history";
 
 const manuallyResendableTypes = new Set([
   "RESERVATION_CONFIRMED",
@@ -100,8 +104,12 @@ function canManuallyResend(
 }
 
 export function AdminReservationDetailPage({
+  paymentAttemptHistory,
   reservation,
-}: Readonly<{ reservation: AdminReservationDetailData }>) {
+}: Readonly<{
+  paymentAttemptHistory: AdminPaymentSubmissionAttemptHistoryData;
+  reservation: AdminReservationDetailData;
+}>) {
   const router = useRouter();
   const { locale, messages } = useLocale();
   const reservationCopy = messages.admin.reservationsPage;
@@ -632,6 +640,9 @@ export function AdminReservationDetailPage({
               </CardContent>
             </Card>
           </div>
+          <AdminPaymentSubmissionAttemptHistory
+            history={paymentAttemptHistory}
+          />
         </TabsContent>
 
         <TabsContent

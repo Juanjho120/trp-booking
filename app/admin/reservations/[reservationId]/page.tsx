@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import {
-  AdminPaymentSubmissionAttemptHistory,
-  AdminReservationDetailPage,
-} from "@/features/admin";
+import { AdminReservationDetailPage } from "@/features/admin";
 import {
   getAdminPaymentSubmissionAttemptsForReservation,
   getAdminReservationDetail,
@@ -43,9 +40,9 @@ export default async function AdminReservationDetailRoute({
   }
 
   return (
-    <>
-      <AdminReservationDetailPage reservation={reservation} />
-      <AdminPaymentSubmissionAttemptHistory history={attemptHistory} />
-    </>
+    <AdminReservationDetailPage
+      paymentAttemptHistory={attemptHistory}
+      reservation={reservation}
+    />
   );
 }
