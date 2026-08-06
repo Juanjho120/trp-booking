@@ -4,7 +4,7 @@
 
 ```text
 Track: Pre-Phase-12 Improvement Track
-Status: In progress — Package A accepted and Package B implementation prepared
+Status: In progress — Packages A and B accepted; Package C implementation prepared
 Registered on: 2026-08-05
 Registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
 Current phase: No active implementation phase
@@ -29,8 +29,8 @@ Package D is deliberately deferred until the owner confirms the future financial
 | Package | Scope | Status | Phase 12 gate |
 | --- | --- | --- | --- |
 | A | Immediate public-flow and UI corrections | Completed and accepted | Required |
-| B | Durable payment-attempt history | Implementation prepared — validation pending | Required |
-| C | Admin cron console and generic execution history | Not started | Required |
+| B | Durable payment-attempt history | Completed and accepted | Required |
+| C | Admin cron console and generic execution history | Implementation prepared — validation pending | Required |
 | D | Future financial-policy and refundable-line contract | Deferred — awaiting financial policy decisions | Not part of the current implementation gate |
 | E | Public location and map configuration | Not started | Required |
 | F | Inbound/outbound email center and threaded replies | Not started | Required |
@@ -63,6 +63,8 @@ Package A was accepted at `ec1e6ce7f43099864788f28ae30a87214afe554d` after the i
 Implementation base: `ec1e6ce7f43099864788f28ae30a87214afe554d`.
 
 Implementation record: `docs/123-pre-phase-12-package-b-durable-payment-attempt-history.md`.
+
+Acceptance boundary: Package B was reported working and accepted at `795a95fec81bc7ff3f177304f2df3df35c4d59e6`, including the financial-tab placement correction for reservation-level attempt history.
 
 ### Goal
 
@@ -101,6 +103,10 @@ Admin payment and reservation views must expose total attempts, failed/rejected 
 
 ## Package C — Admin cron console and generic execution history
 
+Implementation base: `795a95fec81bc7ff3f177304f2df3df35c4d59e6`.
+
+Implementation record: `docs/124-pre-phase-12-package-c-admin-cron-console.md`.
+
 ### Covered jobs
 
 ```text
@@ -114,7 +120,7 @@ schedule-arrival-instructions
 
 Add a protected `/admin/cron-jobs` route where an authorized administrator can execute each registered job manually, inspect its normalized JSON result, and review paginated execution history.
 
-### Planned execution record
+### Implemented execution record
 
 The generic execution history must include at least:
 
@@ -250,10 +256,14 @@ Package D is outside the current gate because its business policies are intentio
 
 ## Current action
 
-Validate Package B against the complete initial-checkout, retry, lifecycle-adjustment, SDK-result, provider-result, sequence, concurrency, migration, and admin-history acceptance matrix. Do not start Package C until Package B is reported working and the required technical checks pass.
+Validate Package C against scheduled and manual execution, same-job overlap prevention, stale-run recovery, environment and actor persistence, normalized safe JSON, bilingual admin UI, pagination, and regression checks. Do not start Package E until Package C is reported working and the required technical checks pass.
 
 Package A accepted head: `ec1e6ce7f43099864788f28ae30a87214afe554d`.
 
 Package A implementation record: `docs/122-pre-phase-12-package-a-public-flow-and-ui-corrections.md`.
 
 Package B implementation record: `docs/123-pre-phase-12-package-b-durable-payment-attempt-history.md`.
+
+Package B accepted head: `795a95fec81bc7ff3f177304f2df3df35c4d59e6`.
+
+Package C implementation record: `docs/124-pre-phase-12-package-c-admin-cron-console.md`.

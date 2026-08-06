@@ -435,6 +435,7 @@ export const enMessages = {
         calendar: "Calendar",
         accommodations: "Accommodations",
         catalogs: "Catalogs",
+        cronJobs: "Cron jobs",
       },
     },
     statuses: {
@@ -1533,6 +1534,128 @@ export const enMessages = {
       },
       empty: {
         noResults: "No reservations match these filters.",
+      },
+    },
+    cronJobs: {
+      seoTitle: "Cron jobs | Admin | Tu Refugio Perfecto",
+      badge: "Scheduled operations",
+      title: "Cron jobs",
+      description:
+        "Run registered operational jobs manually and review the same durable history used by scheduled executions.",
+      sections: {
+        registeredJobs: "Registered jobs",
+        executionHistory: "Execution history",
+      },
+      historyDescription:
+        "Newest-first execution evidence for scheduled and manual runs. Results are normalized and exclude credentials, private URLs, and raw provider errors.",
+      jobs: {
+        SYNC_AIRBNB_CALENDARS: {
+          title: "Synchronize Airbnb calendars",
+          description:
+            "Imports all enabled Airbnb calendars and preserves the specialized calendar synchronization log.",
+        },
+        EXPIRE_PENDING_RESERVATION_HOLDS: {
+          title: "Expire pending reservation holds",
+          description:
+            "Expires overdue public reservation holds and overdue lifecycle-adjustment holds.",
+        },
+        PROCESS_EMAIL_NOTIFICATIONS: {
+          title: "Process email notifications",
+          description:
+            "Claims pending transactional notifications, sends eligible messages, and schedules safe retries.",
+        },
+        SCHEDULE_ARRIVAL_INSTRUCTIONS: {
+          title: "Schedule arrival instructions",
+          description:
+            "Creates or preserves arrival-instruction notifications for eligible upcoming stays.",
+        },
+      },
+      labels: {
+        schedule: "Schedule",
+        latestExecution: "Latest execution",
+        duration: "Duration",
+        trigger: "Trigger",
+        environment: "Business environment",
+        startedAt: "Started",
+        finishedAt: "Finished",
+        actor: "Actor",
+        systemActor: "System",
+        normalizedResult: "Normalized result",
+        errorCode: "Safe error code",
+        errorMessage: "Safe detail",
+        unavailable: "Unavailable",
+      },
+      actions: {
+        runNow: "Run now",
+        running: "Running...",
+        cancel: "Cancel",
+        confirmRun: "Run job",
+        previous: "Previous",
+        next: "Next",
+      },
+      statuses: {
+        NEVER_RUN: "Never run",
+        RUNNING: "Running",
+        SUCCESS: "Successful",
+        PARTIAL_SUCCESS: "Partial success",
+        FAILED: "Failed",
+      },
+      triggers: {
+        SCHEDULED: "Scheduled",
+        MANUAL: "Manual",
+      },
+      dialog: {
+        title: "Run cron job",
+        description:
+          "The job will execute immediately through the same instrumented runner used by the scheduled route.",
+        auditNote:
+          "This manual execution will store your admin identity, the current TRP environment, timing, normalized result, and safe diagnostics.",
+        overlapNote:
+          "Only one execution of this job may run at a time. Other registered jobs may continue independently.",
+      },
+      feedback: {
+        success: "The cron job completed successfully.",
+        partialSuccess:
+          "The cron job completed with partial results. Review the execution details.",
+        failed:
+          "The cron job finished in a failed state. Review the safe execution details before trying again.",
+      },
+      safeErrorMessages: {
+        CRON_JOB_STALE_EXECUTION_RECOVERED:
+          "The previous execution exceeded the safe running window and was recovered before this run started.",
+        AIRBNB_CALENDAR_SYNC_PARTIAL_SUCCESS:
+          "One or more Airbnb calendars could not be synchronized.",
+        AIRBNB_CALENDAR_SYNC_UNEXPECTED_ERROR:
+          "Airbnb calendar synchronization could not be completed.",
+        PENDING_HOLD_EXPIRATION_UNEXPECTED_ERROR:
+          "Pending reservation hold expiration could not be completed.",
+        EMAIL_DELIVERY_UNAVAILABLE:
+          "Email delivery is currently unavailable.",
+        EMAIL_NOTIFICATION_PROCESSING_PARTIAL_SUCCESS:
+          "One or more email notifications could not be processed.",
+        EMAIL_NOTIFICATION_PROCESSING_UNEXPECTED_ERROR:
+          "Email notification processing could not be completed.",
+        ARRIVAL_INSTRUCTION_SCHEDULING_PARTIAL_SUCCESS:
+          "One or more arrival-instruction notifications could not be scheduled.",
+        ARRIVAL_INSTRUCTION_SCHEDULING_UNEXPECTED_ERROR:
+          "Arrival-instruction scheduling could not be completed.",
+      },
+      pagination: {
+        page: "Page",
+        of: "of",
+        results: "executions",
+      },
+      empty: {
+        history: "No cron-job executions have been recorded yet.",
+      },
+      errors: {
+        ADMIN_UNAUTHORIZED: "Your session is not authorized for administration.",
+        INVALID_ADMIN_CRON_JOB_REQUEST:
+          "The selected cron job is not registered for manual execution.",
+        ADMIN_CRON_JOB_ALREADY_RUNNING:
+          "This cron job is already running. Wait for it to finish before starting another execution.",
+        ADMIN_CRON_JOB_UNEXPECTED_ERROR:
+          "The cron job could not be started. Please try again.",
       },
     },
     paymentsPage: {

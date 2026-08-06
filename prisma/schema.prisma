@@ -92,6 +92,31 @@ enum PaymentSubmissionStatus {
   @@map("payment_submission_status")
 }
 
+enum CronJobKey {
+  SYNC_AIRBNB_CALENDARS
+  EXPIRE_PENDING_RESERVATION_HOLDS
+  PROCESS_EMAIL_NOTIFICATIONS
+  SCHEDULE_ARRIVAL_INSTRUCTIONS
+
+  @@map("cron_job_key")
+}
+
+enum CronJobTriggerSource {
+  SCHEDULED
+  MANUAL
+
+  @@map("cron_job_trigger_source")
+}
+
+enum CronJobExecutionStatus {
+  RUNNING
+  SUCCESS
+  PARTIAL_SUCCESS
+  FAILED
+
+  @@map("cron_job_execution_status")
+}
+
 enum RefundAuthorizationType {
   LEGACY_UNSPECIFIED
   STANDARD_POLICY
@@ -289,6 +314,7 @@ model User {
   createdLifecycleRequests    ReservationLifecycleRequest[] @relation("LifecycleRequestCreatedByAdmin")
   reviewedLifecycleRequests   ReservationLifecycleRequest[] @relation("LifecycleRequestReviewedByAdmin")
   requestedRefunds            Refund[]                      @relation("RefundRequestedByAdmin")
+  cronJobExecutions           CronJobExecution[]            @relation("CronJobExecutionAdminActor")
   auditLogs                   AdminAuditLog[]
 
   @@map("users")
@@ -599,6 +625,30 @@ model PaymentSubmissionAttempt {
   @@index([status])
   @@index([source])
   @@map("payment_submission_attempts")
+}
+
+model CronJobExecution {
+  id                  String                 @id @default(cuid())
+  jobKey              CronJobKey             @map("job_key")
+  triggerSource       CronJobTriggerSource   @map("trigger_source")
+  adminActorId        String?                @map("admin_actor_id")
+  businessEnvironment String                 @map("business_environment") @db.VarChar(20)
+  status              CronJobExecutionStatus @default(RUNNING)
+  startedAt           DateTime               @default(now()) @map("started_at")
+  finishedAt          DateTime?              @map("finished_at")
+  durationMs          Int?                   @map("duration_ms")
+  resultJson          Json?                  @map("result_json")
+  errorCode           String?                @map("error_code") @db.VarChar(100)
+  errorMessage        String?                @map("error_message") @db.Text
+  createdAt           DateTime               @default(now()) @map("created_at")
+
+  adminActor User? @relation("CronJobExecutionAdminActor", fields: [adminActorId], references: [id], onDelete: SetNull)
+
+  @@index([jobKey, startedAt])
+  @@index([status, startedAt])
+  @@index([triggerSource, startedAt])
+  @@index([adminActorId])
+  @@map("cron_job_executions")
 }
 
 model Refund {

@@ -435,6 +435,7 @@ export const esMessages = {
         calendar: "Calendario",
         accommodations: "Alojamientos",
         catalogs: "Catálogos",
+        cronJobs: "Tareas programadas",
       },
     },
     statuses: {
@@ -1534,6 +1535,128 @@ export const esMessages = {
       },
       empty: {
         noResults: "No encontramos reservas con estos filtros.",
+      },
+    },
+    cronJobs: {
+      seoTitle: "Tareas programadas | Admin | Tu Refugio Perfecto",
+      badge: "Operaciones programadas",
+      title: "Tareas programadas",
+      description:
+        "Ejecuta manualmente los procesos operativos registrados y revisa el mismo historial persistente utilizado por las ejecuciones programadas.",
+      sections: {
+        registeredJobs: "Tareas registradas",
+        executionHistory: "Historial de ejecuciones",
+      },
+      historyDescription:
+        "Evidencia de ejecuciones programadas y manuales, ordenada de la más reciente a la más antigua. Los resultados están normalizados y no incluyen credenciales, URLs privadas ni errores sin procesar del proveedor.",
+      jobs: {
+        SYNC_AIRBNB_CALENDARS: {
+          title: "Sincronizar calendarios de Airbnb",
+          description:
+            "Importa todos los calendarios de Airbnb habilitados y conserva el log especializado de sincronización.",
+        },
+        EXPIRE_PENDING_RESERVATION_HOLDS: {
+          title: "Expirar holds de reservaciones pendientes",
+          description:
+            "Expira holds públicos vencidos y holds vencidos de ajustes del ciclo de vida.",
+        },
+        PROCESS_EMAIL_NOTIFICATIONS: {
+          title: "Procesar notificaciones por correo",
+          description:
+            "Adquiere notificaciones transaccionales pendientes, envía mensajes elegibles y programa reintentos seguros.",
+        },
+        SCHEDULE_ARRIVAL_INSTRUCTIONS: {
+          title: "Programar instrucciones de llegada",
+          description:
+            "Crea o conserva notificaciones de llegada para estadías próximas elegibles.",
+        },
+      },
+      labels: {
+        schedule: "Programación",
+        latestExecution: "Última ejecución",
+        duration: "Duración",
+        trigger: "Origen",
+        environment: "Ambiente de negocio",
+        startedAt: "Inicio",
+        finishedAt: "Finalización",
+        actor: "Actor",
+        systemActor: "Sistema",
+        normalizedResult: "Resultado normalizado",
+        errorCode: "Código seguro de error",
+        errorMessage: "Detalle seguro",
+        unavailable: "No disponible",
+      },
+      actions: {
+        runNow: "Ejecutar ahora",
+        running: "Ejecutando...",
+        cancel: "Cancelar",
+        confirmRun: "Ejecutar tarea",
+        previous: "Anterior",
+        next: "Siguiente",
+      },
+      statuses: {
+        NEVER_RUN: "Sin ejecuciones",
+        RUNNING: "Ejecutando",
+        SUCCESS: "Exitosa",
+        PARTIAL_SUCCESS: "Éxito parcial",
+        FAILED: "Fallida",
+      },
+      triggers: {
+        SCHEDULED: "Programada",
+        MANUAL: "Manual",
+      },
+      dialog: {
+        title: "Ejecutar tarea programada",
+        description:
+          "La tarea se ejecutará inmediatamente mediante el mismo runner instrumentado que utiliza la ruta programada.",
+        auditNote:
+          "Esta ejecución manual guardará tu identidad administrativa, el ambiente TRP actual, tiempos, resultado normalizado y diagnósticos seguros.",
+        overlapNote:
+          "Solo puede ejecutarse una instancia de esta tarea a la vez. Las demás tareas registradas pueden continuar de forma independiente.",
+      },
+      feedback: {
+        success: "La tarea programada finalizó correctamente.",
+        partialSuccess:
+          "La tarea finalizó con resultados parciales. Revisa el detalle de la ejecución.",
+        failed:
+          "La tarea terminó en estado fallido. Revisa los detalles seguros antes de intentarlo nuevamente.",
+      },
+      safeErrorMessages: {
+        CRON_JOB_STALE_EXECUTION_RECOVERED:
+          "La ejecución anterior superó la ventana segura y fue recuperada antes de iniciar esta tarea.",
+        AIRBNB_CALENDAR_SYNC_PARTIAL_SUCCESS:
+          "Uno o más calendarios de Airbnb no pudieron sincronizarse.",
+        AIRBNB_CALENDAR_SYNC_UNEXPECTED_ERROR:
+          "No se pudo completar la sincronización de calendarios de Airbnb.",
+        PENDING_HOLD_EXPIRATION_UNEXPECTED_ERROR:
+          "No se pudo completar la expiración de holds de reservaciones pendientes.",
+        EMAIL_DELIVERY_UNAVAILABLE:
+          "La entrega de correos no está disponible actualmente.",
+        EMAIL_NOTIFICATION_PROCESSING_PARTIAL_SUCCESS:
+          "Una o más notificaciones por correo no pudieron procesarse.",
+        EMAIL_NOTIFICATION_PROCESSING_UNEXPECTED_ERROR:
+          "No se pudo completar el procesamiento de notificaciones por correo.",
+        ARRIVAL_INSTRUCTION_SCHEDULING_PARTIAL_SUCCESS:
+          "Una o más notificaciones de instrucciones de llegada no pudieron programarse.",
+        ARRIVAL_INSTRUCTION_SCHEDULING_UNEXPECTED_ERROR:
+          "No se pudo completar la programación de instrucciones de llegada.",
+      },
+      pagination: {
+        page: "Página",
+        of: "de",
+        results: "ejecuciones",
+      },
+      empty: {
+        history: "Todavía no se han registrado ejecuciones de tareas programadas.",
+      },
+      errors: {
+        ADMIN_UNAUTHORIZED: "Tu sesión no tiene autorización administrativa.",
+        INVALID_ADMIN_CRON_JOB_REQUEST:
+          "La tarea seleccionada no está registrada para ejecución manual.",
+        ADMIN_CRON_JOB_ALREADY_RUNNING:
+          "Esta tarea ya se está ejecutando. Espera a que finalice antes de iniciar otra ejecución.",
+        ADMIN_CRON_JOB_UNEXPECTED_ERROR:
+          "No pudimos iniciar la tarea programada. Inténtalo nuevamente.",
       },
     },
     paymentsPage: {

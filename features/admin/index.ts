@@ -1,3 +1,4 @@
+export { AdminCronJobsPage } from "./components/admin-cron-jobs-page";
 export { AdminAccommodationContentEditor } from "./components/admin-accommodation-content-editor";
 export { AdminAccommodationManagement } from "./components/admin-accommodation-management";
 export { AdminAccommodationSettings } from "./components/admin-accommodation-settings";

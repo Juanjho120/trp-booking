@@ -16,7 +16,7 @@ Deferred — Intentionally postponed.
 ```text
 Current phase: No active implementation phase — Phase 11 is completed and Phase 12 is not activated
 Current subphase: None
-Current focus: validate Package B durable payment-attempt history across initial checkout, retry, lifecycle adjustment, provider result classification, and admin history
+Current focus: validate Package C admin cron console, overlap prevention, normalized execution results, and scheduled/manual execution history
 Last completed subphase: 11.7 Validation and documentation closure
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 11.6.5 acceptance: All 15 protected-history, ordering, relation, retry, ES/EN, responsive, security, and integrated criteria passed on 2026-08-05
@@ -31,14 +31,15 @@ Phase 11 accepted feature head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 Phase 11 closure document: docs/120-phase-11.7-validation-and-documentation-closure.md
 Next planned phase: Phase 12 — Production Readiness
 Phase 12 status: Not started; activation intentionally deferred until Packages A, B, C, E, and F are implemented and accepted or the gate is explicitly revised
-Pre-Phase-12 Improvement Track status: In progress — Package A accepted and Package B implementation prepared
+Pre-Phase-12 Improvement Track status: In progress — Packages A and B accepted; Package C implementation prepared
 Pre-Phase-12 Improvement Track registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
 Pre-Phase-12 Improvement Track plan: docs/121-pre-phase-12-improvement-track.md
 Package A implementation record: docs/122-pre-phase-12-package-a-public-flow-and-ui-corrections.md
 Package A status: Completed and accepted at ec1e6ce7f43099864788f28ae30a87214afe554d
 Package B implementation record: docs/123-pre-phase-12-package-b-durable-payment-attempt-history.md
-Package B status: Implementation prepared — validation pending
-Package C status: Not started — admin cron console and generic execution history
+Package B status: Completed and accepted at 795a95fec81bc7ff3f177304f2df3df35c4d59e6
+Package C implementation record: docs/124-pre-phase-12-package-c-admin-cron-console.md
+Package C status: Implementation prepared — validation pending
 Package D status: Deferred — awaiting financial policy decisions
 Package E status: Not started — public location and map configuration
 Package F status: Not started — inbound/outbound email center and threaded replies
@@ -926,4 +927,4 @@ Phase 11 rules:
 
 Status: **Not started**
 
-Activation note: Phase 12 is intentionally not active yet. The Pre-Phase-12 Improvement Track must complete its approved gate before an activation decision. Package A is accepted and Package B is implementation prepared with validation pending; this inter-phase work does not reopen Phase 11 or introduce production-readiness behavior.
+Activation note: Phase 12 is intentionally not active yet. The Pre-Phase-12 Improvement Track must complete its approved gate before an activation decision. Packages A and B are accepted, and Package C is implementation prepared with validation pending; this inter-phase work does not reopen Phase 11 or introduce production-readiness behavior.

@@ -14,6 +14,7 @@ import {
   Library,
   LogOut,
   Menu,
+  TimerReset,
 } from "lucide-react";
 
 import { BrandMark } from "@/components/brand";
@@ -61,6 +62,11 @@ const navigationItems = [
     href: "/admin/catalogs",
     key: "catalogs",
     icon: Library,
+  },
+  {
+    href: "/admin/cron-jobs",
+    key: "cronJobs",
+    icon: TimerReset,
   },
 ] as const;
 

@@ -7,8 +7,8 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 ```text
 Current phase: No active implementation phase — Phase 11 is completed and Phase 12 is not activated
 Current subphase: None
-Current focus: validate Package B durable payment-attempt history across initial checkout, retry, lifecycle adjustment, provider result classification, and admin history
-Last updated: 2026-08-05
+Current focus: validate Package C admin cron console, overlap prevention, normalized execution results, and scheduled/manual execution history
+Last updated: 2026-08-06
 Last completed subphase: 11.7 Validation and documentation closure
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 11.6.5 acceptance: All 15 protected-history, ordering, relation, retry, ES/EN, responsive, security, and integrated criteria passed on 2026-08-05
@@ -23,14 +23,15 @@ Phase 11 accepted feature head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 Phase 11 closure document: docs/120-phase-11.7-validation-and-documentation-closure.md
 Next planned phase: Phase 12 — Production Readiness
 Phase 12 status: Not started; activation intentionally deferred until Packages A, B, C, E, and F are implemented and accepted or the gate is explicitly revised
-Pre-Phase-12 Improvement Track status: In progress — Package A accepted and Package B implementation prepared
+Pre-Phase-12 Improvement Track status: In progress — Packages A and B accepted; Package C implementation prepared
 Pre-Phase-12 Improvement Track registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
 Pre-Phase-12 Improvement Track plan: docs/121-pre-phase-12-improvement-track.md
 Package A implementation record: docs/122-pre-phase-12-package-a-public-flow-and-ui-corrections.md
 Package A status: Completed and accepted at ec1e6ce7f43099864788f28ae30a87214afe554d
 Package B implementation record: docs/123-pre-phase-12-package-b-durable-payment-attempt-history.md
-Package B status: Implementation prepared — validation pending
-Package C status: Not started — admin cron console and generic execution history
+Package B status: Completed and accepted at 795a95fec81bc7ff3f177304f2df3df35c4d59e6
+Package C implementation record: docs/124-pre-phase-12-package-c-admin-cron-console.md
+Package C status: Implementation prepared — validation pending
 Package D status: Deferred — awaiting financial policy decisions
 Package E status: Not started — public location and map configuration
 Package F status: Not started — inbound/outbound email center and threaded replies
@@ -588,22 +589,24 @@ Phase 11.1 through 11.7 are completed and accepted as one coherent lifecycle fea
 Reservation owns stay and availability state; Payment and Refund own financial state; typed requests, holds, notifications, and bounded audit evidence preserve operational history.
 Guest self-service lifecycle mutation, raw provider exposure, card-data handling, hard deletion, history rewrite, and PMS behavior remain excluded.
 Phase 12 remains Not started by explicit decision.
-The registered Pre-Phase-12 Improvement Track is the active inter-phase work; Package A is accepted and Package B is implementation prepared with validation pending.
+The registered Pre-Phase-12 Improvement Track is the active inter-phase work; Packages A and B are accepted, and Package C is implementation prepared with validation pending.
 ```
 
 ## Inter-Phase Work — Pre-Phase-12 Improvement Track
 
-Status: **In progress — Package A accepted and Package B implementation prepared**
+Status: **In progress — Packages A and B accepted; Package C implementation prepared**
 
 ```text
 Packages A, B, C, E, and F are approved for implementation before the Phase 12 activation decision.
 Package D remains deferred until the owner confirms future financial policies.
 Package A completed the controlled pending-hold release path, check-out email output, branded 404 page, hidden Next.js development indicator, and shared Tilopay form-ready auto-scroll; it was accepted at ec1e6ce7f43099864788f28ae30a87214afe554d.
-Package B now has durable reservation-wide payment-submission sequencing, safe SDK/provider result classification, and paginated admin visibility; it remains validation pending.
+Package B was reported working and accepted at 795a95fec81bc7ff3f177304f2df3df35c4d59e6, including the financial-tab placement correction.
+Package C now has a protected cron console, shared instrumented runner, same-job overlap prevention, stale-run recovery, normalized safe JSON, and generic paginated execution history; it remains validation pending.
 Phase 12 remains Not started and is not activated by this work.
 Implementation plan: docs/121-pre-phase-12-improvement-track.md.
 Package A implementation record: docs/122-pre-phase-12-package-a-public-flow-and-ui-corrections.md.
 Package B implementation record: docs/123-pre-phase-12-package-b-durable-payment-attempt-history.md.
+Package C implementation record: docs/124-pre-phase-12-package-c-admin-cron-console.md.
 ```
 
 ## Continuity Notes for New Conversations

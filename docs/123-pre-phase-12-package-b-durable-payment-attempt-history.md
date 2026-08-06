@@ -5,9 +5,11 @@
 ```text
 Track: Pre-Phase-12 Improvement Track
 Package: B — Durable payment-attempt history
-Status: Implementation prepared — validation pending
+Status: Completed and accepted
 Implementation base: ec1e6ce7f43099864788f28ae30a87214afe554d
 Prepared on: 2026-08-05
+Accepted on: 2026-08-06
+Accepted head: 795a95fec81bc7ff3f177304f2df3df35c4d59e6
 Current phase: No active implementation phase
 Phase 11: Completed and accepted
 Phase 12: Not started and not activated
@@ -229,6 +231,6 @@ Environment-variable change: No
 31. Verify existing payment, SDK-event, reservation, lifecycle, refund, and operational-history views remain unchanged.
 32. Verify lint, production build, whitespace validation, and expected repository status.
 
-## Completion gate
+## Acceptance closure
 
-Do not mark Package B accepted or begin Package C until the complete matrix passes and the repository reports successful environment validation, Prisma generation/validation/migration status, lint, build, whitespace validation, and expected repository status.
+Package B was reported working and accepted on 2026-08-06 at `795a95fec81bc7ff3f177304f2df3df35c4d59e6`. The accepted head includes the follow-up that scopes the reservation-level attempt card to the **Payments and diagnostics** tab. Package C may proceed while Phase 12 remains inactive.
