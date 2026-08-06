@@ -4,8 +4,12 @@
 
 ```text
 Package: E — Public location and map configuration
-Status: Implementation prepared — validation pending
+Status: Completed and accepted
+Acceptance date: 2026-08-06
 Implementation base: 5a039aa451628e8ac9712c166bdd0a4605c8813f
+Implementation commit: 303a088b2de51f0819c92b982f09b0d44a4234f4
+Accepted functional head: 113ed0198cee66650556409066e996693bf6db35
+Closure record: docs/126-pre-phase-12-package-e-acceptance-closure.md
 Phase 12: Not started and not activated
 ```
 
@@ -129,4 +133,22 @@ git diff --check
 git status --short
 ```
 
-Package E remains pending until the owner reports the functional and technical matrix passing in local/test.
+## Acceptance result
+
+```text
+Acceptance date: 2026-08-06
+Status: Completed and accepted
+Public disabled/incomplete placeholder behavior: PASS
+Bilingual public location rendering: PASS
+Google Maps embed support: PASS
+OpenStreetMap embed support: PASS
+Protected administration and saved preview: PASS
+Optimistic-concurrency and audit-history contract: PASS
+Private arrival-instruction separation: PASS
+Responsive public and admin surfaces: PASS
+Configuration/history tab separation: PASS
+Scoped active-tab contrast correction: INCLUDED IN CLOSURE DELIVERY
+Existing reservation, payment, email, cron, availability, and lifecycle boundaries: PRESERVED
+```
+
+The owner reported the public Google Maps and OpenStreetMap behavior working and authorized Package E closure. The final contrast correction is intentionally scoped to `/admin/location` and uses the project `primary` and `primary-foreground` tokens without modifying the shared Tabs component. Package F remains unstarted until its strategy and operational decisions are reviewed and approved.

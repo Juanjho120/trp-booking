@@ -4,7 +4,7 @@
 
 ```text
 Track: Pre-Phase-12 Improvement Track
-Status: In progress — Packages A, B, and C accepted; Package E implementation prepared
+Status: In progress — Packages A, B, C, and E accepted; Package F decision review pending
 Registered on: 2026-08-05
 Registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
 Current phase: No active implementation phase
@@ -32,8 +32,8 @@ Package D is deliberately deferred until the owner confirms the future financial
 | B | Durable payment-attempt history | Completed and accepted | Required |
 | C | Admin cron console and generic execution history | Completed and accepted | Required |
 | D | Future financial-policy and refundable-line contract | Deferred — awaiting financial policy decisions | Not part of the current implementation gate |
-| E | Public location and map configuration | Implementation prepared — validation pending | Required |
-| F | Inbound/outbound email center and threaded replies | Not started | Required |
+| E | Public location and map configuration | Completed and accepted | Required |
+| F | Inbound/outbound email center and threaded replies | Not started — decision review pending | Required |
 
 ## Package A — Immediate public-flow and UI corrections
 
@@ -178,7 +178,7 @@ Implementation record: `docs/125-pre-phase-12-package-e-public-location-map.md`.
 
 Replace the public location placeholder with an explicitly configured map while keeping private arrival instructions separate.
 
-### Planned contract
+### Accepted contract
 
 Use public site-owned location configuration rather than automatically exposing `PropertyArrivalInstructions.exactAddress`.
 
@@ -190,6 +190,10 @@ The configuration must include an enabled flag, public address or location text,
 - Never publish private arrival instructions, access details, or secret operational content.
 - Keep a localized placeholder when public mapping is disabled or incomplete.
 - Provide protected admin management with optimistic concurrency and audit history.
+
+### Acceptance boundary
+
+Package E was accepted on 2026-08-06 after the owner reported the public Google Maps and OpenStreetMap flows working, the protected configuration and history surfaces were separated into explicit tabs, and the final scoped active-tab contrast correction was prepared. The accepted functional head is `113ed0198cee66650556409066e996693bf6db35`; the closure record is `docs/126-pre-phase-12-package-e-acceptance-closure.md`.
 
 ## Package F — Inbound/outbound email center and threaded replies
 
@@ -262,7 +266,7 @@ Package D is outside the current gate because its business policies are intentio
 
 ## Current action
 
-Validate Package E against disabled/incomplete placeholder behavior, enabled bilingual rendering, Google Maps and OpenStreetMap allowlists, rejection of arbitrary URLs and sensitive query parameters, optimistic concurrency, audit history, responsive admin/public UI, and strict separation from private arrival instructions. Do not start Package F until Package E is reported working and the required technical checks pass.
+Review Package F decisions before implementation: inbound provider and webhook boundary, test/production receiving domains, DNS/MX ownership, sender-address policy, thread and message persistence, reply semantics, attachment limits, reservation linking, search/filter behavior, and the reservation-detail transition. Do not implement Package F until the owner approves the strategy.
 
 Package A accepted head: `ec1e6ce7f43099864788f28ae30a87214afe554d`.
 
@@ -277,3 +281,7 @@ Package C implementation record: `docs/124-pre-phase-12-package-c-admin-cron-con
 Package C accepted head: `5a039aa451628e8ac9712c166bdd0a4605c8813f`.
 
 Package E implementation record: `docs/125-pre-phase-12-package-e-public-location-map.md`.
+
+Package E accepted functional head: `113ed0198cee66650556409066e996693bf6db35`.
+
+Package E closure record: `docs/126-pre-phase-12-package-e-acceptance-closure.md`.
