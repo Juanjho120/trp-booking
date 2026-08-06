@@ -91,6 +91,9 @@ export function AdminCronJobsPage({
   const [errorFeedback, setErrorFeedback] = useState<string | null>(null);
   const isBusy = runningJobSlug !== null;
 
+  const activeTabClassName =
+  "data-[state=active]:border-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md";
+
   function clearFeedback(): void {
     setSuccessFeedback(null);
     setErrorFeedback(null);
@@ -219,8 +222,8 @@ export function AdminCronJobsPage({
 
       <Tabs className="mt-6" defaultValue={initialTab}>
         <TabsList className="grid w-full grid-cols-2 sm:w-fit">
-          <TabsTrigger value="execution">{copy.tabs.execution}</TabsTrigger>
-          <TabsTrigger value="history">{copy.tabs.history}</TabsTrigger>
+          <TabsTrigger className={activeTabClassName} value="execution">{copy.tabs.execution}</TabsTrigger>
+          <TabsTrigger className={activeTabClassName} value="history">{copy.tabs.history}</TabsTrigger>
         </TabsList>
 
         <TabsContent className="mt-6" value="execution">
