@@ -4,7 +4,7 @@
 
 ```text
 Track: Pre-Phase-12 Improvement Track
-Status: In progress — Package A implementation prepared
+Status: In progress — Package A accepted and Package B implementation prepared
 Registered on: 2026-08-05
 Registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
 Current phase: No active implementation phase
@@ -28,8 +28,8 @@ Package D is deliberately deferred until the owner confirms the future financial
 
 | Package | Scope | Status | Phase 12 gate |
 | --- | --- | --- | --- |
-| A | Immediate public-flow and UI corrections | Implementation prepared — validation pending | Required |
-| B | Durable payment-attempt history | Not started | Required |
+| A | Immediate public-flow and UI corrections | Completed and accepted | Required |
+| B | Durable payment-attempt history | Implementation prepared — validation pending | Required |
 | C | Admin cron console and generic execution history | Not started | Required |
 | D | Future financial-policy and refundable-line contract | Deferred — awaiting financial policy decisions | Not part of the current implementation gate |
 | E | Public location and map configuration | Not started | Required |
@@ -56,19 +56,23 @@ Package D is deliberately deferred until the owner confirms the future financial
 
 ### Acceptance boundary
 
-Package A is complete only after the initial checkout, hold replacement, retry checkout, lifecycle-adjustment checkout, ES/EN templates, 404 page, responsive UI, and regression matrices pass.
+Package A was accepted at `ec1e6ce7f43099864788f28ae30a87214afe554d` after the initial checkout, hold replacement, retry checkout, lifecycle-adjustment checkout, ES/EN templates, 404 page, responsive UI, and regression checks were reported working.
 
 ## Package B — Durable payment-attempt history
+
+Implementation base: `ec1e6ce7f43099864788f28ae30a87214afe554d`.
+
+Implementation record: `docs/123-pre-phase-12-package-b-durable-payment-attempt-history.md`.
 
 ### Goal
 
 Persist every real payment submission attempt from the initial pending reservation, retry page, and lifecycle-adjustment payment page.
 
-### Planned contract
+### Implemented contract
 
 Introduce a durable payment-attempt entity related to `Payment` and `Reservation`, with an ordered attempt number, source, status, timestamps, safe provider result classification, environment, and locale.
 
-Suggested sources:
+Sources:
 
 ```text
 INITIAL_CHECKOUT
@@ -76,7 +80,7 @@ RETRY_PAGE
 LIFECYCLE_ADJUSTMENT
 ```
 
-Suggested statuses:
+Statuses:
 
 ```text
 STARTED
@@ -246,6 +250,10 @@ Package D is outside the current gate because its business policies are intentio
 
 ## Current action
 
-Validate Package A against the complete public-flow, email-template, 404, development-indicator, and Tilopay auto-scroll acceptance matrix. Do not mark Package A accepted or start Package B until the implementation is reported working and the required technical checks pass.
+Validate Package B against the complete initial-checkout, retry, lifecycle-adjustment, SDK-result, provider-result, sequence, concurrency, migration, and admin-history acceptance matrix. Do not start Package C until Package B is reported working and the required technical checks pass.
+
+Package A accepted head: `ec1e6ce7f43099864788f28ae30a87214afe554d`.
 
 Package A implementation record: `docs/122-pre-phase-12-package-a-public-flow-and-ui-corrections.md`.
+
+Package B implementation record: `docs/123-pre-phase-12-package-b-durable-payment-attempt-history.md`.

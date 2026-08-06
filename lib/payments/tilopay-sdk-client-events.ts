@@ -8,6 +8,7 @@ import {
   LifecycleAdjustmentHandoffError,
   resolveLifecycleAdjustmentClientEventReservation,
 } from "@/lib/payments/lifecycle-adjustment-handoff";
+import { finalizePaymentSubmissionAttemptFromSdkEvent } from "@/lib/payments/payment-submission-attempts";
 import type {
   TilopaySdkClientEventRequest,
   TilopaySdkClientEventType,
@@ -184,4 +185,15 @@ export async function recordTilopaySdkClientEvent(
       ${normalizeOptionalDate(input.preflightExpiresAt)}
     )
   `;
+
+  try {
+    await finalizePaymentSubmissionAttemptFromSdkEvent({
+      paymentId: input.paymentId,
+      eventType: input.eventType,
+      sdkMessage: input.sdkMessage,
+    });
+  } catch {
+    // The persisted SDK diagnostic remains authoritative if attempt-history
+    // classification cannot be updated. Guest payment behavior is unchanged.
+  }
 }

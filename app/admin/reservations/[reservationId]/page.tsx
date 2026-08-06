@@ -1,8 +1,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { AdminReservationDetailPage } from "@/features/admin";
-import { getAdminReservationDetail } from "@/lib/admin";
+import {
+  AdminPaymentSubmissionAttemptHistory,
+  AdminReservationDetailPage,
+} from "@/features/admin";
+import {
+  getAdminPaymentSubmissionAttemptsForReservation,
+  getAdminReservationDetail,
+} from "@/lib/admin";
 import { esMessages } from "@/messages";
 import type { AdminReservationDetailData } from "@/types/admin-reservation-detail";
 
@@ -26,13 +32,20 @@ export default async function AdminReservationDetailRoute({
   params,
 }: AdminReservationDetailRouteProps) {
   const { reservationId } = await params;
-  const reservation = (await getAdminReservationDetail(
-    reservationId,
-  )) as AdminReservationDetailData | null;
+  const [reservationResult, attemptHistory] = await Promise.all([
+    getAdminReservationDetail(reservationId),
+    getAdminPaymentSubmissionAttemptsForReservation(reservationId),
+  ]);
+  const reservation = reservationResult as AdminReservationDetailData | null;
 
   if (!reservation) {
     notFound();
   }
 
-  return <AdminReservationDetailPage reservation={reservation} />;
+  return (
+    <>
+      <AdminReservationDetailPage reservation={reservation} />
+      <AdminPaymentSubmissionAttemptHistory history={attemptHistory} />
+    </>
+  );
 }

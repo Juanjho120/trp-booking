@@ -5,8 +5,11 @@
 ```text
 Track: Pre-Phase-12 Improvement Track
 Package: A — Immediate public-flow and UI corrections
-Status: Implementation prepared — validation pending
+Status: Completed and accepted
 Implementation base: 5e2902df9a74057133bfa2f7f151c4ba3492c9f2
+Initial implementation commit: 2d98a51afae4a1c3cfbc6a7cbafe600303a2c0ec
+Accepted head: ec1e6ce7f43099864788f28ae30a87214afe554d
+Accepted on: 2026-08-05
 Prepared on: 2026-08-05
 Current phase: No active implementation phase
 Phase 11: Completed and accepted
@@ -47,10 +50,10 @@ Configured check-out time:
 - normalized and formatted for the guest locale
 
 Missing check-out time:
-- uses the existing localized first-option label from the accommodation editor
+- renders the centralized localized email value `Libre` / `Flexible`
 ```
 
-The implementation reuses the existing centralized labels from `messages/es.ts` and `messages/en.ts` through `emails/messages.ts`; no visible email copy is hardcoded in the templates.
+The implementation reads `checkOutTime` and `flexibleCheckOut` directly from the centralized email catalog in `messages/es.ts` and `messages/en.ts`; no visible email copy is hardcoded in the templates.
 
 ## 3. Branded 404 page
 
@@ -160,4 +163,4 @@ Environment-variable change: No
 
 ## Completion gate
 
-Do not mark Package A accepted or start Package B until the complete matrix passes and the repository reports successful environment validation, Prisma generation/validation/migration status, lint, build, whitespace validation, and expected repository status.
+Package A was accepted after the user completed the functional checks and confirmed the final corrected implementation was working at `ec1e6ce7f43099864788f28ae30a87214afe554d`. The accepted path includes the initial implementation plus the type-guard, centralized email-copy, accessible Sheet label, edit-specific error, countdown hydration, and development-indicator corrections.

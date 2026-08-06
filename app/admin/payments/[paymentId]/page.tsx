@@ -1,8 +1,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { AdminPaymentDetailPage } from "@/features/admin";
-import { getAdminPaymentDetail } from "@/lib/admin";
+import {
+  AdminPaymentDetailPage,
+  AdminPaymentSubmissionAttemptHistory,
+} from "@/features/admin";
+import {
+  getAdminPaymentDetail,
+  getAdminPaymentSubmissionAttemptsForPayment,
+} from "@/lib/admin";
 import { esMessages } from "@/messages";
 
 type AdminPaymentDetailRouteProps = Readonly<{
@@ -25,11 +31,19 @@ export default async function AdminPaymentDetailRoute({
   params,
 }: AdminPaymentDetailRouteProps) {
   const { paymentId } = await params;
-  const payment = await getAdminPaymentDetail(paymentId);
+  const [payment, attemptHistory] = await Promise.all([
+    getAdminPaymentDetail(paymentId),
+    getAdminPaymentSubmissionAttemptsForPayment(paymentId),
+  ]);
 
   if (!payment) {
     notFound();
   }
 
-  return <AdminPaymentDetailPage payment={payment} />;
+  return (
+    <>
+      <AdminPaymentDetailPage payment={payment} />
+      <AdminPaymentSubmissionAttemptHistory history={attemptHistory} />
+    </>
+  );
 }

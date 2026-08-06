@@ -1,6 +1,13 @@
+import { PaymentSubmissionSource } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { getTilopayEnv } from "@/lib/env/server";
+import { isLifecycleAdjustmentHandoffToken } from "@/lib/payments/lifecycle-adjustment-handoff";
+import {
+  createPaymentSubmissionAttempt,
+  PaymentSubmissionAttemptError,
+} from "@/lib/payments/payment-submission-attempts";
 import {
   TilopayPaymentPreflightError,
   validateTilopayPaymentPreflight,
@@ -49,10 +56,42 @@ function resolveErrorStatus(code: TilopayPaymentPreflightErrorCode): number {
     case "PAYMENT_ATTEMPT_AMOUNT_MISMATCH":
     case "PAYMENT_ATTEMPT_UNEXPECTED_ERROR":
       return 409;
+    case "PAYMENT_HANDOFF_UNEXPECTED_ERROR":
+      return 500;
     case "INVALID_PAYMENT_HANDOFF_REQUEST":
     default:
       return 400;
   }
+}
+
+function resolveSubmissionSource(
+  request: Request,
+  reservationReference: string,
+): PaymentSubmissionSource {
+  if (isLifecycleAdjustmentHandoffToken(reservationReference)) {
+    return PaymentSubmissionSource.LIFECYCLE_ADJUSTMENT;
+  }
+
+  const referer = request.headers.get("referer");
+
+  if (referer) {
+    try {
+      const refererUrl = new URL(referer);
+      const requestUrl = new URL(request.url);
+      const pathname = refererUrl.pathname.replace(/\/+$/, "");
+
+      if (
+        refererUrl.origin === requestUrl.origin &&
+        pathname === "/reservas/pago/reintentar"
+      ) {
+        return PaymentSubmissionSource.RETRY_PAGE;
+      }
+    } catch {
+      // An absent or malformed Referer is safe to classify as initial checkout.
+    }
+  }
+
+  return PaymentSubmissionSource.INITIAL_CHECKOUT;
 }
 
 export async function POST(request: Request) {
@@ -79,9 +118,25 @@ export async function POST(request: Request) {
     const tilopayPaymentPreflight = await validateTilopayPaymentPreflight(
       parsedRequest.data,
     );
+    await createPaymentSubmissionAttempt({
+      paymentId: tilopayPaymentPreflight.paymentId,
+      reservationReference: parsedRequest.data.reservationId,
+      source: resolveSubmissionSource(
+        request,
+        parsedRequest.data.reservationId,
+      ),
+      environment: getTilopayEnv().TILOPAY_ENVIRONMENT,
+      locale,
+      preflightExpiresAt: tilopayPaymentPreflight.expiresAt,
+    });
+
     return NextResponse.json({ tilopayPaymentPreflight }, { status: 200 });
   } catch (error) {
     if (error instanceof TilopayPaymentPreflightError) {
+      return toErrorResponse(error.code, locale, resolveErrorStatus(error.code));
+    }
+
+    if (error instanceof PaymentSubmissionAttemptError) {
       return toErrorResponse(error.code, locale, resolveErrorStatus(error.code));
     }
 

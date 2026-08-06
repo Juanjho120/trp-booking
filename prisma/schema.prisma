@@ -73,6 +73,25 @@ enum PaymentClientEventType {
   @@map("payment_client_event_type")
 }
 
+enum PaymentSubmissionSource {
+  INITIAL_CHECKOUT
+  RETRY_PAGE
+  LIFECYCLE_ADJUSTMENT
+
+  @@map("payment_submission_source")
+}
+
+enum PaymentSubmissionStatus {
+  STARTED
+  SUBMITTED
+  APPROVED
+  REJECTED
+  FAILED
+  UNKNOWN
+
+  @@map("payment_submission_status")
+}
+
 enum RefundAuthorizationType {
   LEGACY_UNSPECIFIED
   STANDARD_POLICY
@@ -464,13 +483,14 @@ model Reservation {
   createdAt           DateTime          @default(now()) @map("created_at")
   updatedAt           DateTime          @updatedAt @map("updated_at")
 
-  property            Property                      @relation(fields: [propertyId], references: [id], onDelete: Restrict)
-  guests              ReservationGuest[]
-  payments            Payment[]
-  paymentClientEvents PaymentClientEvent[]
-  calendarBlocks      CalendarBlock[]
-  emailNotifications  EmailNotification[]
-  lifecycleRequests   ReservationLifecycleRequest[]
+  property                  Property                      @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  guests                    ReservationGuest[]
+  payments                  Payment[]
+  paymentClientEvents       PaymentClientEvent[]
+  paymentSubmissionAttempts PaymentSubmissionAttempt[]
+  calendarBlocks            CalendarBlock[]
+  emailNotifications        EmailNotification[]
+  lifecycleRequests         ReservationLifecycleRequest[]
 
   @@index([propertyId, checkInDate, checkOutDate])
   @@index([status])
@@ -515,6 +535,7 @@ model Payment {
   sourceForLifecycleRequests ReservationLifecycleRequest[] @relation("LifecycleSourcePayment")
   refunds                    Refund[]
   clientEvents               PaymentClientEvent[]
+  submissionAttempts         PaymentSubmissionAttempt[]
 
   @@index([reservationId])
   @@index([lifecycleRequestId])
@@ -550,6 +571,34 @@ model PaymentClientEvent {
   @@index([eventType])
   @@index([createdAt])
   @@map("payment_client_events")
+}
+
+model PaymentSubmissionAttempt {
+  id                 String                  @id @default(cuid())
+  paymentId          String                  @map("payment_id")
+  reservationId      String                  @map("reservation_id")
+  attemptNumber      Int                     @map("attempt_number")
+  source             PaymentSubmissionSource
+  status             PaymentSubmissionStatus @default(STARTED)
+  environment        String                  @db.VarChar(40)
+  locale             String                  @db.VarChar(10)
+  safeResultCode     String?                 @map("safe_result_code") @db.VarChar(100)
+  preflightExpiresAt DateTime?               @map("preflight_expires_at")
+  startedAt          DateTime                @default(now()) @map("started_at")
+  submittedAt        DateTime?               @map("submitted_at")
+  completedAt        DateTime?               @map("completed_at")
+  createdAt          DateTime                @default(now()) @map("created_at")
+  updatedAt          DateTime                @updatedAt @map("updated_at")
+
+  payment     Payment     @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+  reservation Reservation @relation(fields: [reservationId], references: [id], onDelete: Restrict)
+
+  @@unique([reservationId, attemptNumber])
+  @@index([paymentId, startedAt])
+  @@index([reservationId, startedAt])
+  @@index([status])
+  @@index([source])
+  @@map("payment_submission_attempts")
 }
 
 model Refund {
@@ -717,7 +766,7 @@ model CalendarBlock {
   createdAt               DateTime            @default(now()) @map("created_at")
   updatedAt               DateTime            @updatedAt @map("updated_at")
   deletedAt               DateTime?           @map("deleted_at")
-  deletedById             String?             @map("deleted_by_id")
+  deletedById           String?             @map("deleted_by_id")
 
   property              Property               @relation(fields: [propertyId], references: [id], onDelete: Restrict)
   reservation           Reservation?           @relation(fields: [reservationId], references: [id], onDelete: SetNull)
@@ -831,8 +880,8 @@ model EmailNotification {
   parentNotificationId           String?                 @map("parent_notification_id")
   sourceNotificationId           String?                 @map("source_notification_id")
   requestedByAdminId             String?                 @map("requested_by_admin_id")
-  requestedAt                    DateTime?               @map("requested_at")
-  scheduledFor                   DateTime?               @map("scheduled_for")
+  requestedAt                    DateTime?                @map("requested_at")
+  scheduledFor                   DateTime?                @map("scheduled_for")
   reservationCheckInDateSnapshot DateTime?               @map("reservation_check_in_date_snapshot") @db.Date
   arrivalInstructionsVersion     DateTime?               @map("arrival_instructions_version")
   status                         EmailNotificationStatus @default(PENDING)
@@ -841,7 +890,7 @@ model EmailNotification {
   nextAttemptAt                  DateTime?               @map("next_attempt_at")
   processingStartedAt            DateTime?               @map("processing_started_at")
   providerMessageId              String?                 @map("provider_message_id")
-  sentAt                         DateTime?               @map("sent_at")
+  sentAt                         DateTime?                @map("sent_at")
   errorCode                      String?                 @map("error_code")
   errorMessage                   String?                 @map("error_message") @db.Text
   createdAt                      DateTime                @default(now()) @map("created_at")

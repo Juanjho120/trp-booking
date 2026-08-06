@@ -7,6 +7,7 @@ export { AdminCatalogManager } from "./components/admin-catalog-manager";
 export { AdminDashboardPage } from "./components/admin-dashboard-page";
 export { AdminPageHeader } from "./components/admin-page-header";
 export { AdminPaymentDetailPage } from "./components/admin-payment-detail-page";
+export { AdminPaymentSubmissionAttemptHistory } from "./components/admin-payment-submission-attempt-history";
 export { AdminPaymentsPageView } from "./components/admin-payments-page";
 export { AdminPropertyCalendarView } from "./components/admin-property-calendar";
 export { AdminPropertyPhotoManager } from "./components/admin-property-photo-manager";

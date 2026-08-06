@@ -4,11 +4,13 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { getTilopayEnv } from "@/lib/env/server";
 import { createLifecycleAdjustmentHandoffToken } from "@/lib/payments/lifecycle-adjustment-handoff";
+import { finalizePaymentSubmissionAttempt } from "@/lib/payments/payment-submission-attempts";
 import {
   processTilopayPaymentRedirect,
   TilopayPaymentResultError,
 } from "@/lib/payments/tilopay-payment-result";
 import type { ProcessedTilopayPaymentResult } from "@/types/tilopay-payment-result";
+import type { PaymentSubmissionAttemptStatus } from "@/types/payment-submission-attempt";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -148,14 +150,80 @@ async function resolveResultTargetUrl(
   return env.TILOPAY_CANCEL_URL;
 }
 
+function resultSafeCode(result: ProcessedTilopayPaymentResult): string {
+  if (result.paymentStatus === "APPROVED") {
+    return "TILOPAY_APPROVED";
+  }
+
+  switch (result.paymentIssue) {
+    case "invalid_cvv":
+      return "TILOPAY_INVALID_CVV";
+    case "insufficient_funds":
+      return "TILOPAY_INSUFFICIENT_FUNDS";
+    case "card_not_allowed_sensitive":
+      return "TILOPAY_CARD_NOT_ALLOWED";
+    default:
+      return "TILOPAY_REJECTED";
+  }
+}
+
+function errorAttemptStatus(
+  error: TilopayPaymentResultError,
+): PaymentSubmissionAttemptStatus {
+  if (error.code === "RESERVATION_CONFIRMATION_FAILED") {
+    return "APPROVED";
+  }
+
+  if (error.code === "TILOPAY_CONSULT_UNAVAILABLE") {
+    return "UNKNOWN";
+  }
+
+  return "FAILED";
+}
+
+async function recordSuccessfulResult(
+  result: ProcessedTilopayPaymentResult,
+): Promise<void> {
+  try {
+    await finalizePaymentSubmissionAttempt({
+      paymentId: result.paymentId,
+      status: result.paymentStatus,
+      safeResultCode: resultSafeCode(result),
+    });
+  } catch {
+    // Attempt-history persistence must never replace a validated payment result.
+  }
+}
+
+async function recordFailedResult(error: unknown): Promise<void> {
+  if (!(error instanceof TilopayPaymentResultError) || !error.paymentId) {
+    return;
+  }
+
+  try {
+    await finalizePaymentSubmissionAttempt({
+      paymentId: error.paymentId,
+      status: errorAttemptStatus(error),
+      safeResultCode:
+        error.code === "RESERVATION_CONFIRMATION_FAILED"
+          ? "PAYMENT_APPROVED_RESERVATION_CONFIRMATION_FAILED"
+          : error.code,
+    });
+  } catch {
+    // Attempt-history persistence must never replace the safe redirect behavior.
+  }
+}
+
 export async function GET(request: Request) {
   const env = getTilopayEnv();
 
   try {
     const result = await processTilopayPaymentRedirect(request.url);
+    await recordSuccessfulResult(result);
     const targetUrl = await resolveResultTargetUrl(request.url, env, result);
     return NextResponse.redirect(buildResultRedirectUrl(targetUrl, result));
   } catch (error) {
+    await recordFailedResult(error);
     const code =
       error instanceof TilopayPaymentResultError
         ? error.code

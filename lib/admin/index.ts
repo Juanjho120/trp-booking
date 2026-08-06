@@ -39,6 +39,10 @@ export {
   requestAdminEmailNotificationResend,
 } from "./email-notification-resend";
 export { getAdminPaymentDetail } from "./payment-detail";
+export {
+  getAdminPaymentSubmissionAttemptsForPayment,
+  getAdminPaymentSubmissionAttemptsForReservation,
+} from "./payment-submission-attempts";
 export { getAdminPaymentsPage } from "./payments";
 export {
   AdminCalendarError,
