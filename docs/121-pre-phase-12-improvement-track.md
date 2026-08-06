@@ -4,7 +4,7 @@
 
 ```text
 Track: Pre-Phase-12 Improvement Track
-Status: In progress — Packages A, B, C, and E accepted; Package F decision review pending
+Status: In progress — Packages A, B, C, and E accepted; Package F.1 strategy completed and accepted; F.2 not started
 Registered on: 2026-08-05
 Registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
 Current phase: No active implementation phase
@@ -33,7 +33,7 @@ Package D is deliberately deferred until the owner confirms the future financial
 | C | Admin cron console and generic execution history | Completed and accepted | Required |
 | D | Future financial-policy and refundable-line contract | Deferred — awaiting financial policy decisions | Not part of the current implementation gate |
 | E | Public location and map configuration | Completed and accepted | Required |
-| F | Inbound/outbound email center and threaded replies | Not started — decision review pending | Required |
+| F | Zoho guest correspondence and reservation navigation | In progress — F.1 strategy accepted; implementation not started | Required |
 
 ## Package A — Immediate public-flow and UI corrections
 
@@ -195,38 +195,115 @@ The configuration must include an enabled flag, public address or location text,
 
 Package E was accepted on 2026-08-06 after the owner reported the public Google Maps and OpenStreetMap flows working, the protected configuration and history surfaces were separated into explicit tabs, and the final scoped active-tab contrast correction was prepared. The accepted functional head is `113ed0198cee66650556409066e996693bf6db35`; the closure record is `docs/126-pre-phase-12-package-e-acceptance-closure.md`.
 
-## Package F — Inbound/outbound email center and threaded replies
+## Package F — Zoho guest correspondence and reservation navigation
+
+Strategy base: `cab7d71e34d230cdf49e013921764f6386d3fa2f`.
+
+Strategy record: `docs/127-pre-phase-12-package-f-zoho-guest-correspondence-strategy.md`.
 
 ### Goal
 
-Add a protected `/admin/emails` route with separate **Received** and **Sent** tabs, server-side filtering and pagination, expansion panels, reservation linking, and threaded replies.
+Keep TRP Booking focused on automatic transactional notification history while Zoho
+Mail Lite owns human guest correspondence.
 
-### Sender policy
-
-- Messages received at `reservas@...` are answered from `reservas@...`.
-- Messages received at `reservations@...` are answered from `reservations@...`.
-- Messages received at `admin@...` are answered from `admin@...`.
-- New Spanish guest conversations use `reservas@...`.
-- New English guest conversations use `reservations@...`.
-- `admin@...` remains for administrative communication and conversations originally addressed there.
-
-### Threading and persistence
-
-The implementation must preserve provider message identifiers and standard `Message-ID`, `In-Reply-To`, and `References` relationships. It must persist email threads, inbound/outbound messages, normalized bodies, delivery direction/status, optional reservation relation, dates, and safe attachment metadata.
-
-### Operational prerequisite
-
-Inbound delivery must not be activated until the production/test receiving-domain and MX strategy is confirmed. The implementation must not assume that Resend can take control of a domain already used by another mailbox provider without an explicit DNS decision.
-
-### Reservation-detail transition
-
-The existing reservation-detail email section remains available until the new email center is accepted. After acceptance, replace the embedded list with a link to:
+### Accepted architecture
 
 ```text
-/admin/emails?reservationId=<reservationId>
+- EmailNotification remains unchanged and continues to power automatic Resend
+  delivery, retries, manual recovery, safe diagnostics, and reservation history.
+- The protected reservation detail keeps its current transactional email section.
+- Human messages are received, searched, threaded, and answered in Zoho Mail.
+- Resend remains automatic-delivery-only and does not receive human inbound mail.
+- TRP Booking may add a protected action that opens or searches the guest
+  conversation in Zoho without ingesting mailbox contents.
 ```
 
-The redirect must apply the reservation filter automatically.
+### Zoho environment separation
+
+```text
+Local/test Zoho organization
+- Domain: juantzun.dev
+- Primary mailbox: admin@juantzun.dev
+- Aliases: reservas@juantzun.dev, reservations@juantzun.dev
+- Mobile client: Zoho Mail application
+
+Production Zoho organization
+- Domain: turefugioperfecto.com
+- Primary mailbox: admin@turefugioperfecto.com
+- Aliases: reservas@turefugioperfecto.com, reservations@turefugioperfecto.com
+- Mobile client: Zoho Mail application
+```
+
+The organizations, domains, credentials, OAuth clients, and mailbox identifiers must
+remain isolated.
+
+### Sender and reply policy
+
+```text
+Received at reservas@...     -> reply from reservas@...
+Received at reservations@... -> reply from reservations@...
+Received at admin@...        -> reply from admin@...
+```
+
+Resend continues sending automatic messages from the isolated `mail.` sending
+subdomains. Transactional Reply-To values route human responses to the corresponding
+Zoho aliases.
+
+### DNS boundary
+
+Root-domain MX records point to Zoho for human mailbox delivery. Existing Resend
+sending-domain records remain on `mail.trp-booking.juantzun.dev` in local/test and
+`mail.turefugioperfecto.com` in production. Do not place competing mailbox-provider MX
+records on the same root hostname.
+
+### Integration boundary
+
+```text
+- The Zoho mobile application requires no IMAP setup.
+- IMAP may be used by optional third-party email clients but not by TRP Booking.
+- No generic API key is expected; any future server integration uses Zoho OAuth 2.0.
+- Optional exact search uses read-only account/message scopes only.
+- No passwords, refresh tokens, message bodies, attachment bytes, or raw mailbox data
+  are stored in application tables.
+- No undocumented Zoho URLs or mailbox HTML scraping is allowed.
+```
+
+### Persistence boundary
+
+No `EmailThread`, `EmailMessage`, `EmailAttachment`, `InboundEmailEvent`, or
+`ReservationEmailConversation` model is approved. A minimal provider-thread
+identifier may be proposed later only after official Zoho capability validation and
+separate owner approval.
+
+### Revised subpackages
+
+```text
+F.1 Strategy, provider boundary, and environment contract — Completed and accepted
+F.2 Test Zoho Mail setup and DNS validation — Not started
+F.3 Transactional Reply-To alignment — Not started
+F.4 Reservation-to-Zoho navigation — Not started
+F.5 Integrated validation and documentation closure — Not started
+```
+
+### Non-goals
+
+```text
+- No /admin/emails mailbox clone.
+- No Resend inbound receiving or webhook.
+- No stored human email bodies, headers, threads, or attachments.
+- No application-owned reply composer.
+- No Zoho API send/reply/delete operations.
+- No removal of existing reservation transactional notification history.
+- No shared-inbox workflow, CRM, marketing, AI, help-desk, or PMS behavior.
+```
+
+### F.1 acceptance boundary
+
+Package F.1 was accepted on 2026-08-06 after the owner approved Zoho Mail Lite plus
+the Zoho mobile application, separate test and production organizations, one mailbox
+with Spanish/English aliases, Resend-only automation, preserved reservation-level
+transactional history, no inbound synchronization, and future protected
+reservation-to-Zoho navigation. No application code or provider credential was added.
 
 ## Implementation order
 
@@ -235,11 +312,11 @@ The redirect must apply the reservation filter automatically.
 2. Package B — Durable payment-attempt history
 3. Package C — Admin cron console and generic execution history
 4. Package E — Public location and map configuration
-5. Package F — Inbound/outbound email center and threaded replies
+5. Package F — Zoho guest correspondence and reservation navigation
 6. Package D — Revisit only after financial policies are confirmed
 ```
 
-Package F may begin with persistence and UI architecture before inbound DNS activation, but inbound production delivery cannot be accepted without the operational prerequisite.
+Package F proceeds through the accepted F.1 through F.5 sequence. F.2 configures the isolated test Zoho organization before any application change; no inbound synchronization or mailbox persistence is part of the approved package.
 
 ## Cross-package requirements
 
@@ -266,7 +343,7 @@ Package D is outside the current gate because its business policies are intentio
 
 ## Current action
 
-Review Package F decisions before implementation: inbound provider and webhook boundary, test/production receiving domains, DNS/MX ownership, sender-address policy, thread and message persistence, reply semantics, attachment limits, reservation linking, search/filter behavior, and the reservation-detail transition. Do not implement Package F until the owner approves the strategy.
+Begin Package F.2 with owner-assisted Zoho Mail Lite setup for juantzun.dev: verify the domain, review and configure root MX/SPF/DKIM/DMARC, create admin@ with reservas@ and reservations@ aliases, validate reply-from-alias behavior and mobile access, and preserve the independent Resend sending subdomain. Do not add TRP application code, OAuth credentials, or production Zoho configuration during F.2.
 
 Package A accepted head: `ec1e6ce7f43099864788f28ae30a87214afe554d`.
 
@@ -285,3 +362,8 @@ Package E implementation record: `docs/125-pre-phase-12-package-e-public-locatio
 Package E accepted functional head: `113ed0198cee66650556409066e996693bf6db35`.
 
 Package E closure record: `docs/126-pre-phase-12-package-e-acceptance-closure.md`.
+
+
+Package F strategy base head: `cab7d71e34d230cdf49e013921764f6386d3fa2f`.
+
+Package F strategy record: `docs/127-pre-phase-12-package-f-zoho-guest-correspondence-strategy.md`.

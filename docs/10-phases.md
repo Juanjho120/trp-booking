@@ -16,7 +16,7 @@ Deferred — Intentionally postponed.
 ```text
 Current phase: No active implementation phase — Phase 11 is completed and Phase 12 is not activated
 Current subphase: None
-Current focus: review and approve Package F strategy, persistence, sender policy, threading, provider boundaries, DNS/MX prerequisites, and reservation-detail transition before implementation
+Current focus: prepare Package F.2 test Zoho Mail setup for juantzun.dev after the accepted F.1 provider-boundary and environment strategy; no application implementation has started
 Last completed subphase: 11.7 Validation and documentation closure
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 11.6.5 acceptance: All 15 protected-history, ordering, relation, retry, ES/EN, responsive, security, and integrated criteria passed on 2026-08-05
@@ -31,7 +31,7 @@ Phase 11 accepted feature head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 Phase 11 closure document: docs/120-phase-11.7-validation-and-documentation-closure.md
 Next planned phase: Phase 12 — Production Readiness
 Phase 12 status: Not started; activation intentionally deferred until Packages A, B, C, E, and F are implemented and accepted or the gate is explicitly revised
-Pre-Phase-12 Improvement Track status: In progress — Packages A, B, C, and E accepted; Package F decision review pending
+Pre-Phase-12 Improvement Track status: In progress — Packages A, B, C, and E accepted; Package F.1 strategy completed and accepted; F.2 not started
 Pre-Phase-12 Improvement Track registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
 Pre-Phase-12 Improvement Track plan: docs/121-pre-phase-12-improvement-track.md
 Package A implementation record: docs/122-pre-phase-12-package-a-public-flow-and-ui-corrections.md
@@ -45,7 +45,10 @@ Package E implementation record: docs/125-pre-phase-12-package-e-public-location
 Package E status: Completed and accepted on 2026-08-06
 Package E accepted functional head: 113ed0198cee66650556409066e996693bf6db35
 Package E closure document: docs/126-pre-phase-12-package-e-acceptance-closure.md
-Package F status: Not started — strategy and decisions pending owner review
+Package F status: In progress — F.1 strategy completed and accepted; implementation not started
+Package F strategy base head: cab7d71e34d230cdf49e013921764f6386d3fa2f
+Package F strategy document: docs/127-pre-phase-12-package-f-zoho-guest-correspondence-strategy.md
+Package F next subpackage: F.2 Test Zoho Mail setup and DNS validation — Not started
 11.5.1 strategy base commit: 3d1487f31ca74fc5a41573b4ab206ce9ad838bb5
 11.5.1 strategy document: docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md
 11.5.1 accepted commit: e0b77658c74ee2d7a30c96f529d5f7f4451ab045
@@ -930,4 +933,4 @@ Phase 11 rules:
 
 Status: **Not started**
 
-Activation note: Phase 12 is intentionally not active yet. The Pre-Phase-12 Improvement Track must complete its approved gate before an activation decision. Packages A and B are accepted, and Package C is implementation prepared with validation pending; this inter-phase work does not reopen Phase 11 or introduce production-readiness behavior.
+Activation note: Phase 12 is intentionally not active yet. The Pre-Phase-12 Improvement Track must complete its approved gate before an activation decision. Packages A, B, C, and E are accepted; Package F.1 strategy is completed and accepted, while F.2 through F.5 remain not started. This inter-phase work does not reopen Phase 11 or activate production-readiness behavior.

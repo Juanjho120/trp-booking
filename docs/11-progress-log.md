@@ -7,7 +7,7 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 ```text
 Current phase: No active implementation phase — Phase 11 is completed and Phase 12 is not activated
 Current subphase: None
-Current focus: review and approve Package F strategy, persistence, sender policy, threading, provider boundaries, DNS/MX prerequisites, and reservation-detail transition before implementation
+Current focus: prepare Package F.2 test Zoho Mail setup for juantzun.dev after the accepted F.1 provider-boundary and environment strategy; no application implementation has started
 Last updated: 2026-08-06
 Last completed subphase: 11.7 Validation and documentation closure
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
@@ -23,7 +23,7 @@ Phase 11 accepted feature head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 Phase 11 closure document: docs/120-phase-11.7-validation-and-documentation-closure.md
 Next planned phase: Phase 12 — Production Readiness
 Phase 12 status: Not started; activation intentionally deferred until Packages A, B, C, E, and F are implemented and accepted or the gate is explicitly revised
-Pre-Phase-12 Improvement Track status: In progress — Packages A, B, C, and E accepted; Package F decision review pending
+Pre-Phase-12 Improvement Track status: In progress — Packages A, B, C, and E accepted; Package F.1 strategy completed and accepted; F.2 not started
 Pre-Phase-12 Improvement Track registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
 Pre-Phase-12 Improvement Track plan: docs/121-pre-phase-12-improvement-track.md
 Package A implementation record: docs/122-pre-phase-12-package-a-public-flow-and-ui-corrections.md
@@ -37,7 +37,10 @@ Package E implementation record: docs/125-pre-phase-12-package-e-public-location
 Package E status: Completed and accepted on 2026-08-06
 Package E accepted functional head: 113ed0198cee66650556409066e996693bf6db35
 Package E closure document: docs/126-pre-phase-12-package-e-acceptance-closure.md
-Package F status: Not started — strategy and decisions pending owner review
+Package F status: In progress — F.1 strategy completed and accepted; implementation not started
+Package F strategy base head: cab7d71e34d230cdf49e013921764f6386d3fa2f
+Package F strategy document: docs/127-pre-phase-12-package-f-zoho-guest-correspondence-strategy.md
+Package F next subpackage: F.2 Test Zoho Mail setup and DNS validation — Not started
 11.5.1 strategy base commit: 3d1487f31ca74fc5a41573b4ab206ce9ad838bb5
 11.5.1 strategy document: docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md
 11.5.1 accepted commit: e0b77658c74ee2d7a30c96f529d5f7f4451ab045
@@ -592,24 +595,26 @@ Phase 11.1 through 11.7 are completed and accepted as one coherent lifecycle fea
 Reservation owns stay and availability state; Payment and Refund own financial state; typed requests, holds, notifications, and bounded audit evidence preserve operational history.
 Guest self-service lifecycle mutation, raw provider exposure, card-data handling, hard deletion, history rewrite, and PMS behavior remain excluded.
 Phase 12 remains Not started by explicit decision.
-The registered Pre-Phase-12 Improvement Track is the active inter-phase work; Packages A and B are accepted, and Package C is implementation prepared with validation pending.
+The registered Pre-Phase-12 Improvement Track is the active inter-phase work; Packages A, B, C, and E are accepted, and Package F.1 strategy is completed and accepted while implementation remains not started.
 ```
 
 ## Inter-Phase Work — Pre-Phase-12 Improvement Track
 
-Status: **In progress — Packages A and B accepted; Package C implementation prepared**
+Status: **In progress — Packages A, B, C, and E accepted; Package F.1 strategy accepted**
 
 ```text
-Packages A, B, C, E, and F are approved for implementation before the Phase 12 activation decision.
+Packages A, B, C, E, and F remain the approved Phase 12 gate.
 Package D remains deferred until the owner confirms future financial policies.
-Package A completed the controlled pending-hold release path, check-out email output, branded 404 page, hidden Next.js development indicator, and shared Tilopay form-ready auto-scroll; it was accepted at ec1e6ce7f43099864788f28ae30a87214afe554d.
-Package B was reported working and accepted at 795a95fec81bc7ff3f177304f2df3df35c4d59e6, including the financial-tab placement correction.
-Package C now has a protected cron console, shared instrumented runner, same-job overlap prevention, stale-run recovery, normalized safe JSON, and generic paginated execution history; it remains validation pending.
+Package A was accepted at ec1e6ce7f43099864788f28ae30a87214afe554d.
+Package B was accepted at 795a95fec81bc7ff3f177304f2df3df35c4d59e6.
+Package C was accepted at 5a039aa451628e8ac9712c166bdd0a4605c8813f.
+Package E was accepted on 2026-08-06 with closure record docs/126-pre-phase-12-package-e-acceptance-closure.md.
+Package F.1 replaces the application-owned inbound/outbound mailbox proposal with Zoho Mail Lite for human correspondence, Resend for automatic transactional delivery, preserved reservation-level EmailNotification history, and a future protected reservation-to-Zoho navigation action.
+Package F.1 was accepted on 2026-08-06 at strategy base cab7d71e34d230cdf49e013921764f6386d3fa2f.
+Package F.2 through F.5 remain not started; no Package F application code, schema, migration, dependency, environment secret, or DNS change has been introduced.
 Phase 12 remains Not started and is not activated by this work.
 Implementation plan: docs/121-pre-phase-12-improvement-track.md.
-Package A implementation record: docs/122-pre-phase-12-package-a-public-flow-and-ui-corrections.md.
-Package B implementation record: docs/123-pre-phase-12-package-b-durable-payment-attempt-history.md.
-Package C implementation record: docs/124-pre-phase-12-package-c-admin-cron-console.md.
+Package F strategy: docs/127-pre-phase-12-package-f-zoho-guest-correspondence-strategy.md.
 ```
 
 ## Continuity Notes for New Conversations
@@ -663,6 +668,11 @@ docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md
 docs/120-phase-11.7-validation-and-documentation-closure.md
 docs/121-pre-phase-12-improvement-track.md
 docs/122-pre-phase-12-package-a-public-flow-and-ui-corrections.md
+docs/123-pre-phase-12-package-b-durable-payment-attempt-history.md
+docs/124-pre-phase-12-package-c-admin-cron-console.md
+docs/125-pre-phase-12-package-e-public-location-map.md
+docs/126-pre-phase-12-package-e-acceptance-closure.md
+docs/127-pre-phase-12-package-f-zoho-guest-correspondence-strategy.md
 lib/admin/reservation-cancellation.ts
 lib/admin/reservation-date-mutation.ts
 lib/reservations/date-mutation-completion.ts
