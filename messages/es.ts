@@ -134,6 +134,7 @@ export const esMessages = {
         "Cerca de restaurantes y tiendas",
       ],
       mapTitle: "Ubicación general",
+      mapFrameTitle: "Mapa interactivo con la ubicación pública de Tu Refugio Perfecto",
       mapDescription:
         "La dirección exacta y las instrucciones detalladas se comparten después de confirmar la reserva.",
     },
@@ -434,6 +435,7 @@ export const esMessages = {
         payments: "Pagos",
         calendar: "Calendario",
         accommodations: "Alojamientos",
+        location: "Ubicación pública",
         catalogs: "Catálogos",
         cronJobs: "Tareas programadas",
       },
@@ -1166,11 +1168,14 @@ export const esMessages = {
           PAYMENT_FAILED: "Pago fallido",
           RESERVATION_CANCELLED: "Reserva cancelada",
           RESERVATION_DATES_UPDATED: "Fechas de reserva actualizadas",
-          ADMIN_RESERVATION_DATES_UPDATED: "Fechas de reserva actualizadas para administración",
+          ADMIN_RESERVATION_DATES_UPDATED:
+            "Fechas de reserva actualizadas para administración",
           STAY_EXTENSION_CONFIRMED: "Extensión de estadía confirmada",
-          ADMIN_STAY_EXTENSION_CONFIRMED: "Extensión de estadía confirmada para administración",
+          ADMIN_STAY_EXTENSION_CONFIRMED:
+            "Extensión de estadía confirmada para administración",
           REFUND_PROCESSED: "Reembolso procesado",
-          ADMIN_REFUND_PROCESSED: "Reembolso procesado para administración",
+          ADMIN_REFUND_PROCESSED:
+            "Reembolso procesado para administración",
           ARRIVAL_INSTRUCTIONS: "Instrucciones de llegada",
           ADMIN_NEW_RESERVATION: "Nueva reserva para administración",
           DATE_CHANGE_PAYMENT_REQUIRED:
@@ -1535,6 +1540,86 @@ export const esMessages = {
       },
       empty: {
         noResults: "No encontramos reservas con estos filtros.",
+      },
+    },
+    publicLocation: {
+      seoTitle: "Ubicación pública | Admin | Tu Refugio Perfecto",
+      badge: "Sitio público",
+      title: "Ubicación pública y mapa",
+      description:
+        "Administra la ubicación aproximada visible antes de reservar sin exponer instrucciones privadas de llegada ni datos de acceso.",
+      sections: {
+        configuration: "Configuración pública",
+        preview: "Vista pública guardada",
+        history: "Historial de cambios",
+      },
+      labels: {
+        publicLocationEs: "Texto público de ubicación en español",
+        publicLocationEn: "Texto público de ubicación en inglés",
+        mapEmbedUrl: "URL HTTPS para embeber el mapa",
+      },
+      placeholders: {
+        publicLocationEs:
+          "Ejemplo: Panajachel, Sololá, cerca de Calle Santander y del Lago de Atitlán.",
+        publicLocationEn:
+          "Example: Panajachel, Sololá, near Calle Santander and Lake Atitlán.",
+        mapEmbedUrl:
+          "https://www.google.com/maps/embed?pb=...",
+      },
+      actions: {
+        enable: "Activar mapa público",
+        disable: "Desactivar mapa público",
+        save: "Guardar ubicación pública",
+        saving: "Guardando...",
+      },
+      states: {
+        enabled: "Activa",
+        disabled: "Inactiva",
+      },
+      notes: {
+        publicOnly:
+          "Esta información es pública y pertenece al sitio completo. Nunca se copia desde las instrucciones de llegada de los alojamientos.",
+        allowedProviders:
+          "Embeds permitidos: enlaces compartidos de Google Maps y exportaciones de OpenStreetMap. Pega únicamente la URL HTTPS, nunca HTML de iframe ni claves de API.",
+        securityTitle: "Mantén separados los datos privados de llegada",
+        securityDescription:
+          "No ingreses la dirección exacta para huéspedes, códigos de acceso, contraseñas de Wi-Fi, datos de caja de llaves ni instrucciones operativas. Esa información permanece en el flujo protegido de llegada.",
+      },
+      preview: {
+        savedNote:
+          "La vista previa utiliza únicamente la última configuración guardada y validada por el servidor, no los valores sin guardar del formulario.",
+        frameTitle: "Vista previa del mapa público guardado",
+        unavailable:
+          "El mapa público está desactivado o la configuración guardada está incompleta. El sitio público conservará su placeholder localizado.",
+      },
+      history: {
+        description:
+          "Se conservan los últimos 20 cambios administrativos con actor, fecha, campos modificados y estado de activación.",
+        systemActor: "Sistema",
+        before: "Estado anterior",
+        after: "Estado nuevo",
+        empty: "Todavía no se han registrado cambios de ubicación pública.",
+        fields: {
+          enabled: "Activación",
+          publicLocationEs: "Texto en español",
+          publicLocationEn: "Texto en inglés",
+          mapEmbedUrl: "URL del mapa",
+        },
+      },
+      success: {
+        saved: "La ubicación pública se guardó correctamente.",
+      },
+      errors: {
+        ADMIN_UNAUTHORIZED:
+          "Tu sesión no está autorizada para administrar la ubicación pública.",
+        INVALID_ADMIN_PUBLIC_LOCATION_REQUEST:
+          "Revisa ambos textos públicos y la URL del mapa antes de guardar.",
+        ADMIN_PUBLIC_LOCATION_MAP_URL_NOT_ALLOWED:
+          "Usa una URL HTTPS de embed de Google Maps u OpenStreetMap sin credenciales, claves de API, tokens ni HTML de iframe.",
+        ADMIN_PUBLIC_LOCATION_STALE:
+          "La ubicación pública cambió después de que abriste esta página. Recarga antes de guardar nuevamente.",
+        ADMIN_PUBLIC_LOCATION_UNEXPECTED_ERROR:
+          "No pudimos guardar la ubicación pública. Inténtalo nuevamente.",
       },
     },
     cronJobs: {

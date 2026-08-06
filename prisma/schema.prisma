@@ -320,6 +320,18 @@ model User {
   @@map("users")
 }
 
+model PublicLocationSettings {
+  id               String   @id @default("site")
+  enabled          Boolean  @default(false)
+  publicLocationEs String?  @map("public_location_es") @db.Text
+  publicLocationEn String?  @map("public_location_en") @db.Text
+  mapEmbedUrl      String?  @map("map_embed_url") @db.Text
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@map("public_location_settings")
+}
+
 model Property {
   id                    String         @id @default(cuid())
   nameEs                String         @map("name_es")

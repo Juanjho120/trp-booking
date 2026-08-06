@@ -7,7 +7,7 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 ```text
 Current phase: No active implementation phase — Phase 11 is completed and Phase 12 is not activated
 Current subphase: None
-Current focus: validate Package C admin cron console, overlap prevention, normalized execution results, and scheduled/manual execution history
+Current focus: validate Package E public location persistence, map-provider allowlist, protected administration, audit history, bilingual public rendering, and private-arrival-data separation
 Last updated: 2026-08-06
 Last completed subphase: 11.7 Validation and documentation closure
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
@@ -23,7 +23,7 @@ Phase 11 accepted feature head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 Phase 11 closure document: docs/120-phase-11.7-validation-and-documentation-closure.md
 Next planned phase: Phase 12 — Production Readiness
 Phase 12 status: Not started; activation intentionally deferred until Packages A, B, C, E, and F are implemented and accepted or the gate is explicitly revised
-Pre-Phase-12 Improvement Track status: In progress — Packages A and B accepted; Package C implementation prepared
+Pre-Phase-12 Improvement Track status: In progress — Packages A, B, and C accepted; Package E implementation prepared
 Pre-Phase-12 Improvement Track registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
 Pre-Phase-12 Improvement Track plan: docs/121-pre-phase-12-improvement-track.md
 Package A implementation record: docs/122-pre-phase-12-package-a-public-flow-and-ui-corrections.md
@@ -31,9 +31,10 @@ Package A status: Completed and accepted at ec1e6ce7f43099864788f28ae30a87214afe
 Package B implementation record: docs/123-pre-phase-12-package-b-durable-payment-attempt-history.md
 Package B status: Completed and accepted at 795a95fec81bc7ff3f177304f2df3df35c4d59e6
 Package C implementation record: docs/124-pre-phase-12-package-c-admin-cron-console.md
-Package C status: Implementation prepared — validation pending
+Package C status: Completed and accepted at 5a039aa451628e8ac9712c166bdd0a4605c8813f
 Package D status: Deferred — awaiting financial policy decisions
-Package E status: Not started — public location and map configuration
+Package E implementation record: docs/125-pre-phase-12-package-e-public-location-map.md
+Package E status: Implementation prepared — validation pending
 Package F status: Not started — inbound/outbound email center and threaded replies
 11.5.1 strategy base commit: 3d1487f31ca74fc5a41573b4ab206ce9ad838bb5
 11.5.1 strategy document: docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md

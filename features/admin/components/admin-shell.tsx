@@ -13,6 +13,7 @@ import {
   LayoutDashboard,
   Library,
   LogOut,
+  MapPinned,
   Menu,
   TimerReset,
 } from "lucide-react";
@@ -57,6 +58,11 @@ const navigationItems = [
     href: "/admin/accommodations",
     key: "accommodations",
     icon: Home,
+  },
+  {
+    href: "/admin/location",
+    key: "location",
+    icon: MapPinned,
   },
   {
     href: "/admin/catalogs",

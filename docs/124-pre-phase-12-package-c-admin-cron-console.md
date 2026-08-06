@@ -5,7 +5,9 @@
 ```text
 Track: Pre-Phase-12 Improvement Track
 Package: C — Admin cron console and generic execution history
-Status: Implementation prepared — validation pending
+Status: Completed and accepted
+Accepted head: `5a039aa451628e8ac9712c166bdd0a4605c8813f`
+
 Implementation base: 795a95fec81bc7ff3f177304f2df3df35c4d59e6
 Prepared on: 2026-08-06
 Current phase: No active implementation phase
@@ -174,6 +176,8 @@ The migration adds three enums, the `cron_job_executions` table, indexes, the ad
 21. Verify mobile layout, keyboard navigation, focus behavior, Sheet accessibility, and snackbar dismissal.
 22. Run lint, build, `git diff --check`, and repository-status validation.
 
-## Completion gate
+## Acceptance boundary
 
-Do not mark Package C accepted or start Package E until the full matrix passes in the target environment and the implementation is committed. Phase 12 remains inactive throughout validation.
+Package C was reported working and accepted at `5a039aa451628e8ac9712c166bdd0a4605c8813f`. This accepted boundary includes scheduled and manual execution history, same-job overlap protection, stale-run recovery, bilingual administration, pagination, normalized safe JSON, and the responsive status-badge alignment correction.
+
+Package E may proceed from that accepted head. Phase 12 remains inactive.

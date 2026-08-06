@@ -1,5 +1,10 @@
 export { getAdminCronJobsPage } from "./cron-jobs";
 export {
+  AdminPublicLocationError,
+  getAdminPublicLocationPage,
+  updateAdminPublicLocation,
+} from "./public-location";
+export {
   AdminCatalogError,
   createAdminCatalogAmenity,
   createAdminCatalogHouseRule,

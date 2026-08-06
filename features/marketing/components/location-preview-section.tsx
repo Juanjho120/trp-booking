@@ -3,9 +3,19 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLocale } from "@/features/i18n";
+import type { PublicLocationSettings } from "@/types/public-location";
 
-export function LocationPreviewSection() {
-  const { messages } = useLocale();
+export function LocationPreviewSection({
+  publicLocation,
+}: Readonly<{
+  publicLocation: PublicLocationSettings | null;
+}>) {
+  const { locale, messages } = useLocale();
+  const publicLocationText = publicLocation
+    ? locale === "en"
+      ? publicLocation.publicLocationEn
+      : publicLocation.publicLocationEs
+    : null;
 
   return (
     <section className="bg-muted/35 py-20" id="ubicacion">
@@ -34,16 +44,42 @@ export function LocationPreviewSection() {
 
         <Card className="overflow-hidden rounded-[2rem] border-border/70 bg-card shadow-sm">
           <CardContent className="p-0">
-            <div className="flex aspect-[4/3] items-end bg-[linear-gradient(135deg,_hsl(var(--primary)/0.2),_hsl(var(--muted)),_hsl(var(--background)))] p-6">
-              <div className="rounded-[1.5rem] border border-border/70 bg-background/90 p-5 shadow-lg backdrop-blur">
-                <p className="text-sm font-semibold text-foreground">
-                  {messages.home.location.mapTitle}
-                </p>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  {messages.home.location.mapDescription}
-                </p>
+            {publicLocation ? (
+              <>
+                <div className="aspect-[4/3] overflow-hidden bg-muted">
+                  <iframe
+                    allowFullScreen
+                    className="h-full w-full border-0"
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    src={publicLocation.mapEmbedUrl}
+                    title={messages.home.location.mapFrameTitle}
+                  />
+                </div>
+                <div className="border-t border-border/70 p-5 sm:p-6">
+                  <p className="text-sm font-semibold text-foreground">
+                    {messages.home.location.mapTitle}
+                  </p>
+                  <p className="mt-2 text-sm leading-6 text-foreground">
+                    {publicLocationText}
+                  </p>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    {messages.home.location.mapDescription}
+                  </p>
+                </div>
+              </>
+            ) : (
+              <div className="flex aspect-[4/3] items-end bg-[linear-gradient(135deg,_hsl(var(--primary)/0.2),_hsl(var(--muted)),_hsl(var(--background)))] p-6">
+                <div className="rounded-[1.5rem] border border-border/70 bg-background/90 p-5 shadow-lg backdrop-blur">
+                  <p className="text-sm font-semibold text-foreground">
+                    {messages.home.location.mapTitle}
+                  </p>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    {messages.home.location.mapDescription}
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
           </CardContent>
         </Card>
       </div>

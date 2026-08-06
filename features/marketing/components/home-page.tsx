@@ -1,5 +1,6 @@
 import { SiteFooter, SiteHeader } from "@/components/layout";
 import type { Accommodation } from "@/types/accommodation";
+import type { PublicLocationSettings } from "@/types/public-location";
 
 import { AccommodationShowcase } from "./accommodation-showcase";
 import { DirectBookingBenefits } from "./direct-booking-benefits";
@@ -10,9 +11,10 @@ import { TrustSection } from "./trust-section";
 
 type HomePageProps = Readonly<{
   accommodations: readonly Accommodation[];
+  publicLocation: PublicLocationSettings | null;
 }>;
 
-export function HomePage({ accommodations }: HomePageProps) {
+export function HomePage({ accommodations, publicLocation }: HomePageProps) {
   const featuredAccommodation = accommodations.find(
     (accommodation) => accommodation.id === "complete-retreat",
   ) ?? accommodations[0];
@@ -24,7 +26,7 @@ export function HomePage({ accommodations }: HomePageProps) {
         <HeroSection featuredAccommodation={featuredAccommodation} />
         <AccommodationShowcase accommodations={accommodations} />
         <DirectBookingBenefits />
-        <LocationPreviewSection />
+        <LocationPreviewSection publicLocation={publicLocation} />
         <TrustSection />
         <HomepageCtaSection />
       </main>

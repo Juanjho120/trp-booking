@@ -134,6 +134,7 @@ export const enMessages = {
         "Near restaurants and shops",
       ],
       mapTitle: "General location",
+      mapFrameTitle: "Interactive map with the public location of Tu Refugio Perfecto",
       mapDescription:
         "The exact address and detailed arrival instructions are shared after the reservation is confirmed.",
     },
@@ -434,6 +435,7 @@ export const enMessages = {
         payments: "Payments",
         calendar: "Calendar",
         accommodations: "Accommodations",
+        location: "Public location",
         catalogs: "Catalogs",
         cronJobs: "Cron jobs",
       },
@@ -1165,9 +1167,11 @@ export const enMessages = {
           PAYMENT_FAILED: "Payment failed",
           RESERVATION_CANCELLED: "Reservation cancelled",
           RESERVATION_DATES_UPDATED: "Reservation dates updated",
-          ADMIN_RESERVATION_DATES_UPDATED: "Reservation dates updated for administration",
+          ADMIN_RESERVATION_DATES_UPDATED:
+            "Reservation dates updated for administration",
           STAY_EXTENSION_CONFIRMED: "Stay extension confirmed",
-          ADMIN_STAY_EXTENSION_CONFIRMED: "Stay extension confirmed for administration",
+          ADMIN_STAY_EXTENSION_CONFIRMED:
+            "Stay extension confirmed for administration",
           REFUND_PROCESSED: "Refund processed",
           ADMIN_REFUND_PROCESSED: "Refund processed for administration",
           ARRIVAL_INSTRUCTIONS: "Arrival instructions",
@@ -1534,6 +1538,86 @@ export const enMessages = {
       },
       empty: {
         noResults: "No reservations match these filters.",
+      },
+    },
+    publicLocation: {
+      seoTitle: "Public location | Admin | Tu Refugio Perfecto",
+      badge: "Public website",
+      title: "Public location and map",
+      description:
+        "Manage the approximate location shown before booking without exposing private arrival instructions or access details.",
+      sections: {
+        configuration: "Public configuration",
+        preview: "Saved public preview",
+        history: "Change history",
+      },
+      labels: {
+        publicLocationEs: "Public location text in Spanish",
+        publicLocationEn: "Public location text in English",
+        mapEmbedUrl: "HTTPS map embed URL",
+      },
+      placeholders: {
+        publicLocationEs:
+          "Example: Panajachel, Sololá, near Calle Santander and Lake Atitlán.",
+        publicLocationEn:
+          "Example: Panajachel, Sololá, near Calle Santander and Lake Atitlán.",
+        mapEmbedUrl:
+          "https://www.google.com/maps/embed?pb=...",
+      },
+      actions: {
+        enable: "Enable public map",
+        disable: "Disable public map",
+        save: "Save public location",
+        saving: "Saving...",
+      },
+      states: {
+        enabled: "Enabled",
+        disabled: "Disabled",
+      },
+      notes: {
+        publicOnly:
+          "This information is public and belongs to the website as a whole. It is never copied from accommodation arrival instructions.",
+        allowedProviders:
+          "Allowed embeds: Google Maps share embeds and OpenStreetMap export embeds. Paste only the HTTPS URL, never iframe HTML or API keys.",
+        securityTitle: "Keep private arrival details separate",
+        securityDescription:
+          "Do not enter the exact guest address, access codes, Wi-Fi passwords, lockbox details, or operational instructions. Those remain in the protected arrival-instructions flow.",
+      },
+      preview: {
+        savedNote:
+          "The preview uses only the latest server-validated saved configuration, not unsaved form values.",
+        frameTitle: "Saved public map preview",
+        unavailable:
+          "The public map is disabled or the saved configuration is incomplete. The public website will keep its localized placeholder.",
+      },
+      history: {
+        description:
+          "The latest 20 administrative changes are preserved with actor, date, changed fields, and activation state.",
+        systemActor: "System",
+        before: "Previous state",
+        after: "New state",
+        empty: "No public-location changes have been recorded yet.",
+        fields: {
+          enabled: "Activation",
+          publicLocationEs: "Spanish text",
+          publicLocationEn: "English text",
+          mapEmbedUrl: "Map URL",
+        },
+      },
+      success: {
+        saved: "The public location was saved successfully.",
+      },
+      errors: {
+        ADMIN_UNAUTHORIZED:
+          "Your session is not authorized to manage the public location.",
+        INVALID_ADMIN_PUBLIC_LOCATION_REQUEST:
+          "Review both public texts and the map URL before saving.",
+        ADMIN_PUBLIC_LOCATION_MAP_URL_NOT_ALLOWED:
+          "Use an HTTPS Google Maps or OpenStreetMap embed URL without credentials, API keys, tokens, or iframe HTML.",
+        ADMIN_PUBLIC_LOCATION_STALE:
+          "The public location changed after you opened this page. Reload before saving again.",
+        ADMIN_PUBLIC_LOCATION_UNEXPECTED_ERROR:
+          "We could not save the public location. Please try again.",
       },
     },
     cronJobs: {

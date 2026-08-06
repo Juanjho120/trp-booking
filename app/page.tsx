@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { createSeoMetadata } from "@/config/seo";
 import { HomePage } from "@/features/marketing";
+import { getPublicLocationSettings } from "@/lib/public-location";
 import { getPublicAccommodations } from "@/lib/properties";
 import { esMessages } from "@/messages";
 
@@ -14,7 +15,15 @@ export const metadata: Metadata = createSeoMetadata({
 });
 
 export default async function Page() {
-  const accommodations = await getPublicAccommodations();
+  const [accommodations, publicLocation] = await Promise.all([
+    getPublicAccommodations(),
+    getPublicLocationSettings(),
+  ]);
 
-  return <HomePage accommodations={accommodations} />;
+  return (
+    <HomePage
+      accommodations={accommodations}
+      publicLocation={publicLocation}
+    />
+  );
 }

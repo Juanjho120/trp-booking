@@ -4,7 +4,7 @@
 
 ```text
 Track: Pre-Phase-12 Improvement Track
-Status: In progress — Packages A and B accepted; Package C implementation prepared
+Status: In progress — Packages A, B, and C accepted; Package E implementation prepared
 Registered on: 2026-08-05
 Registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
 Current phase: No active implementation phase
@@ -30,9 +30,9 @@ Package D is deliberately deferred until the owner confirms the future financial
 | --- | --- | --- | --- |
 | A | Immediate public-flow and UI corrections | Completed and accepted | Required |
 | B | Durable payment-attempt history | Completed and accepted | Required |
-| C | Admin cron console and generic execution history | Implementation prepared — validation pending | Required |
+| C | Admin cron console and generic execution history | Completed and accepted | Required |
 | D | Future financial-policy and refundable-line contract | Deferred — awaiting financial policy decisions | Not part of the current implementation gate |
-| E | Public location and map configuration | Not started | Required |
+| E | Public location and map configuration | Implementation prepared — validation pending | Required |
 | F | Inbound/outbound email center and threaded replies | Not started | Required |
 
 ## Package A — Immediate public-flow and UI corrections
@@ -146,6 +146,8 @@ creation time
 - Preserve the specialized Airbnb `CalendarSyncLog`; the generic record complements it and does not replace it.
 - JSON shown in admin must be normalized and must not expose secrets, tokens, private iCal URLs, provider credentials, or unsafe errors.
 
+Acceptance boundary: Package C was reported working and accepted at `5a039aa451628e8ac9712c166bdd0a4605c8813f`, including the responsive status-badge alignment correction.
+
 ## Package D — Future financial-policy contract
 
 ### Status
@@ -167,6 +169,10 @@ The package will be revisited after confirming policies for:
 Until then, existing cleaning fee, tax, and discount values remain zero, and current accepted cancellation/refund behavior remains unchanged.
 
 ## Package E — Public location and map configuration
+
+Implementation base: `5a039aa451628e8ac9712c166bdd0a4605c8813f`.
+
+Implementation record: `docs/125-pre-phase-12-package-e-public-location-map.md`.
 
 ### Goal
 
@@ -256,7 +262,7 @@ Package D is outside the current gate because its business policies are intentio
 
 ## Current action
 
-Validate Package C against scheduled and manual execution, same-job overlap prevention, stale-run recovery, environment and actor persistence, normalized safe JSON, bilingual admin UI, pagination, and regression checks. Do not start Package E until Package C is reported working and the required technical checks pass.
+Validate Package E against disabled/incomplete placeholder behavior, enabled bilingual rendering, Google Maps and OpenStreetMap allowlists, rejection of arbitrary URLs and sensitive query parameters, optimistic concurrency, audit history, responsive admin/public UI, and strict separation from private arrival instructions. Do not start Package F until Package E is reported working and the required technical checks pass.
 
 Package A accepted head: `ec1e6ce7f43099864788f28ae30a87214afe554d`.
 
@@ -267,3 +273,7 @@ Package B implementation record: `docs/123-pre-phase-12-package-b-durable-paymen
 Package B accepted head: `795a95fec81bc7ff3f177304f2df3df35c4d59e6`.
 
 Package C implementation record: `docs/124-pre-phase-12-package-c-admin-cron-console.md`.
+
+Package C accepted head: `5a039aa451628e8ac9712c166bdd0a4605c8813f`.
+
+Package E implementation record: `docs/125-pre-phase-12-package-e-public-location-map.md`.
