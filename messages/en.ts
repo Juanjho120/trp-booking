@@ -1546,6 +1546,10 @@ export const enMessages = {
       title: "Public location and map",
       description:
         "Manage the approximate location shown before booking without exposing private arrival instructions or access details.",
+      tabs: {
+        configuration: "Configuration",
+        history: "History",
+      },
       sections: {
         configuration: "Public configuration",
         preview: "Saved public preview",
@@ -1626,6 +1630,10 @@ export const enMessages = {
       title: "Cron jobs",
       description:
         "Run registered operational jobs manually and review the same durable history used by scheduled executions.",
+      tabs: {
+        execution: "Execution",
+        history: "History",
+      },
       sections: {
         registeredJobs: "Registered jobs",
         executionHistory: "Execution history",

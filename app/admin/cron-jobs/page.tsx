@@ -17,8 +17,17 @@ export const metadata: Metadata = {
 type AdminCronJobsRouteProps = Readonly<{
   searchParams: Promise<{
     page?: string | string[];
+    tab?: string | string[];
   }>;
 }>;
+
+type AdminCronJobsTab = "execution" | "history";
+
+function parseTab(value: string | string[] | undefined): AdminCronJobsTab {
+  const candidate = Array.isArray(value) ? value[0] : value;
+
+  return candidate === "history" ? "history" : "execution";
+}
 
 function parsePage(value: string | string[] | undefined): number {
   const candidate = Array.isArray(value) ? value[0] : value;
@@ -33,5 +42,10 @@ export default async function AdminCronJobsRoute({
   const params = await searchParams;
   const data = await getAdminCronJobsPage({ page: parsePage(params.page) });
 
-  return <AdminCronJobsPage data={data} />;
+  return (
+    <AdminCronJobsPage
+      data={data}
+      initialTab={parseTab(params.tab)}
+    />
+  );
 }

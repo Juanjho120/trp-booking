@@ -1548,6 +1548,10 @@ export const esMessages = {
       title: "Ubicación pública y mapa",
       description:
         "Administra la ubicación aproximada visible antes de reservar sin exponer instrucciones privadas de llegada ni datos de acceso.",
+      tabs: {
+        configuration: "Configuración",
+        history: "Historial",
+      },
       sections: {
         configuration: "Configuración pública",
         preview: "Vista pública guardada",
@@ -1628,6 +1632,10 @@ export const esMessages = {
       title: "Tareas programadas",
       description:
         "Ejecuta manualmente los procesos operativos registrados y revisa el mismo historial persistente utilizado por las ejecuciones programadas.",
+      tabs: {
+        execution: "Ejecución",
+        history: "Historial",
+      },
       sections: {
         registeredJobs: "Tareas registradas",
         executionHistory: "Historial de ejecuciones",

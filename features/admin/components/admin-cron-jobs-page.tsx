@@ -28,6 +28,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import {
   Sheet,
   SheetContent,
   SheetDescription,
@@ -58,13 +64,21 @@ function getIntlLocale(locale: Locale): string {
   return locale === "en" ? "en-US" : "es-GT";
 }
 
+type AdminCronJobsTab = "execution" | "history";
+
 function buildPageHref(page: number): string {
-  return page <= 1 ? "/admin/cron-jobs" : `/admin/cron-jobs?page=${page}`;
+  return page <= 1
+    ? "/admin/cron-jobs?tab=history"
+    : `/admin/cron-jobs?tab=history&page=${page}`;
 }
 
 export function AdminCronJobsPage({
   data,
-}: Readonly<{ data: AdminCronJobsPageData }>) {
+  initialTab,
+}: Readonly<{
+  data: AdminCronJobsPageData;
+  initialTab: AdminCronJobsTab;
+}>) {
   const router = useRouter();
   const { locale, messages } = useLocale();
   const copy = messages.admin.cronJobs;
@@ -203,108 +217,119 @@ export function AdminCronJobsPage({
         variant={errorFeedback ? "error" : "success"}
       />
 
-      <section
-        aria-label={copy.sections.registeredJobs}
-        className="mt-6 grid gap-4 lg:grid-cols-2"
-      >
-        {data.jobs.map((job) => (
-          <CronJobCard
-            copy={copy}
-            formatDateTime={formatDateTime}
-            formatDuration={formatDuration}
-            isBusy={isBusy}
-            job={job}
-            jobDescription={jobCopy(job.key).description}
-            jobTitle={jobCopy(job.key).title}
-            key={job.key}
-            onRun={() => {
-              clearFeedback();
-              setSelectedJob(job);
-            }}
-            statusLabel={statusLabel}
-          />
-        ))}
-      </section>
+      <Tabs className="mt-6" defaultValue={initialTab}>
+        <TabsList className="grid w-full grid-cols-2 sm:w-fit">
+          <TabsTrigger value="execution">{copy.tabs.execution}</TabsTrigger>
+          <TabsTrigger value="history">{copy.tabs.history}</TabsTrigger>
+        </TabsList>
 
-      <Card className="mt-6 border-border/70 bg-card shadow-sm">
-        <CardHeader>
-          <div className="flex items-start gap-3">
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-              <History aria-hidden="true" className="size-5" />
-            </span>
-            <div>
-              <CardTitle>{copy.sections.executionHistory}</CardTitle>
-              <CardDescription className="mt-1">
-                {copy.historyDescription}
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {data.executions.length > 0 ? (
-            <>
-              <Accordion className="grid gap-3" collapsible type="single">
-                {data.executions.map((execution) => (
-                  <ExecutionItem
-                    copy={copy}
-                    execution={execution}
-                    formatDateTime={formatDateTime}
-                    formatDuration={formatDuration}
-                    jobTitle={jobCopy(execution.jobKey).title}
-                    key={execution.id}
-                    safeErrorMessage={safeErrorMessage}
-                    statusLabel={statusLabel}
-                    triggerLabel={triggerLabel}
-                  />
-                ))}
-              </Accordion>
+        <TabsContent className="mt-6" value="execution">
+          <section
+            aria-label={copy.sections.registeredJobs}
+            className="grid gap-4 lg:grid-cols-2"
+          >
+            {data.jobs.map((job) => (
+              <CronJobCard
+                copy={copy}
+                formatDateTime={formatDateTime}
+                formatDuration={formatDuration}
+                isBusy={isBusy}
+                job={job}
+                jobDescription={jobCopy(job.key).description}
+                jobTitle={jobCopy(job.key).title}
+                key={job.key}
+                onRun={() => {
+                  clearFeedback();
+                  setSelectedJob(job);
+                }}
+                statusLabel={statusLabel}
+              />
+            ))}
+          </section>
+        </TabsContent>
 
-              <div className="mt-6 flex flex-col gap-3 border-t border-border/70 pt-5 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-sm text-muted-foreground">
-                  {copy.pagination.page} {data.pagination.page}{" "}
-                  {copy.pagination.of} {data.pagination.totalPages} ·{" "}
-                  {data.pagination.totalItems}{" "}
-                  {copy.pagination.results}
-                </p>
-                <div className="flex gap-2">
-                  <Button
-                    asChild={data.pagination.page > 1}
-                    disabled={data.pagination.page <= 1}
-                    variant="outline"
-                  >
-                    {data.pagination.page > 1 ? (
-                      <Link href={buildPageHref(data.pagination.page - 1)}>
-                        {copy.actions.previous}
-                      </Link>
-                    ) : (
-                      <span>{copy.actions.previous}</span>
-                    )}
-                  </Button>
-                  <Button
-                    asChild={data.pagination.page < data.pagination.totalPages}
-                    disabled={
-                      data.pagination.page >= data.pagination.totalPages
-                    }
-                    variant="outline"
-                  >
-                    {data.pagination.page < data.pagination.totalPages ? (
-                      <Link href={buildPageHref(data.pagination.page + 1)}>
-                        {copy.actions.next}
-                      </Link>
-                    ) : (
-                      <span>{copy.actions.next}</span>
-                    )}
-                  </Button>
+        <TabsContent className="mt-6" value="history">
+          <Card className="border-border/70 bg-card shadow-sm">
+            <CardHeader>
+              <div className="flex items-start gap-3">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <History aria-hidden="true" className="size-5" />
+                </span>
+                <div>
+                  <CardTitle>{copy.sections.executionHistory}</CardTitle>
+                  <CardDescription className="mt-1">
+                    {copy.historyDescription}
+                  </CardDescription>
                 </div>
               </div>
-            </>
-          ) : (
-            <div className="rounded-2xl border border-dashed border-border bg-muted/10 px-4 py-10 text-center text-sm text-muted-foreground">
-              {copy.empty.history}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            </CardHeader>
+            <CardContent>
+              {data.executions.length > 0 ? (
+                <>
+                  <Accordion className="grid gap-3" collapsible type="single">
+                    {data.executions.map((execution) => (
+                      <ExecutionItem
+                        copy={copy}
+                        execution={execution}
+                        formatDateTime={formatDateTime}
+                        formatDuration={formatDuration}
+                        jobTitle={jobCopy(execution.jobKey).title}
+                        key={execution.id}
+                        safeErrorMessage={safeErrorMessage}
+                        statusLabel={statusLabel}
+                        triggerLabel={triggerLabel}
+                      />
+                    ))}
+                  </Accordion>
+
+                  <div className="mt-6 flex flex-col gap-3 border-t border-border/70 pt-5 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="text-sm text-muted-foreground">
+                      {copy.pagination.page} {data.pagination.page}{" "}
+                      {copy.pagination.of} {data.pagination.totalPages} ·{" "}
+                      {data.pagination.totalItems}{" "}
+                      {copy.pagination.results}
+                    </p>
+                    <div className="flex gap-2">
+                      <Button
+                        asChild={data.pagination.page > 1}
+                        disabled={data.pagination.page <= 1}
+                        variant="outline"
+                      >
+                        {data.pagination.page > 1 ? (
+                          <Link href={buildPageHref(data.pagination.page - 1)}>
+                            {copy.actions.previous}
+                          </Link>
+                        ) : (
+                          <span>{copy.actions.previous}</span>
+                        )}
+                      </Button>
+                      <Button
+                        asChild={data.pagination.page < data.pagination.totalPages}
+                        disabled={
+                          data.pagination.page >= data.pagination.totalPages
+                        }
+                        variant="outline"
+                      >
+                        {data.pagination.page < data.pagination.totalPages ? (
+                          <Link href={buildPageHref(data.pagination.page + 1)}>
+                            {copy.actions.next}
+                          </Link>
+                        ) : (
+                          <span>{copy.actions.next}</span>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="rounded-2xl border border-dashed border-border bg-muted/10 px-4 py-10 text-center text-sm text-muted-foreground">
+                  {copy.empty.history}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       <Sheet
         onOpenChange={(open: boolean) => {
