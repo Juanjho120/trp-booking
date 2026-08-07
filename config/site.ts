@@ -31,4 +31,7 @@ export const siteConfig = {
     reservationsEn: "reservations@turefugioperfecto.com",
     admin: environmentConfig.production.adminEmail,
   },
+  correspondence: {
+    zohoMailWebUrl: "https://mail.zoho.com/",
+  },
 } as const;

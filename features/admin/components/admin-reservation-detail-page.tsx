@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { siteConfig } from "@/config/site";
 import {
   Card,
   CardContent,
@@ -120,6 +121,7 @@ export function AdminReservationDetailPage({
   const paymentStatuses = messages.admin.statuses.payment;
   const emailNotificationStatuses = messages.admin.statuses.emailNotification;
   const notificationCopy = reservationCopy.notifications;
+  const correspondenceCopy = reservationCopy.correspondence;
   const intlLocale = getIntlLocale(locale);
   const [manualResendTarget, setManualResendTarget] =
     useState<ManualResendTarget | null>(null);
@@ -226,6 +228,54 @@ export function AdminReservationDetailPage({
   function clearFeedback(): void {
     setErrorFeedback(null);
     setSuccessFeedback(null);
+  }
+
+  function copyTextWithSelection(value: string): boolean {
+    if (typeof document === "undefined") {
+      return false;
+    }
+
+    const textarea = document.createElement("textarea");
+    textarea.value = value;
+    textarea.setAttribute("readonly", "");
+    textarea.style.position = "fixed";
+    textarea.style.inset = "0 auto auto 0";
+    textarea.style.opacity = "0";
+    textarea.style.pointerEvents = "none";
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+
+    try {
+      return document.execCommand("copy");
+    } catch {
+      return false;
+    } finally {
+      document.body.removeChild(textarea);
+    }
+  }
+
+  async function copyGuestEmailForZoho(): Promise<void> {
+    clearFeedback();
+
+    let copied = false;
+
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(reservation.guestEmail);
+        copied = true;
+      } catch {
+        copied = copyTextWithSelection(reservation.guestEmail);
+      }
+    } else {
+      copied = copyTextWithSelection(reservation.guestEmail);
+    }
+
+    if (copied) {
+      setSuccessFeedback(correspondenceCopy.success.copied);
+    } else {
+      setErrorFeedback(correspondenceCopy.errors.copyFailed);
+    }
   }
 
   function openManualResend(
@@ -490,6 +540,44 @@ export function AdminReservationDetailPage({
                   value={formatDateTime(reservation.expiresAt)}
                 />
               ) : null}
+            </CardContent>
+          </Card>
+
+          <Card className="mt-6 border-border/70 bg-card shadow-sm">
+            <CardHeader>
+              <CardTitle>{correspondenceCopy.title}</CardTitle>
+              <CardDescription>{correspondenceCopy.description}</CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+              <div className="min-w-0">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                  {requestCopy.fields.guestEmail}
+                </p>
+                <p className="mt-1 break-all text-sm font-medium">
+                  {reservation.guestEmail}
+                </p>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+                  {correspondenceCopy.helper}
+                </p>
+              </div>
+
+              <Button asChild className="w-full shrink-0 sm:w-auto">
+                <a
+                  href={siteConfig.correspondence.zohoMailWebUrl}
+                  onClick={() => void copyGuestEmailForZoho()}
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  <Mail aria-hidden="true" />
+                  <span className="hidden sm:inline">
+                    {correspondenceCopy.actions.openDesktop}
+                  </span>
+                  <span className="sm:hidden">
+                    {correspondenceCopy.actions.openMobile}
+                  </span>
+                  <ExternalLink aria-hidden="true" />
+                </a>
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>

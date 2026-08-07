@@ -544,6 +544,25 @@ export const esMessages = {
         previous: "Anterior",
         next: "Siguiente",
       },
+      correspondence: {
+        title: "Correspondencia del huésped",
+        description:
+          "Abre Zoho Mail para buscar la conversación humana de este huésped. TRP Booking no sincroniza ni almacena el contenido del buzón.",
+        helper:
+          "Al abrir Zoho Mail intentaremos copiar el correo del huésped para que puedas pegarlo en la búsqueda.",
+        actions: {
+          openDesktop: "Abrir correspondencia en Zoho Mail",
+          openMobile: "Abrir en Zoho Mail",
+        },
+        success: {
+          copied:
+            "Correo del huésped copiado. Úsalo para buscar la conversación en Zoho Mail.",
+        },
+        errors: {
+          copyFailed:
+            "Zoho Mail se abrió, pero no pudimos copiar el correo. Cópialo manualmente desde esta reservación.",
+        },
+      },
       cancellation: {
         badge: "Ciclo de vida de la reserva",
         title: "Cancelación administrativa",

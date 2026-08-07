@@ -544,6 +544,25 @@ export const enMessages = {
         previous: "Previous",
         next: "Next",
       },
+      correspondence: {
+        title: "Guest correspondence",
+        description:
+          "Open Zoho Mail to find this guest's human conversation. TRP Booking does not synchronize or store mailbox contents.",
+        helper:
+          "When Zoho Mail opens, we will try to copy the guest email so you can paste it into search.",
+        actions: {
+          openDesktop: "Open correspondence in Zoho Mail",
+          openMobile: "Open in Zoho Mail",
+        },
+        success: {
+          copied:
+            "Guest email copied. Use it to find the conversation in Zoho Mail.",
+        },
+        errors: {
+          copyFailed:
+            "Zoho Mail opened, but we could not copy the email. Copy it manually from this reservation.",
+        },
+      },
       cancellation: {
         badge: "Reservation lifecycle",
         title: "Administrative cancellation",
