@@ -8,9 +8,12 @@ const TRANSACTIONAL_RECIPIENT_MAX_LENGTH = 160;
 
 const TEST_APPLICATION_DOMAIN = environmentConfig.test.applicationDomain;
 const TEST_SENDING_DOMAIN = environmentConfig.test.sendingDomain;
+const TEST_CORRESPONDENCE_DOMAIN = environmentConfig.test.correspondenceDomain;
 const PRODUCTION_APPLICATION_DOMAIN =
   environmentConfig.production.applicationDomain;
 const PRODUCTION_SENDING_DOMAIN = environmentConfig.production.sendingDomain;
+const PRODUCTION_CORRESPONDENCE_DOMAIN =
+  environmentConfig.production.correspondenceDomain;
 
 const placeholderValueSchema = z
   .string()
@@ -215,11 +218,6 @@ function matchesDomain(value: string, domain: string): boolean {
 
 function emailUsesExactDomain(value: string, domain: string): boolean {
   return getEmailDomain(value) === domain;
-}
-
-function emailUsesDomain(value: string, domain: string): boolean {
-  const emailDomain = getEmailDomain(value);
-  return emailDomain !== null && matchesDomain(emailDomain, domain);
 }
 
 function senderUsesExactDomain(value: string, domain: string): boolean {
@@ -521,6 +519,16 @@ const serverEnvSchema = rawServerEnvSchema.superRefine((env, context) => {
     }
   }
 
+  const expectedCorrespondenceDomain =
+    env.TRP_ENVIRONMENT === "production"
+      ? PRODUCTION_CORRESPONDENCE_DOMAIN
+      : TEST_CORRESPONDENCE_DOMAIN;
+
+  const expectedReplyTo = {
+    EMAIL_REPLY_TO_ES: `reservas@${expectedCorrespondenceDomain}`,
+    EMAIL_REPLY_TO_EN: `reservations@${expectedCorrespondenceDomain}`,
+  } as const;
+
   for (const key of ["EMAIL_REPLY_TO_ES", "EMAIL_REPLY_TO_EN"] as const) {
     const email = env[key];
 
@@ -528,19 +536,11 @@ const serverEnvSchema = rawServerEnvSchema.superRefine((env, context) => {
       continue;
     }
 
-    const valid =
-      env.TRP_ENVIRONMENT === "production"
-        ? emailUsesDomain(email, PRODUCTION_APPLICATION_DOMAIN)
-        : emailUsesDomain(email, TEST_SENDING_DOMAIN);
-
-    if (!valid) {
+    if (email !== expectedReplyTo[key]) {
       context.addIssue({
         code: "custom",
         path: [key],
-        message:
-          env.TRP_ENVIRONMENT === "production"
-            ? `Must use ${PRODUCTION_APPLICATION_DOMAIN} or one of its subdomains.`
-            : `Must use the isolated test domain ${TEST_SENDING_DOMAIN}.`,
+        message: `Must use the approved human correspondence address ${expectedReplyTo[key]}.`,
       });
     }
   }

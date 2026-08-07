@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "env:validate": "tsx scripts/validate-env.ts",
+    "email:contract:validate": "tsx scripts/validate-email-reply-to-contract.ts",
     "db:validate": "prisma validate",
     "db:format": "prisma format",
     "db:generate": "prisma generate",
