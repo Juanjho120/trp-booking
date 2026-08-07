@@ -4,7 +4,7 @@
 
 ```text
 Track: Pre-Phase-12 Improvement Track
-Status: In progress — Packages A, B, C, and E accepted; Package F.1 strategy completed and accepted; F.2 operational setup in progress
+Status: In progress — Packages A, B, C, and E accepted; Package F.1 and F.2 completed and accepted; F.3 is next
 Registered on: 2026-08-05
 Registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
 Current phase: No active implementation phase
@@ -33,7 +33,7 @@ Package D is deliberately deferred until the owner confirms the future financial
 | C | Admin cron console and generic execution history | Completed and accepted | Required |
 | D | Future financial-policy and refundable-line contract | Deferred — awaiting financial policy decisions | Not part of the current implementation gate |
 | E | Public location and map configuration | Completed and accepted | Required |
-| F | Zoho guest correspondence and reservation navigation | In progress — F.1 accepted; F.2 operational setup in progress | Required |
+| F | Zoho guest correspondence and reservation navigation | In progress — F.1 and F.2 accepted; F.3 next | Required |
 
 ## Package A — Immediate public-flow and UI corrections
 
@@ -279,8 +279,8 @@ separate owner approval.
 
 ```text
 F.1 Strategy, provider boundary, and environment contract — Completed and accepted
-F.2 Test Zoho Mail setup and DNS validation — In progress
-F.3 Transactional Reply-To alignment — Not started
+F.2 Test Zoho Mail setup and DNS validation — Completed and accepted on 2026-08-07
+F.3 Transactional Reply-To alignment — Not started; next package
 F.4 Reservation-to-Zoho navigation — Not started
 F.5 Integrated validation and documentation closure — Not started
 ```
@@ -316,7 +316,7 @@ reservation-to-Zoho navigation. No application code or provider credential was a
 6. Package D — Revisit only after financial policies are confirmed
 ```
 
-Package F proceeds through the accepted F.1 through F.5 sequence. F.2 configures the isolated test Zoho organization before any application change; no inbound synchronization or mailbox persistence is part of the approved package.
+Package F proceeds through the accepted F.1 through F.5 sequence. F.2 completed the isolated test Zoho organization before any application change; no inbound synchronization or mailbox persistence was introduced. F.3 is the next package and aligns transactional Reply-To values with the validated Zoho aliases while preserving the Resend delivery pipeline.
 
 ## Cross-package requirements
 
@@ -343,7 +343,7 @@ Package D is outside the current gate because its business policies are intentio
 
 ## Current action
 
-Execute Package F.2 using `docs/128-pre-phase-12-package-f-2-test-zoho-mail-setup-and-dns-validation.md`: configure the isolated Zoho Mail Lite test organization for juantzun.dev, preserve a before-change DNS inventory, verify the domain, configure exact Zoho root MX/SPF/DKIM and staged DMARC, create admin@ with reservas@ and reservations@ aliases, enable reply-from-the-received-address behavior, configure filters, mobile access and MFA, and collect controlled send/receive evidence. Do not add TRP application code, OAuth credentials, IMAP credentials, production Zoho configuration, or changes to the independent Resend sending subdomain during F.2.
+Prepare Package F.3 — Transactional Reply-To alignment. Start from the latest accepted repository head, review the current `.env.example` and server-side email configuration, change local/test Spanish and English Reply-To targets from the technical Resend sending subdomain to `reservas@juantzun.dev` and `reservations@juantzun.dev`, preserve the separate future production Reply-To values under `turefugioperfecto.com`, and run a controlled Resend regression proving automatic delivery still uses the existing `mail.trp-booking.juantzun.dev` From identities while human replies land in Zoho. Do not add inbound synchronization, mailbox persistence, Zoho OAuth, IMAP credentials, or production Zoho configuration in F.3.
 
 Package A accepted head: `ec1e6ce7f43099864788f28ae30a87214afe554d`.
 
@@ -369,3 +369,5 @@ Package F strategy base head: `cab7d71e34d230cdf49e013921764f6386d3fa2f`.
 Package F strategy record: `docs/127-pre-phase-12-package-f-zoho-guest-correspondence-strategy.md`.
 
 Package F.2 operational record: `docs/128-pre-phase-12-package-f-2-test-zoho-mail-setup-and-dns-validation.md`.
+
+Package F.2 closure record: `docs/129-pre-phase-12-package-f-2-acceptance-closure.md`.

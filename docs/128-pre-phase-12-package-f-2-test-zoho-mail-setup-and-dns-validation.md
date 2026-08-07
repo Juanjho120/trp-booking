@@ -6,12 +6,15 @@
 Track: Pre-Phase-12 Improvement Track
 Package: F — Zoho guest correspondence and reservation navigation
 Subpackage: F.2 Test Zoho Mail setup and DNS validation
-Status: In progress — owner-assisted operational setup and evidence collection
+Status: Completed and accepted
 Start date: 2026-08-06
+Acceptance date: 2026-08-07
 Base head: f9a18cc555ca8eb28fd7f450d746e98e4e66622b
+Operational-validation repository head: 912cf1f79850517d19f73fa7f531c0492a7b429c
 Strategy record: docs/127-pre-phase-12-package-f-zoho-guest-correspondence-strategy.md
+Closure record: docs/129-pre-phase-12-package-f-2-acceptance-closure.md
 Previous subpackage: F.1 Strategy, provider boundary, and environment contract
-Next subpackage after acceptance: F.3 Transactional Reply-To alignment
+Next subpackage: F.3 Transactional Reply-To alignment
 Phase 12: Not started and not activated
 ```
 
@@ -107,6 +110,49 @@ Screenshots used for troubleshooting must redact account identifiers, recovery d
 billing details, mailbox content, and any token-like value that is not a public DNS
 record.
 
+## Accepted Operational Result
+
+F.2 was completed through the real Zoho onboarding and validated on 2026-08-07.
+
+```text
+Authoritative DNS provider: Cloudflare
+Hosted test domain: juantzun.dev
+Primary mailbox: admin@juantzun.dev
+Spanish alias: reservas@juantzun.dev
+English alias: reservations@juantzun.dev
+Zoho root MX: Verified
+Root SPF: Verified; one root SPF record
+DKIM selector: zmail
+DKIM state: Verified, Enabled, Default
+External DKIM result: PASS
+DMARC policy: Monitoring (p=none), relaxed SPF/DKIM alignment, sp=none
+DMARC aggregate address: dmarc@juantzun.dev
+DMARC forensic address: dmarc-forensic@juantzun.dev
+Reply-from-received-address behavior: Enabled and validated
+Web From selector: admin@, reservas@, reservations@ available
+Mobile From/reply behavior: PASS
+MFA: Enabled
+DMARC folders/filters: PASS
+External SPF result: PASS
+External DMARC result: PASS
+Production Zoho/DNS change: None
+TRP application/schema/dependency change: None
+Zoho OAuth/IMAP credential: None
+Resend sending-subdomain DNS change: None
+```
+
+Zoho's initial onboarding generated the `zmail` DKIM selector automatically and did
+not expose selector-name or key-length selection during that flow. F.2 accepts the
+provider-generated selector because it is verified, enabled/default, and produced an
+external `DKIM=PASS`. A future selector rotation may use 2048-bit RSA as an optional
+hardening task; it is not a blocker for the accepted test setup. The full DKIM public
+key is intentionally not duplicated in repository documentation.
+
+The initial runbook proposed language/admin folders for human mail. The accepted
+operational configuration keeps human conversations in the normal shared mailbox so
+Zoho threading/search remain authoritative and auto-files only DMARC telemetry into
+`DMARC Reports` and `DMARC Forensic`. This is the accepted F.2 folder/filter behavior.
+
 ## Required Access
 
 Before starting, the owner must have:
@@ -174,9 +220,9 @@ Production use: Forbidden
 Record only:
 
 ```text
-Zoho data center/region: ____________________
-Organization created/activated date: ____________________
-Plan confirmed: ____________________
+Zoho data center/region label: Not separately recorded; exact onboarding DNS values used
+Organization created/activated date: 2026-08-07
+Plan confirmed: Zoho Mail Lite
 ```
 
 Do not place the billing account, login identifier, recovery email, telephone number,
@@ -221,9 +267,9 @@ Evidence:
 
 ```text
 Verification method: TXT
-Verification status: ____________________
-Verification date: ____________________
-Temporary TXT removed/retained: ____________________
+Verification status: PASS
+Verification date: 2026-08-07
+Temporary TXT: retained in DNS; token not duplicated in repository documentation
 ```
 
 ## Stage 3 — Create the Primary Mailbox
@@ -283,9 +329,9 @@ Record the exact public values:
 
 | Priority | MX target | Zoho status | Public lookup |
 | --- | --- | --- | --- |
-| `_____` | `____________________` | `_____` | `_____` |
-| `_____` | `____________________` | `_____` | `_____` |
-| `_____` | `____________________` | `_____` | `_____` |
+| `10` | `mx.zoho.com` | `Verified` | `External delivery PASS` |
+| `20` | `mx2.zoho.com` | `Verified` | `External delivery PASS` |
+| `50` | `mx3.zoho.com` | `Verified` | `External delivery PASS` |
 
 Acceptance checks:
 
@@ -326,75 +372,63 @@ Rules:
 Evidence:
 
 ```text
-Root SPF before change: ____________________
-Root SPF after change: ____________________
-Zoho SPF status: ____________________
-Public SPF lookup: ____________________
+Root SPF before change: none at juantzun.dev
+Root SPF after change: one Zoho-authorizing root SPF record
+Zoho SPF status: PASS
+External header result: SPF=PASS
 ```
 
 ## Stage 6 — Configure DKIM
 
-Generate a unique Zoho DKIM public key for `juantzun.dev`.
-
-Recommended selector:
+The initial runbook preferred a manually generated 2048-bit selector when the provider
+UI allowed it. During the real Zoho onboarding, the provider automatically generated:
 
 ```text
-trptest2026
+Selector: zmail
+Host shape: zmail._domainkey
 ```
 
-Recommended key length:
+The onboarding did not expose selector-name or key-length controls. The accepted F.2
+rule is therefore provider-observed rather than speculative:
 
 ```text
-2048 bits
-```
-
-Zoho Admin Console path:
-
-```text
-Domains
--> juantzun.dev
--> Email Configuration
--> DKIM
--> Add selector
-```
-
-DNS record shape:
-
-```text
-Type: TXT
-Name: trptest2026._domainkey
-Content: exact public DKIM value generated by Zoho
-TTL: Auto
-```
-
-Rules:
-
-```text
-- The published TXT value is the public key; Zoho retains the private signing key.
+- Publish the exact public DKIM TXT value generated by Zoho.
 - Never export or record a private DKIM key.
-- After DNS propagation, select Verify in Zoho.
-- Make the verified selector the active/default selector for the domain.
-- Send an external test and confirm DKIM=pass in the receiving mailbox headers.
+- Verify the selector in Zoho.
+- Confirm it is Enabled and Default.
+- Send an external test and confirm DKIM=PASS in the receiving mailbox headers.
+- Do not duplicate the full public key in closure documentation when status and
+  selector evidence are sufficient.
 ```
 
-Evidence:
+Accepted evidence:
 
 ```text
-Selector: ____________________
-Key length: ____________________
-Zoho DKIM verification: ____________________
-Selector enabled/default: ____________________
-External header result: ____________________
+Selector: zmail
+Generation: Zoho onboarding default; no manual selector/key-length choice was offered
+Zoho DKIM verification: PASS
+Selector enabled/default: PASS
+External header result: DKIM=PASS
+Repository key material: full DKIM public value not duplicated; private key never exposed
 ```
+
+A later 2048-bit selector rotation may be evaluated as optional hardening from the full
+Admin Console. It is not an F.2 blocker because the provider-generated selector passed
+real external authentication.
 
 ## Stage 7 — Publish Staged DMARC
 
-Do not publish an enforcing DMARC policy before SPF and DKIM pass.
-
-Initial test-domain monitoring policy:
+DMARC was published only after SPF and DKIM validated. Zoho's onboarding required
+both aggregate and forensic report destinations, so dedicated aliases were created:
 
 ```text
-v=DMARC1; p=none; pct=100; adkim=r; aspf=r
+Aggregate / RUA: dmarc@juantzun.dev
+Forensic / RUF: dmarc-forensic@juantzun.dev
+Policy: p=none
+Subdomain policy: sp=none
+DKIM alignment: relaxed
+SPF alignment: relaxed
+Percentage: 100
 ```
 
 DNS entry:
@@ -402,12 +436,9 @@ DNS entry:
 ```text
 Type: TXT
 Name: _dmarc
-Content: approved monitoring policy
+Content: Zoho-generated monitoring policy using the values above
 TTL: Auto
 ```
-
-An aggregate-report address may be added later after deciding where XML reports will
-be reviewed. It is not required for F.2 acceptance.
 
 Rules:
 
@@ -419,12 +450,15 @@ Rules:
   inventoried and test evidence passes.
 ```
 
-Evidence:
+Accepted evidence:
 
 ```text
-DMARC before change: ____________________
-DMARC after change: ____________________
-Public DMARC lookup: ____________________
+DMARC before change: No root _dmarc record
+Policy after change: p=none; sp=none; adkim=r; aspf=r; pct=100
+Aggregate reports: dmarc@juantzun.dev
+Forensic reports: dmarc-forensic@juantzun.dev
+Zoho verification: PASS
+External header result: DMARC=PASS
 ```
 
 ## Stage 8 — Add Spanish and English Aliases
@@ -515,36 +549,41 @@ that have not been approved.
 
 ## Stage 11 — Create Folders and Incoming Filters
 
+The accepted F.2 configuration keeps human guest correspondence in Zoho's normal
+mailbox/threading flow and creates dedicated folders only for DMARC telemetry.
+
 Create folders:
 
 ```text
-Reservas ES
-Reservations EN
-Administración
+DMARC Reports
+DMARC Forensic
 ```
 
-Create incoming filters using the `To/Cc` condition:
+Create incoming filters:
 
 ```text
-Filter: Reservas ES
-Condition: To/Cc contains reservas@juantzun.dev
-Action: Move to folder Reservas ES
+Filter: DMARC Aggregate Reports
+Condition: To/Cc contains dmarc@juantzun.dev
+Action: Move to folder DMARC Reports
 Stop processing other filters: Enabled
 
-Filter: Reservations EN
-Condition: To/Cc contains reservations@juantzun.dev
-Action: Move to folder Reservations EN
-Stop processing other filters: Enabled
-
-Filter: Administración
-Condition: To/Cc contains admin@juantzun.dev
-Action: Move to folder Administración
+Filter: DMARC Forensic Reports
+Condition: To/Cc contains dmarc-forensic@juantzun.dev
+Action: Move to folder DMARC Forensic
 Stop processing other filters: Enabled
 ```
 
-Test the filter order and behavior. A message addressed to more than one alias must not
-be silently lost; it should land in the first intentionally matched folder or remain
-searchable in All Messages.
+Acceptance result:
+
+```text
+DMARC Reports folder/filter: PASS
+DMARC Forensic folder/filter: PASS
+Human guest mail remains searchable/threaded in the normal Zoho mailbox: PASS
+```
+
+No automatic language/admin folder split is required by the accepted F.2 setup. The
+public recipient aliases and same-address reply policy provide the required identity
+separation without moving human messages away from Zoho's normal conversation view.
 
 ## Stage 12 — Mobile Application and MFA
 
@@ -569,106 +608,128 @@ TRP Booking integration.
 
 ## Stage 13 — Controlled Functional Matrix
 
-Use an external mailbox that is not part of the new Zoho organization.
+The owner completed the real external/web/mobile checks on 2026-08-07. No mailbox
+body, guest content, OTP, recovery code, or private credential is retained here.
 
 | # | Scenario | Expected result | Status |
 | --- | --- | --- | --- |
-| 1 | External -> admin@ | Arrives in Administración | `_____` |
-| 2 | External -> reservas@ | Arrives in Reservas ES | `_____` |
-| 3 | External -> reservations@ | Arrives in Reservations EN | `_____` |
-| 4 | Reply to admin@ message | From is admin@ | `_____` |
-| 5 | Reply to reservas@ message | From is reservas@ | `_____` |
-| 6 | Reply to reservations@ message | From is reservations@ | `_____` |
-| 7 | New message from admin@ | Recipient sees admin@ | `_____` |
-| 8 | New message from reservas@ | Recipient sees reservas@ | `_____` |
-| 9 | New message from reservations@ | Recipient sees reservations@ | `_____` |
-| 10 | Webmail From selector | All three addresses available | `_____` |
-| 11 | Mobile From selector | All three addresses available | `_____` |
-| 12 | Mobile reply policy | Uses address originally received | `_____` |
-| 13 | SPF header | PASS | `_____` |
-| 14 | DKIM header | PASS | `_____` |
-| 15 | DMARC header | PASS or monitor-aligned | `_____` |
-| 16 | Wrong/unknown local part | Rejected or follows explicit catch-all policy | `_____` |
-| 17 | Zoho spam classification | Test messages not incorrectly blocked | `_____` |
-| 18 | Existing website | juantzun.dev web behavior unchanged | `_____` |
-| 19 | Resend sending domain | Existing test transactional send still succeeds | `_____` |
-| 20 | Repository boundary | No code, secret, or provider credential added | `_____` |
+| 1 | External -> admin@ | Arrives in Zoho mailbox | `PASS` |
+| 2 | External -> reservas@ | Arrives in same Zoho mailbox | `PASS` |
+| 3 | External -> reservations@ | Arrives in same Zoho mailbox | `PASS` |
+| 4 | Reply to admin@ message | From is admin@ | `PASS` |
+| 5 | Reply to reservas@ message | From is reservas@ | `PASS` |
+| 6 | Reply to reservations@ message | From is reservations@ | `PASS` |
+| 7 | New message from admin@ | Recipient sees admin@ | `PASS` |
+| 8 | New message from reservas@ | Recipient sees reservas@ | `PASS` |
+| 9 | New message from reservations@ | Recipient sees reservations@ | `PASS` |
+| 10 | Webmail From selector | All three public addresses available | `PASS` |
+| 11 | Mobile From selector | All three public addresses available | `PASS` |
+| 12 | Mobile reply policy | Uses address originally received | `PASS` |
+| 13 | SPF header | PASS | `PASS` |
+| 14 | DKIM header | PASS | `PASS` |
+| 15 | DMARC header | PASS while policy remains p=none | `PASS` |
+| 16 | DMARC aggregate filter | Routes to DMARC Reports | `PASS` |
+| 17 | DMARC forensic filter | Routes to DMARC Forensic | `PASS` |
+| 18 | MFA | Enabled; recovery material kept outside repository | `PASS` |
+| 19 | Resend DNS isolation | Existing technical subdomain records not modified | `PASS` |
+| 20 | Repository boundary | No code, secret, provider credential, or production config added | `PASS` |
 
-Do not enable a catch-all address for F.2 unless separately approved. Unknown addresses
-should fail rather than silently collecting mistyped or abusive mail.
+A catch-all was not enabled. DMARC remains in monitoring mode (`p=none`).
 
 ## Stage 14 — Resend Isolation Regression
 
 F.2 must not modify the accepted automatic-email provider boundary.
 
-Verify:
+Verify the F.2 isolation boundary without claiming a runtime send that did not occur:
 
 ```text
-- mail.trp-booking.juantzun.dev remains verified in the personal test Resend account.
-- Its SPF/DKIM/return-path records remain present.
-- EMAIL_FROM_ES remains under mail.trp-booking.juantzun.dev.
-- EMAIL_FROM_EN remains under mail.trp-booking.juantzun.dev.
-- EMAIL_DELIVERY_MODE=test still redirects actual delivery to EMAIL_TEST_RECIPIENT.
-- EmailNotification persistence, retries, and reservation history remain unchanged.
+- Existing SPF/DKIM/MX/return-path records for the technical Resend hostnames remain
+  present and were not edited during the Zoho root-domain setup.
+- Repository EMAIL_FROM_ES remains under mail.trp-booking.juantzun.dev.
+- Repository EMAIL_FROM_EN remains under mail.trp-booking.juantzun.dev.
+- Repository Reply-To values are intentionally unchanged until F.3.
+- EmailNotification persistence, retries, and reservation history code is unchanged.
+- F.3 owns the next real Resend delivery-and-reply regression because F.3 changes
+  Reply-To.
 ```
 
-A controlled transactional email may be sent using an already accepted local/test
-flow. F.2 does not change application environment values; F.3 will align Reply-To with
-the newly validated Zoho aliases.
+Accepted F.2 isolation result:
+
+```text
+- Existing MX/return-path records under mail.trp-booking.juantzun.dev and
+  send.mail.trp-booking.juantzun.dev were intentionally retained.
+- Root-domain Zoho MX records were added only at juantzun.dev.
+- No Resend sending-subdomain DNS record was deleted or replaced.
+- No TRP Booking environment value or email-provider code changed in F.2.
+```
+
+F.2 does not claim a new Resend runtime send after the Zoho setup because there was no
+application change to exercise. F.3 will change the local/test Reply-To values and
+therefore owns the controlled transactional send-and-reply regression proving that
+Resend still sends from `mail.trp-booking.juantzun.dev` while replies arrive in Zoho.
 
 ## DNS Evidence Worksheet
 
-Complete only with public or non-secret values.
+Only public or non-secret operational evidence is retained. The domain-verification
+token and full DKIM public key are intentionally not duplicated here.
 
 ```text
-Authoritative DNS provider: ____________________
-Nameservers reviewed: PASS / FAIL
-Before-change inventory captured: PASS / FAIL
-Cloudflare Email Routing enabled before change: YES / NO / NOT APPLICABLE
-Cloudflare Email Routing disabled or intentionally migrated: PASS / NOT APPLICABLE
+Authoritative DNS provider: Cloudflare
+Nameservers reviewed: PASS
+Before-change root MX inventory: PASS — no @ / juantzun.dev MX existed
+Existing technical MX inventory: PASS — mail.trp-booking.juantzun.dev and
+  send.mail.trp-booking.juantzun.dev records identified and retained
+Cloudflare Email Routing at root before change: NO
 
-Zoho data center/region: ____________________
-Domain verified: PASS / FAIL
-MX verified in Zoho: PASS / FAIL
-SPF verified in Zoho: PASS / FAIL
-DKIM verified and enabled in Zoho: PASS / FAIL
-DMARC published in monitoring mode: PASS / FAIL
+Zoho data center/region label: Not separately recorded; exact onboarding values used
+Domain verified: PASS
+Root MX verified in Zoho: PASS
+Root SPF verified in Zoho: PASS
+DKIM selector: zmail
+DKIM verified/enabled/default: PASS
+External DKIM header: PASS
+DMARC monitoring policy published and verified: PASS
+External SPF header: PASS
+External DMARC header: PASS
 
-Primary mailbox active: PASS / FAIL
-Spanish alias active: PASS / FAIL
-English alias active: PASS / FAIL
-Webmail tests: PASS / FAIL
-Mobile tests: PASS / FAIL
-MFA enabled: PASS / FAIL
-Reply-from-received-address policy: PASS / FAIL
-Filters: PASS / FAIL
-Resend isolation regression: PASS / FAIL
+Primary mailbox active: PASS
+Spanish alias active: PASS
+English alias active: PASS
+Webmail tests: PASS
+Mobile tests: PASS
+MFA enabled: PASS
+Reply-from-received-address policy: PASS
+DMARC Reports folder/filter: PASS
+DMARC Forensic folder/filter: PASS
+Resend DNS/config isolation: PASS
 ```
 
 ## Acceptance Gate
 
-F.2 may be marked completed and accepted only after:
+F.2 is completed and accepted after the following final gate passed:
 
 ```text
-1. The isolated test Zoho Mail Lite organization is active.
-2. juantzun.dev ownership is verified.
-3. Root MX public lookup and Zoho status are correct.
-4. Exactly one valid root SPF record exists and passes.
-5. Zoho DKIM is verified, enabled, and passes an external header check.
-6. Initial DMARC monitoring policy is published after SPF/DKIM validation.
-7. admin@juantzun.dev sends and receives.
-8. reservas@juantzun.dev sends and receives through the same mailbox.
-9. reservations@juantzun.dev sends and receives through the same mailbox.
-10. Replies use the same address that received the message.
-11. Webmail folders and filters behave as documented.
-12. Zoho Mail mobile access and From selection pass.
-13. MFA is enabled and recovery material is stored outside the repository.
-14. The existing Resend test sending subdomain remains verified and functional.
+1. Isolated test Zoho Mail Lite organization active — PASS
+2. juantzun.dev ownership verified — PASS
+3. Root MX values accepted and verified by Zoho — PASS
+4. Exactly one valid root SPF record; external SPF check — PASS
+5. Zoho zmail DKIM verified, enabled/default; external DKIM check — PASS
+6. DMARC monitoring policy published after SPF/DKIM; external DMARC check — PASS
+7. admin@juantzun.dev sends and receives — PASS
+8. reservas@juantzun.dev sends and receives through the same mailbox — PASS
+9. reservations@juantzun.dev sends and receives through the same mailbox — PASS
+10. Replies use the same address that received the message — PASS
+11. DMARC Reports and DMARC Forensic folders/filters behave as documented — PASS
+12. Zoho Mail mobile access, From selection, and reply behavior — PASS
+13. MFA enabled; recovery material kept outside repository — PASS
+14. Existing Resend technical DNS/config boundary retained without modification — PASS
 15. No code, schema, migration, dependency, OAuth client, IMAP credential, production
-    configuration, or secret was added.
-16. The controlled functional matrix and DNS worksheet are recorded without mailbox
-    content or private security material.
+    configuration, or secret added — PASS
+16. Controlled evidence recorded without mailbox content or private security material — PASS
 ```
+
+The next controlled Resend runtime send belongs to F.3 because F.3 changes Reply-To;
+it is not represented as an F.2 test that did not occur.
 
 ## Validation Commands
 
@@ -720,12 +781,24 @@ Cloudflare email DNS records:
 https://developers.cloudflare.com/dns/manage-dns-records/how-to/email-records/
 ```
 
-## Handoff
+## Handoff to F.3
 
-F.2 remains in progress until the owner completes the real Zoho and DNS setup and
-reports the non-secret evidence matrix. Do not start F.3 before F.2 is accepted.
+F.2 is completed and accepted on 2026-08-07. The isolated `juantzun.dev` Zoho mailbox
+and authentication boundary are ready for application-side Reply-To alignment.
 
-The first operational action is to create or activate the separate test Zoho Mail Lite
-organization, add `juantzun.dev`, and copy the generated domain-verification TXT value.
-Only the record type, host/name, and public value may be shared for guided DNS review;
-no password, MFA code, recovery code, or session information is needed.
+F.3 is the next package. Its starting contract is:
+
+```text
+Local/test automatic From ES: reservas@mail.trp-booking.juantzun.dev — preserve
+Local/test automatic From EN: reservations@mail.trp-booking.juantzun.dev — preserve
+Local/test Reply-To ES: change to reservas@juantzun.dev
+Local/test Reply-To EN: change to reservations@juantzun.dev
+Production Reply-To ES/EN: preserve future turefugioperfecto.com values
+Automatic provider: Resend — preserve
+Human correspondence provider: Zoho Mail Lite — preserve
+Inbound synchronization/mailbox persistence: forbidden
+```
+
+F.3 must execute a real automatic transactional send in local/test after the Reply-To
+change and confirm that replying to the received Resend message lands at the matching
+Zoho alias with the accepted same-address human reply behavior.

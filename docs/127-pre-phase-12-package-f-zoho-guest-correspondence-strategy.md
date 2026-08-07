@@ -6,13 +6,14 @@
 Track: Pre-Phase-12 Improvement Track
 Package: F — Zoho guest correspondence and reservation navigation
 Subpackage: F.1 Strategy, provider boundary, and environment contract
-Status: Completed and accepted — F.2 operational setup in progress
+Status: Completed and accepted — F.2 completed and accepted; F.3 is next
 Strategy and acceptance date: 2026-08-06
 Strategy base head: cab7d71e34d230cdf49e013921764f6386d3fa2f
 Previous accepted package: Package E — Public location and map configuration
 Previous closure: docs/126-pre-phase-12-package-e-acceptance-closure.md
-Active subpackage: F.2 Test Zoho Mail setup and DNS validation
+Active subpackage: None — F.2 accepted; F.3 is the next package
 F.2 record: docs/128-pre-phase-12-package-f-2-test-zoho-mail-setup-and-dns-validation.md
+F.2 closure: docs/129-pre-phase-12-package-f-2-acceptance-closure.md
 Phase 12: Not started and not activated
 ```
 
@@ -264,10 +265,10 @@ F.2 is an operational configuration subpackage. It introduces no TRP application
 9. Create admin@juantzun.dev as the primary mailbox.
 10. Add reservas@juantzun.dev and reservations@juantzun.dev as aliases.
 11. Confirm each alias appears in the Zoho `From` selector.
-12. Create folders or filters based on To/Cc for Spanish, English, and admin mail.
+12. Keep human correspondence in the normal Zoho mailbox and create dedicated To/Cc filters for DMARC aggregate/forensic report aliases so authentication telemetry is separated from guest threads.
 13. Install the Zoho Mail mobile application and enable multi-factor authentication.
 14. Send and receive controlled tests through all three addresses.
-15. Confirm mail.trp-booking.juantzun.dev remains verified and functional in Resend.
+15. Confirm the existing `mail.trp-booking.juantzun.dev` / return-path DNS boundary is retained without F.2 changes; execute the next real Resend delivery-and-reply regression in F.3 after Reply-To alignment.
 ```
 
 ### Production organization setup
@@ -424,12 +425,13 @@ F.1 Strategy, provider boundary, and environment contract
     Status: Completed and accepted on 2026-08-06
 
 F.2 Test Zoho Mail setup and DNS validation
-    Status: In progress — owner-assisted operational setup and evidence collection
-    Scope: configure juantzun.dev, mailbox, aliases, filters, mobile access, MFA,
-    DNS authentication, and controlled send/receive validation
+    Status: Completed and accepted on 2026-08-07
+    Result: isolated juantzun.dev Zoho Mail Lite setup, mailbox and aliases, verified
+    root MX/SPF/DKIM/DMARC, same-address reply behavior, mobile access, MFA, DMARC
+    report filters, and external SPF/DKIM/DMARC PASS evidence
 
 F.3 Transactional Reply-To alignment
-    Status: Not started
+    Status: Not started — next package
     Scope: route local/test Resend replies to juantzun.dev Zoho aliases and preserve
     production Reply-To values for the separate future company account
 
@@ -525,8 +527,8 @@ Zoho server-based OAuth applications:
 https://www.zoho.com/developer/oauth/web-server-apps/overview.html
 ```
 
-## Handoff to F.2
+## Handoff to F.3
 
-Package F.1 is completed and accepted. Package F.2 is now in progress as an owner-assisted operational setup; no TRP application implementation has started.
+Package F.1 and F.2 are completed and accepted. F.2 operational acceptance is recorded in `docs/129-pre-phase-12-package-f-2-acceptance-closure.md`; no TRP application implementation, mailbox persistence, OAuth credential, IMAP credential, or production Zoho configuration was introduced by F.2.
 
-F.2 follows `docs/128-pre-phase-12-package-f-2-test-zoho-mail-setup-and-dns-validation.md`. It must capture the real Zoho data center, exact generated public DNS records, mailbox and alias validation, reply-from-the-received-address behavior, mobile access, MFA, filters, and controlled send/receive evidence without recording any password, DKIM private material, OAuth secret, recovery code, or mailbox content in the repository.
+F.3 is the next package. It must align local/test transactional Reply-To values with the validated `reservas@juantzun.dev` and `reservations@juantzun.dev` Zoho aliases while preserving the current Resend From identities under `mail.trp-booking.juantzun.dev` and the separate future production Reply-To values under `turefugioperfecto.com`. F.3 must include a controlled Resend delivery-and-reply regression; it must not add inbound synchronization or Zoho mailbox content to TRP Booking.
