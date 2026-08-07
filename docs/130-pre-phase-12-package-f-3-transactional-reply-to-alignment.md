@@ -66,6 +66,8 @@ Included:
   validation.
 - Add a focused executable environment-contract regression script.
 - Update .env.example without committing secrets or changing real deployment values.
+- Centralize normal local/test administrative delivery and test-mode physical delivery in
+  the Zoho mailbox `admin@juantzun.dev`.
 ```
 
 Excluded:
@@ -148,7 +150,15 @@ EMAIL_FROM_ES="Tu Refugio Perfecto Test <reservas@mail.trp-booking.juantzun.dev>
 EMAIL_FROM_EN="Tu Refugio Perfecto Test <reservations@mail.trp-booking.juantzun.dev>"
 EMAIL_REPLY_TO_ES="reservas@juantzun.dev"
 EMAIL_REPLY_TO_EN="reservations@juantzun.dev"
+EMAIL_ADMIN_RECIPIENTS="admin@juantzun.dev"
+EMAIL_TEST_RECIPIENT="admin@juantzun.dev"
 ```
+
+Normal local/test operation therefore uses the single Zoho mailbox as the physical
+destination for administrative notifications and all test-mode deliveries. The
+intended guest/admin recipient remains preserved by the existing transactional
+persistence contract even though `EMAIL_DELIVERY_MODE=test` redirects physical
+delivery to `EMAIL_TEST_RECIPIENT`.
 
 No real API key, mailbox password, MFA material, or deployment secret is included.
 
@@ -190,9 +200,13 @@ values.
 
 ### Local `.env`
 
+Normal local/test values:
+
 ```text
 EMAIL_REPLY_TO_ES=reservas@juantzun.dev
 EMAIL_REPLY_TO_EN=reservations@juantzun.dev
+EMAIL_ADMIN_RECIPIENTS=admin@juantzun.dev
+EMAIL_TEST_RECIPIENT=admin@juantzun.dev
 ```
 
 Keep:
@@ -209,6 +223,8 @@ Update the test project's environment variables:
 ```text
 EMAIL_REPLY_TO_ES=reservas@juantzun.dev
 EMAIL_REPLY_TO_EN=reservations@juantzun.dev
+EMAIL_ADMIN_RECIPIENTS=admin@juantzun.dev
+EMAIL_TEST_RECIPIENT=admin@juantzun.dev
 ```
 
 Do not change:
@@ -218,9 +234,13 @@ TRP_ENVIRONMENT=test
 EMAIL_DELIVERY_MODE=test
 EMAIL_FROM_ES / EMAIL_FROM_EN
 RESEND_API_KEY
-EMAIL_TEST_RECIPIENT
 production environment variables
 ```
+
+`EMAIL_TEST_RECIPIENT=admin@juantzun.dev` is the normal stable-test value. For the
+one-time F.3 external round-trip acceptance only, temporarily override it with an
+external mailbox controlled by the owner, execute the ES/EN reply tests, and restore
+`admin@juantzun.dev` immediately afterwards.
 
 Redeploy the stable test deployment after the environment values are saved.
 
@@ -260,13 +280,16 @@ transactional delivery through the already accepted application flow.
 | 12 | Zoho reply to EN conversation | From remains `reservations@juantzun.dev` | `_____` |
 | 13 | SPF/DKIM/DMARC for automatic Resend message | Existing sending-domain authentication remains valid | `_____` |
 | 14 | EmailNotification history | Existing persistence/history remains unchanged | `_____` |
-| 15 | Test recipient routing | Intended recipient remains persisted; actual test delivery still uses `EMAIL_TEST_RECIPIENT` | `_____` |
-| 16 | Production isolation | No production secret, DNS, mailbox, or deployed environment value changed | `_____` |
+| 15 | Normal test mailbox centralization | `EMAIL_ADMIN_RECIPIENTS` and normal `EMAIL_TEST_RECIPIENT` are `admin@juantzun.dev` | `_____` |
+| 16 | Test recipient routing | Intended recipient remains persisted while physical test delivery follows `EMAIL_TEST_RECIPIENT` | `_____` |
+| 17 | Production isolation | No production secret, DNS, mailbox, or deployed environment value changed | `_____` |
 
-For the most direct round-trip test, make `EMAIL_TEST_RECIPIENT` an external mailbox
-you control, trigger one ES and one EN automatic notification, inspect the received
-headers, select Reply, and send the response. The response must arrive in Zoho at the
-matching alias.
+For the F.3 round-trip acceptance only, temporarily set `EMAIL_TEST_RECIPIENT` to an
+external mailbox you control, trigger one ES and one EN automatic notification, inspect
+the received headers, select Reply, and send the response. The response must arrive in
+Zoho at the matching alias. After both tests pass, restore
+`EMAIL_TEST_RECIPIENT=admin@juantzun.dev` so normal local/test traffic remains
+centralized in the single Zoho mailbox.
 
 ## Acceptance Gate
 
@@ -282,10 +305,13 @@ F.3 may be marked completed and accepted only after:
 7. Real EN Resend delivery preserves the technical From address.
 8. Real EN Reply-To points to reservations@juantzun.dev.
 9. A real EN reply reaches Zoho and can be answered from reservations@juantzun.dev.
-10. Existing test-recipient isolation remains intact.
-11. Existing EmailNotification history/retry behavior remains intact.
-12. No production operational configuration is changed.
-13. No secret, OAuth credential, IMAP credential, or mailbox content is committed.
+10. Normal local/test administrative recipient is `admin@juantzun.dev`.
+11. Normal local/test physical test recipient is `admin@juantzun.dev` after the
+    external acceptance override is restored.
+12. Existing test-recipient isolation remains intact.
+13. Existing EmailNotification history/retry behavior remains intact.
+14. No production operational configuration is changed.
+15. No secret, OAuth credential, IMAP credential, or mailbox content is committed.
 ```
 
 ## Documentation Status
@@ -304,10 +330,13 @@ Do not begin F.4 until F.3 is functionally accepted.
 The immediate owner action after applying this bundle is:
 
 ```text
-1. Update local/test EMAIL_REPLY_TO_ES and EMAIL_REPLY_TO_EN.
+1. Set the normal local/test Reply-To, admin recipient, and test recipient values.
 2. Run email:contract:validate, env:validate, lint, and build.
-3. Redeploy stable test with the two new Reply-To values.
-4. Execute ES and EN automatic-email round trips through Resend -> external mailbox
-   -> Reply -> Zoho.
-5. Report the matrix results for F.3 acceptance closure.
+3. Redeploy stable test with the F.3 values.
+4. Temporarily point EMAIL_TEST_RECIPIENT to an external mailbox and redeploy for the
+   ES/EN automatic-email round-trip acceptance.
+5. Execute Resend -> external mailbox -> Reply -> Zoho for both locales.
+6. Restore EMAIL_TEST_RECIPIENT=admin@juantzun.dev and redeploy stable test.
+7. Confirm a normal test notification now arrives in the Zoho admin mailbox.
+8. Report the matrix results for F.3 acceptance closure.
 ```
