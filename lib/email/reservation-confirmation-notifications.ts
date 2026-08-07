@@ -708,6 +708,10 @@ export async function deliverClaimedEmailNotification(
     );
     const result = await input.provider.send({
       intendedRecipient: notification.recipient,
+      audience:
+        notification.type === EmailNotificationType.ADMIN_NEW_RESERVATION
+          ? "admin"
+          : "guest",
       locale,
       subject: content.subject,
       html: content.html,

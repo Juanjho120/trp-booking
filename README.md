@@ -32,6 +32,9 @@ TRP_ENVIRONMENT=local
 - Email: disabled or test
 - Resend account: personal test account
 - Verified sending domain: mail.trp-booking.juantzun.dev
+- Guest email physical delivery: EMAIL_TEST_RECIPIENT when email is enabled
+- Admin email delivery: intended juantzun.dev admin recipient
+- Subject prefix: [LOCAL]
 
 TRP_ENVIRONMENT=test
 - Application URL: https://trp-booking.juantzun.dev
@@ -39,6 +42,10 @@ TRP_ENVIRONMENT=test
 - Email: disabled or test
 - Resend account: personal test account
 - Verified sending domain: mail.trp-booking.juantzun.dev
+- Guest email delivery: intended reservation recipient
+- Admin email delivery: intended juantzun.dev admin recipient
+- EMAIL_TEST_RECIPIENT: empty
+- Subject prefix: [TEST]
 
 TRP_ENVIRONMENT=production
 - Application URL: https://turefugioperfecto.com
@@ -46,11 +53,14 @@ TRP_ENVIRONMENT=production
 - Email: disabled or production
 - Resend account: Tu Refugio Perfecto company account
 - Verified sending domain: mail.turefugioperfecto.com
+- Guest/admin delivery: intended recipients
+- EMAIL_TEST_RECIPIENT: empty
+- Subject prefix: none
 ```
 
 `VERCEL_ENV` remains deployment metadata and must not be used as the only signal for the TRP business environment. The stable test site may use a Vercel production deployment while remaining `TRP_ENVIRONMENT=test`.
 
-Detailed environment, domain, Resend-account, and Cloudflare DNS rules are documented in `docs/89-test-and-production-environment-strategy.md`.
+Detailed environment, domain, Resend-account, recipient-routing, and Cloudflare DNS rules are documented in `docs/89-test-and-production-environment-strategy.md`.
 
 ## Purpose
 
@@ -91,8 +101,9 @@ TRP Booking is focused only on the public booking experience, direct reservation
 - Failed, rejected, expired, and successful payment attempts remain auditable.
 - Email delivery never determines payment approval and an email failure never rolls back a valid confirmed reservation.
 - Transactional email intents must use permanent database deduplication in addition to provider idempotency.
-- Test email delivery preserves the intended recipient in persistence but sends only to `EMAIL_TEST_RECIPIENT`.
-- Transactional email logos must use a permanent HTTPS asset through `EMAIL_BRAND_LOGO_URL`; they must not depend on localhost or the current Vercel deployment.
+- Local enabled email delivery preserves the intended recipient in persistence but redirects only guest-audience physical delivery to `EMAIL_TEST_RECIPIENT`; admin-audience delivery remains on `juantzun.dev`.
+- Stable test email delivery uses intended guest recipients and configured `juantzun.dev` admin recipients; `EMAIL_TEST_RECIPIENT` must be empty.
+- Transactional email logos must use the permanent Cloudinary HTTPS asset through `EMAIL_BRAND_LOGO_URL`; local delivered emails must not expose a clickable localhost logo link.
 - Public-facing, admin-facing, and transactional email copy is centralized in `messages/es.ts` and `messages/en.ts`.
 - Admin modules use dedicated routes under `/admin`; the dashboard remains a compact summary.
 - Manual availability blocks use `CalendarBlock.source = MANUAL_BLOCK`, optional internal notes, soft deletion, audit logs, and server-side availability revalidation.
@@ -241,7 +252,7 @@ Phase 10.4 orchestration completed:
 - Immediate delivery starts only after the confirmation transaction commits.
 - An atomic PENDING to PROCESSING claim prevents concurrent callbacks from sending the same intent twice.
 - Disabled or unavailable email configuration leaves intents PENDING without affecting payment or reservation success.
-- Test mode keeps the intended recipient in the database while the provider adapter redirects delivery to EMAIL_TEST_RECIPIENT.
+- The provider preserves intended-recipient persistence; current routing redirects only local guest-audience delivery to `EMAIL_TEST_RECIPIENT`, while stable test and production use intended recipients.
 - Provider and template failures become safe FAILED notification records while the approved payment and confirmed reservation remain unchanged.
 - The accepted orchestration and its environment/logo follow-ups are recorded through commit 6f7bdc3c6027d6be8b4fcdfe027c57b01dfef50d.
 - Retry scheduling, stale PROCESSING recovery, attempt limits, and read-only admin delivery visibility remain assigned to 10.5.
@@ -287,7 +298,7 @@ Phase 10.6 arrival instructions scheduling and content completed:
 - Confirmation creates the ARRIVAL_INSTRUCTIONS intent transactionally when the property is configured; a protected 30-minute scheduler backfills existing upcoming confirmed reservations.
 - scheduledFor, a check-in-date snapshot, and the arrival-settings version make delivery auditable and allow stale notifications to be skipped after configuration or authorized date changes.
 - The permanent deduplication key includes reservation, check-in date, settings version, and recipient.
-- Delivery reuses the existing provider, idempotency, claim, bounded retry, test-recipient, and admin-history foundation.
+- Delivery reuses the existing provider, idempotency, claim, bounded retry, environment-aware recipient routing, and admin-history foundation.
 - RESERVATION_CONFIRMED and ARRIVAL_INSTRUCTIONS render the accommodation's currently active assigned house rules in the guest's stored locale.
 - Rotating access codes, lockbox codes, Wi-Fi passwords, and other secrets are explicitly prohibited from the stored instructions.
 - No payment mutation, reservation confirmation change, dependency, environment variable, or PMS behavior is added.
@@ -452,7 +463,7 @@ Phase 12 status: Not started; activation is intentionally deferred until the bou
 
 ```text
 - The integrated lifecycle inbox matrix passed for cancellation, date changes, extensions, standard/extraordinary refunds, and lifecycle-adjustment refunds.
-- Guest/admin intents, post-commit delivery, test routing, retry recovery, permanent deduplication, replay safety, and domain failure isolation were accepted.
+- Guest/admin intents, post-commit delivery, environment-aware routing, retry recovery, permanent deduplication, replay safety, and domain failure isolation were accepted.
 - Accepted commit: 5fed1ca0423190cd51a9c710d00c9216b65883a9.
 - Three accepted follow-up requirements were assigned to 11.6.4 without reopening the accepted 11.6.3 orchestration boundary.
 - Implementation record: docs/117-phase-11.6.3-transactional-intent-orchestration-and-delivery.md.
@@ -493,7 +504,7 @@ Phase 12 status: Not started; activation is intentionally deferred until the bou
 - Phase 11.6.1 through 11.6.5 are completed and accepted.
 - Lifecycle notification contracts, bilingual templates, transactional intent orchestration, post-commit delivery, adjustment-payment links, delivery-result relations, retry/manual recovery, and protected operational history operate through the accepted Phase 10 foundation.
 - Email delivery remains isolated from Reservation, lifecycle-request, hold, Payment, Refund, and date-transition state.
-- Permanent deduplication, test routing, bounded retry, stale recovery, ES/EN output, source/result relations, manual parent/child history, safe diagnostics, and protected admin visibility were accepted.
+- Permanent deduplication, environment-aware routing, bounded retry, stale recovery, ES/EN output, source/result relations, manual parent/child history, safe diagnostics, and protected admin visibility were accepted.
 - No historical email backfill, guest self-service mutation, raw provider exposure, card-data handling, hard deletion, or PMS behavior was introduced.
 - Accepted feature head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f.
 - Closure record: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md.

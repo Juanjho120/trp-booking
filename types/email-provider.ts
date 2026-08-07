@@ -1,4 +1,5 @@
 export type TransactionalEmailLocale = "es" | "en";
+export type EmailAudience = "guest" | "admin";
 
 export type EmailProviderErrorCode =
   | "EMAIL_PROVIDER_DISABLED"
@@ -12,6 +13,7 @@ export type EmailProviderErrorCode =
 
 export type EmailProviderSendInput = Readonly<{
   intendedRecipient: string;
+  audience: EmailAudience;
   locale: TransactionalEmailLocale;
   subject: string;
   html: string;

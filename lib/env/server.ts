@@ -234,7 +234,7 @@ function isLocalDevelopmentUrl(value: string): boolean {
     const url = new URL(value);
     return (
       (url.protocol === "http:" || url.protocol === "https:") &&
-      ["localhost", "127.0.0.1", "::1"].includes(url.hostname)
+      ["localhost", "127.0.0.1", "::1", "[::1]"].includes(url.hostname)
     );
   } catch {
     return false;
@@ -459,19 +459,24 @@ const serverEnvSchema = rawServerEnvSchema.superRefine((env, context) => {
     }
   }
 
-  if (env.EMAIL_DELIVERY_MODE === "test" && !env.EMAIL_TEST_RECIPIENT) {
+  if (
+    env.TRP_ENVIRONMENT === "local" &&
+    env.EMAIL_DELIVERY_MODE === "test" &&
+    !env.EMAIL_TEST_RECIPIENT
+  ) {
     context.addIssue({
       code: "custom",
       path: ["EMAIL_TEST_RECIPIENT"],
-      message: "Required when EMAIL_DELIVERY_MODE=test.",
+      message:
+        "Required for local guest-delivery isolation when EMAIL_DELIVERY_MODE=test.",
     });
   }
 
-  if (env.EMAIL_DELIVERY_MODE === "production" && env.EMAIL_TEST_RECIPIENT) {
+  if (env.TRP_ENVIRONMENT !== "local" && env.EMAIL_TEST_RECIPIENT) {
     context.addIssue({
       code: "custom",
       path: ["EMAIL_TEST_RECIPIENT"],
-      message: "Must be empty when EMAIL_DELIVERY_MODE=production.",
+      message: "Must be empty outside TRP_ENVIRONMENT=local.",
     });
   }
 
@@ -544,6 +549,21 @@ const serverEnvSchema = rawServerEnvSchema.superRefine((env, context) => {
       });
     }
   }
+
+  const expectedAdminDomain =
+    env.TRP_ENVIRONMENT === "production"
+      ? PRODUCTION_CORRESPONDENCE_DOMAIN
+      : TEST_CORRESPONDENCE_DOMAIN;
+
+  for (const email of env.EMAIL_ADMIN_RECIPIENTS ?? []) {
+    if (!emailUsesExactDomain(email, expectedAdminDomain)) {
+      context.addIssue({
+        code: "custom",
+        path: ["EMAIL_ADMIN_RECIPIENTS"],
+        message: `Administrative recipients must use the ${expectedAdminDomain} mailbox domain.`,
+      });
+    }
+  }
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
@@ -577,6 +597,7 @@ export type DisabledEmailEnv = Readonly<{
 }>;
 
 type EnabledEmailEnvBase = Readonly<{
+  trpEnvironment: "local" | "test" | "production";
   apiKey: string;
   from: Readonly<Record<"es" | "en", string>>;
   replyTo: Readonly<Record<"es" | "en", string>>;
@@ -586,14 +607,22 @@ type EnabledEmailEnvBase = Readonly<{
   brandLogoUrl: string;
 }>;
 
-export type TestEmailEnv = EnabledEmailEnvBase &
-  Readonly<{
-    deliveryMode: "test";
-    testRecipient: string;
-  }>;
+export type TestEmailEnv =
+  | (EnabledEmailEnvBase &
+      Readonly<{
+        trpEnvironment: "local";
+        deliveryMode: "test";
+        testRecipient: string;
+      }>)
+  | (EnabledEmailEnvBase &
+      Readonly<{
+        trpEnvironment: "test";
+        deliveryMode: "test";
+      }>);
 
 export type ProductionEmailEnv = EnabledEmailEnvBase &
   Readonly<{
+    trpEnvironment: "production";
     deliveryMode: "production";
   }>;
 
@@ -700,6 +729,7 @@ export function getEmailEnv(source: NodeJS.ProcessEnv = process.env): EmailEnv {
   }
 
   const enabledEmailEnvBase: EnabledEmailEnvBase = {
+    trpEnvironment: env.TRP_ENVIRONMENT,
     apiKey: env.RESEND_API_KEY,
     from: { es: env.EMAIL_FROM_ES, en: env.EMAIL_FROM_EN },
     replyTo: { es: env.EMAIL_REPLY_TO_ES, en: env.EMAIL_REPLY_TO_EN },
@@ -710,18 +740,39 @@ export function getEmailEnv(source: NodeJS.ProcessEnv = process.env): EmailEnv {
   };
 
   if (env.EMAIL_DELIVERY_MODE === "test") {
-    if (!env.EMAIL_TEST_RECIPIENT) {
-      throw new Error("Validated test email configuration is incomplete.");
+    if (env.TRP_ENVIRONMENT === "local") {
+      if (!env.EMAIL_TEST_RECIPIENT) {
+        throw new Error("Validated local email configuration is incomplete.");
+      }
+
+      return {
+        ...enabledEmailEnvBase,
+        trpEnvironment: "local",
+        deliveryMode: "test",
+        testRecipient: env.EMAIL_TEST_RECIPIENT,
+      };
+    }
+
+    if (env.TRP_ENVIRONMENT !== "test") {
+      throw new Error("Validated test email configuration is inconsistent.");
     }
 
     return {
       ...enabledEmailEnvBase,
+      trpEnvironment: "test",
       deliveryMode: "test",
-      testRecipient: env.EMAIL_TEST_RECIPIENT,
     };
   }
 
-  return { ...enabledEmailEnvBase, deliveryMode: "production" };
+  if (env.TRP_ENVIRONMENT !== "production") {
+    throw new Error("Validated production email configuration is inconsistent.");
+  }
+
+  return {
+    ...enabledEmailEnvBase,
+    trpEnvironment: "production",
+    deliveryMode: "production",
+  };
 }
 
 export function formatEnvValidationError(error: unknown): string {

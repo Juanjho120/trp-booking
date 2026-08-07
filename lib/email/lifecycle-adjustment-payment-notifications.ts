@@ -23,7 +23,7 @@ import { environmentConfig } from "@/config/site";
 import { prisma } from "@/lib/db/prisma";
 import { getEmailEnv } from "@/lib/env/server";
 import { createLifecycleAdjustmentHandoffToken } from "@/lib/payments/lifecycle-adjustment-handoff";
-import type { EmailProvider } from "@/types/email-provider";
+import type { EmailAudience, EmailProvider } from "@/types/email-provider";
 import type {
   ClaimedEmailNotificationDeliveryOutcome,
   EmailNotificationClaim,
@@ -397,6 +397,21 @@ export function isLifecycleAdjustmentPaymentGuestNotificationType(
   value: EmailNotificationType,
 ): boolean {
   return guestTypes.has(value);
+}
+
+function getNotificationAudience(type: EmailNotificationType): EmailAudience {
+  if (guestTypes.has(type)) {
+    return "guest";
+  }
+
+  if (adminTypes.has(type)) {
+    return "admin";
+  }
+
+  throw new PaymentEmailDeliveryError(
+    "EMAIL_NOTIFICATION_UNSUPPORTED_TYPE",
+    false,
+  );
 }
 
 type GuestIntentIdentity = Readonly<{
@@ -1095,6 +1110,7 @@ export async function deliverClaimedLifecycleAdjustmentPaymentEmailNotification(
     );
     const sent = await input.provider.send({
       intendedRecipient: notification.recipient,
+      audience: getNotificationAudience(notification.type),
       locale: normalizeLocale(notification.locale),
       subject: content.subject,
       html: content.html,

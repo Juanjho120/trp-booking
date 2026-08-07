@@ -5,40 +5,50 @@
 ```text
 Phase: Phase 10 — Email Notifications
 Context: Phase 10.4 validation follow-up
-Status: Implementation prepared; pending local validation and commit
+Status: Completed; local-link behavior clarified during Pre-Phase-12 Package F.3
 Base commit: d3803fb7744c5d9836db7a37001b2753c3f4c8f8
+Current refinement base: 4b4f1cfa93b1cdb483f098ffffb981236b4f90a5
 ```
 
 ## Purpose
 
-Ensure the branded transactional email logo renders in local and test email deliveries before the Vercel test deployment exists, without changing recipient routing, payment approval, reservation confirmation, or provider-failure behavior.
+Keep transactional email branding independent from the application deployment URL. The logo image must always be loaded from a permanent public HTTPS asset, while application links continue to use `EMAIL_PUBLIC_BASE_URL`.
 
-This document supersedes the earlier Phase 10 statements that derived the email logo from `EMAIL_PUBLIC_BASE_URL`. Only application links continue to use that base URL.
-
-## Problem
-
-The template previously converted `/brand/logo-primary.png` into an absolute URL using `EMAIL_PUBLIC_BASE_URL`. When that base URL pointed to localhost or to the not-yet-deployed `trp-booking.juantzun.dev`, Gmail could not fetch the image and displayed a broken logo.
-
-## Accepted Design
-
-Introduce one server-side variable:
+## Canonical Asset
 
 ```text
-EMAIL_BRAND_LOGO_URL
+EMAIL_BRAND_LOGO_URL=https://res.cloudinary.com/juan-tzun-portfolio/image/upload/v1784668172/trp-booking/brand/logo-primary.png
 ```
 
-It contains the permanent, publicly reachable HTTPS URL of the approved primary logo, preferably hosted in Cloudinary. Application links continue to use `EMAIL_PUBLIC_BASE_URL`.
+This Cloudinary URL is public configuration, not a secret.
 
-Example:
+## Rendering Contract
 
-```env
-EMAIL_PUBLIC_BASE_URL="http://localhost:3000"
-EMAIL_BRAND_LOGO_URL="https://res.cloudinary.com/ACCOUNT/image/upload/trp-booking/brand/logo-primary.png"
+`EMAIL_BRAND_LOGO_URL` is the `<img src>` used by all reservation, arrival, lifecycle, refund, and lifecycle-adjustment transactional templates through the shared email layout.
+
+`EMAIL_PUBLIC_BASE_URL` remains responsible for application URLs such as public-home links, protected admin reservation links, and lifecycle payment handoff links.
+
+The brand image itself follows this environment behavior:
+
+```text
+local
+  image src: Cloudinary HTTPS asset
+  clickable brand href: omitted when EMAIL_PUBLIC_BASE_URL is localhost/loopback
+
+test
+  image src: Cloudinary HTTPS asset
+  clickable brand href: https://trp-booking.juantzun.dev
+
+production
+  image src: Cloudinary HTTPS asset
+  clickable brand href: https://turefugioperfecto.com
 ```
+
+This prevents a delivered local test email from exposing a useless `http://localhost:3000/` logo link while preserving normal navigation for deployed test and production messages.
 
 ## Validation Contract
 
-When `EMAIL_DELIVERY_MODE=test|production`:
+When email delivery is enabled:
 
 ```text
 - EMAIL_BRAND_LOGO_URL is required.
@@ -52,29 +62,6 @@ Template input validates the same HTTPS/public-host contract before rendering.
 
 ## Delivery Boundary
 
-This change does not alter:
+This change does not alter payment approval, reservation confirmation, `EmailNotification` persistence, deduplication, retry scheduling, Resend authentication, Reply-To routing, or provider idempotency.
 
-```text
-- EMAIL_TEST_RECIPIENT override behavior
-- Intended recipient persistence
-- Resend sender or reply-to selection
-- Notification deduplication keys
-- Reservation confirmation transactions
-- Payment status
-- FAILED email isolation
-```
-
-An invalid brand-logo configuration prevents the provider delivery attempt from being prepared, while the approved payment and confirmed reservation remain successful.
-
-## Files
-
-```text
-.env.example
-lib/env/server.ts
-types/email-template.ts
-emails/template-data.ts
-lib/email/reservation-confirmation-notifications.ts
-README.md
-docs/89-test-and-production-environment-strategy.md
-docs/90-transactional-email-brand-logo-hosting.md
-```
+An invalid brand-logo configuration can fail an email delivery attempt, but it must never roll back an approved payment or confirmed reservation.

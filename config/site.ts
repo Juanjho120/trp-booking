@@ -6,7 +6,7 @@ export const environmentConfig = {
     applicationUrl: "https://trp-booking.juantzun.dev",
     sendingDomain: "mail.trp-booking.juantzun.dev",
     correspondenceDomain: "juantzun.dev",
-    adminEmail: "admin@mail.trp-booking.juantzun.dev",
+    adminEmail: "admin@juantzun.dev",
   },
   production: {
     applicationDomain: "turefugioperfecto.com",

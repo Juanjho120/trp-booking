@@ -1,8 +1,9 @@
 import { Resend } from "resend";
 import { z } from "zod";
 
-import { getEmailEnv } from "@/lib/env/server";
+import { getEmailEnv, type TrpEnvironment } from "@/lib/env/server";
 import type {
+  EmailAudience,
   EmailProvider,
   EmailProviderSendInput,
   EmailProviderSendResult,
@@ -10,7 +11,6 @@ import type {
 
 import { EmailProviderError } from "./provider";
 
-const TEST_SUBJECT_PREFIX = "[TEST] ";
 const MAX_IDEMPOTENCY_KEY_LENGTH = 256;
 const MAX_RECIPIENT_LENGTH = 160;
 
@@ -56,6 +56,13 @@ type ResendErrorLike = Readonly<{
   statusCode?: unknown;
 }>;
 
+type DeliveryRecipientInput = Readonly<{
+  trpEnvironment: TrpEnvironment;
+  audience: EmailAudience;
+  intendedRecipient: string;
+  testRecipient?: string;
+}>;
+
 function normalizeRecipient(recipient: string): string {
   const parsedRecipient = recipientSchema.safeParse(recipient);
 
@@ -66,8 +73,43 @@ function normalizeRecipient(recipient: string): string {
   return parsedRecipient.data;
 }
 
+export function resolveEmailDeliveryRecipient(
+  input: DeliveryRecipientInput,
+): string {
+  const intendedRecipient = normalizeRecipient(input.intendedRecipient);
+
+  if (input.trpEnvironment !== "local" || input.audience === "admin") {
+    return intendedRecipient;
+  }
+
+  if (!input.testRecipient) {
+    throw new EmailProviderError("EMAIL_PROVIDER_CONFIGURATION_ERROR", false);
+  }
+
+  return normalizeRecipient(input.testRecipient);
+}
+
+export function getTransactionalEmailSubjectPrefix(
+  trpEnvironment: TrpEnvironment,
+): string {
+  if (trpEnvironment === "local") {
+    return "[LOCAL] ";
+  }
+
+  if (trpEnvironment === "test") {
+    return "[TEST] ";
+  }
+
+  return "";
+}
+
 function validateSendInput(input: EmailProviderSendInput): void {
-  if (!input.subject.trim() || !input.html.trim() || !input.text.trim()) {
+  if (
+    (input.audience !== "guest" && input.audience !== "admin") ||
+    !input.subject.trim() ||
+    !input.html.trim() ||
+    !input.text.trim()
+  ) {
     throw new EmailProviderError("EMAIL_PROVIDER_INVALID_REQUEST", false);
   }
 
@@ -147,15 +189,18 @@ export function createResendEmailProvider(
     ): Promise<EmailProviderSendResult> {
       validateSendInput(input);
 
-      const intendedRecipient = normalizeRecipient(input.intendedRecipient);
-      const deliveredRecipient =
-        emailEnv.deliveryMode === "test"
-          ? normalizeRecipient(emailEnv.testRecipient ?? "")
-          : intendedRecipient;
-      const subject =
-        emailEnv.deliveryMode === "test"
-          ? `${TEST_SUBJECT_PREFIX}${input.subject}`
-          : input.subject;
+      const deliveredRecipient = resolveEmailDeliveryRecipient({
+        trpEnvironment: emailEnv.trpEnvironment,
+        audience: input.audience,
+        intendedRecipient: input.intendedRecipient,
+        testRecipient:
+          emailEnv.trpEnvironment === "local"
+            ? emailEnv.testRecipient
+            : undefined,
+      });
+      const subject = `${getTransactionalEmailSubjectPrefix(
+        emailEnv.trpEnvironment,
+      )}${input.subject}`;
 
       let response: Awaited<ReturnType<typeof resend.emails.send>>;
 

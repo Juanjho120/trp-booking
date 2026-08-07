@@ -19,7 +19,10 @@ This file defines the working rules for TRP Booking.
 - Local and test environments use Tilopay sandbox, the personal test Resend account, and the verified sending domain `mail.trp-booking.juantzun.dev`.
 - Production uses Tilopay production, the future Tu Refugio Perfecto company Resend account, and the verified sending domain `mail.turefugioperfecto.com`.
 - Never reuse production API keys, sending domains, payment credentials, databases, or recipient routing in local/test.
-- Test email delivery must always retain the intended recipient in persistence while sending only to `EMAIL_TEST_RECIPIENT`.
+- Local enabled email delivery redirects only guest-audience messages to `EMAIL_TEST_RECIPIENT`; administrative messages continue to their intended `juantzun.dev` recipients.
+- Stable test enabled email delivery sends guest messages to the intended reservation address and administrative messages to configured `juantzun.dev` recipients; `EMAIL_TEST_RECIPIENT` must be empty.
+- Production delivery sends guest/admin messages to their intended recipients and requires administrative recipients under `turefugioperfecto.com`.
+- Transactional email persistence always retains the intended recipient independently from the physical local-delivery override.
 
 ## Required Working Style
 

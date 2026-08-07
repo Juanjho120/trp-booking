@@ -1031,7 +1031,7 @@ export async function deliverClaimedLifecycleEmailNotification(
     assertLifecycleNotificationCurrent(notification);
     const locale = normalizeLocale(notification.locale);
 
-    if (!locale) {
+    if (!locale || !isLifecycleNotificationType(notification.type)) {
       throw new LifecycleNotificationDeliveryError(
         "EMAIL_NOTIFICATION_DATA_INCOMPLETE",
         false,
@@ -1045,6 +1045,7 @@ export async function deliverClaimedLifecycleEmailNotification(
     );
     const sent = await input.provider.send({
       intendedRecipient: notification.recipient,
+      audience: getLifecycleNotificationConfiguration(notification.type).audience,
       locale,
       subject: content.subject,
       html: content.html,

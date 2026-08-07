@@ -4,8 +4,15 @@ import {
   formatEnvValidationError,
   validateServerEnv,
 } from "../lib/env/server";
+import {
+  getTransactionalEmailSubjectPrefix,
+  resolveEmailDeliveryRecipient,
+} from "../lib/email/resend-provider";
 
 type EnvOverrides = Record<string, string | undefined>;
+
+const BRAND_LOGO_URL =
+  "https://res.cloudinary.com/juan-tzun-portfolio/image/upload/v1784668172/trp-booking/brand/logo-primary.png";
 
 function createBaseEnv(overrides: EnvOverrides = {}): NodeJS.ProcessEnv {
   return {
@@ -48,8 +55,8 @@ function createBaseEnv(overrides: EnvOverrides = {}): NodeJS.ProcessEnv {
     EMAIL_ADMIN_RECIPIENTS: "admin@juantzun.dev",
     EMAIL_ADMIN_LOCALE: "es",
     EMAIL_PUBLIC_BASE_URL: "https://trp-booking.juantzun.dev",
-    EMAIL_BRAND_LOGO_URL: "https://assets.juantzun.dev/trp-booking/logo.png",
-    EMAIL_TEST_RECIPIENT: "admin@juantzun.dev",
+    EMAIL_BRAND_LOGO_URL: BRAND_LOGO_URL,
+    EMAIL_TEST_RECIPIENT: undefined,
     VERCEL_ENV: "production",
     NODE_ENV: "production",
     ...overrides,
@@ -65,6 +72,7 @@ function createLocalEnv(overrides: EnvOverrides = {}): NodeJS.ProcessEnv {
     TILOPAY_ERROR_URL: "http://localhost:3000/reservas/pago/error",
     TILOPAY_WEBHOOK_URL: "http://localhost:3000/api/payments/tilopay/webhook",
     EMAIL_PUBLIC_BASE_URL: "http://localhost:3000",
+    EMAIL_TEST_RECIPIENT: "local-guest-inbox@example.net",
     VERCEL_ENV: "development",
     NODE_ENV: "development",
     ...overrides,
@@ -93,8 +101,7 @@ function createProductionEnv(overrides: EnvOverrides = {}): NodeJS.ProcessEnv {
     EMAIL_REPLY_TO_EN: "reservations@turefugioperfecto.com",
     EMAIL_ADMIN_RECIPIENTS: "admin@turefugioperfecto.com",
     EMAIL_PUBLIC_BASE_URL: "https://turefugioperfecto.com",
-    EMAIL_BRAND_LOGO_URL:
-      "https://assets.turefugioperfecto.com/trp-booking/logo.png",
+    EMAIL_BRAND_LOGO_URL: BRAND_LOGO_URL,
     EMAIL_TEST_RECIPIENT: undefined,
     VERCEL_ENV: "production",
     NODE_ENV: "production",
@@ -132,18 +139,36 @@ function expectInvalid(
 }
 
 expectValid(
-  "local keeps Resend From on the technical sending domain and routes Reply-To to Zoho",
+  "local keeps test Resend From, Zoho Reply-To, and a guest safety recipient",
   createLocalEnv(),
 );
 expectValid(
-  "test keeps Resend From on the technical sending domain and routes Reply-To to Zoho",
+  "test sends to intended recipients while keeping Zoho admin and Reply-To addresses",
   createBaseEnv(),
 );
 expectValid(
-  "production preserves the future production From and Zoho Reply-To contract",
+  "production preserves production sending and human correspondence domains",
   createProductionEnv(),
 );
 
+expectInvalid(
+  "local requires EMAIL_TEST_RECIPIENT when email delivery is enabled",
+  createLocalEnv({ EMAIL_TEST_RECIPIENT: undefined }),
+  "EMAIL_TEST_RECIPIENT",
+  "Required for local guest-delivery isolation",
+);
+expectInvalid(
+  "test rejects a leftover EMAIL_TEST_RECIPIENT override",
+  createBaseEnv({ EMAIL_TEST_RECIPIENT: "old-test-override@example.net" }),
+  "EMAIL_TEST_RECIPIENT",
+  "Must be empty outside TRP_ENVIRONMENT=local",
+);
+expectInvalid(
+  "production rejects EMAIL_TEST_RECIPIENT",
+  createProductionEnv({ EMAIL_TEST_RECIPIENT: "old-test-override@example.net" }),
+  "EMAIL_TEST_RECIPIENT",
+  "Must be empty outside TRP_ENVIRONMENT=local",
+);
 expectInvalid(
   "test rejects the pre-F.3 technical Reply-To address",
   createBaseEnv({
@@ -161,19 +186,7 @@ expectInvalid(
   "reservations@juantzun.dev",
 );
 expectInvalid(
-  "test rejects an unintended local part on the Zoho correspondence domain",
-  createBaseEnv({ EMAIL_REPLY_TO_ES: "admin@juantzun.dev" }),
-  "EMAIL_REPLY_TO_ES",
-  "reservas@juantzun.dev",
-);
-expectInvalid(
-  "production rejects a test Reply-To address",
-  createProductionEnv({ EMAIL_REPLY_TO_ES: "reservas@juantzun.dev" }),
-  "EMAIL_REPLY_TO_ES",
-  "reservas@turefugioperfecto.com",
-);
-expectInvalid(
-  "test still rejects From on the human correspondence domain",
+  "test rejects From on the human correspondence domain",
   createBaseEnv({
     EMAIL_FROM_ES: "Tu Refugio Perfecto Test <reservas@juantzun.dev>",
   }),
@@ -181,12 +194,73 @@ expectInvalid(
   "mail.trp-booking.juantzun.dev",
 );
 expectInvalid(
-  "production still rejects From outside the production Resend sending domain",
-  createProductionEnv({
-    EMAIL_FROM_EN: "Tu Refugio Perfecto <reservations@turefugioperfecto.com>",
-  }),
-  "EMAIL_FROM_EN",
-  "mail.turefugioperfecto.com",
+  "test rejects an admin recipient outside juantzun.dev",
+  createBaseEnv({ EMAIL_ADMIN_RECIPIENTS: "admin@example.net" }),
+  "EMAIL_ADMIN_RECIPIENTS",
+  "juantzun.dev",
+);
+expectInvalid(
+  "production rejects an admin recipient outside turefugioperfecto.com",
+  createProductionEnv({ EMAIL_ADMIN_RECIPIENTS: "admin@juantzun.dev" }),
+  "EMAIL_ADMIN_RECIPIENTS",
+  "turefugioperfecto.com",
 );
 
-console.info("Transactional Reply-To contract validation passed.");
+assert.equal(
+  resolveEmailDeliveryRecipient({
+    trpEnvironment: "local",
+    audience: "guest",
+    intendedRecipient: "guest@example.org",
+    testRecipient: "local-guest-inbox@example.net",
+  }),
+  "local-guest-inbox@example.net",
+);
+assert.equal(
+  resolveEmailDeliveryRecipient({
+    trpEnvironment: "local",
+    audience: "admin",
+    intendedRecipient: "admin@juantzun.dev",
+    testRecipient: "local-guest-inbox@example.net",
+  }),
+  "admin@juantzun.dev",
+);
+assert.equal(
+  resolveEmailDeliveryRecipient({
+    trpEnvironment: "test",
+    audience: "guest",
+    intendedRecipient: "guest@example.org",
+  }),
+  "guest@example.org",
+);
+assert.equal(
+  resolveEmailDeliveryRecipient({
+    trpEnvironment: "test",
+    audience: "admin",
+    intendedRecipient: "admin@juantzun.dev",
+  }),
+  "admin@juantzun.dev",
+);
+assert.equal(
+  resolveEmailDeliveryRecipient({
+    trpEnvironment: "production",
+    audience: "guest",
+    intendedRecipient: "guest@example.org",
+  }),
+  "guest@example.org",
+);
+assert.equal(
+  resolveEmailDeliveryRecipient({
+    trpEnvironment: "production",
+    audience: "admin",
+    intendedRecipient: "admin@turefugioperfecto.com",
+  }),
+  "admin@turefugioperfecto.com",
+);
+console.info("PASS: audience-aware local/test/production recipient routing");
+
+assert.equal(getTransactionalEmailSubjectPrefix("local"), "[LOCAL] ");
+assert.equal(getTransactionalEmailSubjectPrefix("test"), "[TEST] ");
+assert.equal(getTransactionalEmailSubjectPrefix("production"), "");
+console.info("PASS: local/test/production subject prefixes");
+
+console.info("Transactional email routing contract validation passed.");
