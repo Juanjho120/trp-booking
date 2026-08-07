@@ -428,7 +428,7 @@ docs/120-phase-11.7-validation-and-documentation-closure.md
 
 ```text
 Current phase: No active implementation phase — Phase 11 is completed and Phase 12 is not activated
-Current focus: continue the Pre-Phase-12 Improvement Track with Package F.4 Reservation-to-Zoho navigation after F.3 acceptance
+Current focus: continue the Pre-Phase-12 Improvement Track with Package F.5 integrated validation and documentation closure after F.4 acceptance
 Last completed phase: Phase 11 — Cancellation, Refund, and Change Request Rules
 11.7 status: Completed and accepted
 11.7 acceptance: All 15 reduced cross-phase regression, integration, security, localization, and technical-validation criteria passed on 2026-08-05
@@ -440,7 +440,10 @@ Phase 12 status: Not started; activation remains gated on completion and accepta
 Package F.3 status: Completed and accepted on 2026-08-07
 Package F.3 accepted head: c75a943a9f36c31e146594d7ad03eedb44635f89
 Package F.3 closure: docs/131-pre-phase-12-package-f-3-acceptance-closure.md
-Next package: F.4 — Reservation-to-Zoho navigation
+Package F.4 status: Completed and accepted on 2026-08-07
+Package F.4 accepted head: 7e0432f90836c5d4200ff528832eb48e69d1e642
+Package F.4 closure: docs/133-pre-phase-12-package-f-4-acceptance-closure.md
+Next package: F.5 — Integrated validation and documentation closure
 ```
 
 ### Phase 11.6.1 completed and accepted

@@ -6,8 +6,11 @@
 Track: Pre-Phase-12 Improvement Track
 Package: F — Zoho guest correspondence and reservation navigation
 Subpackage: F.4 — Reservation-to-Zoho navigation
-Status: Implementation prepared — owner validation and acceptance pending
+Status: Completed and accepted
 Implementation base: 060e8dd4f11ea8c2597cffec73a2ada1c924af3d
+Accepted implementation head: 7e0432f90836c5d4200ff528832eb48e69d1e642
+Acceptance date: 2026-08-07
+Acceptance closure: docs/133-pre-phase-12-package-f-4-acceptance-closure.md
 Previous package: F.3 — Completed and accepted
 Previous closure: docs/131-pre-phase-12-package-f-3-acceptance-closure.md
 Next after F.4 acceptance: F.5 — Integrated validation and documentation closure
@@ -227,11 +230,9 @@ Native-app opening is not guaranteed by TRP Booking. The acceptance requirement 
 safe HTTPS handoff: use the native Zoho Mail app when the operating system recognizes
 the association and otherwise retain a working Zoho web fallback.
 
-Until that validation is reported, the official trackers remain on F.4 as the next
-package rather than claiming completion.
+The owner reported the complete 20-check functional and technical acceptance matrix passing successfully after commit `7e0432f90836c5d4200ff528832eb48e69d1e642`. F.4 is therefore completed and accepted. The official closure evidence is recorded in `docs/133-pre-phase-12-package-f-4-acceptance-closure.md`.
 
-After F.4 acceptance, create the formal acceptance closure, update the official
-trackers, and continue with:
+The official trackers now continue with:
 
 ```text
 F.5 — Integrated validation and documentation closure

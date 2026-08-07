@@ -6,16 +6,18 @@
 Track: Pre-Phase-12 Improvement Track
 Package: F — Zoho guest correspondence and reservation navigation
 Subpackage: F.1 Strategy, provider boundary, and environment contract
-Status: Completed and accepted — F.3 completed and accepted; F.4 is next
+Status: Completed and accepted — F.4 completed and accepted; F.5 is next
 Strategy and acceptance date: 2026-08-06
 Strategy base head: cab7d71e34d230cdf49e013921764f6386d3fa2f
 Previous accepted package: Package E — Public location and map configuration
 Previous closure: docs/126-pre-phase-12-package-e-acceptance-closure.md
-Active subpackage: None — F.3 accepted; F.4 is the next package
+Active subpackage: None — F.4 accepted; F.5 is the next package
 F.2 record: docs/128-pre-phase-12-package-f-2-test-zoho-mail-setup-and-dns-validation.md
 F.2 closure: docs/129-pre-phase-12-package-f-2-acceptance-closure.md
 F.3 record: docs/130-pre-phase-12-package-f-3-transactional-reply-to-alignment.md
 F.3 closure: docs/131-pre-phase-12-package-f-3-acceptance-closure.md
+F.4 record: docs/132-pre-phase-12-package-f-4-reservation-to-zoho-navigation.md
+F.4 closure: docs/133-pre-phase-12-package-f-4-acceptance-closure.md
 Phase 12: Not started and not activated
 ```
 
@@ -439,12 +441,13 @@ F.3 Transactional Reply-To alignment
     recipients route directly; Cloudinary branding and production isolation passed
 
 F.4 Reservation-to-Zoho navigation
-    Status: Not started — next package
-    Scope: add the protected reservation action using an official deep link, safe
-    search handoff, or separately validated read-only OAuth search
+    Status: Completed and accepted on 2026-08-07
+    Result: protected reservation detail exposes a separate HTTPS Zoho Mail handoff;
+    guest email copy is best-effort; mobile uses native app association when available
+    and clean web fallback otherwise; no OAuth, mailbox ingestion, or persistence added
 
 F.5 Integrated validation and documentation closure
-    Status: Not started
+    Status: Not started — next package
     Scope: verify separation, aliases, sender identity, mobile behavior, transactional
     history preservation, navigation, secrets, ES/EN copy, and Phase 12 gate evidence
 ```
@@ -530,8 +533,8 @@ Zoho server-based OAuth applications:
 https://www.zoho.com/developer/oauth/web-server-apps/overview.html
 ```
 
-## Handoff to F.4
+## Handoff to F.5
 
-Package F.1 through F.3 are completed and accepted. F.3 implementation and acceptance are recorded in `docs/130-pre-phase-12-package-f-3-transactional-reply-to-alignment.md` and `docs/131-pre-phase-12-package-f-3-acceptance-closure.md`; Resend automation, Zoho human correspondence, environment isolation, intended-recipient persistence, retry/history behavior, and production boundaries remain intact.
+Package F.1 through F.4 are completed and accepted. F.4 implementation and acceptance are recorded in `docs/132-pre-phase-12-package-f-4-reservation-to-zoho-navigation.md` and `docs/133-pre-phase-12-package-f-4-acceptance-closure.md`. The accepted boundary remains Resend for automatic transactional delivery, Zoho Mail for human correspondence, `EmailNotification` for application-owned transactional history, and an HTTPS-only reservation-to-Zoho handoff for operator navigation.
 
-F.4 is the next package. It must add a protected reservation-to-Zoho navigation/search handoff using only current official Zoho capabilities. It must not create a mailbox clone, ingest or persist human messages, use IMAP credentials, scrape undocumented Zoho UI, or add send/reply/delete mailbox operations.
+F.5 is the next and final Package F subpackage. It must run a reduced integrated validation across F.1 through F.4, reconcile the Package F documentation, confirm ES/EN and desktop/mobile behavior, verify secrets and production isolation, and close Package F without adding mailbox synchronization, OAuth, message persistence, IMAP credentials, undocumented provider URLs, human sending through Resend, or production Zoho activation.

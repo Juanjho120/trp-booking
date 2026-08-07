@@ -16,7 +16,7 @@ Deferred — Intentionally postponed.
 ```text
 Current phase: No active implementation phase — Phase 11 is completed and Phase 12 is not activated
 Current subphase: None
-Current focus: prepare Package F.4 Reservation-to-Zoho navigation on top of the accepted F.3 transactional routing boundary; no mailbox synchronization or production Zoho configuration is authorized
+Current focus: prepare Package F.5 Integrated validation and documentation closure on top of the accepted F.1 through F.4 Zoho correspondence boundary; no new feature scope or production Zoho activation is authorized
 Last completed subphase: 11.7 Validation and documentation closure
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 11.6.5 acceptance: All 15 protected-history, ordering, relation, retry, ES/EN, responsive, security, and integrated criteria passed on 2026-08-05
@@ -31,7 +31,7 @@ Phase 11 accepted feature head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 Phase 11 closure document: docs/120-phase-11.7-validation-and-documentation-closure.md
 Next planned phase: Phase 12 — Production Readiness
 Phase 12 status: Not started; activation intentionally deferred until Packages A, B, C, E, and F are implemented and accepted or the gate is explicitly revised
-Pre-Phase-12 Improvement Track status: In progress — Packages A, B, C, and E accepted; Package F.1 through F.3 completed and accepted; F.4 is next
+Pre-Phase-12 Improvement Track status: In progress — Packages A, B, C, and E accepted; Package F.1 through F.4 completed and accepted; F.5 is next
 Pre-Phase-12 Improvement Track registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
 Pre-Phase-12 Improvement Track plan: docs/121-pre-phase-12-improvement-track.md
 Package A implementation record: docs/122-pre-phase-12-package-a-public-flow-and-ui-corrections.md
@@ -45,7 +45,7 @@ Package E implementation record: docs/125-pre-phase-12-package-e-public-location
 Package E status: Completed and accepted on 2026-08-06
 Package E accepted functional head: 113ed0198cee66650556409066e996693bf6db35
 Package E closure document: docs/126-pre-phase-12-package-e-acceptance-closure.md
-Package F status: In progress — F.1 through F.3 completed and accepted; F.4 Reservation-to-Zoho navigation is next
+Package F status: In progress — F.1 through F.4 completed and accepted; F.5 Integrated validation and documentation closure is next
 Package F strategy base head: cab7d71e34d230cdf49e013921764f6386d3fa2f
 Package F strategy document: docs/127-pre-phase-12-package-f-zoho-guest-correspondence-strategy.md
 Package F.2 status: Completed and accepted on 2026-08-07
@@ -55,7 +55,11 @@ Package F.3 status: Completed and accepted on 2026-08-07
 Package F.3 accepted head: c75a943a9f36c31e146594d7ad03eedb44635f89
 Package F.3 record: docs/130-pre-phase-12-package-f-3-transactional-reply-to-alignment.md
 Package F.3 closure record: docs/131-pre-phase-12-package-f-3-acceptance-closure.md
-Package F.4 status: Not started — next package
+Package F.4 status: Completed and accepted on 2026-08-07
+Package F.4 accepted head: 7e0432f90836c5d4200ff528832eb48e69d1e642
+Package F.4 record: docs/132-pre-phase-12-package-f-4-reservation-to-zoho-navigation.md
+Package F.4 closure record: docs/133-pre-phase-12-package-f-4-acceptance-closure.md
+Package F.5 status: Not started — next package
 11.5.1 strategy base commit: 3d1487f31ca74fc5a41573b4ab206ce9ad838bb5
 11.5.1 strategy document: docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md
 11.5.1 accepted commit: e0b77658c74ee2d7a30c96f529d5f7f4451ab045
@@ -940,4 +944,4 @@ Phase 11 rules:
 
 Status: **Not started**
 
-Activation note: Phase 12 is intentionally not active yet. The Pre-Phase-12 Improvement Track must complete its approved gate before an activation decision. Packages A, B, C, and E are accepted; Package F.1 through F.3 are completed and accepted, while F.4 and F.5 remain. This inter-phase work does not reopen Phase 11 or activate production-readiness behavior.
+Activation note: Phase 12 is intentionally not active yet. The Pre-Phase-12 Improvement Track must complete its approved gate before an activation decision. Packages A, B, C, and E are accepted; Package F.1 through F.4 are completed and accepted, while F.5 remains. This inter-phase work does not reopen Phase 11 or activate production-readiness behavior.

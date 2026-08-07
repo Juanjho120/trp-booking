@@ -4,7 +4,7 @@
 
 ```text
 Track: Pre-Phase-12 Improvement Track
-Status: In progress — Packages A, B, C, and E accepted; Package F.1 through F.3 completed and accepted; F.4 is next
+Status: In progress — Packages A, B, C, and E accepted; Package F.1 through F.4 completed and accepted; F.5 is next
 Registered on: 2026-08-05
 Registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
 Current phase: No active implementation phase
@@ -33,7 +33,7 @@ Package D is deliberately deferred until the owner confirms the future financial
 | C | Admin cron console and generic execution history | Completed and accepted | Required |
 | D | Future financial-policy and refundable-line contract | Deferred — awaiting financial policy decisions | Not part of the current implementation gate |
 | E | Public location and map configuration | Completed and accepted | Required |
-| F | Zoho guest correspondence and reservation navigation | In progress — F.1 through F.3 accepted; F.4 next | Required |
+| F | Zoho guest correspondence and reservation navigation | In progress — F.1 through F.4 accepted; F.5 next | Required |
 
 ## Package A — Immediate public-flow and UI corrections
 
@@ -281,8 +281,8 @@ separate owner approval.
 F.1 Strategy, provider boundary, and environment contract — Completed and accepted
 F.2 Test Zoho Mail setup and DNS validation — Completed and accepted on 2026-08-07
 F.3 Transactional Reply-To alignment — Completed and accepted on 2026-08-07
-F.4 Reservation-to-Zoho navigation — Not started; next package
-F.5 Integrated validation and documentation closure — Not started
+F.4 Reservation-to-Zoho navigation — Completed and accepted on 2026-08-07
+F.5 Integrated validation and documentation closure — Not started; next package
 ```
 
 ### Non-goals
@@ -313,6 +313,14 @@ Implementation record: `docs/130-pre-phase-12-package-f-3-transactional-reply-to
 
 Acceptance closure: `docs/131-pre-phase-12-package-f-3-acceptance-closure.md`.
 
+### F.4 acceptance boundary
+
+Package F.4 was accepted on 2026-08-07 at `7e0432f90836c5d4200ff528832eb48e69d1e642` after the full 20-check desktop/mobile ES/EN handoff and technical-validation matrix passed. The protected reservation detail keeps transactional `EmailNotification` history separate from human correspondence and adds only an HTTPS Zoho Mail handoff with best-effort guest-email copy. Native app opening remains operating-system dependent with a clean web fallback. No OAuth, mailbox ingestion, human message persistence, IMAP credential, undocumented provider URL, or production Zoho activation was introduced.
+
+Implementation record: `docs/132-pre-phase-12-package-f-4-reservation-to-zoho-navigation.md`.
+
+Acceptance closure: `docs/133-pre-phase-12-package-f-4-acceptance-closure.md`.
+
 ## Implementation order
 
 ```text
@@ -324,7 +332,7 @@ Acceptance closure: `docs/131-pre-phase-12-package-f-3-acceptance-closure.md`.
 6. Package D — Revisit only after financial policies are confirmed
 ```
 
-Package F proceeds through the accepted F.1 through F.5 sequence. F.3 completed the transactional Reply-To and environment-aware recipient-routing boundary while preserving Resend automation, Zoho human correspondence, intended-recipient persistence, retry history, and production isolation. F.4 is the next package and must add only a protected reservation-to-Zoho navigation/search handoff without mailbox synchronization or message persistence.
+Package F proceeds through the accepted F.1 through F.5 sequence. F.3 completed the transactional Reply-To and environment-aware recipient-routing boundary while preserving Resend automation, Zoho human correspondence, intended-recipient persistence, retry history, and production isolation. F.4 completed and accepted the protected reservation-to-Zoho HTTPS handoff without mailbox synchronization, message persistence, OAuth, or undocumented provider URLs. F.5 is the next and final Package F subpackage.
 
 ## Cross-package requirements
 
@@ -351,7 +359,7 @@ Package D is outside the current gate because its business policies are intentio
 
 ## Current action
 
-Prepare Package F.4 — Reservation-to-Zoho navigation. Start from the latest accepted repository head and validate current official Zoho Mail navigation/search capabilities before implementation. Add a protected reservation-detail action that can hand off the guest conversation context to Zoho using an official deep link/search flow or, only if separately required and approved, a minimal read-only OAuth search. Do not ingest mailbox content, add inbound synchronization, store human message bodies/threads/attachments, use IMAP credentials, scrape Zoho UI, or change production Zoho configuration in F.4.
+Prepare Package F.5 — Integrated validation and documentation closure. Validate Package F end to end across the accepted F.1 through F.4 boundaries using a reduced representative matrix: transactional Resend delivery, Reply-To handoff to Zoho aliases, human same-alias replies, reservation-level EmailNotification history, reservation-to-Zoho navigation, local/test environment isolation, ES/EN behavior, responsive/mobile handoff, secrets boundary, and production isolation. F.5 must not add feature scope, mailbox synchronization, OAuth, message persistence, or production Zoho activation.
 
 Package A accepted head: `ec1e6ce7f43099864788f28ae30a87214afe554d`.
 
@@ -385,3 +393,9 @@ Package F.3 implementation record: `docs/130-pre-phase-12-package-f-3-transactio
 Package F.3 accepted head: `c75a943a9f36c31e146594d7ad03eedb44635f89`.
 
 Package F.3 closure record: `docs/131-pre-phase-12-package-f-3-acceptance-closure.md`.
+
+Package F.4 implementation record: `docs/132-pre-phase-12-package-f-4-reservation-to-zoho-navigation.md`.
+
+Package F.4 accepted head: `7e0432f90836c5d4200ff528832eb48e69d1e642`.
+
+Package F.4 closure record: `docs/133-pre-phase-12-package-f-4-acceptance-closure.md`.
