@@ -6,14 +6,16 @@
 Track: Pre-Phase-12 Improvement Track
 Package: F — Zoho guest correspondence and reservation navigation
 Subpackage: F.1 Strategy, provider boundary, and environment contract
-Status: Completed and accepted — F.2 completed and accepted; F.3 is next
+Status: Completed and accepted — F.3 completed and accepted; F.4 is next
 Strategy and acceptance date: 2026-08-06
 Strategy base head: cab7d71e34d230cdf49e013921764f6386d3fa2f
 Previous accepted package: Package E — Public location and map configuration
 Previous closure: docs/126-pre-phase-12-package-e-acceptance-closure.md
-Active subpackage: None — F.2 accepted; F.3 is the next package
+Active subpackage: None — F.3 accepted; F.4 is the next package
 F.2 record: docs/128-pre-phase-12-package-f-2-test-zoho-mail-setup-and-dns-validation.md
 F.2 closure: docs/129-pre-phase-12-package-f-2-acceptance-closure.md
+F.3 record: docs/130-pre-phase-12-package-f-3-transactional-reply-to-alignment.md
+F.3 closure: docs/131-pre-phase-12-package-f-3-acceptance-closure.md
 Phase 12: Not started and not activated
 ```
 
@@ -431,12 +433,13 @@ F.2 Test Zoho Mail setup and DNS validation
     report filters, and external SPF/DKIM/DMARC PASS evidence
 
 F.3 Transactional Reply-To alignment
-    Status: Not started — next package
-    Scope: route local/test Resend replies to juantzun.dev Zoho aliases and preserve
-    production Reply-To values for the separate future company account
+    Status: Completed and accepted on 2026-08-07
+    Result: Resend remains the automatic provider; Reply-To routes to Zoho aliases;
+    local guest delivery uses the safety recipient while local admin and stable-test
+    recipients route directly; Cloudinary branding and production isolation passed
 
 F.4 Reservation-to-Zoho navigation
-    Status: Not started
+    Status: Not started — next package
     Scope: add the protected reservation action using an official deep link, safe
     search handoff, or separately validated read-only OAuth search
 
@@ -527,8 +530,8 @@ Zoho server-based OAuth applications:
 https://www.zoho.com/developer/oauth/web-server-apps/overview.html
 ```
 
-## Handoff to F.3
+## Handoff to F.4
 
-Package F.1 and F.2 are completed and accepted. F.2 operational acceptance is recorded in `docs/129-pre-phase-12-package-f-2-acceptance-closure.md`; no TRP application implementation, mailbox persistence, OAuth credential, IMAP credential, or production Zoho configuration was introduced by F.2.
+Package F.1 through F.3 are completed and accepted. F.3 implementation and acceptance are recorded in `docs/130-pre-phase-12-package-f-3-transactional-reply-to-alignment.md` and `docs/131-pre-phase-12-package-f-3-acceptance-closure.md`; Resend automation, Zoho human correspondence, environment isolation, intended-recipient persistence, retry/history behavior, and production boundaries remain intact.
 
-F.3 is the next package. It must align local/test transactional Reply-To values with the validated `reservas@juantzun.dev` and `reservations@juantzun.dev` Zoho aliases while preserving the current Resend From identities under `mail.trp-booking.juantzun.dev` and the separate future production Reply-To values under `turefugioperfecto.com`. F.3 must include a controlled Resend delivery-and-reply regression; it must not add inbound synchronization or Zoho mailbox content to TRP Booking.
+F.4 is the next package. It must add a protected reservation-to-Zoho navigation/search handoff using only current official Zoho capabilities. It must not create a mailbox clone, ingest or persist human messages, use IMAP credentials, scrape undocumented Zoho UI, or add send/reply/delete mailbox operations.

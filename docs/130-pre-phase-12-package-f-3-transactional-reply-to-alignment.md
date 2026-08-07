@@ -6,9 +6,11 @@
 Track: Pre-Phase-12 Improvement Track
 Package: F — Zoho Mail guest correspondence bridge
 Subpackage: F.3 — Transactional Reply-To and environment-aware recipient routing
-Status: In progress — original round-trip matrix passed; routing refinement pending reduced regression
+Status: Completed and accepted on 2026-08-07
 Base commit: fceed7e21bd41cb09169b26979f42d2f7bfa26da
 Initial F.3 implementation commit: 4b4f1cfa93b1cdb483f098ffffb981236b4f90a5
+Routing-refinement and accepted head: c75a943a9f36c31e146594d7ad03eedb44635f89
+Acceptance closure: docs/131-pre-phase-12-package-f-3-acceptance-closure.md
 F.2 acceptance: Completed
 Next after F.3 acceptance: F.4 — Reservation-to-Zoho navigation
 Phase 12: Not started
@@ -75,7 +77,7 @@ The owner completed the original matrix successfully before this refinement. The
 - Retry/history behavior remained intact.
 ```
 
-Those tests do not need to be repeated in full after the refinement. Only the reduced regression matrix in this document remains before F.3 formal acceptance.
+Those tests did not need to be repeated in full after the refinement. The reduced regression matrix in this document was subsequently completed successfully before F.3 formal acceptance.
 
 ## Refinement A — Explicit Email Audience
 
@@ -349,7 +351,7 @@ The contract script covers:
 
 ## Reduced Functional Regression Matrix
 
-Because the original full F.3 ES/EN round-trip matrix already passed, only these checks remain:
+Because the original full F.3 ES/EN round-trip matrix already passed, these were the only additional checks required for the routing refinement:
 
 | # | Check | Expected |
 | --- | --- | --- |
@@ -370,7 +372,7 @@ It is not necessary to repeat both complete ES and EN round trips because those 
 
 ## Acceptance Gate
 
-F.3 can be formally closed after the reduced matrix passes and evidence confirms:
+F.3 was formally closed after the reduced matrix passed and evidence confirmed:
 
 ```text
 - explicit guest/admin audience reaches every current provider send path
@@ -386,9 +388,9 @@ F.3 can be formally closed after the reduced matrix passes and evidence confirms
 - EmailNotification persistence/retry behavior remains unchanged
 ```
 
-The official trackers (`docs/10-phases.md`, `docs/11-progress-log.md`, and `docs/121-pre-phase-12-improvement-track.md`) remain unchanged in this refinement bundle and are updated only in the formal F.3 acceptance closure so they do not claim completion before the reduced regression passes.
+The owner reported the complete original ES/EN round-trip matrix and the reduced routing-refinement regression matrix passing successfully on 2026-08-07. F.3 is therefore formally accepted at `c75a943a9f36c31e146594d7ad03eedb44635f89`. The authoritative acceptance record is `docs/131-pre-phase-12-package-f-3-acceptance-closure.md`.
 
-After that closure, update those official trackers and continue with:
+The official trackers are updated by that closure. Continue with:
 
 ```text
 F.4 — Reservation-to-Zoho navigation

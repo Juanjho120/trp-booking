@@ -428,7 +428,7 @@ docs/120-phase-11.7-validation-and-documentation-closure.md
 
 ```text
 Current phase: No active implementation phase — Phase 11 is completed and Phase 12 is not activated
-Current focus: complete a bounded polish of the admin reservations page, then review and prioritize the requested system improvements before activating Phase 12
+Current focus: continue the Pre-Phase-12 Improvement Track with Package F.4 Reservation-to-Zoho navigation after F.3 acceptance
 Last completed phase: Phase 11 — Cancellation, Refund, and Change Request Rules
 11.7 status: Completed and accepted
 11.7 acceptance: All 15 reduced cross-phase regression, integration, security, localization, and technical-validation criteria passed on 2026-08-05
@@ -436,7 +436,11 @@ Last completed phase: Phase 11 — Cancellation, Refund, and Change Request Rule
 Phase 11 accepted feature head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 Phase 11 closure record: docs/120-phase-11.7-validation-and-documentation-closure.md
 Next planned phase: Phase 12 — Production Readiness
-Phase 12 status: Not started; activation is intentionally deferred until the bounded admin-reservations polish and improvement review are complete
+Phase 12 status: Not started; activation remains gated on completion and acceptance of the approved Pre-Phase-12 packages
+Package F.3 status: Completed and accepted on 2026-08-07
+Package F.3 accepted head: c75a943a9f36c31e146594d7ad03eedb44635f89
+Package F.3 closure: docs/131-pre-phase-12-package-f-3-acceptance-closure.md
+Next package: F.4 — Reservation-to-Zoho navigation
 ```
 
 ### Phase 11.6.1 completed and accepted

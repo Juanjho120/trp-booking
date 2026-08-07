@@ -4,7 +4,7 @@
 
 ```text
 Track: Pre-Phase-12 Improvement Track
-Status: In progress — Packages A, B, C, and E accepted; Package F.1 and F.2 completed and accepted; F.3 is next
+Status: In progress — Packages A, B, C, and E accepted; Package F.1 through F.3 completed and accepted; F.4 is next
 Registered on: 2026-08-05
 Registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
 Current phase: No active implementation phase
@@ -33,7 +33,7 @@ Package D is deliberately deferred until the owner confirms the future financial
 | C | Admin cron console and generic execution history | Completed and accepted | Required |
 | D | Future financial-policy and refundable-line contract | Deferred — awaiting financial policy decisions | Not part of the current implementation gate |
 | E | Public location and map configuration | Completed and accepted | Required |
-| F | Zoho guest correspondence and reservation navigation | In progress — F.1 and F.2 accepted; F.3 next | Required |
+| F | Zoho guest correspondence and reservation navigation | In progress — F.1 through F.3 accepted; F.4 next | Required |
 
 ## Package A — Immediate public-flow and UI corrections
 
@@ -280,8 +280,8 @@ separate owner approval.
 ```text
 F.1 Strategy, provider boundary, and environment contract — Completed and accepted
 F.2 Test Zoho Mail setup and DNS validation — Completed and accepted on 2026-08-07
-F.3 Transactional Reply-To alignment — Not started; next package
-F.4 Reservation-to-Zoho navigation — Not started
+F.3 Transactional Reply-To alignment — Completed and accepted on 2026-08-07
+F.4 Reservation-to-Zoho navigation — Not started; next package
 F.5 Integrated validation and documentation closure — Not started
 ```
 
@@ -305,6 +305,14 @@ with Spanish/English aliases, Resend-only automation, preserved reservation-leve
 transactional history, no inbound synchronization, and future protected
 reservation-to-Zoho navigation. No application code or provider credential was added.
 
+### F.3 acceptance boundary
+
+Package F.3 was accepted on 2026-08-07 at `c75a943a9f36c31e146594d7ad03eedb44635f89` after the original full ES/EN Reply-To round-trip matrix and the reduced environment-aware routing regression passed. The accepted boundary keeps Resend as the automatic transactional provider, routes human replies to the validated Zoho aliases, redirects only local guest-audience delivery to `EMAIL_TEST_RECIPIENT`, lets stable test deliver guest mail to intended reservation recipients, centralizes local/test admin delivery on `juantzun.dev`, uses the permanent Cloudinary brand asset, and preserves production isolation.
+
+Implementation record: `docs/130-pre-phase-12-package-f-3-transactional-reply-to-alignment.md`.
+
+Acceptance closure: `docs/131-pre-phase-12-package-f-3-acceptance-closure.md`.
+
 ## Implementation order
 
 ```text
@@ -316,7 +324,7 @@ reservation-to-Zoho navigation. No application code or provider credential was a
 6. Package D — Revisit only after financial policies are confirmed
 ```
 
-Package F proceeds through the accepted F.1 through F.5 sequence. F.2 completed the isolated test Zoho organization before any application change; no inbound synchronization or mailbox persistence was introduced. F.3 is the next package and aligns transactional Reply-To values with the validated Zoho aliases while preserving the Resend delivery pipeline.
+Package F proceeds through the accepted F.1 through F.5 sequence. F.3 completed the transactional Reply-To and environment-aware recipient-routing boundary while preserving Resend automation, Zoho human correspondence, intended-recipient persistence, retry history, and production isolation. F.4 is the next package and must add only a protected reservation-to-Zoho navigation/search handoff without mailbox synchronization or message persistence.
 
 ## Cross-package requirements
 
@@ -343,7 +351,7 @@ Package D is outside the current gate because its business policies are intentio
 
 ## Current action
 
-Prepare Package F.3 — Transactional Reply-To alignment. Start from the latest accepted repository head, review the current `.env.example` and server-side email configuration, change local/test Spanish and English Reply-To targets from the technical Resend sending subdomain to `reservas@juantzun.dev` and `reservations@juantzun.dev`, preserve the separate future production Reply-To values under `turefugioperfecto.com`, and run a controlled Resend regression proving automatic delivery still uses the existing `mail.trp-booking.juantzun.dev` From identities while human replies land in Zoho. Do not add inbound synchronization, mailbox persistence, Zoho OAuth, IMAP credentials, or production Zoho configuration in F.3.
+Prepare Package F.4 — Reservation-to-Zoho navigation. Start from the latest accepted repository head and validate current official Zoho Mail navigation/search capabilities before implementation. Add a protected reservation-detail action that can hand off the guest conversation context to Zoho using an official deep link/search flow or, only if separately required and approved, a minimal read-only OAuth search. Do not ingest mailbox content, add inbound synchronization, store human message bodies/threads/attachments, use IMAP credentials, scrape Zoho UI, or change production Zoho configuration in F.4.
 
 Package A accepted head: `ec1e6ce7f43099864788f28ae30a87214afe554d`.
 
@@ -371,3 +379,9 @@ Package F strategy record: `docs/127-pre-phase-12-package-f-zoho-guest-correspon
 Package F.2 operational record: `docs/128-pre-phase-12-package-f-2-test-zoho-mail-setup-and-dns-validation.md`.
 
 Package F.2 closure record: `docs/129-pre-phase-12-package-f-2-acceptance-closure.md`.
+
+Package F.3 implementation record: `docs/130-pre-phase-12-package-f-3-transactional-reply-to-alignment.md`.
+
+Package F.3 accepted head: `c75a943a9f36c31e146594d7ad03eedb44635f89`.
+
+Package F.3 closure record: `docs/131-pre-phase-12-package-f-3-acceptance-closure.md`.
