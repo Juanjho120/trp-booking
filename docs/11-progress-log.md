@@ -5,9 +5,9 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 ## Current Status
 
 ```text
-Current phase: No active implementation phase — Phase 11 is completed and Phase 12 is not activated
+Current phase: No active implementation phase — Phase 11 and the Pre-Phase-12 Improvement Track are completed; Phase 12 is not activated
 Current subphase: None
-Current focus: prepare Package F.5 Integrated validation and documentation closure on top of the accepted F.1 through F.4 Zoho correspondence boundary; no new feature scope or production Zoho activation is authorized
+Current focus: explicit Phase 12 activation decision and Production Readiness planning from the real deployment state; the planned Vercel Test deployment does not exist yet
 Last updated: 2026-08-07
 Last completed subphase: 11.7 Validation and documentation closure
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
@@ -22,8 +22,8 @@ Last completed subphase: 11.7 Validation and documentation closure
 Phase 11 accepted feature head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 Phase 11 closure document: docs/120-phase-11.7-validation-and-documentation-closure.md
 Next planned phase: Phase 12 — Production Readiness
-Phase 12 status: Not started; activation intentionally deferred until Packages A, B, C, E, and F are implemented and accepted or the gate is explicitly revised
-Pre-Phase-12 Improvement Track status: In progress — Packages A, B, C, and E accepted; Package F.1 through F.4 completed and accepted; F.5 is next
+Phase 12 status: Not started; Packages A, B, C, E, and F are accepted, so the Pre-Phase-12 gate is satisfied and explicit activation is now pending
+Pre-Phase-12 Improvement Track status: Completed and accepted — Packages A, B, C, E, and F accepted; Package D remains deferred outside the current gate
 Pre-Phase-12 Improvement Track registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
 Pre-Phase-12 Improvement Track plan: docs/121-pre-phase-12-improvement-track.md
 Package A implementation record: docs/122-pre-phase-12-package-a-public-flow-and-ui-corrections.md
@@ -37,7 +37,7 @@ Package E implementation record: docs/125-pre-phase-12-package-e-public-location
 Package E status: Completed and accepted on 2026-08-06
 Package E accepted functional head: 113ed0198cee66650556409066e996693bf6db35
 Package E closure document: docs/126-pre-phase-12-package-e-acceptance-closure.md
-Package F status: In progress — F.1 through F.4 completed and accepted; F.5 Integrated validation and documentation closure is next
+Package F status: Completed and accepted on 2026-08-07; integrated validation passed without a deployed Vercel Test environment
 Package F strategy base head: cab7d71e34d230cdf49e013921764f6386d3fa2f
 Package F strategy document: docs/127-pre-phase-12-package-f-zoho-guest-correspondence-strategy.md
 Package F.2 status: Completed and accepted on 2026-08-07
@@ -51,7 +51,12 @@ Package F.4 status: Completed and accepted on 2026-08-07
 Package F.4 accepted head: 7e0432f90836c5d4200ff528832eb48e69d1e642
 Package F.4 record: docs/132-pre-phase-12-package-f-4-reservation-to-zoho-navigation.md
 Package F.4 closure record: docs/133-pre-phase-12-package-f-4-acceptance-closure.md
-Package F.5 status: Not started — next package
+docs/134-pre-phase-12-package-f-5-integrated-validation-and-documentation-closure.md
+docs/135-pre-phase-12-package-f-integrated-acceptance-closure.md
+Package F.5 status: Completed and accepted on 2026-08-07
+Package F.5 validated repository head: a188ae304df6b377ed4ad9099c9f7d83c2365262
+Package F.5 record: docs/134-pre-phase-12-package-f-5-integrated-validation-and-documentation-closure.md
+Package F closure record: docs/135-pre-phase-12-package-f-integrated-acceptance-closure.md
 11.5.1 strategy base commit: 3d1487f31ca74fc5a41573b4ab206ce9ad838bb5
 11.5.1 strategy document: docs/103-phase-11.5.1-date-change-extension-strategy-and-pricing-contract.md
 11.5.1 accepted commit: e0b77658c74ee2d7a30c96f529d5f7f4451ab045
@@ -606,12 +611,12 @@ Phase 11.1 through 11.7 are completed and accepted as one coherent lifecycle fea
 Reservation owns stay and availability state; Payment and Refund own financial state; typed requests, holds, notifications, and bounded audit evidence preserve operational history.
 Guest self-service lifecycle mutation, raw provider exposure, card-data handling, hard deletion, history rewrite, and PMS behavior remain excluded.
 Phase 12 remains Not started by explicit decision.
-The registered Pre-Phase-12 Improvement Track is the active inter-phase work; Packages A, B, C, and E are accepted, and Package F.1 through F.4 are completed and accepted while F.5 is next.
+The registered Pre-Phase-12 Improvement Track is completed and accepted; Packages A, B, C, E, and F are accepted, Package D remains deferred outside the gate, and Phase 12 activation is now an explicit next decision.
 ```
 
 ## Inter-Phase Work — Pre-Phase-12 Improvement Track
 
-Status: **In progress — Packages A, B, C, and E accepted; Package F.1 through F.4 accepted; F.5 next**
+Status: **Completed and accepted — Packages A, B, C, E, and F accepted; Package D deferred outside the current gate**
 
 ```text
 Packages A, B, C, E, and F remain the approved Phase 12 gate.
@@ -623,10 +628,11 @@ Package E was accepted on 2026-08-06 with closure record docs/126-pre-phase-12-p
 Package F.1 replaces the application-owned inbound/outbound mailbox proposal with Zoho Mail Lite for human correspondence, Resend for automatic transactional delivery, preserved reservation-level EmailNotification history, and a future protected reservation-to-Zoho navigation action.
 Package F.1 was accepted on 2026-08-06 at strategy base cab7d71e34d230cdf49e013921764f6386d3fa2f.
 Package F.2 was completed and accepted on 2026-08-07 after the isolated juantzun.dev Zoho Mail Lite mailbox, aliases, root-domain authentication, same-address reply behavior, mobile access, MFA, DMARC report filters, and controlled external authentication checks passed. No TRP application code, schema, migration, dependency, OAuth credential, IMAP credential, production Zoho configuration, or Resend subdomain record was changed.
-Package F.3 was completed and accepted on 2026-08-07 at c75a943a9f36c31e146594d7ad03eedb44635f89 after the original ES/EN Reply-To round-trip matrix and the reduced local/test routing-refinement regression passed. Resend remains automatic-delivery-only, human replies route to Zoho, local guest delivery retains the safety-recipient override, stable test uses intended guest recipients, admin mail remains centralized in juantzun.dev, and production configuration remains untouched.
+Package F.3 was completed and accepted on 2026-08-07 at c75a943a9f36c31e146594d7ad03eedb44635f89 after the original ES/EN Reply-To round-trip matrix and the reduced local/test routing-refinement regression passed. Resend remains automatic-delivery-only, human replies route to Zoho, local guest delivery retains the safety-recipient override, test-mode routing uses intended guest recipients, admin mail remains centralized in juantzun.dev, and production configuration remains untouched.
 Package F.4 was completed and accepted on 2026-08-07 at 7e0432f90836c5d4200ff528832eb48e69d1e642 after the full desktop/mobile ES/EN handoff matrix and technical validation passed. The protected reservation detail now provides a separate HTTPS Zoho Mail handoff with best-effort clipboard copy, native-app opening where supported by the operating system, clean mobile-web fallback, and no mailbox ingestion or OAuth integration.
-Package F.5 remains and is the next package for integrated validation and documentation closure.
-Phase 12 remains Not started and is not activated by this work.
+Package F.5 was completed and accepted on 2026-08-07 at validation head a188ae304df6b377ed4ad9099c9f7d83c2365262 after all owner-executed technical and integrated checks passed. No Vercel Test deployment existed during acceptance; the documented `trp-booking.juantzun.dev` URL remains a planned Phase 12 target rather than deployed evidence.
+Package F is completed and accepted. The Pre-Phase-12 gate is satisfied with Packages A, B, C, E, and F accepted; Package D remains deferred outside the current gate.
+Phase 12 remains Not started until an explicit activation decision.
 Implementation plan: docs/121-pre-phase-12-improvement-track.md.
 Package F strategy: docs/127-pre-phase-12-package-f-zoho-guest-correspondence-strategy.md.
 Package F.2 operational record: docs/128-pre-phase-12-package-f-2-test-zoho-mail-setup-and-dns-validation.md.
@@ -635,6 +641,8 @@ Package F.3 implementation: docs/130-pre-phase-12-package-f-3-transactional-repl
 Package F.3 closure: docs/131-pre-phase-12-package-f-3-acceptance-closure.md.
 Package F.4 implementation: docs/132-pre-phase-12-package-f-4-reservation-to-zoho-navigation.md.
 Package F.4 closure: docs/133-pre-phase-12-package-f-4-acceptance-closure.md.
+Package F.5 integrated validation: docs/134-pre-phase-12-package-f-5-integrated-validation-and-documentation-closure.md.
+Package F closure: docs/135-pre-phase-12-package-f-integrated-acceptance-closure.md.
 ```
 
 ## Continuity Notes for New Conversations

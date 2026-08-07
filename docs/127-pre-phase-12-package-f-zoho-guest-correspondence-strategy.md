@@ -6,19 +6,21 @@
 Track: Pre-Phase-12 Improvement Track
 Package: F — Zoho guest correspondence and reservation navigation
 Subpackage: F.1 Strategy, provider boundary, and environment contract
-Status: Completed and accepted — F.4 completed and accepted; F.5 is next
+Status: Completed and accepted — F.1 through F.5 completed; Package F closed
 Strategy and acceptance date: 2026-08-06
 Strategy base head: cab7d71e34d230cdf49e013921764f6386d3fa2f
 Previous accepted package: Package E — Public location and map configuration
 Previous closure: docs/126-pre-phase-12-package-e-acceptance-closure.md
-Active subpackage: None — F.4 accepted; F.5 is the next package
+Active subpackage: None — Package F is completed and accepted
 F.2 record: docs/128-pre-phase-12-package-f-2-test-zoho-mail-setup-and-dns-validation.md
 F.2 closure: docs/129-pre-phase-12-package-f-2-acceptance-closure.md
 F.3 record: docs/130-pre-phase-12-package-f-3-transactional-reply-to-alignment.md
 F.3 closure: docs/131-pre-phase-12-package-f-3-acceptance-closure.md
 F.4 record: docs/132-pre-phase-12-package-f-4-reservation-to-zoho-navigation.md
 F.4 closure: docs/133-pre-phase-12-package-f-4-acceptance-closure.md
-Phase 12: Not started and not activated
+F.5 record: docs/134-pre-phase-12-package-f-5-integrated-validation-and-documentation-closure.md
+Package F closure: docs/135-pre-phase-12-package-f-integrated-acceptance-closure.md
+Phase 12: Not started; Pre-Phase-12 gate satisfied and explicit activation pending
 ```
 
 ## Decision Summary
@@ -437,7 +439,7 @@ F.2 Test Zoho Mail setup and DNS validation
 F.3 Transactional Reply-To alignment
     Status: Completed and accepted on 2026-08-07
     Result: Resend remains the automatic provider; Reply-To routes to Zoho aliases;
-    local guest delivery uses the safety recipient while local admin and stable-test
+    local guest delivery uses the safety recipient while local admin and test-mode
     recipients route directly; Cloudinary branding and production isolation passed
 
 F.4 Reservation-to-Zoho navigation
@@ -447,9 +449,11 @@ F.4 Reservation-to-Zoho navigation
     and clean web fallback otherwise; no OAuth, mailbox ingestion, or persistence added
 
 F.5 Integrated validation and documentation closure
-    Status: Not started — next package
-    Scope: verify separation, aliases, sender identity, mobile behavior, transactional
-    history preservation, navigation, secrets, ES/EN copy, and Phase 12 gate evidence
+    Status: Completed and accepted on 2026-08-07
+    Result: all owner-executed technical and integrated checks passed; F.1 through F.4
+    boundaries remained coherent; no feature, schema, OAuth, mailbox-sync, or production
+    activation change was required; no Vercel stable Test deployment existed during
+    acceptance and deployment verification is deferred to Phase 12
 ```
 
 ## Explicit Non-Goals
@@ -533,8 +537,21 @@ Zoho server-based OAuth applications:
 https://www.zoho.com/developer/oauth/web-server-apps/overview.html
 ```
 
-## Handoff to F.5
+## Package F Final Acceptance and Phase 12 Handoff
 
-Package F.1 through F.4 are completed and accepted. F.4 implementation and acceptance are recorded in `docs/132-pre-phase-12-package-f-4-reservation-to-zoho-navigation.md` and `docs/133-pre-phase-12-package-f-4-acceptance-closure.md`. The accepted boundary remains Resend for automatic transactional delivery, Zoho Mail for human correspondence, `EmailNotification` for application-owned transactional history, and an HTTPS-only reservation-to-Zoho handoff for operator navigation.
+Package F.1 through F.5 are completed and accepted. F.5 integrated validation is recorded in `docs/134-pre-phase-12-package-f-5-integrated-validation-and-documentation-closure.md`, and the package-level acceptance is recorded in `docs/135-pre-phase-12-package-f-integrated-acceptance-closure.md`.
 
-F.5 is the next and final Package F subpackage. It must run a reduced integrated validation across F.1 through F.4, reconcile the Package F documentation, confirm ES/EN and desktop/mobile behavior, verify secrets and production isolation, and close Package F without adding mailbox synchronization, OAuth, message persistence, IMAP credentials, undocumented provider URLs, human sending through Resend, or production Zoho activation.
+The final boundary remains:
+
+```text
+Resend -> automatic transactional delivery only
+Zoho Mail -> human guest correspondence
+EmailNotification -> application-owned transactional history
+Reservation detail -> HTTPS-only operator handoff to Zoho
+```
+
+No mailbox synchronization, OAuth, message persistence, IMAP credential, undocumented provider URL, human sending through Resend, or production Zoho activation is part of Package F.
+
+Deployment-state correction: `trp-booking.juantzun.dev` is the planned stable Test domain, but TRP Booking has not yet been deployed there in Vercel. Package F acceptance validates the application/provider contract and owner-executed integrated behavior; it does not constitute deployment acceptance. Creating and validating the first stable Vercel Test deployment belongs to Phase 12 — Production Readiness.
+
+The Pre-Phase-12 gate is now satisfied with Packages A, B, C, E, and F accepted. Package D remains intentionally deferred outside the current gate. Phase 12 remains Not started until explicitly activated.

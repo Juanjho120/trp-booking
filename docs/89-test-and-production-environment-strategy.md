@@ -17,14 +17,14 @@ F.3 implementation record: docs/130-pre-phase-12-package-f-3-transactional-reply
 
 ## Purpose
 
-Define the canonical separation between local, stable test, and production runtime behavior. `TRP_ENVIRONMENT` is the business/runtime source of truth; `VERCEL_ENV` is deployment metadata only.
+Define the canonical separation between local, planned stable test, and production runtime behavior. `TRP_ENVIRONMENT` is the business/runtime source of truth; `VERCEL_ENV` is deployment metadata only.
 
-This document also defines the final recipient-routing boundary accepted for Package F.3: local guest delivery is isolated to a developer-controlled mailbox, while stable test behaves like production for guest recipients without using production infrastructure.
+This document also defines the final recipient-routing boundary accepted for Package F.3: local guest delivery is isolated to a developer-controlled mailbox, while the `test` runtime contract behaves like production for guest recipients without using production infrastructure. The planned Vercel Test deployment itself does not exist yet and is Phase 12 work.
 
 ## Canonical Domains
 
 ```text
-Stable test application:       https://trp-booking.juantzun.dev
+Planned stable test application: https://trp-booking.juantzun.dev (not deployed as of 2026-08-07)
 Test Resend sending domain:    mail.trp-booking.juantzun.dev
 Test human correspondence:     juantzun.dev
 Test admin mailbox:            admin@juantzun.dev
@@ -62,10 +62,12 @@ The intended recipient stored in `EmailNotification.recipient` never changes bec
 - The permanent email logo loads from Cloudinary and is not clickable when the email application base URL is localhost.
 ```
 
-### Stable test
+### Planned stable test runtime
+
+The following is the accepted contract for the future stable Test deployment. It is not evidence that the deployment already exists. Phase 12 must create and validate it.
 
 ```text
-- Application URL is https://trp-booking.juantzun.dev.
+- Planned application URL is https://trp-booking.juantzun.dev.
 - Tilopay must remain sandbox.
 - Enabled email uses the personal test Resend account and mail.trp-booking.juantzun.dev.
 - Guest-audience messages are delivered to the email entered on the reservation.
@@ -176,7 +178,7 @@ Local:
   img src -> Cloudinary
   logo href -> omitted when brand URL resolves to localhost/loopback
 
-Test:
+Test (once deployed):
   img src -> Cloudinary
   logo href -> https://trp-booking.juantzun.dev
 
@@ -208,7 +210,9 @@ EMAIL_TEST_RECIPIENT="YOUR_PERSONAL_TEST_MAILBOX"
 
 Only guest-audience messages use `EMAIL_TEST_RECIPIENT`; admin messages still go to `admin@juantzun.dev`.
 
-### Stable test deployment
+### Planned stable test deployment — Phase 12
+
+No stable Vercel Test deployment exists yet as of 2026-08-07. The values below remain the target configuration for Phase 12 bootstrap and validation.
 
 ```env
 TRP_ENVIRONMENT="test"

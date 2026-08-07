@@ -8,19 +8,20 @@ This file defines the working rules for TRP Booking.
 - Internal project name: `TRP Booking`.
 - Public brand: `Tu Refugio Perfecto` / `Bungalows Tu Refugio Perfecto`.
 - Official production domain: `turefugioperfecto.com`.
-- Stable test deployment: `trp-booking.juantzun.dev`.
+- Planned stable test domain: `trp-booking.juantzun.dev`; no Vercel deployment exists there yet as of 2026-08-07.
 - This project is a direct booking website, not a PMS.
 - TAMIAS remains the PMS / internal operations system.
 
 ## Environment Isolation
 
 - `TRP_ENVIRONMENT=local|test|production` is the source of truth for the business/runtime environment.
-- Do not infer the TRP environment only from `VERCEL_ENV`; the stable test deployment may be a Vercel production deployment while remaining `TRP_ENVIRONMENT=test`.
+- Do not infer the TRP environment only from `VERCEL_ENV`; when the planned stable test deployment is created, it may be a Vercel production deployment while remaining `TRP_ENVIRONMENT=test`.
+- Do not infer that a documented target domain or environment contract is already deployed; verify deployment state explicitly before describing it as live.
 - Local and test environments use Tilopay sandbox, the personal test Resend account, and the verified sending domain `mail.trp-booking.juantzun.dev`.
 - Production uses Tilopay production, the future Tu Refugio Perfecto company Resend account, and the verified sending domain `mail.turefugioperfecto.com`.
 - Never reuse production API keys, sending domains, payment credentials, databases, or recipient routing in local/test.
 - Local enabled email delivery redirects only guest-audience messages to `EMAIL_TEST_RECIPIENT`; administrative messages continue to their intended `juantzun.dev` recipients.
-- Stable test enabled email delivery sends guest messages to the intended reservation address and administrative messages to configured `juantzun.dev` recipients; `EMAIL_TEST_RECIPIENT` must be empty.
+- When the stable test environment is deployed, enabled email delivery sends guest messages to the intended reservation address and administrative messages to configured `juantzun.dev` recipients; `EMAIL_TEST_RECIPIENT` must be empty.
 - Production delivery sends guest/admin messages to their intended recipients and requires administrative recipients under `turefugioperfecto.com`.
 - Transactional email persistence always retains the intended recipient independently from the physical local-delivery override.
 

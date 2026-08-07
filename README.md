@@ -15,11 +15,13 @@ The official production domain is:
 turefugioperfecto.com
 ```
 
-The stable test deployment is:
+The planned stable test domain is:
 
 ```text
 trp-booking.juantzun.dev
 ```
+
+As of 2026-08-07, TRP Booking has **not** been deployed to this domain or to a stable Vercel Test environment yet. The first real Test deployment is deferred to Phase 12 — Production Readiness.
 
 ## Environment Strategy
 
@@ -37,7 +39,8 @@ TRP_ENVIRONMENT=local
 - Subject prefix: [LOCAL]
 
 TRP_ENVIRONMENT=test
-- Application URL: https://trp-booking.juantzun.dev
+- Planned application URL: https://trp-booking.juantzun.dev
+- Deployment status: not created yet; Phase 12 will bootstrap and validate it
 - Tilopay: sandbox
 - Email: disabled or test
 - Resend account: personal test account
@@ -58,7 +61,7 @@ TRP_ENVIRONMENT=production
 - Subject prefix: none
 ```
 
-`VERCEL_ENV` remains deployment metadata and must not be used as the only signal for the TRP business environment. The stable test site may use a Vercel production deployment while remaining `TRP_ENVIRONMENT=test`.
+`VERCEL_ENV` remains deployment metadata and must not be used as the only signal for the TRP business environment. When the planned stable test site is deployed, it may use a Vercel production deployment while remaining `TRP_ENVIRONMENT=test`. A documented target URL must never be treated as proof that a deployment already exists.
 
 Detailed environment, domain, Resend-account, recipient-routing, and Cloudflare DNS rules are documented in `docs/89-test-and-production-environment-strategy.md`.
 
@@ -102,7 +105,7 @@ TRP Booking is focused only on the public booking experience, direct reservation
 - Email delivery never determines payment approval and an email failure never rolls back a valid confirmed reservation.
 - Transactional email intents must use permanent database deduplication in addition to provider idempotency.
 - Local enabled email delivery preserves the intended recipient in persistence but redirects only guest-audience physical delivery to `EMAIL_TEST_RECIPIENT`; admin-audience delivery remains on `juantzun.dev`.
-- Stable test email delivery uses intended guest recipients and configured `juantzun.dev` admin recipients; `EMAIL_TEST_RECIPIENT` must be empty.
+- Test-mode email delivery uses intended guest recipients and configured `juantzun.dev` admin recipients; `EMAIL_TEST_RECIPIENT` must be empty. The planned stable Test deployment is created later in Phase 12.
 - Transactional email logos must use the permanent Cloudinary HTTPS asset through `EMAIL_BRAND_LOGO_URL`; local delivered emails must not expose a clickable localhost logo link.
 - Public-facing, admin-facing, and transactional email copy is centralized in `messages/es.ts` and `messages/en.ts`.
 - Admin modules use dedicated routes under `/admin`; the dashboard remains a compact summary.
@@ -252,7 +255,7 @@ Phase 10.4 orchestration completed:
 - Immediate delivery starts only after the confirmation transaction commits.
 - An atomic PENDING to PROCESSING claim prevents concurrent callbacks from sending the same intent twice.
 - Disabled or unavailable email configuration leaves intents PENDING without affecting payment or reservation success.
-- The provider preserves intended-recipient persistence; current routing redirects only local guest-audience delivery to `EMAIL_TEST_RECIPIENT`, while stable test and production use intended recipients.
+- The provider preserves intended-recipient persistence; current routing redirects only local guest-audience delivery to `EMAIL_TEST_RECIPIENT`, while test-mode and production routing use intended recipients.
 - Provider and template failures become safe FAILED notification records while the approved payment and confirmed reservation remain unchanged.
 - The accepted orchestration and its environment/logo follow-ups are recorded through commit 6f7bdc3c6027d6be8b4fcdfe027c57b01dfef50d.
 - Retry scheduling, stale PROCESSING recovery, attempt limits, and read-only admin delivery visibility remain assigned to 10.5.
@@ -427,8 +430,8 @@ docs/120-phase-11.7-validation-and-documentation-closure.md
 ## Development Status
 
 ```text
-Current phase: No active implementation phase — Phase 11 is completed and Phase 12 is not activated
-Current focus: continue the Pre-Phase-12 Improvement Track with Package F.5 integrated validation and documentation closure after F.4 acceptance
+Current phase: No active implementation phase — Phase 11 and the Pre-Phase-12 Improvement Track are completed; Phase 12 is not activated
+Current focus: explicit Phase 12 activation decision and Production Readiness planning; first real Vercel Test deployment has not been created yet
 Last completed phase: Phase 11 — Cancellation, Refund, and Change Request Rules
 11.7 status: Completed and accepted
 11.7 acceptance: All 15 reduced cross-phase regression, integration, security, localization, and technical-validation criteria passed on 2026-08-05
@@ -436,14 +439,13 @@ Last completed phase: Phase 11 — Cancellation, Refund, and Change Request Rule
 Phase 11 accepted feature head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 Phase 11 closure record: docs/120-phase-11.7-validation-and-documentation-closure.md
 Next planned phase: Phase 12 — Production Readiness
-Phase 12 status: Not started; activation remains gated on completion and acceptance of the approved Pre-Phase-12 packages
-Package F.3 status: Completed and accepted on 2026-08-07
-Package F.3 accepted head: c75a943a9f36c31e146594d7ad03eedb44635f89
-Package F.3 closure: docs/131-pre-phase-12-package-f-3-acceptance-closure.md
-Package F.4 status: Completed and accepted on 2026-08-07
-Package F.4 accepted head: 7e0432f90836c5d4200ff528832eb48e69d1e642
-Package F.4 closure: docs/133-pre-phase-12-package-f-4-acceptance-closure.md
-Next package: F.5 — Integrated validation and documentation closure
+Phase 12 status: Not started; Pre-Phase-12 gate is satisfied and explicit activation is now pending
+Pre-Phase-12 Improvement Track status: Completed and accepted — Packages A, B, C, E, and F accepted; Package D remains deferred outside the current gate
+Package F status: Completed and accepted on 2026-08-07
+Package F validated repository head: a188ae304df6b377ed4ad9099c9f7d83c2365262
+Package F feature head: 7e0432f90836c5d4200ff528832eb48e69d1e642
+Package F.5 record: docs/134-pre-phase-12-package-f-5-integrated-validation-and-documentation-closure.md
+Package F closure: docs/135-pre-phase-12-package-f-integrated-acceptance-closure.md
 ```
 
 ### Phase 11.6.1 completed and accepted
@@ -540,5 +542,5 @@ Next package: F.5 — Integrated validation and documentation closure
 - Phase 11.1 through 11.7 are completed and accepted as one auditable cancellation, refund, authorized date-change, stay-extension, lifecycle-notification, and protected-history feature.
 - Reservation remains the source of truth for stay and availability state; Payment and Refund remain the sources of truth for financial state.
 - Guest self-service lifecycle mutation, raw provider exposure, card-data handling, hard deletion, history rewrite, and PMS expansion remain excluded.
-- Phase 12 is not activated yet. The immediate next work is a bounded polish of the admin reservations page, followed by review and prioritization of the requested improvement list.
+- Phase 12 is not activated yet. The Pre-Phase-12 gate is now satisfied; the next step is an explicit Phase 12 activation decision. Production Readiness must begin from the real deployment state: the planned `trp-booking.juantzun.dev` Vercel Test deployment has not been created yet.
 ```

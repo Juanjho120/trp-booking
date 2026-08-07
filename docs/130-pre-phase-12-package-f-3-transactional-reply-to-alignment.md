@@ -143,7 +143,7 @@ Local subjects use:
 [LOCAL] <original subject>
 ```
 
-### Stable test
+### Test runtime contract
 
 ```text
 TRP_ENVIRONMENT=test
@@ -164,7 +164,7 @@ Stable-test subjects use:
 [TEST] <original subject>
 ```
 
-This lets the stable test deployment exercise production-like recipient routing while retaining complete infrastructure isolation:
+This lets the `test` runtime contract—and, once created in Phase 12, the planned stable Test deployment—exercise production-like recipient routing while retaining complete infrastructure isolation:
 
 ```text
 Tilopay sandbox
@@ -266,7 +266,7 @@ EMAIL_BRAND_LOGO_URL="https://res.cloudinary.com/juan-tzun-portfolio/image/uploa
 EMAIL_TEST_RECIPIENT="<personal local test mailbox>"
 ```
 
-### Stable test example
+### Planned stable Test example
 
 ```env
 TRP_ENVIRONMENT="test"
@@ -334,7 +334,7 @@ The contract script covers:
 
 ```text
 - local valid routing configuration
-- stable test valid routing configuration
+- test-mode valid routing configuration
 - production valid routing configuration
 - local EMAIL_TEST_RECIPIENT required
 - test EMAIL_TEST_RECIPIENT rejected
@@ -360,9 +360,9 @@ Because the original full F.3 ES/EN round-trip matrix already passed, these were
 | 3 | Local guest transactional email | physically reaches `EMAIL_TEST_RECIPIENT`; subject begins `[LOCAL]` |
 | 4 | Local admin notification | physically reaches `admin@juantzun.dev`, not `EMAIL_TEST_RECIPIENT`; subject begins `[LOCAL]` |
 | 5 | Local logo | loads from Cloudinary and has no localhost clickable logo link |
-| 6 | Stable test guest transactional email | reaches email entered in reservation; subject begins `[TEST]` |
-| 7 | Stable test admin notification | reaches `admin@juantzun.dev` |
-| 8 | Stable test logo | loads from Cloudinary and links to `https://trp-booking.juantzun.dev` |
+| 6 | Test-mode guest transactional email | reaches email entered in reservation; subject begins `[TEST]` |
+| 7 | Test-mode admin notification | reaches `admin@juantzun.dev` |
+| 8 | Test-mode logo contract | loads from Cloudinary and links to `https://trp-booking.juantzun.dev` |
 | 9 | One stable-test guest reply smoke test | Reply targets matching `reservas@juantzun.dev` or `reservations@juantzun.dev` and reaches Zoho |
 | 10 | Authentication smoke test | SPF, DKIM, and DMARC remain PASS |
 | 11 | Persistence | `EmailNotification.recipient` remains intended recipient even when local guest delivery is overridden |
@@ -378,8 +378,8 @@ F.3 was formally closed after the reduced matrix passed and evidence confirmed:
 - explicit guest/admin audience reaches every current provider send path
 - local guest safety routing works
 - local admin routing bypasses the guest safety mailbox
-- stable test uses real intended guest recipients
-- stable test admin remains centralized in Zoho
+- test-mode routing uses real intended guest recipients
+- test-mode admin routing remains centralized in Zoho
 - production contract remains unchanged
 - permanent Cloudinary logo renders correctly
 - local delivered logo no longer links to localhost

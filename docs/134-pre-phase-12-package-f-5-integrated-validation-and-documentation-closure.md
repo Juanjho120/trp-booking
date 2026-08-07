@@ -6,8 +6,10 @@
 Track: Pre-Phase-12 Improvement Track
 Package: F — Zoho guest correspondence and reservation navigation
 Subpackage: F.5 — Integrated validation and documentation closure
-Status: Validation plan prepared — owner execution and acceptance pending
-Validation base: e0420835ae67c6da5cc7a1a47529f16394b1f75c
+Status: Completed and accepted
+Validation plan base: e0420835ae67c6da5cc7a1a47529f16394b1f75c
+Validated repository head: a188ae304df6b377ed4ad9099c9f7d83c2365262
+Acceptance date: 2026-08-07
 Validation-base commit: docs(email): close package F.4 Zoho navigation acceptance
 F.1 strategy base: cab7d71e34d230cdf49e013921764f6386d3fa2f
 F.2 accepted operational head: 912cf1f79850517d19f73fa7f531c0492a7b429c
@@ -148,10 +150,10 @@ current head.
 | 4 | Lint | `npm run lint` passes |
 | 5 | Build | `npm run build` passes |
 | 6 | Diff hygiene | `git diff --check` passes |
-| 7 | Fresh Test booking | One new controlled Test reservation completes Tilopay sandbox payment and becomes `CONFIRMED` |
-| 8 | Test guest transactional delivery | `RESERVATION_CONFIRMED` physically reaches the reservation guest address with `[TEST]` |
-| 9 | Test guest headers | From uses the test Resend sending domain; ES Reply-To routes to `reservas@juantzun.dev`; Cloudinary logo renders |
-| 10 | Test admin delivery | `ADMIN_NEW_RESERVATION` reaches `admin@juantzun.dev` with `[TEST]` |
+| 7 | Representative Test-mode booking | One controlled Test-mode reservation completes Tilopay sandbox payment and becomes `CONFIRMED` without relying on a deployed Vercel Test site |
+| 8 | Test-mode guest transactional delivery | `RESERVATION_CONFIRMED` physically reaches the reservation guest address with `[TEST]` |
+| 9 | Test-mode guest headers | From uses the test Resend sending domain; ES Reply-To routes to `reservas@juantzun.dev`; Cloudinary logo renders |
+| 10 | Test-mode admin delivery | `ADMIN_NEW_RESERVATION` reaches `admin@juantzun.dev` with `[TEST]` |
 | 11 | Transactional persistence | Guest/admin `EmailNotification` rows persist their intended recipients and successful delivery state |
 | 12 | Human ES round trip | Replying to the Test guest email reaches Zoho through `reservas@juantzun.dev`; Zoho reply uses the same alias and reaches the guest |
 | 13 | Authentication | Representative transactional message reports SPF PASS, DKIM PASS, and DMARC PASS |
@@ -184,13 +186,9 @@ git diff --check
 
 Do not continue to Package F acceptance if any command fails.
 
-### B. One fresh Test end-to-end reservation
+### B. One representative Test-mode end-to-end reservation
 
-Use the stable Test deployment:
-
-```text
-https://trp-booking.juantzun.dev
-```
+The planned stable Test domain is `https://trp-booking.juantzun.dev`, but no Vercel deployment exists there as of this acceptance. F.5 therefore validates the accepted `TRP_ENVIRONMENT=test` behavior using the available test-mode setup and does **not** claim deployment-level acceptance. Creating the stable Test deployment is deferred to Phase 12.
 
 Use Spanish for this representative full booking and a controlled guest mailbox that
 is not `admin@juantzun.dev`.
@@ -285,7 +283,7 @@ The administrative message must not be redirected to `EMAIL_TEST_RECIPIENT`.
 
 ### F. Reservation-to-Zoho handoff
 
-Using the current Test reservation:
+Using the representative Test-mode reservation:
 
 Desktop:
 
@@ -363,7 +361,7 @@ production safety evidence for this package.
 
 ## Acceptance Gate
 
-F.5 can be accepted only when:
+F.5 acceptance gate was satisfied when:
 
 ```text
 - all six technical commands pass;
@@ -374,26 +372,21 @@ F.5 can be accepted only when:
 - Package F documentation is internally consistent.
 ```
 
-If a test exposes a defect, F.5 remains open. Fix the defect in the smallest relevant
-boundary, rerun only the affected checks plus the integrated dependency checks, and do
-not mark Package F completed prematurely.
+No defect was reported in the accepted matrix, so no corrective feature implementation or partial rerun was required before closing Package F.
 
-## Closure Action After Acceptance
+## Closure Actions Completed
 
-After the owner reports the matrix as successful:
+After the owner reported the matrix successful, the final Package F closure updates:
 
 ```text
-1. Update this document to Completed and accepted with the actual validation head.
-2. Update README.md continuity/status where applicable.
-3. Update docs/10-phases.md.
-4. Update docs/11-progress-log.md.
-5. Update docs/121-pre-phase-12-improvement-track.md.
-6. Update docs/127-pre-phase-12-package-f-zoho-guest-correspondence-strategy.md.
-7. Mark F.1 through F.5 completed and accepted.
-8. Mark Package F completed and accepted.
-9. Keep Phase 12 Not started until an explicit activation decision is made.
-10. Re-evaluate the Pre-Phase-12 gate: Packages A, B, C, E, and F should then be
-    accepted, while Package D remains intentionally deferred outside the current gate.
+1. This document is marked Completed and accepted at validation head `a188ae304df6b377ed4ad9099c9f7d83c2365262`.
+2. README.md, AGENTS.md, and the canonical environment strategy are corrected so the planned Test domain is not described as already deployed.
+3. docs/10-phases.md and docs/11-progress-log.md record Package F completion and a satisfied Pre-Phase-12 gate.
+4. docs/121-pre-phase-12-improvement-track.md is closed with Packages A, B, C, E, and F accepted.
+5. docs/127-pre-phase-12-package-f-zoho-guest-correspondence-strategy.md records the final F.1–F.5 boundary.
+6. docs/135-pre-phase-12-package-f-integrated-acceptance-closure.md records package-level acceptance.
+7. Phase 12 remains Not started until an explicit activation decision is made.
+8. Package D remains intentionally deferred outside the current gate.
 ```
 
 F.5 completion does not automatically activate Phase 12. It only completes the
