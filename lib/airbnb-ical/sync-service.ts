@@ -14,7 +14,6 @@ import { getAccommodationById } from "@/config/accommodations";
 import {
   buildPreparationBufferRanges,
   dateOnlyToUtcDate,
-  getAffectedAccommodationIds,
 } from "@/lib/availability/rules";
 import { prisma } from "@/lib/db/prisma";
 import type {
@@ -23,6 +22,7 @@ import type {
 } from "@/types/accommodation";
 import type { AvailabilityDateRange } from "@/types/availability";
 
+import { shouldCreateAirbnbPreparationBuffers } from "./event-policy";
 import { parseAirbnbIcalContent } from "./parser";
 import type {
   AirbnbIcalFetchClient,
@@ -261,37 +261,33 @@ async function getImportCalendar(
   return externalCalendar;
 }
 
-async function resolvePropertyMappings(
+async function resolveSourcePropertyMapping(
   prismaClient: PrismaClient,
-  accommodationIds: readonly AccommodationId[],
-): Promise<readonly PropertyMapping[]> {
-  const expectedSlugs = accommodationIds.map(getAccommodationSlug);
-  const properties: PropertySyncRecord[] = await prismaClient.property.findMany({
+  accommodationId: AccommodationId,
+): Promise<PropertyMapping> {
+  const expectedSlug = getAccommodationSlug(accommodationId);
+  const property: PropertySyncRecord | null = await prismaClient.property.findFirst({
     where: {
       deletedAt: null,
-      slug: {
-        in: expectedSlugs,
-      },
+      slug: expectedSlug,
     },
     select: propertySyncSelect,
   });
-  const foundSlugs = new Set(properties.map((property) => property.slug));
-  const missingSlugs = expectedSlugs.filter((slug) => !foundSlugs.has(slug));
 
-  if (missingSlugs.length > 0) {
+  if (!property) {
     throw new Error(
-      `Missing property records for Airbnb sync: ${missingSlugs.join(", ")}.`,
+      `Missing property record for Airbnb sync: ${expectedSlug}.`,
     );
   }
 
-  return properties.map((property) => ({
+  return {
     propertyId: property.id,
     accommodationId: getAccommodationIdBySlug(property.slug),
     preparationBuffer: {
       daysBefore: property.preparationDaysBefore,
       daysAfter: property.preparationDaysAfter,
     },
-  }));
+  };
 }
 
 async function ensureCalendarBlock(
@@ -415,78 +411,48 @@ async function softDeleteImportedBlocksForEvents(
   return updateResult.count;
 }
 
-async function syncBlocksForActiveEvent(
+async function softDeleteUnexpectedAirbnbBlocksForEvent(
   prismaClient: PrismaClient,
   input: Readonly<{
-    event: AirbnbIcalImportedEvent;
-    eventRecord: ExternalCalendarEventSyncRecord;
-    sourcePropertyMapping: PropertyMapping;
-    affectedPropertyMappings: readonly PropertyMapping[];
-    counters: SyncCounters;
+    eventRecordId: string;
+    desiredAirbnbBlockId: string;
     now: Date;
   }>,
-): Promise<void> {
-  const eventRange = toDateRange(input.event);
-  let sourceAirbnbBlockId: string | undefined;
-
-  for (const mapping of input.affectedPropertyMappings) {
-    const airbnbBlock = await ensureCalendarBlock(prismaClient, {
-      propertyId: mapping.propertyId,
-      eventRecordId: input.eventRecord.id,
-      source: CalendarBlockSource.AIRBNB,
-      range: eventRange,
-      reason: buildAirbnbBlockReason(input.event),
-      now: input.now,
-    });
-
-    applyBlockCounter(input.counters, airbnbBlock);
-
-    if (mapping.propertyId === input.sourcePropertyMapping.propertyId) {
-      sourceAirbnbBlockId = airbnbBlock.id;
-    }
-  }
-
-  if (!sourceAirbnbBlockId) {
-    throw new Error(
-      "Source Airbnb calendar block was not created for preparation buffers.",
-    );
-  }
-
-  const bufferRanges = buildPreparationBufferRanges(
-    input.sourcePropertyMapping.accommodationId,
-    eventRange,
-    input.sourcePropertyMapping.preparationBuffer,
-  );
-
-  const desiredPreparationBufferIds: string[] = [];
-
-  for (const bufferRange of bufferRanges) {
-    const preparationBufferBlock = await ensureCalendarBlock(prismaClient, {
-      propertyId: input.sourcePropertyMapping.propertyId,
-      eventRecordId: input.eventRecord.id,
-      source: CalendarBlockSource.PREPARATION_BUFFER,
-      range: bufferRange,
-      reason: `${PREPARATION_BUFFER_REASON}: ${bufferRange.kind}`,
-      parentBlockId: sourceAirbnbBlockId,
-      isAdminOverrideAllowed: true,
-      now: input.now,
-    });
-
-    desiredPreparationBufferIds.push(preparationBufferBlock.id);
-    applyBlockCounter(input.counters, preparationBufferBlock);
-  }
-
-  const obsoleteBufferResult = await prismaClient.calendarBlock.updateMany({
+): Promise<number> {
+  const updateResult = await prismaClient.calendarBlock.updateMany({
     where: {
-      propertyId: input.sourcePropertyMapping.propertyId,
-      externalCalendarEventId: input.eventRecord.id,
-      parentBlockId: sourceAirbnbBlockId,
+      externalCalendarEventId: input.eventRecordId,
+      source: CalendarBlockSource.AIRBNB,
+      deletedAt: null,
+      id: {
+        not: input.desiredAirbnbBlockId,
+      },
+    },
+    data: {
+      deletedAt: input.now,
+    },
+  });
+
+  return updateResult.count;
+}
+
+async function softDeleteUnexpectedPreparationBuffersForEvent(
+  prismaClient: PrismaClient,
+  input: Readonly<{
+    eventRecordId: string;
+    desiredPreparationBufferIds: readonly string[];
+    now: Date;
+  }>,
+): Promise<number> {
+  const updateResult = await prismaClient.calendarBlock.updateMany({
+    where: {
+      externalCalendarEventId: input.eventRecordId,
       source: CalendarBlockSource.PREPARATION_BUFFER,
       deletedAt: null,
       id:
-        desiredPreparationBufferIds.length > 0
+        input.desiredPreparationBufferIds.length > 0
           ? {
-              notIn: desiredPreparationBufferIds,
+              notIn: [...input.desiredPreparationBufferIds],
             }
           : undefined,
     },
@@ -495,7 +461,71 @@ async function syncBlocksForActiveEvent(
     },
   });
 
-  input.counters.blocksUpdated += obsoleteBufferResult.count;
+  return updateResult.count;
+}
+
+async function syncBlocksForActiveEvent(
+  prismaClient: PrismaClient,
+  input: Readonly<{
+    event: AirbnbIcalImportedEvent;
+    eventRecord: ExternalCalendarEventSyncRecord;
+    sourcePropertyMapping: PropertyMapping;
+    counters: SyncCounters;
+    now: Date;
+  }>,
+): Promise<void> {
+  const eventRange = toDateRange(input.event);
+  const sourceAirbnbBlock = await ensureCalendarBlock(prismaClient, {
+    propertyId: input.sourcePropertyMapping.propertyId,
+    eventRecordId: input.eventRecord.id,
+    source: CalendarBlockSource.AIRBNB,
+    range: eventRange,
+    reason: buildAirbnbBlockReason(input.event),
+    now: input.now,
+  });
+
+  applyBlockCounter(input.counters, sourceAirbnbBlock);
+  input.counters.blocksUpdated += await softDeleteUnexpectedAirbnbBlocksForEvent(
+    prismaClient,
+    {
+      eventRecordId: input.eventRecord.id,
+      desiredAirbnbBlockId: sourceAirbnbBlock.id,
+      now: input.now,
+    },
+  );
+
+  const desiredPreparationBufferIds: string[] = [];
+
+  if (shouldCreateAirbnbPreparationBuffers(input.event)) {
+    const bufferRanges = buildPreparationBufferRanges(
+      input.sourcePropertyMapping.accommodationId,
+      eventRange,
+      input.sourcePropertyMapping.preparationBuffer,
+    );
+
+    for (const bufferRange of bufferRanges) {
+      const preparationBufferBlock = await ensureCalendarBlock(prismaClient, {
+        propertyId: input.sourcePropertyMapping.propertyId,
+        eventRecordId: input.eventRecord.id,
+        source: CalendarBlockSource.PREPARATION_BUFFER,
+        range: bufferRange,
+        reason: `${PREPARATION_BUFFER_REASON}: ${bufferRange.kind}`,
+        parentBlockId: sourceAirbnbBlock.id,
+        isAdminOverrideAllowed: true,
+        now: input.now,
+      });
+
+      desiredPreparationBufferIds.push(preparationBufferBlock.id);
+      applyBlockCounter(input.counters, preparationBufferBlock);
+    }
+  }
+
+  input.counters.blocksUpdated +=
+    await softDeleteUnexpectedPreparationBuffersForEvent(prismaClient, {
+      eventRecordId: input.eventRecord.id,
+      desiredPreparationBufferIds,
+      now: input.now,
+    });
 }
 
 async function upsertImportedEvent(
@@ -566,22 +596,10 @@ async function reconcileImportedEvents(
   const sourceAccommodationId = getAccommodationIdBySlug(
     input.calendar.property.slug,
   );
-  const affectedAccommodationIds = getAffectedAccommodationIds(
+  const sourcePropertyMapping = await resolveSourcePropertyMapping(
+    prismaClient,
     sourceAccommodationId,
   );
-  const affectedPropertyMappings = await resolvePropertyMappings(
-    prismaClient,
-    affectedAccommodationIds,
-  );
-  const sourcePropertyMapping = affectedPropertyMappings.find(
-    (mapping) => mapping.accommodationId === sourceAccommodationId,
-  );
-
-  if (!sourcePropertyMapping) {
-    throw new Error(
-      "Source property mapping was not found for Airbnb import sync.",
-    );
-  }
 
   const existingEvents: ExternalCalendarEventSyncRecord[] =
     await prismaClient.externalCalendarEvent.findMany({
@@ -620,7 +638,6 @@ async function reconcileImportedEvents(
         event,
         eventRecord,
         sourcePropertyMapping,
-        affectedPropertyMappings,
         counters,
         now: input.now,
       });

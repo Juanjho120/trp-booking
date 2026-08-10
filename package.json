@@ -9,6 +9,7 @@
     "lint": "eslint",
     "env:validate": "tsx scripts/validate-env.ts",
     "email:contract:validate": "tsx scripts/validate-email-reply-to-contract.ts",
+    "airbnb:import-policy:validate": "tsx scripts/validate-airbnb-ical-import-policy.ts",
     "db:validate": "prisma validate",
     "db:format": "prisma format",
     "db:generate": "prisma generate",
