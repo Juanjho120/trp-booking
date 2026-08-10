@@ -439,18 +439,22 @@ docs/120-phase-11.7-validation-and-documentation-closure.md
 docs/121-pre-phase-12-improvement-track.md
 docs/135-pre-phase-12-package-f-integrated-acceptance-closure.md
 docs/136-phase-12.1-test-deployment-and-environment-strategy.md
+docs/137-phase-12.2-vercel-test-project-and-first-deployment.md
 ```
 
 ## Development Status
 
 ```text
 Current phase: Phase 12 — Test Deployment & External Integration Validation
-Current subphase: 12.2 — Vercel Test project and first deployment — Not started; next
-Current focus: begin 12.2 by creating the Vercel Test project and first hosted deployment from the accepted 12.1 environment strategy
+Current subphase: 12.2 — Vercel Test project and first deployment — In progress
+Current focus: retry the first hosted Test deployment with Vercel cron schedules intentionally unregistered; the initial Hobby-plan validation rejected the approved 5/30-minute schedules before any deployment record was created
 12.1 status: Completed and accepted on 2026-08-10
 12.1 documentation base: ede3881a0d2d341018c107fe0cfe5ba0a7f9c490
 12.1 record: docs/136-phase-12.1-test-deployment-and-environment-strategy.md
-Next subphase: 12.2 — Vercel Test project and first deployment
+12.2 status: In progress — first deployment retry pending
+12.2 correction base: a13762c45067208cf8c7dc75ae634c7061803bf2
+12.2 record: docs/137-phase-12.2-vercel-test-project-and-first-deployment.md
+Vercel cron registration: intentionally disabled in 12.2 with vercel.json crons = []; approved schedules return in 12.7 after Vercel Pro activation
 Test deployment status: not created yet
 Test domain target: https://trp-booking.juantzun.dev
 Phase 13: Production Infrastructure, Deployment & Go-Live — Not started; production accounts/infrastructure are explicitly deferred

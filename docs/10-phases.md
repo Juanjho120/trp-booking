@@ -15,8 +15,8 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 12 — Test Deployment & External Integration Validation
-Current subphase: 12.2 — Vercel Test project and first deployment — Not started; next
-Current focus: begin 12.2 by creating the Vercel Test project and first hosted deployment; Production remains deferred to Phase 13
+Current subphase: 12.2 — Vercel Test project and first deployment — In progress
+Current focus: retry the first hosted Test deployment with Vercel cron schedules intentionally unregistered after Hobby-plan validation rejected the approved 5/30-minute schedules before a deployment record was created; Production remains deferred to Phase 13
 Last completed subphase: 12.1 Test deployment and environment strategy
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 11.6.5 acceptance: All 15 protected-history, ordering, relation, retry, ES/EN, responsive, security, and integrated criteria passed on 2026-08-05
@@ -29,8 +29,10 @@ Last completed subphase: 12.1 Test deployment and environment strategy
 11.7 validated closure base: 16cca9e63f5fd8d8af590fc1211dbc69d642f1f6
 Phase 11 accepted feature head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 Phase 11 closure document: docs/120-phase-11.7-validation-and-documentation-closure.md
-Phase 12 status: In progress — 12.1 completed and accepted on 2026-08-10; 12.2 Vercel Test project and first deployment is next
+Phase 12 status: In progress — 12.1 completed and accepted on 2026-08-10; 12.2 Vercel Test project and first deployment is in progress
 Phase 12.1 record: docs/136-phase-12.1-test-deployment-and-environment-strategy.md
+Phase 12.2 correction base: a13762c45067208cf8c7dc75ae634c7061803bf2
+Phase 12.2 record: docs/137-phase-12.2-vercel-test-project-and-first-deployment.md
 Next planned major phase: Phase 13 — Production Infrastructure, Deployment & Go-Live
 Pre-Phase-12 Improvement Track status: Completed and accepted — Packages A, B, C, E, and F accepted; Package D remains deferred outside the current gate
 Pre-Phase-12 Improvement Track registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
@@ -946,7 +948,7 @@ Phase 11 rules:
 
 ## Phase 12 — Test Deployment & External Integration Validation
 
-Status: **In progress — 12.1 completed and accepted; 12.2 next**
+Status: **In progress — 12.1 completed and accepted; 12.2 in progress**
 
 Goal: Create TRP Booking's first real Internet-accessible Test deployment and validate the already-built application against real hosted infrastructure and external integrations without creating or using production-company provider accounts.
 
@@ -970,11 +972,18 @@ Application DNS: attach trp-booking.juantzun.dev to the Vercel Test project
 
 Local and Test intentionally share the same database and provider accounts listed above. The owner accepts responsibility for controlling Local/Test data used during real Airbnb iCal validation. Phase 12.1 does not add environment-specific reservation/iCal partitioning or filtering.
 
+12.2 deployment correction:
+- The first Vercel project/deployment attempt was rejected before a deployment record was created because the project was on Hobby while `vercel.json` declared schedules every 5 and 30 minutes.
+- The cron endpoints remain part of the application; only Vercel scheduler registration is deferred.
+- During 12.2 through 12.6, `vercel.json` intentionally keeps `"crons": []`.
+- 12.7 restores exactly the approved four schedules and validates them after the Test project is upgraded to Vercel Pro, whose current cron minimum interval supports those frequencies.
+- This correction does not change application cron handlers, `CRON_SECRET`, business behavior, or the approved schedules themselves.
+
 Planned subphases:
 
 ```text
 12.1 Test deployment and environment strategy — Completed and accepted on 2026-08-10
-12.2 Vercel Test project and first deployment — Next
+12.2 Vercel Test project and first deployment — In progress; first deployment retry pending after Hobby cron-schedule validation correction
 12.3 Test environment variables and provider wiring
 12.4 Test custom domain, Auth.js, and external callback validation
 12.5 Real Airbnb inbound iCal integration

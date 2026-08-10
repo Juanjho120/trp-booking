@@ -6,8 +6,8 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 12 — Test Deployment & External Integration Validation
-Current subphase: 12.2 — Vercel Test project and first deployment — Not started; next
-Current focus: begin 12.2 by creating the Vercel Test project and first hosted deployment from the accepted 12.1 architecture
+Current subphase: 12.2 — Vercel Test project and first deployment — In progress
+Current focus: retry the first hosted Test deployment with Vercel cron schedules intentionally unregistered after Hobby-plan validation rejected the approved 5/30-minute schedules before any deployment record was created
 Last updated: 2026-08-10
 Last completed subphase: 12.1 Test deployment and environment strategy
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
@@ -24,7 +24,10 @@ Phase 11 closure document: docs/120-phase-11.7-validation-and-documentation-clos
 Phase 12 status: In progress — 12.1 completed and accepted on 2026-08-10
 Phase 12.1 documentation base: ede3881a0d2d341018c107fe0cfe5ba0a7f9c490
 Phase 12.1 record: docs/136-phase-12.1-test-deployment-and-environment-strategy.md
-Next subphase: 12.2 — Vercel Test project and first deployment
+Phase 12.2 status: In progress — first deployment retry pending
+Phase 12.2 correction base: a13762c45067208cf8c7dc75ae634c7061803bf2
+Phase 12.2 record: docs/137-phase-12.2-vercel-test-project-and-first-deployment.md
+Vercel cron registration: intentionally absent in 12.2 through 12.6; approved schedules return in 12.7 after Vercel Pro activation
 Phase 13 status: Not started — Production Infrastructure, Deployment & Go-Live follows successful Phase 12 closure
 Pre-Phase-12 Improvement Track status: Completed and accepted — Packages A, B, C, E, and F accepted; Package D remains deferred outside the current gate
 Pre-Phase-12 Improvement Track registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
@@ -670,6 +673,28 @@ Status: **Completed and accepted on 2026-08-10**
 - Next subphase: 12.2 Vercel Test project and first deployment.
 ```
 
+### Phase 12.2 — Vercel Test project and first deployment
+
+Status: **In progress — first deployment retry pending**
+
+```text
+- The Test project import/configuration was initiated in the developer-owned Vercel account.
+- The initial attempt produced no deployment record because Vercel rejected the project configuration before build/deployment creation.
+- Root cause: the Test project is currently on Hobby while the approved `vercel.json` schedules run every 5 and 30 minutes; Hobby permits cron schedules only once per day.
+- The correction does not weaken or change the approved scheduler frequencies.
+- `vercel.json` intentionally contains `"crons": []` during 12.2 through 12.6 so the first hosted Test deployment can be created without registering schedulers prematurely.
+- All four cron API endpoints remain present and protected by the existing application logic.
+- 12.7 must upgrade/operate the Test project on Vercel Pro and restore exactly:
+  - `/api/cron/sync-airbnb-calendars` -> `*/30 * * * *`
+  - `/api/cron/expire-pending-reservation-holds` -> `*/5 * * * *`
+  - `/api/cron/process-email-notifications` -> `*/5 * * * *`
+  - `/api/cron/schedule-arrival-instructions` -> `*/30 * * * *`
+- No cron execution is expected or accepted as part of 12.2.
+- No deployment exists yet; 12.2 remains open until a Production Deployment of the Test Vercel project reaches Ready and the basic `*.vercel.app` smoke checks pass.
+- Correction/runtime base: a13762c45067208cf8c7dc75ae634c7061803bf2.
+- Authoritative record: docs/137-phase-12.2-vercel-test-project-and-first-deployment.md.
+```
+
 ## Continuity Notes for New Conversations
 
 Minimum context files:
@@ -735,6 +760,7 @@ docs/133-pre-phase-12-package-f-4-acceptance-closure.md
 docs/134-pre-phase-12-package-f-5-integrated-validation-and-documentation-closure.md
 docs/135-pre-phase-12-package-f-integrated-acceptance-closure.md
 docs/136-phase-12.1-test-deployment-and-environment-strategy.md
+docs/137-phase-12.2-vercel-test-project-and-first-deployment.md
 lib/admin/reservation-cancellation.ts
 lib/admin/reservation-date-mutation.ts
 lib/reservations/date-mutation-completion.ts
