@@ -21,7 +21,7 @@ The planned stable test domain is:
 trp-booking.juantzun.dev
 ```
 
-As of 2026-08-10, TRP Booking has a working Vercel Test deployment on the stable HTTPS domain `trp-booking.juantzun.dev`. Phase 12.4 hosted validation confirmed the custom domain and Google OAuth flow. A hosted database connection correction was accepted as 12.4.1; controlled reservation/payment validation remains open. Production infrastructure remains deferred to Phase 13.
+As of 2026-08-10, TRP Booking has a working Vercel Test deployment on the stable HTTPS domain `trp-booking.juantzun.dev`. Phase 12.4 is completed and accepted after validating the custom domain, Google OAuth, the hosted database pooling correction, pending-hold transaction safety, and the controlled Tilopay sandbox flow. Phase 12.5 is now validating real Airbnb inbound iCal integration. Production infrastructure remains deferred to Phase 13.
 
 ## Environment Strategy
 
@@ -445,14 +445,16 @@ docs/139-phase-12.3-test-environment-variables-and-provider-wiring.md
 docs/140-phase-12.3-acceptance-closure.md
 docs/141-phase-12.4-test-custom-domain-authjs-and-external-callback-validation.md
 docs/142-phase-12.4.1-hosted-database-pooling-correction.md
+docs/143-phase-12.4-acceptance-closure.md
+docs/144-phase-12.5-real-airbnb-inbound-ical-integration.md
 ```
 
 ## Development Status
 
 ```text
 Current phase: Phase 12 — Test Deployment & External Integration Validation
-Current subphase: 12.4 — Test custom domain, Auth.js, and external callback validation — In progress
-Current focus: resolve the hosted pending-hold 500 on the stable Test domain, then continue controlled Tilopay sandbox redirect/consult validation; custom domain/HTTPS, Google OAuth, and 12.4.1 database pooling correction are already validated while Airbnb and scheduler work remain assigned to 12.5–12.7
+Current subphase: 12.5 — Real Airbnb inbound iCal integration — In progress
+Current focus: configure the three real Airbnb export .ics URLs privately in Vercel Test, map them to the actual ExternalCalendar.id records, run the hosted inbound sync manually, and validate imported events, Airbnb blocks, preparation buffers, composed-listing propagation, idempotency, and secret hygiene; outbound Airbnb round-trip remains 12.6 and scheduler activation remains 12.7
 12.1 status: Completed and accepted on 2026-08-10
 12.1 documentation base: ede3881a0d2d341018c107fe0cfe5ba0a7f9c490
 12.1 record: docs/136-phase-12.1-test-deployment-and-environment-strategy.md
@@ -464,10 +466,14 @@ Current focus: resolve the hosted pending-hold 500 on the stable Test domain, th
 12.3 validated repository head: dcea31801351b40029c8c194949e91d0a5642407
 12.3 record: docs/139-phase-12.3-test-environment-variables-and-provider-wiring.md
 12.3 acceptance closure: docs/140-phase-12.3-acceptance-closure.md
-12.4 status: In progress — stable domain/HTTPS and Google OAuth validated; pending-hold/Tilopay hosted validation remains open
+12.4 status: Completed and accepted on 2026-08-10
+12.4 accepted repository head: 4956fe08c033d0265d5400639c94d8b4927ddaf5
 12.4 record: docs/141-phase-12.4-test-custom-domain-authjs-and-external-callback-validation.md
 12.4.1 status: Completed and accepted on 2026-08-10 — Vercel/Supabase serverless runtime moved from Session pooler to Transaction pooler
 12.4.1 record: docs/142-phase-12.4.1-hosted-database-pooling-correction.md
+12.4 acceptance closure: docs/143-phase-12.4-acceptance-closure.md
+12.5 status: In progress — real Airbnb inbound iCal configuration and hosted manual-sync validation
+12.5 record: docs/144-phase-12.5-real-airbnb-inbound-ical-integration.md
 Vercel cron registration: intentionally disabled through 12.6 with vercel.json crons = []; approved schedules return in 12.7 after Vercel Pro activation
 Test deployment status: stable HTTPS domain `trp-booking.juantzun.dev` is attached and operational
 Test domain target: https://trp-booking.juantzun.dev

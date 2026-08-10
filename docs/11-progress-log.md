@@ -6,10 +6,10 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 12 — Test Deployment & External Integration Validation
-Current subphase: 12.4 — Test custom domain, Auth.js, and external callback validation — In progress
-Current focus: resolve the hosted pending-hold 500 and continue controlled Tilopay sandbox validation; stable Test domain/HTTPS, Google OAuth, and the 12.4.1 database pooling correction are already validated; Airbnb and scheduler validation remain assigned to 12.5–12.7
+Current subphase: 12.5 — Real Airbnb inbound iCal integration — In progress
+Current focus: configure real Airbnb export .ics URLs privately in Vercel Test, map them to the actual ExternalCalendar.id values, and validate the hosted inbound sync manually; 12.4 is accepted, outbound round-trip remains 12.6, and scheduler activation remains 12.7
 Last updated: 2026-08-10
-Last completed subphase: 12.3 Test environment variables and provider wiring
+Last completed subphase: 12.4 Test custom domain, Auth.js, and external callback validation
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 11.6.5 acceptance: All 15 protected-history, ordering, relation, retry, ES/EN, responsive, security, and integrated criteria passed on 2026-08-05
 11.6.5 implementation and acceptance document: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md
@@ -21,7 +21,7 @@ Last completed subphase: 12.3 Test environment variables and provider wiring
 11.7 validated closure base: 16cca9e63f5fd8d8af590fc1211dbc69d642f1f6
 Phase 11 accepted feature head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 Phase 11 closure document: docs/120-phase-11.7-validation-and-documentation-closure.md
-Phase 12 status: In progress — 12.1, 12.2, and 12.3 completed and accepted on 2026-08-10; 12.4 in progress
+Phase 12 status: In progress — 12.1 through 12.4 completed and accepted on 2026-08-10; 12.5 in progress
 Phase 12.1 documentation base: ede3881a0d2d341018c107fe0cfe5ba0a7f9c490
 Phase 12.1 record: docs/136-phase-12.1-test-deployment-and-environment-strategy.md
 Phase 12.2 status: Completed and accepted on 2026-08-10
@@ -34,12 +34,19 @@ Phase 12.3 validated repository head: dcea31801351b40029c8c194949e91d0a5642407
 Phase 12.3 record: docs/139-phase-12.3-test-environment-variables-and-provider-wiring.md
 docs/140-phase-12.3-acceptance-closure.md
 docs/141-phase-12.4-test-custom-domain-authjs-and-external-callback-validation.md
+docs/142-phase-12.4.1-hosted-database-pooling-correction.md
+docs/143-phase-12.4-acceptance-closure.md
+docs/144-phase-12.5-real-airbnb-inbound-ical-integration.md
 Phase 12.3 acceptance closure: docs/140-phase-12.3-acceptance-closure.md
 docs/141-phase-12.4-test-custom-domain-authjs-and-external-callback-validation.md
-Phase 12.4 status: In progress — stable domain/HTTPS and Google OAuth validated; pending-hold/Tilopay hosted validation remains open
+Phase 12.4 status: Completed and accepted on 2026-08-10
+Phase 12.4 accepted repository head: 4956fe08c033d0265d5400639c94d8b4927ddaf5
 Phase 12.4 record: docs/141-phase-12.4-test-custom-domain-authjs-and-external-callback-validation.md
 Phase 12.4.1 status: Completed and accepted on 2026-08-10
 Phase 12.4.1 record: docs/142-phase-12.4.1-hosted-database-pooling-correction.md
+Phase 12.4 acceptance closure: docs/143-phase-12.4-acceptance-closure.md
+Phase 12.5 status: In progress — real Airbnb inbound iCal integration
+Phase 12.5 record: docs/144-phase-12.5-real-airbnb-inbound-ical-integration.md
 Phase 13 status: Not started — Production Infrastructure, Deployment & Go-Live follows successful Phase 12 closure
 Pre-Phase-12 Improvement Track status: Completed and accepted — Packages A, B, C, E, and F accepted; Package D remains deferred outside the current gate
 Pre-Phase-12 Improvement Track registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
