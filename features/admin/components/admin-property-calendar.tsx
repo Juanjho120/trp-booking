@@ -34,6 +34,11 @@ import {
 } from "@/components/ui/sheet";
 import { useLocale } from "@/features/i18n";
 import { addDaysToDateOnly } from "@/lib/availability/rules";
+import {
+  consolidateAdminCalendarEntries,
+  type AdminCalendarDisplayEntry,
+  type AdminCalendarDisplaySource,
+} from "@/lib/admin/calendar-display";
 import { cn } from "@/lib/utils";
 import type {
   AdminCalendarEntry,
@@ -80,11 +85,12 @@ function normalizeSearch(value: string): string {
   return value.trim().toLocaleLowerCase();
 }
 
-function sourceClassName(source: AdminCalendarEntry["source"]): string {
-  const classes: Record<AdminCalendarEntry["source"], string> = {
+function sourceClassName(source: AdminCalendarDisplaySource): string {
+  const classes: Record<AdminCalendarDisplaySource, string> = {
     DIRECT_RESERVATION: "border-primary/30 bg-primary/15 text-foreground",
     PENDING_PAYMENT: "border-secondary bg-secondary text-secondary-foreground",
     AIRBNB: "border-foreground/20 bg-foreground text-background",
+    AIRBNB_PREPARATION: "border-foreground/20 bg-foreground text-background",
     MANUAL_BLOCK: "border-destructive/25 bg-destructive/10 text-destructive",
     MAINTENANCE: "border-border bg-muted text-foreground",
     COMPOSED_LISTING_DEPENDENCY: "border-border bg-muted text-muted-foreground",
@@ -116,6 +122,11 @@ export function AdminPropertyCalendarView({
     ? initialCalendar.days.find((day) => day.date === selectedDate) ?? null
     : null;
   const normalizedSearch = normalizeSearch(search);
+  const selectedDayDisplayEntries = useMemo(
+    () =>
+      selectedDay ? consolidateAdminCalendarEntries(selectedDay.entries) : [],
+    [selectedDay],
+  );
 
   const matchingEntryIds = useMemo(() => {
     if (!normalizedSearch) {
@@ -159,10 +170,43 @@ export function AdminPropertyCalendarView({
     }).format(new Date(`${value}-01T00:00:00.000Z`));
   }
 
-  function propertyName(entry: AdminCalendarEntry): string {
-    return locale === "en"
-      ? entry.originPropertyNameEn
-      : entry.originPropertyNameEs;
+  function displaySourceLabel(source: AdminCalendarDisplaySource): string {
+    if (source === "AIRBNB_PREPARATION") {
+      return `${copy.sources.AIRBNB} · ${copy.sources.PREPARATION_BUFFER}`;
+    }
+
+    return copy.sources[source];
+  }
+
+  function displayPropertyNames(entry: AdminCalendarDisplayEntry): string {
+    const names = entry.entries.map((candidate) =>
+      locale === "en"
+        ? candidate.originPropertyNameEn
+        : candidate.originPropertyNameEs,
+    );
+
+    return [...new Set(names)].join(" · ");
+  }
+
+  function displayValues(
+    entry: AdminCalendarDisplayEntry,
+    selector: (candidate: AdminCalendarEntry) => string | null,
+  ): readonly string[] {
+    return [
+      ...new Set(
+        entry.entries
+          .map(selector)
+          .filter((value): value is string => Boolean(value)),
+      ),
+    ];
+  }
+
+  function actionEntry(
+    displayEntry: AdminCalendarDisplayEntry,
+  ): AdminCalendarEntry | null {
+    return displayEntry.entries.length === 1
+      ? displayEntry.entries[0] ?? null
+      : null;
   }
 
   function errorMessage(code: CalendarApiErrorCode | undefined): string {
@@ -298,7 +342,6 @@ export function AdminPropertyCalendarView({
     if (!entry.reservationId && !entry.calendarBlockId) {
       return;
     }
-
     const targetId = entry.reservationId ?? entry.calendarBlockId!;
 
     await executeMutation(
@@ -514,17 +557,20 @@ export function AdminPropertyCalendarView({
               const hasSearchMatch =
                 !matchingEntryIds ||
                 day.entries.some((entry) => matchingEntryIds.has(entry.id));
-              const visibleEntries = day.entries
-                .filter((entry) => entry.blocking)
-                .slice(0, 2);
-              const hasOverride = day.entries.some(
+              const displayEntries = consolidateAdminCalendarEntries(day.entries);
+              const blockingDisplayEntries = displayEntries.filter(
+                (entry) => entry.blocking,
+              );
+              const visibleEntries = blockingDisplayEntries.slice(0, 2);
+              const displayBlockingCount = blockingDisplayEntries.length;
+              const hasOverride = displayEntries.some(
                 (entry) => entry.source === "PREPARATION_BUFFER_OVERRIDE",
               );
 
               return (
                 <button
                   aria-label={`${formatDate(day.date)}. ${
-                    day.blockingCount > 0
+                    displayBlockingCount > 0
                       ? copy.states.blocked
                       : copy.states.available
                   }`}
@@ -532,7 +578,7 @@ export function AdminPropertyCalendarView({
                     "min-h-28 border-b border-r border-border p-2 text-left align-top transition focus-visible:relative focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:min-h-32",
                     !day.inCurrentMonth && "bg-muted/20 text-muted-foreground",
                     day.inCurrentMonth && "bg-background hover:bg-muted/30",
-                    day.blockingCount > 0 && "bg-primary/[0.04]",
+                    displayBlockingCount > 0 && "bg-primary/[0.04]",
                     day.isPast && "cursor-default opacity-60",
                     rangeMode &&
                       !day.canCreateManualBlock &&
@@ -569,15 +615,15 @@ export function AdminPropertyCalendarView({
                         )}
                         key={entry.id}
                       >
-                        {copy.sources[entry.source]}
+                        {displaySourceLabel(entry.source)}
                       </span>
                     ))}
-                    {day.blockingCount > 2 ? (
+                    {displayBlockingCount > 2 ? (
                       <span className="text-[10px] text-muted-foreground sm:text-xs">
-                        +{day.blockingCount - 2} {copy.labels.more}
+                        +{displayBlockingCount - 2} {copy.labels.more}
                       </span>
                     ) : null}
-                    {day.blockingCount === 0 && hasOverride ? (
+                    {displayBlockingCount === 0 && hasOverride ? (
                       <span className="truncate rounded-lg border border-primary/30 bg-primary/10 px-1.5 py-1 text-[10px] font-medium leading-none text-foreground sm:text-xs">
                         {copy.sources.PREPARATION_BUFFER_OVERRIDE}
                       </span>
@@ -618,106 +664,153 @@ export function AdminPropertyCalendarView({
               <SheetHeader>
                 <SheetTitle>{formatDate(selectedDay.date)}</SheetTitle>
                 <SheetDescription>
-                  {selectedDay.blockingCount > 0
+                  {selectedDayDisplayEntries.some((entry) => entry.blocking)
                     ? copy.states.blocked
                     : copy.states.available}
                 </SheetDescription>
               </SheetHeader>
 
               <div className="grid gap-3 px-6 pb-6">
-                {selectedDay.entries.length > 0 ? (
-                  selectedDay.entries.map((entry) => {
+                {selectedDayDisplayEntries.length > 0 ? (
+                  selectedDayDisplayEntries.map((displayEntry) => {
+                    const entry = actionEntry(displayEntry);
                     const actionTargetId =
-                      entry.calendarBlockId ?? entry.reservationId ?? entry.id;
+                      entry?.calendarBlockId ??
+                      entry?.reservationId ??
+                      displayEntry.id;
                     const actionBusy = busyKey?.includes(actionTargetId) ?? false;
+                    const guestNames = displayValues(
+                      displayEntry,
+                      (candidate) => candidate.guestName,
+                    );
+                    const reservationIds = displayValues(
+                      displayEntry,
+                      (candidate) => candidate.reservationId,
+                    );
+                    const notes = displayValues(
+                      displayEntry,
+                      (candidate) => candidate.note,
+                    );
+
                     return (
-                      <Card className="border-border/70" key={entry.id} size="sm">
+                      <Card
+                        className="border-border/70"
+                        key={displayEntry.id}
+                        size="sm"
+                      >
                         <CardHeader>
                           <div className="flex flex-wrap items-start justify-between gap-2">
                             <div>
-                              <CardTitle>{copy.sources[entry.source]}</CardTitle>
-                              <CardDescription>{propertyName(entry)}</CardDescription>
+                              <CardTitle>
+                                {displaySourceLabel(displayEntry.source)}
+                              </CardTitle>
+                              <CardDescription>
+                                {displayPropertyNames(displayEntry)}
+                              </CardDescription>
                             </div>
-                            {entry.inherited ? (
+                            {displayEntry.inherited ? (
                               <Badge variant="outline">{copy.labels.inherited}</Badge>
                             ) : null}
                           </div>
                         </CardHeader>
                         <CardContent className="grid gap-3 text-sm">
-                          {entry.guestName ? (
+                          {guestNames.length > 0 ? (
                             <p>
-                              <span className="text-muted-foreground">{copy.labels.guest}: </span>
-                              {entry.guestName}
+                              <span className="text-muted-foreground">
+                                {copy.labels.guest}:{" "}
+                              </span>
+                              {guestNames.join(" · ")}
                             </p>
                           ) : null}
-                          {entry.reservationId ? (
+                          {reservationIds.length > 0 ? (
                             <p className="break-all">
-                              <span className="text-muted-foreground">{copy.labels.reservation}: </span>
-                              {entry.reservationId}
+                              <span className="text-muted-foreground">
+                                {copy.labels.reservation}:{" "}
+                              </span>
+                              {reservationIds.join(" · ")}
                             </p>
                           ) : null}
-                          {entry.note ? (
-                            <p>
-                              <span className="text-muted-foreground">{copy.labels.note}: </span>
-                              {entry.note}
+                          {notes.map((note) => (
+                            <p key={note}>
+                              <span className="text-muted-foreground">
+                                {copy.labels.note}:{" "}
+                              </span>
+                              {note}
                             </p>
+                          ))}
+                          {entry ? (
+                            <div className="flex flex-wrap gap-2">
+                              {entry.canUnlockPreparation ? (
+                                <Button
+                                  disabled={busyKey !== null}
+                                  onClick={() => {
+                                    void unlockPreparation(
+                                      entry,
+                                      selectedDay.date,
+                                    );
+                                  }}
+                                  size="sm"
+                                  type="button"
+                                  variant="outline"
+                                >
+                                  {actionBusy ? (
+                                    <Loader2
+                                      aria-hidden="true"
+                                      className="animate-spin"
+                                    />
+                                  ) : (
+                                    <LockKeyholeOpen aria-hidden="true" />
+                                  )}
+                                  {copy.actions.unlockBuffer}
+                                </Button>
+                              ) : null}
+                              {entry.canRestorePreparation ? (
+                                <Button
+                                  disabled={busyKey !== null}
+                                  onClick={() => {
+                                    void restorePreparation(entry);
+                                  }}
+                                  size="sm"
+                                  type="button"
+                                  variant="outline"
+                                >
+                                  {actionBusy ? (
+                                    <Loader2
+                                      aria-hidden="true"
+                                      className="animate-spin"
+                                    />
+                                  ) : (
+                                    <RotateCcw aria-hidden="true" />
+                                  )}
+                                  {copy.actions.restoreBuffer}
+                                </Button>
+                              ) : null}
+                              {entry.canReleaseManualDay ? (
+                                <Button
+                                  disabled={busyKey !== null}
+                                  onClick={() => {
+                                    void releaseManualDay(
+                                      entry,
+                                      selectedDay.date,
+                                    );
+                                  }}
+                                  size="sm"
+                                  type="button"
+                                  variant="outline"
+                                >
+                                  {actionBusy ? (
+                                    <Loader2
+                                      aria-hidden="true"
+                                      className="animate-spin"
+                                    />
+                                  ) : (
+                                    <LockKeyholeOpen aria-hidden="true" />
+                                  )}
+                                  {copy.actions.releaseDay}
+                                </Button>
+                              ) : null}
+                            </div>
                           ) : null}
-                          <div className="flex flex-wrap gap-2">
-                            {entry.canUnlockPreparation ? (
-                              <Button
-                                disabled={busyKey !== null}
-                                onClick={() => {
-                                  void unlockPreparation(entry, selectedDay.date);
-                                }}
-                                size="sm"
-                                type="button"
-                                variant="outline"
-                              >
-                                {actionBusy ? (
-                                  <Loader2 aria-hidden="true" className="animate-spin" />
-                                ) : (
-                                  <LockKeyholeOpen aria-hidden="true" />
-                                )}
-                                {copy.actions.unlockBuffer}
-                              </Button>
-                            ) : null}
-                            {entry.canRestorePreparation ? (
-                              <Button
-                                disabled={busyKey !== null}
-                                onClick={() => {
-                                  void restorePreparation(entry);
-                                }}
-                                size="sm"
-                                type="button"
-                                variant="outline"
-                              >
-                                {actionBusy ? (
-                                  <Loader2 aria-hidden="true" className="animate-spin" />
-                                ) : (
-                                  <RotateCcw aria-hidden="true" />
-                                )}
-                                {copy.actions.restoreBuffer}
-                              </Button>
-                            ) : null}
-                            {entry.canReleaseManualDay ? (
-                              <Button
-                                disabled={busyKey !== null}
-                                onClick={() => {
-                                  void releaseManualDay(entry, selectedDay.date);
-                                }}
-                                size="sm"
-                                type="button"
-                                variant="outline"
-                              >
-                                {actionBusy ? (
-                                  <Loader2 aria-hidden="true" className="animate-spin" />
-                                ) : (
-                                  <LockKeyholeOpen aria-hidden="true" />
-                                )}
-                                {copy.actions.releaseDay}
-                              </Button>
-                            ) : null}
-                          </div>
                         </CardContent>
                       </Card>
                     );
