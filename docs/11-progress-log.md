@@ -6,10 +6,10 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 12 — Test Deployment & External Integration Validation
-Current subphase: 12.2 — Vercel Test project and first deployment — In progress
-Current focus: retry the first hosted Test deployment with Vercel cron schedules intentionally unregistered after Hobby-plan validation rejected the approved 5/30-minute schedules before any deployment record was created
+Current subphase: 12.3 — Test environment variables and provider wiring — Not started; next
+Current focus: complete the Test environment/provider wiring on the accepted Vercel baseline; stable-domain, Airbnb, and scheduler validation remain assigned to 12.4–12.7
 Last updated: 2026-08-10
-Last completed subphase: 12.1 Test deployment and environment strategy
+Last completed subphase: 12.2 Vercel Test project and first deployment
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 11.6.5 acceptance: All 15 protected-history, ordering, relation, retry, ES/EN, responsive, security, and integrated criteria passed on 2026-08-05
 11.6.5 implementation and acceptance document: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md
@@ -21,13 +21,15 @@ Last completed subphase: 12.1 Test deployment and environment strategy
 11.7 validated closure base: 16cca9e63f5fd8d8af590fc1211dbc69d642f1f6
 Phase 11 accepted feature head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 Phase 11 closure document: docs/120-phase-11.7-validation-and-documentation-closure.md
-Phase 12 status: In progress — 12.1 completed and accepted on 2026-08-10
+Phase 12 status: In progress — 12.1 and 12.2 completed and accepted on 2026-08-10; 12.3 next
 Phase 12.1 documentation base: ede3881a0d2d341018c107fe0cfe5ba0a7f9c490
 Phase 12.1 record: docs/136-phase-12.1-test-deployment-and-environment-strategy.md
-Phase 12.2 status: In progress — first deployment retry pending
-Phase 12.2 correction base: a13762c45067208cf8c7dc75ae634c7061803bf2
+Phase 12.2 status: Completed and accepted on 2026-08-10
+Phase 12.2 accepted deployment source head: 91f513c57b6220ad8d1d32f9a198a3d5099b1fd7
 Phase 12.2 record: docs/137-phase-12.2-vercel-test-project-and-first-deployment.md
-Vercel cron registration: intentionally absent in 12.2 through 12.6; approved schedules return in 12.7 after Vercel Pro activation
+Phase 12.2 acceptance closure: docs/138-phase-12.2-acceptance-closure.md
+Vercel cron registration: intentionally absent through 12.6; approved schedules return in 12.7 after Vercel Pro activation
+Next subphase: 12.3 — Test environment variables and provider wiring
 Phase 13 status: Not started — Production Infrastructure, Deployment & Go-Live follows successful Phase 12 closure
 Pre-Phase-12 Improvement Track status: Completed and accepted — Packages A, B, C, E, and F accepted; Package D remains deferred outside the current gate
 Pre-Phase-12 Improvement Track registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
@@ -675,7 +677,7 @@ Status: **Completed and accepted on 2026-08-10**
 
 ### Phase 12.2 — Vercel Test project and first deployment
 
-Status: **In progress — first deployment retry pending**
+Status: **Completed and accepted on 2026-08-10**
 
 ```text
 - The Test project import/configuration was initiated in the developer-owned Vercel account.
@@ -690,9 +692,14 @@ Status: **In progress — first deployment retry pending**
   - `/api/cron/process-email-notifications` -> `*/5 * * * *`
   - `/api/cron/schedule-arrival-instructions` -> `*/30 * * * *`
 - No cron execution is expected or accepted as part of 12.2.
-- No deployment exists yet; 12.2 remains open until a Production Deployment of the Test Vercel project reaches Ready and the basic `*.vercel.app` smoke checks pass.
-- Correction/runtime base: a13762c45067208cf8c7dc75ae634c7061803bf2.
-- Authoritative record: docs/137-phase-12.2-vercel-test-project-and-first-deployment.md.
+- After the correction, the first Vercel Production Deployment for the Test project completed successfully and the owner reported it working without problems.
+- The deployment uses the Vercel-generated HTTPS baseline; the temporary alias is intentionally not treated as the stable Test domain.
+- `trp-booking.juantzun.dev` remains unattached and is validated later in 12.4.
+- No Vercel cron schedule is registered; `vercel.json` remains `crons = []` through 12.6.
+- Accepted deployment source head: 91f513c57b6220ad8d1d32f9a198a3d5099b1fd7.
+- Implementation/correction record: docs/137-phase-12.2-vercel-test-project-and-first-deployment.md.
+- Acceptance closure: docs/138-phase-12.2-acceptance-closure.md.
+- Next subphase: 12.3 Test environment variables and provider wiring.
 ```
 
 ## Continuity Notes for New Conversations
@@ -761,6 +768,7 @@ docs/134-pre-phase-12-package-f-5-integrated-validation-and-documentation-closur
 docs/135-pre-phase-12-package-f-integrated-acceptance-closure.md
 docs/136-phase-12.1-test-deployment-and-environment-strategy.md
 docs/137-phase-12.2-vercel-test-project-and-first-deployment.md
+docs/138-phase-12.2-acceptance-closure.md
 lib/admin/reservation-cancellation.ts
 lib/admin/reservation-date-mutation.ts
 lib/reservations/date-mutation-completion.ts

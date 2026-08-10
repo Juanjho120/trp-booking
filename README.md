@@ -21,7 +21,7 @@ The planned stable test domain is:
 trp-booking.juantzun.dev
 ```
 
-As of 2026-08-10, TRP Booking has **not** been deployed to this domain or to Vercel yet. Phase 12 is now dedicated exclusively to creating and validating the real Test deployment; production infrastructure is deferred to Phase 13.
+As of 2026-08-10, TRP Booking has its first successful Vercel Test deployment on a Vercel-generated HTTPS `*.vercel.app` URL. The stable Test domain `trp-booking.juantzun.dev` is still not attached; that custom-domain and hosted callback boundary remains Phase 12.4 work. Production infrastructure remains deferred to Phase 13.
 
 ## Environment Strategy
 
@@ -42,7 +42,7 @@ TRP_ENVIRONMENT=local
 
 TRP_ENVIRONMENT=test
 - Planned application URL: https://trp-booking.juantzun.dev
-- Deployment status: not created yet; Phase 12 creates a new Test project in the existing personal Vercel account
+- Deployment status: first Vercel Test deployment created and accepted in 12.2; stable custom domain still pending for 12.4
 - Database: same developer-owned Supabase database used by Local
 - Tilopay: same sandbox account used by Local
 - Resend: same personal account and sending domain used by Local
@@ -440,22 +440,24 @@ docs/121-pre-phase-12-improvement-track.md
 docs/135-pre-phase-12-package-f-integrated-acceptance-closure.md
 docs/136-phase-12.1-test-deployment-and-environment-strategy.md
 docs/137-phase-12.2-vercel-test-project-and-first-deployment.md
+docs/138-phase-12.2-acceptance-closure.md
 ```
 
 ## Development Status
 
 ```text
 Current phase: Phase 12 — Test Deployment & External Integration Validation
-Current subphase: 12.2 — Vercel Test project and first deployment — In progress
-Current focus: retry the first hosted Test deployment with Vercel cron schedules intentionally unregistered; the initial Hobby-plan validation rejected the approved 5/30-minute schedules before any deployment record was created
+Current subphase: 12.3 — Test environment variables and provider wiring — Not started; next
+Current focus: complete the Test provider/environment configuration on the accepted Vercel baseline while keeping custom-domain, Airbnb, and scheduler validation in their later assigned subphases
 12.1 status: Completed and accepted on 2026-08-10
 12.1 documentation base: ede3881a0d2d341018c107fe0cfe5ba0a7f9c490
 12.1 record: docs/136-phase-12.1-test-deployment-and-environment-strategy.md
-12.2 status: In progress — first deployment retry pending
-12.2 correction base: a13762c45067208cf8c7dc75ae634c7061803bf2
+12.2 status: Completed and accepted on 2026-08-10
+12.2 accepted deployment source head: 91f513c57b6220ad8d1d32f9a198a3d5099b1fd7
 12.2 record: docs/137-phase-12.2-vercel-test-project-and-first-deployment.md
-Vercel cron registration: intentionally disabled in 12.2 with vercel.json crons = []; approved schedules return in 12.7 after Vercel Pro activation
-Test deployment status: not created yet
+12.2 acceptance closure: docs/138-phase-12.2-acceptance-closure.md
+Vercel cron registration: intentionally disabled through 12.6 with vercel.json crons = []; approved schedules return in 12.7 after Vercel Pro activation
+Test deployment status: Vercel-generated HTTPS baseline created and accepted; stable custom domain not attached yet
 Test domain target: https://trp-booking.juantzun.dev
 Phase 13: Production Infrastructure, Deployment & Go-Live — Not started; production accounts/infrastructure are explicitly deferred
 Pre-Phase-12 Improvement Track status: Completed and accepted — Packages A, B, C, E, and F accepted; Package D remains deferred outside the current gate
