@@ -21,7 +21,7 @@ The planned stable test domain is:
 trp-booking.juantzun.dev
 ```
 
-As of 2026-08-10, TRP Booking has its first successful Vercel Test deployment on a Vercel-generated HTTPS `*.vercel.app` URL. The stable Test domain `trp-booking.juantzun.dev` is still not attached; that custom-domain and hosted callback boundary remains Phase 12.4 work. Production infrastructure remains deferred to Phase 13.
+As of 2026-08-10, TRP Booking has a working Vercel Test deployment on the stable HTTPS domain `trp-booking.juantzun.dev`. Phase 12.4 hosted validation confirmed the custom domain and Google OAuth flow. A hosted database connection correction was accepted as 12.4.1; controlled reservation/payment validation remains open. Production infrastructure remains deferred to Phase 13.
 
 ## Environment Strategy
 
@@ -42,7 +42,7 @@ TRP_ENVIRONMENT=local
 
 TRP_ENVIRONMENT=test
 - Planned application URL: https://trp-booking.juantzun.dev
-- Deployment status: first Vercel Test deployment created and accepted in 12.2; stable custom domain still pending for 12.4
+- Deployment status: Vercel Test deployment and stable custom domain `trp-booking.juantzun.dev` are operational; Google OAuth hosted validation passed in 12.4
 - Database: same developer-owned Supabase database used by Local
 - Tilopay: same sandbox account used by Local
 - Resend: same personal account and sending domain used by Local
@@ -444,6 +444,7 @@ docs/138-phase-12.2-acceptance-closure.md
 docs/139-phase-12.3-test-environment-variables-and-provider-wiring.md
 docs/140-phase-12.3-acceptance-closure.md
 docs/141-phase-12.4-test-custom-domain-authjs-and-external-callback-validation.md
+docs/142-phase-12.4.1-hosted-database-pooling-correction.md
 ```
 
 ## Development Status
@@ -451,7 +452,7 @@ docs/141-phase-12.4-test-custom-domain-authjs-and-external-callback-validation.m
 ```text
 Current phase: Phase 12 — Test Deployment & External Integration Validation
 Current subphase: 12.4 — Test custom domain, Auth.js, and external callback validation — In progress
-Current focus: attach trp-booking.juantzun.dev to the accepted Vercel Test project, validate HTTPS and Auth.js/Google OAuth host inference, then validate the implemented Tilopay redirect/consult flow on the stable Test domain while Airbnb and scheduler work remain assigned to 12.5–12.7
+Current focus: resolve the hosted pending-hold 500 on the stable Test domain, then continue controlled Tilopay sandbox redirect/consult validation; custom domain/HTTPS, Google OAuth, and 12.4.1 database pooling correction are already validated while Airbnb and scheduler work remain assigned to 12.5–12.7
 12.1 status: Completed and accepted on 2026-08-10
 12.1 documentation base: ede3881a0d2d341018c107fe0cfe5ba0a7f9c490
 12.1 record: docs/136-phase-12.1-test-deployment-and-environment-strategy.md
@@ -463,10 +464,12 @@ Current focus: attach trp-booking.juantzun.dev to the accepted Vercel Test proje
 12.3 validated repository head: dcea31801351b40029c8c194949e91d0a5642407
 12.3 record: docs/139-phase-12.3-test-environment-variables-and-provider-wiring.md
 12.3 acceptance closure: docs/140-phase-12.3-acceptance-closure.md
-12.4 status: In progress — custom-domain/DNS, Auth.js/Google OAuth, and implemented Tilopay redirect/consult validation pending
+12.4 status: In progress — stable domain/HTTPS and Google OAuth validated; pending-hold/Tilopay hosted validation remains open
 12.4 record: docs/141-phase-12.4-test-custom-domain-authjs-and-external-callback-validation.md
+12.4.1 status: Completed and accepted on 2026-08-10 — Vercel/Supabase serverless runtime moved from Session pooler to Transaction pooler
+12.4.1 record: docs/142-phase-12.4.1-hosted-database-pooling-correction.md
 Vercel cron registration: intentionally disabled through 12.6 with vercel.json crons = []; approved schedules return in 12.7 after Vercel Pro activation
-Test deployment status: Vercel-generated HTTPS baseline created and accepted; stable custom domain not attached yet
+Test deployment status: stable HTTPS domain `trp-booking.juantzun.dev` is attached and operational
 Test domain target: https://trp-booking.juantzun.dev
 Phase 13: Production Infrastructure, Deployment & Go-Live — Not started; production accounts/infrastructure are explicitly deferred
 Pre-Phase-12 Improvement Track status: Completed and accepted — Packages A, B, C, E, and F accepted; Package D remains deferred outside the current gate

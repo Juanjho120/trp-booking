@@ -20,12 +20,12 @@ Phase 12.1 environment/deployment record: docs/136-phase-12.1-test-deployment-an
 
 Define the canonical separation between Local, Test, and Production runtime behavior and provider ownership. `TRP_ENVIRONMENT` is the business/runtime source of truth; `VERCEL_ENV` is deployment metadata only.
 
-Package F.3 owns recipient routing. Phase 12.1 now freezes the deployment split: Phase 12 creates and validates only the developer-owned Test deployment, while Phase 13 provisions the company-owned Production stack and performs go-live. The Vercel Test deployment does not exist yet as of 2026-08-10.
+Package F.3 owns recipient routing. Phase 12.1 freezes the deployment split: Phase 12 creates and validates only the developer-owned Test deployment, while Phase 13 provisions the company-owned Production stack and performs go-live. As of 2026-08-10, the Vercel Test deployment and stable domain are operational; 12.4 hosted validation is in progress.
 
 ## Canonical Domains
 
 ```text
-Planned stable test application: https://trp-booking.juantzun.dev (not deployed as of 2026-08-10)
+Stable test application:         https://trp-booking.juantzun.dev
 Test Resend sending domain:    mail.trp-booking.juantzun.dev
 Test human correspondence:     juantzun.dev
 Test admin mailbox:            admin@juantzun.dev
@@ -60,6 +60,29 @@ Production admin mailbox:      admin@turefugioperfecto.com
 
 Local and Test deliberately share the same developer-owned database and provider accounts listed above. No dedicated Test Supabase, Resend, Zoho, Cloudinary, or Tilopay account is created in Phase 12.
 
+### Hosted Test database connection contract
+
+Local and Test still use the same underlying developer-owned Supabase database, but the connection **transport** differs by runtime:
+
+```text
+Local / direct development:
+- Existing local connection strategy may remain unchanged.
+
+Vercel Test runtime DATABASE_URL:
+- Supabase/Supavisor Transaction pooler
+- port 6543
+- schema=trp_booking preserved
+- serverless connection limiting enabled
+- used by Prisma Client at runtime
+
+DIRECT_URL:
+- remains the direct/session-capable connection used for Prisma CLI/migration operations
+- is not replaced by the Transaction pooler runtime URL
+```
+
+This contract was validated in Phase 12.4.1 after the initial hosted Session-pooler runtime repeatedly exhausted its `pool_size=15` client limit and returned `EMAXCONNSESSION`. The correction does not create a separate Test database and does not change Production ownership rules.
+
+
 The owner explicitly accepts responsibility for controlling Local/Test data while the Test outbound iCal is connected to real Airbnb listings. Phase 12.1 does **not** add environment-based reservation partitioning, database separation, or iCal filtering. Such a change requires a future explicit request.
 
 ### Test DNS boundary
@@ -91,12 +114,13 @@ The intended recipient stored in `EmailNotification.recipient` never changes bec
 
 ### Stable Test runtime — Phase 12
 
-The following is the accepted contract for the Test deployment. It is not evidence that the deployment already exists. Phase 12.2 must create the Vercel project and first deployment, and later Phase 12 subphases validate the hosted integrations.
+The following is the accepted contract for the Test deployment. The Vercel project, stable domain, and baseline hosted runtime now exist; later Phase 12 subphases continue validating external integrations.
 
 ```text
-- Planned application URL is https://trp-booking.juantzun.dev.
-- Hosting is a new TRP Booking project in the developer's existing personal Vercel account.
+- Application URL is https://trp-booking.juantzun.dev.
+- Hosting is the dedicated TRP Booking Test project in the developer's existing personal Vercel account.
 - Database is the same developer-owned Supabase database used by Local.
+- Vercel runtime DATABASE_URL uses the Supabase/Supavisor Transaction pooler on port 6543; DIRECT_URL remains separate for direct/Prisma CLI and migration use.
 - Tilopay remains the same sandbox account used by Local.
 - Enabled email uses the same personal Resend account and mail.trp-booking.juantzun.dev.
 - Human correspondence uses the same juantzun.dev Zoho organization and aliases.
@@ -252,7 +276,7 @@ Only guest-audience messages use `EMAIL_TEST_RECIPIENT`; admin messages still go
 
 ### Stable Test deployment — Phase 12
 
-No Vercel Test deployment exists yet as of 2026-08-10. The values below remain the target configuration; 12.2 creates the project/deployment and later Phase 12 subphases validate it.
+The Vercel Test deployment and stable domain are operational as of 2026-08-10. The values below remain the canonical Test configuration while later Phase 12 subphases validate integrations.
 
 ```env
 TRP_ENVIRONMENT="test"

@@ -7,7 +7,7 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 ```text
 Current phase: Phase 12 — Test Deployment & External Integration Validation
 Current subphase: 12.4 — Test custom domain, Auth.js, and external callback validation — In progress
-Current focus: attach trp-booking.juantzun.dev to the accepted Vercel Test project, validate HTTPS and Auth.js/Google OAuth host inference, then validate the implemented Tilopay redirect/consult flow on the stable Test domain; Airbnb and scheduler validation remain assigned to 12.5–12.7
+Current focus: resolve the hosted pending-hold 500 and continue controlled Tilopay sandbox validation; stable Test domain/HTTPS, Google OAuth, and the 12.4.1 database pooling correction are already validated; Airbnb and scheduler validation remain assigned to 12.5–12.7
 Last updated: 2026-08-10
 Last completed subphase: 12.3 Test environment variables and provider wiring
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
@@ -36,8 +36,10 @@ docs/140-phase-12.3-acceptance-closure.md
 docs/141-phase-12.4-test-custom-domain-authjs-and-external-callback-validation.md
 Phase 12.3 acceptance closure: docs/140-phase-12.3-acceptance-closure.md
 docs/141-phase-12.4-test-custom-domain-authjs-and-external-callback-validation.md
-Phase 12.4 status: In progress — stable Test domain, Auth.js/Google OAuth, and implemented Tilopay redirect/consult validation pending
+Phase 12.4 status: In progress — stable domain/HTTPS and Google OAuth validated; pending-hold/Tilopay hosted validation remains open
 Phase 12.4 record: docs/141-phase-12.4-test-custom-domain-authjs-and-external-callback-validation.md
+Phase 12.4.1 status: Completed and accepted on 2026-08-10
+Phase 12.4.1 record: docs/142-phase-12.4.1-hosted-database-pooling-correction.md
 Phase 13 status: Not started — Production Infrastructure, Deployment & Go-Live follows successful Phase 12 closure
 Pre-Phase-12 Improvement Track status: Completed and accepted — Packages A, B, C, E, and F accepted; Package D remains deferred outside the current gate
 Pre-Phase-12 Improvement Track registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
@@ -737,20 +739,36 @@ Status: **Completed and accepted on 2026-08-10**
 
 ### Phase 12.4 — Test custom domain, Auth.js, and external callback validation
 
-Status: **In progress — owner DNS/provider configuration and hosted validation pending**
+Status: **In progress — domain/HTTPS and Google OAuth validated; pending-hold/Tilopay validation remains open**
 
 ```text
 - Attach only trp-booking.juantzun.dev to the accepted Vercel Test project.
 - Use the exact project-specific CNAME value shown by Vercel; do not change juantzun.dev mail DNS.
-- Validate Vercel domain status and HTTPS/SSL before changing Google OAuth.
-- Keep AUTH_TRUST_HOST=true. AUTH_URL stays unset initially and is added only if observed Auth.js callback generation proves an override is necessary.
-- Validate /api/auth/providers and require the Google callback to be https://trp-booking.juantzun.dev/api/auth/callback/google.
-- Add that exact URI to the existing Local/Test Google OAuth web client while preserving localhost.
-- Validate allowlisted admin Google sign-in, protected /admin access, and sign-out on the stable Test domain.
-- Validate the implemented Tilopay sandbox redirect/consult path through /api/payments/tilopay/redirect using a controlled Test reservation/payment.
+- Vercel custom-domain validation and HTTPS/SSL completed successfully for trp-booking.juantzun.dev.
+- AUTH_TRUST_HOST=true remains active and AUTH_URL remains unset because hosted host inference is working.
+- /api/auth/providers resolved the expected stable-domain Google callback.
+- The existing Local/Test Google OAuth web client preserves localhost and now includes both the exact stable redirect URI and the observed-required Authorized JavaScript origin https://trp-booking.juantzun.dev.
+- Allowlisted admin Google sign-in and protected /admin access are working on the stable Test domain.
+- 12.4.1 corrected the hosted Supabase runtime connection from Session pooler to Transaction pooler and removed the observed EMAXCONNSESSION failures.
+- Controlled reservation/payment validation is currently blocked by a hosted 500 from POST /api/reservations/pending-hold; Tilopay redirect/consult acceptance cannot continue until that blocker is fixed.
 - Do not claim webhook support: the configured /api/payments/tilopay/webhook target has no current route handler. If the provider requires/calls it, stop and correct that boundary before acceptance.
 - Airbnb remains deferred to 12.5–12.6; Vercel schedules remain absent until 12.7.
 - Authoritative record: docs/141-phase-12.4-test-custom-domain-authjs-and-external-callback-validation.md.
+```
+
+### Phase 12.4.1 — Hosted database pooling correction
+
+Status: **Completed and accepted on 2026-08-10**
+
+```text
+- Hosted Test initially used the Supabase Session pooler for DATABASE_URL and repeatedly hit EMAXCONNSESSION / max clients reached with pool_size 15.
+- Vercel Test runtime DATABASE_URL was changed to the Supabase/Supavisor Transaction pooler on port 6543.
+- The runtime URL retains schema=trp_booking and uses the serverless connection-limiting contract approved during correction.
+- DIRECT_URL was intentionally left unchanged for direct/Prisma CLI and migration use.
+- No Local database split was introduced; Local and Test still share the same developer-owned Supabase database.
+- After redeploy, the owner confirmed the application/admin navigation no longer reproduced the max-client failures.
+- This is an infrastructure/environment correction; no application business logic changed.
+- Authoritative record: docs/142-phase-12.4.1-hosted-database-pooling-correction.md.
 ```
 
 ## Continuity Notes for New Conversations

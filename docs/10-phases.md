@@ -16,7 +16,7 @@ Deferred — Intentionally postponed.
 ```text
 Current phase: Phase 12 — Test Deployment & External Integration Validation
 Current subphase: 12.4 — Test custom domain, Auth.js, and external callback validation — In progress
-Current focus: attach trp-booking.juantzun.dev to the accepted Vercel Test project, validate HTTPS and Auth.js/Google OAuth host inference, then validate the implemented Tilopay redirect/consult flow on the stable Test domain; Airbnb and scheduler validation remain assigned to 12.5–12.7 and Production remains deferred to Phase 13
+Current focus: resolve the hosted pending-hold 500 and continue controlled Tilopay sandbox validation on the stable Test domain; custom domain/HTTPS, Google OAuth, and 12.4.1 database pooling correction are already validated; Airbnb and scheduler validation remain assigned to 12.5–12.7 and Production remains deferred to Phase 13
 Last completed subphase: 12.3 Test environment variables and provider wiring
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 11.6.5 acceptance: All 15 protected-history, ordering, relation, retry, ES/EN, responsive, security, and integrated criteria passed on 2026-08-05
@@ -38,8 +38,10 @@ Phase 12.3 status: Completed and accepted on 2026-08-10
 Phase 12.3 validated repository head: dcea31801351b40029c8c194949e91d0a5642407
 Phase 12.3 record: docs/139-phase-12.3-test-environment-variables-and-provider-wiring.md
 Phase 12.3 acceptance closure: docs/140-phase-12.3-acceptance-closure.md
-Phase 12.4 status: In progress — stable Test domain, Auth.js/Google OAuth, and implemented Tilopay redirect/consult validation pending
+Phase 12.4 status: In progress — stable domain/HTTPS and Google OAuth validated; pending-hold/Tilopay hosted validation remains open
 Phase 12.4 record: docs/141-phase-12.4-test-custom-domain-authjs-and-external-callback-validation.md
+Phase 12.4.1 status: Completed and accepted on 2026-08-10
+Phase 12.4.1 record: docs/142-phase-12.4.1-hosted-database-pooling-correction.md
 Next planned major phase: Phase 13 — Production Infrastructure, Deployment & Go-Live
 Pre-Phase-12 Improvement Track status: Completed and accepted — Packages A, B, C, E, and F accepted; Package D remains deferred outside the current gate
 Pre-Phase-12 Improvement Track registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
@@ -1025,6 +1027,15 @@ Authoritative 12.1 record: `docs/136-phase-12.1-test-deployment-and-environment-
 - Airbnb remains deferred to 12.5–12.6 and Vercel scheduler registration remains deferred to 12.7.
 
 Authoritative 12.4 record: `docs/141-phase-12.4-test-custom-domain-authjs-and-external-callback-validation.md`.
+
+12.4 observed hosted progress:
+- `trp-booking.juantzun.dev` is attached to the Test Vercel project and serves valid HTTPS.
+- The existing Google OAuth web client required `https://trp-booking.juantzun.dev` under Authorized JavaScript origins in addition to the exact redirect URI; localhost remains preserved.
+- Hosted Google OAuth/admin authentication is working with `AUTH_TRUST_HOST=true` and without introducing an `AUTH_URL` override.
+- 12.4.1 corrected the Vercel runtime `DATABASE_URL` from Supabase Session pooler (`5432`) to Transaction pooler (`6543`) with serverless-safe connection limiting while leaving `DIRECT_URL` unchanged; the observed `EMAXCONNSESSION` failures stopped after redeploy.
+- Controlled reservation/payment validation remains blocked by a separate `POST /api/reservations/pending-hold` 500 and must be corrected before 12.4 can close.
+
+Authoritative 12.4.1 record: `docs/142-phase-12.4.1-hosted-database-pooling-correction.md`.
 
 Phase 12 explicitly excludes company-owned production account provisioning, production payment credentials, production email/DNS cutover, production database/media setup, and public go-live. Those belong to Phase 13.
 
