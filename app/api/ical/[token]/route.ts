@@ -1,4 +1,5 @@
 import { generateAirbnbIcalExportFeed } from "@/lib/airbnb-ical/export-feed";
+import { normalizeAirbnbIcalExportPathToken } from "@/lib/airbnb-ical/export-path";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -34,7 +35,8 @@ export async function GET(
   context: IcalExportRouteContext,
 ): Promise<Response> {
   try {
-    const { token } = await context.params;
+    const { token: pathToken } = await context.params;
+    const token = normalizeAirbnbIcalExportPathToken(pathToken);
     const exportFeed = await generateAirbnbIcalExportFeed({
       token,
     });
