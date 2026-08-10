@@ -10,6 +10,7 @@
     "env:validate": "tsx scripts/validate-env.ts",
     "email:contract:validate": "tsx scripts/validate-email-reply-to-contract.ts",
     "airbnb:import-policy:validate": "tsx scripts/validate-airbnb-ical-import-policy.ts",
+    "airbnb:export-policy:validate": "tsx scripts/validate-airbnb-ical-export-policy.ts",
     "admin:calendar-display:validate": "tsx scripts/validate-admin-calendar-display.ts",
     "db:validate": "prisma validate",
     "db:format": "prisma format",

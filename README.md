@@ -21,7 +21,7 @@ The planned stable test domain is:
 trp-booking.juantzun.dev
 ```
 
-As of 2026-08-10, TRP Booking has a working Vercel Test deployment on the stable HTTPS domain `trp-booking.juantzun.dev`. Phase 12.5 is completed and accepted after validating the real Airbnb inbound iCal path, provider-event reconciliation, reservation-only preparation buffers, composed-listing availability, idempotency, and the 12.5.1/12.5.1.1 corrections. Phase 12.6 is now in progress and begins with an outbound feed ownership / provider-loop-prevention gate before any TRP Test feed is imported into Airbnb. Production infrastructure remains deferred to Phase 13.
+As of 2026-08-10, TRP Booking has a working Vercel Test deployment on the stable HTTPS domain `trp-booking.juantzun.dev`. Phase 12.5 is completed and accepted after validating the real Airbnb inbound iCal path, provider-event reconciliation, reservation-only preparation buffers, composed-listing availability, idempotency, and the 12.5.1/12.5.1.1 corrections. Phase 12.6 is in progress. Current correction 12.6.1 implements the outbound ownership / provider-loop-prevention gate and stable VEVENT identity before any TRP Test feed is imported into Airbnb. Production infrastructure remains deferred to Phase 13.
 
 ## Environment Strategy
 
@@ -453,14 +453,15 @@ docs/145-phase-12.5.1-airbnb-inbound-reconciliation-correction.md
 docs/146-phase-12.5.1.1-admin-calendar-effective-block-consolidation.md
 docs/147-phase-12.5-acceptance-closure.md
 docs/148-phase-12.6-test-outbound-ical-and-controlled-airbnb-round-trip.md
+docs/149-phase-12.6.1-outbound-provider-loop-prevention-and-stable-event-identity.md
 ```
 
 ## Development Status
 
 ```text
 Current phase: Phase 12 — Test Deployment & External Integration Validation
-Current subphase: 12.6 — TRP Booking Test outbound iCal and controlled Airbnb round-trip — In progress
-Current focus: complete the 12.6 outbound ownership / provider-loop-prevention preflight before importing any TRP Test feed into Airbnb; once the export is proven to contain only TRP-owned unavailability, configure hashed export tokens, validate the three public-safe Test feeds, connect them to the matching real Airbnb listings in a controlled round-trip, and keep Vercel scheduler activation deferred to 12.7
+Current subphase: 12.6.1 — Outbound provider-loop prevention and stable event identity — In progress
+Current focus: validate the 12.6.1 implementation so outbound feeds contain only TRP-owned unavailability, provider-origin Airbnb state cannot echo back to Airbnb, VEVENT UIDs remain stable and use turefugioperfecto.com, and no real outbound feed is connected until the dedicated/local/hosted gate passes; the controlled round-trip remains the rest of 12.6 and scheduler activation remains 12.7
 12.1 status: Completed and accepted on 2026-08-10
 12.1 documentation base: ede3881a0d2d341018c107fe0cfe5ba0a7f9c490
 12.1 record: docs/136-phase-12.1-test-deployment-and-environment-strategy.md

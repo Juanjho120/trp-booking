@@ -22,9 +22,19 @@ import {
   subtractAvailabilityDateRanges,
 } from "@/lib/availability/rules";
 import { prisma } from "@/lib/db/prisma";
-import type { AccommodationId, PreparationBufferPolicy } from "@/types/accommodation";
-import type { AvailabilityDateRange, DateOnlyString } from "@/types/availability";
+import type {
+  AccommodationId,
+  PreparationBufferPolicy,
+} from "@/types/accommodation";
+import type {
+  AvailabilityDateRange,
+  DateOnlyString,
+} from "@/types/availability";
 
+import {
+  buildAirbnbIcalExportEventUid,
+  isTrpOwnedCalendarBlockForAirbnbExport,
+} from "./export-policy";
 import type {
   AirbnbIcalExportFeedInput,
   AirbnbIcalExportFeedResult,
@@ -33,9 +43,9 @@ import type {
 
 const DEFAULT_EXPORT_LOOKBACK_DAYS = 0;
 const DEFAULT_EXPORT_LOOKAHEAD_DAYS = 365;
-const EXPORT_CALENDAR_PROD_ID = "-//Tu Refugio Perfecto//TRP Booking iCal Export//EN";
+const EXPORT_CALENDAR_PROD_ID =
+  "-//Tu Refugio Perfecto//TRP Booking iCal Export//EN";
 const EXPORT_EVENT_SUMMARY = "Unavailable";
-const EXPORT_FEED_HOST = "turefugioperfecto.com.gt";
 
 const externalCalendarExportSelect = {
   id: true,
@@ -140,7 +150,9 @@ function getAccommodationIdBySlug(slug: string): AccommodationId {
     .find((candidate) => candidate?.slug.es === slug);
 
   if (!accommodation) {
-    throw new Error(`Accommodation config not found for property slug ${slug}.`);
+    throw new Error(
+      `Accommodation config not found for property slug ${slug}.`,
+    );
   }
 
   return accommodation.id;
@@ -166,7 +178,10 @@ export function hashAirbnbIcalExportToken(token: string): string {
   return createHash("sha256").update(trimmedToken, "utf8").digest("hex");
 }
 
-function buildExportWindow(input: AirbnbIcalExportFeedInput, now: Date): AvailabilityDateRange {
+function buildExportWindow(
+  input: AirbnbIcalExportFeedInput,
+  now: Date,
+): AvailabilityDateRange {
   const lookbackDays = input.lookbackDays ?? DEFAULT_EXPORT_LOOKBACK_DAYS;
   const lookaheadDays = input.lookaheadDays ?? DEFAULT_EXPORT_LOOKAHEAD_DAYS;
 
@@ -202,7 +217,9 @@ async function getExportCalendar(
   }
 
   if (externalCalendar.provider !== ExternalCalendarProvider.AIRBNB) {
-    throw new Error("External calendar provider is not supported for Airbnb export feeds.");
+    throw new Error(
+      "External calendar provider is not supported for Airbnb export feeds.",
+    );
   }
 
   if (externalCalendar.direction === ExternalCalendarDirection.IMPORT) {
@@ -239,7 +256,9 @@ async function resolvePropertyMappings(
   const missingSlugs = expectedSlugs.filter((slug) => !foundSlugs.has(slug));
 
   if (missingSlugs.length > 0) {
-    throw new Error(`Missing property records for Airbnb export feed: ${missingSlugs.join(", ")}.`);
+    throw new Error(
+      `Missing property records for Airbnb export feed: ${missingSlugs.join(", ")}.`,
+    );
   }
 
   return properties.map((property) => ({
@@ -252,7 +271,10 @@ async function resolvePropertyMappings(
   }));
 }
 
-function toDateOnlyRange(startDate: Date, endDate: Date): AvailabilityDateRange {
+function toDateOnlyRange(
+  startDate: Date,
+  endDate: Date,
+): AvailabilityDateRange {
   return {
     startDate: dateOnlyFromDate(startDate),
     endDate: dateOnlyFromDate(endDate),
@@ -265,8 +287,14 @@ function getReservationLookupWindow(
 ): ReservationLookupWindow {
   const maxPreparationDays = propertyMappings.reduce(
     (currentMax, mapping) => ({
-      daysBefore: Math.max(currentMax.daysBefore, mapping.preparationBuffer.daysBefore),
-      daysAfter: Math.max(currentMax.daysAfter, mapping.preparationBuffer.daysAfter),
+      daysBefore: Math.max(
+        currentMax.daysBefore,
+        mapping.preparationBuffer.daysBefore,
+      ),
+      daysAfter: Math.max(
+        currentMax.daysAfter,
+        mapping.preparationBuffer.daysAfter,
+      ),
     }),
     {
       daysBefore: 0,
@@ -275,8 +303,14 @@ function getReservationLookupWindow(
   );
 
   return {
-    startDate: addDaysToDateOnly(exportWindow.startDate, -maxPreparationDays.daysAfter),
-    endDate: addDaysToDateOnly(exportWindow.endDate, maxPreparationDays.daysBefore),
+    startDate: addDaysToDateOnly(
+      exportWindow.startDate,
+      -maxPreparationDays.daysAfter,
+    ),
+    endDate: addDaysToDateOnly(
+      exportWindow.endDate,
+      maxPreparationDays.daysBefore,
+    ),
   };
 }
 
@@ -293,7 +327,10 @@ function isOverrideForPersistedPreparationBuffer(
   override: CalendarBlockExportRecord,
   persistedBuffer: CalendarBlockExportRecord,
 ): boolean {
-  if (!isPreparationBufferOverride(override)) {
+  if (
+    !isTrpOwnedCalendarBlockForAirbnbExport(override) ||
+    !isPreparationBufferOverride(override)
+  ) {
     return false;
   }
 
@@ -303,13 +340,6 @@ function isOverrideForPersistedPreparationBuffer(
 
   if (persistedBuffer.reservationId) {
     return override.reservationId === persistedBuffer.reservationId;
-  }
-
-  if (persistedBuffer.externalCalendarEventId) {
-    return (
-      override.externalCalendarEventId === persistedBuffer.externalCalendarEventId &&
-      override.parentBlockId === persistedBuffer.parentBlockId
-    );
   }
 
   return false;
@@ -324,8 +354,14 @@ function toExportRange(
   }
 
   const clippedRange = {
-    startDate: range.startDate < exportWindow.startDate ? exportWindow.startDate : range.startDate,
-    endDate: range.endDate > exportWindow.endDate ? exportWindow.endDate : range.endDate,
+    startDate:
+      range.startDate < exportWindow.startDate
+        ? exportWindow.startDate
+        : range.startDate,
+    endDate:
+      range.endDate > exportWindow.endDate
+        ? exportWindow.endDate
+        : range.endDate,
   };
 
   if (clippedRange.startDate >= clippedRange.endDate) {
@@ -342,6 +378,7 @@ function getReservationPreparationBufferSuppressions(
   return calendarBlocks
     .filter(
       (calendarBlock) =>
+        isTrpOwnedCalendarBlockForAirbnbExport(calendarBlock) &&
         calendarBlock.propertyId === reservation.propertyId &&
         calendarBlock.reservationId === reservation.id &&
         calendarBlock.source === CalendarBlockSource.PREPARATION_BUFFER,
@@ -356,7 +393,10 @@ function buildReservationUnavailableRanges(
     reservations: readonly ReservationExportRecord[];
     calendarBlocks: readonly CalendarBlockExportRecord[];
     propertyIdToAccommodationId: ReadonlyMap<string, AccommodationId>;
-    propertyIdToPreparationBuffer: ReadonlyMap<string, PreparationBufferPolicy>;
+    propertyIdToPreparationBuffer: ReadonlyMap<
+      string,
+      PreparationBufferPolicy
+    >;
     exportWindow: AvailabilityDateRange;
   }>,
 ): readonly AirbnbIcalExportUnavailableRange[] {
@@ -376,14 +416,21 @@ function buildReservationUnavailableRanges(
       continue;
     }
 
-    const accommodationId = input.propertyIdToAccommodationId.get(reservation.propertyId);
-    const preparationBuffer = input.propertyIdToPreparationBuffer.get(reservation.propertyId);
+    const accommodationId = input.propertyIdToAccommodationId.get(
+      reservation.propertyId,
+    );
+    const preparationBuffer = input.propertyIdToPreparationBuffer.get(
+      reservation.propertyId,
+    );
 
     if (!accommodationId || !preparationBuffer) {
       continue;
     }
 
-    const reservationRange = toDateOnlyRange(reservation.checkInDate, reservation.checkOutDate);
+    const reservationRange = toDateOnlyRange(
+      reservation.checkInDate,
+      reservation.checkOutDate,
+    );
     const suppressionRanges = getReservationPreparationBufferSuppressions(
       reservation,
       input.calendarBlocks,
@@ -398,7 +445,10 @@ function buildReservationUnavailableRanges(
         bufferRange,
         suppressionRanges,
       )) {
-        const exportRange = toExportRange(effectiveRange, input.exportWindow);
+        const exportRange = toExportRange(
+          effectiveRange,
+          input.exportWindow,
+        );
 
         if (exportRange) {
           ranges.push(exportRange);
@@ -417,6 +467,10 @@ function buildCalendarBlockUnavailableRanges(
   }>,
 ): readonly AirbnbIcalExportUnavailableRange[] {
   return input.calendarBlocks.flatMap((calendarBlock) => {
+    if (!isTrpOwnedCalendarBlockForAirbnbExport(calendarBlock)) {
+      return [];
+    }
+
     if (isPreparationBufferOverride(calendarBlock)) {
       return [];
     }
@@ -475,7 +529,10 @@ function normalizeUnavailableRanges(
     if (range.startDate <= previousRange.endDate) {
       normalizedRanges[normalizedRanges.length - 1] = {
         startDate: previousRange.startDate,
-        endDate: range.endDate > previousRange.endDate ? range.endDate : previousRange.endDate,
+        endDate:
+          range.endDate > previousRange.endDate
+            ? range.endDate
+            : previousRange.endDate,
       };
       continue;
     }
@@ -522,11 +579,13 @@ function foldIcalLine(line: string): readonly string[] {
   return foldedLines;
 }
 
-function buildIcalContent(input: Readonly<{
-  calendar: ExternalCalendarExportRecord;
-  ranges: readonly AirbnbIcalExportUnavailableRange[];
-  now: Date;
-}>): string {
+function buildIcalContent(
+  input: Readonly<{
+    calendar: ExternalCalendarExportRecord;
+    ranges: readonly AirbnbIcalExportUnavailableRange[];
+    now: Date;
+  }>,
+): string {
   const timestamp = formatIcalUtcDateTime(input.now);
   const lines: string[] = [
     "BEGIN:VCALENDAR",
@@ -537,12 +596,13 @@ function buildIcalContent(input: Readonly<{
     `X-WR-CALNAME:${escapeIcalText(input.calendar.name)}`,
   ];
 
-  input.ranges.forEach((range, index) => {
-    const rangeKey = `${range.startDate}-${range.endDate}`;
-
+  input.ranges.forEach((range) => {
     lines.push(
       "BEGIN:VEVENT",
-      `UID:trp-booking-${input.calendar.id}-${index}-${rangeKey}@${EXPORT_FEED_HOST}`,
+      `UID:${buildAirbnbIcalExportEventUid({
+        externalCalendarId: input.calendar.id,
+        range,
+      })}`,
       `DTSTAMP:${timestamp}`,
       `DTSTART;VALUE=DATE:${formatIcalDate(range.startDate)}`,
       `DTEND;VALUE=DATE:${formatIcalDate(range.endDate)}`,
@@ -568,50 +628,76 @@ export async function generateAirbnbIcalExportFeed(
   const exportWindow = buildExportWindow(input, now);
   const calendar = await getExportCalendar(prismaClient, input.token);
   const sourceAccommodationId = getAccommodationIdBySlug(calendar.property.slug);
-  const blockingAccommodationIds = getBlockingAccommodationIds(sourceAccommodationId);
-  const propertyMappings = await resolvePropertyMappings(prismaClient, blockingAccommodationIds);
+  const blockingAccommodationIds = getBlockingAccommodationIds(
+    sourceAccommodationId,
+  );
+  const propertyMappings = await resolvePropertyMappings(
+    prismaClient,
+    blockingAccommodationIds,
+  );
   const propertyIdToAccommodationId = new Map(
-    propertyMappings.map((mapping) => [mapping.propertyId, mapping.accommodationId]),
+    propertyMappings.map((mapping) => [
+      mapping.propertyId,
+      mapping.accommodationId,
+    ]),
   );
   const propertyIdToPreparationBuffer = new Map(
-    propertyMappings.map((mapping) => [mapping.propertyId, mapping.preparationBuffer]),
+    propertyMappings.map((mapping) => [
+      mapping.propertyId,
+      mapping.preparationBuffer,
+    ]),
   );
-  const blockingPropertyIds = propertyMappings.map((mapping) => mapping.propertyId);
-  const reservationLookupWindow = getReservationLookupWindow(exportWindow, propertyMappings);
+  const blockingPropertyIds = propertyMappings.map(
+    (mapping) => mapping.propertyId,
+  );
+  const reservationLookupWindow = getReservationLookupWindow(
+    exportWindow,
+    propertyMappings,
+  );
 
-  const [reservations, calendarBlocks]: [ReservationExportRecord[], CalendarBlockExportRecord[]] =
-    await Promise.all([
-      prismaClient.reservation.findMany({
-        where: {
-          propertyId: {
-            in: blockingPropertyIds,
-          },
-          status: ReservationStatus.CONFIRMED,
-          checkInDate: {
-            lt: dateOnlyToUtcDate(reservationLookupWindow.endDate),
-          },
-          checkOutDate: {
-            gt: dateOnlyToUtcDate(reservationLookupWindow.startDate),
-          },
+  const [reservations, calendarBlocks]: [
+    ReservationExportRecord[],
+    CalendarBlockExportRecord[],
+  ] = await Promise.all([
+    prismaClient.reservation.findMany({
+      where: {
+        propertyId: {
+          in: blockingPropertyIds,
         },
-        select: reservationExportSelect,
-      }),
-      prismaClient.calendarBlock.findMany({
-        where: {
-          propertyId: {
-            in: blockingPropertyIds,
-          },
-          deletedAt: null,
-          startDate: {
-            lt: dateOnlyToUtcDate(exportWindow.endDate),
-          },
-          endDate: {
-            gt: dateOnlyToUtcDate(exportWindow.startDate),
-          },
+        status: ReservationStatus.CONFIRMED,
+        checkInDate: {
+          lt: dateOnlyToUtcDate(reservationLookupWindow.endDate),
         },
-        select: calendarBlockExportSelect,
-      }),
-    ]);
+        checkOutDate: {
+          gt: dateOnlyToUtcDate(reservationLookupWindow.startDate),
+        },
+      },
+      select: reservationExportSelect,
+    }),
+    prismaClient.calendarBlock.findMany({
+      where: {
+        propertyId: {
+          in: blockingPropertyIds,
+        },
+        source: {
+          in: [
+            CalendarBlockSource.MANUAL_BLOCK,
+            CalendarBlockSource.MAINTENANCE,
+            CalendarBlockSource.PREPARATION_BUFFER,
+          ],
+        },
+        externalCalendarEventId: null,
+        deletedAt: null,
+        startDate: {
+          lt: dateOnlyToUtcDate(exportWindow.endDate),
+        },
+        endDate: {
+          gt: dateOnlyToUtcDate(exportWindow.startDate),
+        },
+      },
+      select: calendarBlockExportSelect,
+    }),
+  ]);
 
   const unavailableRanges = normalizeUnavailableRanges([
     ...buildReservationUnavailableRanges({

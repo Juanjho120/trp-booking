@@ -6,8 +6,8 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 12 — Test Deployment & External Integration Validation
-Current subphase: 12.6 — TRP Booking Test outbound iCal and controlled Airbnb round-trip — In progress
-Current focus: complete the outbound ownership / provider-loop-prevention gate before connecting any TRP Test feed to Airbnb; then configure hashed export tokens, validate the three public-safe feeds and a controlled real-listing round-trip, while keeping scheduler activation deferred to 12.7
+Current subphase: 12.6.1 — Outbound provider-loop prevention and stable event identity — In progress
+Current focus: validate the 12.6.1 implementation so provider-origin Airbnb state cannot enter the TRP outbound feed, direct/manual/maintenance ownership remains correct, VEVENT UIDs are stable under range reordering, and the permanent UID namespace is turefugioperfecto.com before any real Airbnb connection; remaining round-trip work stays in 12.6 and scheduler activation stays deferred to 12.7
 Last updated: 2026-08-10
 Last completed subphase: 12.5 Real Airbnb inbound iCal integration
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
@@ -53,6 +53,9 @@ Phase 12.5.1.1 record: docs/146-phase-12.5.1.1-admin-calendar-effective-block-co
 Phase 12.5 acceptance closure: docs/147-phase-12.5-acceptance-closure.md
 Phase 12.6 status: In progress — outbound iCal and controlled Airbnb round-trip
 Phase 12.6 record: docs/148-phase-12.6-test-outbound-ical-and-controlled-airbnb-round-trip.md
+Phase 12.6.1 status: In progress — implementation prepared; integrated and hosted validation pending
+Phase 12.6.1 implementation base: 58d3822cefa2b8fb2a917bfc951b5f24dca5d6eb
+Phase 12.6.1 record: docs/149-phase-12.6.1-outbound-provider-loop-prevention-and-stable-event-identity.md
 Phase 13 status: Not started — Production Infrastructure, Deployment & Go-Live follows successful Phase 12 closure
 Pre-Phase-12 Improvement Track status: Completed and accepted — Packages A, B, C, E, and F accepted; Package D remains deferred outside the current gate
 Pre-Phase-12 Improvement Track registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
