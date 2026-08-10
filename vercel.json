@@ -1,5 +1,5 @@
 {
-  "crons": [
+  "_crons": [
     {
       "path": "/api/cron/sync-airbnb-calendars",
       "schedule": "*/30 * * * *"
