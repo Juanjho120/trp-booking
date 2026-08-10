@@ -12,6 +12,11 @@ import type {
   ReservationQuoteErrorCode,
   ReservationQuoteInput,
 } from "@/types/reservation-quote";
+import type { PrismaClient } from "@prisma/client";
+
+type ReservationQuoteQueryOptions = Readonly<{
+  prismaClient?: Pick<PrismaClient, "property">;
+}>;
 
 const USD_CURRENCY: ReservationQuoteCurrency = "USD";
 const ZERO_USD_CENTS = 0;
@@ -95,8 +100,12 @@ function assertGuestCount(input: ReservationQuoteInput, maxGuests: number): void
 
 export async function calculateReservationQuote(
   input: ReservationQuoteInput,
+  options: ReservationQuoteQueryOptions = {},
 ): Promise<ReservationQuote> {
-  const accommodation = await getPublicAccommodationById(input.accommodationId);
+  const accommodation = await getPublicAccommodationById(
+    input.accommodationId,
+    options,
+  );
 
   if (!accommodation) {
     throw new ReservationQuoteError("INVALID_ACCOMMODATION");
