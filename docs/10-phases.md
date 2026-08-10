@@ -15,9 +15,9 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 12 — Test Deployment & External Integration Validation
-Current subphase: 12.5 — Real Airbnb inbound iCal integration — In progress
-Current focus: configure the real Airbnb export .ics URLs privately in Vercel Test and validate the existing inbound sync path through manual hosted execution; 12.4 domain/Auth/Tilopay acceptance is complete, outbound round-trip remains 12.6, scheduler validation remains 12.7, and Production remains deferred to Phase 13
-Last completed subphase: 12.4 Test custom domain, Auth.js, and external callback validation
+Current subphase: 12.6 — TRP Booking Test outbound iCal and controlled Airbnb round-trip — In progress
+Current focus: first correct and validate outbound feed ownership so provider-origin Airbnb state cannot echo back into Airbnb; then generate private export tokens, validate the three Test feeds, connect them to the matching real Airbnb listings in a controlled round-trip, keep Vercel crons disabled through 12.6, and leave Production deferred to Phase 13
+Last completed subphase: 12.5 Real Airbnb inbound iCal integration
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 11.6.5 acceptance: All 15 protected-history, ordering, relation, retry, ES/EN, responsive, security, and integrated criteria passed on 2026-08-05
 11.6.5 implementation and acceptance document: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md
@@ -29,7 +29,7 @@ Last completed subphase: 12.4 Test custom domain, Auth.js, and external callback
 11.7 validated closure base: 16cca9e63f5fd8d8af590fc1211dbc69d642f1f6
 Phase 11 accepted feature head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 Phase 11 closure document: docs/120-phase-11.7-validation-and-documentation-closure.md
-Phase 12 status: In progress — 12.1 through 12.4 completed and accepted on 2026-08-10; 12.5 in progress
+Phase 12 status: In progress — 12.1 through 12.5 completed and accepted on 2026-08-10; 12.6 in progress
 Phase 12.1 record: docs/136-phase-12.1-test-deployment-and-environment-strategy.md
 Phase 12.2 accepted deployment source head: 91f513c57b6220ad8d1d32f9a198a3d5099b1fd7
 Phase 12.2 record: docs/137-phase-12.2-vercel-test-project-and-first-deployment.md
@@ -44,8 +44,18 @@ Phase 12.4 record: docs/141-phase-12.4-test-custom-domain-authjs-and-external-ca
 Phase 12.4.1 status: Completed and accepted on 2026-08-10
 Phase 12.4.1 record: docs/142-phase-12.4.1-hosted-database-pooling-correction.md
 Phase 12.4 acceptance closure: docs/143-phase-12.4-acceptance-closure.md
-Phase 12.5 status: In progress — real Airbnb inbound iCal integration
+Phase 12.5 status: Completed and accepted on 2026-08-10
+Phase 12.5 accepted functional head: 409e299eee233d852a9ffee0aef20561b0931c4d
 Phase 12.5 record: docs/144-phase-12.5-real-airbnb-inbound-ical-integration.md
+docs/145-phase-12.5.1-airbnb-inbound-reconciliation-correction.md
+docs/146-phase-12.5.1.1-admin-calendar-effective-block-consolidation.md
+docs/147-phase-12.5-acceptance-closure.md
+docs/148-phase-12.6-test-outbound-ical-and-controlled-airbnb-round-trip.md
+Phase 12.5.1 record: docs/145-phase-12.5.1-airbnb-inbound-reconciliation-correction.md
+Phase 12.5.1.1 record: docs/146-phase-12.5.1.1-admin-calendar-effective-block-consolidation.md
+Phase 12.5 acceptance closure: docs/147-phase-12.5-acceptance-closure.md
+Phase 12.6 status: In progress — outbound iCal and controlled Airbnb round-trip
+Phase 12.6 record: docs/148-phase-12.6-test-outbound-ical-and-controlled-airbnb-round-trip.md
 Next planned major phase: Phase 13 — Production Infrastructure, Deployment & Go-Live
 Pre-Phase-12 Improvement Track status: Completed and accepted — Packages A, B, C, E, and F accepted; Package D remains deferred outside the current gate
 Pre-Phase-12 Improvement Track registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
@@ -961,7 +971,7 @@ Phase 11 rules:
 
 ## Phase 12 — Test Deployment & External Integration Validation
 
-Status: **In progress — 12.1, 12.2, and 12.3 completed and accepted; 12.4 in progress**
+Status: **In progress — 12.1 through 12.5 completed and accepted; 12.6 in progress**
 
 Goal: Create TRP Booking's first real Internet-accessible Test deployment and validate the already-built application against real hosted infrastructure and external integrations without creating or using production-company provider accounts.
 
@@ -999,8 +1009,8 @@ Planned subphases:
 12.2 Vercel Test project and first deployment — Completed and accepted on 2026-08-10
 12.3 Test environment variables and provider wiring — Completed and accepted on 2026-08-10
 12.4 Test custom domain, Auth.js, and external callback validation — Completed and accepted on 2026-08-10
-12.5 Real Airbnb inbound iCal integration — In progress
-12.6 TRP Booking Test outbound iCal and controlled Airbnb round-trip
+12.5 Real Airbnb inbound iCal integration — Completed and accepted on 2026-08-10
+12.6 TRP Booking Test outbound iCal and controlled Airbnb round-trip — In progress
 12.7 Vercel Cron deployment and scheduler validation
 12.8 Full Internet E2E regression
 12.9 Test observability, security, and recovery readiness
@@ -1044,14 +1054,28 @@ Authoritative 12.4 record: `docs/141-phase-12.4-test-custom-domain-authjs-and-ex
 Authoritative 12.4.1 record: `docs/142-phase-12.4.1-hosted-database-pooling-correction.md`.
 Authoritative 12.4 closure: `docs/143-phase-12.4-acceptance-closure.md`.
 
-12.5 execution boundary:
-- Configure the three real Airbnb export `.ics` URLs privately through `AIRBNB_ICAL_IMPORT_URLS_JSON`, keyed by the actual `ExternalCalendar.id` values.
-- Use the protected admin cron-jobs console to run the existing Airbnb sync manually for hosted acceptance.
-- Validate imported events, `AIRBNB` blocks, preparation buffers, composed-listing propagation, reconciliation/idempotency, and secret hygiene.
-- Do not import TRP Booking Test outbound feeds into Airbnb yet; that remains 12.6.
+12.5 acceptance summary:
+- The three real Airbnb export `.ics` URLs were configured privately in Vercel Test and mapped to the actual `ExternalCalendar.id` records without committing or logging provider tokens.
+- Hosted manual sync succeeded for all three configured calendars and the final unchanged-feed execution was idempotent: zero imported events, zero removed events, zero newly created blocks, and zero active duplicate blocks.
+- The real feed exposed `Reserved` versus `Airbnb (Not available)` semantics. 12.5.1 corrected provider events to source-property-only persistence and limited TRP preparation buffers to real `Reserved` events.
+- The initial Bungalow/Refugio Completo feed mapping was accidentally crossed; correcting the private environment mapping proved the existing REMOVED + soft-delete reconciliation path recovered safely without manual destructive cleanup.
+- 12.5.1.1 consolidated multiple effective Airbnb blockers and Airbnb/preparation overlap only in the admin presentation while preserving independent auditable rows.
+- Final `ExternalCalendar` rows were ACTIVE; final sync logs were ADMIN/SUCCESS with null failure/error fields; Runtime Logs showed no raw Airbnb URL or token.
+- `vercel.json` remained `crons = []` and no TRP outbound feed was connected to Airbnb during 12.5.
+- Accepted functional head: `409e299eee233d852a9ffee0aef20561b0931c4d`.
+
+Authoritative 12.5 records: `docs/144-phase-12.5-real-airbnb-inbound-ical-integration.md`, `docs/145-phase-12.5.1-airbnb-inbound-reconciliation-correction.md`, `docs/146-phase-12.5.1.1-admin-calendar-effective-block-consolidation.md`, and `docs/147-phase-12.5-acceptance-closure.md`.
+
+12.6 execution boundary:
+- 12.6 is the first phase that may connect TRP Booking Test outbound feeds to the real Airbnb listings.
+- Before connecting any feed, correct and validate outbound ownership. The current Phase 7 export foundation reads active `CalendarBlock` rows for all blocking properties and therefore can include provider-origin `AIRBNB` blocks; round-tripping those back to Airbnb can create provider feedback/echo behavior.
+- The 12.6 preflight must export only TRP-owned unavailability: confirmed direct reservations, their effective TRP preparation buffers, manual blocks, and maintenance blocks that affect the target listing.
+- Provider-origin `AIRBNB` blocks and preparation artifacts linked to `externalCalendarEventId` must not be echoed back to Airbnb. Physical composed-dependency copies are also unnecessary because the export feed already derives blocking properties dynamically.
+- Only after the loop-prevention gate passes may the existing ExternalCalendar records be made export-capable, unique raw export tokens generated privately, only their SHA-256 hashes persisted, and the three `/api/ical/[token]` feeds tested.
+- Connect each validated Test feed only to its matching real Airbnb listing, use an owner-selected safe future range for the controlled round-trip, verify Airbnb -> TRP reconciliation after Airbnb refresh, then remove the temporary signal and prove recovery.
 - Keep `vercel.json` schedules disabled until 12.7.
 
-Authoritative 12.5 record: `docs/144-phase-12.5-real-airbnb-inbound-ical-integration.md`.
+Authoritative 12.6 record: `docs/148-phase-12.6-test-outbound-ical-and-controlled-airbnb-round-trip.md`.
 
 Phase 12 explicitly excludes company-owned production account provisioning, production payment credentials, production email/DNS cutover, production database/media setup, and public go-live. Those belong to Phase 13.
 

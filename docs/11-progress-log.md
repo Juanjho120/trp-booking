@@ -6,10 +6,10 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 12 — Test Deployment & External Integration Validation
-Current subphase: 12.5 — Real Airbnb inbound iCal integration — In progress
-Current focus: configure real Airbnb export .ics URLs privately in Vercel Test, map them to the actual ExternalCalendar.id values, and validate the hosted inbound sync manually; 12.4 is accepted, outbound round-trip remains 12.6, and scheduler activation remains 12.7
+Current subphase: 12.6 — TRP Booking Test outbound iCal and controlled Airbnb round-trip — In progress
+Current focus: complete the outbound ownership / provider-loop-prevention gate before connecting any TRP Test feed to Airbnb; then configure hashed export tokens, validate the three public-safe feeds and a controlled real-listing round-trip, while keeping scheduler activation deferred to 12.7
 Last updated: 2026-08-10
-Last completed subphase: 12.4 Test custom domain, Auth.js, and external callback validation
+Last completed subphase: 12.5 Real Airbnb inbound iCal integration
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 11.6.5 acceptance: All 15 protected-history, ordering, relation, retry, ES/EN, responsive, security, and integrated criteria passed on 2026-08-05
 11.6.5 implementation and acceptance document: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md
@@ -21,7 +21,7 @@ Last completed subphase: 12.4 Test custom domain, Auth.js, and external callback
 11.7 validated closure base: 16cca9e63f5fd8d8af590fc1211dbc69d642f1f6
 Phase 11 accepted feature head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 Phase 11 closure document: docs/120-phase-11.7-validation-and-documentation-closure.md
-Phase 12 status: In progress — 12.1 through 12.4 completed and accepted on 2026-08-10; 12.5 in progress
+Phase 12 status: In progress — 12.1 through 12.5 completed and accepted on 2026-08-10; 12.6 in progress
 Phase 12.1 documentation base: ede3881a0d2d341018c107fe0cfe5ba0a7f9c490
 Phase 12.1 record: docs/136-phase-12.1-test-deployment-and-environment-strategy.md
 Phase 12.2 status: Completed and accepted on 2026-08-10
@@ -45,8 +45,14 @@ Phase 12.4 record: docs/141-phase-12.4-test-custom-domain-authjs-and-external-ca
 Phase 12.4.1 status: Completed and accepted on 2026-08-10
 Phase 12.4.1 record: docs/142-phase-12.4.1-hosted-database-pooling-correction.md
 Phase 12.4 acceptance closure: docs/143-phase-12.4-acceptance-closure.md
-Phase 12.5 status: In progress — real Airbnb inbound iCal integration
+Phase 12.5 status: Completed and accepted on 2026-08-10
+Phase 12.5 accepted functional head: 409e299eee233d852a9ffee0aef20561b0931c4d
 Phase 12.5 record: docs/144-phase-12.5-real-airbnb-inbound-ical-integration.md
+Phase 12.5.1 record: docs/145-phase-12.5.1-airbnb-inbound-reconciliation-correction.md
+Phase 12.5.1.1 record: docs/146-phase-12.5.1.1-admin-calendar-effective-block-consolidation.md
+Phase 12.5 acceptance closure: docs/147-phase-12.5-acceptance-closure.md
+Phase 12.6 status: In progress — outbound iCal and controlled Airbnb round-trip
+Phase 12.6 record: docs/148-phase-12.6-test-outbound-ical-and-controlled-airbnb-round-trip.md
 Phase 13 status: Not started — Production Infrastructure, Deployment & Go-Live follows successful Phase 12 closure
 Pre-Phase-12 Improvement Track status: Completed and accepted — Packages A, B, C, E, and F accepted; Package D remains deferred outside the current gate
 Pre-Phase-12 Improvement Track registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
@@ -746,21 +752,21 @@ Status: **Completed and accepted on 2026-08-10**
 
 ### Phase 12.4 — Test custom domain, Auth.js, and external callback validation
 
-Status: **In progress — domain/HTTPS and Google OAuth validated; pending-hold/Tilopay validation remains open**
+Status: **Completed and accepted on 2026-08-10**
 
 ```text
-- Attach only trp-booking.juantzun.dev to the accepted Vercel Test project.
-- Use the exact project-specific CNAME value shown by Vercel; do not change juantzun.dev mail DNS.
-- Vercel custom-domain validation and HTTPS/SSL completed successfully for trp-booking.juantzun.dev.
-- AUTH_TRUST_HOST=true remains active and AUTH_URL remains unset because hosted host inference is working.
-- /api/auth/providers resolved the expected stable-domain Google callback.
-- The existing Local/Test Google OAuth web client preserves localhost and now includes both the exact stable redirect URI and the observed-required Authorized JavaScript origin https://trp-booking.juantzun.dev.
-- Allowlisted admin Google sign-in and protected /admin access are working on the stable Test domain.
-- 12.4.1 corrected the hosted Supabase runtime connection from Session pooler to Transaction pooler and removed the observed EMAXCONNSESSION failures.
-- Controlled reservation/payment validation is currently blocked by a hosted 500 from POST /api/reservations/pending-hold; Tilopay redirect/consult acceptance cannot continue until that blocker is fixed.
-- Do not claim webhook support: the configured /api/payments/tilopay/webhook target has no current route handler. If the provider requires/calls it, stop and correct that boundary before acceptance.
-- Airbnb remains deferred to 12.5–12.6; Vercel schedules remain absent until 12.7.
+- trp-booking.juantzun.dev is attached to the accepted Vercel Test project and serves valid HTTPS.
+- AUTH_TRUST_HOST=true remains active and AUTH_URL remains unset because hosted host inference works correctly.
+- The Local/Test Google OAuth client preserves localhost and includes the stable Test Authorized JavaScript origin and callback URI.
+- Allowlisted Google sign-in and protected /admin access passed on the stable Test domain.
+- 12.4.1 moved the hosted runtime DATABASE_URL to the Supabase Transaction pooler and eliminated the observed EMAXCONNSESSION failures while DIRECT_URL remained unchanged.
+- The pending-hold hosted 500 was corrected by propagating the active transaction client through reservation pricing/property reads.
+- The controlled Tilopay sandbox checkout/redirect/consult validation passed after the pending-hold correction.
+- No webhook support is claimed: /api/payments/tilopay/webhook still has no route handler in the accepted 12.4 scope.
+- Airbnb remained deferred to 12.5–12.6 and Vercel schedules remained absent until 12.7.
+- Accepted repository head: 4956fe08c033d0265d5400639c94d8b4927ddaf5.
 - Authoritative record: docs/141-phase-12.4-test-custom-domain-authjs-and-external-callback-validation.md.
+- Acceptance closure: docs/143-phase-12.4-acceptance-closure.md.
 ```
 
 ### Phase 12.4.1 — Hosted database pooling correction
@@ -776,6 +782,44 @@ Status: **Completed and accepted on 2026-08-10**
 - After redeploy, the owner confirmed the application/admin navigation no longer reproduced the max-client failures.
 - This is an infrastructure/environment correction; no application business logic changed.
 - Authoritative record: docs/142-phase-12.4.1-hosted-database-pooling-correction.md.
+```
+
+### Phase 12.5 — Real Airbnb inbound iCal integration
+
+Status: **Completed and accepted on 2026-08-10**
+
+```text
+- Three real Airbnb export feeds were mapped privately to the three active ExternalCalendar records in Vercel Test.
+- A temporary private configuration mistake crossed the Bungalow and Refugio Completo feed URLs; correcting the mapping proved event REMOVED reconciliation and block soft deletion without destructive cleanup.
+- Real provider data exposed both `Reserved` and `Airbnb (Not available)` events.
+- 12.5.1 corrected provider-event persistence to the source property only and restricted TRP preparation buffers to real `Reserved` events; generic Airbnb unavailability remains blocking without extra TRP buffers.
+- Composed-listing availability remains dynamic through the availability service instead of physical cross-property AIRBNB copies.
+- 12.5.1 implementation commit: 438f3b95afecdfed5e4fd2df0b3a89856f276dbd.
+- 12.5.1.1 consolidated equivalent effective blockers in the admin calendar without changing persisted rows, including multiple Airbnb origins and Airbnb + preparation overlap.
+- 12.5.1.1 accepted head: 409e299eee233d852a9ffee0aef20561b0931c4d.
+- Final unchanged-feed manual sync succeeded for all three calendars with zero events imported, zero events removed, zero blocks created, and zero active duplicate blocks.
+- Final ExternalCalendar status was ACTIVE; sync execution was ADMIN/SUCCESS with null failures; Runtime Logs contained no raw Airbnb URL/token.
+- `vercel.json` remained `crons = []` and no TRP outbound feed was imported into Airbnb.
+- Accepted functional head: 409e299eee233d852a9ffee0aef20561b0931c4d.
+- Records: docs/144-phase-12.5-real-airbnb-inbound-ical-integration.md, docs/145-phase-12.5.1-airbnb-inbound-reconciliation-correction.md, docs/146-phase-12.5.1.1-admin-calendar-effective-block-consolidation.md, docs/147-phase-12.5-acceptance-closure.md.
+- Next subphase: 12.6 TRP Booking Test outbound iCal and controlled Airbnb round-trip.
+```
+
+### Phase 12.6 — TRP Booking Test outbound iCal and controlled Airbnb round-trip
+
+Status: **In progress**
+
+```text
+- 12.6 is outbound-first and may not connect a TRP feed to Airbnb until the provider-loop-prevention preflight passes.
+- The existing Phase 7 export foundation currently loads active CalendarBlock rows across blocking properties without an ownership filter, so provider-origin AIRBNB state can enter the generated feed.
+- Round-tripping provider-origin state back into Airbnb is unsafe because it can create an Airbnb -> TRP -> Airbnb echo and stale self-sustaining unavailability.
+- The first 12.6 implementation gate must export only TRP-owned unavailability: confirmed direct reservations, effective direct-reservation preparation buffers, manual blocks, and maintenance blocks.
+- AIRBNB blocks and preparation artifacts linked to externalCalendarEventId must be excluded from outbound feeds.
+- Outbound VEVENT UIDs must be stable across ordering changes and the permanent UID namespace must be corrected/frozen before the first real Airbnb import.
+- Composed-listing effects must continue to be derived through blocking-property rules instead of exported physical dependency copies.
+- Only after that gate passes should the three ExternalCalendar records become export-capable, raw export tokens be generated privately, only hashes be persisted, and `/api/ical/[token]` feeds be connected to the matching real Airbnb listings.
+- Vercel scheduler registration remains disabled through 12.6; 12.7 owns cron restoration and scheduler validation.
+- Authoritative runbook: docs/148-phase-12.6-test-outbound-ical-and-controlled-airbnb-round-trip.md.
 ```
 
 ## Continuity Notes for New Conversations
