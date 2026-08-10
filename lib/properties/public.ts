@@ -145,7 +145,7 @@ type PublicPropertyRecord = Prisma.PropertyGetPayload<{
 }>;
 
 type PublicAccommodationQueryOptions = Readonly<{
-  prismaClient?: PrismaClient;
+  prismaClient?: Pick<PrismaClient, "property">;
 }>;
 
 function assertServerSidePublicPropertyQuery(): void {

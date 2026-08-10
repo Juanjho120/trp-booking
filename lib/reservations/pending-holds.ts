@@ -230,6 +230,7 @@ function withStoredReservationAmounts(
 
 async function buildPendingReservationHoldFromReservation(
   reservation: ReusablePendingReservation,
+  prismaClient: PendingHoldTransactionClient,
 ): Promise<PendingReservationHold> {
   if (
     !reservation.expiresAt ||
@@ -244,6 +245,9 @@ async function buildPendingReservationHoldFromReservation(
     checkInDate: toDateOnlyString(reservation.checkInDate),
     checkOutDate: toDateOnlyString(reservation.checkOutDate),
     guestCount: reservation.guestCount,
+  },
+  {
+    prismaClient,
   });
   const quoteWithStoredAmounts = withStoredReservationAmounts(
     quote,
@@ -314,7 +318,10 @@ async function findReusableActivePendingReservationHold(
     return null;
   }
 
-  return buildPendingReservationHoldFromReservation(reservation);
+  return buildPendingReservationHoldFromReservation(
+    reservation,
+    tx,
+  );
 }
 
 async function createPendingReservationHoldAttempt(
@@ -332,7 +339,11 @@ async function createPendingReservationHoldAttempt(
           checkInDate: input.checkInDate,
           checkOutDate: input.checkOutDate,
           guestCount: input.guestCount,
-        });
+        },
+        {
+          prismaClient: tx,
+        }
+      );
       } catch (error) {
         if (error instanceof ReservationQuoteError) {
           throw mapQuoteError(error);
