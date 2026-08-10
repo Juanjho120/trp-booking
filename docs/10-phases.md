@@ -15,8 +15,8 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 12 — Test Deployment & External Integration Validation
-Current subphase: 12.3 — Test environment variables and provider wiring — Not started; next
-Current focus: complete the Test environment/provider wiring on the accepted Vercel baseline while custom-domain, Airbnb, and scheduler validation remain assigned to 12.4–12.7; Production remains deferred to Phase 13
+Current subphase: 12.3 — Test environment variables and provider wiring — In progress
+Current focus: audit and complete the Vercel Test provider/environment contract, enable the accepted Test Resend/email configuration, redeploy, and validate the hosted baseline while custom-domain, Airbnb, and scheduler validation remain assigned to 12.4–12.7; Production remains deferred to Phase 13
 Last completed subphase: 12.2 Vercel Test project and first deployment
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 11.6.5 acceptance: All 15 protected-history, ordering, relation, retry, ES/EN, responsive, security, and integrated criteria passed on 2026-08-05
@@ -29,11 +29,13 @@ Last completed subphase: 12.2 Vercel Test project and first deployment
 11.7 validated closure base: 16cca9e63f5fd8d8af590fc1211dbc69d642f1f6
 Phase 11 accepted feature head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 Phase 11 closure document: docs/120-phase-11.7-validation-and-documentation-closure.md
-Phase 12 status: In progress — 12.1 and 12.2 completed and accepted on 2026-08-10; 12.3 next
+Phase 12 status: In progress — 12.1 and 12.2 completed and accepted on 2026-08-10; 12.3 in progress
 Phase 12.1 record: docs/136-phase-12.1-test-deployment-and-environment-strategy.md
 Phase 12.2 accepted deployment source head: 91f513c57b6220ad8d1d32f9a198a3d5099b1fd7
 Phase 12.2 record: docs/137-phase-12.2-vercel-test-project-and-first-deployment.md
 Phase 12.2 acceptance closure: docs/138-phase-12.2-acceptance-closure.md
+Phase 12.3 status: In progress — Test environment/provider audit and redeploy pending
+Phase 12.3 record: docs/139-phase-12.3-test-environment-variables-and-provider-wiring.md
 Next planned major phase: Phase 13 — Production Infrastructure, Deployment & Go-Live
 Pre-Phase-12 Improvement Track status: Completed and accepted — Packages A, B, C, E, and F accepted; Package D remains deferred outside the current gate
 Pre-Phase-12 Improvement Track registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
@@ -949,7 +951,7 @@ Phase 11 rules:
 
 ## Phase 12 — Test Deployment & External Integration Validation
 
-Status: **In progress — 12.1 and 12.2 completed and accepted; 12.3 next**
+Status: **In progress — 12.1 and 12.2 completed and accepted; 12.3 in progress**
 
 Goal: Create TRP Booking's first real Internet-accessible Test deployment and validate the already-built application against real hosted infrastructure and external integrations without creating or using production-company provider accounts.
 
@@ -985,7 +987,7 @@ Planned subphases:
 ```text
 12.1 Test deployment and environment strategy — Completed and accepted on 2026-08-10
 12.2 Vercel Test project and first deployment — Completed and accepted on 2026-08-10
-12.3 Test environment variables and provider wiring — Next
+12.3 Test environment variables and provider wiring — In progress
 12.4 Test custom domain, Auth.js, and external callback validation
 12.5 Real Airbnb inbound iCal integration
 12.6 TRP Booking Test outbound iCal and controlled Airbnb round-trip
@@ -998,6 +1000,17 @@ Planned subphases:
 Authoritative 12.1 record: `docs/136-phase-12.1-test-deployment-and-environment-strategy.md`.
 
 12.2 acceptance: the dedicated Test project produced its first successful Vercel Production Deployment from `main` with `TRP_ENVIRONMENT=test`, using Vercel's generated HTTPS URL and with scheduler registration intentionally absent. The stable custom domain remains deferred to 12.4 and the approved cron schedules remain deferred unchanged to 12.7. Authoritative 12.2 records: `docs/137-phase-12.2-vercel-test-project-and-first-deployment.md` and `docs/138-phase-12.2-acceptance-closure.md`.
+
+12.3 configuration boundary:
+- Audit the existing Vercel Production-environment variables used by the Test project instead of recreating or rotating already-valid Local/Test credentials.
+- Keep the 12.2 core wiring for Supabase, Auth.js, Cloudinary, Tilopay sandbox, `TRP_ENVIRONMENT=test`, and the dedicated Test `CRON_SECRET`.
+- Add the accepted Test Resend/email contract and set `EMAIL_DELIVERY_MODE=test`; Test guest delivery uses the intended reservation recipient, Test admin delivery uses `admin@juantzun.dev`, and `EMAIL_TEST_RECIPIENT` remains absent/empty.
+- `EMAIL_PUBLIC_BASE_URL` is configured to the approved stable Test target `https://trp-booking.juantzun.dev` even though domain attachment/navigation acceptance remains 12.4 work.
+- `AUTH_URL` remains deferred to 12.4, `AIRBNB_ICAL_IMPORT_URLS_JSON` remains deferred to 12.5, and Vercel cron registration remains absent until 12.7.
+- Environment-variable changes require a new Vercel Production Deployment before they are accepted.
+- 12.3 validates configuration and hosted baseline health; it does not claim Google OAuth, Tilopay callback, custom-domain, Airbnb, or scheduler E2E acceptance.
+
+Authoritative 12.3 record: `docs/139-phase-12.3-test-environment-variables-and-provider-wiring.md`.
 
 Phase 12 explicitly excludes company-owned production account provisioning, production payment credentials, production email/DNS cutover, production database/media setup, and public go-live. Those belong to Phase 13.
 

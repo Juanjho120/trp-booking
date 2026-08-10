@@ -441,14 +441,15 @@ docs/135-pre-phase-12-package-f-integrated-acceptance-closure.md
 docs/136-phase-12.1-test-deployment-and-environment-strategy.md
 docs/137-phase-12.2-vercel-test-project-and-first-deployment.md
 docs/138-phase-12.2-acceptance-closure.md
+docs/139-phase-12.3-test-environment-variables-and-provider-wiring.md
 ```
 
 ## Development Status
 
 ```text
 Current phase: Phase 12 — Test Deployment & External Integration Validation
-Current subphase: 12.3 — Test environment variables and provider wiring — Not started; next
-Current focus: complete the Test provider/environment configuration on the accepted Vercel baseline while keeping custom-domain, Airbnb, and scheduler validation in their later assigned subphases
+Current subphase: 12.3 — Test environment variables and provider wiring — In progress
+Current focus: configure and validate the complete Test environment/provider contract on the accepted Vercel baseline while keeping custom-domain, Airbnb, and scheduler validation in their later assigned subphases
 12.1 status: Completed and accepted on 2026-08-10
 12.1 documentation base: ede3881a0d2d341018c107fe0cfe5ba0a7f9c490
 12.1 record: docs/136-phase-12.1-test-deployment-and-environment-strategy.md
@@ -456,6 +457,8 @@ Current focus: complete the Test provider/environment configuration on the accep
 12.2 accepted deployment source head: 91f513c57b6220ad8d1d32f9a198a3d5099b1fd7
 12.2 record: docs/137-phase-12.2-vercel-test-project-and-first-deployment.md
 12.2 acceptance closure: docs/138-phase-12.2-acceptance-closure.md
+12.3 status: In progress — Vercel Production environment audit, email/Resend wiring, redeploy, and hosted configuration smoke validation pending
+12.3 record: docs/139-phase-12.3-test-environment-variables-and-provider-wiring.md
 Vercel cron registration: intentionally disabled through 12.6 with vercel.json crons = []; approved schedules return in 12.7 after Vercel Pro activation
 Test deployment status: Vercel-generated HTTPS baseline created and accepted; stable custom domain not attached yet
 Test domain target: https://trp-booking.juantzun.dev
