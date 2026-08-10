@@ -5,7 +5,7 @@
 ```text
 Phase: Phase 10 — Email Notifications
 Context: Environment and provider-isolation follow-up during 10.4
-Status: Completed; recipient-routing contract refined during Pre-Phase-12 Package F.3
+Status: Completed; recipient-routing contract refined during Pre-Phase-12 Package F.3; deployment/provider ownership refined in Phase 12.1
 Base commit: 263b2a396ed206beb12ca407bc67472cbbead3bf
 Accepted commit: d3803fb7744c5d9836db7a37001b2753c3f4c8f8
 Current refinement base: 4b4f1cfa93b1cdb483f098ffffb981236b4f90a5
@@ -13,18 +13,19 @@ Related strategy: docs/85-email-notification-strategy-and-phase-10-roadmap.md
 Provider foundation: docs/86-email-persistence-and-resend-provider-foundation.md
 Confirmation orchestration: docs/88-guest-admin-confirmation-notification-orchestration.md
 F.3 implementation record: docs/130-pre-phase-12-package-f-3-transactional-reply-to-alignment.md
+Phase 12.1 environment/deployment record: docs/136-phase-12.1-test-deployment-and-environment-strategy.md
 ```
 
 ## Purpose
 
-Define the canonical separation between local, planned stable test, and production runtime behavior. `TRP_ENVIRONMENT` is the business/runtime source of truth; `VERCEL_ENV` is deployment metadata only.
+Define the canonical separation between Local, Test, and Production runtime behavior and provider ownership. `TRP_ENVIRONMENT` is the business/runtime source of truth; `VERCEL_ENV` is deployment metadata only.
 
-This document also defines the final recipient-routing boundary accepted for Package F.3: local guest delivery is isolated to a developer-controlled mailbox, while the `test` runtime contract behaves like production for guest recipients without using production infrastructure. The planned Vercel Test deployment itself does not exist yet and is Phase 12 work.
+Package F.3 owns recipient routing. Phase 12.1 now freezes the deployment split: Phase 12 creates and validates only the developer-owned Test deployment, while Phase 13 provisions the company-owned Production stack and performs go-live. The Vercel Test deployment does not exist yet as of 2026-08-10.
 
 ## Canonical Domains
 
 ```text
-Planned stable test application: https://trp-booking.juantzun.dev (not deployed as of 2026-08-07)
+Planned stable test application: https://trp-booking.juantzun.dev (not deployed as of 2026-08-10)
 Test Resend sending domain:    mail.trp-booking.juantzun.dev
 Test human correspondence:     juantzun.dev
 Test admin mailbox:            admin@juantzun.dev
@@ -38,6 +39,32 @@ Production admin mailbox:      admin@turefugioperfecto.com
 ```
 
 `turefugioperfecto.com.gt` is not an active project target.
+
+## Provider Ownership Matrix
+
+| Resource | Local | Test — Phase 12 | Production — Phase 13 |
+| --- | --- | --- | --- |
+| Vercel | none | new TRP Booking project in the developer's existing personal account | new company-owned account/project |
+| Application domain | `localhost:3000` | `trp-booking.juantzun.dev` | `turefugioperfecto.com` |
+| Supabase/PostgreSQL | developer-owned database used by the portfolio project | same database as Local | new company-owned Supabase account/project |
+| Tilopay | existing sandbox account | same sandbox account as Local | new company-owned production account/credentials |
+| Resend | existing personal account | same account/domain as Local | new company-owned account/domain |
+| Zoho Mail | existing `juantzun.dev` organization | same organization/aliases as Local | new company-owned organization for `turefugioperfecto.com` |
+| Cloudinary | existing personal account | same account/assets as Local | new company-owned account |
+| Admin Google/Auth.js identity | developer-owned Local setup | developer-owned Test setup/callback configuration | company Gmail/Google identity |
+| `CRON_SECRET` | Local secret | new Test-only secret | new Production-only secret |
+| Airbnb inbound iCal | development/controlled use | real listing iCal URLs | real listing iCal URLs |
+| TRP outbound iCal | local endpoint | Test endpoint used for controlled real-Airbnb validation | Production endpoint used by live listings |
+
+### Shared Local/Test infrastructure decision
+
+Local and Test deliberately share the same developer-owned database and provider accounts listed above. No dedicated Test Supabase, Resend, Zoho, Cloudinary, or Tilopay account is created in Phase 12.
+
+The owner explicitly accepts responsibility for controlling Local/Test data while the Test outbound iCal is connected to real Airbnb listings. Phase 12.1 does **not** add environment-based reservation partitioning, database separation, or iCal filtering. Such a change requires a future explicit request.
+
+### Test DNS boundary
+
+The existing `juantzun.dev` email configuration is reused. Phase 12 does not redo Zoho MX/SPF/DKIM/DMARC or the existing Resend sending-domain configuration. The only new DNS work expected for Test is the application-domain record needed to attach `trp-booking.juantzun.dev` to the Vercel Test project.
 
 ## Environment Matrix
 
@@ -62,20 +89,28 @@ The intended recipient stored in `EmailNotification.recipient` never changes bec
 - The permanent email logo loads from Cloudinary and is not clickable when the email application base URL is localhost.
 ```
 
-### Planned stable test runtime
+### Stable Test runtime — Phase 12
 
-The following is the accepted contract for the future stable Test deployment. It is not evidence that the deployment already exists. Phase 12 must create and validate it.
+The following is the accepted contract for the Test deployment. It is not evidence that the deployment already exists. Phase 12.2 must create the Vercel project and first deployment, and later Phase 12 subphases validate the hosted integrations.
 
 ```text
 - Planned application URL is https://trp-booking.juantzun.dev.
-- Tilopay must remain sandbox.
-- Enabled email uses the personal test Resend account and mail.trp-booking.juantzun.dev.
+- Hosting is a new TRP Booking project in the developer's existing personal Vercel account.
+- Database is the same developer-owned Supabase database used by Local.
+- Tilopay remains the same sandbox account used by Local.
+- Enabled email uses the same personal Resend account and mail.trp-booking.juantzun.dev.
+- Human correspondence uses the same juantzun.dev Zoho organization and aliases.
+- Cloudinary uses the same personal account/assets as Local.
+- Test has its own CRON_SECRET.
+- Real Airbnb inbound iCal URLs are configured for hosted sync validation.
+- TRP Booking exposes a Test outbound iCal for controlled validation against the real Airbnb listings.
 - Guest-audience messages are delivered to the email entered on the reservation.
 - Admin-audience messages are delivered to configured juantzun.dev recipients.
 - EMAIL_TEST_RECIPIENT must be empty.
 - Subjects are prefixed [TEST].
 - Reply-To uses reservas@juantzun.dev / reservations@juantzun.dev.
 - The deployment may have VERCEL_ENV=production while TRP_ENVIRONMENT remains test.
+- No separate Local/Test database or iCal partition is introduced.
 ```
 
 The owner is responsible for using controlled addresses during demonstrations. Test delivery intentionally exercises the real recipient-routing behavior without using production provider accounts, production domains, or production payment credentials.
@@ -83,16 +118,21 @@ The owner is responsible for using controlled addresses during demonstrations. T
 ### Production
 
 ```text
+- Production is Phase 13 work and starts only after successful Phase 12 Test closure.
 - Application URL is https://turefugioperfecto.com or an explicitly approved subdomain.
-- Tilopay must use production.
+- Vercel, Supabase, Tilopay, Resend, Zoho, and Cloudinary use new company-owned accounts.
+- Admin Auth.js/Google login uses a company-owned Gmail/Google identity.
+- Production DNS for the application and email providers is configured under turefugioperfecto.com.
+- Tilopay must use production credentials from the company account.
 - Email may be disabled or production, never test.
 - Sender addresses use mail.turefugioperfecto.com.
 - Reply-To uses reservas@turefugioperfecto.com / reservations@turefugioperfecto.com.
 - Guest and admin messages use their intended recipients.
 - Admin recipients must use turefugioperfecto.com.
 - EMAIL_TEST_RECIPIENT must be empty.
+- Production has its own CRON_SECRET.
 - No environment prefix is added to subjects.
-- Production credentials belong to company-owned provider accounts.
+- No developer-owned Local/Test provider credential becomes a Production dependency.
 ```
 
 ## Audience-Aware Provider Contract
@@ -146,14 +186,14 @@ TRP Booking's documented default remains `admin@juantzun.dev` for local/test.
 ### Personal test account
 
 ```text
-Purpose: local and stable-test automatic delivery
+Purpose: Local and Phase 12 Test automatic delivery
 Verified domain: mail.trp-booking.juantzun.dev
 Allowed TRP environments: local, test
 ```
 
 The personal account must never become a production dependency.
 
-### Future company account
+### Phase 13 company account
 
 ```text
 Purpose: production transactional delivery
@@ -163,9 +203,9 @@ Allowed TRP environment: production
 
 No domain transfer from the personal account is required.
 
-## Permanent Transactional Email Logo
+## Transactional Email Logo Ownership
 
-The canonical public asset is:
+Local and Test currently use the developer-owned public asset:
 
 ```text
 https://res.cloudinary.com/juan-tzun-portfolio/image/upload/v1784668172/trp-booking/brand/logo-primary.png
@@ -175,19 +215,19 @@ https://res.cloudinary.com/juan-tzun-portfolio/image/upload/v1784668172/trp-book
 
 ```text
 Local:
-  img src -> Cloudinary
+  img src -> current developer-owned Cloudinary asset
   logo href -> omitted when brand URL resolves to localhost/loopback
 
 Test (once deployed):
-  img src -> Cloudinary
+  img src -> same developer-owned Cloudinary asset as Local
   logo href -> https://trp-booking.juantzun.dev
 
-Production:
-  img src -> Cloudinary
+Production — Phase 13:
+  img src -> company-owned Cloudinary asset
   logo href -> https://turefugioperfecto.com
 ```
 
-The image must always use public HTTPS and must never depend on localhost.
+Phase 13 must upload/migrate the approved production brand asset to the company-owned Cloudinary account and update `EMAIL_BRAND_LOGO_URL` before go-live. Every environment's logo URL must use public HTTPS and must never depend on localhost.
 
 ## Environment Examples
 
@@ -210,9 +250,9 @@ EMAIL_TEST_RECIPIENT="YOUR_PERSONAL_TEST_MAILBOX"
 
 Only guest-audience messages use `EMAIL_TEST_RECIPIENT`; admin messages still go to `admin@juantzun.dev`.
 
-### Planned stable test deployment — Phase 12
+### Stable Test deployment — Phase 12
 
-No stable Vercel Test deployment exists yet as of 2026-08-07. The values below remain the target configuration for Phase 12 bootstrap and validation.
+No Vercel Test deployment exists yet as of 2026-08-10. The values below remain the target configuration; 12.2 creates the project/deployment and later Phase 12 subphases validate it.
 
 ```env
 TRP_ENVIRONMENT="test"
@@ -229,7 +269,7 @@ EMAIL_BRAND_LOGO_URL="https://res.cloudinary.com/juan-tzun-portfolio/image/uploa
 EMAIL_TEST_RECIPIENT=""
 ```
 
-### Future production
+### Future Production — Phase 13
 
 ```env
 TRP_ENVIRONMENT="production"
@@ -242,7 +282,7 @@ EMAIL_REPLY_TO_EN="reservations@turefugioperfecto.com"
 EMAIL_ADMIN_RECIPIENTS="admin@turefugioperfecto.com"
 EMAIL_ADMIN_LOCALE="es"
 EMAIL_PUBLIC_BASE_URL="https://turefugioperfecto.com"
-EMAIL_BRAND_LOGO_URL="https://res.cloudinary.com/juan-tzun-portfolio/image/upload/v1784668172/trp-booking/brand/logo-primary.png"
+EMAIL_BRAND_LOGO_URL="<company-owned public HTTPS logo URL>"
 EMAIL_TEST_RECIPIENT=""
 ```
 
@@ -274,4 +314,4 @@ npm run build
 git diff --check
 ```
 
-No Prisma migration, database backfill, new email provider, inbound mailbox synchronization, or production credential is part of this refinement.
+Phase 12.1 is documentation-only: no Prisma migration, database backfill, provider account, DNS record, secret, deployment, inbound mailbox synchronization, or application code is changed by this refinement.

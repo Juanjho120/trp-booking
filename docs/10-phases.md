@@ -14,10 +14,10 @@ Deferred — Intentionally postponed.
 ## Current Phase
 
 ```text
-Current phase: No active implementation phase — Phase 11 and the Pre-Phase-12 Improvement Track are completed; Phase 12 is not activated
-Current subphase: None
-Current focus: explicit Phase 12 activation decision and Production Readiness planning from the real deployment state; the planned Vercel Test deployment does not exist yet
-Last completed subphase: 11.7 Validation and documentation closure
+Current phase: Phase 12 — Test Deployment & External Integration Validation
+Current subphase: 12.2 — Vercel Test project and first deployment — Not started; next
+Current focus: begin 12.2 by creating the Vercel Test project and first hosted deployment; Production remains deferred to Phase 13
+Last completed subphase: 12.1 Test deployment and environment strategy
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 11.6.5 acceptance: All 15 protected-history, ordering, relation, retry, ES/EN, responsive, security, and integrated criteria passed on 2026-08-05
 11.6.5 implementation and acceptance document: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md
@@ -29,8 +29,9 @@ Last completed subphase: 11.7 Validation and documentation closure
 11.7 validated closure base: 16cca9e63f5fd8d8af590fc1211dbc69d642f1f6
 Phase 11 accepted feature head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 Phase 11 closure document: docs/120-phase-11.7-validation-and-documentation-closure.md
-Next planned phase: Phase 12 — Production Readiness
-Phase 12 status: Not started; Packages A, B, C, E, and F are accepted, so the Pre-Phase-12 gate is satisfied and explicit activation is now pending
+Phase 12 status: In progress — 12.1 completed and accepted on 2026-08-10; 12.2 Vercel Test project and first deployment is next
+Phase 12.1 record: docs/136-phase-12.1-test-deployment-and-environment-strategy.md
+Next planned major phase: Phase 13 — Production Infrastructure, Deployment & Go-Live
 Pre-Phase-12 Improvement Track status: Completed and accepted — Packages A, B, C, E, and F accepted; Package D remains deferred outside the current gate
 Pre-Phase-12 Improvement Track registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
 Pre-Phase-12 Improvement Track plan: docs/121-pre-phase-12-improvement-track.md
@@ -253,7 +254,7 @@ Phase 9 rules preserved:
 ```text
 - Phase 9 implementation and operational boundaries were consolidated in README and the official trackers.
 - Phase 9.9.1 was marked completed after local implementation acceptance.
-- The remaining operational Airbnb iCal setup and real E2E validation were explicitly deferred to production-readiness work.
+- The remaining operational Airbnb iCal setup and real E2E validation were explicitly deferred to Phase 12 Test Deployment & External Integration Validation.
 - Phase 10 — Email Notifications became the next active phase.
 ```
 
@@ -538,7 +539,7 @@ Phase 10 rules:
 - Phase 10 local/test acceptance evidence and final operational boundaries are consolidated in README and the official trackers.
 - The closure records successful bilingual confirmation/admin delivery, permanent deduplication, bounded retry, stale-claim recovery, manual resend, arrival scheduling, same-day eligibility, version/date supersession, and active house-rule rendering.
 - Email failures remain isolated from approved Payment and confirmed Reservation state.
-- Real production-recipient delivery and provider webhook observability remain deferred to Phase 12 Production Readiness.
+- Real production-recipient delivery and production-provider observability remain deferred to Phase 13; hosted Test validation belongs to Phase 12.
 - Phase 11 becomes the next official phase and must begin by defining explicit cancellation, refund, authorized date-change, and stay-extension subphases.
 - The authoritative closure record is docs/94-phase-10-validation-and-documentation-closure.md.
 - No application code, visible UI copy, Prisma schema, migration, seed, dependency, credential, provider call, payment/reservation mutation, or PMS behavior is added by 10.7.
@@ -926,7 +927,7 @@ Phase 11 rules:
 - Phase 11.1 through 11.7 are completed and accepted.
 - Reservation owns stay and availability state; Payment and Refund own financial state; typed lifecycle requests, holds, notifications, and bounded audit evidence preserve operational history.
 - Guest self-service lifecycle mutation, raw provider exposure, card-data handling, hard deletion, history rewrite, and PMS behavior remain excluded.
-- Phase 12 remains Not started by explicit decision while the registered Pre-Phase-12 Improvement Track completes Packages A, B, C, E, and F.
+- At Phase 11 closure, Phase 12 remained Not started while the registered Pre-Phase-12 Improvement Track completed Packages A, B, C, E, and F; Phase 12 was later activated as Test-only work in 12.1 on 2026-08-10.
 ```
 
 ### Phase 11.6 requirements accepted during 11.4.2
@@ -943,8 +944,72 @@ Phase 11 rules:
 
 ---
 
-## Phase 12 — Production Readiness
+## Phase 12 — Test Deployment & External Integration Validation
 
-Status: **Not started**
+Status: **In progress — 12.1 completed and accepted; 12.2 next**
 
-Activation note: Phase 12 is intentionally not active yet. The Pre-Phase-12 Improvement Track is completed and its gate is satisfied: Packages A, B, C, E, and F are accepted, while Package D remains deferred outside the current gate. Phase 12 now requires an explicit activation decision. Its first deployment-readiness work must begin from the actual state: `trp-booking.juantzun.dev` is a planned Test domain and no Vercel deployment exists there yet as of 2026-08-07.
+Goal: Create TRP Booking's first real Internet-accessible Test deployment and validate the already-built application against real hosted infrastructure and external integrations without creating or using production-company provider accounts.
+
+Approved Test ownership boundary:
+
+```text
+Vercel: new TRP Booking Test project in the developer's existing personal Vercel account
+Application domain: trp-booking.juantzun.dev
+TRP_ENVIRONMENT: test
+Database: same developer-owned Supabase database used by Local
+Resend: same personal account/domain used by Local
+Zoho: same juantzun.dev organization/aliases used by Local
+Cloudinary: same personal account used by Local
+Tilopay: same sandbox account used by Local
+CRON_SECRET: new Test-only secret
+Airbnb inbound iCal: real listing URLs
+TRP outbound iCal: expose Test URL and perform controlled validation against real Airbnb listings
+Email DNS/Zoho DNS: reuse existing juantzun.dev configuration; no new mail-provider DNS setup
+Application DNS: attach trp-booking.juantzun.dev to the Vercel Test project
+```
+
+Local and Test intentionally share the same database and provider accounts listed above. The owner accepts responsibility for controlling Local/Test data used during real Airbnb iCal validation. Phase 12.1 does not add environment-specific reservation/iCal partitioning or filtering.
+
+Planned subphases:
+
+```text
+12.1 Test deployment and environment strategy — Completed and accepted on 2026-08-10
+12.2 Vercel Test project and first deployment — Next
+12.3 Test environment variables and provider wiring
+12.4 Test custom domain, Auth.js, and external callback validation
+12.5 Real Airbnb inbound iCal integration
+12.6 TRP Booking Test outbound iCal and controlled Airbnb round-trip
+12.7 Vercel Cron deployment and scheduler validation
+12.8 Full Internet E2E regression
+12.9 Test observability, security, and recovery readiness
+12.10 Phase 12 validation and closure
+```
+
+Authoritative 12.1 record: `docs/136-phase-12.1-test-deployment-and-environment-strategy.md`.
+
+Phase 12 explicitly excludes company-owned production account provisioning, production payment credentials, production email/DNS cutover, production database/media setup, and public go-live. Those belong to Phase 13.
+
+---
+
+## Phase 13 — Production Infrastructure, Deployment & Go-Live
+
+Status: **Not started — begins only after Phase 12 Test acceptance**
+
+Goal: Provision a fully company-owned production stack, deploy `TRP_ENVIRONMENT=production`, validate production integrations, and perform a controlled public launch.
+
+Production ownership boundary:
+
+```text
+Vercel: new company-owned account/project
+Supabase: new company-owned account/project
+Tilopay: new company-owned production account/credentials
+Resend: new company-owned account and production sending domain
+Zoho: new company-owned organization for turefugioperfecto.com
+Cloudinary: new company-owned account
+Admin Google OAuth: company-owned Gmail/Google identity
+DNS: configure turefugioperfecto.com for the production application and email providers
+CRON_SECRET: new Production-only secret
+Airbnb iCal: real production inbound/outbound integration
+```
+
+The exact Phase 13 subphase breakdown will be frozen after Phase 12 validates the deployed Test architecture. No personal/developer provider credential should become a Production dependency.

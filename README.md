@@ -21,7 +21,7 @@ The planned stable test domain is:
 trp-booking.juantzun.dev
 ```
 
-As of 2026-08-07, TRP Booking has **not** been deployed to this domain or to a stable Vercel Test environment yet. The first real Test deployment is deferred to Phase 12 — Production Readiness.
+As of 2026-08-10, TRP Booking has **not** been deployed to this domain or to Vercel yet. Phase 12 is now dedicated exclusively to creating and validating the real Test deployment; production infrastructure is deferred to Phase 13.
 
 ## Environment Strategy
 
@@ -30,21 +30,26 @@ TRP Booking separates the business/runtime environment from the deployment platf
 ```text
 TRP_ENVIRONMENT=local
 - Application URL: http://localhost:3000
-- Tilopay: sandbox
+- Database: developer-owned Supabase database used by the portfolio project
+- Tilopay: existing sandbox account
 - Email: disabled or test
-- Resend account: personal test account
-- Verified sending domain: mail.trp-booking.juantzun.dev
+- Resend: existing personal test account / mail.trp-booking.juantzun.dev
+- Zoho: existing juantzun.dev organization and aliases
+- Cloudinary: existing personal account
 - Guest email physical delivery: EMAIL_TEST_RECIPIENT when email is enabled
 - Admin email delivery: intended juantzun.dev admin recipient
 - Subject prefix: [LOCAL]
 
 TRP_ENVIRONMENT=test
 - Planned application URL: https://trp-booking.juantzun.dev
-- Deployment status: not created yet; Phase 12 will bootstrap and validate it
-- Tilopay: sandbox
-- Email: disabled or test
-- Resend account: personal test account
-- Verified sending domain: mail.trp-booking.juantzun.dev
+- Deployment status: not created yet; Phase 12 creates a new Test project in the existing personal Vercel account
+- Database: same developer-owned Supabase database used by Local
+- Tilopay: same sandbox account used by Local
+- Resend: same personal account and sending domain used by Local
+- Zoho: same juantzun.dev organization and aliases used by Local
+- Cloudinary: same personal account used by Local
+- CRON_SECRET: unique Test secret, different from Local and future Production
+- Airbnb: real inbound iCal URLs; TRP Test outbound iCal will be exposed for controlled real-listing validation
 - Guest email delivery: intended reservation recipient
 - Admin email delivery: intended juantzun.dev admin recipient
 - EMAIL_TEST_RECIPIENT: empty
@@ -52,18 +57,23 @@ TRP_ENVIRONMENT=test
 
 TRP_ENVIRONMENT=production
 - Application URL: https://turefugioperfecto.com
-- Tilopay: production
-- Email: disabled or production
-- Resend account: Tu Refugio Perfecto company account
-- Verified sending domain: mail.turefugioperfecto.com
-- Guest/admin delivery: intended recipients
+- Phase: Phase 13 only
+- Vercel: new company-owned account/project
+- Database: new company-owned Supabase account/project
+- Tilopay: new company-owned production account/credentials
+- Resend: new company-owned account and mail.turefugioperfecto.com sending domain
+- Zoho: new company-owned organization for turefugioperfecto.com correspondence
+- Cloudinary: new company-owned account
+- Admin OAuth: company Gmail/Google identity
+- CRON_SECRET: unique Production secret
+- Guest/admin delivery: intended production recipients
 - EMAIL_TEST_RECIPIENT: empty
 - Subject prefix: none
 ```
 
 `VERCEL_ENV` remains deployment metadata and must not be used as the only signal for the TRP business environment. When the planned stable test site is deployed, it may use a Vercel production deployment while remaining `TRP_ENVIRONMENT=test`. A documented target URL must never be treated as proof that a deployment already exists.
 
-Detailed environment, domain, Resend-account, recipient-routing, and Cloudflare DNS rules are documented in `docs/89-test-and-production-environment-strategy.md`.
+Detailed environment ownership, domain, provider-reuse, recipient-routing, and Phase 12/13 separation rules are documented in `docs/89-test-and-production-environment-strategy.md` and `docs/136-phase-12.1-test-deployment-and-environment-strategy.md`.
 
 ## Purpose
 
@@ -89,7 +99,7 @@ TRP Booking is focused only on the public booking experience, direct reservation
 - Provider secrets for Auth.js, Cloudinary, Tilopay, Resend, Airbnb iCal, and similar services must remain server-side only.
 - `TRP_ENVIRONMENT` is the source of truth for local, test, and production business/runtime behavior.
 - Local/test credentials, domains, databases, payment settings, and recipient routing must remain isolated from production.
-- The personal Resend account and `mail.trp-booking.juantzun.dev` are test-only; production will use a company-owned Resend account and `mail.turefugioperfecto.com`.
+- Local and Test intentionally reuse the developer-owned Supabase, Resend, Zoho, Cloudinary, and Tilopay sandbox infrastructure; Production must use separate company-owned accounts provisioned in Phase 13.
 - Reservation flow must re-check availability server-side before creating pending holds or handing off to payment.
 - Pending reservation holds must use `PENDING_PAYMENT` with a non-null `expiresAt` and must never be confirmed before validated payment.
 - `CONFIRMED` reservations block their stay dates and preparation buffers.
@@ -105,8 +115,8 @@ TRP Booking is focused only on the public booking experience, direct reservation
 - Email delivery never determines payment approval and an email failure never rolls back a valid confirmed reservation.
 - Transactional email intents must use permanent database deduplication in addition to provider idempotency.
 - Local enabled email delivery preserves the intended recipient in persistence but redirects only guest-audience physical delivery to `EMAIL_TEST_RECIPIENT`; admin-audience delivery remains on `juantzun.dev`.
-- Test-mode email delivery uses intended guest recipients and configured `juantzun.dev` admin recipients; `EMAIL_TEST_RECIPIENT` must be empty. The planned stable Test deployment is created later in Phase 12.
-- Transactional email logos must use the permanent Cloudinary HTTPS asset through `EMAIL_BRAND_LOGO_URL`; local delivered emails must not expose a clickable localhost logo link.
+- Test-mode email delivery uses intended guest recipients and configured `juantzun.dev` admin recipients; `EMAIL_TEST_RECIPIENT` must be empty. Phase 12 creates and validates the first stable Test deployment.
+- Local/Test transactional email logos use the current developer-owned Cloudinary HTTPS asset through `EMAIL_BRAND_LOGO_URL`; local delivered emails must not expose a clickable localhost logo link. Phase 13 must move Production branding to the company-owned Cloudinary account before go-live.
 - Public-facing, admin-facing, and transactional email copy is centralized in `messages/es.ts` and `messages/en.ts`.
 - Admin modules use dedicated routes under `/admin`; the dashboard remains a compact summary.
 - Manual availability blocks use `CalendarBlock.source = MANUAL_BLOCK`, optional internal notes, soft deletion, audit logs, and server-side availability revalidation.
@@ -240,7 +250,7 @@ Phase 10.3 templates completed:
 - Guest RESERVATION_CONFIRMED and admin ADMIN_NEW_RESERVATION builders return subject, HTML, and plain-text content.
 - Template inputs are validated and normalized before rendering, and guest output must match the reservation preferred locale.
 - Dates, Guatemala business timestamps, money, guest counts, stay length, arrival time, and country names are locale-aware.
-- The approved primary brand logo uses the permanent public HTTPS asset configured in EMAIL_BRAND_LOGO_URL, independently from the application deployment URL.
+- Local/Test use the approved public HTTPS brand asset configured in EMAIL_BRAND_LOGO_URL independently from the application deployment URL; Production must switch this to the company-owned Cloudinary asset during Phase 13.
 - Guest templates do not expose protected admin links, provider payloads, card data, access codes, or PMS-only data.
 - No EmailNotification row is created and no Resend provider call is made in 10.3.
 - The accepted implementation was committed as 7f6510d3e152caccefa42d9a2f5f75dbf747a22e.
@@ -314,7 +324,7 @@ Phase 10.7 validation and documentation closure completed:
 ```text
 - The accepted Phase 10 architecture, implementation boundaries, local/test validation evidence, and operational handoff are consolidated.
 - Reservation confirmation, admin notification, retry recovery, manual resend, arrival scheduling, same-day delivery, supersession, and house-rule rendering were validated without changing approved Payment or confirmed Reservation state.
-- Production recipient delivery, Resend delivery/bounce/complaint webhooks, and production-domain operational acceptance remain deferred to Phase 12 Production Readiness.
+- Production recipient delivery, production-provider ownership, production-domain operational acceptance, and production go-live remain deferred to Phase 13.
 - Phase 11 Cancellation, Refund, and Change Request Rules is the next official phase and must begin by defining explicit subphases and business contracts.
 - The authoritative closure record is docs/94-phase-10-validation-and-documentation-closure.md.
 ```
@@ -392,13 +402,14 @@ Phase 11.5 — Authorized date changes and stay extensions is completed and acce
 
 ## Documentation
 
-Important Phase 11 continuity files:
+Important continuity files:
 
 ```text
 AGENTS.md
 README.md
 docs/10-phases.md
 docs/11-progress-log.md
+docs/89-test-and-production-environment-strategy.md
 docs/95-phase-11-lifecycle-strategy-and-roadmap.md
 docs/96-phase-11.1-cancellation-policy-and-tilopay-refund-contract-correction.md
 docs/97-phase-11.2-lifecycle-request-persistence-and-audit-foundation.md
@@ -425,26 +436,25 @@ docs/117-phase-11.6.3-transactional-intent-orchestration-and-delivery.md
 docs/118-phase-11.6.4-lifecycle-adjustment-payment-link-notifications-and-email-corrections.md
 docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md
 docs/120-phase-11.7-validation-and-documentation-closure.md
+docs/121-pre-phase-12-improvement-track.md
+docs/135-pre-phase-12-package-f-integrated-acceptance-closure.md
+docs/136-phase-12.1-test-deployment-and-environment-strategy.md
 ```
 
 ## Development Status
 
 ```text
-Current phase: No active implementation phase — Phase 11 and the Pre-Phase-12 Improvement Track are completed; Phase 12 is not activated
-Current focus: explicit Phase 12 activation decision and Production Readiness planning; first real Vercel Test deployment has not been created yet
-Last completed phase: Phase 11 — Cancellation, Refund, and Change Request Rules
-11.7 status: Completed and accepted
-11.7 acceptance: All 15 reduced cross-phase regression, integration, security, localization, and technical-validation criteria passed on 2026-08-05
-11.7 validated closure base: 16cca9e63f5fd8d8af590fc1211dbc69d642f1f6
-Phase 11 accepted feature head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
-Phase 11 closure record: docs/120-phase-11.7-validation-and-documentation-closure.md
-Next planned phase: Phase 12 — Production Readiness
-Phase 12 status: Not started; Pre-Phase-12 gate is satisfied and explicit activation is now pending
+Current phase: Phase 12 — Test Deployment & External Integration Validation
+Current subphase: 12.2 — Vercel Test project and first deployment — Not started; next
+Current focus: begin 12.2 by creating the Vercel Test project and first hosted deployment from the accepted 12.1 environment strategy
+12.1 status: Completed and accepted on 2026-08-10
+12.1 documentation base: ede3881a0d2d341018c107fe0cfe5ba0a7f9c490
+12.1 record: docs/136-phase-12.1-test-deployment-and-environment-strategy.md
+Next subphase: 12.2 — Vercel Test project and first deployment
+Test deployment status: not created yet
+Test domain target: https://trp-booking.juantzun.dev
+Phase 13: Production Infrastructure, Deployment & Go-Live — Not started; production accounts/infrastructure are explicitly deferred
 Pre-Phase-12 Improvement Track status: Completed and accepted — Packages A, B, C, E, and F accepted; Package D remains deferred outside the current gate
-Package F status: Completed and accepted on 2026-08-07
-Package F validated repository head: a188ae304df6b377ed4ad9099c9f7d83c2365262
-Package F feature head: 7e0432f90836c5d4200ff528832eb48e69d1e642
-Package F.5 record: docs/134-pre-phase-12-package-f-5-integrated-validation-and-documentation-closure.md
 Package F closure: docs/135-pre-phase-12-package-f-integrated-acceptance-closure.md
 ```
 
@@ -542,5 +552,5 @@ Package F closure: docs/135-pre-phase-12-package-f-integrated-acceptance-closure
 - Phase 11.1 through 11.7 are completed and accepted as one auditable cancellation, refund, authorized date-change, stay-extension, lifecycle-notification, and protected-history feature.
 - Reservation remains the source of truth for stay and availability state; Payment and Refund remain the sources of truth for financial state.
 - Guest self-service lifecycle mutation, raw provider exposure, card-data handling, hard deletion, history rewrite, and PMS expansion remain excluded.
-- Phase 12 is not activated yet. The Pre-Phase-12 gate is now satisfied; the next step is an explicit Phase 12 activation decision. Production Readiness must begin from the real deployment state: the planned `trp-booking.juantzun.dev` Vercel Test deployment has not been created yet.
+- Phase 12 is now active and is Test-only. Subphase 12.1 freezes the environment strategy; the next step is 12.2, which creates the first Vercel Test project/deployment for `trp-booking.juantzun.dev`. All production infrastructure and go-live work move to Phase 13.
 ```

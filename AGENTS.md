@@ -8,20 +8,24 @@ This file defines the working rules for TRP Booking.
 - Internal project name: `TRP Booking`.
 - Public brand: `Tu Refugio Perfecto` / `Bungalows Tu Refugio Perfecto`.
 - Official production domain: `turefugioperfecto.com`.
-- Planned stable test domain: `trp-booking.juantzun.dev`; no Vercel deployment exists there yet as of 2026-08-07.
+- Stable Test domain target: `trp-booking.juantzun.dev`; Phase 12 owns its first Vercel deployment and no deployment exists there yet as of 2026-08-10.
 - This project is a direct booking website, not a PMS.
 - TAMIAS remains the PMS / internal operations system.
 
 ## Environment Isolation
 
 - `TRP_ENVIRONMENT=local|test|production` is the source of truth for the business/runtime environment.
-- Do not infer the TRP environment only from `VERCEL_ENV`; when the planned stable test deployment is created, it may be a Vercel production deployment while remaining `TRP_ENVIRONMENT=test`.
+- Phase 12 is Test-only: deploy and validate `TRP_ENVIRONMENT=test` on the developer-owned Vercel account before any production infrastructure work.
+- Phase 13 is Production-only: provision company-owned infrastructure, deploy `TRP_ENVIRONMENT=production`, and perform controlled go-live work.
+- Do not infer the TRP environment only from `VERCEL_ENV`; the Test Vercel project may use a Vercel production deployment while remaining `TRP_ENVIRONMENT=test`.
 - Do not infer that a documented target domain or environment contract is already deployed; verify deployment state explicitly before describing it as live.
-- Local and test environments use Tilopay sandbox, the personal test Resend account, and the verified sending domain `mail.trp-booking.juantzun.dev`.
-- Production uses Tilopay production, the future Tu Refugio Perfecto company Resend account, and the verified sending domain `mail.turefugioperfecto.com`.
-- Never reuse production API keys, sending domains, payment credentials, databases, or recipient routing in local/test.
+- Local and Test intentionally reuse the same developer-owned Supabase database, Resend account/sending domain, Zoho organization/aliases, Cloudinary account, and Tilopay sandbox account.
+- Test introduces a separate Vercel project in the existing developer account and a Test-specific `CRON_SECRET`; it does not introduce separate Test provider accounts.
+- Test uses the real Airbnb inbound iCal URLs and will expose the TRP Booking Test outbound iCal for controlled real-listing validation. The owner intentionally accepts the shared Local/Test database and will control test data operationally; do not add environment partitioning or iCal filtering unless explicitly requested later.
+- Existing `juantzun.dev` email DNS and Zoho configuration are reused for Test. Only the application-domain DNS required to attach `trp-booking.juantzun.dev` to Vercel is part of Phase 12.
+- Production must not reuse developer-owned provider accounts. Phase 13 provisions new company-owned Vercel, Supabase, Resend, Zoho, Cloudinary, and Tilopay accounts, plus a company Gmail/Google identity for admin OAuth and production DNS for `turefugioperfecto.com`.
 - Local enabled email delivery redirects only guest-audience messages to `EMAIL_TEST_RECIPIENT`; administrative messages continue to their intended `juantzun.dev` recipients.
-- When the stable test environment is deployed, enabled email delivery sends guest messages to the intended reservation address and administrative messages to configured `juantzun.dev` recipients; `EMAIL_TEST_RECIPIENT` must be empty.
+- Test enabled email delivery sends guest messages to the intended reservation address and administrative messages to configured `juantzun.dev` recipients; `EMAIL_TEST_RECIPIENT` must be empty.
 - Production delivery sends guest/admin messages to their intended recipients and requires administrative recipients under `turefugioperfecto.com`.
 - Transactional email persistence always retains the intended recipient independently from the physical local-delivery override.
 
@@ -61,7 +65,7 @@ If any gate item cannot be satisfied, the ZIP must not be delivered until the is
 - `docs/10-phases.md` is the official phase plan.
 - `docs/11-progress-log.md` is the official progress tracker.
 - Any completed phase or subphase must be reflected in the progress tracker before moving to a new major phase.
-- When migrating to a new conversation, use `README.md`, `docs/10-phases.md`, and `docs/11-progress-log.md` as the minimum continuity context.
+- When migrating to a new conversation, use `README.md`, `docs/10-phases.md`, and `docs/11-progress-log.md` as the minimum continuity context. During Phase 12 also review `docs/89-test-and-production-environment-strategy.md` and `docs/136-phase-12.1-test-deployment-and-environment-strategy.md` before deployment work.
 
 ## UI and Design System Rules
 

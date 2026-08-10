@@ -5,11 +5,11 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 ## Current Status
 
 ```text
-Current phase: No active implementation phase — Phase 11 and the Pre-Phase-12 Improvement Track are completed; Phase 12 is not activated
-Current subphase: None
-Current focus: explicit Phase 12 activation decision and Production Readiness planning from the real deployment state; the planned Vercel Test deployment does not exist yet
-Last updated: 2026-08-07
-Last completed subphase: 11.7 Validation and documentation closure
+Current phase: Phase 12 — Test Deployment & External Integration Validation
+Current subphase: 12.2 — Vercel Test project and first deployment — Not started; next
+Current focus: begin 12.2 by creating the Vercel Test project and first hosted deployment from the accepted 12.1 architecture
+Last updated: 2026-08-10
+Last completed subphase: 12.1 Test deployment and environment strategy
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 11.6.5 acceptance: All 15 protected-history, ordering, relation, retry, ES/EN, responsive, security, and integrated criteria passed on 2026-08-05
 11.6.5 implementation and acceptance document: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md
@@ -21,8 +21,11 @@ Last completed subphase: 11.7 Validation and documentation closure
 11.7 validated closure base: 16cca9e63f5fd8d8af590fc1211dbc69d642f1f6
 Phase 11 accepted feature head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 Phase 11 closure document: docs/120-phase-11.7-validation-and-documentation-closure.md
-Next planned phase: Phase 12 — Production Readiness
-Phase 12 status: Not started; Packages A, B, C, E, and F are accepted, so the Pre-Phase-12 gate is satisfied and explicit activation is now pending
+Phase 12 status: In progress — 12.1 completed and accepted on 2026-08-10
+Phase 12.1 documentation base: ede3881a0d2d341018c107fe0cfe5ba0a7f9c490
+Phase 12.1 record: docs/136-phase-12.1-test-deployment-and-environment-strategy.md
+Next subphase: 12.2 — Vercel Test project and first deployment
+Phase 13 status: Not started — Production Infrastructure, Deployment & Go-Live follows successful Phase 12 closure
 Pre-Phase-12 Improvement Track status: Completed and accepted — Packages A, B, C, E, and F accepted; Package D remains deferred outside the current gate
 Pre-Phase-12 Improvement Track registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
 Pre-Phase-12 Improvement Track plan: docs/121-pre-phase-12-improvement-track.md
@@ -51,8 +54,6 @@ Package F.4 status: Completed and accepted on 2026-08-07
 Package F.4 accepted head: 7e0432f90836c5d4200ff528832eb48e69d1e642
 Package F.4 record: docs/132-pre-phase-12-package-f-4-reservation-to-zoho-navigation.md
 Package F.4 closure record: docs/133-pre-phase-12-package-f-4-acceptance-closure.md
-docs/134-pre-phase-12-package-f-5-integrated-validation-and-documentation-closure.md
-docs/135-pre-phase-12-package-f-integrated-acceptance-closure.md
 Package F.5 status: Completed and accepted on 2026-08-07
 Package F.5 validated repository head: a188ae304df6b377ed4ad9099c9f7d83c2365262
 Package F.5 record: docs/134-pre-phase-12-package-f-5-integrated-validation-and-documentation-closure.md
@@ -294,7 +295,7 @@ Status: **Completed**
 
 ```text
 Phase 10 implementation and local/test evidence are consolidated in README and official trackers.
-Production-recipient delivery and provider webhook observability remain deferred to Phase 12.
+Production-recipient delivery and production-provider operational acceptance remain deferred to Phase 13; deployed Test validation belongs to Phase 12.
 Closure document: docs/94-phase-10-validation-and-documentation-closure.md.
 ```
 
@@ -610,8 +611,8 @@ Status: **Completed and accepted**
 Phase 11.1 through 11.7 are completed and accepted as one coherent lifecycle feature.
 Reservation owns stay and availability state; Payment and Refund own financial state; typed requests, holds, notifications, and bounded audit evidence preserve operational history.
 Guest self-service lifecycle mutation, raw provider exposure, card-data handling, hard deletion, history rewrite, and PMS behavior remain excluded.
-Phase 12 remains Not started by explicit decision.
-The registered Pre-Phase-12 Improvement Track is completed and accepted; Packages A, B, C, E, and F are accepted, Package D remains deferred outside the gate, and Phase 12 activation is now an explicit next decision.
+At the Pre-Phase-12 track closure, Phase 12 remained Not started. On 2026-08-10 the owner explicitly activated Phase 12 as Test-only deployment and external-integration validation.
+The registered Pre-Phase-12 Improvement Track remains completed and accepted; Packages A, B, C, E, and F are accepted and Package D remains deferred outside the gate.
 ```
 
 ## Inter-Phase Work — Pre-Phase-12 Improvement Track
@@ -632,7 +633,7 @@ Package F.3 was completed and accepted on 2026-08-07 at c75a943a9f36c31e146594d7
 Package F.4 was completed and accepted on 2026-08-07 at 7e0432f90836c5d4200ff528832eb48e69d1e642 after the full desktop/mobile ES/EN handoff matrix and technical validation passed. The protected reservation detail now provides a separate HTTPS Zoho Mail handoff with best-effort clipboard copy, native-app opening where supported by the operating system, clean mobile-web fallback, and no mailbox ingestion or OAuth integration.
 Package F.5 was completed and accepted on 2026-08-07 at validation head a188ae304df6b377ed4ad9099c9f7d83c2365262 after all owner-executed technical and integrated checks passed. No Vercel Test deployment existed during acceptance; the documented `trp-booking.juantzun.dev` URL remains a planned Phase 12 target rather than deployed evidence.
 Package F is completed and accepted. The Pre-Phase-12 gate is satisfied with Packages A, B, C, E, and F accepted; Package D remains deferred outside the current gate.
-Phase 12 remains Not started until an explicit activation decision.
+Phase 12 was explicitly activated on 2026-08-10 with 12.1; production work is separated into Phase 13.
 Implementation plan: docs/121-pre-phase-12-improvement-track.md.
 Package F strategy: docs/127-pre-phase-12-package-f-zoho-guest-correspondence-strategy.md.
 Package F.2 operational record: docs/128-pre-phase-12-package-f-2-test-zoho-mail-setup-and-dns-validation.md.
@@ -643,6 +644,30 @@ Package F.4 implementation: docs/132-pre-phase-12-package-f-4-reservation-to-zoh
 Package F.4 closure: docs/133-pre-phase-12-package-f-4-acceptance-closure.md.
 Package F.5 integrated validation: docs/134-pre-phase-12-package-f-5-integrated-validation-and-documentation-closure.md.
 Package F closure: docs/135-pre-phase-12-package-f-integrated-acceptance-closure.md.
+```
+
+## Phase 12 — Test Deployment & External Integration Validation
+
+### Phase 12.1 — Test deployment and environment strategy
+
+Status: **Completed and accepted on 2026-08-10**
+
+```text
+- Phase 12 is Test-only; Phase 13 is Production-only.
+- No Vercel deployment exists for TRP Booking yet at 12.1 closure.
+- 12.2 will create the TRP Booking Test project in the developer's existing personal Vercel account.
+- Test target domain is trp-booking.juantzun.dev.
+- Local and Test intentionally share the same developer-owned Supabase database.
+- Test reuses Local's personal Resend account/domain, juantzun.dev Zoho organization/aliases, personal Cloudinary account, and Tilopay sandbox account.
+- Test uses a new Test-specific CRON_SECRET.
+- Existing juantzun.dev email DNS/Zoho setup is reused; only the application-domain DNS required to attach trp-booking.juantzun.dev to Vercel is new.
+- Test will use the real Airbnb inbound iCal URLs and expose the TRP Test outbound iCal for controlled validation on the real Airbnb listings.
+- The owner will control shared Local/Test data operationally; no environment-specific iCal filtering or reservation partitioning is introduced by 12.1.
+- Phase 13 will provision new company-owned Vercel, Supabase, Tilopay, Resend, Zoho, and Cloudinary accounts, production DNS, a company Gmail/Google admin identity, and a separate Production CRON_SECRET.
+- No application code, schema, migration, dependency, secret, provider account, DNS record, or deployment is changed by 12.1 itself.
+- Documentation base: ede3881a0d2d341018c107fe0cfe5ba0a7f9c490.
+- Authoritative record: docs/136-phase-12.1-test-deployment-and-environment-strategy.md.
+- Next subphase: 12.2 Vercel Test project and first deployment.
 ```
 
 ## Continuity Notes for New Conversations
@@ -707,6 +732,9 @@ docs/130-pre-phase-12-package-f-3-transactional-reply-to-alignment.md
 docs/131-pre-phase-12-package-f-3-acceptance-closure.md
 docs/132-pre-phase-12-package-f-4-reservation-to-zoho-navigation.md
 docs/133-pre-phase-12-package-f-4-acceptance-closure.md
+docs/134-pre-phase-12-package-f-5-integrated-validation-and-documentation-closure.md
+docs/135-pre-phase-12-package-f-integrated-acceptance-closure.md
+docs/136-phase-12.1-test-deployment-and-environment-strategy.md
 lib/admin/reservation-cancellation.ts
 lib/admin/reservation-date-mutation.ts
 lib/reservations/date-mutation-completion.ts
