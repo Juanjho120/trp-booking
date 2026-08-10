@@ -443,14 +443,15 @@ docs/137-phase-12.2-vercel-test-project-and-first-deployment.md
 docs/138-phase-12.2-acceptance-closure.md
 docs/139-phase-12.3-test-environment-variables-and-provider-wiring.md
 docs/140-phase-12.3-acceptance-closure.md
+docs/141-phase-12.4-test-custom-domain-authjs-and-external-callback-validation.md
 ```
 
 ## Development Status
 
 ```text
 Current phase: Phase 12 — Test Deployment & External Integration Validation
-Current subphase: 12.4 — Test custom domain, Auth.js, and external callback validation — Not started; next
-Current focus: attach and validate the stable Test domain, verify Auth.js/Google OAuth on that domain, and validate the implemented Tilopay redirect/consult callback path while Airbnb and scheduler work remain assigned to 12.5–12.7
+Current subphase: 12.4 — Test custom domain, Auth.js, and external callback validation — In progress
+Current focus: attach trp-booking.juantzun.dev to the accepted Vercel Test project, validate HTTPS and Auth.js/Google OAuth host inference, then validate the implemented Tilopay redirect/consult flow on the stable Test domain while Airbnb and scheduler work remain assigned to 12.5–12.7
 12.1 status: Completed and accepted on 2026-08-10
 12.1 documentation base: ede3881a0d2d341018c107fe0cfe5ba0a7f9c490
 12.1 record: docs/136-phase-12.1-test-deployment-and-environment-strategy.md
@@ -462,6 +463,8 @@ Current focus: attach and validate the stable Test domain, verify Auth.js/Google
 12.3 validated repository head: dcea31801351b40029c8c194949e91d0a5642407
 12.3 record: docs/139-phase-12.3-test-environment-variables-and-provider-wiring.md
 12.3 acceptance closure: docs/140-phase-12.3-acceptance-closure.md
+12.4 status: In progress — custom-domain/DNS, Auth.js/Google OAuth, and implemented Tilopay redirect/consult validation pending
+12.4 record: docs/141-phase-12.4-test-custom-domain-authjs-and-external-callback-validation.md
 Vercel cron registration: intentionally disabled through 12.6 with vercel.json crons = []; approved schedules return in 12.7 after Vercel Pro activation
 Test deployment status: Vercel-generated HTTPS baseline created and accepted; stable custom domain not attached yet
 Test domain target: https://trp-booking.juantzun.dev
