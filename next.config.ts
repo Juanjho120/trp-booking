@@ -1,5 +1,11 @@
 import type { NextConfig } from "next";
 
+const cloudinaryCloudName = process.env.CLOUDINARY_CLOUD_NAME?.trim();
+
+if (!cloudinaryCloudName) {
+  throw new Error("CLOUDINARY_CLOUD_NAME is required.");
+}
+
 const nextConfig: NextConfig = {
   devIndicators: false,
   poweredByHeader: false,
@@ -9,7 +15,7 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "res.cloudinary.com",
-        pathname: "/**",
+        pathname: `/${cloudinaryCloudName}/image/upload/**`,
       },
     ],
   },
