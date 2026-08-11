@@ -30,9 +30,14 @@ import {
   ARRIVAL_INSTRUCTIONS_MIN_LEAD_TIME_HOURS,
 } from "@/types/admin-arrival-instructions";
 import {
+  buildNegativeLifecycleRefundOperationKey,
   createNegativeLifecycleAdjustmentRefundInTransaction,
   LifecycleAdjustmentRefundError,
 } from "@/lib/reservations/lifecycle-adjustment-refunds";
+import {
+  getReservationFinancialSummary,
+  ReservationFinancialSummaryError,
+} from "@/lib/reservations/financial-summary";
 import {
   ReservationDateMutationCompletionError,
 } from "@/lib/reservations/date-mutation-completion";
@@ -49,8 +54,12 @@ export type NegativeDateMutationCompletionResult = Readonly<{
   requestType: "DATE_CHANGE" | "STAY_EXTENSION";
   financialBranch: "NEGATIVE";
   paymentId: string;
+  paymentIds: readonly string[];
   holdId: null;
   refundId: string;
+  refundIds: readonly string[];
+  refundOperationKey: string | null;
+  requestedRefundAmount: string;
   completedAt: string;
   reservationUpdatedAt: string;
   confirmedAt: string;
@@ -123,6 +132,7 @@ const negativeCompletionSelect = {
       id: true,
       paymentId: true,
       lifecycleRequestId: true,
+      refundOperationKey: true,
       authorizationType: true,
       amount: true,
       currency: true,
@@ -530,22 +540,13 @@ function reservationMatchesSnapshot(
   );
 }
 
-function completedResult(
+async function completedResult(
+  transaction: Prisma.TransactionClient,
   request: NegativeCompletionRequest,
   snapshot: RequestedSnapshot,
-): NegativeDateMutationCompletionResult {
+): Promise<NegativeDateMutationCompletionResult> {
   const difference = requiredDecimal(request.financialDifference);
   const sourcePayment = request.sourcePayment;
-  const matchingRefunds = request.refunds.filter(
-    (refund: NegativeCompletionRequest["refunds"][number]) =>
-      sourcePayment &&
-      refund.paymentId === sourcePayment.id &&
-      refund.lifecycleRequestId === request.id &&
-      refund.authorizationType ===
-        RefundAuthorizationType.LIFECYCLE_ADJUSTMENT &&
-      refund.amount.comparedTo(difference.abs()) === 0 &&
-      refund.currency === request.currency,
-  );
 
   if (
     !request.completedAt ||
@@ -553,9 +554,110 @@ function completedResult(
     !sourcePayment ||
     sourcePayment.purpose !== PaymentPurpose.INITIAL_RESERVATION ||
     !difference.lessThan(0) ||
-    !reservationMatchesSnapshot(request, snapshot) ||
-    matchingRefunds.length !== 1
+    !reservationMatchesSnapshot(request, snapshot)
   ) {
+    throw new ReservationDateMutationCompletionError(
+      "ADMIN_DATE_MUTATION_COMPLETION_CONFLICT",
+    );
+  }
+
+  let financialSummary;
+  try {
+    financialSummary = await getReservationFinancialSummary(
+      request.reservationId,
+      transaction,
+    );
+  } catch (error) {
+    if (error instanceof ReservationFinancialSummaryError) {
+      throw new ReservationDateMutationCompletionError(
+        "ADMIN_DATE_MUTATION_COMPLETION_CONFLICT",
+      );
+    }
+    throw error;
+  }
+
+  const eligiblePaymentOrder = new Map(
+    financialSummary.eligibleStayPayments.map((payment, index) => [
+      payment.paymentId,
+      index,
+    ] as const),
+  );
+
+  if (eligiblePaymentOrder.get(sourcePayment.id) !== 0) {
+    throw new ReservationDateMutationCompletionError(
+      "ADMIN_DATE_MUTATION_COMPLETION_CONFLICT",
+    );
+  }
+
+  const expectedAmount = difference.abs().toDecimalPlaces(2);
+  const operationKey = buildNegativeLifecycleRefundOperationKey(request.id);
+  const operationRefunds = request.refunds.filter(
+    (refund) => refund.refundOperationKey === operationKey,
+  );
+
+  let orderedRefunds: typeof request.refunds;
+  let refundOperationKey: string | null;
+
+  if (operationRefunds.length > 0) {
+    if (operationRefunds.length !== request.refunds.length) {
+      throw new ReservationDateMutationCompletionError(
+        "ADMIN_DATE_MUTATION_COMPLETION_CONFLICT",
+      );
+    }
+
+    const seenPayments = new Set<string>();
+    const operationTotal = operationRefunds.reduce((total, refund) => {
+      if (
+        refund.lifecycleRequestId !== request.id ||
+        refund.authorizationType !== RefundAuthorizationType.LIFECYCLE_ADJUSTMENT ||
+        refund.currency !== request.currency ||
+        !refund.amount.greaterThan(0) ||
+        !eligiblePaymentOrder.has(refund.paymentId) ||
+        seenPayments.has(refund.paymentId)
+      ) {
+        throw new ReservationDateMutationCompletionError(
+          "ADMIN_DATE_MUTATION_COMPLETION_CONFLICT",
+        );
+      }
+      seenPayments.add(refund.paymentId);
+      return total.add(refund.amount).toDecimalPlaces(2);
+    }, new Prisma.Decimal(0));
+
+    if (!operationTotal.equals(expectedAmount)) {
+      throw new ReservationDateMutationCompletionError(
+        "ADMIN_DATE_MUTATION_COMPLETION_CONFLICT",
+      );
+    }
+
+    orderedRefunds = [...operationRefunds].sort(
+      (left, right) =>
+        (eligiblePaymentOrder.get(left.paymentId) ?? Number.MAX_SAFE_INTEGER) -
+        (eligiblePaymentOrder.get(right.paymentId) ?? Number.MAX_SAFE_INTEGER),
+    );
+    refundOperationKey = operationKey;
+  } else {
+    const legacyRefunds = request.refunds.filter(
+      (refund) =>
+        refund.refundOperationKey === null &&
+        refund.paymentId === sourcePayment.id &&
+        refund.lifecycleRequestId === request.id &&
+        refund.authorizationType === RefundAuthorizationType.LIFECYCLE_ADJUSTMENT &&
+        refund.amount.comparedTo(expectedAmount) === 0 &&
+        refund.currency === request.currency,
+    );
+
+    if (request.refunds.length !== 1 || legacyRefunds.length !== 1) {
+      throw new ReservationDateMutationCompletionError(
+        "ADMIN_DATE_MUTATION_COMPLETION_CONFLICT",
+      );
+    }
+
+    orderedRefunds = legacyRefunds;
+    refundOperationKey = null;
+  }
+
+  const firstRefund = orderedRefunds[0];
+  if (!firstRefund) {
     throw new ReservationDateMutationCompletionError(
       "ADMIN_DATE_MUTATION_COMPLETION_CONFLICT",
     );
@@ -566,9 +668,13 @@ function completedResult(
     reservationId: request.reservationId,
     requestType: requestTypeLabel(request.requestType),
     financialBranch: "NEGATIVE",
-    paymentId: sourcePayment.id,
+    paymentId: firstRefund.paymentId,
+    paymentIds: orderedRefunds.map((refund) => refund.paymentId),
     holdId: null,
-    refundId: matchingRefunds[0].id,
+    refundId: firstRefund.id,
+    refundIds: orderedRefunds.map((refund) => refund.id),
+    refundOperationKey,
+    requestedRefundAmount: expectedAmount.toFixed(2),
     completedAt: request.completedAt.toISOString(),
     reservationUpdatedAt: request.reservation.updatedAt.toISOString(),
     confirmedAt: request.reservation.confirmedAt.toISOString(),
@@ -598,7 +704,7 @@ export async function completeApprovedNegativeDateMutationInTransaction(
   const snapshot = requestedSnapshot(request);
 
   if (request.status === ReservationLifecycleRequestStatus.COMPLETED) {
-    return completedResult(request, snapshot);
+    return completedResult(transaction, request, snapshot);
   }
 
   if (
@@ -627,10 +733,10 @@ export async function completeApprovedNegativeDateMutationInTransaction(
   }
 
   const actorId = request.reviewedByAdminId ?? request.createdByAdminId;
-  let refund;
+  let refundOperation;
 
   try {
-    refund = await createNegativeLifecycleAdjustmentRefundInTransaction(
+    refundOperation = await createNegativeLifecycleAdjustmentRefundInTransaction(
       transaction,
       {
         lifecycleRequestId: request.id,
@@ -747,10 +853,15 @@ export async function completeApprovedNegativeDateMutationInTransaction(
         financialBranch: "NEGATIVE",
         currency: request.currency,
         sourcePaymentId: sourcePayment.id,
-        refundId: refund.refundId,
+        refundId: refundOperation.refund.refundId,
+        refundIds: refundOperation.refunds.map((refund) => refund.refundId),
+        refundPaymentIds: refundOperation.refunds.map((refund) => refund.paymentId),
+        refundOperationKey: refundOperation.refundOperationKey,
+        refundRequestedAmount: refundOperation.requestedAmount,
+        refundLegCount: refundOperation.refunds.length,
         refundAuthorizationType:
           RefundAuthorizationType.LIFECYCLE_ADJUSTMENT,
-        refundStatus: refund.status,
+        refundStatus: refundOperation.refund.status,
         reservationStatus: ReservationStatus.CONFIRMED,
         reservationUpdatedAt: updatedReservation.updatedAt.toISOString(),
         skippedArrivalNotifications: arrival.skippedCount,
@@ -769,9 +880,13 @@ export async function completeApprovedNegativeDateMutationInTransaction(
     reservationId: request.reservationId,
     requestType: requestTypeLabel(request.requestType),
     financialBranch: "NEGATIVE",
-    paymentId: sourcePayment.id,
+    paymentId: refundOperation.refund.paymentId,
+    paymentIds: refundOperation.refunds.map((refund) => refund.paymentId),
     holdId: null,
-    refundId: refund.refundId,
+    refundId: refundOperation.refund.refundId,
+    refundIds: refundOperation.refunds.map((refund) => refund.refundId),
+    refundOperationKey: refundOperation.refundOperationKey,
+    requestedRefundAmount: refundOperation.requestedAmount,
     completedAt: now.toISOString(),
     reservationUpdatedAt: updatedReservation.updatedAt.toISOString(),
     confirmedAt: updatedReservation.confirmedAt.toISOString(),

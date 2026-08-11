@@ -12,6 +12,13 @@ import {
 
 import { prisma } from "@/lib/db/prisma";
 import {
+  getReservationFinancialSummary,
+  ReservationFinancialSummaryError,
+} from "@/lib/reservations/financial-summary";
+import {
+  buildNegativeLifecycleRefundOperationKey,
+} from "@/lib/reservations/lifecycle-adjustment-refunds";
+import {
   createRefundNotificationIntents,
   deliverLifecycleNotificationsBestEffort,
 } from "@/lib/email/lifecycle-notifications";
@@ -78,6 +85,7 @@ const lifecycleRefundSummarySelect = {
   id: true,
   paymentId: true,
   lifecycleRequestId: true,
+  refundOperationKey: true,
   clientRequestId: true,
   authorizationType: true,
   providerRefundId: true,
@@ -278,13 +286,13 @@ async function readRefundForAction(
     throw new AdminRefundError("ADMIN_REFUND_NOT_FOUND");
   }
 
-  assertLifecycleRefundRelationship(refund);
+  await assertLifecycleRefundRelationship(refund);
   return refund;
 }
 
-function assertLifecycleRefundRelationship(
+async function assertLifecycleRefundRelationship(
   refund: LifecycleRefundForAction,
-): void {
+): Promise<void> {
   const request = refund.lifecycleRequest;
   const difference = request?.financialDifference;
 
@@ -308,12 +316,82 @@ function assertLifecycleRefundRelationship(
   const failedPositiveCompletion = difference.greaterThan(0);
 
   if (negativeDifference) {
+    if (request.status !== ReservationLifecycleRequestStatus.COMPLETED) {
+      throw new AdminRefundError("ADMIN_REFUND_PAYMENT_NOT_REFUNDABLE");
+    }
+
+    if (refund.refundOperationKey === null) {
+      if (
+        refund.payment.purpose !== PaymentPurpose.INITIAL_RESERVATION ||
+        request.sourcePaymentId !== refund.payment.id ||
+        refund.payment.lifecycleRequestId !== null ||
+        refund.amount.comparedTo(difference.abs()) !== 0
+      ) {
+        throw new AdminRefundError("ADMIN_REFUND_PAYMENT_NOT_REFUNDABLE");
+      }
+      return;
+    }
+
+    const expectedOperationKey =
+      buildNegativeLifecycleRefundOperationKey(request.id);
     if (
-      request.status !== ReservationLifecycleRequestStatus.COMPLETED ||
-      refund.payment.purpose !== PaymentPurpose.INITIAL_RESERVATION ||
-      request.sourcePaymentId !== refund.payment.id ||
-      refund.payment.lifecycleRequestId !== null ||
-      refund.amount.comparedTo(difference.abs()) !== 0
+      refund.refundOperationKey !== expectedOperationKey ||
+      !refund.amount.greaterThan(0)
+    ) {
+      throw new AdminRefundError("ADMIN_REFUND_PAYMENT_NOT_REFUNDABLE");
+    }
+
+    let financialSummary;
+    try {
+      financialSummary = await getReservationFinancialSummary(
+        request.reservationId,
+      );
+    } catch (error) {
+      if (error instanceof ReservationFinancialSummaryError) {
+        throw new AdminRefundError("ADMIN_REFUND_PAYMENT_NOT_REFUNDABLE");
+      }
+      throw error;
+    }
+
+    const eligiblePaymentIds = new Set(
+      financialSummary.eligibleStayPayments.map((payment) => payment.paymentId),
+    );
+    if (!eligiblePaymentIds.has(refund.payment.id)) {
+      throw new AdminRefundError("ADMIN_REFUND_PAYMENT_NOT_REFUNDABLE");
+    }
+
+    const operationRefunds = await prisma.refund.findMany({
+      where: { refundOperationKey: expectedOperationKey },
+      select: {
+        id: true,
+        paymentId: true,
+        lifecycleRequestId: true,
+        refundOperationKey: true,
+        authorizationType: true,
+        amount: true,
+        currency: true,
+      },
+    });
+    const seenPayments = new Set<string>();
+    const operationTotal = operationRefunds.reduce((total, child) => {
+      if (
+        child.refundOperationKey !== expectedOperationKey ||
+        child.lifecycleRequestId !== request.id ||
+        child.authorizationType !== RefundAuthorizationType.LIFECYCLE_ADJUSTMENT ||
+        child.currency !== request.currency ||
+        !child.amount.greaterThan(0) ||
+        !eligiblePaymentIds.has(child.paymentId) ||
+        seenPayments.has(child.paymentId)
+      ) {
+        throw new AdminRefundError("ADMIN_REFUND_PAYMENT_NOT_REFUNDABLE");
+      }
+      seenPayments.add(child.paymentId);
+      return total.add(child.amount).toDecimalPlaces(2);
+    }, new Prisma.Decimal(0));
+
+    if (
+      operationRefunds.length === 0 ||
+      !operationTotal.equals(difference.abs().toDecimalPlaces(2))
     ) {
       throw new AdminRefundError("ADMIN_REFUND_PAYMENT_NOT_REFUNDABLE");
     }

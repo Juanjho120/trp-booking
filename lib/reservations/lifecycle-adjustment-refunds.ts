@@ -12,6 +12,14 @@ import {
 } from "@prisma/client";
 
 import { prisma } from "@/lib/db/prisma";
+import {
+  allocateReservationRefund,
+  ReservationRefundAllocationError,
+} from "@/lib/reservations/refund-allocation";
+import {
+  getReservationFinancialSummary,
+  ReservationFinancialSummaryError,
+} from "@/lib/reservations/financial-summary";
 import type { AdminDateMutationErrorCode } from "@/types/admin-reservation-date-mutation";
 
 const REFUND_TRANSACTION_MAX_ATTEMPTS = 3;
@@ -36,7 +44,8 @@ const DATE_MUTATION_REQUEST_TYPES = new Set<ReservationLifecycleRequestType>([
   ReservationLifecycleRequestType.STAY_EXTENSION,
 ]);
 
-const NEGATIVE_REFUND_IDEMPOTENCY_PREFIX =
+const NEGATIVE_REFUND_OPERATION_PREFIX = "lifecycle-negative";
+const LEGACY_NEGATIVE_REFUND_IDEMPOTENCY_PREFIX =
   "lifecycle-adjustment/negative-difference";
 const COMPENSATING_REFUND_IDEMPOTENCY_PREFIX =
   "lifecycle-adjustment/compensating-refund";
@@ -45,6 +54,12 @@ const COMPENSATION_HOLD_RELEASE_REASON =
   "LIFECYCLE_DATE_MUTATION_COMPENSATION_REQUIRED";
 const COMPENSATION_HOLD_EXPIRED_REASON =
   "LIFECYCLE_DATE_MUTATION_COMPENSATION_AFTER_EXPIRY";
+
+export function buildNegativeLifecycleRefundOperationKey(
+  lifecycleRequestId: string,
+): string {
+  return `${NEGATIVE_REFUND_OPERATION_PREFIX}/${lifecycleRequestId.trim()}`;
+}
 
 export type LifecycleAdjustmentRefundKind =
   | "NEGATIVE_DIFFERENCE"
@@ -64,6 +79,16 @@ export type LifecycleAdjustmentRefundAuthorizationResult = Readonly<{
     | "TILOPAY_PORTAL_FALLBACK";
   alreadyProcessed: boolean;
 }>;
+
+export type NegativeLifecycleAdjustmentRefundAuthorizationResult =
+  LifecycleAdjustmentRefundAuthorizationResult &
+    Readonly<{
+      refund: LifecycleAdjustmentRefundAuthorizationResult;
+      refunds: readonly LifecycleAdjustmentRefundAuthorizationResult[];
+      refundOperationKey: string | null;
+      requestedAmount: string;
+      alreadyProcessed: boolean;
+    }>;
 
 export type CompensatedDateMutationResult = Readonly<{
   refund: LifecycleAdjustmentRefundAuthorizationResult;
@@ -215,6 +240,7 @@ async function findExistingRefund(
       id: true,
       paymentId: true,
       lifecycleRequestId: true,
+      refundOperationKey: true,
       authorizationType: true,
       amount: true,
       currency: true,
@@ -231,6 +257,7 @@ function assertExistingRefundMatches(
     lifecycleRequestId: string;
     amount: Prisma.Decimal;
     currency: string;
+    refundOperationKey?: string | null;
   }>,
 ): void {
   if (
@@ -239,7 +266,9 @@ function assertExistingRefundMatches(
     refund.paymentId !== input.paymentId ||
     refund.lifecycleRequestId !== input.lifecycleRequestId ||
     refund.amount.comparedTo(input.amount) !== 0 ||
-    refund.currency !== input.currency
+    refund.currency !== input.currency ||
+    (input.refundOperationKey !== undefined &&
+      refund.refundOperationKey !== input.refundOperationKey)
   ) {
     throw new LifecycleAdjustmentRefundError(
       "ADMIN_DATE_MUTATION_COMPLETION_CONFLICT",
@@ -258,6 +287,9 @@ async function createLifecycleRefund(
     reason: string;
     idempotencyKey: string;
     clientRequestId: string;
+    refundOperationKey?: string | null;
+    operationLegIndex?: number | null;
+    operationRequestedAmount?: Prisma.Decimal | null;
     kind: LifecycleAdjustmentRefundKind;
     now: Date;
   }>,
@@ -270,6 +302,7 @@ async function createLifecycleRefund(
       lifecycleRequestId: input.lifecycleRequestId,
       amount: input.amount,
       currency: input.currency,
+      refundOperationKey: input.refundOperationKey ?? null,
     });
     return toAuthorizationResult(existing, input.kind, true);
   }
@@ -285,6 +318,7 @@ async function createLifecycleRefund(
       requestedByAdminId: input.requestedByAdminId,
       clientRequestId: input.clientRequestId,
       idempotencyKey: input.idempotencyKey,
+      refundOperationKey: input.refundOperationKey ?? null,
       authorizationType: RefundAuthorizationType.LIFECYCLE_ADJUSTMENT,
       amount: input.amount,
       currency: input.currency,
@@ -317,6 +351,10 @@ async function createLifecycleRefund(
         reservationId: input.payment.reservationId,
         paymentId: input.payment.id,
         refundId: refund.id,
+        refundOperationKey: input.refundOperationKey ?? null,
+        operationLegIndex: input.operationLegIndex ?? null,
+        operationRequestedAmount:
+          input.operationRequestedAmount?.toFixed(2) ?? null,
         authorizationType: RefundAuthorizationType.LIFECYCLE_ADJUSTMENT,
         lifecycleAdjustmentKind: input.kind,
         amount: input.amount.toFixed(2),
@@ -344,7 +382,7 @@ export async function createNegativeLifecycleAdjustmentRefundInTransaction(
     reason: string | null;
     now: Date;
   }>,
-): Promise<LifecycleAdjustmentRefundAuthorizationResult> {
+): Promise<NegativeLifecycleAdjustmentRefundAuthorizationResult> {
   const amount = input.financialDifference.abs().toDecimalPlaces(2);
 
   if (
@@ -361,20 +399,199 @@ export async function createNegativeLifecycleAdjustmentRefundInTransaction(
     );
   }
 
-  const key = `${NEGATIVE_REFUND_IDEMPOTENCY_PREFIX}/${input.lifecycleRequestId}`;
-
-  return createLifecycleRefund(transaction, {
-    payment: input.sourcePayment,
-    lifecycleRequestId: input.lifecycleRequestId,
-    requestedByAdminId: input.requestedByAdminId,
-    amount,
-    currency: input.currency,
-    reason: normalizeReason(input.reason),
-    idempotencyKey: key,
-    clientRequestId: key,
-    kind: "NEGATIVE_DIFFERENCE",
-    now: input.now,
+  const operationKey = buildNegativeLifecycleRefundOperationKey(
+    input.lifecycleRequestId,
+  );
+  const existingOperation = await transaction.refund.findMany({
+    where: { refundOperationKey: operationKey },
+    orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+    select: {
+      id: true,
+      paymentId: true,
+      lifecycleRequestId: true,
+      refundOperationKey: true,
+      authorizationType: true,
+      amount: true,
+      currency: true,
+      status: true,
+      processingMode: true,
+    },
   });
+
+  if (existingOperation.length > 0) {
+    const total = existingOperation.reduce(
+      (sum, refund) => sum.add(refund.amount).toDecimalPlaces(2),
+      new Prisma.Decimal(0),
+    );
+    const seenPayments = new Set<string>();
+
+    for (const refund of existingOperation) {
+      if (
+        refund.refundOperationKey !== operationKey ||
+        refund.authorizationType !== RefundAuthorizationType.LIFECYCLE_ADJUSTMENT ||
+        refund.lifecycleRequestId !== input.lifecycleRequestId ||
+        refund.currency !== input.currency ||
+        !refund.amount.greaterThan(0) ||
+        seenPayments.has(refund.paymentId)
+      ) {
+        throw new LifecycleAdjustmentRefundError(
+          "ADMIN_DATE_MUTATION_COMPLETION_CONFLICT",
+        );
+      }
+      seenPayments.add(refund.paymentId);
+    }
+
+    if (!total.equals(amount)) {
+      throw new LifecycleAdjustmentRefundError(
+        "ADMIN_DATE_MUTATION_COMPLETION_CONFLICT",
+      );
+    }
+
+    const refunds = existingOperation.map((refund) =>
+      toAuthorizationResult(refund, "NEGATIVE_DIFFERENCE", true),
+    );
+
+    return {
+      ...refunds[0],
+      refund: refunds[0],
+      refunds,
+      refundOperationKey: operationKey,
+      requestedAmount: amount.toFixed(2),
+      alreadyProcessed: true,
+    };
+  }
+
+  const legacyKey = `${LEGACY_NEGATIVE_REFUND_IDEMPOTENCY_PREFIX}/${input.lifecycleRequestId}`;
+  const legacyRefund = await findExistingRefund(transaction, legacyKey);
+
+  if (legacyRefund) {
+    assertExistingRefundMatches(legacyRefund, {
+      paymentId: input.sourcePayment.id,
+      lifecycleRequestId: input.lifecycleRequestId,
+      amount,
+      currency: input.currency,
+      refundOperationKey: null,
+    });
+    const refund = toAuthorizationResult(
+      legacyRefund,
+      "NEGATIVE_DIFFERENCE",
+      true,
+    );
+    return {
+      ...refund,
+      refund,
+      refunds: [refund],
+      refundOperationKey: null,
+      requestedAmount: amount.toFixed(2),
+      alreadyProcessed: true,
+    };
+  }
+
+  let financialSummary;
+  try {
+    financialSummary = await getReservationFinancialSummary(
+      input.reservationId,
+      transaction,
+    );
+  } catch (error) {
+    if (error instanceof ReservationFinancialSummaryError) {
+      throw new LifecycleAdjustmentRefundError(
+        error.code === "RESERVATION_FINANCIAL_SUMMARY_INITIAL_PAYMENT_NOT_FOUND" ||
+          error.code === "RESERVATION_FINANCIAL_SUMMARY_NOT_FOUND"
+          ? "ADMIN_DATE_MUTATION_SOURCE_PAYMENT_NOT_FOUND"
+          : "ADMIN_DATE_MUTATION_COMPLETION_CONFLICT",
+      );
+    }
+    throw error;
+  }
+
+  if (
+    financialSummary.currency !== input.currency ||
+    financialSummary.eligibleStayPayments[0]?.paymentId !== input.sourcePayment.id
+  ) {
+    throw new LifecycleAdjustmentRefundError(
+      "ADMIN_DATE_MUTATION_SOURCE_PAYMENT_NOT_FOUND",
+    );
+  }
+
+  let allocation;
+  try {
+    allocation = allocateReservationRefund(
+      amount,
+      financialSummary.eligibleStayPayments,
+    );
+  } catch (error) {
+    if (error instanceof ReservationRefundAllocationError) {
+      throw new LifecycleAdjustmentRefundError(
+        error.code === "RESERVATION_REFUND_ALLOCATION_INSUFFICIENT_BALANCE" ||
+          error.code === "RESERVATION_REFUND_ALLOCATION_INVALID_AMOUNT"
+          ? "ADMIN_DATE_MUTATION_REFUND_BALANCE_INSUFFICIENT"
+          : "ADMIN_DATE_MUTATION_COMPLETION_CONFLICT",
+      );
+    }
+    throw error;
+  }
+
+  const eligibleByPaymentId = new Map(
+    financialSummary.eligibleStayPayments.map((payment) => [
+      payment.paymentId,
+      payment,
+    ] as const),
+  );
+  const normalizedReason = normalizeReason(input.reason);
+  const refunds: LifecycleAdjustmentRefundAuthorizationResult[] = [];
+
+  for (const [index, leg] of allocation.legs.entries()) {
+    const payment = eligibleByPaymentId.get(leg.paymentId);
+    if (!payment || payment.currency !== input.currency) {
+      throw new LifecycleAdjustmentRefundError(
+        "ADMIN_DATE_MUTATION_COMPLETION_CONFLICT",
+      );
+    }
+
+    const childKey = `${operationKey}/${String(index + 1).padStart(3, "0")}/${payment.paymentId}`;
+    const refund = await createLifecycleRefund(transaction, {
+      payment: {
+        id: payment.paymentId,
+        reservationId: input.reservationId,
+        lifecycleRequestId: payment.lifecycleRequestId,
+        purpose: payment.purpose,
+        status: payment.status,
+        amount: payment.amount,
+        currency: payment.currency,
+        providerReference: payment.providerReference,
+        updatedAt: payment.updatedAt,
+      },
+      lifecycleRequestId: input.lifecycleRequestId,
+      requestedByAdminId: input.requestedByAdminId,
+      amount: leg.amount,
+      currency: input.currency,
+      reason: normalizedReason,
+      idempotencyKey: childKey,
+      clientRequestId: childKey,
+      refundOperationKey: operationKey,
+      operationLegIndex: index + 1,
+      operationRequestedAmount: amount,
+      kind: "NEGATIVE_DIFFERENCE",
+      now: input.now,
+    });
+    refunds.push(refund);
+  }
+
+  if (refunds.length === 0) {
+    throw new LifecycleAdjustmentRefundError(
+      "ADMIN_DATE_MUTATION_COMPLETION_CONFLICT",
+    );
+  }
+
+  return {
+    ...refunds[0],
+    refund: refunds[0],
+    refunds,
+    refundOperationKey: operationKey,
+    requestedAmount: amount.toFixed(2),
+    alreadyProcessed: false,
+  };
 }
 
 export function isCompensatableDateMutationCompletionError(

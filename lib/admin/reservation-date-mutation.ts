@@ -5,7 +5,6 @@ import {
   PaymentStatus,
   Prisma,
   PropertyStatus,
-  RefundStatus,
   ReservationLifecycleRequestChannel,
   ReservationLifecycleRequestStatus,
   ReservationLifecycleRequestType,
@@ -38,6 +37,10 @@ import {
   completeApprovedZeroDateMutationInTransaction,
   ReservationDateMutationCompletionError,
 } from "@/lib/reservations/date-mutation-completion";
+import {
+  getReservationFinancialSummary,
+  ReservationFinancialSummaryError,
+} from "@/lib/reservations/financial-summary";
 import type { AccommodationId } from "@/types/accommodation";
 import type { AdminActor } from "@/types/admin";
 import type {
@@ -1707,27 +1710,39 @@ async function decideDateMutationRequestTransaction(
       }
 
       if (branch === "NEGATIVE") {
-        const committedRefunds = await transaction.refund.aggregate({
-          where: {
-            paymentId: request.sourcePayment.id,
-            status: {
-              in: [
-                RefundStatus.PENDING,
-                RefundStatus.PROCESSING,
-                RefundStatus.APPROVED,
-                RefundStatus.MANUAL,
-              ],
-            },
-          },
-          _sum: { amount: true },
-        });
-        const committedAmount =
-          committedRefunds._sum.amount ?? new Prisma.Decimal(0);
-        const remainingCapturedBalance = request.sourcePayment.amount
-          .sub(committedAmount)
-          .toDecimalPlaces(2);
+        let financialSummary;
+        try {
+          financialSummary = await getReservationFinancialSummary(
+            request.reservationId,
+            transaction,
+          );
+        } catch (error) {
+          if (error instanceof ReservationFinancialSummaryError) {
+            throw new AdminReservationDateMutationError(
+              error.code === "RESERVATION_FINANCIAL_SUMMARY_INITIAL_PAYMENT_NOT_FOUND" ||
+                error.code === "RESERVATION_FINANCIAL_SUMMARY_NOT_FOUND"
+                ? "ADMIN_DATE_MUTATION_SOURCE_PAYMENT_NOT_FOUND"
+                : "ADMIN_DATE_MUTATION_UNEXPECTED_ERROR",
+            );
+          }
+          throw error;
+        }
 
-        if (remainingCapturedBalance.lessThan(difference.abs())) {
+        if (
+          financialSummary.currency !== request.currency ||
+          financialSummary.eligibleStayPayments[0]?.paymentId !==
+            request.sourcePayment.id
+        ) {
+          throw new AdminReservationDateMutationError(
+            "ADMIN_DATE_MUTATION_SOURCE_PAYMENT_NOT_FOUND",
+          );
+        }
+
+        if (
+          financialSummary.remainingRefundableStayBalance.lessThan(
+            difference.abs().toDecimalPlaces(2),
+          )
+        ) {
           throw new AdminReservationDateMutationError(
             "ADMIN_DATE_MUTATION_REFUND_BALANCE_INSUFFICIENT",
           );

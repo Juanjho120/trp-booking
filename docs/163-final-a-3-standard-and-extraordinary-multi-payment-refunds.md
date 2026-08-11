@@ -6,7 +6,8 @@
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-A — Reservation financial correctness and effective stay value
 Subphase: Final-A.3 — Standard and extraordinary multi-payment refund authorization
-Status: Implementation prepared — pending local/Test validation and owner acceptance
+Status: Completed and accepted on 2026-08-11
+Accepted head: 8d5884c4f536c0d9407fac2d0229b71105114453
 Preparation date: 2026-08-11
 Implementation base head: 9f4e04068726451ca87614dd99b1f10656510825
 Previous subphase: Final-A.2 — Completed and accepted by owner commit
@@ -401,14 +402,27 @@ docs/163-final-a-3-standard-and-extraordinary-multi-payment-refunds.md
 - Phase 13 remains Not started.
 ```
 
+## Acceptance Note
+
+The owner applied the Final-A.3 package and correction, `npm run build` passed, and the resulting
+implementation was committed as:
+
+```text
+8d5884c4f536c0d9407fac2d0229b71105114453
+fix(final-a): support multi-payment refund authorization
+```
+
+Per the Final-A test strategy, the complete automated financial/regression matrix remains deferred
+to Final-A.6 rather than creating one-off test/validator scripts for A.3.
+
 ## Status After Implementation Package
 
 ```text
 Final-A — In progress
 Final-A.1 — Completed and accepted
 Final-A.2 — Completed and accepted at 9f4e04068726451ca87614dd99b1f10656510825
-Final-A.3 — Implementation prepared; pending validation and owner acceptance
-Final-A.4 — Not started
+Final-A.3 — Completed and accepted on 2026-08-11 at 8d5884c4f536c0d9407fac2d0229b71105114453
+Final-A.4 — Implementation prepared; pending local validation and owner acceptance
 Final-A.5 — Not started
 Final-A.6 — Not started
 Phase 13 — Not started

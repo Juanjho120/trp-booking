@@ -117,13 +117,14 @@ discovered earlier.
 Final-A — In progress
 Final-A.1 Financial source-of-truth and refund-allocation contract — Completed and accepted on 2026-08-11 at 19531568752a44446d0802d6581262260b881aaf
 Final-A.2 Central financial summary and cancellation-policy correction — Completed and accepted on 2026-08-11 at 9f4e04068726451ca87614dd99b1f10656510825
-Final-A.3 Standard and extraordinary multi-payment refund authorization — Implementation prepared; pending validation and owner acceptance
-Final-A.4 Negative DATE_CHANGE multi-payment integration — Not started
+Final-A.3 Standard and extraordinary multi-payment refund authorization — Completed and accepted on 2026-08-11 at 8d5884c4f536c0d9407fac2d0229b71105114453
+Final-A.4 Negative DATE_CHANGE multi-payment integration — Implementation prepared; pending local validation and owner acceptance
 Final-A.5 Admin UX, notification copy, and operational-history integration — Not started
 Final-A.6 Integrated acceptance and documentation closure — Not started
 Strategy/roadmap: docs/161-final-a-financial-correctness-strategy-and-roadmap.md
 Final-A.2 record: docs/162-final-a-2-central-financial-summary-and-cancellation-policy-correction.md
 Final-A.3 record: docs/163-final-a-3-standard-and-extraordinary-multi-payment-refunds.md
+Final-A.4 record: docs/164-final-a-4-negative-date-change-multi-payment-integration.md
 ```
 
 Final-A.1 freezes the Reservation-level financial source of truth, eligible stay-payment pool,
@@ -1004,7 +1005,7 @@ Phase 13 still owns:
 Phase 12 — Completed and accepted
 Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Registered
 Current package — Final-A
-Current subphase — Final-A.3 standard and extraordinary multi-payment refund authorization
+Current subphase — Final-A.4 negative DATE_CHANGE multi-payment integration
 Final-A — In progress
 Final-B — Not started
 Final-C — Not started
