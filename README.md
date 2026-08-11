@@ -21,7 +21,7 @@ The stable test domain is:
 trp-booking.juantzun.dev
 ```
 
-As of 2026-08-11, TRP Booking has a working Vercel Test deployment on the stable HTTPS domain `trp-booking.juantzun.dev`. Phase 12.8 — Full Internet E2E regression — is completed and accepted after a hosted A–H journey validated public ES/EN behavior, pending-hold isolation, Tilopay sandbox approval, transactional email and Zoho correspondence, protected admin visibility, direct-reservation Airbnb round-trip behavior, standard 100% cancellation/refund cleanup, provider recovery, idempotency, and the focused technical regression. The former Test scheduler-activation requirement in 12.7 remains deferred to Phase 13: Test stays on Vercel Hobby with no registered schedules. Phase 12.9 — Test observability, security, and recovery readiness — is now in progress.
+As of 2026-08-11, TRP Booking has a working Vercel Test deployment on the stable HTTPS domain `trp-booking.juantzun.dev`. Phase 12.9 — Test observability, security, and recovery readiness — is completed and accepted after validating runtime/build-log hygiene, durable operational histories, hosted auth/API fail-closed behavior, HTTP security hardening, static/client secret exposure, incident-response recovery paths, and final dependency/technical readiness. The accepted security follow-ups added low-risk response headers, removed the default Next.js technology disclosure, updated Next/Auth.js security patches, and restricted Next image optimization to the configured TRP Cloudinary namespace. Test remains on Vercel Hobby with no registered schedules. Production scheduler activation, comprehensive CSP enforcement, persistent monitoring/alerting, and Supabase backup/PITR/restore strategy remain explicit Phase 13 obligations. Phase 12.10 — Phase 12 validation and closure — is now in progress; Phase 13 has not started.
 
 ## Environment Strategy
 
@@ -460,14 +460,17 @@ docs/152-phase-12.7-vercel-cron-deployment-and-scheduler-validation.md
 docs/153-phase-12.8-full-internet-e2e-regression-start.md
 docs/154-phase-12.8-hosted-internet-e2e-regression-matrix.md
 docs/155-phase-12.8-acceptance-closure.md
+docs/156-phase-12.9-observability-security-recovery-readiness.md
+docs/157-phase-12.9-http-security-header-hardening.md
+docs/158-phase-12.9-acceptance-closure.md
 ```
 
 ## Development Status
 
 ```text
 Current phase: Phase 12 — Test Deployment & External Integration Validation
-Current subphase: 12.9 — Test observability, security, and recovery readiness — In progress
-Current focus: execute 12.9 Test observability, security, and recovery-readiness validation on the accepted Test deployment while keeping scheduler activation/recurrence production-only in Phase 13
+Current subphase: 12.10 — Phase 12 validation and closure — In progress
+Current focus: reconcile the complete Phase 12 acceptance record and deferred Production boundaries, then formally close Phase 12 without starting Phase 13 work
 12.1 status: Completed and accepted on 2026-08-10
 12.1 documentation base: ede3881a0d2d341018c107fe0cfe5ba0a7f9c490
 12.1 record: docs/136-phase-12.1-test-deployment-and-environment-strategy.md
@@ -512,7 +515,12 @@ Current focus: execute 12.9 Test observability, security, and recovery-readiness
 12.8 start record: docs/153-phase-12.8-full-internet-e2e-regression-start.md
 12.8 matrix: docs/154-phase-12.8-hosted-internet-e2e-regression-matrix.md
 12.8 acceptance closure: docs/155-phase-12.8-acceptance-closure.md
-12.9 status: In progress — Test observability, security, and recovery readiness
+12.9 status: Completed and accepted on 2026-08-11 — Test observability, security, and recovery readiness
+12.9 validated application/security head: c6791cde5ae99a7b16d4582705f994b7963d115c
+12.9 validation matrix: docs/156-phase-12.9-observability-security-recovery-readiness.md
+12.9 HTTP security hardening: docs/157-phase-12.9-http-security-header-hardening.md
+12.9 acceptance closure: docs/158-phase-12.9-acceptance-closure.md
+12.10 status: In progress — Phase 12 validation and closure
 Vercel cron registration: intentionally disabled in Test; the Test project may remain on Hobby. Phase 13 owns production-only scheduler activation and recurrence validation through environment-aware Vercel configuration
 Test deployment status: stable HTTPS domain `trp-booking.juantzun.dev` is attached and operational
 Test domain target: https://trp-booking.juantzun.dev

@@ -6,10 +6,10 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 12 — Test Deployment & External Integration Validation
-Current subphase: 12.9 — Test observability, security, and recovery readiness — In progress
-Current focus: execute Test observability, security, and recovery-readiness validation while keeping scheduler activation/recurrence production-only in Phase 13
+Current subphase: 12.10 — Phase 12 validation and closure — In progress
+Current focus: reconcile the complete Phase 12 acceptance record and Production carry-forwards, then formally close Phase 12 before any Phase 13 provisioning or go-live work
 Last updated: 2026-08-11
-Last completed subphase: 12.8 Full Internet E2E regression
+Last completed subphase: 12.9 Test observability, security, and recovery readiness
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 11.6.5 acceptance: All 15 protected-history, ordering, relation, retry, ES/EN, responsive, security, and integrated criteria passed on 2026-08-05
 11.6.5 implementation and acceptance document: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md
@@ -21,7 +21,7 @@ Last completed subphase: 12.8 Full Internet E2E regression
 11.7 validated closure base: 16cca9e63f5fd8d8af590fc1211dbc69d642f1f6
 Phase 11 accepted feature head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 Phase 11 closure document: docs/120-phase-11.7-validation-and-documentation-closure.md
-Phase 12 status: In progress — 12.1 through 12.6 and 12.8 completed and accepted; 12.7 scheduler activation deferred to Phase 13; 12.9 in progress
+Phase 12 status: In progress — 12.1 through 12.6, 12.8, and 12.9 completed and accepted; 12.7 scheduler activation deferred to Phase 13; 12.10 in progress
 Phase 12.1 documentation base: ede3881a0d2d341018c107fe0cfe5ba0a7f9c490
 Phase 12.1 record: docs/136-phase-12.1-test-deployment-and-environment-strategy.md
 Phase 12.2 status: Completed and accepted on 2026-08-10
@@ -68,7 +68,12 @@ Phase 12.8 acceptance base head: 9f7594e5423a7f78163c1f0bad645823f9c17e8d
 Phase 12.8 start record: docs/153-phase-12.8-full-internet-e2e-regression-start.md
 Phase 12.8 matrix: docs/154-phase-12.8-hosted-internet-e2e-regression-matrix.md
 Phase 12.8 acceptance closure: docs/155-phase-12.8-acceptance-closure.md
-Phase 12.9 status: In progress — Test observability, security, and recovery readiness
+Phase 12.9 status: Completed and accepted on 2026-08-11 — Test observability, security, and recovery readiness
+Phase 12.9 validated application/security head: c6791cde5ae99a7b16d4582705f994b7963d115c
+Phase 12.9 matrix: docs/156-phase-12.9-observability-security-recovery-readiness.md
+Phase 12.9 HTTP header hardening: docs/157-phase-12.9-http-security-header-hardening.md
+Phase 12.9 acceptance closure: docs/158-phase-12.9-acceptance-closure.md
+Phase 12.10 status: In progress — Phase 12 validation and closure
 Phase 13 status: Not started — Production Infrastructure, Deployment & Go-Live follows successful Phase 12 closure
 Pre-Phase-12 Improvement Track status: Completed and accepted — Packages A, B, C, E, and F accepted; Package D remains deferred outside the current gate
 Pre-Phase-12 Improvement Track registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500

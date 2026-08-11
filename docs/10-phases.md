@@ -987,7 +987,7 @@ Phase 11 rules:
 
 ## Phase 12 — Test Deployment & External Integration Validation
 
-Status: **In progress — 12.1 through 12.6 and 12.8 completed and accepted; 12.7 scheduler activation deferred to Phase 13; 12.9 in progress**
+Status: **In progress — 12.1 through 12.6, 12.8, and 12.9 completed and accepted; 12.7 scheduler activation deferred to Phase 13; 12.10 in progress**
 
 Goal: Create TRP Booking's first real Internet-accessible Test deployment and validate the already-built application against real hosted infrastructure and external integrations without creating or using production-company provider accounts.
 
@@ -1030,8 +1030,8 @@ Planned subphases:
 12.6 TRP Booking Test outbound iCal and controlled Airbnb round-trip — Completed and accepted on 2026-08-10
 12.7 Vercel Cron deployment and scheduler validation — Deferred to Phase 13; no Test activation
 12.8 Full Internet E2E regression — Completed and accepted on 2026-08-11
-12.9 Test observability, security, and recovery readiness — In progress
-12.10 Phase 12 validation and closure
+12.9 Test observability, security, and recovery readiness — Completed and accepted on 2026-08-11
+12.10 Phase 12 validation and closure — In progress
 ```
 
 Authoritative 12.1 record: `docs/136-phase-12.1-test-deployment-and-environment-strategy.md`.
@@ -1113,7 +1113,20 @@ Authoritative 12.7 deferral record: `docs/152-phase-12.7-vercel-cron-deployment-
 12.8 start record: `docs/153-phase-12.8-full-internet-e2e-regression-start.md`.
 12.8 execution matrix: `docs/154-phase-12.8-hosted-internet-e2e-regression-matrix.md`.
 12.8 acceptance closure: `docs/155-phase-12.8-acceptance-closure.md`.
-12.9 is now the active Test subphase; it owns the systematic observability, log/secret-safety, recovery/runbook, backup/recovery-readiness, and broader security-readiness review that 12.8 intentionally deferred.
+
+12.9 acceptance summary:
+- Vercel Runtime/Build Log hygiene passed with no secret, private iCal, card, auth-token, or unexplained active 5xx exposure.
+- Durable CronJobExecution, Airbnb sync, EmailNotification, and financial/lifecycle histories remained useful and safely normalized after short-lived runtime logs expire.
+- Hosted public/admin Auth.js behavior, cookie metadata, cron authorization, sensitive-file probes, and invalid Tilopay API handling failed closed as required.
+- Stage D measured the real hosted header baseline, then added `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `X-Frame-Options`, and removed `X-Powered-By`; Vercel-provided HSTS remained intact. Comprehensive CSP enforcement is a Phase 13 go-live gate because Tilopay's complete Production runtime origin set must be measured before freezing policy.
+- Static `NEXT_PUBLIC`, tracked-secret, console-output, and browser-network audits exposed no real server/provider secret, private iCal token, or card data to the TRP backend.
+- The owner moved Supabase backup/PITR/restore validation and database-disaster-recovery rehearsal to the isolated Production infrastructure in Phase 13; Prisma validation and migration status still passed in Test.
+- General, payment/refund, email, Airbnb, and cron recovery table-tops passed without manufacturing outages.
+- Dependency remediation updated Next to `15.5.23`, NextAuth to `5.0.0-beta.32` / `@auth/core 0.41.3`, aligned `eslint-config-next`, moved `shadcn` to development tooling, and restricted Next image optimization to the configured TRP Cloudinary namespace. The final audit retained four high-severity transitive findings that were individually reviewed as non-applicable to TRP's execution path or mitigated by the accepted image boundary; no unresolved applicable high/critical finding remained.
+- Final validators, Prisma status, lint, build, whitespace checks, clean repository state, hosted auth/public/image smoke, and security-header revalidation passed on the accepted application/security head `c6791cde5ae99a7b16d4582705f994b7963d115c`.
+
+Authoritative 12.9 records: `docs/156-phase-12.9-observability-security-recovery-readiness.md`, `docs/157-phase-12.9-http-security-header-hardening.md`, and `docs/158-phase-12.9-acceptance-closure.md`.
+12.10 is now the active Test subphase and must reconcile the full Phase 12 record, confirm every Production carry-forward, and formally close Phase 12 before Phase 13 starts.
 
 Phase 12 explicitly excludes company-owned production account provisioning, production payment credentials, production email/DNS cutover, production database/media setup, and public go-live. Those belong to Phase 13.
 
