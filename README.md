@@ -15,13 +15,13 @@ The official production domain is:
 turefugioperfecto.com
 ```
 
-The planned stable test domain is:
+The stable test domain is:
 
 ```text
 trp-booking.juantzun.dev
 ```
 
-As of 2026-08-11, TRP Booking has a working Vercel Test deployment on the stable HTTPS domain `trp-booking.juantzun.dev`. Phase 12.6 is completed and accepted after validating the real bidirectional Airbnb iCal path, outbound ownership/loop prevention, stable VEVENT identity, Airbnb-compatible `.ics` URLs, composed-listing outbound behavior, controlled round-trip recovery, idempotency, and secret hygiene. The former Test scheduler-activation requirement in 12.7 is deferred to Phase 13: Test remains on Vercel Hobby with no registered schedules, while Production will activate the approved jobs through production-only environment-aware Vercel configuration. Phase 12.8 — Full Internet E2E regression — is now in progress.
+As of 2026-08-11, TRP Booking has a working Vercel Test deployment on the stable HTTPS domain `trp-booking.juantzun.dev`. Phase 12.8 — Full Internet E2E regression — is completed and accepted after a hosted A–H journey validated public ES/EN behavior, pending-hold isolation, Tilopay sandbox approval, transactional email and Zoho correspondence, protected admin visibility, direct-reservation Airbnb round-trip behavior, standard 100% cancellation/refund cleanup, provider recovery, idempotency, and the focused technical regression. The former Test scheduler-activation requirement in 12.7 remains deferred to Phase 13: Test stays on Vercel Hobby with no registered schedules. Phase 12.9 — Test observability, security, and recovery readiness — is now in progress.
 
 ## Environment Strategy
 
@@ -41,7 +41,7 @@ TRP_ENVIRONMENT=local
 - Subject prefix: [LOCAL]
 
 TRP_ENVIRONMENT=test
-- Planned application URL: https://trp-booking.juantzun.dev
+- Application URL: https://trp-booking.juantzun.dev
 - Deployment status: Vercel Test deployment and stable custom domain `trp-booking.juantzun.dev` are operational; Google OAuth hosted validation passed in 12.4
 - Database: same developer-owned Supabase database used by Local
 - Tilopay: same sandbox account used by Local
@@ -71,7 +71,7 @@ TRP_ENVIRONMENT=production
 - Subject prefix: none
 ```
 
-`VERCEL_ENV` remains deployment metadata and must not be used as the only signal for the TRP business environment. When the planned stable test site is deployed, it may use a Vercel production deployment while remaining `TRP_ENVIRONMENT=test`. A documented target URL must never be treated as proof that a deployment already exists.
+`VERCEL_ENV` remains deployment metadata and must not be used as the only signal for the TRP business environment. The accepted Test site uses the stable domain while remaining `TRP_ENVIRONMENT=test`; a Vercel production deployment target does not make it the TRP Production environment. A documented target URL must never be treated as proof of deployment without explicit validation.
 
 Detailed environment ownership, domain, provider-reuse, recipient-routing, and Phase 12/13 separation rules are documented in `docs/89-test-and-production-environment-strategy.md` and `docs/136-phase-12.1-test-deployment-and-environment-strategy.md`.
 
@@ -458,14 +458,16 @@ docs/150-phase-12.6.1.1-airbnb-ics-url-compatibility.md
 docs/151-phase-12.6-acceptance-closure.md
 docs/152-phase-12.7-vercel-cron-deployment-and-scheduler-validation.md
 docs/153-phase-12.8-full-internet-e2e-regression-start.md
+docs/154-phase-12.8-hosted-internet-e2e-regression-matrix.md
+docs/155-phase-12.8-acceptance-closure.md
 ```
 
 ## Development Status
 
 ```text
 Current phase: Phase 12 — Test Deployment & External Integration Validation
-Current subphase: 12.8 — Full Internet E2E regression — In progress
-Current focus: execute the hosted Test regression on the accepted Internet deployment while keeping Vercel scheduler registration disabled; scheduler activation/recurrence validation is deferred to Phase 13 and must be production-only through environment-aware Vercel configuration
+Current subphase: 12.9 — Test observability, security, and recovery readiness — In progress
+Current focus: execute 12.9 Test observability, security, and recovery-readiness validation on the accepted Test deployment while keeping scheduler activation/recurrence production-only in Phase 13
 12.1 status: Completed and accepted on 2026-08-10
 12.1 documentation base: ede3881a0d2d341018c107fe0cfe5ba0a7f9c490
 12.1 record: docs/136-phase-12.1-test-deployment-and-environment-strategy.md
@@ -505,8 +507,12 @@ Current focus: execute the hosted Test regression on the accepted Internet deplo
 12.6 acceptance closure: docs/151-phase-12.6-acceptance-closure.md
 12.7 status: Deferred to Phase 13 on 2026-08-11 — no Vercel scheduler activation required in Test
 12.7 record: docs/152-phase-12.7-vercel-cron-deployment-and-scheduler-validation.md
-12.8 status: In progress — Full Internet E2E regression
+12.8 status: Completed and accepted on 2026-08-11 — hosted Full Internet E2E regression
+12.8 acceptance base head: 9f7594e5423a7f78163c1f0bad645823f9c17e8d
 12.8 start record: docs/153-phase-12.8-full-internet-e2e-regression-start.md
+12.8 matrix: docs/154-phase-12.8-hosted-internet-e2e-regression-matrix.md
+12.8 acceptance closure: docs/155-phase-12.8-acceptance-closure.md
+12.9 status: In progress — Test observability, security, and recovery readiness
 Vercel cron registration: intentionally disabled in Test; the Test project may remain on Hobby. Phase 13 owns production-only scheduler activation and recurrence validation through environment-aware Vercel configuration
 Test deployment status: stable HTTPS domain `trp-booking.juantzun.dev` is attached and operational
 Test domain target: https://trp-booking.juantzun.dev

@@ -6,10 +6,10 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 
 ```text
 Current phase: Phase 12 — Test Deployment & External Integration Validation
-Current subphase: 12.8 — Full Internet E2E regression — In progress
-Current focus: execute the hosted Test regression while keeping Vercel scheduler registration disabled; scheduler activation/recurrence validation is deferred to Phase 13 and must be production-only through environment-aware Vercel configuration
-Last updated: 2026-08-10
-Last completed subphase: 12.6 TRP Booking Test outbound iCal and controlled Airbnb round-trip
+Current subphase: 12.9 — Test observability, security, and recovery readiness — In progress
+Current focus: execute Test observability, security, and recovery-readiness validation while keeping scheduler activation/recurrence production-only in Phase 13
+Last updated: 2026-08-11
+Last completed subphase: 12.8 Full Internet E2E regression
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 11.6.5 acceptance: All 15 protected-history, ordering, relation, retry, ES/EN, responsive, security, and integrated criteria passed on 2026-08-05
 11.6.5 implementation and acceptance document: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md
@@ -21,7 +21,7 @@ Last completed subphase: 12.6 TRP Booking Test outbound iCal and controlled Airb
 11.7 validated closure base: 16cca9e63f5fd8d8af590fc1211dbc69d642f1f6
 Phase 11 accepted feature head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 Phase 11 closure document: docs/120-phase-11.7-validation-and-documentation-closure.md
-Phase 12 status: In progress — 12.1 through 12.6 completed and accepted; 12.7 scheduler activation deferred to Phase 13; 12.8 in progress
+Phase 12 status: In progress — 12.1 through 12.6 and 12.8 completed and accepted; 12.7 scheduler activation deferred to Phase 13; 12.9 in progress
 Phase 12.1 documentation base: ede3881a0d2d341018c107fe0cfe5ba0a7f9c490
 Phase 12.1 record: docs/136-phase-12.1-test-deployment-and-environment-strategy.md
 Phase 12.2 status: Completed and accepted on 2026-08-10
@@ -63,8 +63,12 @@ Phase 12.6.1.1 record: docs/150-phase-12.6.1.1-airbnb-ics-url-compatibility.md
 Phase 12.6 acceptance closure: docs/151-phase-12.6-acceptance-closure.md
 Phase 12.7 status: Deferred to Phase 13 on 2026-08-11 — no Test scheduler activation required
 Phase 12.7 record: docs/152-phase-12.7-vercel-cron-deployment-and-scheduler-validation.md
-Phase 12.8 status: In progress — Full Internet E2E regression
+Phase 12.8 status: Completed and accepted on 2026-08-11 — Full Internet E2E regression
+Phase 12.8 acceptance base head: 9f7594e5423a7f78163c1f0bad645823f9c17e8d
 Phase 12.8 start record: docs/153-phase-12.8-full-internet-e2e-regression-start.md
+Phase 12.8 matrix: docs/154-phase-12.8-hosted-internet-e2e-regression-matrix.md
+Phase 12.8 acceptance closure: docs/155-phase-12.8-acceptance-closure.md
+Phase 12.9 status: In progress — Test observability, security, and recovery readiness
 Phase 13 status: Not started — Production Infrastructure, Deployment & Go-Live follows successful Phase 12 closure
 Pre-Phase-12 Improvement Track status: Completed and accepted — Packages A, B, C, E, and F accepted; Package D remains deferred outside the current gate
 Pre-Phase-12 Improvement Track registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
@@ -861,14 +865,32 @@ Status: **Deferred to Phase 13 on 2026-08-11**
 
 ### Phase 12.8 — Full Internet E2E regression
 
+Status: **Completed and accepted on 2026-08-11**
+
+```text
+- The hosted A–H reduced regression completed successfully against the stable Test domain.
+- Public ES/EN/mobile smoke, pending-hold isolation, Tilopay sandbox approval, guest/admin email delivery, Reply-To/Zoho handoff, Google OAuth/admin detail, and confirmed availability behavior passed.
+- A paid direct Apartment reservation propagated through TRP outbound iCal to the matching Airbnb/Complete listing behavior without Bungalow contamination or feedback expansion.
+- Standard cancellation froze the expected 100% policy result, released availability independently, and the one STANDARD_POLICY sandbox refund reconciled APPROVED with Payment REFUNDED while Reservation remained CANCELLED.
+- Final outbound cleanup, Airbnb release, inbound reconciliation/soft-delete, and availability recovery passed.
+- The second unchanged sync completed with eventsImported=0, eventsRemoved=0, blocksCreated=0; the accepted active duplicate-block query returned 0 rows.
+- env/email/Airbnb/admin-calendar/db validators, lint, build, git diff --check, and clean git status all passed.
+- No Production resource, credential, Vercel schedule, application-code change, schema change, migration, dependency, or runtime configuration change was introduced for 12.8.
+- Acceptance base head: 9f7594e5423a7f78163c1f0bad645823f9c17e8d.
+- Start record: docs/153-phase-12.8-full-internet-e2e-regression-start.md.
+- Execution matrix: docs/154-phase-12.8-hosted-internet-e2e-regression-matrix.md.
+- Acceptance closure: docs/155-phase-12.8-acceptance-closure.md.
+```
+
+### Phase 12.9 — Test observability, security, and recovery readiness
+
 Status: **In progress**
 
 ```text
-- The hosted Test deployment remains the target.
-- Scheduler recurrence is not part of Test acceptance.
-- Cron-owned business services may be exercised manually through the accepted protected admin cron console when required by the regression.
-- The exact reduced Internet E2E matrix will be derived from the accepted Phase 8–12 contracts before execution rather than invented from memory.
-- Start record: docs/153-phase-12.8-full-internet-e2e-regression-start.md.
+- Begins after accepted 12.8 hosted lifecycle/regression evidence.
+- Owns the systematic Test-runtime log and provider-secret/token safety review, monitoring/alerting coverage, recovery/runbook completeness, stale/failure operational readiness, incident readiness, backup/recovery readiness, and broader security-header/provider-surface review.
+- Must not activate Vercel scheduler recurrence in Test; production-only scheduler activation remains Phase 13.
+- Exact 12.9 validation scope/evidence should be derived from the current repository and accepted Phase 12 contracts before closure.
 ```
 
 ## Continuity Notes for New Conversations
@@ -953,6 +975,8 @@ docs/150-phase-12.6.1.1-airbnb-ics-url-compatibility.md
 docs/151-phase-12.6-acceptance-closure.md
 docs/152-phase-12.7-vercel-cron-deployment-and-scheduler-validation.md
 docs/153-phase-12.8-full-internet-e2e-regression-start.md
+docs/154-phase-12.8-hosted-internet-e2e-regression-matrix.md
+docs/155-phase-12.8-acceptance-closure.md
 lib/admin/reservation-cancellation.ts
 lib/admin/reservation-date-mutation.ts
 lib/reservations/date-mutation-completion.ts

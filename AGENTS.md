@@ -8,7 +8,7 @@ This file defines the working rules for TRP Booking.
 - Internal project name: `TRP Booking`.
 - Public brand: `Tu Refugio Perfecto` / `Bungalows Tu Refugio Perfecto`.
 - Official production domain: `turefugioperfecto.com`.
-- Stable Test domain target: `trp-booking.juantzun.dev`; Phase 12 owns its first Vercel deployment and no deployment exists there yet as of 2026-08-10.
+- Stable Test domain: `trp-booking.juantzun.dev`; the Vercel Test deployment is operational and accepted, while Phase 12 continues Test-only external-integration validation.
 - This project is a direct booking website, not a PMS.
 - TAMIAS remains the PMS / internal operations system.
 
