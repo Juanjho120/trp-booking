@@ -13,7 +13,6 @@
     "airbnb:export-policy:validate": "tsx scripts/validate-airbnb-ical-export-policy.ts",
     "airbnb:export-path:validate": "tsx scripts/validate-airbnb-ical-export-path.ts",
     "admin:calendar-display:validate": "tsx scripts/validate-admin-calendar-display.ts",
-    "final-a:financial-summary:validate": "tsx scripts/validate-final-a-2-financial-summary.ts",
     "db:validate": "prisma validate",
     "db:format": "prisma format",
     "db:generate": "prisma generate",

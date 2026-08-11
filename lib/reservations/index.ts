@@ -31,3 +31,12 @@ export type {
   ReservationFinancialSummary,
   ReservationFinancialSummaryErrorCode,
 } from "./financial-summary";
+
+export {
+  allocateReservationRefund,
+  ReservationRefundAllocationError,
+} from "./refund-allocation";
+export type {
+  ReservationRefundAllocation,
+  ReservationRefundAllocationLeg,
+} from "./refund-allocation";

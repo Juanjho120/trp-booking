@@ -6,7 +6,8 @@
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-A — Reservation financial correctness and effective stay value
 Subphase: Final-A.2 — Central financial summary and cancellation-policy correction
-Status: Implementation prepared — pending local/Test validation and owner acceptance
+Status: Completed and accepted on 2026-08-11
+Accepted head: 9f4e04068726451ca87614dd99b1f10656510825
 Preparation date: 2026-08-11
 Implementation base head: 19531568752a44446d0802d6581262260b881aaf
 Previous subphase: Final-A.1 — Completed and accepted by owner commit
@@ -245,34 +246,27 @@ No provider payload, card value, credential, token, or private URL is added.
 `lib/reservations/index.ts` exports the new financial summary service and types so later Final-A
 subphases can reuse one contract instead of recreating financial calculations.
 
-## Validation Script
+## Final-A Test Strategy Correction
 
-New validation:
+Final-A.2 originally introduced a dedicated per-subphase validation script while the financial
+summary was being stabilized. Before Final-A.3 acceptance, that temporary validator is removed.
 
-```text
-scripts/validate-final-a-2-financial-summary.ts
-npm run final-a:financial-summary:validate
-```
-
-The deterministic validation covers:
+The Final-A track uses the following rule going forward:
 
 ```text
-- original-only Reservation
-- completed positive STAY_EXTENSION
-- completed positive DATE_CHANGE
-- zero adjustment exclusion
-- failed positive completion plus compensation exclusion
-- PENDING Refund reservation of balance
-- FAILED Refund release of balance
-- negative/current-contract example with committed refund
-- initial-payment-first ordering
-- 100% of USD 195 = USD 195.00
-- 50% of USD 195 = USD 97.50
-- 0% of USD 195 = USD 0.00
-- missing initial Payment fails with the dedicated source-payment error
-- duplicate initial Payment fails closed
-- mismatched completed positive adjustment fails closed
+- Final-A.2 through Final-A.5 do not add one-off business-logic validator scripts.
+- Build/lint/Prisma validation and controlled functional checks remain subphase gates.
+- Automated business/regression tests for the complete financial correction are implemented and
+  executed in Final-A.6, where the integrated Final-A acceptance matrix already belongs.
+- Existing cross-cutting validators for environment, email, Airbnb, and admin-calendar contracts
+  remain unchanged because they protect accepted architectural boundaries rather than one
+  Final-A subphase.
 ```
+
+The temporary `scripts/validate-final-a-2-financial-summary.ts` file and its npm script are removed
+as part of the Final-A.3 correction package. The successful validator run performed during A.2
+remains historical evidence for the accepted A.2 commit; the script itself is not retained as
+permanent project infrastructure.
 
 ## Scope Boundaries
 
@@ -301,11 +295,11 @@ plus a USD 65 adjustment Payment.
 That remaining provider-allocation limitation is the exact scope of Final-A.3 and is not hidden or
 treated as an A.2 regression.
 
-## Files Added
+## Files Added by the Accepted A.2 Commit
 
 ```text
 lib/reservations/financial-summary.ts
-scripts/validate-final-a-2-financial-summary.ts
+scripts/validate-final-a-2-financial-summary.ts  # temporary; removed before A.3 acceptance
 docs/162-final-a-2-central-financial-summary-and-cancellation-policy-correction.md
 ```
 
@@ -325,8 +319,10 @@ docs/161-final-a-financial-correctness-strategy-and-roadmap.md
 
 ## Required Local Validation
 
+The dedicated Final-A.2 validator was used before the accepted A.2 commit and is subsequently
+removed. Ongoing regression coverage moves to Final-A.6. The retained cross-cutting/local gates are:
+
 ```powershell
-npm run final-a:financial-summary:validate
 npm run env:validate
 npm run email:contract:validate
 npm run airbnb:import-policy:validate

@@ -18,14 +18,17 @@ Current phase state: Phase 12 — Test Deployment & External Integration Validat
 Current numbered phase: none active
 Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
 Current package: Final-A — Reservation financial correctness and effective stay value — In progress
-Current subphase: Final-A.2 — Central financial summary and cancellation-policy correction — Implementation prepared; pending validation and owner acceptance
+Current subphase: Final-A.3 — Standard and extraordinary multi-payment refund authorization — Implementation prepared; pending validation and owner acceptance
 Final-A.1 status: Completed and accepted on 2026-08-11
 Final-A.1 accepted head: 19531568752a44446d0802d6581262260b881aaf
-Final-A.2 implementation base: 19531568752a44446d0802d6581262260b881aaf
+Final-A.2 status: Completed and accepted on 2026-08-11
+Final-A.2 accepted head: 9f4e04068726451ca87614dd99b1f10656510825
+Final-A.3 implementation base: 9f4e04068726451ca87614dd99b1f10656510825
 Track registration base: dac105088d2c46be05a900abed3dfe83e608e964
 Track plan: docs/160-post-phase-12-pre-phase-13-final-improvement-track.md
 Final-A strategy: docs/161-final-a-financial-correctness-strategy-and-roadmap.md
 Final-A.2 record: docs/162-final-a-2-central-financial-summary-and-cancellation-policy-correction.md
+Final-A.3 record: docs/163-final-a-3-standard-and-extraordinary-multi-payment-refunds.md
 Last completed subphase: Final-A.1 Financial source-of-truth and refund-allocation contract — accepted on 2026-08-11 at 19531568752a44446d0802d6581262260b881aaf
 Phase 13 status: Not started
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
@@ -86,7 +89,7 @@ Phase 12.9 closure: docs/158-phase-12.9-acceptance-closure.md
 Phase 12.10 status: Completed and accepted on 2026-08-11 — Phase 12 validation and closure
 Phase 12.10 validated repository head: ebe28579872cbc2414573ef852b15139a2501551
 Phase 12 closure: docs/159-phase-12.10-phase-12-validation-and-closure.md
-Next work: validate and accept Final-A.2 central financial summary and cancellation-policy correction, then begin Final-A.3 multi-payment refund authorization
+Next work: validate and accept Final-A.3 standard and extraordinary multi-payment refund authorization, then begin Final-A.4 negative DATE_CHANGE multi-payment integration
 Next planned numbered phase: Phase 13 — Production Infrastructure, Deployment & Go-Live — Not started
 Pre-Phase-12 Improvement Track status: Completed and accepted — Packages A, B, C, E, and F accepted; Package D remains deferred outside the current gate
 Pre-Phase-12 Improvement Track registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
@@ -1158,8 +1161,8 @@ Packages:
 ```text
 Final-A Reservation financial correctness and effective stay value — In progress
   Final-A.1 Financial source-of-truth and refund-allocation contract — Completed and accepted on 2026-08-11 at 19531568752a44446d0802d6581262260b881aaf
-  Final-A.2 Central financial summary and cancellation-policy correction — Implementation prepared; pending validation and owner acceptance
-  Final-A.3 Standard and extraordinary multi-payment refund authorization — Not started
+  Final-A.2 Central financial summary and cancellation-policy correction — Completed and accepted on 2026-08-11 at 9f4e04068726451ca87614dd99b1f10656510825
+  Final-A.3 Standard and extraordinary multi-payment refund authorization — Implementation prepared; pending validation and owner acceptance
   Final-A.4 Negative DATE_CHANGE multi-payment integration — Not started
   Final-A.5 Admin UX, notification copy, and operational-history integration — Not started
   Final-A.6 Integrated acceptance and documentation closure — Not started
@@ -1179,6 +1182,8 @@ Authoritative track plan: `docs/160-post-phase-12-pre-phase-13-final-improvement
 Final-A strategy and subphase roadmap: `docs/161-final-a-financial-correctness-strategy-and-roadmap.md`.
 
 Final-A.2 implementation/validation record: `docs/162-final-a-2-central-financial-summary-and-cancellation-policy-correction.md`.
+
+Final-A.3 implementation/validation record: `docs/163-final-a-3-standard-and-extraordinary-multi-payment-refunds.md`.
 
 Phase 13 must not start until Final-H is completed and the owner explicitly accepts this track.
 

@@ -12,6 +12,15 @@ import {
 
 import { prisma } from "@/lib/db/prisma";
 import {
+  getReservationFinancialSummary,
+  ReservationFinancialSummaryError,
+} from "@/lib/reservations/financial-summary";
+import {
+  allocateReservationRefund,
+  ReservationRefundAllocationError,
+  type ReservationRefundAllocation,
+} from "@/lib/reservations/refund-allocation";
+import {
   createRefundNotificationIntents,
   deliverLifecycleNotificationsBestEffort,
 } from "@/lib/email";
@@ -72,6 +81,7 @@ const refundSummarySelect = {
   id: true,
   paymentId: true,
   lifecycleRequestId: true,
+  refundOperationKey: true,
   clientRequestId: true,
   authorizationType: true,
   providerRefundId: true,
@@ -98,6 +108,9 @@ const refundSummarySelect = {
 type RefundSummaryRecord = Prisma.RefundGetPayload<{
   select: typeof refundSummarySelect;
 }>;
+
+type RefundSummaryLike = Omit<RefundSummaryRecord, "refundOperationKey"> &
+  Readonly<{ refundOperationKey?: string | null }>;
 
 const lifecycleRequestForRefundSelect = {
   id: true,
@@ -143,11 +156,22 @@ const refundForActionSelect = {
       id: true,
       reservationId: true,
       purpose: true,
+      lifecycleRequestId: true,
       providerReference: true,
       status: true,
       amount: true,
       currency: true,
       updatedAt: true,
+      lifecycleRequest: {
+        select: {
+          id: true,
+          reservationId: true,
+          requestType: true,
+          status: true,
+          financialDifference: true,
+          currency: true,
+        },
+      },
       reservation: {
         select: {
           id: true,
@@ -331,12 +355,13 @@ function toAdminSummary(admin: Readonly<{ name: string | null; email: string }>)
 }
 
 export function toAdminRefundSummary(
-  refund: RefundSummaryRecord,
+  refund: RefundSummaryLike,
 ): AdminRefundSummary {
   return {
     id: refund.id,
     paymentId: refund.paymentId,
     lifecycleRequestId: refund.lifecycleRequestId,
+    refundOperationKey: refund.refundOperationKey ?? null,
     requestedByAdmin: refund.requestedByAdmin
       ? toAdminSummary(refund.requestedByAdmin)
       : null,
@@ -358,21 +383,49 @@ export function toAdminRefundSummary(
   };
 }
 
-function buildStandardRefundIdempotencyKey(
+function buildLegacyStandardRefundIdempotencyKey(
   lifecycleRequestId: string,
   requestId: string,
 ): string {
-  // Preserve the Phase 11.4 key so retries of an existing standard request
-  // continue resolving to the same Refund row.
   return `refund-authorization/${lifecycleRequestId}/${requestId}`;
 }
 
-function buildExtraordinaryRefundIdempotencyKey(
+function buildLegacyExtraordinaryRefundIdempotencyKey(
   reservationId: string,
   paymentId: string,
   requestId: string,
 ): string {
   return `refund-extraordinary/${reservationId}/${paymentId}/${requestId}`;
+}
+
+function buildStandardRefundOperationKey(
+  lifecycleRequestId: string,
+  requestId: string,
+): string {
+  return `standard/${lifecycleRequestId}/${requestId}`;
+}
+
+function buildExtraordinaryRefundOperationKey(
+  reservationId: string,
+  requestId: string,
+): string {
+  return `extraordinary/${reservationId}/${requestId}`;
+}
+
+function buildRefundChildRequestId(
+  requestId: string,
+  legIndex: number,
+  paymentId: string,
+): string {
+  return `${requestId}/${String(legIndex).padStart(3, "0")}/${paymentId}`;
+}
+
+function buildRefundChildIdempotencyKey(
+  operationKey: string,
+  legIndex: number,
+  paymentId: string,
+): string {
+  return `refund/${operationKey}/${String(legIndex).padStart(3, "0")}/${paymentId}`;
 }
 
 async function sumRefundAmounts(
@@ -419,19 +472,12 @@ function assertStandardLifecycleRequestEligible(
   if (
     !request.sourcePayment ||
     request.sourcePaymentId !== request.sourcePayment.id ||
-    request.sourcePayment.purpose !== PaymentPurpose.INITIAL_RESERVATION
+    request.sourcePayment.purpose !== PaymentPurpose.INITIAL_RESERVATION ||
+    !REFUND_PAYMENT_HISTORY_STATUSES.includes(
+      request.sourcePayment.status as (typeof REFUND_PAYMENT_HISTORY_STATUSES)[number],
+    )
   ) {
     throw new AdminRefundError("ADMIN_REFUND_PAYMENT_NOT_FOUND");
-  }
-
-  if (
-    !REFUNDABLE_PAYMENT_STATUSES.includes(
-      request.sourcePayment.status as (typeof REFUNDABLE_PAYMENT_STATUSES)[number],
-    ) ||
-    request.sourcePayment.updatedAt.toISOString() !==
-      input.expectedPaymentUpdatedAt
-  ) {
-    throw new AdminRefundError("ADMIN_REFUND_PAYMENT_NOT_REFUNDABLE");
   }
 
   if (
@@ -443,78 +489,286 @@ function assertStandardLifecycleRequestEligible(
   }
 }
 
-const extraordinaryPaymentSelect = {
-  id: true,
-  reservationId: true,
-  purpose: true,
-  status: true,
-  amount: true,
-  currency: true,
-  providerReference: true,
-  updatedAt: true,
-  reservation: {
-    select: {
-      id: true,
-      status: true,
-      updatedAt: true,
-    },
-  },
-} satisfies Prisma.PaymentSelect;
-
-type ExtraordinaryPayment = Prisma.PaymentGetPayload<{
-  select: typeof extraordinaryPaymentSelect;
-}>;
-
-function assertExtraordinaryPaymentEligible(
-  payment: ExtraordinaryPayment,
-  input: CreateAdminExtraordinaryRefundInput,
-): void {
+function mapFinancialSummaryError(
+  error: ReservationFinancialSummaryError | ReservationRefundAllocationError,
+): AdminRefundError {
   if (
-    payment.id !== input.paymentId ||
-    payment.reservationId !== input.reservationId ||
-    payment.purpose !== PaymentPurpose.INITIAL_RESERVATION
+    error instanceof ReservationRefundAllocationError &&
+    error.code === "RESERVATION_REFUND_ALLOCATION_INSUFFICIENT_BALANCE"
   ) {
-    throw new AdminRefundError("ADMIN_REFUND_PAYMENT_NOT_FOUND");
+    return new AdminRefundError("ADMIN_REFUND_AMOUNT_EXCEEDS_PAYMENT");
   }
 
   if (
-    payment.reservation.status !== ReservationStatus.CONFIRMED &&
-    payment.reservation.status !== ReservationStatus.CANCELLED
+    error instanceof ReservationFinancialSummaryError &&
+    (error.code === "RESERVATION_FINANCIAL_SUMMARY_NOT_FOUND" ||
+      error.code === "RESERVATION_FINANCIAL_SUMMARY_INITIAL_PAYMENT_NOT_FOUND")
   ) {
-    throw new AdminRefundError("ADMIN_REFUND_RESERVATION_NOT_ELIGIBLE");
+    return new AdminRefundError("ADMIN_REFUND_PAYMENT_NOT_FOUND");
   }
 
-  if (
-    payment.reservation.updatedAt.toISOString() !==
-      input.expectedReservationUpdatedAt ||
-    payment.updatedAt.toISOString() !== input.expectedPaymentUpdatedAt
-  ) {
-    throw new AdminRefundError("ADMIN_REFUND_STALE");
-  }
+  return new AdminRefundError("ADMIN_REFUND_UNEXPECTED_ERROR");
+}
 
-  if (
-    !REFUNDABLE_PAYMENT_STATUSES.includes(
-      payment.status as (typeof REFUNDABLE_PAYMENT_STATUSES)[number],
-    )
-  ) {
-    throw new AdminRefundError("ADMIN_REFUND_PAYMENT_NOT_REFUNDABLE");
+async function buildRefundAllocation(
+  transaction: Prisma.TransactionClient,
+  reservationId: string,
+  amount: Prisma.Decimal,
+): Promise<Readonly<{
+  allocation: ReservationRefundAllocation;
+  currency: string;
+  remainingRefundableStayBalance: Prisma.Decimal;
+}>> {
+  try {
+    const summary = await getReservationFinancialSummary(
+      reservationId,
+      transaction,
+    );
+    const allocation = allocateReservationRefund(
+      amount,
+      summary.eligibleStayPayments,
+    );
+
+    return {
+      allocation,
+      currency: summary.currency,
+      remainingRefundableStayBalance: summary.remainingRefundableStayBalance,
+    };
+  } catch (error) {
+    if (
+      error instanceof ReservationFinancialSummaryError ||
+      error instanceof ReservationRefundAllocationError
+    ) {
+      throw mapFinancialSummaryError(error);
+    }
+
+    throw error;
   }
 }
 
-async function readRefundSummaryById(
+function assertApiModeSupportedByAllocation(
+  allocation: ReservationRefundAllocation,
+  processingMode: RefundProcessingMode | string,
+): void {
+  if (
+    processingMode === RefundProcessingMode.TILOPAY_API &&
+    allocation.legs.some((leg) => !leg.providerReference?.trim())
+  ) {
+    throw new AdminRefundError("ADMIN_REFUND_PAYMENT_NOT_FOUND");
+  }
+}
+
+async function fenceAllocatedPayments(
   transaction: Prisma.TransactionClient,
-  refundId: string,
-): Promise<AdminRefundSummary> {
-  const refund = await transaction.refund.findUnique({
-    where: { id: refundId },
+  allocation: ReservationRefundAllocation,
+): Promise<void> {
+  for (const leg of allocation.legs) {
+    const fence = await transaction.payment.updateMany({
+      where: {
+        id: leg.paymentId,
+        updatedAt: leg.expectedPaymentUpdatedAt,
+        status: { in: [...REFUNDABLE_PAYMENT_STATUSES] },
+      },
+      data: {
+        updatedAt: leg.expectedPaymentUpdatedAt,
+      },
+    });
+
+    if (fence.count !== 1) {
+      throw new AdminRefundError("ADMIN_REFUND_STALE");
+    }
+  }
+}
+
+async function createRefundChildren(
+  transaction: Prisma.TransactionClient,
+  input: Readonly<{
+    operationKey: string;
+    allocation: ReservationRefundAllocation;
+    lifecycleRequestId: string | null;
+    authorizationType: RefundAuthorizationType;
+    requestedByAdminId: string;
+    logicalRequestId: string;
+    reason: string;
+    processingMode: RefundProcessingMode;
+  }>,
+): Promise<readonly RefundSummaryRecord[]> {
+  const children: RefundSummaryRecord[] = [];
+
+  for (const [index, leg] of input.allocation.legs.entries()) {
+    const child = await transaction.refund.create({
+      data: {
+        paymentId: leg.paymentId,
+        lifecycleRequestId: input.lifecycleRequestId,
+        refundOperationKey: input.operationKey,
+        requestedByAdminId: input.requestedByAdminId,
+        clientRequestId: buildRefundChildRequestId(
+          input.logicalRequestId,
+          index,
+          leg.paymentId,
+        ),
+        idempotencyKey: buildRefundChildIdempotencyKey(
+          input.operationKey,
+          index,
+          leg.paymentId,
+        ),
+        authorizationType: input.authorizationType,
+        amount: leg.amount,
+        currency: leg.currency,
+        reason: input.reason,
+        status: RefundStatus.PENDING,
+        processingMode: input.processingMode,
+      },
+      select: refundSummarySelect,
+    });
+    children.push(child);
+  }
+
+  return children;
+}
+
+function toAuthorizationResult(
+  refunds: readonly RefundSummaryRecord[],
+  requestedAmount: Prisma.Decimal,
+  operationKey: string | null,
+  alreadyProcessed: boolean,
+): AdminRefundAuthorizationResult {
+  if (refunds.length === 0) {
+    throw new AdminRefundError("ADMIN_REFUND_UNEXPECTED_ERROR");
+  }
+
+  const summaries = refunds.map(toAdminRefundSummary);
+
+  return {
+    refund: summaries[0],
+    refunds: summaries,
+    refundOperationKey: operationKey,
+    requestedAmount: requestedAmount.toFixed(2),
+    alreadyProcessed,
+  };
+}
+
+async function readExistingOperation(
+  transaction: Pick<Prisma.TransactionClient, "refund">,
+  input: Readonly<{
+    operationKey: string;
+    requestedAmount: Prisma.Decimal;
+    authorizationType: RefundAuthorizationType;
+    lifecycleRequestId: string | null;
+    processingMode: RefundProcessingMode | string;
+    reason: string;
+  }>,
+): Promise<AdminRefundAuthorizationResult | null> {
+  const existing = await transaction.refund.findMany({
+    where: { refundOperationKey: input.operationKey },
+    orderBy: [{ clientRequestId: "asc" }, { id: "asc" }],
     select: refundSummarySelect,
   });
 
-  if (!refund) {
-    throw new AdminRefundError("ADMIN_REFUND_NOT_FOUND");
+  if (existing.length === 0) {
+    return null;
   }
 
-  return toAdminRefundSummary(refund);
+  const total = existing.reduce(
+    (sum, refund) => sum.add(refund.amount).toDecimalPlaces(2),
+    new Prisma.Decimal(0),
+  );
+  const normalizedReason = normalizeRequiredText(
+    input.reason,
+    REFUND_REASON_MAX_LENGTH,
+  );
+
+  if (
+    !total.equals(input.requestedAmount) ||
+    existing.some(
+      (refund) =>
+        refund.authorizationType !== input.authorizationType ||
+        refund.lifecycleRequestId !== input.lifecycleRequestId ||
+        refund.processingMode !== input.processingMode ||
+        refund.reason !== normalizedReason,
+    )
+  ) {
+    throw new AdminRefundError("ADMIN_REFUND_UNEXPECTED_ERROR");
+  }
+
+  return toAuthorizationResult(
+    existing,
+    input.requestedAmount,
+    input.operationKey,
+    true,
+  );
+}
+
+async function readLegacyStandardAuthorization(
+  transaction: Pick<Prisma.TransactionClient, "refund">,
+  lifecycleRequestId: string,
+  requestId: string,
+  amount: Prisma.Decimal,
+  processingMode: RefundProcessingMode | string,
+): Promise<AdminRefundAuthorizationResult | null> {
+  const existing = await transaction.refund.findUnique({
+    where: {
+      idempotencyKey: buildLegacyStandardRefundIdempotencyKey(
+        lifecycleRequestId,
+        requestId,
+      ),
+    },
+    select: refundSummarySelect,
+  });
+
+  if (!existing) {
+    return null;
+  }
+
+  if (
+    existing.lifecycleRequestId !== lifecycleRequestId ||
+    existing.authorizationType !== RefundAuthorizationType.STANDARD_POLICY ||
+    !existing.amount.equals(amount) ||
+    existing.processingMode !== processingMode
+  ) {
+    throw new AdminRefundError("ADMIN_REFUND_UNEXPECTED_ERROR");
+  }
+
+  return toAuthorizationResult([existing], amount, null, true);
+}
+
+async function readLegacyExtraordinaryAuthorization(
+  transaction: Pick<Prisma.TransactionClient, "refund">,
+  input: CreateAdminExtraordinaryRefundInput,
+  amount: Prisma.Decimal,
+): Promise<AdminRefundAuthorizationResult | null> {
+  const paymentId = input.paymentId?.trim();
+
+  if (!paymentId) {
+    return null;
+  }
+
+  const existing = await transaction.refund.findUnique({
+    where: {
+      idempotencyKey: buildLegacyExtraordinaryRefundIdempotencyKey(
+        input.reservationId.trim(),
+        paymentId,
+        input.requestId.trim(),
+      ),
+    },
+    select: refundSummarySelect,
+  });
+
+  if (!existing) {
+    return null;
+  }
+
+  if (
+    existing.lifecycleRequestId !== null ||
+    existing.paymentId !== paymentId ||
+    existing.authorizationType !== RefundAuthorizationType.EXTRAORDINARY ||
+    !existing.amount.equals(amount) ||
+    existing.processingMode !== input.processingMode
+  ) {
+    throw new AdminRefundError("ADMIN_REFUND_UNEXPECTED_ERROR");
+  }
+
+  return toAuthorizationResult([existing], amount, null, true);
 }
 
 async function createStandardRefundAuthorizationTransaction(
@@ -523,37 +777,44 @@ async function createStandardRefundAuthorizationTransaction(
 ): Promise<AdminRefundAuthorizationResult> {
   const lifecycleRequestId = input.lifecycleRequestId.trim();
   const requestId = input.requestId.trim();
-  const idempotencyKey = buildStandardRefundIdempotencyKey(
+  const operationKey = buildStandardRefundOperationKey(
     lifecycleRequestId,
     requestId,
   );
   const amount = parsePositiveAmount(input.amount);
+  const normalizedReason = normalizeRequiredText(
+    input.reason,
+    REFUND_REASON_MAX_LENGTH,
+  );
 
   return prisma.$transaction(
     async (transaction) => {
-      const adminActor = await resolveAdminActor(transaction, actor);
-      const existing = await transaction.refund.findUnique({
-        where: { idempotencyKey },
-        select: refundSummarySelect,
+      const existingOperation = await readExistingOperation(transaction, {
+        operationKey,
+        requestedAmount: amount,
+        authorizationType: RefundAuthorizationType.STANDARD_POLICY,
+        lifecycleRequestId,
+        processingMode: input.processingMode,
+        reason: normalizedReason,
       });
 
-      if (existing) {
-        if (
-          existing.lifecycleRequestId !== lifecycleRequestId ||
-          existing.clientRequestId !== requestId ||
-          existing.authorizationType !== RefundAuthorizationType.STANDARD_POLICY ||
-          !existing.amount.equals(amount) ||
-          existing.processingMode !== input.processingMode
-        ) {
-          throw new AdminRefundError("ADMIN_REFUND_UNEXPECTED_ERROR");
-        }
-
-        return {
-          refund: toAdminRefundSummary(existing),
-          alreadyProcessed: true,
-        };
+      if (existingOperation) {
+        return existingOperation;
       }
 
+      const legacy = await readLegacyStandardAuthorization(
+        transaction,
+        lifecycleRequestId,
+        requestId,
+        amount,
+        input.processingMode,
+      );
+
+      if (legacy) {
+        return legacy;
+      }
+
+      const adminActor = await resolveAdminActor(transaction, actor);
       const lifecycleRequest =
         await transaction.reservationLifecycleRequest.findUnique({
           where: { id: lifecycleRequestId },
@@ -567,7 +828,6 @@ async function createStandardRefundAuthorizationTransaction(
       }
 
       assertStandardLifecycleRequestEligible(lifecycleRequest, input);
-      const payment = lifecycleRequest.sourcePayment;
       const standardPolicyAmount = lifecycleRequest.standardRefundAmount;
       const standardCommittedAmount = await sumRefundAmounts(transaction, {
         lifecycleRequestId,
@@ -579,17 +839,9 @@ async function createStandardRefundAuthorizationTransaction(
         },
         status: { in: [...COMMITTED_REFUND_STATUSES] },
       });
-      const paymentCommittedAmount = await sumRefundAmounts(transaction, {
-        paymentId: payment.id,
-        status: { in: [...COMMITTED_REFUND_STATUSES] },
-      });
       const policyDifference = standardPolicyAmount.sub(standardCommittedAmount);
-      const paymentDifference = payment.amount.sub(paymentCommittedAmount);
       const remainingPolicyAmount = policyDifference.greaterThan(0)
         ? policyDifference
-        : new Prisma.Decimal(0);
-      const remainingPaymentAmount = paymentDifference.greaterThan(0)
-        ? paymentDifference
         : new Prisma.Decimal(0);
 
       if (
@@ -605,21 +857,21 @@ async function createStandardRefundAuthorizationTransaction(
         );
       }
 
-      if (amount.greaterThan(remainingPaymentAmount)) {
-        throw new AdminRefundError("ADMIN_REFUND_AMOUNT_EXCEEDS_PAYMENT");
-      }
-
-      if (
-        input.processingMode === RefundProcessingMode.TILOPAY_API &&
-        !payment.providerReference?.trim()
-      ) {
-        throw new AdminRefundError("ADMIN_REFUND_PAYMENT_NOT_FOUND");
-      }
-
-      const normalizedReason = normalizeRequiredText(
-        input.reason,
-        REFUND_REASON_MAX_LENGTH,
+      const financial = await buildRefundAllocation(
+        transaction,
+        lifecycleRequest.reservation.id,
+        amount,
       );
+
+      if (financial.currency !== lifecycleRequest.currency) {
+        throw new AdminRefundError("ADMIN_REFUND_UNEXPECTED_ERROR");
+      }
+
+      assertApiModeSupportedByAllocation(
+        financial.allocation,
+        input.processingMode,
+      );
+
       const requestFence =
         await transaction.reservationLifecycleRequest.updateMany({
           where: {
@@ -638,36 +890,20 @@ async function createStandardRefundAuthorizationTransaction(
           },
         });
 
-      const paymentFence = await transaction.payment.updateMany({
-        where: {
-          id: payment.id,
-          updatedAt: payment.updatedAt,
-          status: { in: [...REFUNDABLE_PAYMENT_STATUSES] },
-        },
-        data: {
-          updatedAt: payment.updatedAt,
-        },
-      });
-
-      if (requestFence.count !== 1 || paymentFence.count !== 1) {
+      if (requestFence.count !== 1) {
         throw new AdminRefundError("ADMIN_REFUND_STALE");
       }
 
-      const refund = await transaction.refund.create({
-        data: {
-          paymentId: payment.id,
-          lifecycleRequestId: lifecycleRequest.id,
-          requestedByAdminId: adminActor.id,
-          clientRequestId: requestId,
-          idempotencyKey,
-          authorizationType: RefundAuthorizationType.STANDARD_POLICY,
-          amount,
-          currency: payment.currency,
-          reason: normalizedReason,
-          status: RefundStatus.PENDING,
-          processingMode: input.processingMode,
-        },
-        select: refundSummarySelect,
+      await fenceAllocatedPayments(transaction, financial.allocation);
+      const refunds = await createRefundChildren(transaction, {
+        operationKey,
+        allocation: financial.allocation,
+        lifecycleRequestId: lifecycleRequest.id,
+        authorizationType: RefundAuthorizationType.STANDARD_POLICY,
+        requestedByAdminId: adminActor.id,
+        logicalRequestId: requestId,
+        reason: normalizedReason,
+        processingMode: input.processingMode as RefundProcessingMode,
       });
 
       await transaction.adminAuditLog.create({
@@ -675,33 +911,35 @@ async function createStandardRefundAuthorizationTransaction(
           userId: adminActor.id,
           action: "REFUND_AUTHORIZED",
           entityType: "Refund",
-          entityId: refund.id,
+          entityId: refunds[0].id,
           metadata: {
             actorEmail: adminActor.email,
             reservationId: lifecycleRequest.reservation.id,
             reservationStatus: lifecycleRequest.reservation.status,
             lifecycleRequestId: lifecycleRequest.id,
-            paymentId: payment.id,
             clientRequestId: requestId,
+            refundOperationKey: operationKey,
+            refundIds: refunds.map((refund) => refund.id),
+            paymentIds: financial.allocation.legs.map((leg) => leg.paymentId),
+            legAmounts: financial.allocation.legs.map((leg) =>
+              leg.amount.toFixed(2),
+            ),
             amount: amount.toFixed(2),
-            currency: payment.currency,
+            currency: financial.currency,
             authorizationType: RefundAuthorizationType.STANDARD_POLICY,
             processingMode: input.processingMode,
             standardPolicyAmount: standardPolicyAmount.toFixed(2),
             standardPolicyCommittedBefore: standardCommittedAmount.toFixed(2),
             policyRemainingBefore: remainingPolicyAmount.toFixed(2),
-            paymentCommittedBefore: paymentCommittedAmount.toFixed(2),
-            paymentRemainingBefore: remainingPaymentAmount.toFixed(2),
+            stayRefundableBalanceBefore:
+              financial.remainingRefundableStayBalance.toFixed(2),
             outsideCancellationPolicy: false,
             providerCalled: false,
           },
         },
       });
 
-      return {
-        refund: toAdminRefundSummary(refund),
-        alreadyProcessed: false,
-      };
+      return toAuthorizationResult(refunds, amount, operationKey, false);
     },
     {
       isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
@@ -714,113 +952,113 @@ async function createExtraordinaryRefundAuthorizationTransaction(
   actor: AdminActor,
 ): Promise<AdminRefundAuthorizationResult> {
   const reservationId = input.reservationId.trim();
-  const paymentId = input.paymentId.trim();
   const requestId = input.requestId.trim();
-  const idempotencyKey = buildExtraordinaryRefundIdempotencyKey(
+  const operationKey = buildExtraordinaryRefundOperationKey(
     reservationId,
-    paymentId,
     requestId,
   );
   const amount = parsePositiveAmount(input.amount);
+  const normalizedReason = normalizeRequiredText(
+    input.reason,
+    REFUND_REASON_MAX_LENGTH,
+  );
 
   return prisma.$transaction(
     async (transaction) => {
-      const adminActor = await resolveAdminActor(transaction, actor);
-      const existing = await transaction.refund.findUnique({
-        where: { idempotencyKey },
-        select: refundSummarySelect,
+      const existingOperation = await readExistingOperation(transaction, {
+        operationKey,
+        requestedAmount: amount,
+        authorizationType: RefundAuthorizationType.EXTRAORDINARY,
+        lifecycleRequestId: null,
+        processingMode: input.processingMode,
+        reason: normalizedReason,
       });
 
-      if (existing) {
-        if (
-          existing.lifecycleRequestId !== null ||
-          existing.paymentId !== paymentId ||
-          existing.clientRequestId !== requestId ||
-          existing.authorizationType !== RefundAuthorizationType.EXTRAORDINARY ||
-          !existing.amount.equals(amount) ||
-          existing.processingMode !== input.processingMode
-        ) {
-          throw new AdminRefundError("ADMIN_REFUND_UNEXPECTED_ERROR");
-        }
-
-        return {
-          refund: toAdminRefundSummary(existing),
-          alreadyProcessed: true,
-        };
+      if (existingOperation) {
+        return existingOperation;
       }
 
-      const payment = await transaction.payment.findFirst({
-        where: {
-          id: paymentId,
-          reservationId,
-          purpose: PaymentPurpose.INITIAL_RESERVATION,
+      const legacy = await readLegacyExtraordinaryAuthorization(
+        transaction,
+        input,
+        amount,
+      );
+
+      if (legacy) {
+        return legacy;
+      }
+
+      const reservation = await transaction.reservation.findUnique({
+        where: { id: reservationId },
+        select: {
+          id: true,
+          status: true,
+          updatedAt: true,
+          currency: true,
         },
-        select: extraordinaryPaymentSelect,
       });
 
-      if (!payment) {
+      if (!reservation) {
         throw new AdminRefundError("ADMIN_REFUND_PAYMENT_NOT_FOUND");
-      }
-
-      assertExtraordinaryPaymentEligible(payment, input);
-
-      const paymentCommittedAmount = await sumRefundAmounts(transaction, {
-        paymentId: payment.id,
-        status: { in: [...COMMITTED_REFUND_STATUSES] },
-      });
-      const paymentDifference = payment.amount.sub(paymentCommittedAmount);
-      const remainingPaymentAmount = paymentDifference.greaterThan(0)
-        ? paymentDifference
-        : new Prisma.Decimal(0);
-
-      if (amount.greaterThan(remainingPaymentAmount)) {
-        throw new AdminRefundError("ADMIN_REFUND_AMOUNT_EXCEEDS_PAYMENT");
       }
 
       if (
-        input.processingMode === RefundProcessingMode.TILOPAY_API &&
-        !payment.providerReference?.trim()
+        reservation.status !== ReservationStatus.CONFIRMED &&
+        reservation.status !== ReservationStatus.CANCELLED
       ) {
-        throw new AdminRefundError("ADMIN_REFUND_PAYMENT_NOT_FOUND");
+        throw new AdminRefundError("ADMIN_REFUND_RESERVATION_NOT_ELIGIBLE");
       }
 
-      const normalizedReason = normalizeRequiredText(
-        input.reason,
-        REFUND_REASON_MAX_LENGTH,
-      );
-
-      const paymentFence = await transaction.payment.updateMany({
-        where: {
-          id: payment.id,
-          reservationId,
-          purpose: PaymentPurpose.INITIAL_RESERVATION,
-          updatedAt: payment.updatedAt,
-          status: { in: [...REFUNDABLE_PAYMENT_STATUSES] },
-        },
-        data: {
-          updatedAt: payment.updatedAt,
-        },
-      });
-
-      if (paymentFence.count !== 1) {
+      if (
+        reservation.updatedAt.toISOString() !==
+        input.expectedReservationUpdatedAt
+      ) {
         throw new AdminRefundError("ADMIN_REFUND_STALE");
       }
 
-      const refund = await transaction.refund.create({
-        data: {
-          paymentId: payment.id,
-          lifecycleRequestId: null,
-          requestedByAdminId: adminActor.id,
-          clientRequestId: requestId,
-          idempotencyKey,
-          authorizationType: RefundAuthorizationType.EXTRAORDINARY,
-          amount,
-          currency: payment.currency,
-          reason: normalizedReason,
-          status: RefundStatus.PENDING,
-          processingMode: input.processingMode,
+      const financial = await buildRefundAllocation(
+        transaction,
+        reservation.id,
+        amount,
+      );
+
+      if (financial.currency !== reservation.currency) {
+        throw new AdminRefundError("ADMIN_REFUND_UNEXPECTED_ERROR");
+      }
+
+      assertApiModeSupportedByAllocation(
+        financial.allocation,
+        input.processingMode,
+      );
+
+      const reservationFence = await transaction.reservation.updateMany({
+        where: {
+          id: reservation.id,
+          updatedAt: reservation.updatedAt,
+          status: {
+            in: [ReservationStatus.CONFIRMED, ReservationStatus.CANCELLED],
+          },
         },
-        select: refundSummarySelect,
+        data: {
+          updatedAt: reservation.updatedAt,
+        },
+      });
+
+      if (reservationFence.count !== 1) {
+        throw new AdminRefundError("ADMIN_REFUND_STALE");
+      }
+
+      await fenceAllocatedPayments(transaction, financial.allocation);
+      const adminActor = await resolveAdminActor(transaction, actor);
+      const refunds = await createRefundChildren(transaction, {
+        operationKey,
+        allocation: financial.allocation,
+        lifecycleRequestId: null,
+        authorizationType: RefundAuthorizationType.EXTRAORDINARY,
+        requestedByAdminId: adminActor.id,
+        logicalRequestId: requestId,
+        reason: normalizedReason,
+        processingMode: input.processingMode as RefundProcessingMode,
       });
 
       await transaction.adminAuditLog.create({
@@ -828,23 +1066,28 @@ async function createExtraordinaryRefundAuthorizationTransaction(
           userId: adminActor.id,
           action: "REFUND_EXTRAORDINARY_AUTHORIZED",
           entityType: "Refund",
-          entityId: refund.id,
+          entityId: refunds[0].id,
           metadata: {
             actorEmail: adminActor.email,
             reservationId,
-            reservationStatus: payment.reservation.status,
+            reservationStatus: reservation.status,
             lifecycleRequestId: null,
-            paymentId: payment.id,
             clientRequestId: requestId,
+            refundOperationKey: operationKey,
+            refundIds: refunds.map((refund) => refund.id),
+            paymentIds: financial.allocation.legs.map((leg) => leg.paymentId),
+            legAmounts: financial.allocation.legs.map((leg) =>
+              leg.amount.toFixed(2),
+            ),
             amount: amount.toFixed(2),
-            currency: payment.currency,
+            currency: financial.currency,
             authorizationType: RefundAuthorizationType.EXTRAORDINARY,
             processingMode: input.processingMode,
             standardPolicyAmount: null,
             standardPolicyCommittedBefore: null,
             policyRemainingBefore: null,
-            paymentCommittedBefore: paymentCommittedAmount.toFixed(2),
-            paymentRemainingBefore: remainingPaymentAmount.toFixed(2),
+            stayRefundableBalanceBefore:
+              financial.remainingRefundableStayBalance.toFixed(2),
             outsideCancellationPolicy: true,
             reservationCancelledByRefund: false,
             providerCalled: false,
@@ -852,10 +1095,7 @@ async function createExtraordinaryRefundAuthorizationTransaction(
         },
       });
 
-      return {
-        refund: toAdminRefundSummary(refund),
-        alreadyProcessed: false,
-      };
+      return toAuthorizationResult(refunds, amount, operationKey, false);
     },
     {
       isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
@@ -867,46 +1107,46 @@ async function findExistingAuthorizationAfterConflict(
   input: CreateAdminRefundInput,
   requestedAmount: Prisma.Decimal,
 ): Promise<AdminRefundAuthorizationResult | null> {
-  const idempotencyKey =
+  const operationKey =
     input.authorizationType === "EXTRAORDINARY"
-      ? buildExtraordinaryRefundIdempotencyKey(
+      ? buildExtraordinaryRefundOperationKey(
           input.reservationId.trim(),
-          input.paymentId.trim(),
           input.requestId.trim(),
         )
-      : buildStandardRefundIdempotencyKey(
+      : buildStandardRefundOperationKey(
           input.lifecycleRequestId.trim(),
           input.requestId.trim(),
         );
-  const existing = await prisma.refund.findUnique({
-    where: { idempotencyKey },
-    select: refundSummarySelect,
+  const lifecycleRequestId =
+    input.authorizationType === "EXTRAORDINARY"
+      ? null
+      : input.lifecycleRequestId.trim();
+  const authorizationType =
+    input.authorizationType === "EXTRAORDINARY"
+      ? RefundAuthorizationType.EXTRAORDINARY
+      : RefundAuthorizationType.STANDARD_POLICY;
+  const existingOperation = await readExistingOperation(prisma, {
+    operationKey,
+    requestedAmount,
+    authorizationType,
+    lifecycleRequestId,
+    processingMode: input.processingMode,
+    reason: input.reason,
   });
 
-  if (!existing) {
-    return null;
+  if (existingOperation) {
+    return existingOperation;
   }
 
-  const relationshipMatches =
-    input.authorizationType === "EXTRAORDINARY"
-      ? existing.lifecycleRequestId === null &&
-        existing.paymentId === input.paymentId.trim()
-      : existing.lifecycleRequestId === input.lifecycleRequestId.trim();
-
-  if (
-    !relationshipMatches ||
-    existing.clientRequestId !== input.requestId.trim() ||
-    existing.authorizationType !== input.authorizationType ||
-    !existing.amount.equals(requestedAmount) ||
-    existing.processingMode !== input.processingMode
-  ) {
-    throw new AdminRefundError("ADMIN_REFUND_UNEXPECTED_ERROR");
-  }
-
-  return {
-    refund: toAdminRefundSummary(existing),
-    alreadyProcessed: true,
-  };
+  return input.authorizationType === "EXTRAORDINARY"
+    ? readLegacyExtraordinaryAuthorization(prisma, input, requestedAmount)
+    : readLegacyStandardAuthorization(
+        prisma,
+        input.lifecycleRequestId.trim(),
+        input.requestId.trim(),
+        requestedAmount,
+        input.processingMode,
+      );
 }
 
 export async function createAdminRefundAuthorization(
@@ -940,6 +1180,22 @@ export async function createAdminRefundAuthorization(
   }
 }
 
+async function readRefundSummaryById(
+  transaction: Prisma.TransactionClient,
+  refundId: string,
+): Promise<AdminRefundSummary> {
+  const refund = await transaction.refund.findUnique({
+    where: { id: refundId },
+    select: refundSummarySelect,
+  });
+
+  if (!refund) {
+    throw new AdminRefundError("ADMIN_REFUND_NOT_FOUND");
+  }
+
+  return toAdminRefundSummary(refund);
+}
+
 async function readRefundForAction(
   refundId: string,
 ): Promise<RefundForAction> {
@@ -953,6 +1209,30 @@ async function readRefundForAction(
   }
 
   return refund;
+}
+
+function isCompletedPositiveStayAdjustmentPayment(
+  refund: RefundForAction,
+): boolean {
+  const lifecycleRequest = refund.payment.lifecycleRequest;
+  const difference = lifecycleRequest?.financialDifference;
+
+  return Boolean(
+    refund.payment.purpose === PaymentPurpose.LIFECYCLE_ADJUSTMENT &&
+      refund.payment.lifecycleRequestId &&
+      lifecycleRequest &&
+      refund.payment.lifecycleRequestId === lifecycleRequest.id &&
+      lifecycleRequest.reservationId === refund.payment.reservationId &&
+      lifecycleRequest.currency === refund.payment.currency &&
+      (lifecycleRequest.requestType ===
+        ReservationLifecycleRequestType.DATE_CHANGE ||
+        lifecycleRequest.requestType ===
+          ReservationLifecycleRequestType.STAY_EXTENSION) &&
+      lifecycleRequest.status === ReservationLifecycleRequestStatus.COMPLETED &&
+      difference &&
+      difference.greaterThan(0) &&
+      refund.payment.amount.equals(difference),
+  );
 }
 
 function assertRefundPaymentRelationship(refund: RefundForAction): void {
@@ -970,8 +1250,13 @@ function assertRefundPaymentRelationship(refund: RefundForAction): void {
     );
   }
 
+  const eligibleStayPayment =
+    (refund.payment.purpose === PaymentPurpose.INITIAL_RESERVATION &&
+      refund.payment.lifecycleRequestId === null) ||
+    isCompletedPositiveStayAdjustmentPayment(refund);
+
   if (
-    refund.payment.purpose !== PaymentPurpose.INITIAL_RESERVATION ||
+    !eligibleStayPayment ||
     !REFUND_PAYMENT_HISTORY_STATUSES.includes(
       refund.payment.status as (typeof REFUND_PAYMENT_HISTORY_STATUSES)[number],
     ) ||

@@ -25,7 +25,7 @@ const requestSchema = z
     requestId: z.uuid(),
     expectedRequestVersion: z.number().int().min(1),
     expectedRequestUpdatedAt: z.iso.datetime(),
-    expectedPaymentUpdatedAt: z.iso.datetime(),
+    expectedPaymentUpdatedAt: z.iso.datetime().optional(),
   })
   .strict();
 

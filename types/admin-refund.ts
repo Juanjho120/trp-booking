@@ -78,6 +78,7 @@ export type AdminRefundSummary = Readonly<{
   id: string;
   paymentId: string;
   lifecycleRequestId: string | null;
+  refundOperationKey: string | null;
   requestedByAdmin: AdminRefundAdminSummary | null;
   clientRequestId: string | null;
   authorizationType: AdminRefundAuthorizationType | string;
@@ -98,6 +99,9 @@ export type AdminRefundSummary = Readonly<{
 
 export type AdminRefundAuthorizationResult = Readonly<{
   refund: AdminRefundSummary;
+  refunds: readonly AdminRefundSummary[];
+  refundOperationKey: string | null;
+  requestedAmount: string;
   alreadyProcessed: boolean;
 }>;
 
@@ -129,19 +133,19 @@ export type CreateAdminStandardRefundInput = Readonly<{
   requestId: string;
   expectedRequestVersion: number;
   expectedRequestUpdatedAt: string;
-  expectedPaymentUpdatedAt: string;
+  expectedPaymentUpdatedAt?: string;
 }>;
 
 export type CreateAdminExtraordinaryRefundInput = Readonly<{
   reservationId: string;
-  paymentId: string;
+  paymentId?: string;
   authorizationType: "EXTRAORDINARY";
   amount: string;
   reason: string;
   processingMode: AdminRefundProcessingMode;
   requestId: string;
   expectedReservationUpdatedAt: string;
-  expectedPaymentUpdatedAt: string;
+  expectedPaymentUpdatedAt?: string;
 }>;
 
 export type CreateAdminRefundInput =

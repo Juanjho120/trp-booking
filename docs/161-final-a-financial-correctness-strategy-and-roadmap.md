@@ -685,7 +685,7 @@ Final-A.1 Financial source-of-truth and refund-allocation contract
   Application code/schema changes: none
 
 Final-A.2 Central financial summary and cancellation-policy correction
-  Status: Implementation prepared; pending validation and owner acceptance
+  Status: Completed and accepted on 2026-08-11 at 9f4e04068726451ca87614dd99b1f10656510825
   Record: docs/162-final-a-2-central-financial-summary-and-cancellation-policy-correction.md
   Scope:
   - lib/reservations/financial-summary.ts
@@ -695,7 +695,8 @@ Final-A.2 Central financial summary and cancellation-policy correction
   - no multi-payment Refund creation yet
 
 Final-A.3 Standard and extraordinary multi-payment refund authorization
-  Status: Not started
+  Status: Implementation prepared; pending validation and owner acceptance
+  Record: docs/163-final-a-3-standard-and-extraordinary-multi-payment-refunds.md
   Scope:
   - Refund.refundOperationKey migration
   - deterministic allocation helper
@@ -844,7 +845,9 @@ Acceptance result:
 ```text
 Final-A.1 -> Completed and accepted on 2026-08-11
 Accepted head -> 19531568752a44446d0802d6581262260b881aaf
-Final-A.2 -> Current implementation/validation package
+Final-A.2 -> Completed and accepted at 9f4e04068726451ca87614dd99b1f10656510825
 Final-A.2 record -> docs/162-final-a-2-central-financial-summary-and-cancellation-policy-correction.md
+Final-A.3 -> Current implementation/validation package
+Final-A.3 record -> docs/163-final-a-3-standard-and-extraordinary-multi-payment-refunds.md
 Phase 13 -> Not started
 ```

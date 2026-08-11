@@ -21,7 +21,7 @@ The stable test domain is:
 trp-booking.juantzun.dev
 ```
 
-As of 2026-08-11, Phase 12 — Test Deployment & External Integration Validation — is completed and accepted. The stable HTTPS Test deployment at `trp-booking.juantzun.dev` remains `TRP_ENVIRONMENT=test` on the developer-owned stack with zero Vercel scheduler registrations. The Post-Phase-12 / Pre-Phase-13 Final Improvement Track is active: Final-A — reservation financial correctness and effective stay value — is in progress, Final-A.1 is accepted at `19531568752a44446d0802d6581262260b881aaf`, and Final-A.2 is the current implementation/validation boundary. Phase 13 — Production Infrastructure, Deployment & Go-Live — remains **Not started** until Final-H closes and the owner explicitly accepts the improvement track.
+As of 2026-08-11, Phase 12 — Test Deployment & External Integration Validation — is completed and accepted. The stable HTTPS Test deployment at `trp-booking.juantzun.dev` remains `TRP_ENVIRONMENT=test` on the developer-owned stack with zero Vercel scheduler registrations. The Post-Phase-12 / Pre-Phase-13 Final Improvement Track is active: Final-A — reservation financial correctness and effective stay value — is in progress, Final-A.1 and Final-A.2 are accepted, and Final-A.3 — standard and extraordinary multi-payment refund authorization — is the current implementation/validation boundary. Phase 13 — Production Infrastructure, Deployment & Go-Live — remains **Not started** until Final-H closes and the owner explicitly accepts the improvement track.
 
 ## Environment Strategy
 
@@ -467,6 +467,7 @@ docs/159-phase-12.10-phase-12-validation-and-closure.md
 docs/160-post-phase-12-pre-phase-13-final-improvement-track.md
 docs/161-final-a-financial-correctness-strategy-and-roadmap.md
 docs/162-final-a-2-central-financial-summary-and-cancellation-policy-correction.md
+docs/163-final-a-3-standard-and-extraordinary-multi-payment-refunds.md
 ```
 
 ## Development Status
@@ -476,14 +477,17 @@ Current phase state: Phase 12 — Test Deployment & External Integration Validat
 Current numbered phase: none active
 Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
 Current package: Final-A — Reservation financial correctness and effective stay value — In progress
-Current subphase: Final-A.2 — Central financial summary and cancellation-policy correction — Implementation prepared; pending validation and owner acceptance
+Current subphase: Final-A.3 — Standard and extraordinary multi-payment refund authorization — Implementation prepared; pending validation and owner acceptance
 Final-A.1 status: Completed and accepted on 2026-08-11
 Final-A.1 accepted head: 19531568752a44446d0802d6581262260b881aaf
-Final-A.2 implementation base: 19531568752a44446d0802d6581262260b881aaf
+Final-A.2 status: Completed and accepted on 2026-08-11
+Final-A.2 accepted head: 9f4e04068726451ca87614dd99b1f10656510825
+Final-A.3 implementation base: 9f4e04068726451ca87614dd99b1f10656510825
 Track registration base: dac105088d2c46be05a900abed3dfe83e608e964
 Track plan: docs/160-post-phase-12-pre-phase-13-final-improvement-track.md
 Final-A strategy: docs/161-final-a-financial-correctness-strategy-and-roadmap.md
 Final-A.2 record: docs/162-final-a-2-central-financial-summary-and-cancellation-policy-correction.md
+Final-A.3 record: docs/163-final-a-3-standard-and-extraordinary-multi-payment-refunds.md
 Phase 13: Production Infrastructure, Deployment & Go-Live — Not started
 12.1 status: Completed and accepted on 2026-08-10
 12.1 documentation base: ede3881a0d2d341018c107fe0cfe5ba0a7f9c490
