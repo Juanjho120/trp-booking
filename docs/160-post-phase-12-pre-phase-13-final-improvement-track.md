@@ -5,7 +5,7 @@
 ```text
 Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
-Status: Registered — Final-A is next
+Status: Active — Final-A is in progress
 Registration date: 2026-08-11
 Registration base head: dac105088d2c46be05a900abed3dfe83e608e964
 Previous gate: Phase 12 — Completed and accepted
@@ -110,6 +110,23 @@ discovered earlier.
 ---
 
 # Final-A — Reservation Financial Correctness and Effective Stay Value
+
+## Current Final-A Status
+
+```text
+Final-A — In progress
+Final-A.1 Financial source-of-truth and refund-allocation contract — Prepared for owner acceptance
+Final-A.2 Central financial summary and cancellation-policy correction — Not started
+Final-A.3 Standard and extraordinary multi-payment refund authorization — Not started
+Final-A.4 Negative DATE_CHANGE multi-payment integration — Not started
+Final-A.5 Admin UX, notification copy, and operational-history integration — Not started
+Final-A.6 Integrated acceptance and documentation closure — Not started
+Strategy/roadmap: docs/161-final-a-financial-correctness-strategy-and-roadmap.md
+```
+
+Final-A.1 freezes the Reservation-level financial source of truth, eligible stay-payment pool,
+deterministic initial-payment-first allocation, provider-level Refund-leg boundary, and the
+minimal `Refund.refundOperationKey` grouping contract before implementation begins.
 
 ## Goal
 
@@ -985,7 +1002,8 @@ Phase 13 still owns:
 Phase 12 — Completed and accepted
 Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Registered
 Current package — Final-A
-Final-A — Next / not started
+Current subphase — Final-A.1 financial source-of-truth and refund-allocation contract
+Final-A — In progress
 Final-B — Not started
 Final-C — Not started
 Final-D — Not started

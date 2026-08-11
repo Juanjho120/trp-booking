@@ -17,9 +17,12 @@ Deferred — Intentionally postponed.
 Current phase state: Phase 12 — Test Deployment & External Integration Validation — Completed and accepted on 2026-08-11
 Current numbered phase: none active
 Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Registered
-Current package: Final-A — Reservation financial correctness and effective stay value — Next / not started
+Current package: Final-A — Reservation financial correctness and effective stay value — In progress
+Current subphase: Final-A.1 — Financial source-of-truth and refund-allocation contract — Prepared for owner acceptance
+Final-A review head: e57e2ce09c8cec69fc951a5d19976d499231c92a
 Track registration base: dac105088d2c46be05a900abed3dfe83e608e964
 Track plan: docs/160-post-phase-12-pre-phase-13-final-improvement-track.md
+Final-A strategy: docs/161-final-a-financial-correctness-strategy-and-roadmap.md
 Last completed subphase: 12.10 Phase 12 validation and closure
 Phase 13 status: Not started
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
@@ -80,7 +83,7 @@ Phase 12.9 closure: docs/158-phase-12.9-acceptance-closure.md
 Phase 12.10 status: Completed and accepted on 2026-08-11 — Phase 12 validation and closure
 Phase 12.10 validated repository head: ebe28579872cbc2414573ef852b15139a2501551
 Phase 12 closure: docs/159-phase-12.10-phase-12-validation-and-closure.md
-Next work: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Final-A next
+Next work: Final-A.1 financial correctness strategy acceptance, then Final-A.2 central financial summary and cancellation-policy correction
 Next planned numbered phase: Phase 13 — Production Infrastructure, Deployment & Go-Live — Not started
 Pre-Phase-12 Improvement Track status: Completed and accepted — Packages A, B, C, E, and F accepted; Package D remains deferred outside the current gate
 Pre-Phase-12 Improvement Track registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
@@ -1150,7 +1153,13 @@ Goal: Complete the final owner-approved feature, correctness, communication, pri
 Packages:
 
 ```text
-Final-A Reservation financial correctness and effective stay value — Next / not started
+Final-A Reservation financial correctness and effective stay value — In progress
+  Final-A.1 Financial source-of-truth and refund-allocation contract — Prepared for owner acceptance
+  Final-A.2 Central financial summary and cancellation-policy correction — Not started
+  Final-A.3 Standard and extraordinary multi-payment refund authorization — Not started
+  Final-A.4 Negative DATE_CHANGE multi-payment integration — Not started
+  Final-A.5 Admin UX, notification copy, and operational-history integration — Not started
+  Final-A.6 Integrated acceptance and documentation closure — Not started
 Final-B Admin external-calendar integrations — Not started
 Final-C Pricing rules: seasonal and length-of-stay — Not started
 Final-D Additional charges and guest payment requests — Not started
@@ -1163,6 +1172,8 @@ Final-H Integrated regression and final improvement-track closure — Not starte
 Final-C explicitly excludes last-minute pricing/discount rules.
 
 Authoritative track plan: `docs/160-post-phase-12-pre-phase-13-final-improvement-track.md`.
+
+Final-A strategy and subphase roadmap: `docs/161-final-a-financial-correctness-strategy-and-roadmap.md`.
 
 Phase 13 must not start until Final-H is completed and the owner explicitly accepts this track.
 

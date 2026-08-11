@@ -8,9 +8,13 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 Current phase state: Phase 12 — Test Deployment & External Integration Validation — Completed and accepted on 2026-08-11
 Current numbered phase: none active
 Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Registered
-Current package: Final-A — Reservation financial correctness and effective stay value — Next / not started
+Current package: Final-A — Reservation financial correctness and effective stay value — In progress
+Current subphase: Final-A.1 — Financial source-of-truth and refund-allocation contract — Prepared for owner acceptance
+Final-A review head: e57e2ce09c8cec69fc951a5d19976d499231c92a
 Final Improvement Track registration base: dac105088d2c46be05a900abed3dfe83e608e964
 Final Improvement Track plan: docs/160-post-phase-12-pre-phase-13-final-improvement-track.md
+docs/161-final-a-financial-correctness-strategy-and-roadmap.md
+Final-A strategy: docs/161-final-a-financial-correctness-strategy-and-roadmap.md
 Phase 13 status: Not started
 Last updated: 2026-08-11
 Last completed subphase: 12.10 Phase 12 validation and closure
@@ -80,8 +84,15 @@ Phase 12.9 acceptance closure: docs/158-phase-12.9-acceptance-closure.md
 Phase 12.10 status: Completed and accepted on 2026-08-11 — Phase 12 validation and closure
 Phase 12.10 validated repository head: ebe28579872cbc2414573ef852b15139a2501551
 Phase 12 closure record: docs/159-phase-12.10-phase-12-validation-and-closure.md
-Post-Phase-12 / Pre-Phase-13 Final Improvement Track: Registered on 2026-08-11 — Final-A next
-Final-A status: Next / not started — Reservation financial correctness and effective stay value
+Post-Phase-12 / Pre-Phase-13 Final Improvement Track: Registered on 2026-08-11 — Final-A in progress
+Final-A status: In progress — Reservation financial correctness and effective stay value
+Final-A.1 status: Prepared for owner acceptance — Financial source-of-truth and refund-allocation contract
+Final-A.2 status: Not started — Central financial summary and cancellation-policy correction
+Final-A.3 status: Not started — Standard and extraordinary multi-payment refund authorization
+Final-A.4 status: Not started — Negative DATE_CHANGE multi-payment integration
+Final-A.5 status: Not started — Admin UX, notification copy, and operational-history integration
+Final-A.6 status: Not started — Integrated acceptance and documentation closure
+Final-A strategy: docs/161-final-a-financial-correctness-strategy-and-roadmap.md
 Final-B status: Not started — Admin external-calendar integrations
 Final-C status: Not started — Pricing rules: seasonal and length-of-stay; last-minute pricing explicitly excluded
 Final-D status: Not started — Additional charges and guest payment requests

@@ -465,6 +465,7 @@ docs/157-phase-12.9-http-security-header-hardening.md
 docs/158-phase-12.9-acceptance-closure.md
 docs/159-phase-12.10-phase-12-validation-and-closure.md
 docs/160-post-phase-12-pre-phase-13-final-improvement-track.md
+docs/161-final-a-financial-correctness-strategy-and-roadmap.md
 ```
 
 ## Development Status
@@ -473,9 +474,12 @@ docs/160-post-phase-12-pre-phase-13-final-improvement-track.md
 Current phase state: Phase 12 — Test Deployment & External Integration Validation — Completed and accepted on 2026-08-11
 Current numbered phase: none active
 Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Registered
-Current package: Final-A — Reservation financial correctness and effective stay value — Next / not started
+Current package: Final-A — Reservation financial correctness and effective stay value — In progress
+Current subphase: Final-A.1 — Financial source-of-truth and refund-allocation contract — Prepared for owner acceptance
+Final-A review head: e57e2ce09c8cec69fc951a5d19976d499231c92a
 Track registration base: dac105088d2c46be05a900abed3dfe83e608e964
 Track plan: docs/160-post-phase-12-pre-phase-13-final-improvement-track.md
+Final-A strategy: docs/161-final-a-financial-correctness-strategy-and-roadmap.md
 Phase 13: Production Infrastructure, Deployment & Go-Live — Not started
 12.1 status: Completed and accepted on 2026-08-10
 12.1 documentation base: ede3881a0d2d341018c107fe0cfe5ba0a7f9c490
