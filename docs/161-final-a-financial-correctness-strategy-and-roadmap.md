@@ -6,7 +6,8 @@
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-A — Reservation financial correctness and effective stay value
 Subphase: Final-A.1 — Financial source-of-truth and refund-allocation contract
-Status: Prepared for owner acceptance
+Status: Completed and accepted on 2026-08-11
+Accepted head: 19531568752a44446d0802d6581262260b881aaf
 Preparation date: 2026-08-11
 Repository review head: e57e2ce09c8cec69fc951a5d19976d499231c92a
 Track plan: docs/160-post-phase-12-pre-phase-13-final-improvement-track.md
@@ -679,12 +680,13 @@ existing provider evidence rules.
 
 ```text
 Final-A.1 Financial source-of-truth and refund-allocation contract
-  Status: Prepared for owner acceptance
+  Status: Completed and accepted on 2026-08-11 at 19531568752a44446d0802d6581262260b881aaf
   Scope: this document and tracker activation only
   Application code/schema changes: none
 
 Final-A.2 Central financial summary and cancellation-policy correction
-  Status: Not started
+  Status: Implementation prepared; pending validation and owner acceptance
+  Record: docs/162-final-a-2-central-financial-summary-and-cancellation-policy-correction.md
   Scope:
   - lib/reservations/financial-summary.ts
   - Reservation-level financial projection
@@ -837,10 +839,12 @@ This subphase is documentation/contract only.
 No application code, Prisma schema, migration, dependency, environment variable, provider request,
 Test scheduler, or Production resource is changed by Final-A.1.
 
-After owner acceptance/commit:
+Acceptance result:
 
 ```text
-Final-A.1 -> Completed and accepted
-Final-A.2 -> In progress / next implementation package
+Final-A.1 -> Completed and accepted on 2026-08-11
+Accepted head -> 19531568752a44446d0802d6581262260b881aaf
+Final-A.2 -> Current implementation/validation package
+Final-A.2 record -> docs/162-final-a-2-central-financial-summary-and-cancellation-policy-correction.md
 Phase 13 -> Not started
 ```

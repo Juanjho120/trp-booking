@@ -7,17 +7,19 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 ```text
 Current phase state: Phase 12 — Test Deployment & External Integration Validation — Completed and accepted on 2026-08-11
 Current numbered phase: none active
-Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Registered
+Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
 Current package: Final-A — Reservation financial correctness and effective stay value — In progress
-Current subphase: Final-A.1 — Financial source-of-truth and refund-allocation contract — Prepared for owner acceptance
-Final-A review head: e57e2ce09c8cec69fc951a5d19976d499231c92a
+Current subphase: Final-A.2 — Central financial summary and cancellation-policy correction — Implementation prepared; pending validation and owner acceptance
+Final-A.1 status: Completed and accepted on 2026-08-11
+Final-A.1 accepted head: 19531568752a44446d0802d6581262260b881aaf
+Final-A.2 implementation base: 19531568752a44446d0802d6581262260b881aaf
 Final Improvement Track registration base: dac105088d2c46be05a900abed3dfe83e608e964
 Final Improvement Track plan: docs/160-post-phase-12-pre-phase-13-final-improvement-track.md
-docs/161-final-a-financial-correctness-strategy-and-roadmap.md
 Final-A strategy: docs/161-final-a-financial-correctness-strategy-and-roadmap.md
+Final-A.2 record: docs/162-final-a-2-central-financial-summary-and-cancellation-policy-correction.md
 Phase 13 status: Not started
 Last updated: 2026-08-11
-Last completed subphase: 12.10 Phase 12 validation and closure
+Last completed subphase: Final-A.1 Financial source-of-truth and refund-allocation contract — accepted on 2026-08-11 at 19531568752a44446d0802d6581262260b881aaf
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 11.6.5 acceptance: All 15 protected-history, ordering, relation, retry, ES/EN, responsive, security, and integrated criteria passed on 2026-08-05
 11.6.5 implementation and acceptance document: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md
@@ -86,13 +88,14 @@ Phase 12.10 validated repository head: ebe28579872cbc2414573ef852b15139a2501551
 Phase 12 closure record: docs/159-phase-12.10-phase-12-validation-and-closure.md
 Post-Phase-12 / Pre-Phase-13 Final Improvement Track: Registered on 2026-08-11 — Final-A in progress
 Final-A status: In progress — Reservation financial correctness and effective stay value
-Final-A.1 status: Prepared for owner acceptance — Financial source-of-truth and refund-allocation contract
-Final-A.2 status: Not started — Central financial summary and cancellation-policy correction
+Final-A.1 status: Completed and accepted on 2026-08-11 at 19531568752a44446d0802d6581262260b881aaf — Financial source-of-truth and refund-allocation contract
+Final-A.2 status: Implementation prepared; pending validation and owner acceptance — Central financial summary and cancellation-policy correction
 Final-A.3 status: Not started — Standard and extraordinary multi-payment refund authorization
 Final-A.4 status: Not started — Negative DATE_CHANGE multi-payment integration
 Final-A.5 status: Not started — Admin UX, notification copy, and operational-history integration
 Final-A.6 status: Not started — Integrated acceptance and documentation closure
 Final-A strategy: docs/161-final-a-financial-correctness-strategy-and-roadmap.md
+Final-A.2 record: docs/162-final-a-2-central-financial-summary-and-cancellation-policy-correction.md
 Final-B status: Not started — Admin external-calendar integrations
 Final-C status: Not started — Pricing rules: seasonal and length-of-stay; last-minute pricing explicitly excluded
 Final-D status: Not started — Additional charges and guest payment requests

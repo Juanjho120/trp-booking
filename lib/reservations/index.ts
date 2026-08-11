@@ -17,3 +17,17 @@ export {
   confirmReservationAfterApprovedPayment,
   ReservationConfirmationError,
 } from "./confirmation";
+export {
+  buildReservationFinancialSummary,
+  getReservationFinancialSummary,
+  ReservationFinancialSummaryError,
+} from "./financial-summary";
+export type {
+  ReservationFinancialEligiblePayment,
+  ReservationFinancialLifecycleSnapshot,
+  ReservationFinancialPaymentSnapshot,
+  ReservationFinancialRefundSnapshot,
+  ReservationFinancialSnapshot,
+  ReservationFinancialSummary,
+  ReservationFinancialSummaryErrorCode,
+} from "./financial-summary";

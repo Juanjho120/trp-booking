@@ -4,7 +4,6 @@ import {
   EmailNotificationStatus,
   EmailNotificationType,
   PaymentPurpose,
-  PaymentStatus,
   Prisma,
   ReservationLifecycleRequestStatus,
   ReservationLifecycleRequestType,
@@ -18,9 +17,15 @@ import {
   getArrivalCheckInDateTime,
 } from "@/lib/email";
 import {
+  calculateStandardCancellationPolicyAmount,
   calculateStandardCancellationPolicyTiming,
   CANCELLATION_POLICY_TIMEZONE,
 } from "@/lib/reservations/cancellation-policy";
+import {
+  getReservationFinancialSummary,
+  ReservationFinancialSummaryError,
+  type ReservationFinancialSummary,
+} from "@/lib/reservations/financial-summary";
 import type { AdminActor } from "@/types/admin";
 import type {
   AdminCancellationDecisionResult,
@@ -116,26 +121,6 @@ const reservationForCancellationSelect = {
   property: {
     select: {
       checkInTime: true,
-    },
-  },
-  payments: {
-    where: {
-      purpose: PaymentPurpose.INITIAL_RESERVATION,
-      status: {
-        in: [
-          PaymentStatus.APPROVED,
-          PaymentStatus.PARTIALLY_REFUNDED,
-          PaymentStatus.REFUNDED,
-        ],
-      },
-    },
-    orderBy: [{ paidAt: "desc" }, { createdAt: "desc" }, { id: "desc" }],
-    take: 1,
-    select: {
-      id: true,
-      amount: true,
-      currency: true,
-      status: true,
     },
   },
 } satisfies Prisma.ReservationSelect;
@@ -293,16 +278,11 @@ function assertReservationEligible(
       "ADMIN_CANCELLATION_RESERVATION_NOT_CONFIRMED",
     );
   }
-
-  if (reservation.payments.length === 0) {
-    throw new AdminReservationCancellationError(
-      "ADMIN_CANCELLATION_SOURCE_PAYMENT_NOT_FOUND",
-    );
-  }
 }
 
 function calculateCancellationPolicy(
   reservation: ReservationForCancellation,
+  financialSummary: ReservationFinancialSummary,
   calculatedAt: Date,
 ) {
   const checkInAt = getArrivalCheckInDateTime(
@@ -316,29 +296,38 @@ function calculateCancellationPolicy(
     );
   }
 
-  const policyTiming = calculateStandardCancellationPolicyTiming(
-    checkInAt,
-    calculatedAt,
-  );
-
-  const sourcePayment = reservation.payments[0];
-
-  if (sourcePayment.currency !== reservation.currency) {
+  if (
+    financialSummary.reservationId !== reservation.id ||
+    financialSummary.currency !== reservation.currency ||
+    !financialSummary.currentStayValue.equals(reservation.total)
+  ) {
     throw new AdminReservationCancellationError(
       "ADMIN_CANCELLATION_UNEXPECTED_ERROR",
     );
   }
 
-  const eligibleCapturedAmount = reservation.total.lessThan(sourcePayment.amount)
-    ? reservation.total
-    : sourcePayment.amount;
-  const standardRefundAmount = eligibleCapturedAmount
-    .mul(policyTiming.refundPercentage)
-    .div(100)
-    .toDecimalPlaces(2);
+  const sourcePayment = financialSummary.eligibleStayPayments.find(
+    (payment) => payment.purpose === PaymentPurpose.INITIAL_RESERVATION,
+  );
+
+  if (!sourcePayment) {
+    throw new AdminReservationCancellationError(
+      "ADMIN_CANCELLATION_SOURCE_PAYMENT_NOT_FOUND",
+    );
+  }
+
+  const policyTiming = calculateStandardCancellationPolicyTiming(
+    checkInAt,
+    calculatedAt,
+  );
+  const standardRefundAmount = calculateStandardCancellationPolicyAmount(
+    financialSummary.currentStayValue,
+    policyTiming.refundPercentage,
+  );
 
   return {
     sourcePayment,
+    financialSummary,
     checkInAt,
     hoursBeforeCheckIn: new Prisma.Decimal(policyTiming.hoursBeforeCheckIn),
     reasonCode: policyTiming.reasonCode,
@@ -445,13 +434,44 @@ async function createCancellationRequestTransaction(
         );
       }
 
+      let financialSummary: ReservationFinancialSummary;
+
+      try {
+        financialSummary = await getReservationFinancialSummary(
+          reservation.id,
+          transaction,
+        );
+      } catch (error) {
+        if (
+          error instanceof ReservationFinancialSummaryError &&
+          error.code ===
+            "RESERVATION_FINANCIAL_SUMMARY_INITIAL_PAYMENT_NOT_FOUND"
+        ) {
+          throw new AdminReservationCancellationError(
+            "ADMIN_CANCELLATION_SOURCE_PAYMENT_NOT_FOUND",
+          );
+        }
+
+        if (error instanceof ReservationFinancialSummaryError) {
+          throw new AdminReservationCancellationError(
+            "ADMIN_CANCELLATION_UNEXPECTED_ERROR",
+          );
+        }
+
+        throw error;
+      }
+
       const calculatedAt = new Date();
-      const policy = calculateCancellationPolicy(reservation, calculatedAt);
+      const policy = calculateCancellationPolicy(
+        reservation,
+        financialSummary,
+        calculatedAt,
+      );
       const cancellationRequest =
         await transaction.reservationLifecycleRequest.create({
           data: {
             reservationId: reservation.id,
-            sourcePaymentId: policy.sourcePayment.id,
+            sourcePaymentId: policy.sourcePayment.paymentId,
             requestType: ReservationLifecycleRequestType.CANCELLATION,
             status: ReservationLifecycleRequestStatus.PENDING_REVIEW,
             channel: input.channel,
@@ -502,7 +522,7 @@ async function createCancellationRequestTransaction(
             reservationId: reservation.id,
             requestId,
             channel: input.channel,
-            sourcePaymentId: policy.sourcePayment.id,
+            sourcePaymentId: policy.sourcePayment.paymentId,
             originalReservationStatus: reservation.status,
             originalCheckInDate: reservation.checkInDate.toISOString(),
             originalCheckOutDate: reservation.checkOutDate.toISOString(),
@@ -513,6 +533,16 @@ async function createCancellationRequestTransaction(
             policyReasonCode: policy.reasonCode,
             standardRefundPercentage: policy.percentage,
             standardRefundAmount: policy.standardRefundAmount.toFixed(2),
+            policyBaseAmount:
+              policy.financialSummary.currentStayValue.toFixed(2),
+            capturedStayPayments:
+              policy.financialSummary.capturedStayPayments.toFixed(2),
+            committedStayRefunds:
+              policy.financialSummary.committedStayRefunds.toFixed(2),
+            remainingRefundableStayBalance:
+              policy.financialSummary.remainingRefundableStayBalance.toFixed(2),
+            eligibleStayPaymentCount:
+              policy.financialSummary.eligibleStayPayments.length,
             currency: reservation.currency,
             refundExecuted: false,
           },

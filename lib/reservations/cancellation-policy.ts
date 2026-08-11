@@ -1,4 +1,7 @@
-import type { CancellationPolicyReasonCode } from "@prisma/client";
+import {
+  Prisma,
+  type CancellationPolicyReasonCode,
+} from "@prisma/client";
 
 export const CANCELLATION_POLICY_TIMEZONE = "America/Guatemala" as const;
 
@@ -59,4 +62,18 @@ export function calculateStandardCancellationPolicyTiming(
     reasonCode: "LESS_THAN_72_HOURS",
     refundPercentage: 0,
   };
+}
+
+export function calculateStandardCancellationPolicyAmount(
+  currentStayValue: Prisma.Decimal,
+  refundPercentage: StandardCancellationPolicyTiming["refundPercentage"],
+): Prisma.Decimal {
+  if (currentStayValue.lessThan(0)) {
+    throw new Error("Cancellation policy stay value cannot be negative.");
+  }
+
+  return currentStayValue
+    .mul(refundPercentage)
+    .div(100)
+    .toDecimalPlaces(2);
 }
