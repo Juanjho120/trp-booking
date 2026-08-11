@@ -21,7 +21,7 @@ The planned stable test domain is:
 trp-booking.juantzun.dev
 ```
 
-As of 2026-08-10, TRP Booking has a working Vercel Test deployment on the stable HTTPS domain `trp-booking.juantzun.dev`. Phase 12.5 is completed and accepted after validating the real Airbnb inbound iCal path, provider-event reconciliation, reservation-only preparation buffers, composed-listing availability, idempotency, and the 12.5.1/12.5.1.1 corrections. Phase 12.6 is in progress. Current correction 12.6.1 implements the outbound ownership / provider-loop-prevention gate and stable VEVENT identity before any TRP Test feed is imported into Airbnb. Production infrastructure remains deferred to Phase 13.
+As of 2026-08-10, TRP Booking has a working Vercel Test deployment on the stable HTTPS domain `trp-booking.juantzun.dev`. Phase 12.6 is completed and accepted after validating the real bidirectional Airbnb iCal path, outbound ownership/loop prevention, stable VEVENT identity, Airbnb-compatible `.ics` URLs, composed-listing outbound behavior, controlled round-trip recovery, idempotency, and secret hygiene. Phase 12.7 is now in progress and owns Vercel Cron deployment and scheduler validation. Production infrastructure remains deferred to Phase 13.
 
 ## Environment Strategy
 
@@ -49,7 +49,7 @@ TRP_ENVIRONMENT=test
 - Zoho: same juantzun.dev organization and aliases used by Local
 - Cloudinary: same personal account used by Local
 - CRON_SECRET: unique Test secret, different from Local and future Production
-- Airbnb: real inbound iCal URLs; TRP Test outbound iCal will be exposed for controlled real-listing validation
+- Airbnb: real inbound iCal URLs plus three private TRP Test outbound `.ics` feeds connected to the matching real listings; the controlled bidirectional round-trip was accepted in 12.6
 - Guest email delivery: intended reservation recipient
 - Admin email delivery: intended juantzun.dev admin recipient
 - EMAIL_TEST_RECIPIENT: empty
@@ -97,8 +97,8 @@ TRP Booking is focused only on the public booking experience, direct reservation
 ## Key Operational Rules
 
 - Provider secrets for Auth.js, Cloudinary, Tilopay, Resend, Airbnb iCal, and similar services must remain server-side only.
-- TRP outbound iCal must not echo provider-origin Airbnb blocks or provider-derived Airbnb preparation artifacts back to Airbnb; Phase 12.6 must validate outbound ownership before connecting a real round-trip.
-- TRP outbound iCal VEVENT UIDs must be deterministic and stable across feed ordering changes; the permanent UID namespace must be frozen before the first real Airbnb import.
+- TRP outbound iCal must not echo provider-origin Airbnb blocks or provider-derived Airbnb preparation artifacts back to Airbnb; Phase 12.6 validated this ownership boundary through a real controlled round-trip and recovery test.
+- TRP outbound iCal VEVENT UIDs are deterministic and stable across feed ordering changes; the accepted permanent UID namespace is `turefugioperfecto.com`.
 - `TRP_ENVIRONMENT` is the source of truth for local, test, and production business/runtime behavior.
 - Local/test credentials, domains, databases, payment settings, and recipient routing must remain isolated from production.
 - Local and Test intentionally reuse the developer-owned Supabase, Resend, Zoho, Cloudinary, and Tilopay sandbox infrastructure; Production must use separate company-owned accounts provisioned in Phase 13.
@@ -454,14 +454,17 @@ docs/146-phase-12.5.1.1-admin-calendar-effective-block-consolidation.md
 docs/147-phase-12.5-acceptance-closure.md
 docs/148-phase-12.6-test-outbound-ical-and-controlled-airbnb-round-trip.md
 docs/149-phase-12.6.1-outbound-provider-loop-prevention-and-stable-event-identity.md
+docs/150-phase-12.6.1.1-airbnb-ics-url-compatibility.md
+docs/151-phase-12.6-acceptance-closure.md
+docs/152-phase-12.7-vercel-cron-deployment-and-scheduler-validation.md
 ```
 
 ## Development Status
 
 ```text
 Current phase: Phase 12 — Test Deployment & External Integration Validation
-Current subphase: 12.6.1 — Outbound provider-loop prevention and stable event identity — In progress
-Current focus: validate the 12.6.1 implementation so outbound feeds contain only TRP-owned unavailability, provider-origin Airbnb state cannot echo back to Airbnb, VEVENT UIDs remain stable and use turefugioperfecto.com, and no real outbound feed is connected until the dedicated/local/hosted gate passes; the controlled round-trip remains the rest of 12.6 and scheduler activation remains 12.7
+Current subphase: 12.7 — Vercel Cron deployment and scheduler validation — In progress
+Current focus: upgrade the Test Vercel project to Pro, restore exactly the four already-approved schedules, verify Vercel scheduled authentication and durable `SCHEDULED` execution history for all four jobs, preserve overlap/idempotency protections, and keep Production deferred to Phase 13
 12.1 status: Completed and accepted on 2026-08-10
 12.1 documentation base: ede3881a0d2d341018c107fe0cfe5ba0a7f9c490
 12.1 record: docs/136-phase-12.1-test-deployment-and-environment-strategy.md
@@ -489,9 +492,19 @@ Current focus: validate the 12.6.1 implementation so outbound feeds contain only
 12.5.1.1 accepted head: 409e299eee233d852a9ffee0aef20561b0931c4d
 12.5.1.1 record: docs/146-phase-12.5.1.1-admin-calendar-effective-block-consolidation.md
 12.5 acceptance closure: docs/147-phase-12.5-acceptance-closure.md
-12.6 status: In progress — outbound iCal and controlled Airbnb round-trip; provider-loop prevention is the mandatory first gate
+12.6 status: Completed and accepted on 2026-08-10 — outbound iCal and controlled Airbnb round-trip
+12.6 accepted head: 543e0b4bc4cd700e6ebc3a29415981aeae91a13c
 12.6 record: docs/148-phase-12.6-test-outbound-ical-and-controlled-airbnb-round-trip.md
-Vercel cron registration: intentionally disabled through 12.6 with vercel.json crons = []; approved schedules return in 12.7 after Vercel Pro activation
+12.6.1 status: Completed and accepted on 2026-08-10 — outbound provider-loop prevention and stable VEVENT identity
+12.6.1 implementation commit: 5a120e49fb2e6196d64fc98e608552b217b7522f
+12.6.1 record: docs/149-phase-12.6.1-outbound-provider-loop-prevention-and-stable-event-identity.md
+12.6.1.1 status: Completed and accepted on 2026-08-10 — Airbnb-compatible `.ics` export URL support
+12.6.1.1 accepted head: 543e0b4bc4cd700e6ebc3a29415981aeae91a13c
+12.6.1.1 record: docs/150-phase-12.6.1.1-airbnb-ics-url-compatibility.md
+12.6 acceptance closure: docs/151-phase-12.6-acceptance-closure.md
+12.7 status: In progress — Vercel Cron deployment and scheduler validation
+12.7 record: docs/152-phase-12.7-vercel-cron-deployment-and-scheduler-validation.md
+Vercel cron registration: still intentionally disabled in the accepted 12.6 head with `vercel.json` `crons = []`; 12.7 restores the four approved schedules only after the Test project is on Vercel Pro
 Test deployment status: stable HTTPS domain `trp-booking.juantzun.dev` is attached and operational
 Test domain target: https://trp-booking.juantzun.dev
 Phase 13: Production Infrastructure, Deployment & Go-Live — Not started; production accounts/infrastructure are explicitly deferred
