@@ -21,7 +21,7 @@ The planned stable test domain is:
 trp-booking.juantzun.dev
 ```
 
-As of 2026-08-10, TRP Booking has a working Vercel Test deployment on the stable HTTPS domain `trp-booking.juantzun.dev`. Phase 12.6 is completed and accepted after validating the real bidirectional Airbnb iCal path, outbound ownership/loop prevention, stable VEVENT identity, Airbnb-compatible `.ics` URLs, composed-listing outbound behavior, controlled round-trip recovery, idempotency, and secret hygiene. Phase 12.7 is now in progress and owns Vercel Cron deployment and scheduler validation. Production infrastructure remains deferred to Phase 13.
+As of 2026-08-11, TRP Booking has a working Vercel Test deployment on the stable HTTPS domain `trp-booking.juantzun.dev`. Phase 12.6 is completed and accepted after validating the real bidirectional Airbnb iCal path, outbound ownership/loop prevention, stable VEVENT identity, Airbnb-compatible `.ics` URLs, composed-listing outbound behavior, controlled round-trip recovery, idempotency, and secret hygiene. The former Test scheduler-activation requirement in 12.7 is deferred to Phase 13: Test remains on Vercel Hobby with no registered schedules, while Production will activate the approved jobs through production-only environment-aware Vercel configuration. Phase 12.8 — Full Internet E2E regression — is now in progress.
 
 ## Environment Strategy
 
@@ -457,14 +457,15 @@ docs/149-phase-12.6.1-outbound-provider-loop-prevention-and-stable-event-identit
 docs/150-phase-12.6.1.1-airbnb-ics-url-compatibility.md
 docs/151-phase-12.6-acceptance-closure.md
 docs/152-phase-12.7-vercel-cron-deployment-and-scheduler-validation.md
+docs/153-phase-12.8-full-internet-e2e-regression-start.md
 ```
 
 ## Development Status
 
 ```text
 Current phase: Phase 12 — Test Deployment & External Integration Validation
-Current subphase: 12.7 — Vercel Cron deployment and scheduler validation — In progress
-Current focus: upgrade the Test Vercel project to Pro, restore exactly the four already-approved schedules, verify Vercel scheduled authentication and durable `SCHEDULED` execution history for all four jobs, preserve overlap/idempotency protections, and keep Production deferred to Phase 13
+Current subphase: 12.8 — Full Internet E2E regression — In progress
+Current focus: execute the hosted Test regression on the accepted Internet deployment while keeping Vercel scheduler registration disabled; scheduler activation/recurrence validation is deferred to Phase 13 and must be production-only through environment-aware Vercel configuration
 12.1 status: Completed and accepted on 2026-08-10
 12.1 documentation base: ede3881a0d2d341018c107fe0cfe5ba0a7f9c490
 12.1 record: docs/136-phase-12.1-test-deployment-and-environment-strategy.md
@@ -502,9 +503,11 @@ Current focus: upgrade the Test Vercel project to Pro, restore exactly the four 
 12.6.1.1 accepted head: 543e0b4bc4cd700e6ebc3a29415981aeae91a13c
 12.6.1.1 record: docs/150-phase-12.6.1.1-airbnb-ics-url-compatibility.md
 12.6 acceptance closure: docs/151-phase-12.6-acceptance-closure.md
-12.7 status: In progress — Vercel Cron deployment and scheduler validation
+12.7 status: Deferred to Phase 13 on 2026-08-11 — no Vercel scheduler activation required in Test
 12.7 record: docs/152-phase-12.7-vercel-cron-deployment-and-scheduler-validation.md
-Vercel cron registration: still intentionally disabled in the accepted 12.6 head with `vercel.json` `crons = []`; 12.7 restores the four approved schedules only after the Test project is on Vercel Pro
+12.8 status: In progress — Full Internet E2E regression
+12.8 start record: docs/153-phase-12.8-full-internet-e2e-regression-start.md
+Vercel cron registration: intentionally disabled in Test; the Test project may remain on Hobby. Phase 13 owns production-only scheduler activation and recurrence validation through environment-aware Vercel configuration
 Test deployment status: stable HTTPS domain `trp-booking.juantzun.dev` is attached and operational
 Test domain target: https://trp-booking.juantzun.dev
 Phase 13: Production Infrastructure, Deployment & Go-Live — Not started; production accounts/infrastructure are explicitly deferred

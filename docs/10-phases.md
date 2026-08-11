@@ -15,8 +15,8 @@ Deferred — Intentionally postponed.
 
 ```text
 Current phase: Phase 12 — Test Deployment & External Integration Validation
-Current subphase: 12.7 — Vercel Cron deployment and scheduler validation — In progress
-Current focus: upgrade the Test Vercel project to Pro, restore exactly the four approved scheduler registrations, verify automatic CRON_SECRET-authenticated execution and durable scheduled history, preserve existing overlap/idempotency protections, and leave Production deferred to Phase 13
+Current subphase: 12.8 — Full Internet E2E regression — In progress
+Current focus: execute the hosted Test regression while preserving the accepted Test deployment and keeping Vercel scheduler registration disabled; production-only scheduler activation and recurrence validation are deferred to Phase 13
 Last completed subphase: 12.6 TRP Booking Test outbound iCal and controlled Airbnb round-trip
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 11.6.5 acceptance: All 15 protected-history, ordering, relation, retry, ES/EN, responsive, security, and integrated criteria passed on 2026-08-05
@@ -29,7 +29,7 @@ Last completed subphase: 12.6 TRP Booking Test outbound iCal and controlled Airb
 11.7 validated closure base: 16cca9e63f5fd8d8af590fc1211dbc69d642f1f6
 Phase 11 accepted feature head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 Phase 11 closure document: docs/120-phase-11.7-validation-and-documentation-closure.md
-Phase 12 status: In progress — 12.1 through 12.6 completed and accepted on 2026-08-10; 12.7 in progress
+Phase 12 status: In progress — 12.1 through 12.6 completed and accepted; 12.7 scheduler activation deferred to Phase 13; 12.8 in progress
 Phase 12.1 record: docs/136-phase-12.1-test-deployment-and-environment-strategy.md
 Phase 12.2 accepted deployment source head: 91f513c57b6220ad8d1d32f9a198a3d5099b1fd7
 Phase 12.2 record: docs/137-phase-12.2-vercel-test-project-and-first-deployment.md
@@ -64,8 +64,10 @@ Phase 12.6.1.1 status: Completed and accepted on 2026-08-10
 Phase 12.6.1.1 accepted head: 543e0b4bc4cd700e6ebc3a29415981aeae91a13c
 Phase 12.6.1.1 record: docs/150-phase-12.6.1.1-airbnb-ics-url-compatibility.md
 Phase 12.6 acceptance closure: docs/151-phase-12.6-acceptance-closure.md
-Phase 12.7 status: In progress — Vercel Cron deployment and scheduler validation
+Phase 12.7 status: Deferred to Phase 13 on 2026-08-11 — no Test scheduler activation required
 Phase 12.7 record: docs/152-phase-12.7-vercel-cron-deployment-and-scheduler-validation.md
+Phase 12.8 status: In progress — Full Internet E2E regression
+Phase 12.8 start record: docs/153-phase-12.8-full-internet-e2e-regression-start.md
 Next planned major phase: Phase 13 — Production Infrastructure, Deployment & Go-Live
 Pre-Phase-12 Improvement Track status: Completed and accepted — Packages A, B, C, E, and F accepted; Package D remains deferred outside the current gate
 Pre-Phase-12 Improvement Track registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
@@ -981,7 +983,7 @@ Phase 11 rules:
 
 ## Phase 12 — Test Deployment & External Integration Validation
 
-Status: **In progress — 12.1 through 12.6 completed and accepted; 12.7 in progress**
+Status: **In progress — 12.1 through 12.6 completed and accepted; 12.7 scheduler activation deferred to Phase 13; 12.8 in progress**
 
 Goal: Create TRP Booking's first real Internet-accessible Test deployment and validate the already-built application against real hosted infrastructure and external integrations without creating or using production-company provider accounts.
 
@@ -1008,9 +1010,10 @@ Local and Test intentionally share the same database and provider accounts liste
 12.2 deployment correction:
 - The first Vercel project/deployment attempt was rejected before a deployment record was created because the project was on Hobby while `vercel.json` declared schedules every 5 and 30 minutes.
 - The cron endpoints remain part of the application; only Vercel scheduler registration is deferred.
-- During 12.2 through 12.6, `vercel.json` intentionally keeps `"crons": []`.
-- 12.7 restores exactly the approved four schedules and validates them after the Test project is upgraded to Vercel Pro, whose current cron minimum interval supports those frequencies.
-- This correction does not change application cron handlers, `CRON_SECRET`, business behavior, or the approved schedules themselves.
+- Test keeps Vercel scheduler registration disabled and may remain on Hobby; the accepted application cron routes and manual admin execution remain available.
+- The former 12.7 requirement to upgrade Test to Vercel Pro and register recurring schedules was removed on 2026-08-11 for cost reasons and deferred to Phase 13.
+- Phase 13 must activate the approved schedules only when `TRP_ENVIRONMENT=production`; Test must continue generating zero scheduler registrations.
+- This decision does not change application cron handlers, `CRON_SECRET`, business behavior, or the approved schedules themselves.
 
 Planned subphases:
 
@@ -1021,22 +1024,22 @@ Planned subphases:
 12.4 Test custom domain, Auth.js, and external callback validation — Completed and accepted on 2026-08-10
 12.5 Real Airbnb inbound iCal integration — Completed and accepted on 2026-08-10
 12.6 TRP Booking Test outbound iCal and controlled Airbnb round-trip — Completed and accepted on 2026-08-10
-12.7 Vercel Cron deployment and scheduler validation — In progress
-12.8 Full Internet E2E regression
+12.7 Vercel Cron deployment and scheduler validation — Deferred to Phase 13; no Test activation
+12.8 Full Internet E2E regression — In progress
 12.9 Test observability, security, and recovery readiness
 12.10 Phase 12 validation and closure
 ```
 
 Authoritative 12.1 record: `docs/136-phase-12.1-test-deployment-and-environment-strategy.md`.
 
-12.2 acceptance: the dedicated Test project produced its first successful Vercel Production Deployment from `main` with `TRP_ENVIRONMENT=test`, using Vercel's generated HTTPS URL and with scheduler registration intentionally absent. The stable custom domain remains deferred to 12.4 and the approved cron schedules remain deferred unchanged to 12.7. Authoritative 12.2 records: `docs/137-phase-12.2-vercel-test-project-and-first-deployment.md` and `docs/138-phase-12.2-acceptance-closure.md`.
+12.2 acceptance: the dedicated Test project produced its first successful Vercel Production Deployment from `main` with `TRP_ENVIRONMENT=test`, using Vercel's generated HTTPS URL and with scheduler registration intentionally absent. The stable custom domain remains deferred to 12.4 and the approved cron schedules were originally deferred to 12.7; the 2026-08-11 decision moved actual scheduler activation to Phase 13. Authoritative 12.2 records: `docs/137-phase-12.2-vercel-test-project-and-first-deployment.md` and `docs/138-phase-12.2-acceptance-closure.md`.
 
 12.3 configuration boundary:
 - Audit the existing Vercel Production-environment variables used by the Test project instead of recreating or rotating already-valid Local/Test credentials.
 - Keep the 12.2 core wiring for Supabase, Auth.js, Cloudinary, Tilopay sandbox, `TRP_ENVIRONMENT=test`, and the dedicated Test `CRON_SECRET`.
 - Add the accepted Test Resend/email contract and set `EMAIL_DELIVERY_MODE=test`; Test guest delivery uses the intended reservation recipient, Test admin delivery uses `admin@juantzun.dev`, and `EMAIL_TEST_RECIPIENT` remains absent/empty.
 - `EMAIL_PUBLIC_BASE_URL` is configured to the approved stable Test target `https://trp-booking.juantzun.dev` even though domain attachment/navigation acceptance remains 12.4 work.
-- `AUTH_URL` remains deferred to 12.4, `AIRBNB_ICAL_IMPORT_URLS_JSON` remains deferred to 12.5, and Vercel cron registration remains absent until 12.7.
+- `AUTH_URL` remains deferred to 12.4, `AIRBNB_ICAL_IMPORT_URLS_JSON` remains deferred to 12.5, and Vercel cron registration remains absent in Test; the 2026-08-11 decision moved activation to Phase 13.
 - Environment-variable changes require a new Vercel Production Deployment before they are accepted.
 - 12.3 validates configuration and hosted baseline health; it does not claim Google OAuth, Tilopay callback, custom-domain, Airbnb, or scheduler E2E acceptance.
 
@@ -1048,7 +1051,7 @@ Authoritative 12.1 record: `docs/136-phase-12.1-test-deployment-and-environment-
 - Register the exact Google OAuth redirect URI `https://trp-booking.juantzun.dev/api/auth/callback/google` while preserving the existing localhost redirect URI.
 - Validate the implemented Tilopay browser redirect plus server-side consult path through `/api/payments/tilopay/redirect`.
 - The configured `/api/payments/tilopay/webhook` target has no current route handler and is not claimed or registered as an accepted webhook in 12.4; if Tilopay requires or calls it, 12.4 remains open for an explicit correction.
-- Airbnb remains deferred to 12.5–12.6 and Vercel scheduler registration remains deferred to 12.7.
+- Airbnb remains deferred to 12.5–12.6 and Vercel scheduler registration remains absent in Test and is deferred to Phase 13.
 
 Authoritative 12.4 record: `docs/141-phase-12.4-test-custom-domain-authjs-and-external-callback-validation.md`.
 
@@ -1093,15 +1096,17 @@ Authoritative 12.5 records: `docs/144-phase-12.5-real-airbnb-inbound-ical-integr
 
 Authoritative 12.6 records: `docs/148-phase-12.6-test-outbound-ical-and-controlled-airbnb-round-trip.md`, `docs/149-phase-12.6.1-outbound-provider-loop-prevention-and-stable-event-identity.md`, `docs/150-phase-12.6.1.1-airbnb-ics-url-compatibility.md`, and `docs/151-phase-12.6-acceptance-closure.md`.
 
-12.7 execution boundary:
-- 12.7 owns scheduler registration only; it does not redesign the four existing jobs or their shared instrumented runner.
-- Before restoring schedules, the Test Vercel project must be on Pro because the accepted 5-minute and 30-minute frequencies exceed Hobby limits.
-- Restore exactly the four registry-aligned schedules: Airbnb sync every 30 minutes, pending/lifecycle hold expiration every 5 minutes, email processing every 5 minutes, and arrival-instruction scheduling every 30 minutes.
-- Vercel scheduled invocations must authenticate through the existing Test `CRON_SECRET`, create durable `CronJobExecution` rows with trigger source `SCHEDULED`, and preserve specialized domain evidence such as Airbnb `CalendarSyncLog`.
-- Validate recurring execution, overlap/idempotency protections, no-op behavior, safe normalized history, manual-console regression, Runtime Logs, and secret hygiene.
-- Production infrastructure remains excluded; 12.7 operates only the existing Test Vercel project.
+12.7 decision boundary:
+- The original Test scheduler-deployment runbook is superseded by the 2026-08-11 cost/scope decision.
+- Test does not require Vercel Pro and does not register recurring schedules; the current static `vercel.json` remains `{"crons": []}` during Phase 12.
+- The four existing cron routes, shared registry, overlap protection, durable history, and protected manual admin console remain part of the application and may be exercised manually in Test.
+- Actual Vercel scheduler activation, recurrence evidence, and production `SCHEDULED` history move to Phase 13.
+- Before Production activation, migrate static Vercel configuration to an environment-aware programmatic configuration (`vercel.ts` or an equivalent supported Vercel config) that returns the four approved cron registrations only when `TRP_ENVIRONMENT=production` and returns no cron registrations for `local`, `test`, missing, or unknown values.
+- Do not maintain separate Test and Production application-code branches merely to vary cron registration. The environment/project configuration is the boundary.
+- Keep the approved schedule contract unchanged: Airbnb sync and arrival scheduling every 30 minutes; hold expiration and email processing every 5 minutes.
 
-Authoritative 12.7 record: `docs/152-phase-12.7-vercel-cron-deployment-and-scheduler-validation.md`.
+Authoritative 12.7 deferral record: `docs/152-phase-12.7-vercel-cron-deployment-and-scheduler-validation.md`.
+12.8 start record: `docs/153-phase-12.8-full-internet-e2e-regression-start.md`.
 
 Phase 12 explicitly excludes company-owned production account provisioning, production payment credentials, production email/DNS cutover, production database/media setup, and public go-live. Those belong to Phase 13.
 
