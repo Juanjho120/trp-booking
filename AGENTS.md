@@ -8,15 +8,16 @@ This file defines the working rules for TRP Booking.
 - Internal project name: `TRP Booking`.
 - Public brand: `Tu Refugio Perfecto` / `Bungalows Tu Refugio Perfecto`.
 - Official production domain: `turefugioperfecto.com`.
-- Stable Test domain: `trp-booking.juantzun.dev`; the Vercel Test deployment is operational and accepted, while Phase 12 continues Test-only external-integration validation.
+- Stable Test domain: `trp-booking.juantzun.dev`; the Vercel Test deployment and Phase 12 acceptance are completed. The current work boundary is the registered Post-Phase-12 / Pre-Phase-13 Final Improvement Track, starting with Final-A. Phase 13 remains Not started.
 - This project is a direct booking website, not a PMS.
 - TAMIAS remains the PMS / internal operations system.
 
 ## Environment Isolation
 
 - `TRP_ENVIRONMENT=local|test|production` is the source of truth for the business/runtime environment.
-- Phase 12 is Test-only: deploy and validate `TRP_ENVIRONMENT=test` on the developer-owned Vercel account before any production infrastructure work.
-- Phase 13 is Production-only: provision company-owned infrastructure, deploy `TRP_ENVIRONMENT=production`, and perform controlled go-live work.
+- Phase 12 Test deployment and external-integration validation are completed and accepted.
+- The Post-Phase-12 / Pre-Phase-13 Final Improvement Track continues implementation/validation against Local/Test boundaries and must not provision Production resources.
+- Phase 13 is Production-only: provision company-owned infrastructure, deploy `TRP_ENVIRONMENT=production`, and perform controlled go-live work only after Final-H closes and the owner explicitly accepts the final improvement track.
 - Do not infer the TRP environment only from `VERCEL_ENV`; the Test Vercel project may use a Vercel production deployment while remaining `TRP_ENVIRONMENT=test`.
 - Do not infer that a documented target domain or environment contract is already deployed; verify deployment state explicitly before describing it as live.
 - Local and Test intentionally reuse the same developer-owned Supabase database, Resend account/sending domain, Zoho organization/aliases, Cloudinary account, and Tilopay sandbox account.
@@ -64,8 +65,9 @@ If any gate item cannot be satisfied, the ZIP must not be delivered until the is
 
 - `docs/10-phases.md` is the official phase plan.
 - `docs/11-progress-log.md` is the official progress tracker.
+- `docs/160-post-phase-12-pre-phase-13-final-improvement-track.md` is the authoritative plan for the current Final-A through Final-H inter-phase track.
 - Any completed phase or subphase must be reflected in the progress tracker before moving to a new major phase.
-- When migrating to a new conversation, use `README.md`, `docs/10-phases.md`, and `docs/11-progress-log.md` as the minimum continuity context. During Phase 12 also review `docs/89-test-and-production-environment-strategy.md` and `docs/136-phase-12.1-test-deployment-and-environment-strategy.md` before deployment work.
+- When migrating to a new conversation, use `README.md`, `docs/10-phases.md`, and `docs/11-progress-log.md` as the minimum continuity context. While the Final Improvement Track is active, also review `docs/160-post-phase-12-pre-phase-13-final-improvement-track.md`. Historical Phase 12 deployment work remains grounded by `docs/89-test-and-production-environment-strategy.md`, `docs/136-phase-12.1-test-deployment-and-environment-strategy.md`, and the Phase 12 closure records.
 
 ## UI and Design System Rules
 

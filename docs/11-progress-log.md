@@ -7,7 +7,10 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 ```text
 Current phase state: Phase 12 — Test Deployment & External Integration Validation — Completed and accepted on 2026-08-11
 Current numbered phase: none active
-Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — awaiting owner-defined scope
+Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Registered
+Current package: Final-A — Reservation financial correctness and effective stay value — Next / not started
+Final Improvement Track registration base: dac105088d2c46be05a900abed3dfe83e608e964
+Final Improvement Track plan: docs/160-post-phase-12-pre-phase-13-final-improvement-track.md
 Phase 13 status: Not started
 Last updated: 2026-08-11
 Last completed subphase: 12.10 Phase 12 validation and closure
@@ -77,8 +80,17 @@ Phase 12.9 acceptance closure: docs/158-phase-12.9-acceptance-closure.md
 Phase 12.10 status: Completed and accepted on 2026-08-11 — Phase 12 validation and closure
 Phase 12.10 validated repository head: ebe28579872cbc2414573ef852b15139a2501551
 Phase 12 closure record: docs/159-phase-12.10-phase-12-validation-and-closure.md
-Post-Phase-12 / Pre-Phase-13 Final Improvement Track: awaiting owner-defined scope
-Phase 13 status: Not started — Production Infrastructure, Deployment & Go-Live remains blocked until the final improvement track is completed and explicitly accepted
+Post-Phase-12 / Pre-Phase-13 Final Improvement Track: Registered on 2026-08-11 — Final-A next
+Final-A status: Next / not started — Reservation financial correctness and effective stay value
+Final-B status: Not started — Admin external-calendar integrations
+Final-C status: Not started — Pricing rules: seasonal and length-of-stay; last-minute pricing explicitly excluded
+Final-D status: Not started — Additional charges and guest payment requests
+Final-E status: Not started — Reservation reviews and post-checkout invitation
+Final-F status: Not started — Twilio WhatsApp communication and staff alerts
+Final-G status: Not started — Performance audit and optimization
+Final-H status: Not started — Integrated regression and final improvement-track closure
+Final Improvement Track plan: docs/160-post-phase-12-pre-phase-13-final-improvement-track.md
+Phase 13 status: Not started — Production Infrastructure, Deployment & Go-Live remains blocked until Final-H is completed and the Final Improvement Track is explicitly accepted
 Pre-Phase-12 Improvement Track status: Completed and accepted — Packages A, B, C, E, and F accepted; Package D remains deferred outside the current gate
 Pre-Phase-12 Improvement Track registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
 Pre-Phase-12 Improvement Track plan: docs/121-pre-phase-12-improvement-track.md
@@ -919,6 +931,35 @@ Status: **Completed and accepted on 2026-08-11**
 - The next work boundary is an owner-defined Post-Phase-12 / Pre-Phase-13 Final Improvement Track whose scope has not yet been frozen.
 ```
 
+## Inter-Phase Work — Post-Phase-12 / Pre-Phase-13 Final Improvement Track
+
+Status: **Registered on 2026-08-11 — Final-A next**
+
+```text
+Registration base: dac105088d2c46be05a900abed3dfe83e608e964
+Authoritative plan: docs/160-post-phase-12-pre-phase-13-final-improvement-track.md
+Final-A Reservation financial correctness and effective stay value — Next / not started
+Final-B Admin external-calendar integrations — Not started
+Final-C Pricing rules: seasonal and length-of-stay — Not started
+Final-D Additional charges and guest payment requests — Not started
+Final-E Reservation reviews and post-checkout invitation — Not started
+Final-F Twilio WhatsApp communication and staff alerts — Not started
+Final-G Performance audit and optimization — Not started
+Final-H Integrated regression and final improvement-track closure — Not started
+Phase 13 — Not started
+```
+
+Track rules recorded at registration:
+
+```text
+- Final-C does not include a last-minute rate/discount feature.
+- Final-A corrects the effective financial value of a stay before pricing and additional-charge work proceeds.
+- Final-F separates one-way internal staff alerts from guest conversations; guest replies are sent from the protected TRP admin inbox through the business WhatsApp sender, not from caretakers' personal numbers.
+- Final-G compares a hosted performance baseline against the completed feature set before accepting optimization work.
+- Test keeps zero Vercel scheduler registrations; Phase 13 remains the Production-only scheduler/provider/go-live boundary.
+- Phase 13 planning remains blocked until Final-H closes and the owner explicitly accepts this track.
+```
+
 ## Continuity Notes for New Conversations
 
 Minimum context files:
@@ -1007,6 +1048,7 @@ docs/156-phase-12.9-observability-security-recovery-readiness.md
 docs/157-phase-12.9-http-security-header-hardening.md
 docs/158-phase-12.9-acceptance-closure.md
 docs/159-phase-12.10-phase-12-validation-and-closure.md
+docs/160-post-phase-12-pre-phase-13-final-improvement-track.md
 lib/admin/reservation-cancellation.ts
 lib/admin/reservation-date-mutation.ts
 lib/reservations/date-mutation-completion.ts
