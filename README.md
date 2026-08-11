@@ -21,7 +21,7 @@ The stable test domain is:
 trp-booking.juantzun.dev
 ```
 
-As of 2026-08-11, TRP Booking has a working Vercel Test deployment on the stable HTTPS domain `trp-booking.juantzun.dev`. Phase 12.9 — Test observability, security, and recovery readiness — is completed and accepted after validating runtime/build-log hygiene, durable operational histories, hosted auth/API fail-closed behavior, HTTP security hardening, static/client secret exposure, incident-response recovery paths, and final dependency/technical readiness. The accepted security follow-ups added low-risk response headers, removed the default Next.js technology disclosure, updated Next/Auth.js security patches, and restricted Next image optimization to the configured TRP Cloudinary namespace. Test remains on Vercel Hobby with no registered schedules. Production scheduler activation, comprehensive CSP enforcement, persistent monitoring/alerting, and Supabase backup/PITR/restore strategy remain explicit Phase 13 obligations. Phase 12.10 — Phase 12 validation and closure — is now in progress; Phase 13 has not started.
+As of 2026-08-11, Phase 12 — Test Deployment & External Integration Validation — is completed and accepted. The stable HTTPS Test deployment at `trp-booking.juantzun.dev` passed hosted deployment, provider wiring, Google/Auth.js, real Airbnb inbound/outbound integration, controlled round-trip recovery, full Internet E2E regression, observability/security/recovery readiness, and the final Phase 12.10 technical/documentation closure. Test remains `TRP_ENVIRONMENT=test` on the developer-owned stack with zero Vercel scheduler registrations. Phase 13 — Production Infrastructure, Deployment & Go-Live — has **not** started. Before Phase 13, the owner will define one final Post-Phase-12 / Pre-Phase-13 improvement track; its scope is intentionally not frozen in this closure package.
 
 ## Environment Strategy
 
@@ -463,14 +463,16 @@ docs/155-phase-12.8-acceptance-closure.md
 docs/156-phase-12.9-observability-security-recovery-readiness.md
 docs/157-phase-12.9-http-security-header-hardening.md
 docs/158-phase-12.9-acceptance-closure.md
+docs/159-phase-12.10-phase-12-validation-and-closure.md
 ```
 
 ## Development Status
 
 ```text
-Current phase: Phase 12 — Test Deployment & External Integration Validation
-Current subphase: 12.10 — Phase 12 validation and closure — In progress
-Current focus: reconcile the complete Phase 12 acceptance record and deferred Production boundaries, then formally close Phase 12 without starting Phase 13 work
+Current phase state: Phase 12 — Test Deployment & External Integration Validation — Completed and accepted on 2026-08-11
+Current numbered phase: none active
+Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — awaiting owner-defined scope
+Phase 13: Production Infrastructure, Deployment & Go-Live — Not started
 12.1 status: Completed and accepted on 2026-08-10
 12.1 documentation base: ede3881a0d2d341018c107fe0cfe5ba0a7f9c490
 12.1 record: docs/136-phase-12.1-test-deployment-and-environment-strategy.md
@@ -520,11 +522,14 @@ Current focus: reconcile the complete Phase 12 acceptance record and deferred Pr
 12.9 validation matrix: docs/156-phase-12.9-observability-security-recovery-readiness.md
 12.9 HTTP security hardening: docs/157-phase-12.9-http-security-header-hardening.md
 12.9 acceptance closure: docs/158-phase-12.9-acceptance-closure.md
-12.10 status: In progress — Phase 12 validation and closure
+12.10 status: Completed and accepted on 2026-08-11 — Phase 12 validation and closure
+12.10 validated repository head: ebe28579872cbc2414573ef852b15139a2501551
+12.10 closure: docs/159-phase-12.10-phase-12-validation-and-closure.md
+Phase 12 status: Completed and accepted on 2026-08-11
 Vercel cron registration: intentionally disabled in Test; the Test project may remain on Hobby. Phase 13 owns production-only scheduler activation and recurrence validation through environment-aware Vercel configuration
 Test deployment status: stable HTTPS domain `trp-booking.juantzun.dev` is attached and operational
 Test domain target: https://trp-booking.juantzun.dev
-Phase 13: Production Infrastructure, Deployment & Go-Live — Not started; production accounts/infrastructure are explicitly deferred
+Phase 13: Production Infrastructure, Deployment & Go-Live — Not started; production accounts/infrastructure remain deferred until the owner-defined final improvement track is completed and explicitly accepted
 Pre-Phase-12 Improvement Track status: Completed and accepted — Packages A, B, C, E, and F accepted; Package D remains deferred outside the current gate
 Package F closure: docs/135-pre-phase-12-package-f-integrated-acceptance-closure.md
 ```
@@ -623,5 +628,5 @@ Package F closure: docs/135-pre-phase-12-package-f-integrated-acceptance-closure
 - Phase 11.1 through 11.7 are completed and accepted as one auditable cancellation, refund, authorized date-change, stay-extension, lifecycle-notification, and protected-history feature.
 - Reservation remains the source of truth for stay and availability state; Payment and Refund remain the sources of truth for financial state.
 - Guest self-service lifecycle mutation, raw provider exposure, card-data handling, hard deletion, history rewrite, and PMS expansion remain excluded.
-- Phase 12 is now active and is Test-only. Subphase 12.1 freezes the environment strategy; the next step is 12.2, which creates the first Vercel Test project/deployment for `trp-booking.juantzun.dev`. All production infrastructure and go-live work move to Phase 13.
+- At Phase 11 closure, Phase 12 was the next Test-only phase. Phase 12 later completed and was accepted on 2026-08-11; its authoritative final closure is `docs/159-phase-12.10-phase-12-validation-and-closure.md`. Phase 13 remains not started.
 ```

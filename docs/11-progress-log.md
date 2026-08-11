@@ -5,11 +5,12 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 ## Current Status
 
 ```text
-Current phase: Phase 12 — Test Deployment & External Integration Validation
-Current subphase: 12.10 — Phase 12 validation and closure — In progress
-Current focus: reconcile the complete Phase 12 acceptance record and Production carry-forwards, then formally close Phase 12 before any Phase 13 provisioning or go-live work
+Current phase state: Phase 12 — Test Deployment & External Integration Validation — Completed and accepted on 2026-08-11
+Current numbered phase: none active
+Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — awaiting owner-defined scope
+Phase 13 status: Not started
 Last updated: 2026-08-11
-Last completed subphase: 12.9 Test observability, security, and recovery readiness
+Last completed subphase: 12.10 Phase 12 validation and closure
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 11.6.5 acceptance: All 15 protected-history, ordering, relation, retry, ES/EN, responsive, security, and integrated criteria passed on 2026-08-05
 11.6.5 implementation and acceptance document: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md
@@ -21,7 +22,7 @@ Last completed subphase: 12.9 Test observability, security, and recovery readine
 11.7 validated closure base: 16cca9e63f5fd8d8af590fc1211dbc69d642f1f6
 Phase 11 accepted feature head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 Phase 11 closure document: docs/120-phase-11.7-validation-and-documentation-closure.md
-Phase 12 status: In progress — 12.1 through 12.6, 12.8, and 12.9 completed and accepted; 12.7 scheduler activation deferred to Phase 13; 12.10 in progress
+Phase 12 status: Completed and accepted on 2026-08-11 — 12.1 through 12.6, 12.8, 12.9, and 12.10 accepted; 12.7 scheduler activation intentionally transferred to Phase 13
 Phase 12.1 documentation base: ede3881a0d2d341018c107fe0cfe5ba0a7f9c490
 Phase 12.1 record: docs/136-phase-12.1-test-deployment-and-environment-strategy.md
 Phase 12.2 status: Completed and accepted on 2026-08-10
@@ -73,8 +74,11 @@ Phase 12.9 validated application/security head: c6791cde5ae99a7b16d4582705f994b7
 Phase 12.9 matrix: docs/156-phase-12.9-observability-security-recovery-readiness.md
 Phase 12.9 HTTP header hardening: docs/157-phase-12.9-http-security-header-hardening.md
 Phase 12.9 acceptance closure: docs/158-phase-12.9-acceptance-closure.md
-Phase 12.10 status: In progress — Phase 12 validation and closure
-Phase 13 status: Not started — Production Infrastructure, Deployment & Go-Live follows successful Phase 12 closure
+Phase 12.10 status: Completed and accepted on 2026-08-11 — Phase 12 validation and closure
+Phase 12.10 validated repository head: ebe28579872cbc2414573ef852b15139a2501551
+Phase 12 closure record: docs/159-phase-12.10-phase-12-validation-and-closure.md
+Post-Phase-12 / Pre-Phase-13 Final Improvement Track: awaiting owner-defined scope
+Phase 13 status: Not started — Production Infrastructure, Deployment & Go-Live remains blocked until the final improvement track is completed and explicitly accepted
 Pre-Phase-12 Improvement Track status: Completed and accepted — Packages A, B, C, E, and F accepted; Package D remains deferred outside the current gate
 Pre-Phase-12 Improvement Track registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
 Pre-Phase-12 Improvement Track plan: docs/121-pre-phase-12-improvement-track.md
@@ -889,13 +893,30 @@ Status: **Completed and accepted on 2026-08-11**
 
 ### Phase 12.9 — Test observability, security, and recovery readiness
 
-Status: **In progress**
+Status: **Completed and accepted on 2026-08-11**
 
 ```text
-- Begins after accepted 12.8 hosted lifecycle/regression evidence.
-- Owns the systematic Test-runtime log and provider-secret/token safety review, monitoring/alerting coverage, recovery/runbook completeness, stale/failure operational readiness, incident readiness, backup/recovery readiness, and broader security-header/provider-surface review.
-- Must not activate Vercel scheduler recurrence in Test; production-only scheduler activation remains Phase 13.
-- Exact 12.9 validation scope/evidence should be derived from the current repository and accepted Phase 12 contracts before closure.
+- Runtime/build-log hygiene, durable operational observability, fail-closed hosted auth/API behavior, security headers, secret/client exposure, incident-response table-tops, and final technical readiness passed.
+- Security remediation updated Next/Auth.js, removed default technology disclosure, added low-risk HTTP headers, and restricted the Next image optimizer to the configured TRP Cloudinary namespace.
+- Comprehensive CSP, Production monitoring/alerting, Vercel scheduler recurrence, and Supabase backup/PITR/restore validation remain explicit Phase 13 gates.
+- Validated application/security head: c6791cde5ae99a7b16d4582705f994b7963d115c.
+- Acceptance closure: docs/158-phase-12.9-acceptance-closure.md.
+```
+
+### Phase 12.10 — Phase 12 validation and closure
+
+Status: **Completed and accepted on 2026-08-11**
+
+```text
+- Reconciled the complete Phase 12 record and confirmed 12.1–12.6, 12.8, and 12.9 accepted.
+- Confirmed 12.7 is an intentional Phase 13 transfer rather than an incomplete Test gate.
+- Confirmed Production carry-forwards for company ownership, scheduler activation/recurrence, persistent monitoring/alerting, comprehensive CSP, Supabase backup/PITR/RPO/RTO/restore, fresh dependency/security audit, and Production branding/provider migration.
+- Final reduced technical closure passed: env validation, Prisma validation/migration status, lint, build, git diff --check, and clean repository state.
+- Validated repository head: ebe28579872cbc2414573ef852b15139a2501551.
+- Authoritative closure: docs/159-phase-12.10-phase-12-validation-and-closure.md.
+- Phase 12 is completed and accepted.
+- Phase 13 remains Not started.
+- The next work boundary is an owner-defined Post-Phase-12 / Pre-Phase-13 Final Improvement Track whose scope has not yet been frozen.
 ```
 
 ## Continuity Notes for New Conversations
@@ -982,6 +1003,10 @@ docs/152-phase-12.7-vercel-cron-deployment-and-scheduler-validation.md
 docs/153-phase-12.8-full-internet-e2e-regression-start.md
 docs/154-phase-12.8-hosted-internet-e2e-regression-matrix.md
 docs/155-phase-12.8-acceptance-closure.md
+docs/156-phase-12.9-observability-security-recovery-readiness.md
+docs/157-phase-12.9-http-security-header-hardening.md
+docs/158-phase-12.9-acceptance-closure.md
+docs/159-phase-12.10-phase-12-validation-and-closure.md
 lib/admin/reservation-cancellation.ts
 lib/admin/reservation-date-mutation.ts
 lib/reservations/date-mutation-completion.ts

@@ -14,10 +14,11 @@ Deferred — Intentionally postponed.
 ## Current Phase
 
 ```text
-Current phase: Phase 12 — Test Deployment & External Integration Validation
-Current subphase: 12.9 — Test observability, security, and recovery readiness — In progress
-Current focus: execute Test observability, security, and recovery-readiness validation on the accepted deployment; production-only scheduler activation and recurrence validation remain deferred to Phase 13
-Last completed subphase: 12.8 Full Internet E2E regression
+Current phase state: Phase 12 — Test Deployment & External Integration Validation — Completed and accepted on 2026-08-11
+Current numbered phase: none active
+Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — awaiting owner-defined scope
+Last completed subphase: 12.10 Phase 12 validation and closure
+Phase 13 status: Not started
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 11.6.5 acceptance: All 15 protected-history, ordering, relation, retry, ES/EN, responsive, security, and integrated criteria passed on 2026-08-05
 11.6.5 implementation and acceptance document: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md
@@ -29,7 +30,7 @@ Last completed subphase: 12.8 Full Internet E2E regression
 11.7 validated closure base: 16cca9e63f5fd8d8af590fc1211dbc69d642f1f6
 Phase 11 accepted feature head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 Phase 11 closure document: docs/120-phase-11.7-validation-and-documentation-closure.md
-Phase 12 status: In progress — 12.1 through 12.6 and 12.8 completed and accepted; 12.7 scheduler activation deferred to Phase 13; 12.9 in progress
+Phase 12 status: Completed and accepted on 2026-08-11 — 12.1 through 12.6, 12.8, 12.9, and 12.10 accepted; 12.7 scheduler activation intentionally transferred to Phase 13
 Phase 12.1 record: docs/136-phase-12.1-test-deployment-and-environment-strategy.md
 Phase 12.2 accepted deployment source head: 91f513c57b6220ad8d1d32f9a198a3d5099b1fd7
 Phase 12.2 record: docs/137-phase-12.2-vercel-test-project-and-first-deployment.md
@@ -71,8 +72,13 @@ Phase 12.8 acceptance base head: 9f7594e5423a7f78163c1f0bad645823f9c17e8d
 Phase 12.8 start record: docs/153-phase-12.8-full-internet-e2e-regression-start.md
 Phase 12.8 matrix: docs/154-phase-12.8-hosted-internet-e2e-regression-matrix.md
 Phase 12.8 acceptance closure: docs/155-phase-12.8-acceptance-closure.md
-Phase 12.9 status: In progress — Test observability, security, and recovery readiness
-Next planned major phase: Phase 13 — Production Infrastructure, Deployment & Go-Live
+Phase 12.9 status: Completed and accepted on 2026-08-11 — Test observability, security, and recovery readiness
+Phase 12.9 closure: docs/158-phase-12.9-acceptance-closure.md
+Phase 12.10 status: Completed and accepted on 2026-08-11 — Phase 12 validation and closure
+Phase 12.10 validated repository head: ebe28579872cbc2414573ef852b15139a2501551
+Phase 12 closure: docs/159-phase-12.10-phase-12-validation-and-closure.md
+Next work: owner-defined Post-Phase-12 / Pre-Phase-13 Final Improvement Track — scope pending
+Next planned numbered phase: Phase 13 — Production Infrastructure, Deployment & Go-Live — Not started
 Pre-Phase-12 Improvement Track status: Completed and accepted — Packages A, B, C, E, and F accepted; Package D remains deferred outside the current gate
 Pre-Phase-12 Improvement Track registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
 Pre-Phase-12 Improvement Track plan: docs/121-pre-phase-12-improvement-track.md
@@ -987,7 +993,7 @@ Phase 11 rules:
 
 ## Phase 12 — Test Deployment & External Integration Validation
 
-Status: **In progress — 12.1 through 12.6, 12.8, and 12.9 completed and accepted; 12.7 scheduler activation deferred to Phase 13; 12.10 in progress**
+Status: **Completed and accepted on 2026-08-11 — 12.1 through 12.6, 12.8, 12.9, and 12.10 accepted; 12.7 scheduler activation intentionally transferred to Phase 13**
 
 Goal: Create TRP Booking's first real Internet-accessible Test deployment and validate the already-built application against real hosted infrastructure and external integrations without creating or using production-company provider accounts.
 
@@ -1031,7 +1037,7 @@ Planned subphases:
 12.7 Vercel Cron deployment and scheduler validation — Deferred to Phase 13; no Test activation
 12.8 Full Internet E2E regression — Completed and accepted on 2026-08-11
 12.9 Test observability, security, and recovery readiness — Completed and accepted on 2026-08-11
-12.10 Phase 12 validation and closure — In progress
+12.10 Phase 12 validation and closure — Completed and accepted on 2026-08-11
 ```
 
 Authoritative 12.1 record: `docs/136-phase-12.1-test-deployment-and-environment-strategy.md`.
@@ -1126,7 +1132,7 @@ Authoritative 12.7 deferral record: `docs/152-phase-12.7-vercel-cron-deployment-
 - Final validators, Prisma status, lint, build, whitespace checks, clean repository state, hosted auth/public/image smoke, and security-header revalidation passed on the accepted application/security head `c6791cde5ae99a7b16d4582705f994b7963d115c`.
 
 Authoritative 12.9 records: `docs/156-phase-12.9-observability-security-recovery-readiness.md`, `docs/157-phase-12.9-http-security-header-hardening.md`, and `docs/158-phase-12.9-acceptance-closure.md`.
-12.10 is now the active Test subphase and must reconcile the full Phase 12 record, confirm every Production carry-forward, and formally close Phase 12 before Phase 13 starts.
+12.10 completed the final Phase 12 reconciliation and closure on 2026-08-11. The validated closure base was `ebe28579872cbc2414573ef852b15139a2501551`; the authoritative closure record is `docs/159-phase-12.10-phase-12-validation-and-closure.md`.
 
 Phase 12 explicitly excludes company-owned production account provisioning, production payment credentials, production email/DNS cutover, production database/media setup, and public go-live. Those belong to Phase 13.
 
@@ -1134,7 +1140,7 @@ Phase 12 explicitly excludes company-owned production account provisioning, prod
 
 ## Phase 13 — Production Infrastructure, Deployment & Go-Live
 
-Status: **Not started — begins only after Phase 12 Test acceptance**
+Status: **Not started — Phase 12 is accepted, but the owner-defined final improvement track must be completed and explicitly accepted before Production work begins**
 
 Goal: Provision a fully company-owned production stack, deploy `TRP_ENVIRONMENT=production`, validate production integrations, and perform a controlled public launch.
 
@@ -1153,4 +1159,4 @@ CRON_SECRET: new Production-only secret
 Airbnb iCal: real production inbound/outbound integration
 ```
 
-The exact Phase 13 subphase breakdown will be frozen after Phase 12 validates the deployed Test architecture. No personal/developer provider credential should become a Production dependency.
+The exact Phase 13 subphase breakdown will be frozen only after the owner-defined Post-Phase-12 / Pre-Phase-13 Final Improvement Track is completed and accepted. Phase 13 is not activated by this Phase 12 closure. No personal/developer provider credential should become a Production dependency.
