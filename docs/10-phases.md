@@ -18,21 +18,24 @@ Current phase state: Phase 12 — Test Deployment & External Integration Validat
 Current numbered phase: none active
 Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
 Current package: Final-A — Reservation financial correctness and effective stay value — In progress
-Current subphase: Final-A.4 — Negative DATE_CHANGE multi-payment integration — Implementation prepared; pending local validation and owner acceptance
+Current subphase: Final-A.5 — Admin UX, notification copy, and operational-history integration — Implementation prepared; pending local validation and owner acceptance
 Final-A.1 status: Completed and accepted on 2026-08-11
 Final-A.1 accepted head: 19531568752a44446d0802d6581262260b881aaf
 Final-A.2 status: Completed and accepted on 2026-08-11
 Final-A.2 accepted head: 9f4e04068726451ca87614dd99b1f10656510825
 Final-A.3 status: Completed and accepted on 2026-08-11
 Final-A.3 accepted head: 8d5884c4f536c0d9407fac2d0229b71105114453
-Final-A.4 implementation base: 8d5884c4f536c0d9407fac2d0229b71105114453
+Final-A.4 status: Completed and accepted on 2026-08-11
+Final-A.4 accepted head: 1c5ea765543e46b89beb64ecb3c06141e8efd8e4
+Final-A.5 implementation base: 1c5ea765543e46b89beb64ecb3c06141e8efd8e4
 Track registration base: dac105088d2c46be05a900abed3dfe83e608e964
 Track plan: docs/160-post-phase-12-pre-phase-13-final-improvement-track.md
 Final-A strategy: docs/161-final-a-financial-correctness-strategy-and-roadmap.md
 Final-A.2 record: docs/162-final-a-2-central-financial-summary-and-cancellation-policy-correction.md
 Final-A.3 record: docs/163-final-a-3-standard-and-extraordinary-multi-payment-refunds.md
 Final-A.4 record: docs/164-final-a-4-negative-date-change-multi-payment-integration.md
-Last completed subphase: Final-A.3 Standard and extraordinary multi-payment refund authorization — accepted on 2026-08-11 at 8d5884c4f536c0d9407fac2d0229b71105114453
+Final-A.5 record: docs/165-final-a-5-admin-refund-ux-notification-and-operational-history.md
+Last completed subphase: Final-A.4 Negative DATE_CHANGE multi-payment integration — accepted on 2026-08-11 at 1c5ea765543e46b89beb64ecb3c06141e8efd8e4
 Phase 13 status: Not started
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 11.6.5 acceptance: All 15 protected-history, ordering, relation, retry, ES/EN, responsive, security, and integrated criteria passed on 2026-08-05
@@ -92,7 +95,7 @@ Phase 12.9 closure: docs/158-phase-12.9-acceptance-closure.md
 Phase 12.10 status: Completed and accepted on 2026-08-11 — Phase 12 validation and closure
 Phase 12.10 validated repository head: ebe28579872cbc2414573ef852b15139a2501551
 Phase 12 closure: docs/159-phase-12.10-phase-12-validation-and-closure.md
-Next work: validate and accept Final-A.4 negative DATE_CHANGE multi-payment integration, then begin Final-A.5 admin UX, notification copy, and operational-history integration
+Next work: validate and accept Final-A.5 admin UX, notification copy, and operational-history integration, then begin Final-A.6 integrated acceptance and documentation closure
 Next planned numbered phase: Phase 13 — Production Infrastructure, Deployment & Go-Live — Not started
 Pre-Phase-12 Improvement Track status: Completed and accepted — Packages A, B, C, E, and F accepted; Package D remains deferred outside the current gate
 Pre-Phase-12 Improvement Track registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
@@ -1166,8 +1169,8 @@ Final-A Reservation financial correctness and effective stay value — In progre
   Final-A.1 Financial source-of-truth and refund-allocation contract — Completed and accepted on 2026-08-11 at 19531568752a44446d0802d6581262260b881aaf
   Final-A.2 Central financial summary and cancellation-policy correction — Completed and accepted on 2026-08-11 at 9f4e04068726451ca87614dd99b1f10656510825
   Final-A.3 Standard and extraordinary multi-payment refund authorization — Completed and accepted on 2026-08-11 at 8d5884c4f536c0d9407fac2d0229b71105114453
-  Final-A.4 Negative DATE_CHANGE multi-payment integration — Implementation prepared; pending local validation and owner acceptance
-  Final-A.5 Admin UX, notification copy, and operational-history integration — Not started
+  Final-A.4 Negative DATE_CHANGE multi-payment integration — Completed and accepted on 2026-08-11 at 1c5ea765543e46b89beb64ecb3c06141e8efd8e4
+  Final-A.5 Admin UX, notification copy, and operational-history integration — Implementation prepared; pending local validation and owner acceptance
   Final-A.6 Integrated acceptance and documentation closure — Not started
 Final-B Admin external-calendar integrations — Not started
 Final-C Pricing rules: seasonal and length-of-stay — Not started
@@ -1189,6 +1192,8 @@ Final-A.2 implementation/validation record: `docs/162-final-a-2-central-financia
 Final-A.3 implementation/validation record: `docs/163-final-a-3-standard-and-extraordinary-multi-payment-refunds.md`.
 
 Final-A.4 implementation/validation record: `docs/164-final-a-4-negative-date-change-multi-payment-integration.md`.
+
+Final-A.5 implementation/validation record: `docs/165-final-a-5-admin-refund-ux-notification-and-operational-history.md`.
 
 Phase 13 must not start until Final-H is completed and the owner explicitly accepts this track.
 

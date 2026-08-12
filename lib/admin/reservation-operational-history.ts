@@ -122,6 +122,7 @@ const refundHistorySelect = {
   paymentId: true,
   lifecycleRequestId: true,
   authorizationType: true,
+  refundOperationKey: true,
   status: true,
   amount: true,
   currency: true,
@@ -261,6 +262,7 @@ function createEvent(
     requestType?: string | null;
     paymentPurpose?: string | null;
     refundAuthorizationType?: string | null;
+    refundOperationKey?: string | null;
     notificationType?: string | null;
     recipient?: string | null;
     locale?: string | null;
@@ -291,6 +293,7 @@ function createEvent(
     requestType: input.requestType ?? null,
     paymentPurpose: input.paymentPurpose ?? null,
     refundAuthorizationType: input.refundAuthorizationType ?? null,
+    refundOperationKey: input.refundOperationKey ?? null,
     notificationType: input.notificationType ?? null,
     recipient: input.recipient ?? null,
     locale: input.locale ?? null,
@@ -650,6 +653,7 @@ function refundBase(refund: RefundHistoryRecord) {
     amount: refund.amount.toFixed(2),
     currency: refund.currency,
     refundAuthorizationType: refund.authorizationType,
+    refundOperationKey: refund.refundOperationKey,
     providerReference: refund.providerRefundId,
   };
 }

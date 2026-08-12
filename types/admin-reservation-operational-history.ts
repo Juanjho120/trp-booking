@@ -121,6 +121,7 @@ export type AdminReservationOperationalHistoryEvent = Readonly<{
   requestType: string | null;
   paymentPurpose: string | null;
   refundAuthorizationType: string | null;
+  refundOperationKey: string | null;
   notificationType: string | null;
   recipient: string | null;
   locale: string | null;

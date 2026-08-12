@@ -1,7 +1,15 @@
 import { dateOnlyFromDate } from "@/lib/availability/rules";
 import { prisma } from "@/lib/db/prisma";
 import { getTilopayEnv } from "@/lib/env/server";
-import type { AdminReservationDetailData } from "@/types/admin-reservation-detail";
+import {
+  getReservationFinancialSummary,
+  ReservationFinancialSummaryError,
+  type ReservationFinancialSummary,
+} from "@/lib/reservations/financial-summary";
+import type {
+  AdminReservationDetailData,
+  AdminReservationFinancialSummary,
+} from "@/types/admin-reservation-detail";
 
 import { getAdminReservationOperationalHistory } from "./reservation-operational-history";
 import { getAdminCancellationRequestsForReservation } from "./reservation-cancellation";
@@ -33,6 +41,54 @@ function normalizeOptionalText(
   }
 
   return normalized.slice(0, maximumLength);
+}
+
+function toAdminFinancialSummary(
+  summary: ReservationFinancialSummary,
+): AdminReservationFinancialSummary {
+  return {
+    currency: summary.currency,
+    originalStayAmount: summary.originalStayAmount.toFixed(2),
+    approvedCompletedPositiveStayAdjustments:
+      summary.approvedCompletedPositiveStayAdjustments.toFixed(2),
+    currentStayValue: summary.currentStayValue.toFixed(2),
+    capturedStayPayments: summary.capturedStayPayments.toFixed(2),
+    committedStayRefunds: summary.committedStayRefunds.toFixed(2),
+    approvedStayRefunds: summary.approvedStayRefunds.toFixed(2),
+    remainingRefundableStayBalance:
+      summary.remainingRefundableStayBalance.toFixed(2),
+    eligibleStayPayments: summary.eligibleStayPayments.map((payment) => ({
+      paymentId: payment.paymentId,
+      purpose: payment.purpose,
+      status: payment.status,
+      amount: payment.amount.toFixed(2),
+      currency: payment.currency,
+      providerReference: payment.providerReference,
+      committedRefundAmount: payment.committedRefundAmount.toFixed(2),
+      approvedRefundAmount: payment.approvedRefundAmount.toFixed(2),
+      remainingRefundableAmount: payment.remainingRefundableAmount.toFixed(2),
+    })),
+  };
+}
+
+async function getAdminFinancialSummary(
+  reservationId: string,
+): Promise<AdminReservationFinancialSummary | null> {
+  try {
+    return toAdminFinancialSummary(
+      await getReservationFinancialSummary(reservationId),
+    );
+  } catch (error) {
+    if (
+      error instanceof ReservationFinancialSummaryError &&
+      error.code ===
+        "RESERVATION_FINANCIAL_SUMMARY_INITIAL_PAYMENT_NOT_FOUND"
+    ) {
+      return null;
+    }
+
+    throw error;
+  }
 }
 
 export async function getAdminReservationDetail(
@@ -136,11 +192,13 @@ export async function getAdminReservationDetail(
     dateMutationRequests,
     refunds,
     operationalHistory,
+    financialSummary,
   ] = await Promise.all([
     getAdminCancellationRequestsForReservation(reservation.id),
     getAdminDateMutationRequestsForReservation(reservation.id),
     getAdminRefundsForReservation(reservation.id),
     getAdminReservationOperationalHistory(reservation.id),
+    getAdminFinancialSummary(reservation.id),
   ]);
   const refundApiExecutionEnabled =
     getTilopayEnv().TILOPAY_ENVIRONMENT === "sandbox";
@@ -225,6 +283,7 @@ export async function getAdminReservationDetail(
     cancellationRequests,
     dateMutationRequests,
     refunds,
+    financialSummary,
     operationalHistory,
     refundApiExecutionEnabled,
   };

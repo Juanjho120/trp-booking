@@ -705,7 +705,7 @@ Final-A.3 Standard and extraordinary multi-payment refund authorization
   - existing per-child Tilopay execution/reconciliation preserved
 
 Final-A.4 Negative DATE_CHANGE multi-payment integration
-  Status: Implementation prepared; pending local validation and owner acceptance
+  Status: Completed and accepted on 2026-08-11 at 1c5ea765543e46b89beb64ecb3c06141e8efd8e4
   Record: docs/164-final-a-4-negative-date-change-multi-payment-integration.md
   Scope:
   - aggregate balance validation
@@ -714,7 +714,8 @@ Final-A.4 Negative DATE_CHANGE multi-payment integration
   - failed-positive compensation remains exact and unchanged
 
 Final-A.5 Admin UX, notification copy, and operational-history integration
-  Status: Not started
+  Status: Implementation prepared; pending local validation and owner acceptance
+  Record: docs/165-final-a-5-admin-refund-ux-notification-and-operational-history.md
   Scope:
   - Reservation financial summary in admin
   - logical Refund grouping
@@ -850,7 +851,9 @@ Final-A.2 -> Completed and accepted at 9f4e04068726451ca87614dd99b1f10656510825
 Final-A.2 record -> docs/162-final-a-2-central-financial-summary-and-cancellation-policy-correction.md
 Final-A.3 -> Completed and accepted on 2026-08-11 at 8d5884c4f536c0d9407fac2d0229b71105114453
 Final-A.3 record -> docs/163-final-a-3-standard-and-extraordinary-multi-payment-refunds.md
-Final-A.4 -> Current implementation/validation package
+Final-A.4 -> Completed and accepted on 2026-08-11 at 1c5ea765543e46b89beb64ecb3c06141e8efd8e4
 Final-A.4 record -> docs/164-final-a-4-negative-date-change-multi-payment-integration.md
+Final-A.5 -> Current implementation/validation package
+Final-A.5 record -> docs/165-final-a-5-admin-refund-ux-notification-and-operational-history.md
 Phase 13 -> Not started
 ```

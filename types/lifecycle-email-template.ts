@@ -116,6 +116,12 @@ export type RefundProcessedEmailTemplateInput =
         paymentStatus: "REFUNDED" | "PARTIALLY_REFUNDED";
         providerRefundId?: string | null;
         reason?: string | null;
+        operation?: Readonly<{
+          key: string;
+          movementCount: number;
+          approvedMovementCount: number;
+          requestedAmount: string;
+        }> | null;
       }>;
       admin?: Readonly<{
         requestedByAdminName?: string | null;

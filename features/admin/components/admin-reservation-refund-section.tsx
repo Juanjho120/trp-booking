@@ -42,6 +42,10 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { useLocale } from "@/features/i18n";
+import {
+  groupAdminRefundsByOperation,
+  type AdminRefundOperationGroup,
+} from "@/features/admin/refund-operation-groups";
 import type {
   AdminRefundAuthorizationResult,
   AdminRefundAuthorizationType,
@@ -76,7 +80,6 @@ const committedRefundStatuses = new Set([
   "APPROVED",
   "MANUAL",
 ]);
-const refundablePaymentStatuses = new Set(["APPROVED", "PARTIALLY_REFUNDED"]);
 
 type RefundApiResponse<Result> = Readonly<{
   result?: Result;
@@ -130,32 +133,25 @@ export function AdminReservationRefundSection({
       ) ?? null,
     [reservation.cancellationRequests],
   );
-  const sourcePayment = eligibleRequest
-    ? reservation.payments.find(
-        (payment) => payment.id === eligibleRequest.sourcePaymentId,
-      ) ?? null
-    : null;
-  const extraordinaryPayment =
-    (sourcePayment && refundablePaymentStatuses.has(sourcePayment.status)
-      ? sourcePayment
-      : reservation.payments.find((payment) =>
-          refundablePaymentStatuses.has(payment.status),
-        )) ?? null;
+  const financialSummary = reservation.financialSummary;
+  const remainingRefundableStayBalance = financialSummary
+    ? amountNumber(financialSummary.remainingRefundableStayBalance)
+    : 0;
+  const refundableStayPayments =
+    financialSummary?.eligibleStayPayments.filter(
+      (payment) => amountNumber(payment.remainingRefundableAmount) > 0,
+    ) ?? [];
+  const allRefundableStayPaymentsHaveProviderReference =
+    refundableStayPayments.length > 0 &&
+    refundableStayPayments.every((payment) =>
+      Boolean(payment.providerReference),
+    );
   const standardCommittedAmount = eligibleRequest
     ? reservation.refunds
         .filter(
           (refund) =>
             refund.lifecycleRequestId === eligibleRequest.id &&
             refund.authorizationType !== "EXTRAORDINARY" &&
-            committedRefundStatuses.has(refund.status),
-        )
-        .reduce((total, refund) => total + amountNumber(refund.amount), 0)
-    : 0;
-  const paymentCommittedAmount = extraordinaryPayment
-    ? reservation.refunds
-        .filter(
-          (refund) =>
-            refund.paymentId === extraordinaryPayment.id &&
             committedRefundStatuses.has(refund.status),
         )
         .reduce((total, refund) => total + amountNumber(refund.amount), 0)
@@ -167,12 +163,10 @@ export function AdminReservationRefundSection({
           standardCommittedAmount,
       )
     : 0;
-  const remainingPaymentAmount = extraordinaryPayment
-    ? Math.max(
-        0,
-        amountNumber(extraordinaryPayment.amount) - paymentCommittedAmount,
-      )
-    : 0;
+  const standardAuthorizationLimit = Math.min(
+    remainingPolicyAmount,
+    remainingRefundableStayBalance,
+  );
   const [authorizationOpen, setAuthorizationOpen] = useState(false);
   const [authorizationRequestId, setAuthorizationRequestId] = useState("");
   const [authorizationDraft, setAuthorizationDraft] =
@@ -201,17 +195,15 @@ export function AdminReservationRefundSection({
   const [successFeedback, setSuccessFeedback] = useState<string | null>(null);
   const canAuthorizeStandard = Boolean(
     eligibleRequest &&
-      sourcePayment &&
+      financialSummary &&
       reservation.status === "CANCELLED" &&
-      refundablePaymentStatuses.has(sourcePayment.status) &&
-      remainingPolicyAmount > 0,
+      standardAuthorizationLimit > 0,
   );
   const canAuthorizeExtraordinary = Boolean(
-    extraordinaryPayment &&
+    financialSummary &&
       (reservation.status === "CONFIRMED" ||
         reservation.status === "CANCELLED") &&
-      refundablePaymentStatuses.has(extraordinaryPayment.status) &&
-      remainingPaymentAmount > 0,
+      remainingRefundableStayBalance > 0,
   );
   const isBusy = busyAction !== null;
   const reconciliationConsultClassification =
@@ -232,7 +224,11 @@ export function AdminReservationRefundSection({
       ) &&
       reconciliationTarget.diagnostics.amount,
   );
-  const refundPagination = useAdminRecordPagination(reservation.refunds);
+  const refundOperationGroups = useMemo(
+    () => groupAdminRefundsByOperation(reservation.refunds),
+    [reservation.refunds],
+  );
+  const refundPagination = useAdminRecordPagination(refundOperationGroups);
   const paginationCopy = messages.admin.reservationsPage;
   const paginationLabels = {
     next: paginationCopy.actions.next,
@@ -305,16 +301,21 @@ export function AdminReservationRefundSection({
     );
   }
 
+  function isSplitRefundOperation(refund: AdminRefundSummary): boolean {
+    return Boolean(
+      refund.refundOperationKey &&
+        reservation.refunds.filter(
+          (candidate) =>
+            candidate.refundOperationKey === refund.refundOperationKey,
+        ).length > 1,
+    );
+  }
+
   function openAuthorization(
     authorizationType: AdminRefundAuthorizationType,
   ): void {
-    const payment =
-      authorizationType === "STANDARD_POLICY"
-        ? sourcePayment
-        : extraordinaryPayment;
-
     if (
-      !payment ||
+      !financialSummary ||
       (authorizationType === "STANDARD_POLICY" && !eligibleRequest)
     ) {
       return;
@@ -326,10 +327,10 @@ export function AdminReservationRefundSection({
       authorizationType,
       amount:
         authorizationType === "STANDARD_POLICY"
-          ? fixedAmount(remainingPolicyAmount)
+          ? fixedAmount(standardAuthorizationLimit)
           : "0.00",
       reason: "",
-      processingMode: payment.providerReference
+      processingMode: allRefundableStayPaymentsHaveProviderReference
         ? "TILOPAY_API"
         : "TILOPAY_PORTAL_FALLBACK",
     });
@@ -379,10 +380,9 @@ export function AdminReservationRefundSection({
   async function authorizeRefund(): Promise<void> {
     const isExtraordinary =
       authorizationDraft.authorizationType === "EXTRAORDINARY";
-    const payment = isExtraordinary ? extraordinaryPayment : sourcePayment;
 
     if (
-      !payment ||
+      !financialSummary ||
       (!isExtraordinary && !eligibleRequest) ||
       isBusy ||
       !authorizationDraft.reason.trim() ||
@@ -405,20 +405,17 @@ export function AdminReservationRefundSection({
           )}/refunds`;
       const body = isExtraordinary
         ? {
-            paymentId: payment.id,
             amount: authorizationDraft.amount,
             reason: authorizationDraft.reason,
             processingMode: authorizationDraft.processingMode,
             requestId: authorizationRequestId,
             expectedReservationUpdatedAt: reservation.updatedAt,
-            expectedPaymentUpdatedAt: payment.updatedAt,
           }
         : {
             ...authorizationDraft,
             requestId: authorizationRequestId,
             expectedRequestVersion: eligibleRequest?.version,
             expectedRequestUpdatedAt: eligibleRequest?.updatedAt,
-            expectedPaymentUpdatedAt: payment.updatedAt,
           };
       const response = await fetch(url, {
         method: "POST",
@@ -437,7 +434,9 @@ export function AdminReservationRefundSection({
       setSuccessFeedback(
         payload.result.alreadyProcessed
           ? copy.success.authorizationAlreadyExists
-          : copy.success.authorized,
+          : payload.result.refunds.length > 1
+            ? copy.success.authorizedOperation
+            : copy.success.authorized,
       );
       router.refresh();
     } catch {
@@ -601,10 +600,13 @@ export function AdminReservationRefundSection({
         return;
       }
 
+      const splitOperation = isSplitRefundOperation(reconciliationTarget);
       setReconciliationTarget(null);
       setSuccessFeedback(
         payload.result.refund.status === "APPROVED"
-          ? copy.success.reconciledApproved
+          ? splitOperation
+            ? copy.success.reconciledMovementApproved
+            : copy.success.reconciledApproved
           : copy.success.reconciledFailed,
       );
       router.refresh();
@@ -659,19 +661,60 @@ export function AdminReservationRefundSection({
           ) : null}
         </CardHeader>
         <CardContent className="grid gap-5">
-          {eligibleRequest ? (
+          {financialSummary ? (
             <div className="grid gap-4 rounded-2xl border border-border bg-muted/20 p-4 sm:grid-cols-2 xl:grid-cols-5">
+              <DetailValue
+                label={copy.labels.currentStayValue}
+                value={formatMoney(
+                  financialSummary.currentStayValue,
+                  financialSummary.currency,
+                )}
+              />
+              <DetailValue
+                label={copy.labels.capturedStayPayments}
+                value={formatMoney(
+                  financialSummary.capturedStayPayments,
+                  financialSummary.currency,
+                )}
+              />
+              <DetailValue
+                label={copy.labels.committedStayRefunds}
+                value={formatMoney(
+                  financialSummary.committedStayRefunds,
+                  financialSummary.currency,
+                )}
+              />
+              <DetailValue
+                label={copy.labels.approvedStayRefunds}
+                value={formatMoney(
+                  financialSummary.approvedStayRefunds,
+                  financialSummary.currency,
+                )}
+              />
+              <DetailValue
+                label={copy.labels.remainingRefundableStayBalance}
+                value={formatMoney(
+                  financialSummary.remainingRefundableStayBalance,
+                  financialSummary.currency,
+                )}
+              />
+            </div>
+          ) : (
+            <p className="text-sm leading-6 text-muted-foreground">
+              {copy.empty.noFinancialSummary}
+            </p>
+          )}
+
+          {eligibleRequest ? (
+            <div className="grid gap-4 rounded-2xl border border-border bg-background/60 p-4 sm:grid-cols-2 xl:grid-cols-4">
+              <DetailValue
+                label={copy.labels.policyPercentage}
+                value={`${eligibleRequest.policy.refundPercentage}%`}
+              />
               <DetailValue
                 label={copy.labels.policyAmount}
                 value={formatMoney(
                   eligibleRequest.policy.refundAmount,
-                  eligibleRequest.policy.currency,
-                )}
-              />
-              <DetailValue
-                label={copy.labels.committedAmount}
-                value={formatMoney(
-                  fixedAmount(standardCommittedAmount),
                   eligibleRequest.policy.currency,
                 )}
               />
@@ -683,50 +726,20 @@ export function AdminReservationRefundSection({
                 )}
               />
               <DetailValue
-                label={copy.labels.paymentRemainingAmount}
-                value={
-                  extraordinaryPayment
-                    ? formatMoney(
-                        fixedAmount(remainingPaymentAmount),
-                        extraordinaryPayment.currency,
-                      )
-                    : copy.labels.unavailable
-                }
-              />
-              <DetailValue
-                label={copy.labels.paymentStatus}
-                value={
-                  extraordinaryPayment
-                    ? statusLabel(extraordinaryPayment.status)
-                    : copy.labels.unavailable
-                }
-              />
-            </div>
-          ) : extraordinaryPayment ? (
-            <div className="grid gap-4 rounded-2xl border border-border bg-muted/20 p-4 sm:grid-cols-2">
-              <DetailValue
-                label={copy.labels.paymentRemainingAmount}
+                label={copy.labels.authorizationLimit}
                 value={formatMoney(
-                  fixedAmount(remainingPaymentAmount),
-                  extraordinaryPayment.currency,
+                  fixedAmount(standardAuthorizationLimit),
+                  eligibleRequest.policy.currency,
                 )}
               />
-              <DetailValue
-                label={copy.labels.paymentStatus}
-                value={statusLabel(extraordinaryPayment.status)}
-              />
             </div>
-          ) : (
-            <p className="text-sm leading-6 text-muted-foreground">
-              {copy.empty.noRefundablePayment}
-            </p>
-          )}
+          ) : null}
 
           <p className="text-sm leading-6 text-muted-foreground">
             {copy.notes.separateLifecycle}
           </p>
 
-          {reservation.refunds.length > 0 ? (
+          {refundOperationGroups.length > 0 ? (
             <>
               <Accordion
                 className="grid gap-3"
@@ -734,27 +747,50 @@ export function AdminReservationRefundSection({
                 key={`${refundPagination.page}-${refundPagination.pageSize}`}
                 type="single"
               >
-              {refundPagination.pageItems.map((refund) => (
-                <RefundCard
-                  apiExecutionEnabled={reservation.refundApiExecutionEnabled}
-                  authorizationTypeLabel={authorizationTypeLabel(
-                    refund.authorizationType,
-                  )}
-                  busyAction={busyAction}
-                  classificationLabel={classificationLabel}
-                  copy={copy}
-                  formatDateTime={formatDateTime}
-                  formatMoney={formatMoney}
-                  key={refund.id}
-                  modeLabel={modeLabel(refund.processingMode)}
-                  onConsult={() => void consultRefund(refund)}
-                  onExecute={() => openExecution(refund)}
-                  onReconcile={() => openReconciliation(refund)}
-                  payment={paymentForRefund(refund)}
-                  refund={refund}
-                  statusLabel={statusLabel(refund.status)}
-                />
-              ))}
+                {refundPagination.pageItems.map((group) =>
+                  group.refundOperationKey === null &&
+                  group.refunds.length === 1 ? (
+                    <RefundCard
+                      apiExecutionEnabled={reservation.refundApiExecutionEnabled}
+                      authorizationTypeLabel={authorizationTypeLabel(
+                        group.refunds[0].authorizationType,
+                      )}
+                      busyAction={busyAction}
+                      classificationLabel={classificationLabel}
+                      copy={copy}
+                      formatDateTime={formatDateTime}
+                      formatMoney={formatMoney}
+                      key={group.id}
+                      modeLabel={modeLabel(group.refunds[0].processingMode)}
+                      onConsult={() => void consultRefund(group.refunds[0])}
+                      onExecute={() => openExecution(group.refunds[0])}
+                      onReconcile={() => openReconciliation(group.refunds[0])}
+                      payment={paymentForRefund(group.refunds[0])}
+                      refund={group.refunds[0]}
+                      statusLabel={statusLabel(group.refunds[0].status)}
+                    />
+                  ) : (
+                    <RefundOperationCard
+                      apiExecutionEnabled={reservation.refundApiExecutionEnabled}
+                      authorizationTypeLabel={authorizationTypeLabel(
+                        group.authorizationType,
+                      )}
+                      busyAction={busyAction}
+                      classificationLabel={classificationLabel}
+                      copy={copy}
+                      formatDateTime={formatDateTime}
+                      formatMoney={formatMoney}
+                      group={group}
+                      key={group.id}
+                      modeLabel={modeLabel}
+                      onConsult={(refund) => void consultRefund(refund)}
+                      onExecute={openExecution}
+                      onReconcile={openReconciliation}
+                      paymentForRefund={paymentForRefund}
+                      statusLabel={statusLabel}
+                    />
+                  ),
+                )}
               </Accordion>
               <AdminRecordPagination
                 labels={paginationLabels}
@@ -766,7 +802,7 @@ export function AdminReservationRefundSection({
                 totalPages={refundPagination.totalPages}
               />
             </>
-          ) : eligibleRequest || extraordinaryPayment ? (
+          ) : financialSummary || eligibleRequest ? (
             <p className="text-sm text-muted-foreground">
               {copy.empty.noRefunds}
             </p>
@@ -802,20 +838,14 @@ export function AdminReservationRefundSection({
                 )}
               />
               <DetailValue
-                label={
-                  authorizationDraft.authorizationType === "EXTRAORDINARY"
-                    ? copy.labels.paymentRemainingAmount
-                    : copy.labels.remainingAmount
-                }
+                label={copy.labels.authorizationLimit}
                 value={formatMoney(
                   fixedAmount(
                     authorizationDraft.authorizationType === "EXTRAORDINARY"
-                      ? remainingPaymentAmount
-                      : remainingPolicyAmount,
+                      ? remainingRefundableStayBalance
+                      : standardAuthorizationLimit,
                   ),
-                  (authorizationDraft.authorizationType === "EXTRAORDINARY"
-                    ? extraordinaryPayment?.currency
-                    : sourcePayment?.currency) ??
+                  financialSummary?.currency ??
                     eligibleRequest?.policy.currency ??
                     "USD",
                 )}
@@ -1131,6 +1161,127 @@ export function AdminReservationRefundSection({
         </SheetContent>
       </Sheet>
     </>
+  );
+}
+
+function RefundOperationCard({
+  group,
+  apiExecutionEnabled,
+  copy,
+  authorizationTypeLabel,
+  modeLabel,
+  statusLabel,
+  classificationLabel,
+  formatMoney,
+  formatDateTime,
+  busyAction,
+  paymentForRefund,
+  onExecute,
+  onConsult,
+  onReconcile,
+}: Readonly<{
+  group: AdminRefundOperationGroup;
+  apiExecutionEnabled: boolean;
+  copy: ReturnType<typeof useLocale>["messages"]["admin"]["reservationsPage"]["refunds"];
+  authorizationTypeLabel: string;
+  modeLabel: (mode: string) => string;
+  statusLabel: (status: string) => string;
+  classificationLabel: (classification: string) => string;
+  formatMoney: (value: string, currency: string) => string;
+  formatDateTime: (value: string | null) => string;
+  busyAction: string | null;
+  paymentForRefund: (
+    refund: AdminRefundSummary,
+  ) => AdminReservationDetailPayment | null;
+  onExecute: (refund: AdminRefundSummary) => void;
+  onConsult: (refund: AdminRefundSummary) => void;
+  onReconcile: (refund: AdminRefundSummary) => void;
+}>) {
+  const completedMovements = group.refunds.filter((refund) =>
+    refund.status === "APPROVED" || refund.status === "MANUAL",
+  ).length;
+
+  return (
+    <AccordionItem
+      className="overflow-hidden rounded-2xl border border-border bg-muted/20 last:border-b"
+      value={`operation:${group.id}`}
+    >
+      <AccordionTrigger className="px-4 py-3 hover:bg-muted/40 sm:px-5">
+        <div className="grid min-w-0 flex-1 gap-3 pr-2 text-left sm:grid-cols-[minmax(0,1.4fr)_minmax(0,0.7fr)_minmax(0,0.9fr)_auto] sm:items-center">
+          <div className="min-w-0">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+              {copy.labels.refundOperation}
+            </p>
+            <p className="mt-1 break-all text-sm font-semibold">
+              {group.refundOperationKey ?? group.id}
+            </p>
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+              {copy.labels.operationAmount}
+            </p>
+            <p className="mt-1 text-sm font-semibold">
+              {formatMoney(group.requestedAmount, group.currency)}
+            </p>
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+              {copy.labels.authorizationType}
+            </p>
+            <p className="mt-1 break-words text-sm font-medium">
+              {authorizationTypeLabel}
+            </p>
+          </div>
+          <Badge className="justify-self-start sm:justify-self-end" variant="secondary">
+            {group.refunds.length} {copy.labels.providerMovements}
+          </Badge>
+        </div>
+      </AccordionTrigger>
+      <AccordionContent className="border-t border-border/70 px-4 pt-4 sm:px-5">
+        <div className="grid gap-4 rounded-xl border border-border/70 bg-background/60 p-4 sm:grid-cols-2 xl:grid-cols-4">
+          <DetailValue
+            label={copy.labels.operationAmount}
+            value={formatMoney(group.requestedAmount, group.currency)}
+          />
+          <DetailValue
+            label={copy.labels.providerMovements}
+            value={String(group.refunds.length)}
+          />
+          <DetailValue
+            label={copy.labels.approvedMovements}
+            value={`${completedMovements} / ${group.refunds.length}`}
+          />
+          <DetailValue
+            label={copy.labels.authorizationType}
+            value={authorizationTypeLabel}
+          />
+        </div>
+        <p className="mt-4 text-sm leading-6 text-muted-foreground">
+          {copy.notes.providerMovements}
+        </p>
+        <Accordion className="mt-4 grid gap-3" collapsible type="single">
+          {group.refunds.map((refund) => (
+            <RefundCard
+              apiExecutionEnabled={apiExecutionEnabled}
+              authorizationTypeLabel={authorizationTypeLabel}
+              busyAction={busyAction}
+              classificationLabel={classificationLabel}
+              copy={copy}
+              formatDateTime={formatDateTime}
+              formatMoney={formatMoney}
+              key={refund.id}
+              modeLabel={modeLabel(refund.processingMode)}
+              onConsult={() => onConsult(refund)}
+              onExecute={() => onExecute(refund)}
+              onReconcile={() => onReconcile(refund)}
+              payment={paymentForRefund(refund)}
+              refund={refund}
+              statusLabel={statusLabel(refund.status)}
+            />
+          ))}
+        </Accordion>
+      </AccordionContent>
+    </AccordionItem>
   );
 }
 

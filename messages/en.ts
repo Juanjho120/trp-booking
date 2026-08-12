@@ -918,7 +918,7 @@ export const enMessages = {
           ADMIN_DATE_MUTATION_ADJUSTMENT_PAYMENT_CONFLICT:
             "The request already has an incompatible adjustment hold or payment. Reload before continuing.",
           ADMIN_DATE_MUTATION_REFUND_BALANCE_INSUFFICIENT:
-            "The initial payment no longer has enough captured balance to return the exact negative difference.",
+            "The reservation no longer has enough refundable captured stay balance to return the exact negative difference.",
           ADMIN_DATE_MUTATION_REQUEST_ALREADY_ACTIVE:
             "This reservation already has an active date change or stay extension.",
           ADMIN_DATE_MUTATION_CANCELLATION_ACTIVE:
@@ -952,9 +952,20 @@ export const enMessages = {
           refund: "Refund",
           payment: "Payment",
           paymentStatus: "Payment status",
+          policyPercentage: "Policy percentage",
           policyAmount: "Policy-authorized amount",
           committedAmount: "Standard amount committed",
           remainingAmount: "Standard policy balance",
+          authorizationLimit: "Maximum authorizable now",
+          currentStayValue: "Current stay value",
+          capturedStayPayments: "Captured stay payments",
+          committedStayRefunds: "Committed stay refunds",
+          approvedStayRefunds: "Approved stay refunds",
+          remainingRefundableStayBalance: "Reservation refundable balance",
+          refundOperation: "Refund operation",
+          operationAmount: "Operation amount",
+          providerMovements: "provider movements",
+          approvedMovements: "Approved movements",
           paymentRemainingAmount: "Refundable payment balance",
           authorizationType: "Authorization type",
           amount: "Amount",
@@ -1052,6 +1063,10 @@ export const enMessages = {
         notes: {
           separateLifecycle:
             "A refund does not change the reservation lifecycle status. A confirmed reservation remains confirmed and a cancelled reservation remains cancelled; only an approved reconciliation changes the payment's financial status.",
+          providerMovements:
+            "One logical refund operation may be split across multiple captured payments. Each movement is executed, consulted, and reconciled separately against its real Tilopay order.",
+          splitOperationEmail:
+            "This email confirms only this refund movement. Other movements in the same operation retain their own status; this message does not confirm that they were also refunded.",
         },
         authorizationDialog: {
           title: "Authorize policy refund",
@@ -1059,13 +1074,13 @@ export const enMessages = {
             "Create a PENDING record within the remaining allowance of the applied cancellation policy.",
           extraordinaryTitle: "Authorize extraordinary refund",
           extraordinaryDescription:
-            "Authorize an administrative compensation outside the standard policy for a confirmed or cancelled reservation, limited by the payment's remaining unrefunded balance.",
+            "Authorize an administrative compensation outside the standard policy for a confirmed or cancelled reservation, limited by the reservation's aggregate refundable stay balance.",
           extraordinaryNotice:
             "This refund is not part of the applied cancellation policy and does not cancel the reservation. It may be used as compensation before or during the stay, or after a cancellation, and must include a clear internal reason.",
           warning:
             "This action does not move money yet. Pending, processing, and approved standard refunds reserve the policy balance to prevent over-refunding.",
           extraordinaryWarning:
-            "This action does not move money yet. The extraordinary amount will reserve the payment's total refundable balance, not the policy allowance. All refunds combined can never exceed the captured payment.",
+            "This action does not move money yet. The extraordinary amount will reserve the reservation's aggregate refundable stay balance, not the policy allowance. The backend will split the operation across eligible payments without exceeding remaining captured money.",
         },
         executionDialog: {
           title: "Send request to Tilopay sandbox",
@@ -1085,6 +1100,8 @@ export const enMessages = {
         },
         success: {
           authorized: "The refund was authorized and is pending processing.",
+          authorizedOperation:
+            "The refund operation was authorized and split into the required provider movements.",
           authorizationAlreadyExists:
             "This authorization already existed, so another refund was not created.",
           providerAcceptedPending:
@@ -1103,17 +1120,21 @@ export const enMessages = {
             "The consult was recorded but did not provide enough evidence for reconciliation. Verify the Tilopay portal.",
           reconciledApproved:
             "The refund was approved and the payment's financial status was updated.",
+          reconciledMovementApproved:
+            "This refund movement was approved. Other movements in the same operation retain their own status and will be confirmed separately.",
           reconciledFailed:
             "The attempt was marked failed without changing the reservation status.",
         },
         empty: {
           noRefunds: "This reservation does not have authorized refunds yet.",
+          noFinancialSummary:
+            "A refundable financial summary is not available for this reservation yet.",
           noEligiblePolicy:
-            "The standard policy has no refundable balance. An administrator may still authorize an extraordinary refund while the payment has an unrefunded balance.",
+            "The standard policy has no refundable balance. An administrator may still authorize an extraordinary refund while the reservation has refundable stay balance.",
           noRefundablePayment:
-            "There is no initial payment with a refundable balance available for a refund authorization.",
+            "The reservation does not have refundable captured stay balance available for a refund authorization.",
           cancellationRequired:
-            "Cancellation is required only for a policy refund. An extraordinary refund may be authorized while a refundable initial payment remains.",
+            "Cancellation is required only for a policy refund. An extraordinary refund may be authorized while the reservation has refundable stay balance.",
         },
         errors: {
           ADMIN_UNAUTHORIZED: "Your session is not authorized for administration.",
@@ -1129,7 +1150,7 @@ export const enMessages = {
           ADMIN_REFUND_RESERVATION_NOT_ELIGIBLE:
             "Extraordinary refunds may only be authorized while the reservation is confirmed or cancelled.",
           ADMIN_REFUND_PAYMENT_NOT_FOUND:
-            "A validated initial payment associated with this reservation was not found.",
+            "An eligible stay payment associated with this reservation was not found.",
           ADMIN_REFUND_PAYMENT_NOT_REFUNDABLE:
             "The payment is no longer in a state that supports this operation.",
           ADMIN_REFUND_POLICY_NOT_ELIGIBLE:
@@ -1137,7 +1158,7 @@ export const enMessages = {
           ADMIN_REFUND_AMOUNT_EXCEEDS_POLICY:
             "The amount exceeds the remaining cancellation-policy allowance.",
           ADMIN_REFUND_AMOUNT_EXCEEDS_PAYMENT:
-            "The amount exceeds the payment's refundable balance.",
+            "The amount exceeds the reservation's aggregate refundable stay balance.",
           ADMIN_REFUND_STALE:
             "The request, payment, or refund changed. Refresh the page before continuing.",
           ADMIN_REFUND_NOT_PENDING:
@@ -1284,6 +1305,7 @@ export const enMessages = {
           requestType: "Request type",
           paymentPurpose: "Payment purpose",
           refundAuthorizationType: "Refund type",
+          refundOperation: "Refund operation",
           amount: "Amount",
           notificationType: "Email type",
           recipient: "Intended recipient",

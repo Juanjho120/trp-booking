@@ -41,6 +41,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { groupAdminRefundsByOperation } from "@/features/admin/refund-operation-groups";
 import { useLocale } from "@/features/i18n";
 import type {
   AdminDateMutationDecisionResult,
@@ -168,12 +169,16 @@ export function AdminReservationLifecycleAdjustmentRefundSection({
       ) &&
       reconciliationTarget.diagnostics.amount,
   );
+  const refundOperationGroups = useMemo(
+    () => groupAdminRefundsByOperation(refunds),
+    [refunds],
+  );
   const paginationEntries = useMemo(
     () => [
       ...pendingNegativeRequests.map((request) => `request:${request.id}`),
-      ...refunds.map((refund) => `refund:${refund.id}`),
+      ...refundOperationGroups.map((group) => `operation:${group.id}`),
     ],
-    [pendingNegativeRequests, refunds],
+    [pendingNegativeRequests, refundOperationGroups],
   );
   const entryPagination = useAdminRecordPagination(paginationEntries);
   const visibleEntryIds = useMemo(
@@ -258,6 +263,16 @@ export function AdminReservationLifecycleAdjustmentRefundSection({
     return (
       reservation.payments.find((payment) => payment.id === refund.paymentId) ??
       null
+    );
+  }
+
+  function isSplitRefundOperation(refund: AdminRefundSummary): boolean {
+    return Boolean(
+      refund.refundOperationKey &&
+        refunds.filter(
+          (candidate) =>
+            candidate.refundOperationKey === refund.refundOperationKey,
+        ).length > 1,
     );
   }
 
@@ -510,10 +525,13 @@ export function AdminReservationLifecycleAdjustmentRefundSection({
         return;
       }
 
+      const splitOperation = isSplitRefundOperation(reconciliationTarget);
       setReconciliationTarget(null);
       setSuccessFeedback(
         payload.result.refund.status === "APPROVED"
-          ? refundCopy.success.reconciledApproved
+          ? splitOperation
+            ? refundCopy.success.reconciledMovementApproved
+            : refundCopy.success.reconciledApproved
           : refundCopy.success.reconciledFailed,
       );
       router.refresh();
@@ -623,9 +641,43 @@ export function AdminReservationLifecycleAdjustmentRefundSection({
               </AccordionItem>
             ))}
 
-            {refunds
-              .filter((refund) => visibleEntryIds.has(`refund:${refund.id}`))
-              .map((refund) => {
+            {refundOperationGroups
+              .filter((group) =>
+                visibleEntryIds.has(`operation:${group.id}`),
+              )
+              .map((group) => (
+                <div
+                  className="overflow-hidden rounded-2xl border border-border bg-muted/10 p-3"
+                  key={group.id}
+                >
+                  <div className="grid gap-3 rounded-xl border border-border/70 bg-background/70 p-4 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,0.7fr)_auto] sm:items-center">
+                    <div className="min-w-0">
+                      <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                        {refundCopy.labels.refundOperation}
+                      </p>
+                      <p className="mt-1 break-all text-sm font-semibold">
+                        {group.refundOperationKey ?? group.refunds[0].id}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                        {refundCopy.labels.operationAmount}
+                      </p>
+                      <p className="mt-1 text-sm font-semibold">
+                        {formatMoney(group.requestedAmount, group.currency)}
+                      </p>
+                    </div>
+                    <Badge variant="secondary">
+                      {group.refunds.length} {refundCopy.labels.providerMovements}
+                    </Badge>
+                  </div>
+                  {group.refunds.length > 1 ? (
+                    <p className="px-1 pb-1 pt-3 text-sm leading-6 text-muted-foreground">
+                      {refundCopy.notes.providerMovements}
+                    </p>
+                  ) : null}
+                  <Accordion className="mt-3 grid gap-3" collapsible type="single">
+                    {group.refunds.map((refund) => {
               const payment = paymentForRefund(refund);
               const canExecute =
                 refund.status === "PENDING" &&
@@ -801,6 +853,9 @@ export function AdminReservationLifecycleAdjustmentRefundSection({
                 </AccordionItem>
               );
             })}
+                  </Accordion>
+                </div>
+              ))}
           </Accordion>
           <AdminRecordPagination
             labels={paginationLabels}

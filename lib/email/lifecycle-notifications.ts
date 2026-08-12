@@ -4,6 +4,7 @@ import {
   EmailNotificationType,
   PaymentStatus,
   Prisma,
+  RefundAuthorizationType,
   RefundStatus,
   ReservationLifecycleRequestStatus,
   ReservationLifecycleRequestType,
@@ -219,9 +220,13 @@ const claimedLifecycleNotificationSelect = {
         select: { status: true },
       },
       refunds: {
-        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-        take: 1,
-        select: { status: true, amount: true },
+        orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+        select: {
+          status: true,
+          amount: true,
+          authorizationType: true,
+          refundOperationKey: true,
+        },
       },
       hold: {
         select: { status: true },
@@ -232,6 +237,7 @@ const claimedLifecycleNotificationSelect = {
     select: {
       id: true,
       lifecycleRequestId: true,
+      refundOperationKey: true,
       authorizationType: true,
       amount: true,
       currency: true,
@@ -695,6 +701,104 @@ function isSupportedRefundProcessingMode(
   );
 }
 
+type RefundOperationEmailContext = Readonly<{
+  key: string;
+  movementCount: number;
+  approvedMovementCount: number;
+  requestedAmount: string;
+}>;
+
+async function readRefundOperationEmailContext(
+  refund: NonNullable<ClaimedLifecycleNotification["refund"]>,
+  reservationId: string,
+): Promise<RefundOperationEmailContext | null> {
+  if (!refund.refundOperationKey) {
+    return null;
+  }
+
+  const siblings = await prisma.refund.findMany({
+    where: {
+      refundOperationKey: refund.refundOperationKey,
+      payment: { is: { reservationId } },
+    },
+    orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+    select: {
+      id: true,
+      lifecycleRequestId: true,
+      authorizationType: true,
+      amount: true,
+      currency: true,
+      status: true,
+    },
+  });
+
+  if (siblings.length <= 1) {
+    return null;
+  }
+
+  if (
+    !siblings.some((sibling) => sibling.id === refund.id) ||
+    siblings.some(
+      (sibling) =>
+        sibling.lifecycleRequestId !== refund.lifecycleRequestId ||
+        sibling.authorizationType !== refund.authorizationType ||
+        sibling.currency !== refund.currency,
+    )
+  ) {
+    throw new LifecycleNotificationDeliveryError(
+      "EMAIL_NOTIFICATION_DATA_INCOMPLETE",
+      false,
+    );
+  }
+
+  const requestedAmount = siblings
+    .reduce(
+      (total, sibling) => total.add(sibling.amount),
+      new Prisma.Decimal(0),
+    )
+    .toDecimalPlaces(2);
+  const approvedMovementCount = siblings.filter(
+    (sibling) =>
+      sibling.status === RefundStatus.APPROVED ||
+      sibling.status === RefundStatus.MANUAL,
+  ).length;
+
+  return {
+    key: refund.refundOperationKey,
+    movementCount: siblings.length,
+    approvedMovementCount,
+    requestedAmount: requestedAmount.toFixed(2),
+  };
+}
+
+function aggregateLifecycleRefundStatus(
+  refunds: readonly Readonly<{ status: RefundStatus }>[],
+): "PENDING" | "PROCESSING" | "APPROVED" | "FAILED" | "MANUAL" | null {
+  if (refunds.length === 0) {
+    return null;
+  }
+
+  if (
+    refunds.every(
+      (refund) =>
+        refund.status === RefundStatus.APPROVED ||
+        refund.status === RefundStatus.MANUAL,
+    )
+  ) {
+    return "APPROVED";
+  }
+
+  if (refunds.every((refund) => refund.status === RefundStatus.FAILED)) {
+    return "FAILED";
+  }
+
+  if (refunds.some((refund) => refund.status === RefundStatus.PROCESSING)) {
+    return "PROCESSING";
+  }
+
+  return "PENDING";
+}
+
 async function buildLifecycleNotificationContent(
   notification: ClaimedLifecycleNotification,
   publicBaseUrl: string,
@@ -771,7 +875,11 @@ async function buildLifecycleNotificationContent(
       );
     }
 
-    const refund = request.refunds[0] ?? null;
+    const lifecycleRefunds = request.refunds.filter(
+      (refund) =>
+        refund.authorizationType === RefundAuthorizationType.LIFECYCLE_ADJUSTMENT,
+    );
+    const refundStatus = aggregateLifecycleRefundStatus(lifecycleRefunds);
     const input: ReservationDatesUpdatedEmailTemplateInput = {
       ...base,
       dateChange: {
@@ -784,8 +892,11 @@ async function buildLifecycleNotificationContent(
         financialDifference: request.financialDifference.toFixed(2),
         completedAt: request.completedAt.toISOString(),
         adjustmentPaymentStatus: request.adjustmentPayments[0]?.status ?? null,
-        refundStatus: refund?.status ?? null,
-        refundAmount: refund?.amount.toFixed(2) ?? null,
+        refundStatus,
+        refundAmount:
+          request.financialDifference.lessThan(0) && lifecycleRefunds.length > 0
+            ? request.financialDifference.abs().toFixed(2)
+            : null,
       },
       admin:
         notification.type === EmailNotificationType.ADMIN_RESERVATION_DATES_UPDATED
@@ -875,6 +986,10 @@ async function buildLifecycleNotificationContent(
       );
     }
 
+    const operation = await readRefundOperationEmailContext(
+      refund,
+      notification.reservation.id,
+    );
     const input: RefundProcessedEmailTemplateInput = {
       ...base,
       refund: {
@@ -885,6 +1000,7 @@ async function buildLifecycleNotificationContent(
         paymentStatus: refund.payment.status,
         providerRefundId: refund.providerRefundId,
         reason: refund.reason,
+        operation,
       },
       admin:
         notification.type === EmailNotificationType.ADMIN_REFUND_PROCESSED

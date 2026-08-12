@@ -18,6 +18,30 @@ export type AdminReservationDetailPayment = Readonly<{
   updatedAt: string;
 }>;
 
+export type AdminReservationFinancialSummaryEligiblePayment = Readonly<{
+  paymentId: string;
+  purpose: string;
+  status: string;
+  amount: string;
+  currency: string;
+  providerReference: string | null;
+  committedRefundAmount: string;
+  approvedRefundAmount: string;
+  remainingRefundableAmount: string;
+}>;
+
+export type AdminReservationFinancialSummary = Readonly<{
+  currency: string;
+  originalStayAmount: string;
+  approvedCompletedPositiveStayAdjustments: string;
+  currentStayValue: string;
+  capturedStayPayments: string;
+  committedStayRefunds: string;
+  approvedStayRefunds: string;
+  remainingRefundableStayBalance: string;
+  eligibleStayPayments: readonly AdminReservationFinancialSummaryEligiblePayment[];
+}>;
+
 export type AdminReservationDetailEmailNotificationAdmin = Readonly<{
   name: string | null;
   email: string;
@@ -77,6 +101,7 @@ export type AdminReservationDetailData = Readonly<{
   cancellationRequests: readonly AdminCancellationRequestSummary[];
   dateMutationRequests: readonly AdminDateMutationRequestSummary[];
   refunds: readonly AdminRefundSummary[];
+  financialSummary: AdminReservationFinancialSummary | null;
   operationalHistory: readonly AdminReservationOperationalHistoryEvent[];
   refundApiExecutionEnabled: boolean;
 }>;

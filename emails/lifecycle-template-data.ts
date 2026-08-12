@@ -138,6 +138,15 @@ const refundSchema = baseSchema.extend({
     paymentStatus: z.enum(["REFUNDED", "PARTIALLY_REFUNDED"]),
     providerRefundId: optionalText(160),
     reason: optionalText(500),
+    operation: z
+      .object({
+        key: normalizedText(240),
+        movementCount: z.number().int().min(2).max(100),
+        approvedMovementCount: z.number().int().min(0).max(100),
+        requestedAmount: amountSchema,
+      })
+      .nullable()
+      .optional(),
   }),
   admin: z
     .object({
@@ -283,6 +292,16 @@ export function buildRefundProcessedEmailView(input: RefundProcessedEmailTemplat
     paymentStatus: parsed.refund.paymentStatus,
     providerRefundId: parsed.refund.providerRefundId,
     reason: parsed.refund.reason,
+    operation: parsed.refund.operation
+      ? {
+          ...parsed.refund.operation,
+          requestedAmount: formatMoney(
+            parsed.refund.operation.requestedAmount,
+            parsed.reservation.currency,
+            parsed.locale,
+          ),
+        }
+      : null,
     admin: parsed.admin,
   };
 }

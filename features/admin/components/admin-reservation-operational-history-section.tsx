@@ -263,6 +263,12 @@ export function AdminReservationOperationalHistorySection({
                           )}
                         />
                       ) : null}
+                      {event.refundOperationKey ? (
+                        <HistoryDetail
+                          label={copy.labels.refundOperation}
+                          value={event.refundOperationKey}
+                        />
+                      ) : null}
                       {event.amount && event.currency ? (
                         <HistoryDetail
                           label={copy.labels.amount}

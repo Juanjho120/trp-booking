@@ -919,7 +919,7 @@ export const esMessages = {
           ADMIN_DATE_MUTATION_ADJUSTMENT_PAYMENT_CONFLICT:
             "La solicitud ya tiene un hold o pago de ajuste incompatible. Recarga antes de continuar.",
           ADMIN_DATE_MUTATION_REFUND_BALANCE_INSUFFICIENT:
-            "El pago inicial ya no tiene saldo capturado suficiente para devolver exactamente la diferencia negativa.",
+            "La reservación ya no tiene saldo capturado reembolsable suficiente para devolver exactamente la diferencia negativa.",
           ADMIN_DATE_MUTATION_REQUEST_ALREADY_ACTIVE:
             "Ya existe un cambio de fechas o extensión activo para esta reservación.",
           ADMIN_DATE_MUTATION_CANCELLATION_ACTIVE:
@@ -953,9 +953,20 @@ export const esMessages = {
           refund: "Reembolso",
           payment: "Pago",
           paymentStatus: "Estado del pago",
+          policyPercentage: "Porcentaje de política",
           policyAmount: "Monto permitido por política",
           committedAmount: "Monto estándar comprometido",
           remainingAmount: "Saldo estándar de la política",
+          authorizationLimit: "Máximo autorizable ahora",
+          currentStayValue: "Valor actual de la estadía",
+          capturedStayPayments: "Pagos capturados de la estadía",
+          committedStayRefunds: "Reembolsos comprometidos de la estadía",
+          approvedStayRefunds: "Reembolsos aprobados de la estadía",
+          remainingRefundableStayBalance: "Saldo reembolsable de la reservación",
+          refundOperation: "Operación de reembolso",
+          operationAmount: "Monto de la operación",
+          providerMovements: "movimientos de proveedor",
+          approvedMovements: "Movimientos aprobados",
           paymentRemainingAmount: "Saldo reembolsable del pago",
           authorizationType: "Tipo de autorización",
           amount: "Monto",
@@ -1053,6 +1064,10 @@ export const esMessages = {
         notes: {
           separateLifecycle:
             "El reembolso no cambia el estado operativo de la reservación. Una reservación confirmada permanece confirmada y una cancelada permanece cancelada; solo una reconciliación aprobada cambia el estado financiero del pago.",
+          providerMovements:
+            "Una operación lógica puede dividirse entre varios pagos capturados. Cada movimiento se ejecuta, consulta y reconcilia por separado contra su orden real de Tilopay.",
+          splitOperationEmail:
+            "Este correo confirma únicamente este movimiento del reembolso. Los demás movimientos de la misma operación conservan su propio estado; este mensaje no confirma que también hayan sido reembolsados.",
         },
         authorizationDialog: {
           title: "Autorizar reembolso según política",
@@ -1060,13 +1075,13 @@ export const esMessages = {
             "Crea un registro PENDING dentro del saldo permitido por la política de cancelación aplicada.",
           extraordinaryTitle: "Autorizar reembolso extraordinario",
           extraordinaryDescription:
-            "Autoriza una compensación administrativa fuera de la política estándar para una reservación confirmada o cancelada, limitada por el saldo no devuelto del pago.",
+            "Autoriza una compensación administrativa fuera de la política estándar para una reservación confirmada o cancelada, limitada por el saldo reembolsable agregado de la reservación.",
           extraordinaryNotice:
             "Este reembolso no forma parte de la política de cancelación aplicada y no cancela la reservación. Puede utilizarse como compensación antes o durante la estadía, o después de una cancelación, y debe quedar respaldado por un motivo interno claro.",
           warning:
             "Esta acción todavía no mueve dinero. Los reembolsos estándar pendientes, procesando y aprobados reservan el saldo de la política para impedir sobre-reembolsos.",
           extraordinaryWarning:
-            "Esta acción todavía no mueve dinero. El monto extraordinario se reservará contra el saldo total del pago, no contra el monto permitido por la política. La suma de todos los reembolsos nunca puede superar el pago capturado.",
+            "Esta acción todavía no mueve dinero. El monto extraordinario se reservará contra el saldo reembolsable agregado de la reservación, no contra el monto permitido por la política. El backend distribuirá la operación entre los pagos elegibles sin superar el dinero capturado restante.",
         },
         executionDialog: {
           title: "Enviar solicitud a Tilopay sandbox",
@@ -1086,6 +1101,8 @@ export const esMessages = {
         },
         success: {
           authorized: "El reembolso quedó autorizado y pendiente de procesamiento.",
+          authorizedOperation:
+            "La operación de reembolso quedó autorizada y fue distribuida en los movimientos de proveedor necesarios.",
           authorizationAlreadyExists:
             "Esta autorización ya existía y no se creó otro reembolso.",
           providerAcceptedPending:
@@ -1104,17 +1121,21 @@ export const esMessages = {
             "La consulta quedó registrada, pero no encontró evidencia suficiente para reconciliar automáticamente. Verifica el portal de Tilopay.",
           reconciledApproved:
             "El reembolso quedó aprobado y el estado financiero del pago fue actualizado.",
+          reconciledMovementApproved:
+            "Este movimiento del reembolso quedó aprobado. Los demás movimientos de la misma operación conservan su propio estado y se confirmarán por separado.",
           reconciledFailed:
             "El intento quedó marcado como fallido sin cambiar el estado de la reservación.",
         },
         empty: {
           noRefunds: "Esta reservación todavía no tiene reembolsos autorizados.",
+          noFinancialSummary:
+            "Todavía no existe un resumen financiero reembolsable para esta reservación.",
           noEligiblePolicy:
-            "La política estándar no tiene saldo reembolsable. Un administrador todavía puede autorizar un reembolso extraordinario mientras exista saldo no devuelto en el pago.",
+            "La política estándar no tiene saldo reembolsable. Un administrador todavía puede autorizar un reembolso extraordinario mientras exista saldo reembolsable en la reservación.",
           noRefundablePayment:
-            "No existe un pago inicial con saldo reembolsable para autorizar una devolución.",
+            "La reservación no tiene saldo capturado reembolsable disponible para autorizar una devolución.",
           cancellationRequired:
-            "La cancelación solo es obligatoria para un reembolso según política. Un reembolso extraordinario puede autorizarse mientras exista un pago inicial reembolsable.",
+            "La cancelación solo es obligatoria para un reembolso según política. Un reembolso extraordinario puede autorizarse mientras exista saldo reembolsable en la reservación.",
         },
         errors: {
           ADMIN_UNAUTHORIZED: "Tu sesión no tiene autorización administrativa.",
@@ -1130,7 +1151,7 @@ export const esMessages = {
           ADMIN_REFUND_RESERVATION_NOT_ELIGIBLE:
             "Los reembolsos extraordinarios solo pueden autorizarse mientras la reservación esté confirmada o cancelada.",
           ADMIN_REFUND_PAYMENT_NOT_FOUND:
-            "No encontramos un pago inicial validado asociado a esta reservación.",
+            "No encontramos un pago de estadía elegible asociado a esta reservación.",
           ADMIN_REFUND_PAYMENT_NOT_REFUNDABLE:
             "El pago ya no se encuentra en un estado que admita esta operación.",
           ADMIN_REFUND_POLICY_NOT_ELIGIBLE:
@@ -1138,7 +1159,7 @@ export const esMessages = {
           ADMIN_REFUND_AMOUNT_EXCEEDS_POLICY:
             "El monto supera lo que todavía permite la política de cancelación.",
           ADMIN_REFUND_AMOUNT_EXCEEDS_PAYMENT:
-            "El monto supera el saldo reembolsable del pago.",
+            "El monto supera el saldo reembolsable agregado de la reservación.",
           ADMIN_REFUND_STALE:
             "La solicitud, el pago o el reembolso cambió. Recarga la página antes de continuar.",
           ADMIN_REFUND_NOT_PENDING:
@@ -1286,6 +1307,7 @@ export const esMessages = {
           requestType: "Tipo de solicitud",
           paymentPurpose: "Propósito del pago",
           refundAuthorizationType: "Tipo de reembolso",
+          refundOperation: "Operación de reembolso",
           amount: "Monto",
           notificationType: "Tipo de correo",
           recipient: "Destinatario previsto",

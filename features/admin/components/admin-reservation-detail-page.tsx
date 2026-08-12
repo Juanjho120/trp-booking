@@ -401,9 +401,6 @@ export function AdminReservationDetailPage({
     manualResendTarget?.notification.status === "SENT";
   const standardRefundReservation: AdminReservationDetailData = {
     ...reservation,
-    payments: reservation.payments.filter(
-      (payment) => payment.purpose === "INITIAL_RESERVATION",
-    ),
     refunds: reservation.refunds.filter(
       (refund) => refund.authorizationType !== "LIFECYCLE_ADJUSTMENT",
     ),

@@ -590,15 +590,21 @@ export async function buildRefundProcessedEmail(
   requireGuestLocale(view);
   const messages = getLifecycleEmailMessages(view.locale);
   const typeLabel = messages.notifications.types.REFUND_PROCESSED;
+  const splitOperation = Boolean(
+    view.operation && view.operation.movementCount > 1,
+  );
+  const successNote = splitOperation
+    ? messages.refunds.success.reconciledMovementApproved
+    : messages.refunds.success.reconciledApproved;
 
   return buildLifecycleEmailDocument({
     locale: view.locale,
     subject: `${typeLabel} · ${view.propertyName}`,
-    previewText: messages.refunds.success.reconciledApproved,
+    previewText: successNote,
     eyebrow: typeLabel,
     title: typeLabel,
     introduction: typeLabel,
-    successNote: messages.refunds.success.reconciledApproved,
+    successNote,
     greeting: `${messages.reservationConfirmed.greetingPrefix} ${view.guestName}.`,
     brandName: messages.common.brandName,
     logoUrl: view.logoUrl,
@@ -607,10 +613,25 @@ export async function buildRefundProcessedEmail(
     sections: [
       {
         title: messages.refunds.labels.refund,
+        paragraph: splitOperation
+          ? messages.refunds.notes.splitOperationEmail
+          : undefined,
         rows: [
           { label: messages.common.reservationReference, value: view.reservationId },
           { label: messages.common.accommodation, value: view.propertyName },
           { label: messages.refunds.labels.amount, value: view.amount },
+          ...(view.operation
+            ? [
+                {
+                  label: messages.refunds.labels.operationAmount,
+                  value: view.operation.requestedAmount,
+                },
+                {
+                  label: messages.refunds.labels.approvedMovements,
+                  value: `${view.operation.approvedMovementCount} / ${view.operation.movementCount}`,
+                },
+              ]
+            : []),
           {
             label: messages.refunds.labels.authorizationType,
             value: getAuthorizationLabel(messages, view.authorizationType),
@@ -635,6 +656,12 @@ export async function buildAdminRefundProcessedEmail(
   const view = buildRefundProcessedEmailView(input);
   const messages = getLifecycleEmailMessages(view.locale);
   const typeLabel = messages.notifications.types.REFUND_PROCESSED;
+  const splitOperation = Boolean(
+    view.operation && view.operation.movementCount > 1,
+  );
+  const successNote = splitOperation
+    ? messages.refunds.success.reconciledMovementApproved
+    : messages.refunds.success.reconciledApproved;
 
   return buildLifecycleEmailDocument({
     locale: view.locale,
@@ -643,7 +670,7 @@ export async function buildAdminRefundProcessedEmail(
     eyebrow: messages.adminBrandLabel,
     title: typeLabel,
     introduction: messages.refunds.description,
-    successNote: messages.refunds.success.reconciledApproved,
+    successNote,
     brandName: messages.common.brandName,
     logoUrl: view.logoUrl,
     publicHomeUrl: view.publicHomeUrl,
@@ -651,12 +678,33 @@ export async function buildAdminRefundProcessedEmail(
     sections: [
       {
         title: messages.refunds.labels.refund,
+        paragraph: splitOperation
+          ? messages.refunds.notes.splitOperationEmail
+          : undefined,
         rows: removeEmptyRows([
           { label: messages.common.reservationReference, value: view.reservationId },
           { label: messages.common.guestName, value: view.guestName },
           { label: messages.common.guestEmail, value: view.guestEmail },
           { label: messages.common.accommodation, value: view.propertyName },
           { label: messages.refunds.labels.amount, value: view.amount },
+          view.operation
+            ? {
+                label: messages.refunds.labels.refundOperation,
+                value: view.operation.key,
+              }
+            : null,
+          view.operation
+            ? {
+                label: messages.refunds.labels.operationAmount,
+                value: view.operation.requestedAmount,
+              }
+            : null,
+          view.operation
+            ? {
+                label: messages.refunds.labels.approvedMovements,
+                value: `${view.operation.approvedMovementCount} / ${view.operation.movementCount}`,
+              }
+            : null,
           {
             label: messages.refunds.labels.authorizationType,
             value: getAuthorizationLabel(messages, view.authorizationType),

@@ -6,7 +6,8 @@
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-A — Reservation financial correctness and effective stay value
 Subphase: Final-A.4 — Negative DATE_CHANGE multi-payment integration
-Status: Implementation prepared — pending local validation and owner acceptance
+Status: Completed and accepted on 2026-08-11
+Accepted head: 1c5ea765543e46b89beb64ecb3c06141e8efd8e4
 Preparation date: 2026-08-11
 Implementation base head: 8d5884c4f536c0d9407fac2d0229b71105114453
 Previous subphase: Final-A.3 — Completed and accepted
@@ -326,8 +327,8 @@ Final-A — In progress
 Final-A.1 — Completed and accepted
 Final-A.2 — Completed and accepted at 9f4e04068726451ca87614dd99b1f10656510825
 Final-A.3 — Completed and accepted at 8d5884c4f536c0d9407fac2d0229b71105114453
-Final-A.4 — Implementation prepared; pending local validation and owner acceptance
-Final-A.5 — Not started
+Final-A.4 — Completed and accepted on 2026-08-11 at 1c5ea765543e46b89beb64ecb3c06141e8efd8e4
+Final-A.5 — Current implementation/validation package
 Final-A.6 — Not started
 Phase 13 — Not started
 ```
