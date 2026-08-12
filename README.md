@@ -21,7 +21,7 @@ The stable test domain is:
 trp-booking.juantzun.dev
 ```
 
-As of 2026-08-12, Phase 12 — Test Deployment & External Integration Validation — is completed and accepted. The stable HTTPS Test deployment at `trp-booking.juantzun.dev` remains `TRP_ENVIRONMENT=test` on the developer-owned stack with zero Vercel scheduler registrations. The Post-Phase-12 / Pre-Phase-13 Final Improvement Track is active: Final-A — reservation financial correctness and effective stay value — is in progress, Final-A.1 through Final-A.5 are accepted, and Final-A.6 — integrated acceptance and documentation closure — is the current implementation/validation boundary. Phase 13 — Production Infrastructure, Deployment & Go-Live — remains **Not started** until Final-H closes and the owner explicitly accepts the improvement track.
+As of 2026-08-12, Phase 12 — Test Deployment & External Integration Validation — is completed and accepted. The stable HTTPS Test deployment at `trp-booking.juantzun.dev` remains `TRP_ENVIRONMENT=test` on the developer-owned stack with zero Vercel scheduler registrations. The Post-Phase-12 / Pre-Phase-13 Final Improvement Track is active: Final-A — reservation financial correctness and effective stay value — is completed and accepted, including the 44/44 integrated regression gate; Final-B — admin external-calendar integrations — is the next package and remains Not started. Phase 13 — Production Infrastructure, Deployment & Go-Live — remains **Not started** until Final-H closes and the owner explicitly accepts the improvement track.
 
 ## Environment Strategy
 
@@ -479,8 +479,8 @@ docs/166-final-a-6-integrated-acceptance-and-documentation-closure.md
 Current phase state: Phase 12 — Test Deployment & External Integration Validation — Completed and accepted on 2026-08-11
 Current numbered phase: none active
 Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
-Current package: Final-A — Reservation financial correctness and effective stay value — In progress
-Current subphase: Final-A.6 — Integrated acceptance and documentation closure — Implementation prepared; pending local/Test validation and owner acceptance
+Current package: Final-B — Admin external-calendar integrations — Not started / next package
+Last completed package: Final-A — Reservation financial correctness and effective stay value — Completed and accepted on 2026-08-12
 Final-A.1 status: Completed and accepted on 2026-08-11
 Final-A.1 accepted head: 19531568752a44446d0802d6581262260b881aaf
 Final-A.2 status: Completed and accepted on 2026-08-11
@@ -491,7 +491,11 @@ Final-A.4 status: Completed and accepted on 2026-08-11
 Final-A.4 accepted head: 1c5ea765543e46b89beb64ecb3c06141e8efd8e4
 Final-A.5 status: Completed and accepted on 2026-08-12
 Final-A.5 accepted head: 4117435dd52f6278a205e314db95d336ce0f7662
-Final-A.6 implementation base: 4117435dd52f6278a205e314db95d336ce0f7662
+Final-A.6 status: Completed and accepted on 2026-08-12
+Final-A.6 suite commit: 6016b7950331bd528d39b819bad29689688d799c
+Final-A.6 accepted head: 66afbeacd6ee7d669cb4bc251c8416160fae3f49
+Final-A status: Completed and accepted on 2026-08-12
+Final-A accepted head: 66afbeacd6ee7d669cb4bc251c8416160fae3f49
 Track registration base: dac105088d2c46be05a900abed3dfe83e608e964
 Track plan: docs/160-post-phase-12-pre-phase-13-final-improvement-track.md
 Final-A strategy: docs/161-final-a-financial-correctness-strategy-and-roadmap.md

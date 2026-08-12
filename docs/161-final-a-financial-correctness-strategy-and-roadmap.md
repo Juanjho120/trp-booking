@@ -725,7 +725,7 @@ Final-A.5 Admin UX, notification copy, and operational-history integration
   - protected operational-history coherence
 
 Final-A.6 Integrated acceptance and documentation closure
-  Status: Implementation prepared; pending local/Test validation and owner acceptance
+  Status: Completed and accepted on 2026-08-12 at 66afbeacd6ee7d669cb4bc251c8416160fae3f49
   Record: docs/166-final-a-6-integrated-acceptance-and-documentation-closure.md
   Validation command: npm run final-a:validate
   Scope:
@@ -857,7 +857,12 @@ Final-A.4 -> Completed and accepted on 2026-08-11 at 1c5ea765543e46b89beb64ecb3c
 Final-A.4 record -> docs/164-final-a-4-negative-date-change-multi-payment-integration.md
 Final-A.5 -> Completed and accepted on 2026-08-12 at 4117435dd52f6278a205e314db95d336ce0f7662
 Final-A.5 record -> docs/165-final-a-5-admin-refund-ux-notification-and-operational-history.md
-Final-A.6 -> Implementation prepared; pending local/Test validation and owner acceptance
+Final-A.6 -> Completed and accepted on 2026-08-12 at 66afbeacd6ee7d669cb4bc251c8416160fae3f49
 Final-A.6 record -> docs/166-final-a-6-integrated-acceptance-and-documentation-closure.md
+Final-A -> Completed and accepted on 2026-08-12 at 66afbeacd6ee7d669cb4bc251c8416160fae3f49
+Integrated regression -> 44/44 passed
+Suite commit -> 6016b7950331bd528d39b819bad29689688d799c
+Accepted validation head -> 66afbeacd6ee7d669cb4bc251c8416160fae3f49
+Next package -> Final-B Admin external-calendar integrations — Not started
 Phase 13 -> Not started
 ```

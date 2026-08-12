@@ -5,7 +5,7 @@
 ```text
 Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
-Status: Active — Final-A is in progress
+Status: Active — Final-A completed and accepted; Final-B is next
 Registration date: 2026-08-11
 Registration base head: dac105088d2c46be05a900abed3dfe83e608e964
 Previous gate: Phase 12 — Completed and accepted
@@ -114,13 +114,13 @@ discovered earlier.
 ## Current Final-A Status
 
 ```text
-Final-A — In progress
+Final-A — Completed and accepted on 2026-08-12 at 66afbeacd6ee7d669cb4bc251c8416160fae3f49
 Final-A.1 Financial source-of-truth and refund-allocation contract — Completed and accepted on 2026-08-11 at 19531568752a44446d0802d6581262260b881aaf
 Final-A.2 Central financial summary and cancellation-policy correction — Completed and accepted on 2026-08-11 at 9f4e04068726451ca87614dd99b1f10656510825
 Final-A.3 Standard and extraordinary multi-payment refund authorization — Completed and accepted on 2026-08-11 at 8d5884c4f536c0d9407fac2d0229b71105114453
 Final-A.4 Negative DATE_CHANGE multi-payment integration — Completed and accepted on 2026-08-11 at 1c5ea765543e46b89beb64ecb3c06141e8efd8e4
 Final-A.5 Admin UX, notification copy, and operational-history integration — Completed and accepted on 2026-08-12 at 4117435dd52f6278a205e314db95d336ce0f7662
-Final-A.6 Integrated acceptance and documentation closure — Implementation prepared; pending local/Test validation and owner acceptance
+Final-A.6 Integrated acceptance and documentation closure — Completed and accepted on 2026-08-12 at 66afbeacd6ee7d669cb4bc251c8416160fae3f49
 Strategy/roadmap: docs/161-final-a-financial-correctness-strategy-and-roadmap.md
 Final-A.2 record: docs/162-final-a-2-central-financial-summary-and-cancellation-policy-correction.md
 Final-A.3 record: docs/163-final-a-3-standard-and-extraordinary-multi-payment-refunds.md
@@ -1001,15 +1001,15 @@ Phase 13 still owns:
 - controlled public go-live
 ```
 
-## Track Status After Registration
+## Current Track Status
 
 ```text
 Phase 12 — Completed and accepted
-Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Registered
-Current package — Final-A
-Current subphase — Final-A.6 integrated acceptance and documentation closure
-Final-A — In progress
-Final-B — Not started
+Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
+Current package — Final-B admin external-calendar integrations
+Last completed package — Final-A reservation financial correctness and effective stay value
+Final-A — Completed and accepted on 2026-08-12 at 66afbeacd6ee7d669cb4bc251c8416160fae3f49
+Final-B — Not started / next package
 Final-C — Not started
 Final-D — Not started
 Final-E — Not started

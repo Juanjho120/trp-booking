@@ -6,9 +6,12 @@
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-A — Reservation financial correctness and effective stay value
 Subphase: Final-A.6 — Integrated acceptance and documentation closure
-Status: Implementation prepared — pending local/Test validation and owner acceptance
+Status: Completed and accepted on 2026-08-12
 Preparation date: 2026-08-12
 Implementation base head: 4117435dd52f6278a205e314db95d336ce0f7662
+Integrated suite commit: 6016b7950331bd528d39b819bad29689688d799c
+Accepted validation head: 66afbeacd6ee7d669cb4bc251c8416160fae3f49
+Acceptance result: Final-A validation passed 44/44
 Previous subphase: Final-A.5 — Completed and accepted on 2026-08-12
 Final-A.5 accepted head: 4117435dd52f6278a205e314db95d336ce0f7662
 Strategy: docs/161-final-a-financial-correctness-strategy-and-roadmap.md
@@ -24,8 +27,13 @@ Final-A.6 does not add a new business capability. It verifies that the financial
 refund allocation, negative DATE_CHANGE handling, provider-child boundaries, admin presentation,
 transactional email copy, and operational-history correlation continue to work together.
 
-Final-A remains **In progress** until the owner runs the complete A.6 gate successfully and explicitly
-accepts the package.
+The owner ran the complete A.6 gate successfully on 2026-08-12 and reported the final result:
+
+```text
+Final-A validation passed: 44/44 tests.
+```
+
+The JSX-runtime follow-up was committed at `66afbeacd6ee7d669cb4bc251c8416160fae3f49`; that head is the accepted Final-A.6 and Final-A boundary.
 
 ## Permanent Validation Command
 
@@ -38,7 +46,7 @@ npm run final-a:validate
 Implementation:
 
 ```text
-tsx tests/final-a/run.ts
+tsx --tsconfig tests/final-a/tsconfig.json tests/final-a/run.ts
 ```
 
 No Jest, Vitest, or additional testing dependency is introduced. The project already uses `tsx` and
@@ -82,7 +90,7 @@ tests/final-a/source-contract.test.ts
 tests/final-a/run.ts
 ```
 
-The initial A.6 package contains 44 deterministic assertions grouped into four suites.
+The accepted A.6 package contains 44 deterministic assertions grouped into four suites. The first execution exposed a test-runner-only JSX runtime mismatch because the application `tsconfig.json` correctly preserves JSX for Next.js. The follow-up adds `tests/final-a/tsconfig.json` with the automatic React JSX runtime and scopes only `final-a:validate` to that test configuration; production templates and the application tsconfig remain unchanged.
 
 ### Financial summary and cancellation policy
 
@@ -253,9 +261,22 @@ feat(final-a): integrate reservation-level refund UX
 
 Final-A.6 therefore records that head as the accepted A.5 boundary.
 
-## Documentation State in This Package
+## Final-A.6 Acceptance Result
 
-This package updates the authoritative trackers to:
+The owner executed the integrated A.6 gate after the suite commit and JSX-runtime follow-up. The accepted evidence is:
+
+```text
+Integrated suite commit: 6016b7950331bd528d39b819bad29689688d799c
+JSX runtime / accepted validation head: 66afbeacd6ee7d669cb4bc251c8416160fae3f49
+Registered tests: 44
+Final result: 44/44 PASS
+```
+
+The failure observed before the follow-up was isolated to direct `tsx` execution of `.tsx` email templates under the application's `jsx: preserve` Next.js configuration. No production email-template behavior was changed. The test-only tsconfig uses `react-jsx`, after which all 44 cases passed.
+
+## Documentation State After Acceptance
+
+The authoritative trackers now record:
 
 ```text
 Final-A.1 — Completed and accepted
@@ -263,15 +284,13 @@ Final-A.2 — Completed and accepted
 Final-A.3 — Completed and accepted
 Final-A.4 — Completed and accepted
 Final-A.5 — Completed and accepted at 4117435dd52f6278a205e314db95d336ce0f7662
-Final-A.6 — Implementation prepared; pending local/Test validation and owner acceptance
-Final-A — In progress
-Final-B — Not started
+Final-A.6 — Completed and accepted at 66afbeacd6ee7d669cb4bc251c8416160fae3f49
+Final-A — Completed and accepted at 66afbeacd6ee7d669cb4bc251c8416160fae3f49
+Final-B — Not started / next package
 Phase 13 — Not started
 ```
 
-The trackers intentionally do **not** mark Final-A completed before the owner runs the A.6 gate.
-After a successful A.6 commit and explicit acceptance, a final tracker reconciliation can record the
-accepted A.6 head, close Final-A, and make Final-B the next package.
+Final-A is closed. The Final Improvement Track remains active through Final-H, so Phase 13 is still blocked.
 
 ## Files Added or Changed by Final-A.6
 
@@ -284,6 +303,7 @@ tests/final-a/refund-allocation-and-negative-lifecycle.test.ts
 tests/final-a/admin-and-email.test.ts
 tests/final-a/source-contract.test.ts
 tests/final-a/run.ts
+tests/final-a/tsconfig.json
 README.md
 docs/10-phases.md
 docs/11-progress-log.md
@@ -308,16 +328,18 @@ docs/166-final-a-6-integrated-acceptance-and-documentation-closure.md
 - Phase 13 remains Not started.
 ```
 
-## Status After A.6 Implementation Package
+## Final Status
 
 ```text
-Final-A — In progress
+Final-A — Completed and accepted on 2026-08-12 at 66afbeacd6ee7d669cb4bc251c8416160fae3f49
 Final-A.1 — Completed and accepted
 Final-A.2 — Completed and accepted
 Final-A.3 — Completed and accepted
 Final-A.4 — Completed and accepted
 Final-A.5 — Completed and accepted on 2026-08-12 at 4117435dd52f6278a205e314db95d336ce0f7662
-Final-A.6 — Implementation prepared; pending local/Test validation and owner acceptance
-Final-B — Not started
+Final-A.6 — Completed and accepted on 2026-08-12 at 66afbeacd6ee7d669cb4bc251c8416160fae3f49
+Final-B — Not started / next package
 Phase 13 — Not started
 ```
+
+The Final Improvement Track remains active. Final-H must still close and the track must still receive explicit owner acceptance before Phase 13 may begin.

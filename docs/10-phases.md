@@ -17,8 +17,8 @@ Deferred — Intentionally postponed.
 Current phase state: Phase 12 — Test Deployment & External Integration Validation — Completed and accepted on 2026-08-11
 Current numbered phase: none active
 Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
-Current package: Final-A — Reservation financial correctness and effective stay value — In progress
-Current subphase: Final-A.6 — Integrated acceptance and documentation closure — Implementation prepared; pending local/Test validation and owner acceptance
+Current package: Final-B — Admin external-calendar integrations — Not started / next package
+Last completed package: Final-A — Reservation financial correctness and effective stay value — Completed and accepted on 2026-08-12
 Final-A.1 status: Completed and accepted on 2026-08-11
 Final-A.1 accepted head: 19531568752a44446d0802d6581262260b881aaf
 Final-A.2 status: Completed and accepted on 2026-08-11
@@ -29,7 +29,11 @@ Final-A.4 status: Completed and accepted on 2026-08-11
 Final-A.4 accepted head: 1c5ea765543e46b89beb64ecb3c06141e8efd8e4
 Final-A.5 status: Completed and accepted on 2026-08-12
 Final-A.5 accepted head: 4117435dd52f6278a205e314db95d336ce0f7662
-Final-A.6 implementation base: 4117435dd52f6278a205e314db95d336ce0f7662
+Final-A.6 status: Completed and accepted on 2026-08-12
+Final-A.6 suite commit: 6016b7950331bd528d39b819bad29689688d799c
+Final-A.6 accepted head: 66afbeacd6ee7d669cb4bc251c8416160fae3f49
+Final-A status: Completed and accepted on 2026-08-12
+Final-A accepted head: 66afbeacd6ee7d669cb4bc251c8416160fae3f49
 Track registration base: dac105088d2c46be05a900abed3dfe83e608e964
 Track plan: docs/160-post-phase-12-pre-phase-13-final-improvement-track.md
 Final-A strategy: docs/161-final-a-financial-correctness-strategy-and-roadmap.md
@@ -38,7 +42,7 @@ Final-A.3 record: docs/163-final-a-3-standard-and-extraordinary-multi-payment-re
 Final-A.4 record: docs/164-final-a-4-negative-date-change-multi-payment-integration.md
 Final-A.5 record: docs/165-final-a-5-admin-refund-ux-notification-and-operational-history.md
 Final-A.6 record: docs/166-final-a-6-integrated-acceptance-and-documentation-closure.md
-Last completed subphase: Final-A.5 Admin UX, notification copy, and operational-history integration — accepted on 2026-08-12 at 4117435dd52f6278a205e314db95d336ce0f7662
+Last completed subphase: Final-A.6 Integrated acceptance and documentation closure — accepted on 2026-08-12 at 66afbeacd6ee7d669cb4bc251c8416160fae3f49
 Phase 13 status: Not started
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 11.6.5 acceptance: All 15 protected-history, ordering, relation, retry, ES/EN, responsive, security, and integrated criteria passed on 2026-08-05
@@ -98,7 +102,7 @@ Phase 12.9 closure: docs/158-phase-12.9-acceptance-closure.md
 Phase 12.10 status: Completed and accepted on 2026-08-11 — Phase 12 validation and closure
 Phase 12.10 validated repository head: ebe28579872cbc2414573ef852b15139a2501551
 Phase 12 closure: docs/159-phase-12.10-phase-12-validation-and-closure.md
-Next work: run and accept the Final-A.6 integrated regression gate; only after explicit owner acceptance may Final-A close and Final-B become the next package
+Next work: begin Final-B — Admin external-calendar integrations — from the accepted Final-A head 66afbeacd6ee7d669cb4bc251c8416160fae3f49; Phase 13 remains blocked until Final-H closes and the track is explicitly accepted
 Next planned numbered phase: Phase 13 — Production Infrastructure, Deployment & Go-Live — Not started
 Pre-Phase-12 Improvement Track status: Completed and accepted — Packages A, B, C, E, and F accepted; Package D remains deferred outside the current gate
 Pre-Phase-12 Improvement Track registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
@@ -1161,20 +1165,20 @@ Phase 12 explicitly excludes company-owned production account provisioning, prod
 
 ## Inter-Phase Work — Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 
-Status: **Active — Final-A is in progress; Phase 13 remains Not started**
+Status: **Active — Final-A is completed and accepted; Final-B is next; Phase 13 remains Not started**
 
 Goal: Complete the final owner-approved feature, correctness, communication, pricing, and performance round before Production while preserving the accepted Test/Production ownership boundary.
 
 Packages:
 
 ```text
-Final-A Reservation financial correctness and effective stay value — In progress
+Final-A Reservation financial correctness and effective stay value — Completed and accepted on 2026-08-12 at 66afbeacd6ee7d669cb4bc251c8416160fae3f49
   Final-A.1 Financial source-of-truth and refund-allocation contract — Completed and accepted on 2026-08-11 at 19531568752a44446d0802d6581262260b881aaf
   Final-A.2 Central financial summary and cancellation-policy correction — Completed and accepted on 2026-08-11 at 9f4e04068726451ca87614dd99b1f10656510825
   Final-A.3 Standard and extraordinary multi-payment refund authorization — Completed and accepted on 2026-08-11 at 8d5884c4f536c0d9407fac2d0229b71105114453
   Final-A.4 Negative DATE_CHANGE multi-payment integration — Completed and accepted on 2026-08-11 at 1c5ea765543e46b89beb64ecb3c06141e8efd8e4
   Final-A.5 Admin UX, notification copy, and operational-history integration — Completed and accepted on 2026-08-12 at 4117435dd52f6278a205e314db95d336ce0f7662
-  Final-A.6 Integrated acceptance and documentation closure — Implementation prepared; pending local/Test validation and owner acceptance
+  Final-A.6 Integrated acceptance and documentation closure — Completed and accepted on 2026-08-12 at 66afbeacd6ee7d669cb4bc251c8416160fae3f49
 Final-B Admin external-calendar integrations — Not started
 Final-C Pricing rules: seasonal and length-of-stay — Not started
 Final-D Additional charges and guest payment requests — Not started
