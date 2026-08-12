@@ -6,9 +6,10 @@
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-A — Reservation financial correctness and effective stay value
 Subphase: Final-A.5 — Admin UX, notification copy, and operational-history integration
-Status: Implementation prepared — pending local/Test validation and owner acceptance
+Status: Completed and accepted on 2026-08-12
 Preparation date: 2026-08-11
 Implementation base head: 1c5ea765543e46b89beb64ecb3c06141e8efd8e4
+Accepted head: 4117435dd52f6278a205e314db95d336ce0f7662
 Previous subphase: Final-A.4 — Completed and accepted on 2026-08-11
 Final-A.4 accepted head: 1c5ea765543e46b89beb64ecb3c06141e8efd8e4
 Strategy: docs/161-final-a-financial-correctness-strategy-and-roadmap.md
@@ -392,6 +393,17 @@ Controlled UI/email review before A.6 should verify at minimum:
 The full automated matrix, concurrency regression, financial fixture coverage, and integrated Test
 acceptance remain Final-A.6.
 
+## Final-A.5 Acceptance Result
+
+On 2026-08-12 the owner reported that the A.5 package was committed after a clean local validation/build with no errors. The resulting remote head is:
+
+```text
+4117435dd52f6278a205e314db95d336ce0f7662
+feat(final-a): integrate reservation-level refund UX
+```
+
+A.5 is therefore the accepted implementation boundary for Final-A.6. A.6 owns the consolidated automated financial/regression gate and Final-A closure validation.
+
 ## Files Changed by Final-A.5
 
 ```text
@@ -422,7 +434,7 @@ docs/165-final-a-5-admin-refund-ux-notification-and-operational-history.md
 ## Non-Goals
 
 ```text
-- No Final-A.6 automated financial/regression suite yet.
+- Final-A.5 itself introduced no Final-A.6 suite; the consolidated suite is added separately by `docs/166-final-a-6-integrated-acceptance-and-documentation-closure.md`.
 - No Final-B external-calendar admin work.
 - No Final-C pricing-rule implementation.
 - No Final-D additional-charge Payment purpose.
@@ -441,7 +453,7 @@ Final-A.1 — Completed and accepted
 Final-A.2 — Completed and accepted at 9f4e04068726451ca87614dd99b1f10656510825
 Final-A.3 — Completed and accepted at 8d5884c4f536c0d9407fac2d0229b71105114453
 Final-A.4 — Completed and accepted at 1c5ea765543e46b89beb64ecb3c06141e8efd8e4
-Final-A.5 — Implementation prepared; pending local/Test validation and owner acceptance
-Final-A.6 — Not started
+Final-A.5 — Completed and accepted on 2026-08-12 at 4117435dd52f6278a205e314db95d336ce0f7662
+Final-A.6 — Implementation prepared; pending local/Test validation and owner acceptance
 Phase 13 — Not started
 ```

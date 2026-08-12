@@ -714,7 +714,7 @@ Final-A.4 Negative DATE_CHANGE multi-payment integration
   - failed-positive compensation remains exact and unchanged
 
 Final-A.5 Admin UX, notification copy, and operational-history integration
-  Status: Implementation prepared; pending local validation and owner acceptance
+  Status: Completed and accepted on 2026-08-12 at 4117435dd52f6278a205e314db95d336ce0f7662
   Record: docs/165-final-a-5-admin-refund-ux-notification-and-operational-history.md
   Scope:
   - Reservation financial summary in admin
@@ -725,7 +725,9 @@ Final-A.5 Admin UX, notification copy, and operational-history integration
   - protected operational-history coherence
 
 Final-A.6 Integrated acceptance and documentation closure
-  Status: Not started
+  Status: Implementation prepared; pending local/Test validation and owner acceptance
+  Record: docs/166-final-a-6-integrated-acceptance-and-documentation-closure.md
+  Validation command: npm run final-a:validate
   Scope:
   - full Final-A regression matrix
   - hosted Test validation where required
@@ -853,7 +855,9 @@ Final-A.3 -> Completed and accepted on 2026-08-11 at 8d5884c4f536c0d9407fac2d022
 Final-A.3 record -> docs/163-final-a-3-standard-and-extraordinary-multi-payment-refunds.md
 Final-A.4 -> Completed and accepted on 2026-08-11 at 1c5ea765543e46b89beb64ecb3c06141e8efd8e4
 Final-A.4 record -> docs/164-final-a-4-negative-date-change-multi-payment-integration.md
-Final-A.5 -> Current implementation/validation package
+Final-A.5 -> Completed and accepted on 2026-08-12 at 4117435dd52f6278a205e314db95d336ce0f7662
 Final-A.5 record -> docs/165-final-a-5-admin-refund-ux-notification-and-operational-history.md
+Final-A.6 -> Implementation prepared; pending local/Test validation and owner acceptance
+Final-A.6 record -> docs/166-final-a-6-integrated-acceptance-and-documentation-closure.md
 Phase 13 -> Not started
 ```
