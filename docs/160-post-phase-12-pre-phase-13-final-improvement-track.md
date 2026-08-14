@@ -5,7 +5,7 @@
 ```text
 Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
-Status: Active — Final-A completed and accepted; Final-B is next
+Status: Active — Final-A completed and accepted; Final-B in progress at Final-B.1
 Registration date: 2026-08-11
 Registration base head: dac105088d2c46be05a900abed3dfe83e608e964
 Previous gate: Phase 12 — Completed and accepted
@@ -242,14 +242,42 @@ Final-A must include regression for:
 
 # Final-B — Admin External-Calendar Integrations
 
+## Status
+
+```text
+Package: Final-B — In progress
+Implementation base head: 0927feb18be35b8d96aca0205a75ee19445f15d4
+Current subphase: Final-B.1 — External-calendar admin strategy and security contract
+Final-B.1 status: Strategy/contract prepared on 2026-08-14; pending owner acceptance
+Final-B.1 authoritative record: docs/167-final-b-1-external-calendar-admin-strategy-and-security-contract.md
+Next subphase: Final-B.2 — Outbound-token encrypted persistence and rotation foundation
+Phase 13: Not started
+```
+
 ## Goal
 
-Allow an authorized admin to configure and operate Airbnb iCal integration without editing private
-environment configuration manually.
+Allow an authorized admin to configure and operate the accepted Airbnb iCal integration without
+editing private environment configuration manually, while keeping provider URLs/tokens encrypted,
+public feed lookup hash-based, synchronization auditable, and existing Test integrations compatible
+during migration.
 
-## Existing foundation
+## Frozen Subphase Split
 
-The current ExternalCalendar model already includes:
+```text
+Final-B.1 External-calendar admin strategy and security contract
+Final-B.2 Outbound-token encrypted persistence and rotation foundation
+Final-B.3 Admin external-calendar read model and integration UI
+Final-B.4 Airbnb inbound configuration and operational actions
+Final-B.5 TRP outbound Copy URL / Rotate URL / export controls
+Final-B.6 Integrated acceptance, regression and documentation closure
+```
+
+Final-B does not create one validation script per subphase. Final-B.6 owns the consolidated
+regression gate.
+
+## Existing Foundation Confirmed by Final-B.1
+
+Current `ExternalCalendar` already stores the accepted operational state:
 
 ```text
 provider = AIRBNB
@@ -261,85 +289,118 @@ exportTokenLastRotatedAt
 isImportEnabled
 isExportEnabled
 status
-sync timestamps/failure diagnostics
-soft-delete/audit relations
+import/export timestamps
+safe failure diagnostics
+soft-delete relation
+event history
+sync history
 ```
 
-The inbound Airbnb URL therefore already has an encrypted persistence boundary. Final-B must reuse
-it instead of introducing plaintext URL storage.
-
-## Recommended admin UX
-
-Create a protected calendar-integration area, preferably under the existing calendar operations,
-with one clear integration card per supported accommodation.
-
-### Airbnb inbound
-
-Admin controls:
+The review also confirmed the current transitional gaps:
 
 ```text
-Provider: Airbnb
-Airbnb iCal URL: password-style input
-Show/hide only while entering/replacing the value
-Save / replace
-Test connection
-Sync now
-Enable / disable import
-Status
-Last successful sync
-Safe last failure diagnostic
+- importUrlEncrypted exists but the default runtime still resolves inbound URLs from
+  AIRBNB_ICAL_IMPORT_URLS_JSON; no DB secret encryption/decryption runtime exists yet.
+- exportTokenHash correctly protects public lookup but cannot recover the original raw token for
+  a protected Copy URL action.
+- current inbound URL validation accepts arbitrary HTTP/HTTPS URLs, which must be narrowed before
+  URLs can be submitted from admin UI.
+- ExternalCalendar does not yet enforce one property/provider row.
+- the existing admin calendar has no integration-configuration surface.
 ```
 
-After saving:
+## Frozen Security/Persistence Direction
+
+Final-B.1 freezes:
 
 ```text
-- Do not return the decrypted Airbnb URL as normal page data.
-- Show only that the URL is configured.
-- Never log the URL or provider token.
-- Explicit replacement is allowed through a new password-style value.
+- one durable AIRBNB ExternalCalendar row per property/provider
+- dedicated EXTERNAL_CALENDAR_ENCRYPTION_KEY
+- AES-256-GCM authenticated encryption using Node built-in crypto
+- property/purpose-bound additional authenticated data
+- inbound Airbnb URL stored only as encrypted data
+- outbound raw token stored as SHA-256 hash + encrypted copy
+- no automatic migration of legacy env URLs
+- no automatic rotation of existing hash-only Test outbound tokens
+- HTTPS/Airbnb-specific URL validation plus redirect validation before server-side fetch
+- no secrets in ordinary admin read models, logs, audit metadata, or error responses
+- protected /admin/calendar/integrations route
+- independent API authentication plus same-origin checks for secret/mutation operations
+- DB-first inbound resolver with temporary env fallback during B.4
+- one-at-a-time outbound rotation of the three real Test integrations in B.5
+- removal of the legacy Test env fallback only after controlled migration in B.6
 ```
 
-### TRP outbound
+## Admin UX Boundary
 
-Admin controls:
+The protected admin location is:
 
 ```text
-TRP Booking iCal
-Copy URL
-Rotate URL
-Last rotated timestamp
-Export enabled/disabled
-Safe status
+/admin/calendar/integrations
 ```
 
-## Outbound token decision
-
-The current model stores only `exportTokenHash`. A hash is correct for request lookup but cannot be
-converted back into the original private URL.
-
-Recommended Final-B design:
+One card is shown for each supported accommodation. Each card contains:
 
 ```text
-exportTokenHash      -> retained for request lookup/comparison
-exportTokenEncrypted -> new encrypted copy used only for explicit protected admin retrieval
+Airbnb -> TRP Booking
+- password-style URL entry/replacement
+- configured state only after save; never return stored plaintext
+- Test connection
+- Sync now
+- import enable/disable
+- safe status, last sync, last successful sync, safe failure diagnostic
+
+TRP Booking -> Airbnb
+- export configured state
+- Copy URL
+- Generate/Rotate URL
+- export enable/disable
+- last rotation
+- last feed generation/request timestamp
 ```
 
-Rules:
+Existing hash-only Test feeds remain valid after B.2. Copy URL stays unavailable until a deliberate
+rotation creates the encrypted raw-token copy.
+
+## Compatibility Boundary
+
+Inbound migration is staged:
 
 ```text
-- The raw token is never stored in plaintext.
-- The admin page does not include it in ordinary server-rendered data.
-- "Copy URL" calls a protected endpoint/action that decrypts it only for that explicit request.
-- "Rotate URL" generates a new random token, replaces hash + encrypted copy atomically, and
-  invalidates the old URL.
-- Rotation is audited.
-- Existing hash-only Test calendars cannot recover their current token. They require one deliberate
-  rotation before the new Copy URL flow can work.
+B.2 -> encryption foundation only; current env-backed sync remains compatible
+B.3 -> safe read model shows DATABASE_ENCRYPTED / LEGACY_ENV / NONE
+B.4 -> DB-first resolver + temporary legacy env fallback; explicit admin save migrates each URL
+B.5 -> deliberate one-at-a-time outbound rotation/copy rollout
+B.6 -> remove legacy AIRBNB_ICAL_IMPORT_URLS_JSON from Test/runtime after all three migrations pass
 ```
 
-Do not introduce generic provider behavior prematurely. `AIRBNB` remains the only supported provider
-for this track because its import semantics, preparation-buffer behavior, and loop-prevention rules
-have already been validated.
+No feed/token/URL is changed automatically by a schema migration.
+
+## Scheduler Boundary
+
+Test retains:
+
+```json
+{
+  "crons": []
+}
+```
+
+Final-B does not activate scheduler registrations. The existing sync job and cron registry remain
+available for manual/admin execution, while Phase 13 remains the Production scheduler boundary.
+
+## Authoritative Contract
+
+The complete review, SSRF boundary, encryption envelope, read-model exclusions, API contract,
+audit action names, Test Connection semantics, Sync Now semantics, Copy URL handling, controlled
+rotation plan, and Final-B.6 acceptance matrix are frozen in:
+
+```text
+docs/167-final-b-1-external-calendar-admin-strategy-and-security-contract.md
+```
+
+Do not implement B.2 through B.6 in a way that weakens that contract without first updating and
+explicitly re-accepting the strategy.
 
 ---
 
@@ -1006,10 +1067,20 @@ Phase 13 still owns:
 ```text
 Phase 12 — Completed and accepted
 Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
-Current package — Final-B admin external-calendar integrations
+Current package — Final-B admin external-calendar integrations — In progress
+Current subphase — Final-B.1 external-calendar admin strategy and security contract — Strategy/contract prepared; pending owner acceptance
+Final-B implementation base — 0927feb18be35b8d96aca0205a75ee19445f15d4
+Final-B.1 record — docs/167-final-b-1-external-calendar-admin-strategy-and-security-contract.md
+Next subphase — Final-B.2 outbound-token encrypted persistence and rotation foundation — Not started
 Last completed package — Final-A reservation financial correctness and effective stay value
 Final-A — Completed and accepted on 2026-08-12 at 66afbeacd6ee7d669cb4bc251c8416160fae3f49
-Final-B — Not started / next package
+Final-B — In progress
+Final-B.1 — Strategy/contract prepared; pending owner acceptance
+Final-B.2 — Not started
+Final-B.3 — Not started
+Final-B.4 — Not started
+Final-B.5 — Not started
+Final-B.6 — Not started
 Final-C — Not started
 Final-D — Not started
 Final-E — Not started

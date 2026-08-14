@@ -21,7 +21,7 @@ The stable test domain is:
 trp-booking.juantzun.dev
 ```
 
-As of 2026-08-12, Phase 12 — Test Deployment & External Integration Validation — is completed and accepted. The stable HTTPS Test deployment at `trp-booking.juantzun.dev` remains `TRP_ENVIRONMENT=test` on the developer-owned stack with zero Vercel scheduler registrations. The Post-Phase-12 / Pre-Phase-13 Final Improvement Track is active: Final-A — reservation financial correctness and effective stay value — is completed and accepted, including the 44/44 integrated regression gate; Final-B — admin external-calendar integrations — is the next package and remains Not started. Phase 13 — Production Infrastructure, Deployment & Go-Live — remains **Not started** until Final-H closes and the owner explicitly accepts the improvement track.
+As of 2026-08-14, Phase 12 — Test Deployment & External Integration Validation — is completed and accepted. The stable HTTPS Test deployment at `trp-booking.juantzun.dev` remains `TRP_ENVIRONMENT=test` on the developer-owned stack with zero Vercel scheduler registrations. The Post-Phase-12 / Pre-Phase-13 Final Improvement Track is active: Final-A — reservation financial correctness and effective stay value — is completed and accepted, including the 44/44 integrated regression gate; Final-B — admin external-calendar integrations — is now in progress at Final-B.1, whose external-calendar admin strategy and security contract is documented in `docs/167-final-b-1-external-calendar-admin-strategy-and-security-contract.md`. Final-B implementation starts from the latest working head `0927feb18be35b8d96aca0205a75ee19445f15d4`; the historical Final-A accepted head remains unchanged. Phase 13 — Production Infrastructure, Deployment & Go-Live — remains **Not started** until Final-H closes and the owner explicitly accepts the improvement track.
 
 ## Environment Strategy
 
@@ -471,6 +471,7 @@ docs/163-final-a-3-standard-and-extraordinary-multi-payment-refunds.md
 docs/164-final-a-4-negative-date-change-multi-payment-integration.md
 docs/165-final-a-5-admin-refund-ux-notification-and-operational-history.md
 docs/166-final-a-6-integrated-acceptance-and-documentation-closure.md
+docs/167-final-b-1-external-calendar-admin-strategy-and-security-contract.md
 ```
 
 ## Development Status
@@ -479,7 +480,11 @@ docs/166-final-a-6-integrated-acceptance-and-documentation-closure.md
 Current phase state: Phase 12 — Test Deployment & External Integration Validation — Completed and accepted on 2026-08-11
 Current numbered phase: none active
 Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
-Current package: Final-B — Admin external-calendar integrations — Not started / next package
+Current package: Final-B — Admin external-calendar integrations — In progress
+Current subphase: Final-B.1 — External-calendar admin strategy and security contract — Strategy/contract prepared; pending owner acceptance
+Final-B implementation base head: 0927feb18be35b8d96aca0205a75ee19445f15d4
+Final-B.1 record: docs/167-final-b-1-external-calendar-admin-strategy-and-security-contract.md
+Next planned subphase: Final-B.2 — Outbound-token encrypted persistence and rotation foundation — Not started
 Last completed package: Final-A — Reservation financial correctness and effective stay value — Completed and accepted on 2026-08-12
 Final-A.1 status: Completed and accepted on 2026-08-11
 Final-A.1 accepted head: 19531568752a44446d0802d6581262260b881aaf
