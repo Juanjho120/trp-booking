@@ -14,6 +14,8 @@ export const LIFECYCLE_ADJUSTMENT_HOLD_EXPIRED_CODE =
   "LIFECYCLE_ADJUSTMENT_HOLD_EXPIRED";
 
 const MILLISECONDS_PER_MINUTE = 60 * 1_000;
+const LIFECYCLE_ADJUSTMENT_EXPIRATION_TRANSACTION_MAX_WAIT_MS = 10_000;
+const LIFECYCLE_ADJUSTMENT_EXPIRATION_TRANSACTION_TIMEOUT_MS = 20_000;
 
 export function buildLifecycleAdjustmentHoldExpiresAt(now: Date): Date {
   return new Date(
@@ -181,14 +183,52 @@ export async function expireLifecycleAdjustmentRequestIfNeeded(
   lifecycleRequestId: string,
   now: Date = new Date(),
 ): Promise<LifecycleAdjustmentExpirationResult> {
+  const id = lifecycleRequestId.trim();
+  const candidate = await prisma.reservationLifecycleRequest.findUnique({
+    where: { id },
+    select: {
+      status: true,
+      hold: {
+        select: {
+          id: true,
+          status: true,
+          expiresAt: true,
+        },
+      },
+    },
+  });
+
+  if (!candidate?.hold) {
+    return {
+      expired: false,
+      lifecycleRequestId: id,
+      holdId: null,
+      expiredPaymentIds: [],
+    };
+  }
+
+  if (
+    candidate.status !==
+      ReservationLifecycleRequestStatus.AWAITING_ADJUSTMENT_PAYMENT ||
+    candidate.hold.status !== LifecycleRequestHoldStatus.ACTIVE ||
+    candidate.hold.expiresAt > now
+  ) {
+    return {
+      expired: false,
+      lifecycleRequestId: id,
+      holdId: candidate.hold.id,
+      expiredPaymentIds: [],
+    };
+  }
+
   return prisma.$transaction(
     (transaction) =>
-      expireLifecycleAdjustmentRequestTransaction(
-        transaction,
-        lifecycleRequestId.trim(),
-        now,
-      ),
-    { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+      expireLifecycleAdjustmentRequestTransaction(transaction, id, now),
+    {
+      isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+      maxWait: LIFECYCLE_ADJUSTMENT_EXPIRATION_TRANSACTION_MAX_WAIT_MS,
+      timeout: LIFECYCLE_ADJUSTMENT_EXPIRATION_TRANSACTION_TIMEOUT_MS,
+    },
   );
 }
 
