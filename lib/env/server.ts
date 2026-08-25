@@ -1,3 +1,5 @@
+import { Buffer } from "node:buffer";
+
 import { z } from "zod";
 
 import { environmentConfig } from "@/config/site";
@@ -250,6 +252,14 @@ const optionalResendApiKeySchema = z.preprocess(
   resendApiKeySchema.optional(),
 );
 
+const externalCalendarEncryptionKeySchema = placeholderValueSchema.refine(
+  (value) => {
+    const decoded = Buffer.from(value, "base64");
+    return decoded.length === 32 && decoded.toString("base64") === value;
+  },
+  "Must be exactly 32 random bytes encoded as canonical Base64.",
+);
+
 const cloudinaryCloudNameSchema = placeholderValueSchema.refine(
   (value) => /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/.test(value),
   "Must use lowercase letters, numbers, and hyphens only.",
@@ -314,6 +324,7 @@ const rawServerEnvSchema = z.object({
   AUTH_GOOGLE_SECRET: placeholderValueSchema,
   AUTH_ALLOWED_ADMIN_EMAILS: adminEmailListSchema,
   AUTH_URL: optionalUrlSchema,
+  EXTERNAL_CALENDAR_ENCRYPTION_KEY: externalCalendarEncryptionKeySchema,
   CLOUDINARY_CLOUD_NAME: cloudinaryCloudNameSchema,
   CLOUDINARY_API_KEY: cloudinaryApiKeySchema,
   CLOUDINARY_API_SECRET: cloudinaryApiSecretSchema,
@@ -642,6 +653,8 @@ export function validateServerEnv(
     AUTH_GOOGLE_SECRET: source.AUTH_GOOGLE_SECRET,
     AUTH_ALLOWED_ADMIN_EMAILS: source.AUTH_ALLOWED_ADMIN_EMAILS,
     AUTH_URL: source.AUTH_URL,
+    EXTERNAL_CALENDAR_ENCRYPTION_KEY:
+      source.EXTERNAL_CALENDAR_ENCRYPTION_KEY,
     CLOUDINARY_CLOUD_NAME: source.CLOUDINARY_CLOUD_NAME,
     CLOUDINARY_API_KEY: source.CLOUDINARY_API_KEY,
     CLOUDINARY_API_SECRET: source.CLOUDINARY_API_SECRET,
@@ -675,6 +688,19 @@ export function getAllowedAdminEmails(
   source: NodeJS.ProcessEnv = process.env,
 ): string[] {
   return validateServerEnv(source).AUTH_ALLOWED_ADMIN_EMAILS;
+}
+
+export function getExternalCalendarEncryptionKey(
+  source: NodeJS.ProcessEnv = process.env,
+): Buffer {
+  const encodedKey = validateServerEnv(source).EXTERNAL_CALENDAR_ENCRYPTION_KEY;
+  const encryptionKey = Buffer.from(encodedKey, "base64");
+
+  if (encryptionKey.length !== 32) {
+    throw new Error("Validated external-calendar encryption key is invalid.");
+  }
+
+  return encryptionKey;
 }
 
 export function getCloudinaryEnv(

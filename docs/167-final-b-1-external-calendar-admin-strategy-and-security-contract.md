@@ -7,9 +7,10 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-B — Admin external-calendar integrations
 Subphase: Final-B.1 — External-calendar admin strategy and security contract
-Status: Strategy and security contract prepared; pending owner acceptance
+Status: Completed and accepted on 2026-08-14
 Preparation date: 2026-08-14
 Implementation base head: 0927feb18be35b8d96aca0205a75ee19445f15d4
+Accepted head: 2627161d5b3960995be0f517682f84272431c291
 Previous package: Final-A — Completed and accepted on 2026-08-12
 Final-A accepted head: 66afbeacd6ee7d669cb4bc251c8416160fae3f49
 Latest pre-B implementation hardening: 0927feb18be35b8d96aca0205a75ee19445f15d4
@@ -1520,3 +1521,23 @@ Node.js Crypto API
 
 These references inform protocol/cryptography compatibility only. The repository-specific behavior
 and accepted TRP Booking Phase 12 contracts remain authoritative for implementation.
+
+---
+
+# Final-B.1 Acceptance and B.2 Handoff
+
+Final-B.1 was accepted by the owner on 2026-08-14 at:
+
+```text
+2627161d5b3960995be0f517682f84272431c291
+docs(final-b): define external-calendar security contract
+```
+
+The accepted contract is the implementation authority for Final-B.2 through Final-B.6. Final-B.2
+implements the persistence/cryptography/token-mutation foundation only; it does not introduce the
+admin UI, Copy URL endpoint, inbound DB-first resolver, or any automatic rotation/migration of the
+three existing Test integrations. Its implementation record is:
+
+```text
+docs/168-final-b-2-outbound-token-encrypted-persistence-and-rotation-foundation.md
+```

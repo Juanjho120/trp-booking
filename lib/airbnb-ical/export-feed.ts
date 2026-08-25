@@ -1,5 +1,3 @@
-import { createHash } from "crypto";
-
 import {
   CalendarBlockSource,
   ExternalCalendarDirection,
@@ -22,6 +20,7 @@ import {
   subtractAvailabilityDateRanges,
 } from "@/lib/availability/rules";
 import { prisma } from "@/lib/db/prisma";
+import { hashExternalCalendarExportToken } from "@/lib/external-calendars/token-hash";
 import type {
   AccommodationId,
   PreparationBufferPolicy,
@@ -175,7 +174,7 @@ export function hashAirbnbIcalExportToken(token: string): string {
     throw new Error("Airbnb iCal export token is required.");
   }
 
-  return createHash("sha256").update(trimmedToken, "utf8").digest("hex");
+  return hashExternalCalendarExportToken(trimmedToken);
 }
 
 function buildExportWindow(

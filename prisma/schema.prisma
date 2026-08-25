@@ -856,6 +856,7 @@ model ExternalCalendar {
   name                     String
   importUrlEncrypted       String?                   @map("import_url_encrypted") @db.Text
   exportTokenHash          String?                   @unique @map("export_token_hash")
+  exportTokenEncrypted     String?                   @map("export_token_encrypted") @db.Text
   exportTokenLastRotatedAt DateTime?                 @map("export_token_last_rotated_at")
   isImportEnabled          Boolean                   @default(true) @map("is_import_enabled")
   isExportEnabled          Boolean                   @default(true) @map("is_export_enabled")
@@ -875,6 +876,7 @@ model ExternalCalendar {
   events    ExternalCalendarEvent[]
   syncLogs  ExternalCalendarSyncLog[]
 
+  @@unique([propertyId, provider], map: "external_calendars_property_id_provider_key")
   @@index([propertyId])
   @@index([provider, status])
   @@index([direction])

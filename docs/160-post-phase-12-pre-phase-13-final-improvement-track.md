@@ -5,7 +5,7 @@
 ```text
 Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
-Status: Active — Final-A completed and accepted; Final-B in progress at Final-B.1
+Status: Active — Final-A completed and accepted; Final-B in progress at Final-B.2
 Registration date: 2026-08-11
 Registration base head: dac105088d2c46be05a900abed3dfe83e608e964
 Previous gate: Phase 12 — Completed and accepted
@@ -247,10 +247,13 @@ Final-A must include regression for:
 ```text
 Package: Final-B — In progress
 Implementation base head: 0927feb18be35b8d96aca0205a75ee19445f15d4
-Current subphase: Final-B.1 — External-calendar admin strategy and security contract
-Final-B.1 status: Strategy/contract prepared on 2026-08-14; pending owner acceptance
+Current subphase: Final-B.2 — Outbound-token encrypted persistence and rotation foundation
+Final-B.1 status: Completed and accepted on 2026-08-14 at 2627161d5b3960995be0f517682f84272431c291
+Final-B.2 implementation base head: 2627161d5b3960995be0f517682f84272431c291
 Final-B.1 authoritative record: docs/167-final-b-1-external-calendar-admin-strategy-and-security-contract.md
-Next subphase: Final-B.2 — Outbound-token encrypted persistence and rotation foundation
+Final-B.2 status: Implementation prepared; pending Local/Test validation and owner acceptance
+Final-B.2 authoritative record: docs/168-final-b-2-outbound-token-encrypted-persistence-and-rotation-foundation.md
+Next subphase: Final-B.3 — Admin external-calendar read model and integration UI
 Phase 13: Not started
 ```
 
@@ -1068,15 +1071,17 @@ Phase 13 still owns:
 Phase 12 — Completed and accepted
 Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
 Current package — Final-B admin external-calendar integrations — In progress
-Current subphase — Final-B.1 external-calendar admin strategy and security contract — Strategy/contract prepared; pending owner acceptance
+Current subphase — Final-B.2 outbound-token encrypted persistence and rotation foundation — Implementation prepared; pending Local/Test validation and owner acceptance
 Final-B implementation base — 0927feb18be35b8d96aca0205a75ee19445f15d4
+Final-B.1 accepted head — 2627161d5b3960995be0f517682f84272431c291
 Final-B.1 record — docs/167-final-b-1-external-calendar-admin-strategy-and-security-contract.md
-Next subphase — Final-B.2 outbound-token encrypted persistence and rotation foundation — Not started
+Final-B.2 record — docs/168-final-b-2-outbound-token-encrypted-persistence-and-rotation-foundation.md
+Next subphase — Final-B.3 admin external-calendar read model and integration UI — Not started
 Last completed package — Final-A reservation financial correctness and effective stay value
 Final-A — Completed and accepted on 2026-08-12 at 66afbeacd6ee7d669cb4bc251c8416160fae3f49
 Final-B — In progress
-Final-B.1 — Strategy/contract prepared; pending owner acceptance
-Final-B.2 — Not started
+Final-B.1 — Completed and accepted on 2026-08-14 at 2627161d5b3960995be0f517682f84272431c291
+Final-B.2 — Implementation prepared; pending Local/Test validation and owner acceptance
 Final-B.3 — Not started
 Final-B.4 — Not started
 Final-B.5 — Not started
