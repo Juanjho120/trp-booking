@@ -20,7 +20,7 @@ export class AirbnbImportSecretError extends Error {
 /**
  * Final-B.6 compatibility export.
  *
- * The legacy AIRBNB_ICAL_IMPORT_URLS_JSON fallback has been retired for every
+ * The environment-backed Airbnb import fallback has been retired for every
  * environment. Keep this export temporarily so older callers fail closed
  * instead of reintroducing environment-backed secret resolution.
  */

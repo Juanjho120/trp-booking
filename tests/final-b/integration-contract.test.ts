@@ -11,9 +11,6 @@ import {
 
 import { test } from "./harness";
 
-const legacyUrl =
-  "https://www.airbnb.com/calendar/ical/legacy.ics?s=legacy-secret";
-
 test("DB-backed inbound configuration remains the only configured secret source", () => {
   const calendar = {
     id: "calendar-db",
