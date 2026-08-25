@@ -1,5 +1,3 @@
-import { Buffer } from "node:buffer";
-
 import { z } from "zod";
 
 import { environmentConfig } from "@/config/site";
@@ -253,10 +251,7 @@ const optionalResendApiKeySchema = z.preprocess(
 );
 
 const externalCalendarEncryptionKeySchema = placeholderValueSchema.refine(
-  (value) => {
-    const decoded = Buffer.from(value, "base64");
-    return decoded.length === 32 && decoded.toString("base64") === value;
-  },
+  (value) => /^[A-Za-z0-9+/]{42}[AEIMQUYcgkosw048]=$/.test(value),
   "Must be exactly 32 random bytes encoded as canonical Base64.",
 );
 
@@ -690,17 +685,10 @@ export function getAllowedAdminEmails(
   return validateServerEnv(source).AUTH_ALLOWED_ADMIN_EMAILS;
 }
 
-export function getExternalCalendarEncryptionKey(
+export function getExternalCalendarEncryptionKeyBase64(
   source: NodeJS.ProcessEnv = process.env,
-): Buffer {
-  const encodedKey = validateServerEnv(source).EXTERNAL_CALENDAR_ENCRYPTION_KEY;
-  const encryptionKey = Buffer.from(encodedKey, "base64");
-
-  if (encryptionKey.length !== 32) {
-    throw new Error("Validated external-calendar encryption key is invalid.");
-  }
-
-  return encryptionKey;
+): string {
+  return validateServerEnv(source).EXTERNAL_CALENDAR_ENCRYPTION_KEY;
 }
 
 export function getCloudinaryEnv(

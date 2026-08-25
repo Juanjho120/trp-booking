@@ -5,7 +5,7 @@ import {
   randomBytes,
 } from "node:crypto";
 
-import { getExternalCalendarEncryptionKey } from "@/lib/env/server";
+import { getExternalCalendarEncryptionKeyBase64 } from "@/lib/env/server";
 
 const ENCRYPTION_ALGORITHM = "aes-256-gcm";
 const ENVELOPE_VERSION = "v1";
@@ -88,7 +88,7 @@ function resolveEncryptionKey(
 ): Buffer {
   const key = options.encryptionKey
     ? Buffer.from(options.encryptionKey)
-    : getExternalCalendarEncryptionKey();
+    : Buffer.from(getExternalCalendarEncryptionKeyBase64(), "base64");
 
   if (key.length !== EXPECTED_KEY_LENGTH_BYTES) {
     throw new ExternalCalendarSecretCryptoError(
