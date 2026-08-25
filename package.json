@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "eslint",
     "final-a:validate": "tsx --tsconfig tests/final-a/tsconfig.json tests/final-a/run.ts",
+    "final-b:validate": "tsx --tsconfig tests/final-b/tsconfig.json tests/final-b/run.ts",
     "env:validate": "tsx scripts/validate-env.ts",
     "email:contract:validate": "tsx scripts/validate-email-reply-to-contract.ts",
     "airbnb:import-policy:validate": "tsx scripts/validate-airbnb-ical-import-policy.ts",

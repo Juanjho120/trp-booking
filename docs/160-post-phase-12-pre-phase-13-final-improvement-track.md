@@ -5,7 +5,7 @@
 ```text
 Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
-Status: Active — Final-A completed and accepted; Final-B in progress at Final-B.5
+Status: Active — Final-A completed and accepted; Final-B in progress at Final-B.6
 Registration date: 2026-08-11
 Registration base head: dac105088d2c46be05a900abed3dfe83e608e964
 Previous gate: Phase 12 — Completed and accepted
@@ -247,7 +247,7 @@ Final-A must include regression for:
 ```text
 Package: Final-B — In progress
 Implementation base head: 0927feb18be35b8d96aca0205a75ee19445f15d4
-Current subphase: Final-B.5 — TRP outbound Copy URL / Rotate URL / export controls
+Current subphase: Final-B.6 — Integrated acceptance, regression and documentation closure
 Final-B.1 status: Completed and accepted on 2026-08-14 at 2627161d5b3960995be0f517682f84272431c291
 Final-B.2 implementation base head: 2627161d5b3960995be0f517682f84272431c291
 Final-B.2 status: Completed and accepted on 2026-08-25 at 530fe2f5f7a75bdbfb36ca6f202b8cb04afca98d
@@ -259,13 +259,17 @@ Final-B.4 implementation base head: 84e3f5158e76527a82b2b6655664ec9ab073ea44
 Final-B.4 status: Completed and accepted on 2026-08-25 at a3724f018449515363159ec9f23af892a21b24be
 Final-B.4 accepted head: a3724f018449515363159ec9f23af892a21b24be
 Final-B.5 implementation base head: a3724f018449515363159ec9f23af892a21b24be
+Final-B.5 status: Completed and accepted for Final-B.6 integrated validation on 2026-08-25 at bc6b3db1bec219913164ef267fe5279b19f49a27
+Final-B.5 accepted head: bc6b3db1bec219913164ef267fe5279b19f49a27
+Final-B.6 implementation base head: bc6b3db1bec219913164ef267fe5279b19f49a27
 Final-B.1 authoritative record: docs/167-final-b-1-external-calendar-admin-strategy-and-security-contract.md
 Final-B.2 authoritative record: docs/168-final-b-2-outbound-token-encrypted-persistence-and-rotation-foundation.md
 Final-B.3 status: Completed and accepted on 2026-08-25 at 84e3f5158e76527a82b2b6655664ec9ab073ea44
 Final-B.3 authoritative record: docs/169-final-b-3-admin-external-calendar-read-model-and-integration-ui.md
 Final-B.4 authoritative record: docs/170-final-b-4-airbnb-inbound-configuration-and-operational-actions.md
 Final-B.5 authoritative record: docs/171-final-b-5-trp-outbound-copy-rotation-and-export-controls.md
-Next subphase: Final-B.6 — Integrated acceptance, regression and documentation closure
+Final-B.6 authoritative record: docs/172-final-b-6-integrated-acceptance-regression-and-documentation-closure.md
+Next package after Final-B closure: Final-C — Pricing rules: seasonal and length-of-stay
 Phase 13: Not started
 ```
 
@@ -1083,7 +1087,7 @@ Phase 13 still owns:
 Phase 12 — Completed and accepted
 Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
 Current package — Final-B admin external-calendar integrations — In progress
-Current subphase — Final-B.5 TRP outbound Copy URL / Rotate URL / export controls — Implementation prepared; pending Local/Test validation and owner acceptance
+Current subphase — Final-B.6 Integrated acceptance, regression and documentation closure — In progress; automated gate prepared; Hosted Test acceptance pending
 Final-B implementation base — 0927feb18be35b8d96aca0205a75ee19445f15d4
 Final-B.1 accepted head — 2627161d5b3960995be0f517682f84272431c291
 Final-B.1 record — docs/167-final-b-1-external-calendar-admin-strategy-and-security-contract.md
@@ -1094,9 +1098,12 @@ Final-B.3 accepted head — 84e3f5158e76527a82b2b6655664ec9ab073ea44
 Final-B.4 implementation base — 84e3f5158e76527a82b2b6655664ec9ab073ea44
 Final-B.4 accepted head — a3724f018449515363159ec9f23af892a21b24be
 Final-B.5 implementation base — a3724f018449515363159ec9f23af892a21b24be
+Final-B.5 accepted head — bc6b3db1bec219913164ef267fe5279b19f49a27
+Final-B.6 implementation base — bc6b3db1bec219913164ef267fe5279b19f49a27
 Final-B.3 record — docs/169-final-b-3-admin-external-calendar-read-model-and-integration-ui.md
 Final-B.4 record — docs/170-final-b-4-airbnb-inbound-configuration-and-operational-actions.md
 Final-B.5 record — docs/171-final-b-5-trp-outbound-copy-rotation-and-export-controls.md
+Final-B.6 record — docs/172-final-b-6-integrated-acceptance-regression-and-documentation-closure.md
 Last completed package — Final-A reservation financial correctness and effective stay value
 Final-A — Completed and accepted on 2026-08-12 at 66afbeacd6ee7d669cb4bc251c8416160fae3f49
 Final-B — In progress
@@ -1104,8 +1111,8 @@ Final-B.1 — Completed and accepted on 2026-08-14 at 2627161d5b3960995be0f51768
 Final-B.2 — Completed and accepted on 2026-08-25 at 530fe2f5f7a75bdbfb36ca6f202b8cb04afca98d
 Final-B.3 — Completed and accepted on 2026-08-25 at 84e3f5158e76527a82b2b6655664ec9ab073ea44
 Final-B.4 — Completed and accepted on 2026-08-25 at a3724f018449515363159ec9f23af892a21b24be
-Final-B.5 — Implementation prepared; pending Local/Test validation and owner acceptance
-Final-B.6 — Not started
+Final-B.5 — Completed and accepted for Final-B.6 integrated validation on 2026-08-25 at bc6b3db1bec219913164ef267fe5279b19f49a27
+Final-B.6 — In progress; automated gate prepared; Hosted Test acceptance pending
 Final-C — Not started
 Final-D — Not started
 Final-E — Not started

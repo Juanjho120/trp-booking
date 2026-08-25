@@ -21,7 +21,7 @@ The stable test domain is:
 trp-booking.juantzun.dev
 ```
 
-As of 2026-08-25, Phase 12 — Test Deployment & External Integration Validation — is completed and accepted. The stable HTTPS Test deployment at `trp-booking.juantzun.dev` remains `TRP_ENVIRONMENT=test` on the developer-owned stack with zero Vercel scheduler registrations. The Post-Phase-12 / Pre-Phase-13 Final Improvement Track is active: Final-A — reservation financial correctness and effective stay value — is completed and accepted, including the 44/44 integrated regression gate; Final-B — admin external-calendar integrations — is in progress. Final-B.1 is completed and accepted at `2627161d5b3960995be0f517682f84272431c291`; Final-B.2 is completed and accepted at `530fe2f5f7a75bdbfb36ca6f202b8cb04afca98d`; Final-B.3 — admin external-calendar read model and integration UI — is completed and accepted at `84e3f5158e76527a82b2b6655664ec9ab073ea44`; Final-B.4 — Airbnb inbound configuration and operational actions — is completed and accepted at `a3724f018449515363159ec9f23af892a21b24be`; Final-B.5 — TRP outbound Copy URL / Rotate URL / export controls — is implementation-prepared and pending Local/Test validation and owner acceptance. Phase 13 — Production Infrastructure, Deployment & Go-Live — remains **Not started** until Final-H closes and the owner explicitly accepts the improvement track.
+As of 2026-08-25, Phase 12 — Test Deployment & External Integration Validation — is completed and accepted. The stable HTTPS Test deployment at `trp-booking.juantzun.dev` remains `TRP_ENVIRONMENT=test` on the developer-owned stack with zero Vercel scheduler registrations. The Post-Phase-12 / Pre-Phase-13 Final Improvement Track is active: Final-A — reservation financial correctness and effective stay value — is completed and accepted, including the 44/44 integrated regression gate; Final-B — admin external-calendar integrations — is in progress. Final-B.1 is completed and accepted at `2627161d5b3960995be0f517682f84272431c291`; Final-B.2 is completed and accepted at `530fe2f5f7a75bdbfb36ca6f202b8cb04afca98d`; Final-B.3 — admin external-calendar read model and integration UI — is completed and accepted at `84e3f5158e76527a82b2b6655664ec9ab073ea44`; Final-B.4 — Airbnb inbound configuration and operational actions — is completed and accepted at `a3724f018449515363159ec9f23af892a21b24be`; Final-B.5 — TRP outbound Copy URL / Rotate URL / export controls — is completed and accepted for integrated Final-B.6 validation at `bc6b3db1bec219913164ef267fe5279b19f49a27` after a clean build; Final-B.6 — integrated acceptance, regression and documentation closure — is now in progress and owns the consolidated automated plus Hosted Test gate. Phase 13 — Production Infrastructure, Deployment & Go-Live — remains **Not started** until Final-H closes and the owner explicitly accepts the improvement track.
 
 ## Environment Strategy
 
@@ -485,7 +485,7 @@ Current phase state: Phase 12 — Test Deployment & External Integration Validat
 Current numbered phase: none active
 Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
 Current package: Final-B — Admin external-calendar integrations — In progress
-Current subphase: Final-B.5 — TRP outbound Copy URL / Rotate URL / export controls — Implementation prepared; pending Local/Test validation and owner acceptance
+Current subphase: Final-B.6 — Integrated acceptance, regression and documentation closure — In progress; automated gate prepared; Hosted Test acceptance pending
 Final-B implementation base head: 0927feb18be35b8d96aca0205a75ee19445f15d4
 Final-B.1 status: Completed and accepted on 2026-08-14
 Final-B.1 accepted head: 2627161d5b3960995be0f517682f84272431c291
@@ -499,12 +499,16 @@ Final-B.4 implementation base head: 84e3f5158e76527a82b2b6655664ec9ab073ea44
 Final-B.4 status: Completed and accepted on 2026-08-25
 Final-B.4 accepted head: a3724f018449515363159ec9f23af892a21b24be
 Final-B.5 implementation base head: a3724f018449515363159ec9f23af892a21b24be
+Final-B.5 status: Completed and accepted for Final-B.6 integrated validation on 2026-08-25
+Final-B.5 accepted head: bc6b3db1bec219913164ef267fe5279b19f49a27
+Final-B.6 implementation base head: bc6b3db1bec219913164ef267fe5279b19f49a27
 Final-B.1 record: docs/167-final-b-1-external-calendar-admin-strategy-and-security-contract.md
 Final-B.2 record: docs/168-final-b-2-outbound-token-encrypted-persistence-and-rotation-foundation.md
 Final-B.3 record: docs/169-final-b-3-admin-external-calendar-read-model-and-integration-ui.md
 Final-B.4 record: docs/170-final-b-4-airbnb-inbound-configuration-and-operational-actions.md
 Final-B.5 record: docs/171-final-b-5-trp-outbound-copy-rotation-and-export-controls.md
-Next planned subphase: Final-B.6 — Integrated acceptance, regression and documentation closure — Not started
+Final-B.6 record: docs/172-final-b-6-integrated-acceptance-regression-and-documentation-closure.md
+Next planned package after Final-B closure: Final-C — Pricing rules: seasonal and length-of-stay — Not started
 Last completed package: Final-A — Reservation financial correctness and effective stay value — Completed and accepted on 2026-08-12
 Final-A.1 status: Completed and accepted on 2026-08-11
 Final-A.1 accepted head: 19531568752a44446d0802d6581262260b881aaf

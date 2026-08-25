@@ -7,9 +7,10 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-B — Admin external-calendar integrations
 Subphase: Final-B.5 — TRP outbound Copy URL / Rotate URL / export controls
-Status: Implementation prepared; pending Local/Test validation and owner acceptance
+Status: Completed and accepted for Final-B.6 integrated validation on 2026-08-25
 Preparation date: 2026-08-25
 Implementation base head: a3724f018449515363159ec9f23af892a21b24be
+Accepted head: bc6b3db1bec219913164ef267fe5279b19f49a27
 Previous subphase: Final-B.4 — Completed and accepted on 2026-08-25
 Final-B.4 accepted head: a3724f018449515363159ec9f23af892a21b24be
 Authoritative strategy: docs/167-final-b-1-external-calendar-admin-strategy-and-security-contract.md
@@ -362,4 +363,11 @@ No B.5 database migration or `db:migrate:deploy` step is required.
 [ ] technical gate passes
 ```
 
-Do not mark Final-B.5 completed or begin Final-B.6 until this matrix is accepted by the owner.
+The owner accepted the B.5 implementation for integration into Final-B.6 on 2026-08-25 after commit and a clean `npm run build` at:
+
+```text
+bc6b3db1bec219913164ef267fe5279b19f49a27
+feat(final-b): add outbound calendar URL controls
+```
+
+The controlled Local/Test items above are intentionally not discarded. In accordance with the frozen B.1 contract that Final-B.6 owns the consolidated gate, the remaining manual/hosted items are carried forward verbatim into `docs/172-final-b-6-integrated-acceptance-regression-and-documentation-closure.md` and must pass before Final-B can close.

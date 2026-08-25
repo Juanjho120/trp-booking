@@ -51,6 +51,10 @@ export function resolveLegacyAirbnbIcalImportUrl(
   calendarId: string,
   source: NodeJS.ProcessEnv = process.env,
 ): string | null {
+  if (source.TRP_ENVIRONMENT === "production") {
+    return null;
+  }
+
   return parseLegacyMap(source)[calendarId] ?? null;
 }
 
