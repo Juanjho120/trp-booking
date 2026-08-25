@@ -16,7 +16,6 @@ export {
 } from "./provider-security";
 export {
   resolveAirbnbIcalImportUrl,
-  resolveAirbnbIcalImportUrlFromEnv,
   syncAirbnbIcalCalendarManually,
   syncConfiguredAirbnbIcalImports,
 } from "./scheduled-sync";

@@ -8,7 +8,6 @@ function source(path: string): string {
   return readFileSync(resolve(process.cwd(), path), "utf8");
 }
 
-
 function metadataBlocks(value: string): string[] {
   const blocks: string[] = [];
   let cursor = 0;
@@ -206,17 +205,39 @@ test("integration UI never uses native confirm and copies the private URL withou
   assert.equal(component.includes("setExportUrl"), false);
 });
 
-test("retired Airbnb import environment fallback cannot return to supported runtime configuration", () => {
+test("retired Airbnb import environment fallback is absent from normal runtime", () => {
   const secretResolver = source(
     "lib/external-calendars/airbnb-import-secret.ts",
   );
+  const externalCalendarIndex = source("lib/external-calendars/index.ts");
+  const scheduledSync = source("lib/airbnb-ical/scheduled-sync.ts");
+  const airbnbIcalIndex = source("lib/airbnb-ical/index.ts");
+  const adminReadModel = source("lib/admin/external-calendar-integrations.ts");
   const envExample = source(".env.example");
+  const runtime = [
+    secretResolver,
+    externalCalendarIndex,
+    scheduledSync,
+    airbnbIcalIndex,
+    adminReadModel,
+  ].join("\n");
 
-  assert.equal(
-    secretResolver.includes("AIRBNB_ICAL_IMPORT_URLS_JSON"),
-    false,
-  );
-  assert.equal(secretResolver.includes("parseLegacyMap"), false);
+  for (const forbiddenRuntimeReference of [
+    "AIRBNB_ICAL_IMPORT_URLS_JSON",
+    "parseLegacyMap",
+    "resolveLegacyAirbnbIcalImportUrl",
+    "resolveAirbnbIcalImportUrlFromEnv",
+  ]) {
+    assert.equal(
+      runtime.includes(forbiddenRuntimeReference),
+      false,
+      forbiddenRuntimeReference,
+    );
+  }
+
+  assert.equal(secretResolver.includes("NodeJS.ProcessEnv"), false);
+  assert.equal(scheduledSync.includes("NodeJS.ProcessEnv"), false);
+  assert.equal(adminReadModel.includes("NodeJS.ProcessEnv"), false);
   assert.equal(
     envExample.includes("AIRBNB_ICAL_IMPORT_URLS_JSON"),
     false,

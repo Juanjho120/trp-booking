@@ -79,7 +79,6 @@ type ExternalCalendarSyncLogRecord = Prisma.ExternalCalendarSyncLogGetPayload<{
 
 type AdminExternalCalendarIntegrationOptions = Readonly<{
   prismaClient?: PrismaClient;
-  env?: NodeJS.ProcessEnv;
 }>;
 
 function toIsoString(value: Date | null): string | null {
@@ -240,7 +239,6 @@ async function toIntegration(
   calendar: ExternalCalendarIntegrationRecord | null,
   options: Readonly<{
     prismaClient: PrismaClient;
-    env: NodeJS.ProcessEnv;
   }>,
 ): Promise<AdminExternalCalendarIntegration> {
   if (!calendar) {
@@ -267,7 +265,7 @@ async function toIntegration(
     };
   }
 
-  const importSecretSource = resolveAirbnbImportSecretSource(calendar, options.env);
+  const importSecretSource = resolveAirbnbImportSecretSource(calendar);
   const syncEvidence = await getSyncEvidence(options.prismaClient, calendar.id);
   const latestSafeFailure = syncEvidence.latest
     ? toSafeFailure({
@@ -321,7 +319,6 @@ export async function getAdminExternalCalendarIntegrationsPage(
   options: AdminExternalCalendarIntegrationOptions = {},
 ): Promise<AdminExternalCalendarIntegrationsPageData> {
   const prismaClient = options.prismaClient ?? prisma;
-  const env = options.env ?? process.env;
   const [properties, calendars] = await Promise.all([
     prismaClient.property.findMany({
       where: {
@@ -344,7 +341,9 @@ export async function getAdminExternalCalendarIntegrationsPage(
     }),
   ]);
 
-  const propertiesById = new Map(properties.map((property) => [property.id, property]));
+  const propertiesById = new Map(
+    properties.map((property) => [property.id, property]),
+  );
   const calendarsByPropertyId = new Map(
     calendars.map((calendar) => [calendar.propertyId, calendar]),
   );
@@ -361,7 +360,6 @@ export async function getAdminExternalCalendarIntegrationsPage(
     orderedProperties.map((property) =>
       toIntegration(property, calendarsByPropertyId.get(property.id) ?? null, {
         prismaClient,
-        env,
       }),
     ),
   );

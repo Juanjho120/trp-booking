@@ -16,7 +16,6 @@ export {
   AirbnbImportSecretError,
   resolveAirbnbIcalImportUrlDatabaseFirst,
   resolveAirbnbImportSecretSource,
-  resolveLegacyAirbnbIcalImportUrl,
   type AirbnbImportSecretCalendar,
   type AirbnbImportSecretSource,
 } from "./airbnb-import-secret";

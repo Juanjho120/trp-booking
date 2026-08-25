@@ -9,10 +9,7 @@ import {
 } from "@prisma/client";
 
 import { prisma } from "@/lib/db/prisma";
-import {
-  resolveAirbnbIcalImportUrlDatabaseFirst,
-  resolveLegacyAirbnbIcalImportUrl,
-} from "@/lib/external-calendars/airbnb-import-secret";
+import { resolveAirbnbIcalImportUrlDatabaseFirst } from "@/lib/external-calendars/airbnb-import-secret";
 
 import { fetchAirbnbIcalTextSecurely } from "./provider-security";
 import { syncAirbnbIcalImport } from "./sync-service";
@@ -72,18 +69,10 @@ function toResolverCalendar(
   };
 }
 
-export function resolveAirbnbIcalImportUrlFromEnv(
-  calendar: AirbnbIcalImportUrlResolverCalendar,
-  source: NodeJS.ProcessEnv = process.env,
-): string | null {
-  return resolveLegacyAirbnbIcalImportUrl(calendar.id, source);
-}
-
 export function resolveAirbnbIcalImportUrl(
   calendar: AirbnbIcalImportUrlResolverCalendar,
-  source: NodeJS.ProcessEnv = process.env,
 ): string | null {
-  return resolveAirbnbIcalImportUrlDatabaseFirst(calendar, source);
+  return resolveAirbnbIcalImportUrlDatabaseFirst(calendar);
 }
 
 function getSafeErrorCode(error: unknown): string {
@@ -198,7 +187,10 @@ async function getCalendarsForBatchSync(
           : undefined,
       provider: ExternalCalendarProvider.AIRBNB,
       direction: {
-        in: [ExternalCalendarDirection.IMPORT, ExternalCalendarDirection.BIDIRECTIONAL],
+        in: [
+          ExternalCalendarDirection.IMPORT,
+          ExternalCalendarDirection.BIDIRECTIONAL,
+        ],
       },
       isImportEnabled: true,
       deletedAt: null,
@@ -302,9 +294,15 @@ export async function syncConfiguredAirbnbIcalImports(
     }
   }
 
-  const calendarsSynced = results.filter((result) => result.status === "SUCCESS").length;
-  const calendarsFailed = results.filter((result) => result.status === "FAILED").length;
-  const calendarsSkipped = results.filter((result) => result.status === "SKIPPED").length;
+  const calendarsSynced = results.filter(
+    (result) => result.status === "SUCCESS",
+  ).length;
+  const calendarsFailed = results.filter(
+    (result) => result.status === "FAILED",
+  ).length;
+  const calendarsSkipped = results.filter(
+    (result) => result.status === "SKIPPED",
+  ).length;
 
   return {
     triggeredBy,
