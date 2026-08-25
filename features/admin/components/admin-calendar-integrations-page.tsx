@@ -9,12 +9,15 @@ import {
   CheckCircle2,
   CloudDownload,
   CloudUpload,
+  Copy,
   Database,
   Eye,
   EyeOff,
   Loader2,
+  KeyRound,
   Power,
   RefreshCw,
+  RotateCw,
   Save,
   ShieldCheck,
   TestTube2,
@@ -30,9 +33,17 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { useLocale } from "@/features/i18n";
 import type {
-  AdminExternalCalendarInboundErrorCode,
+  AdminExternalCalendarErrorCode,
   AdminExternalCalendarInboundStatus,
   AdminExternalCalendarIntegration,
   AdminExternalCalendarIntegrationsPageData,
@@ -43,9 +54,9 @@ import type { Locale } from "@/types/locale";
 import { AdminPageHeader } from "./admin-page-header";
 import { AdminSnackbar } from "./admin-snackbar";
 
-
-type InboundApiResponse = Readonly<{
-  error?: Readonly<{ code?: AdminExternalCalendarInboundErrorCode }>;
+type CalendarApiResponse = Readonly<{
+  error?: Readonly<{ code?: AdminExternalCalendarErrorCode }>;
+  url?: string;
 }>;
 
 const secretInputClassName =
@@ -180,11 +191,15 @@ function IntegrationCard({
   const router = useRouter();
   const [candidateUrl, setCandidateUrl] = useState("");
   const [showCandidate, setShowCandidate] = useState(false);
+  const [rotationConfirmationOpen, setRotationConfirmationOpen] = useState(false);
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [errorFeedback, setErrorFeedback] = useState<string | null>(null);
   const [successFeedback, setSuccessFeedback] = useState<string | null>(null);
+  const encodedPropertyId = encodeURIComponent(integration.property.id);
+  const basePath = `/api/admin/calendar-integrations/${encodedPropertyId}/airbnb`;
+  const hasCandidate = candidateUrl.trim().length > 0;
 
-  function errorMessage(code?: AdminExternalCalendarInboundErrorCode): string {
+  function errorMessage(code?: AdminExternalCalendarErrorCode): string {
     if (code && code in copy.errors) {
       return copy.errors[code as keyof typeof copy.errors];
     }
@@ -202,7 +217,7 @@ function IntegrationCard({
     setSuccessFeedback(null);
     try {
       const response = await request();
-      const payload = (await response.json()) as InboundApiResponse;
+      const payload = (await response.json()) as CalendarApiResponse;
       if (!response.ok) {
         setErrorFeedback(errorMessage(payload.error?.code));
         return;
@@ -222,16 +237,106 @@ function IntegrationCard({
     }
   }
 
-  const encodedPropertyId = encodeURIComponent(integration.property.id);
-  const basePath = `/api/admin/calendar-integrations/${encodedPropertyId}/airbnb`;
-  const hasCandidate = candidateUrl.trim().length > 0;
+  async function executeOutboundMutation(
+    key: string,
+    request: () => Promise<Response>,
+    successMessage: string,
+  ): Promise<boolean> {
+    setBusyAction(key);
+    setErrorFeedback(null);
+    setSuccessFeedback(null);
+
+    try {
+      const response = await request();
+      const payload = (await response.json()) as CalendarApiResponse;
+
+      if (!response.ok) {
+        setErrorFeedback(errorMessage(payload.error?.code));
+        return false;
+      }
+
+      setSuccessFeedback(successMessage);
+      router.refresh();
+      return true;
+    } catch {
+      setErrorFeedback(copy.errors.ADMIN_EXTERNAL_CALENDAR_UNEXPECTED_ERROR);
+      return false;
+    } finally {
+      setBusyAction(null);
+    }
+  }
+
+  async function copyOutboundUrl(): Promise<void> {
+    setBusyAction("copy-export");
+    setErrorFeedback(null);
+    setSuccessFeedback(null);
+
+    try {
+      const response = await fetch(`${basePath}/export-url/copy`, {
+        method: "POST",
+      });
+      const payload = (await response.json()) as CalendarApiResponse;
+
+      if (!response.ok) {
+        setErrorFeedback(errorMessage(payload.error?.code));
+        return;
+      }
+
+      if (!payload.url || !navigator.clipboard?.writeText) {
+        setErrorFeedback(copy.errors.clipboardFailed);
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(payload.url);
+      } catch {
+        setErrorFeedback(copy.errors.clipboardFailed);
+        return;
+      }
+
+      setSuccessFeedback(copy.success.exportUrlCopied);
+    } catch {
+      setErrorFeedback(copy.errors.ADMIN_EXTERNAL_CALENDAR_UNEXPECTED_ERROR);
+    } finally {
+      setBusyAction(null);
+    }
+  }
+
+  async function mutateOutboundToken(
+    operation: "GENERATE" | "ROTATE",
+  ): Promise<boolean> {
+    if (!integration.updatedAt) {
+      setErrorFeedback(copy.errors.ADMIN_EXTERNAL_CALENDAR_NOT_FOUND);
+      return false;
+    }
+
+    return executeOutboundMutation(
+      operation === "GENERATE" ? "generate-export" : "rotate-export",
+      () =>
+        fetch(`${basePath}/export-url/rotate`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            operation,
+            expectedUpdatedAt: integration.updatedAt,
+          }),
+        }),
+      operation === "GENERATE"
+        ? copy.success.exportTokenGenerated
+        : copy.success.exportTokenRotated,
+    );
+  }
 
   return (
-    <Card className="border-border/70 bg-card shadow-sm">
+    <>
+      <Card className="border-border/70 bg-card shadow-sm">
       <AdminSnackbar
         closeLabel={messages.admin.feedback.dismiss}
         message={errorFeedback ?? successFeedback}
-        onDismiss={() => { setErrorFeedback(null); setSuccessFeedback(null); }}
+        onDismiss={() => {
+          setErrorFeedback(null);
+          setSuccessFeedback(null);
+        }}
         variant={errorFeedback ? "error" : "success"}
       />
       <CardHeader className="border-b border-border/70">
@@ -500,6 +605,103 @@ function IntegrationCard({
             />
           </dl>
 
+          <div className="mt-5 flex flex-wrap gap-2">
+            <Button
+              disabled={!integration.exportCopyAvailable || busyAction !== null}
+              onClick={() => void copyOutboundUrl()}
+              type="button"
+            >
+              {busyAction === "copy-export" ? (
+                <Loader2 aria-hidden="true" className="animate-spin" />
+              ) : (
+                <Copy aria-hidden="true" />
+              )}
+              {busyAction === "copy-export"
+                ? copy.actions.copyingUrl
+                : copy.actions.copyUrl}
+            </Button>
+
+            <Button
+              disabled={!integration.calendarId || !integration.updatedAt || busyAction !== null}
+              onClick={() => {
+                if (integration.exportConfigured) {
+                  setRotationConfirmationOpen(true);
+                  return;
+                }
+
+                void mutateOutboundToken("GENERATE");
+              }}
+              type="button"
+              variant="outline"
+            >
+              {busyAction === "generate-export" ? (
+                <Loader2 aria-hidden="true" className="animate-spin" />
+              ) : integration.exportConfigured ? (
+                <RotateCw aria-hidden="true" />
+              ) : (
+                <KeyRound aria-hidden="true" />
+              )}
+              {busyAction === "generate-export"
+                ? copy.actions.generatingUrl
+                : integration.exportConfigured
+                  ? copy.actions.rotateUrl
+                  : copy.actions.generateUrl}
+            </Button>
+
+            {integration.calendarId && integration.updatedAt ? (
+              <Button
+                disabled={
+                  busyAction !== null ||
+                  (!integration.isExportEnabled && !integration.exportConfigured)
+                }
+                onClick={() =>
+                  void executeOutboundMutation(
+                    "toggle-export",
+                    () =>
+                      fetch(`${basePath}/export-enabled`, {
+                        method: "PATCH",
+                        headers: { "content-type": "application/json" },
+                        body: JSON.stringify({
+                          enabled: !integration.isExportEnabled,
+                          expectedUpdatedAt: integration.updatedAt,
+                        }),
+                      }),
+                    integration.isExportEnabled
+                      ? copy.success.exportDisabled
+                      : copy.success.exportEnabled,
+                  )
+                }
+                type="button"
+                variant="secondary"
+              >
+                {busyAction === "toggle-export" ? (
+                  <Loader2 aria-hidden="true" className="animate-spin" />
+                ) : (
+                  <Power aria-hidden="true" />
+                )}
+                {integration.isExportEnabled
+                  ? copy.actions.disableExport
+                  : copy.actions.enableExport}
+              </Button>
+            ) : null}
+          </div>
+
+          {integration.outboundStatus === "NOT_CONFIGURED" ? (
+            <div className="mt-4 rounded-2xl border border-border bg-muted/20 p-4">
+              <div className="flex gap-3">
+                <KeyRound aria-hidden="true" className="mt-0.5 size-5 shrink-0" />
+                <div>
+                  <p className="text-sm font-medium">
+                    {copy.notes.generateRequiredTitle}
+                  </p>
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                    {copy.notes.generateRequiredDescription}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
           {integration.outboundStatus === "ROTATION_REQUIRED" ? (
             <div className="mt-4 rounded-2xl border border-border bg-muted/30 p-4">
               <div className="flex gap-3">
@@ -526,7 +728,71 @@ function IntegrationCard({
           ) : null}
         </section>
       </CardContent>
-    </Card>
+      </Card>
+
+      <Sheet
+      onOpenChange={(open) => {
+        if (!open && busyAction !== "rotate-export") {
+          setRotationConfirmationOpen(false);
+        }
+      }}
+      open={rotationConfirmationOpen}
+    >
+      <SheetContent closeLabel={messages.admin.feedback.dismiss}>
+        <SheetHeader>
+          <SheetTitle>{copy.rotationDialog.title}</SheetTitle>
+          <SheetDescription>{copy.rotationDialog.description}</SheetDescription>
+        </SheetHeader>
+
+        <div className="grid gap-4 overflow-y-auto px-6 py-2 text-sm leading-6">
+          <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-4">
+            <p className="font-medium">{copy.rotationDialog.warningTitle}</p>
+            <p className="mt-1 text-muted-foreground">
+              {copy.rotationDialog.warningDescription}
+            </p>
+          </div>
+          <p className="text-muted-foreground">
+            {copy.rotationDialog.rolloutNote}
+          </p>
+          <p className="text-muted-foreground">
+            {copy.rotationDialog.copyAfterRotationNote}
+          </p>
+        </div>
+
+        <SheetFooter>
+          <Button
+            disabled={busyAction === "rotate-export"}
+            onClick={() => setRotationConfirmationOpen(false)}
+            type="button"
+            variant="outline"
+          >
+            {copy.actions.cancel}
+          </Button>
+          <Button
+            disabled={busyAction === "rotate-export"}
+            onClick={() =>
+              void mutateOutboundToken("ROTATE").then((success) => {
+                if (success) {
+                  setRotationConfirmationOpen(false);
+                }
+              })
+            }
+            type="button"
+            variant="destructive"
+          >
+            {busyAction === "rotate-export" ? (
+              <Loader2 aria-hidden="true" className="animate-spin" />
+            ) : (
+              <RotateCw aria-hidden="true" />
+            )}
+            {busyAction === "rotate-export"
+              ? copy.actions.rotatingUrl
+              : copy.actions.confirmRotation}
+          </Button>
+        </SheetFooter>
+      </SheetContent>
+      </Sheet>
+    </>
   );
 }
 

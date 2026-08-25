@@ -2371,10 +2371,10 @@ export const enMessages = {
       badge: "External integrations",
       title: "Airbnb and TRP Booking",
       description:
-        "Review secure configuration state and operational evidence for each accommodation's external calendars without exposing private URLs or tokens.",
+        "Securely manage Airbnb imports and the private feed TRP Booking publishes to Airbnb without exposing secrets in the normal page view.",
       cards: {
         description:
-          "Independent state for Airbnb imports and TRP Booking exports.",
+          "Independent state and controls for Airbnb → TRP Booking and TRP Booking → Airbnb.",
       },
       directions: {
         inbound: {
@@ -2420,6 +2420,16 @@ export const enMessages = {
         disableImport: "Disable import",
         showUrl: "Show unsaved URL",
         hideUrl: "Hide unsaved URL",
+        copyUrl: "Copy URL",
+        copyingUrl: "Copying...",
+        generateUrl: "Generate URL",
+        generatingUrl: "Generating...",
+        rotateUrl: "Rotate URL",
+        rotatingUrl: "Rotating...",
+        enableExport: "Enable export",
+        disableExport: "Disable export",
+        cancel: "Cancel",
+        confirmRotation: "Rotate URL now",
       },
       values: {
         airbnb: "Airbnb",
@@ -2465,24 +2475,39 @@ export const enMessages = {
       notes: {
         secretSafeTitle: "Secret-free view",
         secretSafe:
-          "This page shows only safe state and operational evidence. The private Airbnb URL, hashes, tokens, and encrypted values are never part of the data sent to the browser.",
+          "The normal page receives only safe state and operational evidence. Private URLs, hashes, tokens, and encrypted values stay out of the DOM; the complete outbound URL exists only during the explicit Copy URL action.",
         independentDirectionsTitle: "Independent states",
         independentDirections:
           "Airbnb import health and outbound feed availability are derived separately; an inbound failure does not automatically mean the outbound feed is broken.",
         legacyMigrationTitle: "Secure migration required",
         legacyMigrationDescription:
           "Import currently uses legacy environment configuration. The URL remains hidden and will only be migrated through an explicit admin action.",
+        generateRequiredTitle: "Generate the private feed",
+        generateRequiredDescription:
+          "This calendar does not have an outbound token yet. Generate URL creates a new high-entropy token and stores only its hash plus an encrypted copy; you can then copy the URL and enable export.",
         rotationRequiredTitle: "Rotation required before copying the URL",
         rotationRequiredDescription:
-          "The existing feed remains active. Copy URL stays unavailable until an explicit rotation creates a recoverable encrypted token copy. This view does not rotate any feed.",
+          "The existing hash-only feed remains active, but its original token cannot be recovered. Explicitly rotate this property to create a recoverable new URL and replace it in the matching Airbnb listing before moving to another property.",
         outboundReady:
-          "The feed has both its validation hash and an encrypted token copy. The private URL still is not displayed on this page.",
+          "The feed has both its validation hash and an encrypted token copy. The private URL is never rendered: Copy URL obtains it only for that protected action and sends it directly to the clipboard.",
         noSyncEvidence:
           "There is no synchronization evidence for this calendar yet.",
         safeFailure:
           "The latest synchronization reported a normalized failure. Use the safe code without exposing private provider information.",
         importUrlInput:
           "The stored URL is never shown again. Show/hide affects only the unsaved value currently typed in this browser.",
+      },
+      rotationDialog: {
+        title: "Rotate the private TRP Booking URL",
+        description:
+          "This action generates a new token for this accommodation and replaces the current hash and encrypted copy.",
+        warningTitle: "The previous URL will stop working immediately",
+        warningDescription:
+          "After rotation, the old URL returns the same generic 404 as any invalid feed. Copy the new URL and replace it in the connected calendar for the correct Airbnb listing.",
+        rolloutNote:
+          "Rotate one property at a time. Verify the new feed and round trip before rotating the next accommodation.",
+        copyAfterRotationNote:
+          "The rotation response does not expose the token. When it finishes, use Copy URL on this same card to send the new URL to the clipboard.",
       },
       success: {
         urlSaved: "The Airbnb URL was saved encrypted. It was not synchronized automatically.",
@@ -2491,6 +2516,11 @@ export const enMessages = {
         syncCompleted: "Airbnb synchronization completed for this accommodation.",
         importEnabled: "Airbnb import was enabled.",
         importDisabled: "Airbnb import was disabled without deleting the saved URL.",
+        exportUrlCopied: "The private TRP Booking URL was copied to the clipboard without being rendered on the page.",
+        exportTokenGenerated: "A new private URL was generated for this accommodation. You can now copy it and enable export.",
+        exportTokenRotated: "The private URL was rotated. The previous URL is no longer valid; copy the new one before updating Airbnb.",
+        exportEnabled: "Export to Airbnb was enabled.",
+        exportDisabled: "Export to Airbnb was disabled without deleting the saved token.",
       },
       errors: {
         ADMIN_UNAUTHORIZED:
@@ -2513,12 +2543,22 @@ export const enMessages = {
           "Airbnb responded without a valid supported iCal calendar.",
         ADMIN_EXTERNAL_CALENDAR_IMPORT_SYNC_FAILED:
           "The Airbnb synchronization did not complete. Review the safe diagnostic and try again.",
+        ADMIN_EXTERNAL_CALENDAR_EXPORT_NOT_CONFIGURED:
+          "Generate a private TRP Booking URL for this accommodation first.",
+        ADMIN_EXTERNAL_CALENDAR_EXPORT_COPY_UNAVAILABLE:
+          "This feed predates encrypted token recovery. Explicitly rotate the URL before copying it.",
+        ADMIN_EXTERNAL_CALENDAR_EXPORT_ALREADY_CONFIGURED:
+          "This accommodation already has an outbound feed. Refresh the page and use Rotate URL if you need to replace it.",
+        ADMIN_EXTERNAL_CALENDAR_EXPORT_SECRET_UNAVAILABLE:
+          "We could not safely recover the outbound token. No URL was displayed; review the configuration before continuing.",
         ADMIN_EXTERNAL_CALENDAR_STALE:
           "This configuration changed in another session. Refresh the page before saving again.",
         ADMIN_EXTERNAL_CALENDAR_PROVIDER_UNAVAILABLE:
           "We could not reach Airbnb within the integration's safe request limits.",
         ADMIN_EXTERNAL_CALENDAR_UNEXPECTED_ERROR:
           "We could not complete the Airbnb calendar action. Please try again.",
+        clipboardFailed:
+          "The browser did not allow the private URL to be copied. The URL will not be displayed as a fallback; review clipboard permissions and try again.",
       },
     },
   },

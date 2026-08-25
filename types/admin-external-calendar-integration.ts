@@ -117,3 +117,35 @@ export type AdminExternalCalendarInboundApiSuccess = Readonly<{
 export type AdminExternalCalendarInboundApiResponse =
   | AdminExternalCalendarInboundApiSuccess
   | AdminExternalCalendarInboundApiError;
+
+export type AdminExternalCalendarOutboundErrorCode =
+  | "ADMIN_UNAUTHORIZED"
+  | "ADMIN_EXTERNAL_CALENDAR_ORIGIN_INVALID"
+  | "INVALID_ADMIN_EXTERNAL_CALENDAR_REQUEST"
+  | "ADMIN_EXTERNAL_CALENDAR_PROPERTY_NOT_FOUND"
+  | "ADMIN_EXTERNAL_CALENDAR_NOT_FOUND"
+  | "ADMIN_EXTERNAL_CALENDAR_EXPORT_NOT_CONFIGURED"
+  | "ADMIN_EXTERNAL_CALENDAR_EXPORT_COPY_UNAVAILABLE"
+  | "ADMIN_EXTERNAL_CALENDAR_EXPORT_ALREADY_CONFIGURED"
+  | "ADMIN_EXTERNAL_CALENDAR_EXPORT_SECRET_UNAVAILABLE"
+  | "ADMIN_EXTERNAL_CALENDAR_STALE"
+  | "ADMIN_EXTERNAL_CALENDAR_UNEXPECTED_ERROR";
+
+export type AdminExternalCalendarErrorCode =
+  | AdminExternalCalendarInboundErrorCode
+  | AdminExternalCalendarOutboundErrorCode;
+
+export type AdminExternalCalendarOutboundApiSuccess = Readonly<{
+  pageData?: AdminExternalCalendarIntegrationsPageData;
+  url?: string;
+}>;
+
+export type AdminExternalCalendarOutboundApiError = Readonly<{
+  error: Readonly<{
+    code: AdminExternalCalendarOutboundErrorCode;
+  }>;
+}>;
+
+export type AdminExternalCalendarOutboundApiResponse =
+  | AdminExternalCalendarOutboundApiSuccess
+  | AdminExternalCalendarOutboundApiError;

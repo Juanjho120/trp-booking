@@ -2373,10 +2373,10 @@ export const esMessages = {
       badge: "Integraciones externas",
       title: "Airbnb y TRP Booking",
       description:
-        "Revisa la configuración segura y la evidencia operativa de los calendarios externos de cada alojamiento sin exponer URLs privadas ni tokens.",
+        "Administra de forma segura la importación desde Airbnb y el feed privado que TRP Booking publica hacia Airbnb sin exponer secretos en la vista normal.",
       cards: {
         description:
-          "Estado independiente de importación desde Airbnb y exportación desde TRP Booking.",
+          "Estado y controles independientes para Airbnb → TRP Booking y TRP Booking → Airbnb.",
       },
       directions: {
         inbound: {
@@ -2422,6 +2422,16 @@ export const esMessages = {
         disableImport: "Deshabilitar importación",
         showUrl: "Mostrar URL sin guardar",
         hideUrl: "Ocultar URL sin guardar",
+        copyUrl: "Copiar URL",
+        copyingUrl: "Copiando...",
+        generateUrl: "Generar URL",
+        generatingUrl: "Generando...",
+        rotateUrl: "Rotar URL",
+        rotatingUrl: "Rotando...",
+        enableExport: "Habilitar exportación",
+        disableExport: "Deshabilitar exportación",
+        cancel: "Cancelar",
+        confirmRotation: "Rotar URL ahora",
       },
       values: {
         airbnb: "Airbnb",
@@ -2467,24 +2477,39 @@ export const esMessages = {
       notes: {
         secretSafeTitle: "Vista sin secretos",
         secretSafe:
-          "Esta página muestra únicamente estados y evidencia operativa segura. La URL privada de Airbnb, hashes, tokens y valores cifrados nunca forman parte de los datos enviados al navegador.",
+          "La vista normal solo recibe estados y evidencia segura. Las URLs privadas, hashes, tokens y valores cifrados permanecen fuera del DOM; la URL outbound completa solo existe durante la acción explícita de Copiar URL.",
         independentDirectionsTitle: "Estados independientes",
         independentDirections:
           "La salud de la importación desde Airbnb y la disponibilidad del feed hacia Airbnb se calculan por separado; un fallo inbound no implica automáticamente que el feed outbound esté roto.",
         legacyMigrationTitle: "Migración segura pendiente",
         legacyMigrationDescription:
           "La importación continúa usando una configuración heredada del entorno. La URL permanece oculta y solo se migrará mediante una acción administrativa explícita.",
+        generateRequiredTitle: "Genera el feed privado",
+        generateRequiredDescription:
+          "Este calendario todavía no tiene token outbound. Generar URL crea un token nuevo de alta entropía y lo guarda únicamente como hash más copia cifrada; después podrás copiar la URL y habilitar la exportación.",
         rotationRequiredTitle: "Rotación requerida para copiar la URL",
         rotationRequiredDescription:
-          "El feed existente continúa activo. Copiar URL seguirá deshabilitado hasta que una rotación explícita cree una copia cifrada recuperable del token. Esta vista no rota ningún feed.",
+          "El feed hash-only existente continúa activo, pero su token original no puede recuperarse. Rota esta propiedad de forma explícita para crear una nueva URL recuperable y reemplázala en el anuncio de Airbnb antes de continuar con otra propiedad.",
         outboundReady:
-          "El feed tiene hash de validación y copia cifrada del token. La URL privada sigue sin mostrarse en esta vista.",
+          "El feed tiene hash de validación y copia cifrada del token. La URL privada nunca se renderiza: Copiar URL la obtiene solo durante esa acción protegida y la envía directamente al portapapeles.",
         noSyncEvidence:
           "Todavía no hay evidencia de sincronización para este calendario.",
         safeFailure:
           "La última sincronización reportó un fallo normalizado. Revisa el código seguro sin exponer información privada del proveedor.",
         importUrlInput:
           "La URL guardada nunca vuelve a mostrarse. Mostrar/ocultar aplica únicamente al valor sin guardar escrito actualmente en este navegador.",
+      },
+      rotationDialog: {
+        title: "Rotar URL privada de TRP Booking",
+        description:
+          "Esta acción genera un token nuevo para este alojamiento y reemplaza el hash y la copia cifrada actuales.",
+        warningTitle: "La URL anterior dejará de funcionar inmediatamente",
+        warningDescription:
+          "Después de rotar, la URL anterior responderá con el mismo 404 genérico de un feed inválido. Tendrás que copiar la nueva URL y reemplazarla en el calendario conectado del anuncio correcto de Airbnb.",
+        rolloutNote:
+          "Rota una sola propiedad a la vez. Verifica el nuevo feed y el round-trip antes de rotar el siguiente alojamiento.",
+        copyAfterRotationNote:
+          "La respuesta de rotación no muestra el token. Al terminar, usa Copiar URL desde esta misma card para llevar la nueva URL al portapapeles.",
       },
       success: {
         urlSaved: "La URL de Airbnb se guardó cifrada. No se sincronizó automáticamente.",
@@ -2493,6 +2518,11 @@ export const esMessages = {
         syncCompleted: "La sincronización con Airbnb terminó para este alojamiento.",
         importEnabled: "La importación desde Airbnb quedó habilitada.",
         importDisabled: "La importación desde Airbnb quedó deshabilitada sin eliminar la URL guardada.",
+        exportUrlCopied: "La URL privada de TRP Booking se copió al portapapeles sin mostrarse en la página.",
+        exportTokenGenerated: "Se generó una nueva URL privada para este alojamiento. Ya puedes copiarla y habilitar la exportación.",
+        exportTokenRotated: "La URL privada fue rotada. La URL anterior dejó de ser válida; copia la nueva antes de actualizar Airbnb.",
+        exportEnabled: "La exportación hacia Airbnb quedó habilitada.",
+        exportDisabled: "La exportación hacia Airbnb quedó deshabilitada sin eliminar el token guardado.",
       },
       errors: {
         ADMIN_UNAUTHORIZED:
@@ -2515,12 +2545,22 @@ export const esMessages = {
           "La conexión con Airbnb respondió sin un calendario iCal válido y compatible.",
         ADMIN_EXTERNAL_CALENDAR_IMPORT_SYNC_FAILED:
           "La sincronización con Airbnb no terminó. Revisa el diagnóstico seguro e inténtalo de nuevo.",
+        ADMIN_EXTERNAL_CALENDAR_EXPORT_NOT_CONFIGURED:
+          "Genera primero una URL privada de TRP Booking para este alojamiento.",
+        ADMIN_EXTERNAL_CALENDAR_EXPORT_COPY_UNAVAILABLE:
+          "Este feed fue creado antes de guardar una copia cifrada del token. Rota la URL de forma explícita antes de copiarla.",
+        ADMIN_EXTERNAL_CALENDAR_EXPORT_ALREADY_CONFIGURED:
+          "Este alojamiento ya tiene un feed outbound. Actualiza la página y usa Rotar URL si necesitas reemplazarlo.",
+        ADMIN_EXTERNAL_CALENDAR_EXPORT_SECRET_UNAVAILABLE:
+          "No pudimos recuperar de forma segura el token outbound. No se mostró ninguna URL; revisa la configuración antes de continuar.",
         ADMIN_EXTERNAL_CALENDAR_STALE:
           "Esta configuración cambió en otra sesión. Actualiza la página antes de guardar de nuevo.",
         ADMIN_EXTERNAL_CALENDAR_PROVIDER_UNAVAILABLE:
           "No pudimos comunicarnos con Airbnb dentro de los límites seguros de la integración.",
         ADMIN_EXTERNAL_CALENDAR_UNEXPECTED_ERROR:
           "No pudimos completar la acción del calendario de Airbnb. Inténtalo de nuevo.",
+        clipboardFailed:
+          "El navegador no permitió copiar la URL privada. La URL no se mostrará como alternativa; revisa el permiso del portapapeles e inténtalo nuevamente.",
       },
     },
   },

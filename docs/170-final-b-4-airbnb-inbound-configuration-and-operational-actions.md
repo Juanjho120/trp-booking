@@ -7,13 +7,14 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-B — Admin external-calendar integrations
 Subphase: Final-B.4 — Airbnb inbound configuration and operational actions
-Status: Implementation prepared; pending Local/Test validation and owner acceptance
+Status: Completed and accepted on 2026-08-25
 Preparation date: 2026-08-25
 Implementation base head: 84e3f5158e76527a82b2b6655664ec9ab073ea44
 Previous subphase: Final-B.3 — Completed and accepted on 2026-08-25
 Final-B.3 accepted head: 84e3f5158e76527a82b2b6655664ec9ab073ea44
 Authoritative strategy: docs/167-final-b-1-external-calendar-admin-strategy-and-security-contract.md
 Previous record: docs/169-final-b-3-admin-external-calendar-read-model-and-integration-ui.md
+Accepted head: a3724f018449515363159ec9f23af892a21b24be
 Next planned subphase: Final-B.5 — TRP outbound Copy URL / Rotate URL / export controls
 Phase 13: Not started
 ```
@@ -195,4 +196,4 @@ No Prisma schema change or migration is introduced by Final-B.4.
 [ ] technical gate passes
 ```
 
-Do not mark Final-B.4 completed or begin Final-B.5 until this matrix is accepted by the owner.
+Owner acceptance: the Final-B.4 package was committed at `a3724f018449515363159ec9f23af892a21b24be` without reported errors, and the owner explicitly advanced the project to Final-B.5 on 2026-08-25. Final-B.6 remains the consolidated regression/closure gate.
