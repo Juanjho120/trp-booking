@@ -192,7 +192,9 @@ Do not activate Vercel cron registrations.
 Before changing any provider configuration:
 
 ```text
-[ ] integrations page loads all three property cards
+[ ] integrations page exposes selector buttons for all three supported accommodations
+[ ] exactly one selected-property integration card is rendered at a time
+[ ] switching accommodation updates the visible integration card without exposing secret material
 [ ] inbound and outbound sections are independently visible
 [ ] browser DOM/page data does not contain a stored Airbnb URL
 [ ] browser DOM/page data does not contain exportTokenHash

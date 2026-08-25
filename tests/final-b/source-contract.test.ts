@@ -196,10 +196,21 @@ test("audit metadata implementations contain only the frozen safe evidence field
   }
 });
 
-test("integration UI never uses native confirm and copies the private URL without storing it in state", () => {
+test("integration UI uses the calendar-style property selector, never uses native confirm and copies the private URL without storing it in state", () => {
   const component = source(
     "features/admin/components/admin-calendar-integrations-page.tsx",
   );
+
+  assert.match(
+    component,
+    /const \[selectedPropertyId, setSelectedPropertyId\] = useState/,
+  );
+  assert.match(component, /mb-5 flex gap-2 overflow-x-auto pb-1/);
+  assert.match(component, /setSelectedPropertyId\(property\.id\)/);
+  assert.match(component, /variant=\{active \? "default" : "outline"\}/);
+  assert.match(component, /integration=\{selectedIntegration\}/);
+  assert.equal((component.match(/<IntegrationCard/g) ?? []).length, 1);
+
   assert.equal(component.includes("confirm("), false);
   assert.match(component, /navigator\.clipboard\.writeText\(payload\.url\)/);
   assert.equal(component.includes("setExportUrl"), false);

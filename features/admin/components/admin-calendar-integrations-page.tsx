@@ -801,8 +801,18 @@ export function AdminCalendarIntegrationsPage({
 }: Readonly<{
   initialData: AdminExternalCalendarIntegrationsPageData;
 }>) {
-  const { messages } = useLocale();
+  const { locale, messages } = useLocale();
   const copy = messages.admin.calendarIntegrations;
+  const [selectedPropertyId, setSelectedPropertyId] = useState(
+    () => initialData.integrations[0]?.property.id ?? null,
+  );
+
+  const selectedIntegration =
+    initialData.integrations.find(
+      (integration) => integration.property.id === selectedPropertyId,
+    ) ??
+    initialData.integrations[0] ??
+    null;
 
   return (
     <>
@@ -845,13 +855,36 @@ export function AdminCalendarIntegrationsPage({
         </Card>
       </div>
 
+      <div
+        aria-label={copy.title}
+        className="mb-5 flex gap-2 overflow-x-auto pb-1"
+        role="group"
+      >
+        {initialData.integrations.map((integration) => {
+          const property = integration.property;
+          const active = property.id === selectedIntegration?.property.id;
+
+          return (
+            <Button
+              aria-pressed={active}
+              key={property.id}
+              onClick={() => setSelectedPropertyId(property.id)}
+              type="button"
+              variant={active ? "default" : "outline"}
+            >
+              {locale === "en" ? property.nameEn : property.nameEs}
+            </Button>
+          );
+        })}
+      </div>
+
       <div className="grid gap-5">
-        {initialData.integrations.map((integration) => (
+        {selectedIntegration ? (
           <IntegrationCard
-            integration={integration}
-            key={integration.property.id}
+            integration={selectedIntegration}
+            key={selectedIntegration.property.id}
           />
-        ))}
+        ) : null}
       </div>
 
       <div className="mt-6 flex justify-end">
