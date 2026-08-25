@@ -1,17 +1,12 @@
 import { decryptExternalCalendarSecret } from "./secret-crypto";
 
-const LEGACY_IMPORT_URLS_ENV_NAME = "AIRBNB_ICAL_IMPORT_URLS_JSON";
-
 export type AirbnbImportSecretCalendar = Readonly<{
   id: string;
   propertyId: string;
   importUrlEncrypted?: string | null;
 }>;
 
-export type AirbnbImportSecretSource =
-  | "DATABASE_ENCRYPTED"
-  | "LEGACY_ENV"
-  | "NONE";
+export type AirbnbImportSecretSource = "DATABASE_ENCRYPTED" | "NONE";
 
 export class AirbnbImportSecretError extends Error {
   constructor(
@@ -22,72 +17,44 @@ export class AirbnbImportSecretError extends Error {
   }
 }
 
-function parseLegacyMap(
-  source: NodeJS.ProcessEnv = process.env,
-): Readonly<Record<string, string>> {
-  const rawValue = source[LEGACY_IMPORT_URLS_ENV_NAME];
-  if (!rawValue?.trim()) {
-    return {};
-  }
-
-  try {
-    const parsed: unknown = JSON.parse(rawValue);
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-      return {};
-    }
-
-    return Object.fromEntries(
-      Object.entries(parsed)
-        .filter((entry): entry is [string, string] => typeof entry[1] === "string")
-        .map(([calendarId, url]) => [calendarId, url.trim()])
-        .filter(([, url]) => url.length > 0),
-    );
-  } catch {
-    return {};
-  }
-}
-
+/**
+ * Final-B.6 compatibility export.
+ *
+ * The legacy AIRBNB_ICAL_IMPORT_URLS_JSON fallback has been retired for every
+ * environment. Keep this export temporarily so older callers fail closed
+ * instead of reintroducing environment-backed secret resolution.
+ */
 export function resolveLegacyAirbnbIcalImportUrl(
-  calendarId: string,
-  source: NodeJS.ProcessEnv = process.env,
+  _calendarId: string,
+  _source: NodeJS.ProcessEnv = process.env,
 ): string | null {
-  if (source.TRP_ENVIRONMENT === "production") {
-    return null;
-  }
-
-  return parseLegacyMap(source)[calendarId] ?? null;
+  return null;
 }
 
 export function resolveAirbnbImportSecretSource(
   calendar: AirbnbImportSecretCalendar,
-  source: NodeJS.ProcessEnv = process.env,
+  _source: NodeJS.ProcessEnv = process.env,
 ): AirbnbImportSecretSource {
-  if (calendar.importUrlEncrypted) {
-    return "DATABASE_ENCRYPTED";
-  }
-
-  return resolveLegacyAirbnbIcalImportUrl(calendar.id, source)
-    ? "LEGACY_ENV"
-    : "NONE";
+  return calendar.importUrlEncrypted ? "DATABASE_ENCRYPTED" : "NONE";
 }
 
 export function resolveAirbnbIcalImportUrlDatabaseFirst(
   calendar: AirbnbImportSecretCalendar,
-  source: NodeJS.ProcessEnv = process.env,
+  _source: NodeJS.ProcessEnv = process.env,
 ): string | null {
-  if (calendar.importUrlEncrypted) {
-    try {
-      return decryptExternalCalendarSecret({
-        encryptedValue: calendar.importUrlEncrypted,
-        propertyId: calendar.propertyId,
-        purpose: "AIRBNB_IMPORT",
-      }).trim();
-    } catch {
-      throw new AirbnbImportSecretError(
-        "ICAL_IMPORT_SECRET_DECRYPTION_FAILED",
-      );
-    }
+  if (!calendar.importUrlEncrypted) {
+    return null;
   }
 
-  return resolveLegacyAirbnbIcalImportUrl(calendar.id, source);
+  try {
+    return decryptExternalCalendarSecret({
+      encryptedValue: calendar.importUrlEncrypted,
+      propertyId: calendar.propertyId,
+      purpose: "AIRBNB_IMPORT",
+    }).trim();
+  } catch {
+    throw new AirbnbImportSecretError(
+      "ICAL_IMPORT_SECRET_DECRYPTION_FAILED",
+    );
+  }
 }

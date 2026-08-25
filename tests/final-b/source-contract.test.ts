@@ -206,6 +206,23 @@ test("integration UI never uses native confirm and copies the private URL withou
   assert.equal(component.includes("setExportUrl"), false);
 });
 
+test("retired Airbnb import environment fallback cannot return to supported runtime configuration", () => {
+  const secretResolver = source(
+    "lib/external-calendars/airbnb-import-secret.ts",
+  );
+  const envExample = source(".env.example");
+
+  assert.equal(
+    secretResolver.includes("AIRBNB_ICAL_IMPORT_URLS_JSON"),
+    false,
+  );
+  assert.equal(secretResolver.includes("parseLegacyMap"), false);
+  assert.equal(
+    envExample.includes("AIRBNB_ICAL_IMPORT_URLS_JSON"),
+    false,
+  );
+});
+
 test("Test Vercel configuration still has zero scheduler registrations", () => {
   const vercel = JSON.parse(source("vercel.json")) as { crons?: unknown[] };
   assert.deepEqual(vercel.crons, []);

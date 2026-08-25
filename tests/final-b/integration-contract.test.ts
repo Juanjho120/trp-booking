@@ -14,49 +14,67 @@ import { test } from "./harness";
 const legacyUrl =
   "https://www.airbnb.com/calendar/ical/legacy.ics?s=legacy-secret";
 
-test("DB-backed inbound configuration takes precedence over a transitional legacy value", () => {
+test("DB-backed inbound configuration remains the only configured secret source", () => {
   const calendar = {
     id: "calendar-db",
     propertyId: "black-white-apartment",
     importUrlEncrypted: "v1:encrypted-placeholder",
   } as const;
-  const env = {
+
+  const retiredLegacyEnv = {
     TRP_ENVIRONMENT: "test",
     AIRBNB_ICAL_IMPORT_URLS_JSON: JSON.stringify({
-      "calendar-db": legacyUrl,
+      "calendar-db":
+        "https://www.airbnb.com/calendar/ical/retired.ics?t=retired-secret",
     }),
   };
 
-  assert.equal(resolveAirbnbImportSecretSource(calendar, env), "DATABASE_ENCRYPTED");
+  assert.equal(
+    resolveAirbnbImportSecretSource(calendar, retiredLegacyEnv),
+    "DATABASE_ENCRYPTED",
+  );
 });
 
-test("legacy inbound fallback remains transitional in Local/Test", () => {
+test("retired legacy inbound configuration cannot configure Local or Test", () => {
   const calendar = {
-    id: "calendar-legacy",
+    id: "calendar-retired-legacy",
     propertyId: "perfect-retreat-bungalow",
     importUrlEncrypted: null,
   } as const;
-  const env = {
-    TRP_ENVIRONMENT: "test",
-    AIRBNB_ICAL_IMPORT_URLS_JSON: JSON.stringify({
-      "calendar-legacy": legacyUrl,
-    }),
-  };
 
-  assert.equal(resolveAirbnbImportSecretSource(calendar, env), "LEGACY_ENV");
-  assert.equal(resolveAirbnbIcalImportUrlDatabaseFirst(calendar, env), legacyUrl);
+  for (const trpEnvironment of ["local", "test"] as const) {
+    const env = {
+      TRP_ENVIRONMENT: trpEnvironment,
+      AIRBNB_ICAL_IMPORT_URLS_JSON: JSON.stringify({
+        [calendar.id]:
+          "https://www.airbnb.com/calendar/ical/retired.ics?t=retired-secret",
+      }),
+    };
+
+    assert.equal(resolveAirbnbImportSecretSource(calendar, env), "NONE");
+    assert.equal(
+      resolveLegacyAirbnbIcalImportUrl(calendar.id, env),
+      null,
+    );
+    assert.equal(
+      resolveAirbnbIcalImportUrlDatabaseFirst(calendar, env),
+      null,
+    );
+  }
 });
 
-test("Production never consumes the transitional legacy Airbnb URL map", () => {
+test("retired legacy inbound configuration cannot configure Production", () => {
   const calendar = {
     id: "calendar-production",
     propertyId: "complete-retreat",
     importUrlEncrypted: null,
   } as const;
+
   const env = {
     TRP_ENVIRONMENT: "production",
     AIRBNB_ICAL_IMPORT_URLS_JSON: JSON.stringify({
-      "calendar-production": legacyUrl,
+      [calendar.id]:
+        "https://www.airbnb.com/calendar/ical/retired.ics?t=retired-secret",
     }),
   };
 
@@ -65,18 +83,17 @@ test("Production never consumes the transitional legacy Airbnb URL map", () => {
   assert.equal(resolveAirbnbIcalImportUrlDatabaseFirst(calendar, env), null);
 });
 
-test("invalid legacy map content fails closed as no configuration", () => {
-  const calendar = {
-    id: "calendar-invalid",
-    propertyId: "black-white-apartment",
-    importUrlEncrypted: null,
-  } as const;
-  const env = {
-    TRP_ENVIRONMENT: "test",
-    AIRBNB_ICAL_IMPORT_URLS_JSON: "not-json",
-  };
-
-  assert.equal(resolveAirbnbImportSecretSource(calendar, env), "NONE");
+test("legacy compatibility resolver fails closed in every TRP environment", () => {
+  for (const trpEnvironment of ["local", "test", "production"] as const) {
+    assert.equal(
+      resolveLegacyAirbnbIcalImportUrl("calendar-any", {
+        TRP_ENVIRONMENT: trpEnvironment,
+        AIRBNB_ICAL_IMPORT_URLS_JSON:
+          '{"calendar-any":"https://example.invalid/private.ics"}',
+      }),
+      null,
+    );
+  }
 });
 
 test("admin integration DTO contains only secret-safe state and evidence", async () => {
