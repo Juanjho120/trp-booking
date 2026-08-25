@@ -2308,6 +2308,7 @@ export const esMessages = {
       },
       actions: {
         blockDates: "Bloquear fechas",
+        integrations: "Integraciones de calendario",
         cancelSelection: "Cancelar selección",
         confirmBlock: "Confirmar bloqueo",
         previousMonth: "Mes anterior",
@@ -2365,6 +2366,113 @@ export const esMessages = {
           "No encontramos el desbloqueo que deseas restaurar.",
         PREPARATION_BUFFER_UNEXPECTED_ERROR:
           "No pudimos actualizar el buffer de preparación. Inténtalo de nuevo.",
+      },
+    },
+    calendarIntegrations: {
+      seoTitle: "Integraciones de calendario | Admin | Tu Refugio Perfecto",
+      badge: "Integraciones externas",
+      title: "Airbnb y TRP Booking",
+      description:
+        "Revisa la configuración segura y la evidencia operativa de los calendarios externos de cada alojamiento sin exponer URLs privadas ni tokens.",
+      cards: {
+        description:
+          "Estado independiente de importación desde Airbnb y exportación desde TRP Booking.",
+      },
+      directions: {
+        inbound: {
+          title: "Airbnb → TRP Booking",
+          description:
+            "Disponibilidad importada desde Airbnb hacia el calendario operativo de este alojamiento.",
+        },
+        outbound: {
+          title: "TRP Booking → Airbnb",
+          description:
+            "Feed privado que Airbnb consulta para recibir la disponibilidad administrada por TRP Booking.",
+        },
+      },
+      labels: {
+        configuration: "Configuración",
+        importState: "Importación",
+        exportState: "Exportación",
+        secretSource: "Fuente de configuración",
+        copyAvailability: "Copiar URL",
+        lastSync: "Última sincronización",
+        lastSuccessfulSync: "Última sincronización exitosa",
+        latestResult: "Último resultado",
+        triggeredBy: "Origen",
+        lastRotation: "Última rotación",
+        lastFeedGenerated: "Última solicitud del feed",
+        safeDiagnostic: "Diagnóstico seguro",
+        errorCode: "Código seguro",
+        eventsImported: "Eventos importados",
+        eventsUpdated: "Eventos actualizados",
+        eventsRemoved: "Eventos retirados",
+        eventsSkipped: "Eventos omitidos",
+        blocksCreated: "Bloqueos creados",
+        blocksUpdated: "Bloqueos actualizados",
+      },
+      actions: {
+        backToCalendar: "Volver al calendario",
+      },
+      values: {
+        airbnb: "Airbnb",
+        configured: "Configurado",
+        notConfigured: "No configurado",
+        enabled: "Habilitada",
+        disabled: "Deshabilitada",
+        available: "Disponible",
+        unavailable: "Sin registro",
+      },
+      importSources: {
+        DATABASE_ENCRYPTED: "Base de datos cifrada",
+        LEGACY_ENV: "Configuración heredada del entorno",
+        NONE: "Sin configuración",
+      },
+      inboundStatuses: {
+        NOT_CONFIGURED: "Sin configurar",
+        LEGACY_ENV_MIGRATION_REQUIRED: "Migración pendiente",
+        DISABLED: "Deshabilitada",
+        READY: "Lista",
+        HEALTHY: "Saludable",
+        WARNING: "Advertencia",
+        ERROR: "Error",
+      },
+      outboundStatuses: {
+        NOT_CONFIGURED: "Sin configurar",
+        DISABLED: "Deshabilitada",
+        ROTATION_REQUIRED: "Rotación requerida",
+        READY: "Lista",
+      },
+      syncStatuses: {
+        STARTED: "En curso",
+        SUCCESS: "Exitosa",
+        FAILED: "Fallida",
+        PARTIAL_SUCCESS: "Éxito parcial",
+      },
+      syncTriggers: {
+        CRON: "Programada",
+        ADMIN: "Administrador",
+        SYSTEM: "Sistema",
+      },
+      notes: {
+        secretSafeTitle: "Vista sin secretos",
+        secretSafe:
+          "Esta página muestra únicamente estados y evidencia operativa segura. La URL privada de Airbnb, hashes, tokens y valores cifrados nunca forman parte de los datos enviados al navegador.",
+        independentDirectionsTitle: "Estados independientes",
+        independentDirections:
+          "La salud de la importación desde Airbnb y la disponibilidad del feed hacia Airbnb se calculan por separado; un fallo inbound no implica automáticamente que el feed outbound esté roto.",
+        legacyMigrationTitle: "Migración segura pendiente",
+        legacyMigrationDescription:
+          "La importación continúa usando una configuración heredada del entorno. La URL permanece oculta y solo se migrará mediante una acción administrativa explícita.",
+        rotationRequiredTitle: "Rotación requerida para copiar la URL",
+        rotationRequiredDescription:
+          "El feed existente continúa activo. Copiar URL seguirá deshabilitado hasta que una rotación explícita cree una copia cifrada recuperable del token. Esta vista no rota ningún feed.",
+        outboundReady:
+          "El feed tiene hash de validación y copia cifrada del token. La URL privada sigue sin mostrarse en esta vista.",
+        noSyncEvidence:
+          "Todavía no hay evidencia de sincronización para este calendario.",
+        safeFailure:
+          "La última sincronización reportó un fallo normalizado. Revisa el código seguro sin exponer información privada del proveedor.",
       },
     },
   },

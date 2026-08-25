@@ -7,6 +7,7 @@ import {
   CalendarPlus,
   ChevronLeft,
   ChevronRight,
+  Link2,
   Loader2,
   LockKeyhole,
   LockKeyholeOpen,
@@ -392,22 +393,30 @@ export function AdminPropertyCalendarView({
         description={copy.description}
         title={copy.title}
         actions={
-          <Button
-            onClick={() => {
-              if (rangeMode) {
-                resetRangeMode();
-              } else {
-                setRangeMode(true);
-                setSelectedDate(null);
-                setErrorFeedback(null);
-              }
-            }}
-            type="button"
-            variant={rangeMode ? "secondary" : "default"}
-          >
-            {rangeMode ? <X aria-hidden="true" /> : <CalendarPlus aria-hidden="true" />}
-            {rangeMode ? copy.actions.cancelSelection : copy.actions.blockDates}
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button asChild variant="outline">
+              <Link href="/admin/calendar/integrations">
+                <Link2 aria-hidden="true" />
+                {copy.actions.integrations}
+              </Link>
+            </Button>
+            <Button
+              onClick={() => {
+                if (rangeMode) {
+                  resetRangeMode();
+                } else {
+                  setRangeMode(true);
+                  setSelectedDate(null);
+                  setErrorFeedback(null);
+                }
+              }}
+              type="button"
+              variant={rangeMode ? "secondary" : "default"}
+            >
+              {rangeMode ? <X aria-hidden="true" /> : <CalendarPlus aria-hidden="true" />}
+              {rangeMode ? copy.actions.cancelSelection : copy.actions.blockDates}
+            </Button>
+          </div>
         }
       />
 

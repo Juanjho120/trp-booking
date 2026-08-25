@@ -1,4 +1,5 @@
 export { getAdminCronJobsPage } from "./cron-jobs";
+export { getAdminExternalCalendarIntegrationsPage } from "./external-calendar-integrations";
 export {
   AdminPublicLocationError,
   getAdminPublicLocationPage,

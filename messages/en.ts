@@ -2306,6 +2306,7 @@ export const enMessages = {
       },
       actions: {
         blockDates: "Block dates",
+        integrations: "Calendar integrations",
         cancelSelection: "Cancel selection",
         confirmBlock: "Confirm block",
         previousMonth: "Previous month",
@@ -2363,6 +2364,113 @@ export const enMessages = {
           "We could not find the unlock you want to restore.",
         PREPARATION_BUFFER_UNEXPECTED_ERROR:
           "We could not update the preparation buffer. Please try again.",
+      },
+    },
+    calendarIntegrations: {
+      seoTitle: "Calendar integrations | Admin | Tu Refugio Perfecto",
+      badge: "External integrations",
+      title: "Airbnb and TRP Booking",
+      description:
+        "Review secure configuration state and operational evidence for each accommodation's external calendars without exposing private URLs or tokens.",
+      cards: {
+        description:
+          "Independent state for Airbnb imports and TRP Booking exports.",
+      },
+      directions: {
+        inbound: {
+          title: "Airbnb → TRP Booking",
+          description:
+            "Availability imported from Airbnb into this accommodation's operational calendar.",
+        },
+        outbound: {
+          title: "TRP Booking → Airbnb",
+          description:
+            "Private feed Airbnb reads to receive availability managed by TRP Booking.",
+        },
+      },
+      labels: {
+        configuration: "Configuration",
+        importState: "Import",
+        exportState: "Export",
+        secretSource: "Configuration source",
+        copyAvailability: "Copy URL",
+        lastSync: "Latest sync",
+        lastSuccessfulSync: "Latest successful sync",
+        latestResult: "Latest result",
+        triggeredBy: "Trigger",
+        lastRotation: "Latest rotation",
+        lastFeedGenerated: "Latest feed request",
+        safeDiagnostic: "Safe diagnostic",
+        errorCode: "Safe code",
+        eventsImported: "Events imported",
+        eventsUpdated: "Events updated",
+        eventsRemoved: "Events removed",
+        eventsSkipped: "Events skipped",
+        blocksCreated: "Blocks created",
+        blocksUpdated: "Blocks updated",
+      },
+      actions: {
+        backToCalendar: "Back to calendar",
+      },
+      values: {
+        airbnb: "Airbnb",
+        configured: "Configured",
+        notConfigured: "Not configured",
+        enabled: "Enabled",
+        disabled: "Disabled",
+        available: "Available",
+        unavailable: "No record",
+      },
+      importSources: {
+        DATABASE_ENCRYPTED: "Encrypted database",
+        LEGACY_ENV: "Legacy environment configuration",
+        NONE: "No configuration",
+      },
+      inboundStatuses: {
+        NOT_CONFIGURED: "Not configured",
+        LEGACY_ENV_MIGRATION_REQUIRED: "Migration required",
+        DISABLED: "Disabled",
+        READY: "Ready",
+        HEALTHY: "Healthy",
+        WARNING: "Warning",
+        ERROR: "Error",
+      },
+      outboundStatuses: {
+        NOT_CONFIGURED: "Not configured",
+        DISABLED: "Disabled",
+        ROTATION_REQUIRED: "Rotation required",
+        READY: "Ready",
+      },
+      syncStatuses: {
+        STARTED: "In progress",
+        SUCCESS: "Successful",
+        FAILED: "Failed",
+        PARTIAL_SUCCESS: "Partial success",
+      },
+      syncTriggers: {
+        CRON: "Scheduled",
+        ADMIN: "Admin",
+        SYSTEM: "System",
+      },
+      notes: {
+        secretSafeTitle: "Secret-free view",
+        secretSafe:
+          "This page shows only safe state and operational evidence. The private Airbnb URL, hashes, tokens, and encrypted values are never part of the data sent to the browser.",
+        independentDirectionsTitle: "Independent states",
+        independentDirections:
+          "Airbnb import health and outbound feed availability are derived separately; an inbound failure does not automatically mean the outbound feed is broken.",
+        legacyMigrationTitle: "Secure migration required",
+        legacyMigrationDescription:
+          "Import currently uses legacy environment configuration. The URL remains hidden and will only be migrated through an explicit admin action.",
+        rotationRequiredTitle: "Rotation required before copying the URL",
+        rotationRequiredDescription:
+          "The existing feed remains active. Copy URL stays unavailable until an explicit rotation creates a recoverable encrypted token copy. This view does not rotate any feed.",
+        outboundReady:
+          "The feed has both its validation hash and an encrypted token copy. The private URL still is not displayed on this page.",
+        noSyncEvidence:
+          "There is no synchronization evidence for this calendar yet.",
+        safeFailure:
+          "The latest synchronization reported a normalized failure. Use the safe code without exposing private provider information.",
       },
     },
   },

@@ -9,14 +9,18 @@ Current phase state: Phase 12 — Test Deployment & External Integration Validat
 Current numbered phase: none active
 Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
 Current package: Final-B — Admin external-calendar integrations — In progress
-Current subphase: Final-B.2 — Outbound-token encrypted persistence and rotation foundation — Implementation prepared; pending Local/Test validation and owner acceptance
+Current subphase: Final-B.3 — Admin external-calendar read model and integration UI — Implementation prepared; pending Local/Test validation and owner acceptance
 Final-B implementation base head: 0927feb18be35b8d96aca0205a75ee19445f15d4
 Final-B.1 status: Completed and accepted on 2026-08-14
 Final-B.1 accepted head: 2627161d5b3960995be0f517682f84272431c291
 Final-B.2 implementation base head: 2627161d5b3960995be0f517682f84272431c291
+Final-B.2 status: Completed and accepted on 2026-08-25
+Final-B.2 accepted head: 530fe2f5f7a75bdbfb36ca6f202b8cb04afca98d
+Final-B.3 implementation base head: 530fe2f5f7a75bdbfb36ca6f202b8cb04afca98d
 Final-B.1 record: docs/167-final-b-1-external-calendar-admin-strategy-and-security-contract.md
 Final-B.2 record: docs/168-final-b-2-outbound-token-encrypted-persistence-and-rotation-foundation.md
-Next planned subphase: Final-B.3 — Admin external-calendar read model and integration UI — Not started
+Final-B.3 record: docs/169-final-b-3-admin-external-calendar-read-model-and-integration-ui.md
+Next planned subphase: Final-B.4 — Airbnb inbound configuration and operational actions — Not started
 Last completed package: Final-A — Reservation financial correctness and effective stay value — Completed and accepted on 2026-08-12
 Final-A.1 status: Completed and accepted on 2026-08-11
 Final-A.1 accepted head: 19531568752a44446d0802d6581262260b881aaf
@@ -42,8 +46,8 @@ Final-A.4 record: docs/164-final-a-4-negative-date-change-multi-payment-integrat
 Final-A.5 record: docs/165-final-a-5-admin-refund-ux-notification-and-operational-history.md
 Final-A.6 record: docs/166-final-a-6-integrated-acceptance-and-documentation-closure.md
 Phase 13 status: Not started
-Last updated: 2026-08-14
-Last completed subphase: Final-B.1 External-calendar admin strategy and security contract — accepted on 2026-08-14 at 2627161d5b3960995be0f517682f84272431c291
+Last updated: 2026-08-25
+Last completed subphase: Final-B.2 Outbound-token encrypted persistence and rotation foundation — accepted on 2026-08-25 at 530fe2f5f7a75bdbfb36ca6f202b8cb04afca98d
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 11.6.5 acceptance: All 15 protected-history, ordering, relation, retry, ES/EN, responsive, security, and integrated criteria passed on 2026-08-05
 11.6.5 implementation and acceptance document: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md
@@ -110,7 +114,7 @@ Phase 12.9 acceptance closure: docs/158-phase-12.9-acceptance-closure.md
 Phase 12.10 status: Completed and accepted on 2026-08-11 — Phase 12 validation and closure
 Phase 12.10 validated repository head: ebe28579872cbc2414573ef852b15139a2501551
 Phase 12 closure record: docs/159-phase-12.10-phase-12-validation-and-closure.md
-Post-Phase-12 / Pre-Phase-13 Final Improvement Track: Active — Final-A completed and accepted; Final-B in progress at Final-B.2
+Post-Phase-12 / Pre-Phase-13 Final Improvement Track: Active — Final-A completed and accepted; Final-B in progress at Final-B.3
 Final-A status: Completed and accepted on 2026-08-12 at 66afbeacd6ee7d669cb4bc251c8416160fae3f49 — Reservation financial correctness and effective stay value
 Final-A.1 status: Completed and accepted on 2026-08-11 at 19531568752a44446d0802d6581262260b881aaf — Financial source-of-truth and refund-allocation contract
 Final-A.2 status: Completed and accepted on 2026-08-11 at 9f4e04068726451ca87614dd99b1f10656510825 — Central financial summary and cancellation-policy correction
@@ -128,9 +132,10 @@ Final-B status: In progress — Admin external-calendar integrations
 Final-B implementation base head: 0927feb18be35b8d96aca0205a75ee19445f15d4
 Final-B.1 status: Completed and accepted on 2026-08-14 at 2627161d5b3960995be0f517682f84272431c291 — External-calendar admin strategy and security contract
 Final-B.1 record: docs/167-final-b-1-external-calendar-admin-strategy-and-security-contract.md
-Final-B.2 status: Implementation prepared; pending Local/Test validation and owner acceptance — Outbound-token encrypted persistence and rotation foundation
+Final-B.2 status: Completed and accepted on 2026-08-25 at 530fe2f5f7a75bdbfb36ca6f202b8cb04afca98d — Outbound-token encrypted persistence and rotation foundation
 Final-B.2 record: docs/168-final-b-2-outbound-token-encrypted-persistence-and-rotation-foundation.md
-Final-B.3 status: Not started — Admin external-calendar read model and integration UI
+Final-B.3 status: Implementation prepared; pending Local/Test validation and owner acceptance — Admin external-calendar read model and integration UI
+Final-B.3 record: docs/169-final-b-3-admin-external-calendar-read-model-and-integration-ui.md
 Final-B.4 status: Not started — Airbnb inbound configuration and operational actions
 Final-B.5 status: Not started — TRP outbound Copy URL / Rotate URL / export controls
 Final-B.6 status: Not started — Integrated acceptance, regression and documentation closure

@@ -7,12 +7,13 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-B — Admin external-calendar integrations
 Subphase: Final-B.2 — Outbound-token encrypted persistence and rotation foundation
-Status: Implementation prepared; pending Local/Test validation and owner acceptance
+Status: Completed and accepted on 2026-08-25
 Preparation date: 2026-08-14
 Implementation base head: 2627161d5b3960995be0f517682f84272431c291
 Previous subphase: Final-B.1 — Completed and accepted on 2026-08-14
 Final-B.1 accepted head: 2627161d5b3960995be0f517682f84272431c291
 Final-B.1 authoritative contract: docs/167-final-b-1-external-calendar-admin-strategy-and-security-contract.md
+Accepted head: 530fe2f5f7a75bdbfb36ca6f202b8cb04afca98d
 Next planned subphase: Final-B.3 — Admin external-calendar read model and integration UI
 Phase 13: Not started
 ```
@@ -599,14 +600,33 @@ At preparation time:
 
 ```text
 Final-B.1 — Completed and accepted at 2627161d5b3960995be0f517682f84272431c291
-Final-B.2 — Implementation prepared; pending Local/Test validation and owner acceptance
-Final-B.3 — Not started
+Final-B.2 — Completed and accepted on 2026-08-25 at 530fe2f5f7a75bdbfb36ca6f202b8cb04afca98d
+Final-B.3 — Implementation prepared; pending Local/Test validation and owner acceptance
+Final-B.3 record: docs/169-final-b-3-admin-external-calendar-read-model-and-integration-ui.md
 Final-B.4 — Not started
 Final-B.5 — Not started
 Final-B.6 — Not started
 Phase 13 — Not started
 ```
 
-Final-B.2 must not be marked completed merely because the migration files exist. Acceptance requires
-successful Local/Test environment setup, Prisma migration, existing-feed compatibility, lint/build,
-and owner confirmation.
+Final-B.2 is accepted only after the Local/Test environment setup, Prisma migration, existing-feed
+compatibility, lint/build, warning-free Turbopack build, and owner confirmation completed at the
+accepted head recorded above.
+
+
+---
+
+# Acceptance Addendum — 2026-08-25
+
+Final-B.2 was accepted after the Local/Test Prisma, environment, compatibility, lint, and build gates
+were completed. The implementation commit was followed by a narrow Turbopack hardening correction
+that moved `Buffer` conversion out of the transversal environment module and into the Node-only
+cryptography boundary. The final accepted B.2 head is:
+
+```text
+530fe2f5f7a75bdbfb36ca6f202b8cb04afca98d
+fix(final-b): isolate external-calendar Buffer usage
+```
+
+The warning-free build preserves the frozen B.2 encryption/key contract and does not rotate or
+rewrite any existing external-calendar feed.
