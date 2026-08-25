@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -8,7 +10,14 @@ import {
   CloudDownload,
   CloudUpload,
   Database,
+  Eye,
+  EyeOff,
+  Loader2,
+  Power,
+  RefreshCw,
+  Save,
   ShieldCheck,
+  TestTube2,
   TriangleAlert,
 } from "lucide-react";
 
@@ -23,6 +32,7 @@ import {
 } from "@/components/ui/card";
 import { useLocale } from "@/features/i18n";
 import type {
+  AdminExternalCalendarInboundErrorCode,
   AdminExternalCalendarInboundStatus,
   AdminExternalCalendarIntegration,
   AdminExternalCalendarIntegrationsPageData,
@@ -31,6 +41,15 @@ import type {
 import type { Locale } from "@/types/locale";
 
 import { AdminPageHeader } from "./admin-page-header";
+import { AdminSnackbar } from "./admin-snackbar";
+
+
+type InboundApiResponse = Readonly<{
+  error?: Readonly<{ code?: AdminExternalCalendarInboundErrorCode }>;
+}>;
+
+const secretInputClassName =
+  "h-11 w-full rounded-2xl border border-input bg-background px-3 pr-11 text-sm text-foreground shadow-xs outline-none transition placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50";
 
 function getIntlLocale(locale: Locale): string {
   return locale === "en" ? "en-US" : "es-GT";
@@ -158,9 +177,63 @@ function IntegrationCard({
   const copy = messages.admin.calendarIntegrations;
   const propertyName =
     locale === "en" ? integration.property.nameEn : integration.property.nameEs;
+  const router = useRouter();
+  const [candidateUrl, setCandidateUrl] = useState("");
+  const [showCandidate, setShowCandidate] = useState(false);
+  const [busyAction, setBusyAction] = useState<string | null>(null);
+  const [errorFeedback, setErrorFeedback] = useState<string | null>(null);
+  const [successFeedback, setSuccessFeedback] = useState<string | null>(null);
+
+  function errorMessage(code?: AdminExternalCalendarInboundErrorCode): string {
+    if (code && code in copy.errors) {
+      return copy.errors[code as keyof typeof copy.errors];
+    }
+    return copy.errors.ADMIN_EXTERNAL_CALENDAR_UNEXPECTED_ERROR;
+  }
+
+  async function executeInboundAction(
+    key: string,
+    request: () => Promise<Response>,
+    successMessage: string,
+    options: Readonly<{ clearCandidate?: boolean; refresh?: boolean }> = {},
+  ) {
+    setBusyAction(key);
+    setErrorFeedback(null);
+    setSuccessFeedback(null);
+    try {
+      const response = await request();
+      const payload = (await response.json()) as InboundApiResponse;
+      if (!response.ok) {
+        setErrorFeedback(errorMessage(payload.error?.code));
+        return;
+      }
+      if (options.clearCandidate) {
+        setCandidateUrl("");
+        setShowCandidate(false);
+      }
+      setSuccessFeedback(successMessage);
+      if (options.refresh !== false) {
+        router.refresh();
+      }
+    } catch {
+      setErrorFeedback(copy.errors.ADMIN_EXTERNAL_CALENDAR_UNEXPECTED_ERROR);
+    } finally {
+      setBusyAction(null);
+    }
+  }
+
+  const encodedPropertyId = encodeURIComponent(integration.property.id);
+  const basePath = `/api/admin/calendar-integrations/${encodedPropertyId}/airbnb`;
+  const hasCandidate = candidateUrl.trim().length > 0;
 
   return (
     <Card className="border-border/70 bg-card shadow-sm">
+      <AdminSnackbar
+        closeLabel={messages.admin.feedback.dismiss}
+        message={errorFeedback ?? successFeedback}
+        onDismiss={() => { setErrorFeedback(null); setSuccessFeedback(null); }}
+        variant={errorFeedback ? "error" : "success"}
+      />
       <CardHeader className="border-b border-border/70">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -227,6 +300,106 @@ function IntegrationCard({
               )}
             />
           </dl>
+
+          <div className="mt-5 rounded-2xl border border-border/70 bg-muted/15 p-4">
+            <label className="text-sm font-medium" htmlFor={`airbnb-import-${integration.property.id}`}>
+              {copy.labels.airbnbImportUrl}
+            </label>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">
+              {copy.notes.importUrlInput}
+            </p>
+            <div className="relative mt-3">
+              <input
+                autoComplete="off"
+                className={secretInputClassName}
+                id={`airbnb-import-${integration.property.id}`}
+                onChange={(event) => setCandidateUrl(event.target.value)}
+                placeholder={copy.values.secretPlaceholder}
+                spellCheck={false}
+                type={showCandidate ? "text" : "password"}
+                value={candidateUrl}
+              />
+              <Button
+                aria-label={showCandidate ? copy.actions.hideUrl : copy.actions.showUrl}
+                className="absolute right-1 top-1 size-9 rounded-xl"
+                onClick={() => setShowCandidate((value) => !value)}
+                size="icon"
+                type="button"
+                variant="ghost"
+              >
+                {showCandidate ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
+              </Button>
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Button
+                disabled={!hasCandidate || busyAction !== null}
+                onClick={() => void executeInboundAction(
+                  "save",
+                  () => fetch(`${basePath}/import-url`, {
+                    method: "PATCH",
+                    headers: { "content-type": "application/json" },
+                    body: JSON.stringify({ importUrl: candidateUrl, expectedUpdatedAt: integration.updatedAt }),
+                  }),
+                  integration.importConfigured ? copy.success.urlReplaced : copy.success.urlSaved,
+                  { clearCandidate: true },
+                )}
+                type="button"
+              >
+                {busyAction === "save" ? <Loader2 aria-hidden="true" className="animate-spin" /> : <Save aria-hidden="true" />}
+                {integration.importConfigured ? copy.actions.replaceUrl : copy.actions.saveUrl}
+              </Button>
+              <Button
+                disabled={!integration.calendarId || (!hasCandidate && !integration.importConfigured) || busyAction !== null}
+                onClick={() => void executeInboundAction(
+                  "test",
+                  () => fetch(`${basePath}/import-test`, {
+                    method: "POST",
+                    headers: { "content-type": "application/json" },
+                    body: JSON.stringify(hasCandidate ? { candidateImportUrl: candidateUrl } : {}),
+                  }),
+                  copy.success.connectionPassed,
+                  { refresh: false },
+                )}
+                type="button"
+                variant="outline"
+              >
+                {busyAction === "test" ? <Loader2 aria-hidden="true" className="animate-spin" /> : <TestTube2 aria-hidden="true" />}
+                {copy.actions.testConnection}
+              </Button>
+              <Button
+                disabled={!integration.importConfigured || !integration.isImportEnabled || busyAction !== null}
+                onClick={() => void executeInboundAction(
+                  "sync",
+                  () => fetch(`${basePath}/import-sync`, { method: "POST" }),
+                  copy.success.syncCompleted,
+                )}
+                type="button"
+                variant="outline"
+              >
+                {busyAction === "sync" ? <Loader2 aria-hidden="true" className="animate-spin" /> : <RefreshCw aria-hidden="true" />}
+                {copy.actions.syncNow}
+              </Button>
+              {integration.calendarId && integration.updatedAt ? (
+                <Button
+                  disabled={busyAction !== null}
+                  onClick={() => void executeInboundAction(
+                    "toggle",
+                    () => fetch(`${basePath}/import-enabled`, {
+                      method: "PATCH",
+                      headers: { "content-type": "application/json" },
+                      body: JSON.stringify({ enabled: !integration.isImportEnabled, expectedUpdatedAt: integration.updatedAt }),
+                    }),
+                    integration.isImportEnabled ? copy.success.importDisabled : copy.success.importEnabled,
+                  )}
+                  type="button"
+                  variant="secondary"
+                >
+                  {busyAction === "toggle" ? <Loader2 aria-hidden="true" className="animate-spin" /> : <Power aria-hidden="true" />}
+                  {integration.isImportEnabled ? copy.actions.disableImport : copy.actions.enableImport}
+                </Button>
+              ) : null}
+            </div>
+          </div>
 
           {integration.inboundStatus === "LEGACY_ENV_MIGRATION_REQUIRED" ? (
             <div className="mt-4 rounded-2xl border border-border bg-muted/30 p-4">

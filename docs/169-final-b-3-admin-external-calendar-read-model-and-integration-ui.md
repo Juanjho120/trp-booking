@@ -7,8 +7,11 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-B — Admin external-calendar integrations
 Subphase: Final-B.3 — Admin external-calendar read model and integration UI
-Status: Implementation prepared; pending Local/Test validation and owner acceptance
+Status: Completed and accepted
 Preparation date: 2026-08-25
+Acceptance date: 2026-08-25
+Accepted head: 84e3f5158e76527a82b2b6655664ec9ab073ea44
+Owner evidence: package applied, committed, and npm run build passed without errors
 Implementation base head: 530fe2f5f7a75bdbfb36ca6f202b8cb04afca98d
 Previous subphase: Final-B.2 — Completed and accepted on 2026-08-25
 Final-B.2 accepted head: 530fe2f5f7a75bdbfb36ca6f202b8cb04afca98d
@@ -301,13 +304,13 @@ remains the owner of the consolidated `tests/final-b/` regression gate.
 
 ## Acceptance State
 
-At package preparation time:
+Final acceptance state:
 
 ```text
 Final-B.1 — Completed and accepted at 2627161d5b3960995be0f517682f84272431c291
 Final-B.2 — Completed and accepted at 530fe2f5f7a75bdbfb36ca6f202b8cb04afca98d
-Final-B.3 — Implementation prepared; pending Local/Test validation and owner acceptance
-Final-B.4 — Not started
+Final-B.3 — Completed and accepted at 84e3f5158e76527a82b2b6655664ec9ab073ea44
+Final-B.4 — Implementation prepared; pending Local/Test validation and owner acceptance
 Final-B.5 — Not started
 Final-B.6 — Not started
 Phase 13 — Not started

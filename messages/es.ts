@@ -2410,9 +2410,18 @@ export const esMessages = {
         eventsSkipped: "Eventos omitidos",
         blocksCreated: "Bloqueos creados",
         blocksUpdated: "Bloqueos actualizados",
+        airbnbImportUrl: "URL iCal de Airbnb",
       },
       actions: {
         backToCalendar: "Volver al calendario",
+        saveUrl: "Guardar URL",
+        replaceUrl: "Reemplazar URL",
+        testConnection: "Probar conexión",
+        syncNow: "Sincronizar ahora",
+        enableImport: "Habilitar importación",
+        disableImport: "Deshabilitar importación",
+        showUrl: "Mostrar URL sin guardar",
+        hideUrl: "Ocultar URL sin guardar",
       },
       values: {
         airbnb: "Airbnb",
@@ -2422,6 +2431,7 @@ export const esMessages = {
         disabled: "Deshabilitada",
         available: "Disponible",
         unavailable: "Sin registro",
+        secretPlaceholder: "Pega la URL privada .ics de Airbnb",
       },
       importSources: {
         DATABASE_ENCRYPTED: "Base de datos cifrada",
@@ -2473,6 +2483,44 @@ export const esMessages = {
           "Todavía no hay evidencia de sincronización para este calendario.",
         safeFailure:
           "La última sincronización reportó un fallo normalizado. Revisa el código seguro sin exponer información privada del proveedor.",
+        importUrlInput:
+          "La URL guardada nunca vuelve a mostrarse. Mostrar/ocultar aplica únicamente al valor sin guardar escrito actualmente en este navegador.",
+      },
+      success: {
+        urlSaved: "La URL de Airbnb se guardó cifrada. No se sincronizó automáticamente.",
+        urlReplaced: "La URL de Airbnb se reemplazó de forma segura. No se sincronizó automáticamente.",
+        connectionPassed: "La prueba de conexión fue exitosa. No se modificaron datos del calendario.",
+        syncCompleted: "La sincronización con Airbnb terminó para este alojamiento.",
+        importEnabled: "La importación desde Airbnb quedó habilitada.",
+        importDisabled: "La importación desde Airbnb quedó deshabilitada sin eliminar la URL guardada.",
+      },
+      errors: {
+        ADMIN_UNAUTHORIZED:
+          "Tu sesión de administrador ya no es válida. Inicia sesión nuevamente.",
+        ADMIN_EXTERNAL_CALENDAR_ORIGIN_INVALID:
+          "La solicitud fue bloqueada porque su origen no coincide con este entorno de TRP Booking.",
+        INVALID_ADMIN_EXTERNAL_CALENDAR_REQUEST:
+          "Revisa la solicitud del calendario e inténtalo de nuevo.",
+        ADMIN_EXTERNAL_CALENDAR_PROPERTY_NOT_FOUND:
+          "No encontramos este alojamiento.",
+        ADMIN_EXTERNAL_CALENDAR_NOT_FOUND:
+          "Este alojamiento todavía no tiene una configuración de calendario de Airbnb.",
+        ADMIN_EXTERNAL_CALENDAR_IMPORT_URL_NOT_ALLOWED:
+          "Usa la URL privada HTTPS de exportación del calendario de Airbnb que termina en .ics.",
+        ADMIN_EXTERNAL_CALENDAR_IMPORT_NOT_CONFIGURED:
+          "Guarda una URL iCal de Airbnb antes de usar esta acción.",
+        ADMIN_EXTERNAL_CALENDAR_IMPORT_DISABLED:
+          "Habilita la importación desde Airbnb antes de sincronizar.",
+        ADMIN_EXTERNAL_CALENDAR_IMPORT_TEST_FAILED:
+          "La conexión con Airbnb respondió sin un calendario iCal válido y compatible.",
+        ADMIN_EXTERNAL_CALENDAR_IMPORT_SYNC_FAILED:
+          "La sincronización con Airbnb no terminó. Revisa el diagnóstico seguro e inténtalo de nuevo.",
+        ADMIN_EXTERNAL_CALENDAR_STALE:
+          "Esta configuración cambió en otra sesión. Actualiza la página antes de guardar de nuevo.",
+        ADMIN_EXTERNAL_CALENDAR_PROVIDER_UNAVAILABLE:
+          "No pudimos comunicarnos con Airbnb dentro de los límites seguros de la integración.",
+        ADMIN_EXTERNAL_CALENDAR_UNEXPECTED_ERROR:
+          "No pudimos completar la acción del calendario de Airbnb. Inténtalo de nuevo.",
       },
     },
   },

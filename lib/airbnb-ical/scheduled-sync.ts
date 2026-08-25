@@ -9,7 +9,12 @@ import {
 } from "@prisma/client";
 
 import { prisma } from "@/lib/db/prisma";
+import {
+  resolveAirbnbIcalImportUrlDatabaseFirst,
+  resolveLegacyAirbnbIcalImportUrl,
+} from "@/lib/external-calendars/airbnb-import-secret";
 
+import { fetchAirbnbIcalTextSecurely } from "./provider-security";
 import { syncAirbnbIcalImport } from "./sync-service";
 import type {
   AirbnbIcalBatchSyncCalendarResult,
@@ -21,7 +26,6 @@ import type {
   AirbnbIcalImportUrlResolverCalendar,
 } from "./types";
 
-const AIRBNB_IMPORT_URLS_ENV_NAME = "AIRBNB_ICAL_IMPORT_URLS_JSON";
 const MISSING_IMPORT_URL_ERROR_CODE = "ICAL_IMPORT_URL_UNAVAILABLE";
 const MISSING_IMPORT_URL_ERROR_MESSAGE =
   "Airbnb iCal import URL is not available in server-side configuration.";
@@ -68,40 +72,18 @@ function toResolverCalendar(
   };
 }
 
-function parseServerSideImportUrlMap(
-  source: NodeJS.ProcessEnv = process.env,
-): Readonly<Record<string, string>> {
-  const rawValue = source[AIRBNB_IMPORT_URLS_ENV_NAME];
-
-  if (!rawValue?.trim()) {
-    return {};
-  }
-
-  try {
-    const parsedValue: unknown = JSON.parse(rawValue);
-
-    if (!parsedValue || typeof parsedValue !== "object" || Array.isArray(parsedValue)) {
-      return {};
-    }
-
-    return Object.fromEntries(
-      Object.entries(parsedValue)
-        .filter((entry): entry is [string, string] => typeof entry[1] === "string")
-        .map(([calendarId, url]) => [calendarId, url.trim()])
-        .filter(([, url]) => url.length > 0),
-    );
-  } catch {
-    return {};
-  }
-}
-
 export function resolveAirbnbIcalImportUrlFromEnv(
   calendar: AirbnbIcalImportUrlResolverCalendar,
   source: NodeJS.ProcessEnv = process.env,
 ): string | null {
-  const urlMap = parseServerSideImportUrlMap(source);
+  return resolveLegacyAirbnbIcalImportUrl(calendar.id, source);
+}
 
-  return urlMap[calendar.id] ?? null;
+export function resolveAirbnbIcalImportUrl(
+  calendar: AirbnbIcalImportUrlResolverCalendar,
+  source: NodeJS.ProcessEnv = process.env,
+): string | null {
+  return resolveAirbnbIcalImportUrlDatabaseFirst(calendar, source);
 }
 
 function getSafeErrorCode(error: unknown): string {
@@ -159,12 +141,14 @@ function toFailedResult(
   };
 }
 
-async function recordMissingImportUrlFailure(
+async function recordImportConfigurationFailure(
   prismaClient: PrismaClient,
   input: Readonly<{
     externalCalendarId: string;
     triggeredBy: CalendarSyncTriggeredBy;
     now: Date;
+    errorCode: string;
+    errorMessage: string;
   }>,
 ): Promise<string> {
   const syncLog = await prismaClient.externalCalendarSyncLog.create({
@@ -174,8 +158,8 @@ async function recordMissingImportUrlFailure(
       status: CalendarSyncStatus.FAILED,
       startedAt: input.now,
       finishedAt: input.now,
-      errorCode: MISSING_IMPORT_URL_ERROR_CODE,
-      errorMessage: MISSING_IMPORT_URL_ERROR_MESSAGE,
+      errorCode: input.errorCode,
+      errorMessage: input.errorMessage,
     },
     select: {
       id: true,
@@ -189,8 +173,8 @@ async function recordMissingImportUrlFailure(
     data: {
       lastImportStartedAt: input.now,
       lastImportFinishedAt: input.now,
-      lastFailureCode: MISSING_IMPORT_URL_ERROR_CODE,
-      lastFailureMessage: MISSING_IMPORT_URL_ERROR_MESSAGE,
+      lastFailureCode: input.errorCode,
+      lastFailureMessage: input.errorMessage,
       status: ExternalCalendarStatus.ERROR,
     },
   });
@@ -238,18 +222,46 @@ export async function syncConfiguredAirbnbIcalImports(
   const prismaClient = options.prismaClient ?? prisma;
   const now = options.now ?? new Date();
   const triggeredBy = input.triggeredBy ?? CalendarSyncTriggeredBy.SYSTEM;
-  const resolveImportUrl = options.resolveImportUrl ?? resolveAirbnbIcalImportUrlFromEnv;
+  const resolveImportUrl = options.resolveImportUrl ?? resolveAirbnbIcalImportUrl;
+  const fetchIcalText = options.fetchIcalText ?? fetchAirbnbIcalTextSecurely;
   const calendars = await getCalendarsForBatchSync(prismaClient, input);
   const results: AirbnbIcalBatchSyncCalendarResult[] = [];
 
   for (const calendar of calendars) {
-    const resolvedImportUrl = (await resolveImportUrl(toResolverCalendar(calendar)))?.trim();
+    let resolvedImportUrl: string | null = null;
 
-    if (!resolvedImportUrl) {
-      const syncLogId = await recordMissingImportUrlFailure(prismaClient, {
+    try {
+      resolvedImportUrl =
+        (await resolveImportUrl(toResolverCalendar(calendar)))?.trim() ?? null;
+    } catch (error) {
+      const errorCode = getSafeErrorCode(error);
+      const errorMessage = getSafeErrorMessage(error);
+      const syncLogId = await recordImportConfigurationFailure(prismaClient, {
         externalCalendarId: calendar.id,
         triggeredBy,
         now,
+        errorCode,
+        errorMessage,
+      });
+
+      results.push(
+        toFailedResult({
+          externalCalendarId: calendar.id,
+          syncLogId,
+          errorCode,
+          errorMessage,
+        }),
+      );
+      continue;
+    }
+
+    if (!resolvedImportUrl) {
+      const syncLogId = await recordImportConfigurationFailure(prismaClient, {
+        externalCalendarId: calendar.id,
+        triggeredBy,
+        now,
+        errorCode: MISSING_IMPORT_URL_ERROR_CODE,
+        errorMessage: MISSING_IMPORT_URL_ERROR_MESSAGE,
       });
 
       results.push(
@@ -274,7 +286,7 @@ export async function syncConfiguredAirbnbIcalImports(
         {
           prismaClient,
           now,
-          fetchIcalText: options.fetchIcalText,
+          fetchIcalText,
         },
       );
 

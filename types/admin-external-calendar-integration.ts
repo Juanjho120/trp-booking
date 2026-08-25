@@ -81,3 +81,39 @@ export type AdminExternalCalendarIntegration = Readonly<{
 export type AdminExternalCalendarIntegrationsPageData = Readonly<{
   integrations: readonly AdminExternalCalendarIntegration[];
 }>;
+
+export type AdminExternalCalendarInboundErrorCode =
+  | "ADMIN_UNAUTHORIZED"
+  | "ADMIN_EXTERNAL_CALENDAR_ORIGIN_INVALID"
+  | "INVALID_ADMIN_EXTERNAL_CALENDAR_REQUEST"
+  | "ADMIN_EXTERNAL_CALENDAR_PROPERTY_NOT_FOUND"
+  | "ADMIN_EXTERNAL_CALENDAR_NOT_FOUND"
+  | "ADMIN_EXTERNAL_CALENDAR_IMPORT_URL_NOT_ALLOWED"
+  | "ADMIN_EXTERNAL_CALENDAR_IMPORT_NOT_CONFIGURED"
+  | "ADMIN_EXTERNAL_CALENDAR_IMPORT_DISABLED"
+  | "ADMIN_EXTERNAL_CALENDAR_IMPORT_TEST_FAILED"
+  | "ADMIN_EXTERNAL_CALENDAR_IMPORT_SYNC_FAILED"
+  | "ADMIN_EXTERNAL_CALENDAR_STALE"
+  | "ADMIN_EXTERNAL_CALENDAR_PROVIDER_UNAVAILABLE"
+  | "ADMIN_EXTERNAL_CALENDAR_UNEXPECTED_ERROR";
+
+export type AdminExternalCalendarTestConnectionResult = Readonly<{
+  status: "SUCCESS";
+  eventsFound: number;
+  eventsSkipped: number;
+}>;
+
+export type AdminExternalCalendarInboundApiError = Readonly<{
+  error: Readonly<{
+    code: AdminExternalCalendarInboundErrorCode;
+  }>;
+}>;
+
+export type AdminExternalCalendarInboundApiSuccess = Readonly<{
+  pageData: AdminExternalCalendarIntegrationsPageData;
+  testResult?: AdminExternalCalendarTestConnectionResult;
+}>;
+
+export type AdminExternalCalendarInboundApiResponse =
+  | AdminExternalCalendarInboundApiSuccess
+  | AdminExternalCalendarInboundApiError;

@@ -8,6 +8,7 @@ import {
 
 import { adminAccommodationIds } from "@/lib/admin/accommodations";
 import { prisma } from "@/lib/db/prisma";
+import { resolveAirbnbImportSecretSource } from "@/lib/external-calendars/airbnb-import-secret";
 import type {
   AdminExternalCalendarImportSecretSource,
   AdminExternalCalendarInboundStatus,
@@ -17,8 +18,6 @@ import type {
   AdminExternalCalendarOutboundStatus,
   AdminExternalCalendarSafeFailure,
 } from "@/types/admin-external-calendar-integration";
-
-const LEGACY_AIRBNB_IMPORT_URLS_ENV_NAME = "AIRBNB_ICAL_IMPORT_URLS_JSON";
 
 const SAFE_GENERIC_IMPORT_MESSAGES = new Set([
   "Airbnb iCal import failed. Review provider availability and calendar configuration.",
@@ -142,41 +141,6 @@ function toLatestSync(
     blocksCreated: syncLog.blocksCreated,
     blocksUpdated: syncLog.blocksUpdated,
   };
-}
-
-function hasLegacyImportConfiguration(
-  externalCalendarId: string,
-  env: NodeJS.ProcessEnv,
-): boolean {
-  const rawValue = env[LEGACY_AIRBNB_IMPORT_URLS_ENV_NAME];
-
-  if (!rawValue?.trim()) {
-    return false;
-  }
-
-  try {
-    const parsedValue: unknown = JSON.parse(rawValue);
-
-    if (!parsedValue || typeof parsedValue !== "object" || Array.isArray(parsedValue)) {
-      return false;
-    }
-
-    const candidate = (parsedValue as Record<string, unknown>)[externalCalendarId];
-    return typeof candidate === "string" && candidate.trim().length > 0;
-  } catch {
-    return false;
-  }
-}
-
-function resolveImportSecretSource(
-  calendar: ExternalCalendarIntegrationRecord,
-  env: NodeJS.ProcessEnv,
-): AdminExternalCalendarImportSecretSource {
-  if (calendar.importUrlEncrypted) {
-    return "DATABASE_ENCRYPTED";
-  }
-
-  return hasLegacyImportConfiguration(calendar.id, env) ? "LEGACY_ENV" : "NONE";
 }
 
 function resolveInboundStatus(
@@ -303,7 +267,7 @@ async function toIntegration(
     };
   }
 
-  const importSecretSource = resolveImportSecretSource(calendar, options.env);
+  const importSecretSource = resolveAirbnbImportSecretSource(calendar, options.env);
   const syncEvidence = await getSyncEvidence(options.prismaClient, calendar.id);
   const latestSafeFailure = syncEvidence.latest
     ? toSafeFailure({
