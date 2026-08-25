@@ -65,9 +65,20 @@ test("Prisma enforces one durable external calendar per property/provider", () =
 
 test("central server environment keeps the 32-byte canonical Base64 encryption-key contract", () => {
   const envSource = source("lib/env/server.ts");
+
   assert.match(envSource, /EXTERNAL_CALENDAR_ENCRYPTION_KEY/);
-  assert.match(envSource, /decoded\.length === 32/);
-  assert.match(envSource, /decoded\.toString\("base64"\) === value/);
+  assert.equal(
+    envSource.includes(
+      "/^[A-Za-z0-9+/]{42}[AEIMQUYcgkosw048]=$/.test(value)",
+    ),
+    true,
+  );
+  assert.equal(
+    envSource.includes(
+      '"Must be exactly 32 random bytes encoded as canonical Base64."',
+    ),
+    true,
+  );
 });
 
 test("all seven Final-B admin endpoints independently enforce session, Zod validation and same-origin", () => {
