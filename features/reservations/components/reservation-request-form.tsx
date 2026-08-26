@@ -767,7 +767,6 @@ export function ReservationRequestForm({
         </p>
       ) : null}
 
-
       {errorMessage ? (
         <p
           className="scroll-mt-24 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm leading-6 text-destructive"
@@ -970,11 +969,7 @@ function DateRangeField({
               blocked: blockedDateMatchers,
               preview_range: (date) =>
                 previewRange
-                  ? isDateInRange(
-                      date,
-                      previewRange.from,
-                      previewRange.to,
-                    )
+                  ? isDateInRange(date, previewRange.from, previewRange.to)
                   : false,
             }}
             modifiersClassNames={{
@@ -1322,10 +1317,12 @@ function QuoteSummary({ quote }: Readonly<{ quote: ReservationQuote }>) {
           label={requestMessages.quoteRows.nights}
           value={String(quote.nights)}
         />
-        <QuoteRow
-          label={requestMessages.quoteRows.nightlyRate}
-          value={`$${quote.nightlyRate.amount}`}
-        />
+        {quote.nightlyRate ? (
+          <QuoteRow
+            label={requestMessages.quoteRows.nightlyRate}
+            value={`$${quote.nightlyRate.amount}`}
+          />
+        ) : null}
         <QuoteRow
           label={requestMessages.quoteRows.subtotal}
           value={`$${quote.subtotal.amount}`}

@@ -25,7 +25,7 @@ export type ReservationQuote = Readonly<{
   guestCount: number;
   maxGuests: number;
   nights: number;
-  nightlyRate: ReservationQuoteAmount;
+  nightlyRate: ReservationQuoteAmount | null;
   subtotal: ReservationQuoteAmount;
   cleaningFee: ReservationQuoteAmount;
   taxes: ReservationQuoteAmount;

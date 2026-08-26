@@ -3,8 +3,13 @@ import {
   assertValidAvailabilityDateRange,
   dateOnlyToUtcDate,
 } from "@/lib/availability/rules";
+import {
+  PricingRepositoryError,
+  resolvePropertyStayPricing,
+} from "@/lib/pricing";
 import { getPublicAccommodationById } from "@/lib/properties";
 import type { AvailabilityDateRange } from "@/types/availability";
+import type { FinalCPricingSnapshot } from "@/types/pricing";
 import type {
   ReservationQuote,
   ReservationQuoteAmount,
@@ -16,6 +21,11 @@ import type { PrismaClient } from "@prisma/client";
 
 type ReservationQuoteQueryOptions = Readonly<{
   prismaClient?: Pick<PrismaClient, "property">;
+}>;
+
+export type ReservationQuoteWithPricingSnapshot = Readonly<{
+  quote: ReservationQuote;
+  pricingSnapshot: FinalCPricingSnapshot;
 }>;
 
 const USD_CURRENCY: ReservationQuoteCurrency = "USD";
@@ -32,7 +42,9 @@ export class ReservationQuoteError extends Error {
   }
 }
 
-function assertReservationQuoteDateRange(input: ReservationQuoteInput): AvailabilityDateRange {
+function assertReservationQuoteDateRange(
+  input: ReservationQuoteInput,
+): AvailabilityDateRange {
   try {
     assertDateOnlyString(input.checkInDate, "checkInDate");
     assertDateOnlyString(input.checkOutDate, "checkOutDate");
@@ -62,20 +74,6 @@ function countNights(range: AvailabilityDateRange): number {
   return nights;
 }
 
-function usdToCents(amountUsd: number): number {
-  if (!Number.isFinite(amountUsd) || amountUsd < 0) {
-    throw new ReservationQuoteError("INVALID_QUOTE_REQUEST");
-  }
-
-  const cents = Math.round(amountUsd * 100);
-
-  if (!Number.isSafeInteger(cents)) {
-    throw new ReservationQuoteError("INVALID_QUOTE_REQUEST");
-  }
-
-  return cents;
-}
-
 function toReservationQuoteAmount(amountCents: number): ReservationQuoteAmount {
   if (!Number.isSafeInteger(amountCents) || amountCents < 0) {
     throw new ReservationQuoteError("INVALID_QUOTE_REQUEST");
@@ -98,10 +96,20 @@ function assertGuestCount(input: ReservationQuoteInput, maxGuests: number): void
   }
 }
 
-export async function calculateReservationQuote(
+function mapPricingRepositoryError(
+  error: PricingRepositoryError,
+): ReservationQuoteError {
+  if (error.code === "PRICING_PROPERTY_NOT_FOUND") {
+    return new ReservationQuoteError("INVALID_ACCOMMODATION");
+  }
+
+  return new ReservationQuoteError("INVALID_QUOTE_REQUEST");
+}
+
+export async function calculateReservationQuoteWithPricingSnapshot(
   input: ReservationQuoteInput,
   options: ReservationQuoteQueryOptions = {},
-): Promise<ReservationQuote> {
+): Promise<ReservationQuoteWithPricingSnapshot> {
   const accommodation = await getPublicAccommodationById(
     input.accommodationId,
     options,
@@ -115,18 +123,41 @@ export async function calculateReservationQuote(
 
   const range = assertReservationQuoteDateRange(input);
   const nights = countNights(range);
-  const nightlyRateCents = usdToCents(accommodation.baseNightlyPriceUsd);
-  const subtotalCents = nightlyRateCents * nights;
+  let pricing;
+
+  try {
+    pricing = await resolvePropertyStayPricing(
+      {
+        propertyId: input.accommodationId,
+        checkInDate: input.checkInDate,
+        checkOutDate: input.checkOutDate,
+        stayLengthContextNights: nights,
+      },
+      options,
+    );
+  } catch (error) {
+    if (error instanceof PricingRepositoryError) {
+      throw mapPricingRepositoryError(error);
+    }
+
+    throw error;
+  }
+
   const cleaningFeeCents = ZERO_USD_CENTS;
   const taxesCents = ZERO_USD_CENTS;
   const discountsCents = ZERO_USD_CENTS;
-  const totalCents = subtotalCents + cleaningFeeCents + taxesCents - discountsCents;
+  const totalCents =
+    pricing.subtotalCents + cleaningFeeCents + taxesCents - discountsCents;
 
-  if (totalCents < 0) {
+  if (
+    totalCents < 0 ||
+    totalCents !== pricing.totalCents ||
+    pricing.pricedNights !== nights
+  ) {
     throw new ReservationQuoteError("INVALID_QUOTE_REQUEST");
   }
 
-  return {
+  const quote: ReservationQuote = {
     accommodationId: accommodation.id,
     accommodationName: accommodation.name,
     accommodationSlug: accommodation.slug,
@@ -135,8 +166,11 @@ export async function calculateReservationQuote(
     guestCount: input.guestCount,
     maxGuests: accommodation.maxGuests,
     nights,
-    nightlyRate: toReservationQuoteAmount(nightlyRateCents),
-    subtotal: toReservationQuoteAmount(subtotalCents),
+    nightlyRate:
+      pricing.uniformNightlyRateCents === null
+        ? null
+        : toReservationQuoteAmount(pricing.uniformNightlyRateCents),
+    subtotal: toReservationQuoteAmount(pricing.subtotalCents),
     cleaningFee: toReservationQuoteAmount(cleaningFeeCents),
     taxes: toReservationQuoteAmount(taxesCents),
     discounts: toReservationQuoteAmount(discountsCents),
@@ -145,4 +179,21 @@ export async function calculateReservationQuote(
     paymentRequired: true,
     quoteKind: "NON_BINDING",
   };
+
+  return {
+    quote,
+    pricingSnapshot: pricing.snapshot,
+  };
+}
+
+export async function calculateReservationQuote(
+  input: ReservationQuoteInput,
+  options: ReservationQuoteQueryOptions = {},
+): Promise<ReservationQuote> {
+  const result = await calculateReservationQuoteWithPricingSnapshot(
+    input,
+    options,
+  );
+
+  return result.quote;
 }

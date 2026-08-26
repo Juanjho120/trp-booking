@@ -7,9 +7,11 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-C — Pricing rules: seasonal and length-of-stay
 Subphase: Final-C.2 — Pricing persistence foundation and migration
-Status: In progress — implementation prepared for Local/Test migration validation
+Status: Completed and accepted
 Preparation date: 2026-08-26
+Acceptance date: 2026-08-26
 Implementation base head: 030dec0d8681de18db746b9aae882cadd54db966
+Accepted head: 2168262784b0a8213062b0d84ca9fe6069e98fc6
 Previous subphase: Final-C.1 — Completed and accepted on 2026-08-25
 Final-C.1 accepted strategy head: 16d8b0411e573aaaa6b510ddb27a9b5d9c666478
 Authoritative strategy: docs/173-final-c-1-pricing-strategy-precedence-and-persistence-contract.md
@@ -382,34 +384,33 @@ data after migration. No test data is supplied by this package.
 
 # 8. C.2 Acceptance Matrix
 
-Final-C.2 remains **In progress** until the owner validates the migration and technical gates.
+Final-C.2 is **Completed and accepted** after the owner validated the migration and technical gates without errors and committed the accepted implementation at `2168262784b0a8213062b0d84ca9fe6069e98fc6`.
 
 ```text
-[ ] prisma schema formats without unexpected changes
-[ ] Prisma Client generation passes
-[ ] Prisma schema validation passes
-[ ] C.2 migration is the only pending migration before deployment
-[ ] migration deploy succeeds on the shared Local/Test database
-[ ] migration status reports no pending migrations afterward
-[ ] seasonal_pricing_rules exists and begins empty
-[ ] length_of_stay_pricing_rules exists and begins empty
-[ ] LOS database check rejects unsupported tiers
-[ ] rule nightly-rate database checks reject zero/negative values
-[ ] seasonal database check rejects startDate >= endDate
-[ ] durable Property + LOS tier uniqueness exists
-[ ] existing Reservation rows remain unchanged except nullable schema capability
-[ ] existing Reservation pricing snapshots remain null
-[ ] existing lifecycle pricing snapshots remain null
-[ ] no rule was seeded automatically
-[ ] public quote behavior remains base-price-only until C.3
-[ ] Final-A regression gate passes
-[ ] Final-B regression gate passes
-[ ] lint passes
-[ ] build passes
-[ ] git diff --check passes
-[ ] Test remains TRP_ENVIRONMENT=test with zero Vercel cron registrations
-[ ] Phase 13 remains Not started
+[x] prisma schema formats without unexpected changes
+[x] Prisma Client generation passes
+[x] Prisma schema validation passes
+[x] C.2 migration is the only pending migration before deployment
+[x] migration deploy succeeds on the shared Local/Test database
+[x] migration status reports no pending migrations afterward
+[x] seasonal_pricing_rules exists and begins empty
+[x] length_of_stay_pricing_rules exists and begins empty
+[x] LOS database check rejects unsupported tiers
+[x] rule nightly-rate database checks reject zero/negative values
+[x] seasonal database check rejects startDate >= endDate
+[x] durable Property + LOS tier uniqueness exists
+[x] existing Reservation rows remain unchanged except nullable schema capability
+[x] existing Reservation pricing snapshots remain null
+[x] existing lifecycle pricing snapshots remain null
+[x] no rule was seeded automatically
+[x] public quote behavior remains base-price-only until C.3
+[x] Final-A regression gate passes
+[x] Final-B regression gate passes
+[x] lint passes
+[x] build passes
+[x] git diff --check passes
+[x] Test remains TRP_ENVIRONMENT=test with zero Vercel cron registrations
+[x] Phase 13 remains Not started
 ```
 
-After these checks pass and the owner accepts the result, C.2 may be marked Completed and accepted.
-Only then may Final-C.3 begin.
+All C.2 checks passed and the owner accepted the result on 2026-08-26. Final-C.3 may proceed from the accepted C.2 head.
