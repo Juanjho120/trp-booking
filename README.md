@@ -21,7 +21,7 @@ The stable test domain is:
 trp-booking.juantzun.dev
 ```
 
-As of 2026-08-25, Phase 12 — Test Deployment & External Integration Validation — is completed and accepted. The stable HTTPS Test deployment at `trp-booking.juantzun.dev` remains `TRP_ENVIRONMENT=test` on the developer-owned stack with zero Vercel scheduler registrations. The Post-Phase-12 / Pre-Phase-13 Final Improvement Track is active: Final-A — reservation financial correctness and effective stay value — is completed and accepted, including its 44/44 integrated regression gate; Final-B — admin external-calendar integrations — is completed and accepted at `1fe06de8c55ab1563999b2db1d210bfc9a82c613`, including its permanent 38/38 regression gate and controlled three-property Hosted Test acceptance. Final-C — pricing rules: seasonal and length-of-stay — is **In progress**; Final-C.1 — pricing strategy, precedence and persistence contract — is completed and accepted at `16d8b0411e573aaaa6b510ddb27a9b5d9c666478`, and Final-C.2 — pricing persistence foundation and migration — is next / Not started. Phase 13 — Production Infrastructure, Deployment & Go-Live — remains **Not started** until Final-H closes and the owner explicitly accepts the improvement track.
+As of 2026-08-26, Phase 12 — Test Deployment & External Integration Validation — is completed and accepted. The stable HTTPS Test deployment at `trp-booking.juantzun.dev` remains `TRP_ENVIRONMENT=test` on the developer-owned stack with zero Vercel scheduler registrations. The Post-Phase-12 / Pre-Phase-13 Final Improvement Track is active: Final-A — reservation financial correctness and effective stay value — is completed and accepted, including its 44/44 integrated regression gate; Final-B — admin external-calendar integrations — is completed and accepted at `1fe06de8c55ab1563999b2db1d210bfc9a82c613`, including its permanent 38/38 regression gate and controlled three-property Hosted Test acceptance. Final-C — pricing rules: seasonal and length-of-stay — is **In progress**; Final-C.1 — pricing strategy, precedence and persistence contract — is completed and accepted at `16d8b0411e573aaaa6b510ddb27a9b5d9c666478`, and Final-C.2 — pricing persistence foundation and migration — is now **In progress** from `030dec0d8681de18db746b9aae882cadd54db966`. C.2 adds only the durable seasonal/LOS rule schema and nullable versioned pricing-evidence foundation; runtime pricing behavior remains unchanged until later Final-C subphases. Phase 13 — Production Infrastructure, Deployment & Go-Live — remains **Not started** until Final-H closes and the owner explicitly accepts the improvement track.
 
 ## Environment Strategy
 
@@ -478,6 +478,7 @@ docs/170-final-b-4-airbnb-inbound-configuration-and-operational-actions.md
 docs/171-final-b-5-trp-outbound-copy-rotation-and-export-controls.md
 docs/172-final-b-6-integrated-acceptance-regression-and-documentation-closure.md
 docs/173-final-c-1-pricing-strategy-precedence-and-persistence-contract.md
+docs/174-final-c-2-pricing-persistence-foundation-and-migration.md
 ```
 
 ## Development Status
@@ -487,11 +488,14 @@ Current phase state: Phase 12 — Test Deployment & External Integration Validat
 Current numbered phase: none active
 Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
 Current package: Final-C — Pricing rules: seasonal and length-of-stay — In progress
-Current subphase: none active — Final-C.2 is next / Not started
+Current subphase: Final-C.2 — Pricing persistence foundation and migration — In progress
 Final-C implementation base head: e7ce19c49c5cfd45e1cc08796ee897a2dce0d1ed
 Final-C.1 status: Completed and accepted on 2026-08-25
 Final-C.1 accepted strategy head: 16d8b0411e573aaaa6b510ddb27a9b5d9c666478
 Final-C.1 record: docs/173-final-c-1-pricing-strategy-precedence-and-persistence-contract.md
+Final-C.2 implementation base head: 030dec0d8681de18db746b9aae882cadd54db966
+Final-C.2 status: In progress — persistence foundation and migration prepared for Local/Test validation
+Final-C.2 record: docs/174-final-c-2-pricing-persistence-foundation-and-migration.md
 Final-B implementation base head: 0927feb18be35b8d96aca0205a75ee19445f15d4
 Final-B.1 status: Completed and accepted on 2026-08-14
 Final-B.1 accepted head: 2627161d5b3960995be0f517682f84272431c291
@@ -518,7 +522,7 @@ Final-B.3 record: docs/169-final-b-3-admin-external-calendar-read-model-and-inte
 Final-B.4 record: docs/170-final-b-4-airbnb-inbound-configuration-and-operational-actions.md
 Final-B.5 record: docs/171-final-b-5-trp-outbound-copy-rotation-and-export-controls.md
 Final-B.6 record: docs/172-final-b-6-integrated-acceptance-regression-and-documentation-closure.md
-Next planned subphase: Final-C.2 — Pricing persistence foundation and migration — Not started
+Next planned subphase after Final-C.2 acceptance: Final-C.3 — Central pricing engine and public quote/pending-reservation integration — Not started
 Last completed package: Final-B — Admin external-calendar integrations — Completed and accepted on 2026-08-25 at 1fe06de8c55ab1563999b2db1d210bfc9a82c613
 Final-A.1 status: Completed and accepted on 2026-08-11
 Final-A.1 accepted head: 19531568752a44446d0802d6581262260b881aaf

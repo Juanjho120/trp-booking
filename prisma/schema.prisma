@@ -357,21 +357,58 @@ model Property {
   deletedAt             DateTime?      @map("deleted_at")
   deletedById           String?        @map("deleted_by_id")
 
-  deletedBy             User?                        @relation("PropertyDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull)
-  parentComponents      PropertyComponent[]          @relation("ParentProperty")
-  componentOf           PropertyComponent[]          @relation("ComponentProperty")
-  images                PropertyImage[]
-  amenities             PropertyAmenity[]
-  rules                 PropertyRule[]
-  reservations          Reservation[]
-  calendarBlocks        CalendarBlock[]
-  externalCalendars     ExternalCalendar[]
-  arrivalInstructions   PropertyArrivalInstructions?
-  lifecycleRequestHolds LifecycleRequestHold[]
+  deletedBy                User?                        @relation("PropertyDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull)
+  parentComponents         PropertyComponent[]          @relation("ParentProperty")
+  componentOf              PropertyComponent[]          @relation("ComponentProperty")
+  images                   PropertyImage[]
+  amenities                PropertyAmenity[]
+  rules                    PropertyRule[]
+  reservations             Reservation[]
+  calendarBlocks           CalendarBlock[]
+  externalCalendars        ExternalCalendar[]
+  seasonalPricingRules     SeasonalPricingRule[]
+  lengthOfStayPricingRules LengthOfStayPricingRule[]
+  arrivalInstructions      PropertyArrivalInstructions?
+  lifecycleRequestHolds    LifecycleRequestHold[]
 
   @@index([status])
   @@index([deletedAt])
   @@map("properties")
+}
+
+model SeasonalPricingRule {
+  id          String    @id @default(cuid())
+  propertyId  String    @map("property_id")
+  name        String    @db.VarChar(160)
+  startDate   DateTime  @map("start_date") @db.Date
+  endDate     DateTime  @map("end_date") @db.Date
+  nightlyRate Decimal   @map("nightly_rate") @db.Decimal(10, 2)
+  isEnabled   Boolean   @default(true) @map("is_enabled")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+
+  @@index([propertyId, isEnabled, deletedAt, startDate, endDate], map: "seasonal_pricing_active_range_idx")
+  @@map("seasonal_pricing_rules")
+}
+
+model LengthOfStayPricingRule {
+  id            String    @id @default(cuid())
+  propertyId    String    @map("property_id")
+  minimumNights Int       @map("minimum_nights")
+  nightlyRate   Decimal   @map("nightly_rate") @db.Decimal(10, 2)
+  isEnabled     Boolean   @default(true) @map("is_enabled")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  deletedAt     DateTime? @map("deleted_at")
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+
+  @@unique([propertyId, minimumNights], map: "los_pricing_property_tier_key")
+  @@index([propertyId, isEnabled, deletedAt], map: "los_pricing_active_lookup_idx")
+  @@map("length_of_stay_pricing_rules")
 }
 
 model PropertyArrivalInstructions {
@@ -515,6 +552,7 @@ model Reservation {
   discounts           Decimal           @default(0) @db.Decimal(10, 2)
   total               Decimal           @db.Decimal(10, 2)
   currency            String            @default("USD")
+  pricingSnapshot     Json?             @map("pricing_snapshot")
   expiresAt           DateTime?         @map("expires_at")
   confirmedAt         DateTime?         @map("confirmed_at")
   cancelledAt         DateTime?         @map("cancelled_at")
@@ -728,17 +766,19 @@ model ReservationLifecycleRequest {
   originalTaxes             Decimal           @map("original_taxes") @db.Decimal(10, 2)
   originalDiscounts         Decimal           @map("original_discounts") @db.Decimal(10, 2)
   originalTotal             Decimal           @map("original_total") @db.Decimal(10, 2)
+  originalPricingSnapshot   Json?             @map("original_pricing_snapshot")
   currency                  String            @default("USD") @db.VarChar(3)
 
-  requestedCheckInDate  DateTime? @map("requested_check_in_date") @db.Date
-  requestedCheckOutDate DateTime? @map("requested_check_out_date") @db.Date
-  requestedGuestCount   Int?      @map("requested_guest_count")
-  requestedSubtotal     Decimal?  @map("requested_subtotal") @db.Decimal(10, 2)
-  requestedCleaningFee  Decimal?  @map("requested_cleaning_fee") @db.Decimal(10, 2)
-  requestedTaxes        Decimal?  @map("requested_taxes") @db.Decimal(10, 2)
-  requestedDiscounts    Decimal?  @map("requested_discounts") @db.Decimal(10, 2)
-  requestedTotal        Decimal?  @map("requested_total") @db.Decimal(10, 2)
-  financialDifference   Decimal?  @map("financial_difference") @db.Decimal(10, 2)
+  requestedCheckInDate     DateTime? @map("requested_check_in_date") @db.Date
+  requestedCheckOutDate    DateTime? @map("requested_check_out_date") @db.Date
+  requestedGuestCount      Int?      @map("requested_guest_count")
+  requestedSubtotal        Decimal?  @map("requested_subtotal") @db.Decimal(10, 2)
+  requestedCleaningFee     Decimal?  @map("requested_cleaning_fee") @db.Decimal(10, 2)
+  requestedTaxes           Decimal?  @map("requested_taxes") @db.Decimal(10, 2)
+  requestedDiscounts       Decimal?  @map("requested_discounts") @db.Decimal(10, 2)
+  requestedTotal           Decimal?  @map("requested_total") @db.Decimal(10, 2)
+  requestedPricingSnapshot Json?     @map("requested_pricing_snapshot")
+  financialDifference      Decimal?  @map("financial_difference") @db.Decimal(10, 2)
 
   cancellationPolicyVersion CancellationPolicyVersion?   @map("cancellation_policy_version")
   policyTimezone            String?                      @map("policy_timezone") @db.VarChar(64)
@@ -830,7 +870,7 @@ model CalendarBlock {
   createdAt               DateTime            @default(now()) @map("created_at")
   updatedAt               DateTime            @updatedAt @map("updated_at")
   deletedAt               DateTime?           @map("deleted_at")
-  deletedById           String?             @map("deleted_by_id")
+  deletedById             String?             @map("deleted_by_id")
 
   property              Property               @relation(fields: [propertyId], references: [id], onDelete: Restrict)
   reservation           Reservation?           @relation(fields: [reservationId], references: [id], onDelete: SetNull)
@@ -946,8 +986,8 @@ model EmailNotification {
   parentNotificationId           String?                 @map("parent_notification_id")
   sourceNotificationId           String?                 @map("source_notification_id")
   requestedByAdminId             String?                 @map("requested_by_admin_id")
-  requestedAt                    DateTime?                @map("requested_at")
-  scheduledFor                   DateTime?                @map("scheduled_for")
+  requestedAt                    DateTime?               @map("requested_at")
+  scheduledFor                   DateTime?               @map("scheduled_for")
   reservationCheckInDateSnapshot DateTime?               @map("reservation_check_in_date_snapshot") @db.Date
   arrivalInstructionsVersion     DateTime?               @map("arrival_instructions_version")
   status                         EmailNotificationStatus @default(PENDING)
@@ -956,7 +996,7 @@ model EmailNotification {
   nextAttemptAt                  DateTime?               @map("next_attempt_at")
   processingStartedAt            DateTime?               @map("processing_started_at")
   providerMessageId              String?                 @map("provider_message_id")
-  sentAt                         DateTime?                @map("sent_at")
+  sentAt                         DateTime?               @map("sent_at")
   errorCode                      String?                 @map("error_code")
   errorMessage                   String?                 @map("error_message") @db.Text
   createdAt                      DateTime                @default(now()) @map("created_at")
