@@ -18,9 +18,10 @@ Current phase state: Phase 12 — Test Deployment & External Integration Validat
 Current numbered phase: none active
 Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
 Current package: Final-C — Pricing rules: seasonal and length-of-stay — In progress
-Current subphase: Final-C.1 — Pricing strategy, precedence and persistence contract — In progress
+Current subphase: none active — Final-C.2 is next / Not started
 Final-C implementation base head: e7ce19c49c5cfd45e1cc08796ee897a2dce0d1ed
-Final-C.1 status: In progress — strategy prepared for owner acceptance
+Final-C.1 status: Completed and accepted on 2026-08-25
+Final-C.1 accepted strategy head: 16d8b0411e573aaaa6b510ddb27a9b5d9c666478
 Final-C.1 record: docs/173-final-c-1-pricing-strategy-precedence-and-persistence-contract.md
 Final-B implementation base head: 0927feb18be35b8d96aca0205a75ee19445f15d4
 Final-B.1 status: Completed and accepted on 2026-08-14
@@ -48,7 +49,7 @@ Final-B.3 record: docs/169-final-b-3-admin-external-calendar-read-model-and-inte
 Final-B.4 record: docs/170-final-b-4-airbnb-inbound-configuration-and-operational-actions.md
 Final-B.5 record: docs/171-final-b-5-trp-outbound-copy-rotation-and-export-controls.md
 Final-B.6 record: docs/172-final-b-6-integrated-acceptance-regression-and-documentation-closure.md
-Next planned subphase after Final-C.1 acceptance: Final-C.2 — Pricing persistence foundation and migration — Not started
+Next planned subphase: Final-C.2 — Pricing persistence foundation and migration — Not started
 Last completed package: Final-B — Admin external-calendar integrations — Completed and accepted on 2026-08-25 at 1fe06de8c55ab1563999b2db1d210bfc9a82c613
 Final-A.1 status: Completed and accepted on 2026-08-11
 Final-A.1 accepted head: 19531568752a44446d0802d6581262260b881aaf
@@ -73,7 +74,7 @@ Final-A.3 record: docs/163-final-a-3-standard-and-extraordinary-multi-payment-re
 Final-A.4 record: docs/164-final-a-4-negative-date-change-multi-payment-integration.md
 Final-A.5 record: docs/165-final-a-5-admin-refund-ux-notification-and-operational-history.md
 Final-A.6 record: docs/166-final-a-6-integrated-acceptance-and-documentation-closure.md
-Last completed subphase: Final-B.6 Integrated acceptance, regression and documentation closure — completed and accepted on 2026-08-25 at 1fe06de8c55ab1563999b2db1d210bfc9a82c613
+Last completed subphase: Final-C.1 Pricing strategy, precedence and persistence contract — completed and accepted on 2026-08-25 at 16d8b0411e573aaaa6b510ddb27a9b5d9c666478
 Phase 13 status: Not started
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 11.6.5 acceptance: All 15 protected-history, ordering, relation, retry, ES/EN, responsive, security, and integrated criteria passed on 2026-08-05
@@ -133,7 +134,7 @@ Phase 12.9 closure: docs/158-phase-12.9-acceptance-closure.md
 Phase 12.10 status: Completed and accepted on 2026-08-11 — Phase 12 validation and closure
 Phase 12.10 validated repository head: ebe28579872cbc2414573ef852b15139a2501551
 Phase 12 closure: docs/159-phase-12.10-phase-12-validation-and-closure.md
-Next work: complete and accept Final-C.1 pricing strategy/precedence/persistence contract, then begin Final-C.2 persistence foundation only after acceptance; Phase 13 remains blocked until Final-H closes and the track is explicitly accepted
+Next work: begin Final-C.2 pricing persistence foundation and migration; Phase 13 remains blocked until Final-H closes and the track is explicitly accepted
 Next planned numbered phase: Phase 13 — Production Infrastructure, Deployment & Go-Live — Not started
 Pre-Phase-12 Improvement Track status: Completed and accepted — Packages A, B, C, E, and F accepted; Package D remains deferred outside the current gate
 Pre-Phase-12 Improvement Track registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
@@ -1196,7 +1197,7 @@ Phase 12 explicitly excludes company-owned production account provisioning, prod
 
 ## Inter-Phase Work — Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 
-Status: **Active — Final-A and Final-B are completed and accepted; Final-C is in progress at Final-C.1; Phase 13 remains Not started**
+Status: **Active — Final-A and Final-B are completed and accepted; Final-C is in progress with Final-C.1 completed and Final-C.2 next / Not started; Phase 13 remains Not started**
 
 Goal: Complete the final owner-approved feature, correctness, communication, pricing, and performance round before Production while preserving the accepted Test/Production ownership boundary.
 
@@ -1218,7 +1219,7 @@ Final-B Admin external-calendar integrations — Completed and accepted on 2026-
   Final-B.5 TRP outbound Copy URL / Rotate URL / export controls — Completed and accepted on 2026-08-25 at bc6b3db1bec219913164ef267fe5279b19f49a27; record: docs/171-final-b-5-trp-outbound-copy-rotation-and-export-controls.md
   Final-B.6 Integrated acceptance, regression and documentation closure — Completed and accepted on 2026-08-25 at 1fe06de8c55ab1563999b2db1d210bfc9a82c613; record: docs/172-final-b-6-integrated-acceptance-regression-and-documentation-closure.md
 Final-C Pricing rules: seasonal and length-of-stay — In progress
-  Final-C.1 Pricing strategy, precedence and persistence contract — In progress; record: docs/173-final-c-1-pricing-strategy-precedence-and-persistence-contract.md
+  Final-C.1 Pricing strategy, precedence and persistence contract — Completed and accepted on 2026-08-25 at 16d8b0411e573aaaa6b510ddb27a9b5d9c666478; record: docs/173-final-c-1-pricing-strategy-precedence-and-persistence-contract.md
   Final-C.2 Pricing persistence foundation and migration — Not started
   Final-C.3 Central pricing engine and public quote/pending-reservation integration — Not started
   Final-C.4 Admin pricing-rule management — Not started

@@ -7,13 +7,15 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-C — Pricing rules: seasonal and length-of-stay
 Subphase: Final-C.1 — Pricing strategy, precedence and persistence contract
-Status: In progress — strategy prepared for owner acceptance
+Status: Completed and accepted
 Preparation date: 2026-08-25
+Acceptance date: 2026-08-25
 Implementation base head: e7ce19c49c5cfd45e1cc08796ee897a2dce0d1ed
+Accepted strategy head: 16d8b0411e573aaaa6b510ddb27a9b5d9c666478
 Previous package: Final-B — Completed and accepted on 2026-08-25
 Final-B accepted feature head: 1fe06de8c55ab1563999b2db1d210bfc9a82c613
 Authoritative track plan: docs/160-post-phase-12-pre-phase-13-final-improvement-track.md
-Next planned subphase after acceptance: Final-C.2 — Pricing persistence foundation and migration
+Next planned subphase: Final-C.2 — Pricing persistence foundation and migration
 Phase 13: Not started
 ```
 
@@ -812,4 +814,4 @@ admin pricing route under accommodation management
 Final-C.6 consolidated acceptance gate
 ```
 
-After C.1 acceptance, Final-C.2 may begin. No pricing behavior changes before that point.
+Final-C.1 was accepted on 2026-08-25 at `16d8b0411e573aaaa6b510ddb27a9b5d9c666478`. Final-C.2 may now begin; no pricing behavior changed during C.1.
