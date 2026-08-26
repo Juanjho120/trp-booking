@@ -5,7 +5,7 @@
 ```text
 Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
-Status: Active — Final-A and Final-B completed and accepted; Final-C is next and Not started
+Status: Active — Final-A and Final-B completed and accepted; Final-C is in progress at Final-C.1
 Registration date: 2026-08-11
 Registration base head: dac105088d2c46be05a900abed3dfe83e608e964
 Previous gate: Phase 12 — Completed and accepted
@@ -271,7 +271,7 @@ Final-B.3 authoritative record: docs/169-final-b-3-admin-external-calendar-read-
 Final-B.4 authoritative record: docs/170-final-b-4-airbnb-inbound-configuration-and-operational-actions.md
 Final-B.5 authoritative record: docs/171-final-b-5-trp-outbound-copy-rotation-and-export-controls.md
 Final-B.6 authoritative record: docs/172-final-b-6-integrated-acceptance-regression-and-documentation-closure.md
-Next package: Final-C — Pricing rules: seasonal and length-of-stay — Not started
+Following package: Final-C — Pricing rules: seasonal and length-of-stay — In progress at Final-C.1
 Phase 13: Not started
 ```
 
@@ -427,62 +427,135 @@ explicitly re-accepting the strategy.
 
 # Final-C — Pricing Rules: Seasonal and Length-of-Stay
 
+## Status
+
+```text
+Package: Final-C — In progress
+Implementation base head: e7ce19c49c5cfd45e1cc08796ee897a2dce0d1ed
+Current subphase: Final-C.1 — Pricing strategy, precedence and persistence contract
+Final-C.1 status: In progress — strategy prepared for owner acceptance
+Final-C.1 record: docs/173-final-c-1-pricing-strategy-precedence-and-persistence-contract.md
+Final-C.2 status: Not started — Pricing persistence foundation and migration
+Final-C.3 status: Not started — Central pricing engine and public quote/pending-reservation integration
+Final-C.4 status: Not started — Admin pricing-rule management
+Final-C.5 status: Not started — DATE_CHANGE/STAY_EXTENSION pricing integration
+Final-C.6 status: Not started — Integrated regression and documentation closure
+Next package after Final-C closure: Final-D — Additional charges and guest payment requests — Not started
+Phase 13: Not started
+```
+
 ## Goal
 
-Allow administrators to configure pricing beyond Property.baseNightlyPrice while keeping quotes,
+Allow administrators to configure pricing beyond `Property.baseNightlyPrice` while keeping quotes,
 payments, date changes, cancellation/refund logic, and historical reservations deterministic.
 
-## Included pricing types
-
-### Seasonal rate
-
-Per-property date-range rule with an explicit nightly value.
-
-This may represent either a lower or higher rate than the normal base price.
-
-### Length-of-stay rate
-
-Use absolute nightly values, not percentage discounts.
-
-Supported minimum-night tiers:
+## Frozen Subphase Split
 
 ```text
-2 nights
-3 nights
-4 nights
-5 nights
-6 nights
-7 nights
-15 nights
-30 nights
+Final-C.1 Pricing strategy, precedence and persistence contract
+Final-C.2 Pricing persistence foundation and migration
+Final-C.3 Central pricing engine and public quote/pending-reservation integration
+Final-C.4 Admin pricing-rule management
+Final-C.5 DATE_CHANGE/STAY_EXTENSION pricing integration
+Final-C.6 Integrated regression and documentation closure
 ```
 
-Use minimum-night semantics. Example:
+Final-C.1 must be accepted before pricing schema/runtime implementation starts.
+
+## Included Pricing Types
 
 ```text
-10 nights -> eligible for the configured 7+ tier
-20 nights -> eligible for the configured 15+ tier
-32 nights -> eligible for the configured 30+ tier
+Seasonal rate
+- per-property date range
+- explicit absolute nightly rate
+- may be lower or higher than the base nightly rate
+
+Length-of-stay rate
+- per-property minimum-night tier
+- explicit absolute nightly rate
+- supported tiers: 2, 3, 4, 5, 6, 7, 15, 30 nights
 ```
 
-## Pricing scope boundary
-
-Final-C is limited to seasonal pricing and length-of-stay nightly-rate tiers. No additional pricing-rule category is registered by this track.
-
-## Pricing invariants
+Length-of-stay uses highest-eligible-tier semantics:
 
 ```text
-- Server-side quote remains authoritative.
-- Existing confirmed reservation pricing never changes because an admin edits a future rule.
-- Persist enough pricing snapshot/evidence to reconstruct the accepted quote.
-- Date changes continue to use the approved full repricing contract.
-- Stay extensions continue to use the approved added-night pricing contract.
-- No uncontrolled stacking.
+10 nights -> highest configured eligible tier up to 10, normally 7+
+20 nights -> highest configured eligible tier up to 20, normally 15+
+32 nights -> highest configured eligible tier up to 32, normally 30+
 ```
 
-Before Final-C implementation, freeze one explicit precedence contract for overlapping seasonal and
-length-of-stay rules. The implementation must never choose a rule implicitly or differently across
-public booking and lifecycle repricing.
+Unconfigured tiers are skipped; they do not inherit a fabricated rate.
+
+## Frozen Precedence
+
+Pricing resolves every charged night independently using one source only:
+
+```text
+1. matching active Seasonal rate for that night
+2. otherwise highest eligible active Length-of-Stay rate for the stay-length context
+3. otherwise Property.baseNightlyPrice
+```
+
+Seasonal and LOS rates are overrides, not additive discounts. They never stack, sum, or multiply.
+A mixed stay may therefore contain seasonal-priced nights and LOS/base-priced nights in the same
+quote.
+
+Active seasonal ranges for the same property must not overlap. Adjacent ranges are valid.
+
+## Lifecycle Pricing Boundary
+
+```text
+New/public reservation
+- LOS eligibility uses the complete requested stay length.
+- Every requested night is priced under the frozen precedence contract.
+
+DATE_CHANGE
+- Full requested stay is repriced using current accepted rules.
+- LOS eligibility uses the complete requested stay length.
+- Existing accepted dates/pricing remain unchanged until the lifecycle request completes.
+
+STAY_EXTENSION
+- Existing accepted stay value and already-paid nights are never repriced.
+- Only added nights are priced using current accepted rules.
+- LOS eligibility for the added nights uses the resulting total stay length after extension.
+- Seasonal still overrides LOS for each added night.
+```
+
+## Historical Pricing Boundary
+
+Accepted numeric totals remain authoritative for historical reservations. Final-C must never
+retroactively price old stays with today's rules or fabricate historical rule evidence.
+
+New Final-C reservations persist versioned pricing evidence sufficient to reconstruct the accepted
+quote. Lifecycle requests preserve independent original/requested pricing evidence. A legacy
+reservation without historical pricing evidence may use a bounded preserved-total segment when an
+extension appends newly priced nights; a full DATE_CHANGE creates new requested pricing evidence
+without rewriting the historical original values.
+
+## Scope Boundary
+
+Final-C is limited to seasonal pricing and length-of-stay nightly-rate tiers.
+
+Explicitly excluded:
+
+```text
+last-minute pricing/discounts
+percentage discount rules
+coupon/promo codes
+weekend pricing
+occupancy/demand pricing
+channel-specific pricing
+automatic composed-listing price derivation
+fees/tax redesign
+additional charges (Final-D)
+```
+
+Detailed invariants, proposed persistence direction, concurrency/audit rules, UI boundary, pricing
+snapshot contract and acceptance matrix are authoritative in:
+
+```text
+docs/173-final-c-1-pricing-strategy-precedence-and-persistence-contract.md
+```
 
 ---
 
@@ -1088,8 +1161,10 @@ Phase 13 still owns:
 ```text
 Phase 12 — Completed and accepted
 Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
-Current package — Final-C pricing rules: seasonal and length-of-stay — Next / Not started
-Current subphase — none active
+Current package — Final-C pricing rules: seasonal and length-of-stay — In progress
+Current subphase — Final-C.1 Pricing strategy, precedence and persistence contract — In progress
+Final-C implementation base — e7ce19c49c5cfd45e1cc08796ee897a2dce0d1ed
+Final-C.1 record — docs/173-final-c-1-pricing-strategy-precedence-and-persistence-contract.md
 Final-B implementation base — 0927feb18be35b8d96aca0205a75ee19445f15d4
 Final-B.1 accepted head — 2627161d5b3960995be0f517682f84272431c291
 Final-B.1 record — docs/167-final-b-1-external-calendar-admin-strategy-and-security-contract.md
@@ -1117,7 +1192,13 @@ Final-B.3 — Completed and accepted on 2026-08-25 at 84e3f5158e76527a82b2b66556
 Final-B.4 — Completed and accepted on 2026-08-25 at a3724f018449515363159ec9f23af892a21b24be
 Final-B.5 — Completed and accepted on 2026-08-25 at bc6b3db1bec219913164ef267fe5279b19f49a27
 Final-B.6 — Completed and accepted on 2026-08-25 at 1fe06de8c55ab1563999b2db1d210bfc9a82c613
-Final-C — Next / Not started
+Final-C — In progress at Final-C.1
+Final-C.1 — In progress; strategy prepared for owner acceptance
+Final-C.2 — Not started
+Final-C.3 — Not started
+Final-C.4 — Not started
+Final-C.5 — Not started
+Final-C.6 — Not started
 Final-D — Not started
 Final-E — Not started
 Final-F — Not started
