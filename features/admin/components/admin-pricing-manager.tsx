@@ -1114,7 +1114,7 @@ function PricingPreviewCard({
           {copy.preview.description}
         </p>
       </div>
-      <Card className="mt-5">
+      <Card className="mt-5 overflow-visible">
         <CardContent className="space-y-5 p-5">
           <div className="grid gap-3">
             <RangeSelectionSummary
