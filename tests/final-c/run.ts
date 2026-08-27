@@ -1,3 +1,4 @@
+import "./admin-pricing.test";
 import "./pricing-engine.test";
 import "./source-contract.test";
 

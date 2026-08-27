@@ -14,6 +14,7 @@ export { AdminPaymentSubmissionAttemptHistory } from "./components/admin-payment
 export { AdminPaymentsPageView } from "./components/admin-payments-page";
 export { AdminPropertyCalendarView } from "./components/admin-property-calendar";
 export { AdminPropertyPhotoManager } from "./components/admin-property-photo-manager";
+export { AdminPricingManager } from "./components/admin-pricing-manager";
 export { AdminReservationCancellationSection } from "./components/admin-reservation-cancellation-section";
 export { AdminReservationDateMutationSection } from "./components/admin-reservation-date-mutation-section";
 export { AdminReservationDetailPage } from "./components/admin-reservation-detail-page";

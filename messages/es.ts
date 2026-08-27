@@ -1963,12 +1963,135 @@ export const esMessages = {
         actions: {
           editContent: "Editar contenido público",
           managePhotos: "Administrar fotos",
+          managePricing: "Administrar precios",
           manageAmenitiesRules: "Asignar amenidades y reglas",
           manageArrivalInstructions: "Configurar instrucciones de llegada",
         },
         notes: {
           readonlyBoundaries:
-            "El slug, estado, precio, moneda y composición se muestran como referencia y no se modifican en esta subfase.",
+            "El slug, estado, tarifa base, moneda y composición se muestran como referencia en esta vista. Las reglas estacionales y por duración se administran desde Administrar precios.",
+        },
+      },
+      pricing: {
+        seoTitle: "Precios del alojamiento | Admin | Tu Refugio Perfecto",
+        badge: "Precios por alojamiento",
+        title: "Administrar precios",
+        description:
+          "Configura tarifas estacionales y por duración de estadía con la misma precedencia que usa la cotización pública.",
+        base: {
+          title: "Tarifa base",
+          description:
+            "La tarifa base es la referencia final cuando ninguna tarifa estacional o por duración aplica.",
+          label: "Precio base por noche",
+        },
+        seasonal: {
+          title: "Tarifas estacionales",
+          description:
+            "Define rangos de fechas con una tarifa nocturna absoluta. Los rangos activos del mismo alojamiento no pueden traslaparse.",
+          empty: "Este alojamiento no tiene tarifas estacionales configuradas.",
+          deletedTitle: "Tarifas estacionales eliminadas",
+          restoreNote:
+            "Una tarifa restaurada vuelve desactivada. Revísala y actívala manualmente cuando corresponda.",
+          createTitle: "Crear tarifa estacional",
+          editTitle: "Editar tarifa estacional",
+          formDescription:
+            "La fecha inicial es inclusiva y la fecha final es exclusiva para las noches cobradas.",
+        },
+        los: {
+          title: "Tarifas por duración de estadía",
+          description:
+            "Configura una tarifa nocturna absoluta para cada umbral admitido. Se usa el umbral configurado más alto que sea elegible para la estadía.",
+          tierSuffix: "+ noches",
+        },
+        preview: {
+          title: "Vista previa de precio",
+          description:
+            "Prueba un rango sin crear una reserva. La vista previa usa el mismo motor central de precios que la cotización pública.",
+          nights: "Noches",
+          uniformRate: "Tarifa nocturna",
+          mixedRate: "Tarifa mixta",
+          subtotal: "Subtotal",
+          sources: {
+            BASE: "Tarifa base",
+            LENGTH_OF_STAY: "Duración de estadía",
+            SEASONAL: "Tarifa estacional",
+          },
+        },
+        labels: {
+          name: "Nombre interno",
+          startDate: "Fecha inicial",
+          endDate: "Fecha final",
+          nightlyRate: "Tarifa por noche",
+          minimumNights: "Umbral",
+          checkInDate: "Fecha de entrada",
+          checkOutDate: "Fecha de salida",
+        },
+        placeholders: {
+          name: "Ej. Fin de año",
+          date: "YYYY-MM-DD",
+          nightlyRate: "Ej. 125.00",
+        },
+        states: {
+          enabled: "Activa",
+          disabled: "Desactivada",
+          notConfigured: "Sin configurar",
+        },
+        actions: {
+          backToAccommodations: "Volver a alojamientos",
+          createSeasonal: "Crear tarifa estacional",
+          edit: "Editar",
+          enable: "Activar",
+          disable: "Desactivar",
+          delete: "Eliminar",
+          restore: "Restaurar",
+          saveTier: "Guardar tarifa",
+          saveSeasonal: "Guardar tarifa estacional",
+          saving: "Guardando...",
+          cancel: "Cancelar",
+          confirmDelete: "Eliminar tarifa",
+          preview: "Calcular vista previa",
+          previewing: "Calculando...",
+          closeNotification: "Cerrar notificación",
+        },
+        deleteDialog: {
+          title: "Eliminar tarifa estacional",
+          description:
+            "La tarifa dejará de participar en nuevas cotizaciones. El registro se conservará para auditoría y podrás restaurarlo más adelante.",
+        },
+        success: {
+          seasonalCreated: "La tarifa estacional se creó correctamente.",
+          seasonalUpdated: "La tarifa estacional se actualizó correctamente.",
+          seasonalEnabled: "La tarifa estacional quedó activa.",
+          seasonalDisabled: "La tarifa estacional quedó desactivada.",
+          seasonalDeleted: "La tarifa estacional se eliminó del pricing activo.",
+          seasonalRestored:
+            "La tarifa estacional se restauró desactivada para revisión.",
+          losSaved: "La tarifa por duración se guardó correctamente.",
+          losEnabled: "La tarifa por duración quedó activa.",
+          losDisabled: "La tarifa por duración quedó desactivada.",
+        },
+        errors: {
+          ADMIN_UNAUTHORIZED: "Tu sesión no tiene autorización administrativa.",
+          ADMIN_PRICING_ORIGIN_INVALID:
+            "No pudimos validar el origen de esta operación administrativa.",
+          INVALID_ADMIN_PRICING_REQUEST:
+            "Revisa las fechas, el nombre y la tarifa antes de guardar.",
+          ADMIN_PRICING_PROPERTY_NOT_FOUND:
+            "No encontramos el alojamiento solicitado.",
+          ADMIN_PRICING_RULE_NOT_FOUND:
+            "No encontramos la tarifa seleccionada.",
+          ADMIN_PRICING_RULE_STALE:
+            "La tarifa cambió después de que abriste esta página. Recarga antes de guardar nuevamente.",
+          ADMIN_PRICING_SEASONAL_OVERLAP:
+            "El rango se traslapa con otra tarifa estacional activa de este alojamiento.",
+          ADMIN_PRICING_LOS_TIER_INVALID:
+            "El umbral de noches seleccionado no está permitido.",
+          ADMIN_PRICING_CONFLICT:
+            "Otra actualización de precios ocurrió al mismo tiempo. Recarga e inténtalo nuevamente.",
+          ADMIN_PRICING_CONFIGURATION_INVALID:
+            "La configuración de precios contiene datos inválidos. Revísala antes de continuar.",
+          ADMIN_PRICING_UNEXPECTED_ERROR:
+            "No pudimos actualizar los precios. Inténtalo nuevamente.",
         },
       },
       content: {

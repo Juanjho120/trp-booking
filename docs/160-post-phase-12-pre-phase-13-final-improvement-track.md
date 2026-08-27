@@ -5,7 +5,7 @@
 ```text
 Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
-Status: Active — Final-A and Final-B completed and accepted; Final-C is in progress at Final-C.3
+Status: Active — Final-A and Final-B completed and accepted; Final-C is in progress at Final-C.4
 Registration date: 2026-08-11
 Registration base head: dac105088d2c46be05a900abed3dfe83e608e964
 Previous gate: Phase 12 — Completed and accepted
@@ -271,7 +271,7 @@ Final-B.3 authoritative record: docs/169-final-b-3-admin-external-calendar-read-
 Final-B.4 authoritative record: docs/170-final-b-4-airbnb-inbound-configuration-and-operational-actions.md
 Final-B.5 authoritative record: docs/171-final-b-5-trp-outbound-copy-rotation-and-export-controls.md
 Final-B.6 authoritative record: docs/172-final-b-6-integrated-acceptance-regression-and-documentation-closure.md
-Following package: Final-C — Pricing rules: seasonal and length-of-stay — In progress at Final-C.3
+Following package: Final-C — Pricing rules: seasonal and length-of-stay — In progress at Final-C.4
 Phase 13: Not started
 ```
 
@@ -432,7 +432,7 @@ explicitly re-accepting the strategy.
 ```text
 Package: Final-C — In progress
 Implementation base head: e7ce19c49c5cfd45e1cc08796ee897a2dce0d1ed
-Current subphase: Final-C.3 — Central pricing engine and public quote/pending-reservation integration — In progress
+Current subphase: Final-C.4 — Admin pricing-rule management — In progress
 Final-C.1 status: Completed and accepted on 2026-08-25
 Final-C.1 accepted strategy head: 16d8b0411e573aaaa6b510ddb27a9b5d9c666478
 Final-C.1 record: docs/173-final-c-1-pricing-strategy-precedence-and-persistence-contract.md
@@ -441,9 +441,12 @@ Final-C.2 status: Completed and accepted on 2026-08-26 — Pricing persistence f
 Final-C.2 accepted head: 2168262784b0a8213062b0d84ca9fe6069e98fc6
 Final-C.2 record: docs/174-final-c-2-pricing-persistence-foundation-and-migration.md
 Final-C.3 implementation base head: 2168262784b0a8213062b0d84ca9fe6069e98fc6
-Final-C.3 status: In progress — Central pricing engine and public quote/pending-reservation integration
+Final-C.3 status: Completed and accepted on 2026-08-26
+Final-C.3 accepted head: c8fc39d111d7b33ee4a375264c5a3c25030de185
 Final-C.3 record: docs/175-final-c-3-central-pricing-engine-and-public-pending-reservation-integration.md
-Final-C.4 status: Not started — Admin pricing-rule management
+Final-C.4 implementation base head: c8fc39d111d7b33ee4a375264c5a3c25030de185
+Final-C.4 status: In progress — Admin pricing-rule management
+Final-C.4 record: docs/176-final-c-4-admin-pricing-rule-management.md
 Final-C.5 status: Not started — DATE_CHANGE/STAY_EXTENSION pricing integration
 Final-C.6 status: Not started — Integrated regression and documentation closure
 Next package after Final-C closure: Final-D — Additional charges and guest payment requests — Not started
@@ -466,7 +469,7 @@ Final-C.5 DATE_CHANGE/STAY_EXTENSION pricing integration
 Final-C.6 Integrated regression and documentation closure
 ```
 
-Final-C.1 and Final-C.2 are completed and accepted. Final-C.2 was accepted at `2168262784b0a8213062b0d84ca9fe6069e98fc6`. Final-C.3 now makes the central pricing engine authoritative for public quote and pending-reservation creation/reuse; lifecycle repricing remains deferred to C.5.
+Final-C.1, Final-C.2 and Final-C.3 are completed and accepted. Final-C.3 was accepted at `c8fc39d111d7b33ee4a375264c5a3c25030de185`. Final-C.4 now adds protected admin management and preview for seasonal/LOS pricing; lifecycle repricing remains deferred to C.5.
 
 ## Included Pricing Types
 
@@ -1169,7 +1172,7 @@ Phase 13 still owns:
 Phase 12 — Completed and accepted
 Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
 Current package — Final-C pricing rules: seasonal and length-of-stay — In progress
-Current subphase — Final-C.3 Central pricing engine and public quote/pending-reservation integration — In progress
+Current subphase — Final-C.4 Admin pricing-rule management — In progress
 Final-C implementation base — e7ce19c49c5cfd45e1cc08796ee897a2dce0d1ed
 Final-C.1 accepted strategy head — 16d8b0411e573aaaa6b510ddb27a9b5d9c666478
 Final-C.1 record — docs/173-final-c-1-pricing-strategy-precedence-and-persistence-contract.md
@@ -1203,11 +1206,11 @@ Final-B.3 — Completed and accepted on 2026-08-25 at 84e3f5158e76527a82b2b66556
 Final-B.4 — Completed and accepted on 2026-08-25 at a3724f018449515363159ec9f23af892a21b24be
 Final-B.5 — Completed and accepted on 2026-08-25 at bc6b3db1bec219913164ef267fe5279b19f49a27
 Final-B.6 — Completed and accepted on 2026-08-25 at 1fe06de8c55ab1563999b2db1d210bfc9a82c613
-Final-C — In progress; Final-C.1 and Final-C.2 completed and accepted; Final-C.3 in progress
+Final-C — In progress; Final-C.1, Final-C.2 and Final-C.3 completed and accepted; Final-C.4 in progress
 Final-C.1 — Completed and accepted on 2026-08-25 at 16d8b0411e573aaaa6b510ddb27a9b5d9c666478
 Final-C.2 — Completed and accepted on 2026-08-26 at 2168262784b0a8213062b0d84ca9fe6069e98fc6
-Final-C.3 — In progress; central pricing engine and public quote/pending-reservation integration prepared for validation
-Final-C.4 — Not started
+Final-C.3 — Completed and accepted on 2026-08-26 at c8fc39d111d7b33ee4a375264c5a3c25030de185
+Final-C.4 — In progress; protected admin pricing-rule management prepared for validation
 Final-C.5 — Not started
 Final-C.6 — Not started
 Final-D — Not started

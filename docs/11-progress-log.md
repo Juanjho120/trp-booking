@@ -9,7 +9,7 @@ Current phase state: Phase 12 — Test Deployment & External Integration Validat
 Current numbered phase: none active
 Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
 Current package: Final-C — Pricing rules: seasonal and length-of-stay — In progress
-Current subphase: Final-C.3 — Central pricing engine and public quote/pending-reservation integration — In progress
+Current subphase: Final-C.4 — Admin pricing-rule management — In progress
 Final-C implementation base head: e7ce19c49c5cfd45e1cc08796ee897a2dce0d1ed
 Final-C.1 status: Completed and accepted on 2026-08-25
 Final-C.1 accepted strategy head: 16d8b0411e573aaaa6b510ddb27a9b5d9c666478
@@ -45,9 +45,13 @@ Final-B.4 record: docs/170-final-b-4-airbnb-inbound-configuration-and-operationa
 Final-B.5 record: docs/171-final-b-5-trp-outbound-copy-rotation-and-export-controls.md
 Final-B.6 record: docs/172-final-b-6-integrated-acceptance-regression-and-documentation-closure.md
 Final-C.3 implementation base head: 2168262784b0a8213062b0d84ca9fe6069e98fc6
-Final-C.3 status: In progress — central pricing engine and public quote/pending-reservation integration prepared for validation
+Final-C.3 status: Completed and accepted on 2026-08-26
+Final-C.3 accepted head: c8fc39d111d7b33ee4a375264c5a3c25030de185
 Final-C.3 record: docs/175-final-c-3-central-pricing-engine-and-public-pending-reservation-integration.md
-Next planned subphase after Final-C.3 acceptance: Final-C.4 — Admin pricing-rule management — Not started
+Final-C.4 implementation base head: c8fc39d111d7b33ee4a375264c5a3c25030de185
+Final-C.4 status: In progress — protected admin pricing-rule management prepared for validation
+Final-C.4 record: docs/176-final-c-4-admin-pricing-rule-management.md
+Next planned subphase after Final-C.4 acceptance: Final-C.5 — DATE_CHANGE/STAY_EXTENSION pricing integration — Not started
 Last completed package: Final-B — Admin external-calendar integrations — Completed and accepted on 2026-08-25 at 1fe06de8c55ab1563999b2db1d210bfc9a82c613
 Final-A.1 status: Completed and accepted on 2026-08-11
 Final-A.1 accepted head: 19531568752a44446d0802d6581262260b881aaf
@@ -74,7 +78,7 @@ Final-A.5 record: docs/165-final-a-5-admin-refund-ux-notification-and-operationa
 Final-A.6 record: docs/166-final-a-6-integrated-acceptance-and-documentation-closure.md
 Phase 13 status: Not started
 Last updated: 2026-08-26
-Last completed subphase: Final-C.2 Pricing persistence foundation and migration — completed and accepted on 2026-08-26 at 2168262784b0a8213062b0d84ca9fe6069e98fc6
+Last completed subphase: Final-C.3 Central pricing engine and public quote/pending-reservation integration — completed and accepted on 2026-08-26 at c8fc39d111d7b33ee4a375264c5a3c25030de185
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 11.6.5 acceptance: All 15 protected-history, ordering, relation, retry, ES/EN, responsive, security, and integrated criteria passed on 2026-08-05
 11.6.5 implementation and acceptance document: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md
@@ -141,7 +145,7 @@ Phase 12.9 acceptance closure: docs/158-phase-12.9-acceptance-closure.md
 Phase 12.10 status: Completed and accepted on 2026-08-11 — Phase 12 validation and closure
 Phase 12.10 validated repository head: ebe28579872cbc2414573ef852b15139a2501551
 Phase 12 closure record: docs/159-phase-12.10-phase-12-validation-and-closure.md
-Post-Phase-12 / Pre-Phase-13 Final Improvement Track: Active — Final-A and Final-B completed and accepted; Final-C is in progress at Final-C.3
+Post-Phase-12 / Pre-Phase-13 Final Improvement Track: Active — Final-A and Final-B completed and accepted; Final-C is in progress at Final-C.4
 Final-A status: Completed and accepted on 2026-08-12 at 66afbeacd6ee7d669cb4bc251c8416160fae3f49 — Reservation financial correctness and effective stay value
 Final-A.1 status: Completed and accepted on 2026-08-11 at 19531568752a44446d0802d6581262260b881aaf — Financial source-of-truth and refund-allocation contract
 Final-A.2 status: Completed and accepted on 2026-08-11 at 9f4e04068726451ca87614dd99b1f10656510825 — Central financial summary and cancellation-policy correction
@@ -176,8 +180,8 @@ Final-C.2 status: Completed and accepted on 2026-08-26 — Pricing persistence f
 Final-C.2 accepted head: 2168262784b0a8213062b0d84ca9fe6069e98fc6
 Final-C.2 implementation base head: 030dec0d8681de18db746b9aae882cadd54db966
 Final-C.2 record: docs/174-final-c-2-pricing-persistence-foundation-and-migration.md
-Final-C.3 status: In progress — Central pricing engine and public quote/pending-reservation integration
-Final-C.4 status: Not started — Admin pricing-rule management
+Final-C.3 status: Completed and accepted on 2026-08-26 at c8fc39d111d7b33ee4a375264c5a3c25030de185 — Central pricing engine and public quote/pending-reservation integration
+Final-C.4 status: In progress — Admin pricing-rule management
 Final-C.5 status: Not started — DATE_CHANGE/STAY_EXTENSION pricing integration
 Final-C.6 status: Not started — Integrated regression and documentation closure
 Final-D status: Not started — Additional charges and guest payment requests

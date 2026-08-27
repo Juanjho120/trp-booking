@@ -1961,12 +1961,135 @@ export const enMessages = {
         actions: {
           editContent: "Edit public content",
           managePhotos: "Manage photos",
+          managePricing: "Manage pricing",
           manageAmenitiesRules: "Assign amenities and rules",
           manageArrivalInstructions: "Configure arrival instructions",
         },
         notes: {
           readonlyBoundaries:
-            "Slug, status, price, currency, and composition are shown for reference and are not editable in this subphase.",
+            "Slug, status, base rate, currency, and composition are shown as reference values in this view. Seasonal and length-of-stay rules are managed from Manage pricing.",
+        },
+      },
+      pricing: {
+        seoTitle: "Accommodation pricing | Admin | Tu Refugio Perfecto",
+        badge: "Per-accommodation pricing",
+        title: "Manage pricing",
+        description:
+          "Configure seasonal and length-of-stay rates using the same precedence as the public quote.",
+        base: {
+          title: "Base rate",
+          description:
+            "The base rate is the final fallback when no seasonal or length-of-stay rate applies.",
+          label: "Base nightly price",
+        },
+        seasonal: {
+          title: "Seasonal rates",
+          description:
+            "Define date ranges with an absolute nightly rate. Active ranges for the same accommodation cannot overlap.",
+          empty: "This accommodation has no seasonal rates configured.",
+          deletedTitle: "Deleted seasonal rates",
+          restoreNote:
+            "A restored seasonal rate returns disabled. Review it and enable it manually when appropriate.",
+          createTitle: "Create seasonal rate",
+          editTitle: "Edit seasonal rate",
+          formDescription:
+            "The start date is inclusive and the end date is exclusive for charged nights.",
+        },
+        los: {
+          title: "Length-of-stay rates",
+          description:
+            "Configure an absolute nightly rate for each supported threshold. The highest configured eligible threshold is used for the stay.",
+          tierSuffix: "+ nights",
+        },
+        preview: {
+          title: "Pricing preview",
+          description:
+            "Test a date range without creating a reservation. The preview uses the same central pricing engine as the public quote.",
+          nights: "Nights",
+          uniformRate: "Nightly rate",
+          mixedRate: "Mixed rate",
+          subtotal: "Subtotal",
+          sources: {
+            BASE: "Base rate",
+            LENGTH_OF_STAY: "Length of stay",
+            SEASONAL: "Seasonal rate",
+          },
+        },
+        labels: {
+          name: "Internal name",
+          startDate: "Start date",
+          endDate: "End date",
+          nightlyRate: "Nightly rate",
+          minimumNights: "Threshold",
+          checkInDate: "Check-in date",
+          checkOutDate: "Check-out date",
+        },
+        placeholders: {
+          name: "E.g. Holiday season",
+          date: "YYYY-MM-DD",
+          nightlyRate: "E.g. 125.00",
+        },
+        states: {
+          enabled: "Enabled",
+          disabled: "Disabled",
+          notConfigured: "Not configured",
+        },
+        actions: {
+          backToAccommodations: "Back to accommodations",
+          createSeasonal: "Create seasonal rate",
+          edit: "Edit",
+          enable: "Enable",
+          disable: "Disable",
+          delete: "Delete",
+          restore: "Restore",
+          saveTier: "Save rate",
+          saveSeasonal: "Save seasonal rate",
+          saving: "Saving...",
+          cancel: "Cancel",
+          confirmDelete: "Delete rate",
+          preview: "Calculate preview",
+          previewing: "Calculating...",
+          closeNotification: "Close notification",
+        },
+        deleteDialog: {
+          title: "Delete seasonal rate",
+          description:
+            "The rate will stop participating in new quotes. The record is preserved for audit history and can be restored later.",
+        },
+        success: {
+          seasonalCreated: "The seasonal rate was created successfully.",
+          seasonalUpdated: "The seasonal rate was updated successfully.",
+          seasonalEnabled: "The seasonal rate is now enabled.",
+          seasonalDisabled: "The seasonal rate is now disabled.",
+          seasonalDeleted: "The seasonal rate was removed from active pricing.",
+          seasonalRestored:
+            "The seasonal rate was restored disabled for review.",
+          losSaved: "The length-of-stay rate was saved successfully.",
+          losEnabled: "The length-of-stay rate is now enabled.",
+          losDisabled: "The length-of-stay rate is now disabled.",
+        },
+        errors: {
+          ADMIN_UNAUTHORIZED: "Your session is not authorized for admin access.",
+          ADMIN_PRICING_ORIGIN_INVALID:
+            "We could not validate the origin of this admin operation.",
+          INVALID_ADMIN_PRICING_REQUEST:
+            "Review the dates, name, and rate before saving.",
+          ADMIN_PRICING_PROPERTY_NOT_FOUND:
+            "We could not find the requested accommodation.",
+          ADMIN_PRICING_RULE_NOT_FOUND:
+            "We could not find the selected pricing rule.",
+          ADMIN_PRICING_RULE_STALE:
+            "The pricing rule changed after you opened this page. Reload before saving again.",
+          ADMIN_PRICING_SEASONAL_OVERLAP:
+            "The range overlaps another active seasonal rate for this accommodation.",
+          ADMIN_PRICING_LOS_TIER_INVALID:
+            "The selected nights threshold is not supported.",
+          ADMIN_PRICING_CONFLICT:
+            "Another pricing update happened at the same time. Reload and try again.",
+          ADMIN_PRICING_CONFIGURATION_INVALID:
+            "The pricing configuration contains invalid data. Review it before continuing.",
+          ADMIN_PRICING_UNEXPECTED_ERROR:
+            "We could not update pricing. Try again.",
         },
       },
       content: {

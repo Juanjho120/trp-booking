@@ -7,14 +7,16 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-C — Pricing rules: seasonal and length-of-stay
 Subphase: Final-C.3 — Central pricing engine and public quote/pending-reservation integration
-Status: In progress — implementation prepared for validation
+Status: Completed and accepted on 2026-08-26
 Preparation date: 2026-08-26
+Acceptance date: 2026-08-26
+Accepted implementation head: c8fc39d111d7b33ee4a375264c5a3c25030de185
 Implementation base head: 2168262784b0a8213062b0d84ca9fe6069e98fc6
 Previous subphase: Final-C.2 — Completed and accepted on 2026-08-26
 Final-C.2 accepted head: 2168262784b0a8213062b0d84ca9fe6069e98fc6
 Authoritative strategy: docs/173-final-c-1-pricing-strategy-precedence-and-persistence-contract.md
 Persistence foundation: docs/174-final-c-2-pricing-persistence-foundation-and-migration.md
-Next planned subphase after acceptance: Final-C.4 — Admin pricing-rule management
+Next subphase: Final-C.4 — Admin pricing-rule management — In progress
 Phase 13: Not started
 ```
 
@@ -246,6 +248,6 @@ npm run build
 git diff --check
 ```
 
-C.3 remains **In progress** until this gate is green and the owner accepts the implementation.
+C.3 is **Completed and accepted** after the full repository gate passed on 2026-08-26 and the owner advanced the track from accepted implementation head `c8fc39d111d7b33ee4a375264c5a3c25030de185`.
 
-After acceptance, Final-C.4 becomes the next subphase. Phase 13 remains **Not started**.
+Final-C.4 is the active subphase. Phase 13 remains **Not started**.

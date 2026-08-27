@@ -4,6 +4,7 @@ import Link from "next/link";
 import {
   BedDouble,
   Clock3,
+  DollarSign,
   FilePenLine,
   Images,
   ListChecks,
@@ -153,6 +154,14 @@ export function AdminAccommodationManagement({
                       <Link href={`/admin/accommodations/${property.id}`}>
                         <FilePenLine aria-hidden="true" />
                         {copy.overview.actions.editContent}
+                      </Link>
+                    </Button>
+                    <Button asChild className="w-full" variant="outline">
+                      <Link
+                        href={`/admin/accommodations/${property.id}/pricing`}
+                      >
+                        <DollarSign aria-hidden="true" />
+                        {copy.overview.actions.managePricing}
                       </Link>
                     </Button>
                     <Button asChild className="w-full" variant="outline">
