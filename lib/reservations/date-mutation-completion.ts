@@ -25,9 +25,14 @@ import {
   getArrivalInstructionsScheduledFor,
 } from "@/lib/email";
 import { normalizeTimeOfDay } from "@/lib/email/time-of-day";
+import {
+  parseFinalCPricingSnapshot,
+  pricingSnapshotsEqual,
+} from "@/lib/pricing/lifecycle";
 import { isAdminAccommodationId } from "@/lib/admin/accommodations";
 import type { AccommodationId, PreparationBufferPolicy } from "@/types/accommodation";
 import type { AdminDateMutationErrorCode } from "@/types/admin-reservation-date-mutation";
+import type { FinalCPricingSnapshot } from "@/types/pricing";
 import {
   ARRIVAL_INSTRUCTIONS_MAX_LEAD_TIME_HOURS,
   ARRIVAL_INSTRUCTIONS_MIN_LEAD_TIME_HOURS,
@@ -97,6 +102,7 @@ const completionRequestSelect = {
   requestedTaxes: true,
   requestedDiscounts: true,
   requestedTotal: true,
+  requestedPricingSnapshot: true,
   createdByAdminId: true,
   reviewedByAdminId: true,
   reviewedByAdmin: {
@@ -122,6 +128,7 @@ const completionRequestSelect = {
       discounts: true,
       total: true,
       currency: true,
+      pricingSnapshot: true,
       updatedAt: true,
       property: {
         select: {
@@ -194,6 +201,7 @@ type RequestedSnapshot = Readonly<{
   taxes: Prisma.Decimal;
   discounts: Prisma.Decimal;
   total: Prisma.Decimal;
+  pricingSnapshot: FinalCPricingSnapshot;
 }>;
 
 type PositiveArtifacts = Readonly<{
@@ -285,6 +293,16 @@ function requiredGuestCount(value: number | null): number {
 }
 
 function requestedSnapshot(request: CompletionRequest): RequestedSnapshot {
+  const pricingSnapshot = parseFinalCPricingSnapshot(
+    request.requestedPricingSnapshot,
+  );
+
+  if (!pricingSnapshot) {
+    throw new ReservationDateMutationCompletionError(
+      "ADMIN_DATE_MUTATION_COMPLETION_NOT_READY",
+    );
+  }
+
   return {
     checkInDate: requiredDate(request.requestedCheckInDate),
     checkOutDate: requiredDate(request.requestedCheckOutDate),
@@ -294,6 +312,7 @@ function requestedSnapshot(request: CompletionRequest): RequestedSnapshot {
     taxes: requiredDecimal(request.requestedTaxes),
     discounts: requiredDecimal(request.requestedDiscounts),
     total: requiredDecimal(request.requestedTotal),
+    pricingSnapshot,
   };
 }
 
@@ -352,7 +371,11 @@ function reservationMatchesSnapshot(
     decimalEquals(reservation.taxes, snapshot.taxes) &&
     decimalEquals(reservation.discounts, snapshot.discounts) &&
     decimalEquals(reservation.total, snapshot.total) &&
-    reservation.currency === request.currency
+    reservation.currency === request.currency &&
+    pricingSnapshotsEqual(
+      reservation.pricingSnapshot,
+      snapshot.pricingSnapshot,
+    )
   );
 }
 
@@ -843,6 +866,7 @@ async function completeRequestInTransaction(
       taxes: snapshot.taxes,
       discounts: snapshot.discounts,
       total: snapshot.total,
+      pricingSnapshot: snapshot.pricingSnapshot as Prisma.InputJsonValue,
     },
   });
 
@@ -978,6 +1002,8 @@ async function completeRequestInTransaction(
         financialDifference: difference.toFixed(2),
         financialBranch: branch,
         currency: request.currency,
+        pricingSnapshotVersion: snapshot.pricingSnapshot.version,
+        pricingSnapshotSegmentCount: snapshot.pricingSnapshot.segments.length,
         paymentId: positiveArtifacts?.paymentId ?? null,
         holdId: positiveArtifacts?.holdId ?? null,
         reservationStatus: ReservationStatus.CONFIRMED,

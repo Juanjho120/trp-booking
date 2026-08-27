@@ -21,7 +21,7 @@ The stable test domain is:
 trp-booking.juantzun.dev
 ```
 
-As of 2026-08-27, Phase 12 — Test Deployment & External Integration Validation — is completed and accepted. The stable HTTPS Test deployment at `trp-booking.juantzun.dev` remains `TRP_ENVIRONMENT=test` on the developer-owned stack with zero Vercel scheduler registrations. The Post-Phase-12 / Pre-Phase-13 Final Improvement Track is active: Final-A — reservation financial correctness and effective stay value — is completed and accepted, including its 44/44 integrated regression gate; Final-B — admin external-calendar integrations — is completed and accepted at `1fe06de8c55ab1563999b2db1d210bfc9a82c613`, including its permanent 38/38 regression gate and controlled three-property Hosted Test acceptance. Final-C — pricing rules: seasonal and length-of-stay — is **In progress**; Final-C.1 — pricing strategy, precedence and persistence contract — is completed and accepted at `16d8b0411e573aaaa6b510ddb27a9b5d9c666478`, and Final-C.2 — pricing persistence foundation and migration — is completed and accepted at `2168262784b0a8213062b0d84ca9fe6069e98fc6`; Final-C.3 — central pricing engine and public quote/pending-reservation integration — is completed and accepted at `c8fc39d111d7b33ee4a375264c5a3c25030de185`; Final-C.4 — admin pricing-rule management — is now **In progress** from that accepted C.3 head. Phase 13 — Production Infrastructure, Deployment & Go-Live — remains **Not started** until Final-H closes and the owner explicitly accepts the improvement track.
+As of 2026-08-27, Phase 12 — Test Deployment & External Integration Validation — is completed and accepted. The stable HTTPS Test deployment at `trp-booking.juantzun.dev` remains `TRP_ENVIRONMENT=test` on the developer-owned stack with zero Vercel scheduler registrations. The Post-Phase-12 / Pre-Phase-13 Final Improvement Track is active: Final-A — reservation financial correctness and effective stay value — is completed and accepted, including its 44/44 integrated regression gate; Final-B — admin external-calendar integrations — is completed and accepted at `1fe06de8c55ab1563999b2db1d210bfc9a82c613`, including its permanent 38/38 regression gate and controlled three-property Hosted Test acceptance. Final-C — pricing rules: seasonal and length-of-stay — is **In progress**; Final-C.1 — pricing strategy, precedence and persistence contract — is completed and accepted at `16d8b0411e573aaaa6b510ddb27a9b5d9c666478`, and Final-C.2 — pricing persistence foundation and migration — is completed and accepted at `2168262784b0a8213062b0d84ca9fe6069e98fc6`; Final-C.3 — central pricing engine and public quote/pending-reservation integration — is completed and accepted at `c8fc39d111d7b33ee4a375264c5a3c25030de185`; Final-C.4 — admin pricing-rule management — is completed and accepted at `0a57b9772da55a78e8d445dc06ea2b738b412f11`; Final-C.5 — DATE_CHANGE/STAY_EXTENSION pricing integration — is now **In progress** from that accepted C.4 head. Phase 13 — Production Infrastructure, Deployment & Go-Live — remains **Not started** until Final-H closes and the owner explicitly accepts the improvement track.
 
 ## Environment Strategy
 
@@ -488,7 +488,7 @@ Current phase state: Phase 12 — Test Deployment & External Integration Validat
 Current numbered phase: none active
 Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
 Current package: Final-C — Pricing rules: seasonal and length-of-stay — In progress
-Current subphase: Final-C.4 — Admin pricing-rule management — In progress
+Current subphase: Final-C.5 — DATE_CHANGE/STAY_EXTENSION pricing integration — In progress
 Final-C implementation base head: e7ce19c49c5cfd45e1cc08796ee897a2dce0d1ed
 Final-C.1 status: Completed and accepted on 2026-08-25
 Final-C.1 accepted strategy head: 16d8b0411e573aaaa6b510ddb27a9b5d9c666478
@@ -528,9 +528,13 @@ Final-C.3 status: Completed and accepted on 2026-08-26
 Final-C.3 accepted head: c8fc39d111d7b33ee4a375264c5a3c25030de185
 Final-C.3 record: docs/175-final-c-3-central-pricing-engine-and-public-pending-reservation-integration.md
 Final-C.4 implementation base head: c8fc39d111d7b33ee4a375264c5a3c25030de185
-Final-C.4 status: In progress — protected admin pricing-rule management prepared for validation
+Final-C.4 status: Completed and accepted on 2026-08-27
+Final-C.4 accepted head: 0a57b9772da55a78e8d445dc06ea2b738b412f11
 Final-C.4 record: docs/176-final-c-4-admin-pricing-rule-management.md
-Next planned subphase after Final-C.4 acceptance: Final-C.5 — DATE_CHANGE/STAY_EXTENSION pricing integration — Not started
+Final-C.5 implementation base head: 0a57b9772da55a78e8d445dc06ea2b738b412f11
+Final-C.5 status: In progress — central lifecycle pricing integration prepared for validation
+Final-C.5 record: docs/177-final-c-5-date-change-stay-extension-pricing-integration.md
+Next planned subphase after Final-C.5 acceptance: Final-C.6 — Integrated regression and documentation closure — Not started
 Last completed package: Final-B — Admin external-calendar integrations — Completed and accepted on 2026-08-25 at 1fe06de8c55ab1563999b2db1d210bfc9a82c613
 Final-A.1 status: Completed and accepted on 2026-08-11
 Final-A.1 accepted head: 19531568752a44446d0802d6581262260b881aaf

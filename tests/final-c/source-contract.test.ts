@@ -63,10 +63,40 @@ test("public pricing response type contains no pricing rule identifiers", () => 
   assert.doesNotMatch(quoteType, /pricingSnapshot/);
 });
 
-test("Final-C.3 does not integrate lifecycle repricing early", () => {
-  const packageJson = source("package.json");
-  const pricing = source("lib/reservations/pricing.ts");
+test("Final-C.5 routes lifecycle date mutations through the central pricing contract", () => {
+  const lifecyclePricing = source("lib/pricing/lifecycle.ts");
+  const dateMutation = source("lib/admin/reservation-date-mutation.ts");
 
-  assert.match(packageJson, /final-c:validate/);
-  assert.doesNotMatch(pricing, /DATE_CHANGE|STAY_EXTENSION/);
+  assert.match(lifecyclePricing, /resolvePropertyStayPricing/);
+  assert.match(dateMutation, /resolveLifecyclePricing/);
+  assert.doesNotMatch(dateMutation, /baseNightlyPrice/);
+  assert.match(dateMutation, /originalPricingSnapshot/);
+  assert.match(dateMutation, /requestedPricingSnapshot/);
+});
+
+test("STAY_EXTENSION resolves only added nights with resulting-stay LOS context", () => {
+  const lifecyclePricing = source("lib/pricing/lifecycle.ts");
+
+  assert.match(lifecyclePricing, /checkInDate: input\.originalCheckOutDate/);
+  assert.match(lifecyclePricing, /stayLengthContextNights: requestedNights/);
+  assert.match(lifecyclePricing, /PRESERVED_LEGACY_STAY/);
+  assert.match(lifecyclePricing, /acceptedSnapshot\?\.segments/);
+});
+
+test("all lifecycle completion branches promote requested pricing evidence to Reservation", () => {
+  const positiveZeroCompletion = source(
+    "lib/reservations/date-mutation-completion.ts",
+  );
+  const negativeCompletion = source(
+    "lib/reservations/negative-date-mutation-completion.ts",
+  );
+
+  for (const completion of [positiveZeroCompletion, negativeCompletion]) {
+    assert.match(completion, /requestedPricingSnapshot: true/);
+    assert.match(
+      completion,
+      /pricingSnapshot: snapshot\.pricingSnapshot as Prisma\.InputJsonValue/,
+    );
+    assert.match(completion, /pricingSnapshotsEqual/);
+  }
 });

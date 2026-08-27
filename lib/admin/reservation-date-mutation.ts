@@ -1,3 +1,4 @@
+
 import {
   LifecycleRequestHoldStatus,
   PaymentProvider,
@@ -28,6 +29,10 @@ import { prisma } from "@/lib/db/prisma";
 import { getArrivalCheckInDateTime } from "@/lib/email";
 import { normalizeTimeOfDay } from "@/lib/email/time-of-day";
 import { createLifecycleAdjustmentHandoffToken } from "@/lib/payments/lifecycle-adjustment-handoff";
+import {
+  LifecyclePricingError,
+  resolveLifecyclePricing,
+} from "@/lib/pricing/lifecycle";
 import {
   buildLifecycleAdjustmentHoldExpiresAt,
   expireLifecycleAdjustmentRequestIfNeeded,
@@ -72,7 +77,6 @@ const DATE_MUTATION_TRANSACTION_TIMEOUT_MS = 20_000;
 const DATE_MUTATION_TRANSACTION_RETRY_DELAY_MS = 75;
 const GUATEMALA_UTC_OFFSET_HOURS = 6;
 const MILLISECONDS_PER_HOUR = 60 * 60 * 1_000;
-const MILLISECONDS_PER_DAY = 24 * MILLISECONDS_PER_HOUR;
 const PENDING_REVIEW_EXPIRED_FAILURE_CODE =
   "LIFECYCLE_PENDING_REVIEW_EXPIRED";
 
@@ -251,6 +255,7 @@ const reservationForDateMutationSelect = {
   discounts: true,
   total: true,
   currency: true,
+  pricingSnapshot: true,
   confirmedAt: true,
   cancelledAt: true,
   updatedAt: true,
@@ -259,7 +264,6 @@ const reservationForDateMutationSelect = {
       id: true,
       status: true,
       deletedAt: true,
-      baseNightlyPrice: true,
       currency: true,
       checkInTime: true,
       checkOutTime: true,
@@ -311,6 +315,8 @@ type DateMutationQuote = Readonly<{
   requestedDiscounts: Prisma.Decimal;
   requestedTotal: Prisma.Decimal;
   financialDifference: Prisma.Decimal;
+  originalPricingSnapshot: Prisma.JsonValue | null;
+  requestedPricingSnapshot: Prisma.InputJsonValue;
 }>;
 
 export class AdminReservationDateMutationError extends Error {
@@ -674,21 +680,6 @@ function toGuatemalaDateTime(
   );
 }
 
-function countNights(startDate: DateOnlyString, endDate: DateOnlyString): number {
-  const nights =
-    (dateOnlyToUtcDate(endDate).getTime() -
-      dateOnlyToUtcDate(startDate).getTime()) /
-    MILLISECONDS_PER_DAY;
-
-  if (!Number.isInteger(nights) || nights <= 0) {
-    throw new AdminReservationDateMutationError(
-      "INVALID_ADMIN_DATE_MUTATION_REQUEST",
-    );
-  }
-
-  return nights;
-}
-
 function assertReservationEligible(
   reservation: ReservationForDateMutation,
   input: NormalizedCreateInput,
@@ -795,63 +786,114 @@ function assertReservationEligible(
   }
 }
 
-function calculateDateMutationQuote(
-  reservation: ReservationForDateMutation,
-  input: NormalizedCreateInput,
-): DateMutationQuote {
-  const nightlyPrice = reservation.property.baseNightlyPrice;
+function moneyDecimalToCents(value: Prisma.Decimal): number {
+  const normalized = value.toFixed(2);
+  const match = /^(\d+)\.(\d{2})$/.exec(normalized);
 
-  if (input.requestType === "DATE_CHANGE") {
-    const requestedNights = countNights(
-      input.requestedCheckInDate,
-      input.requestedCheckOutDate,
+  if (!match || !value.equals(new Prisma.Decimal(normalized))) {
+    throw new AdminReservationDateMutationError(
+      "ADMIN_DATE_MUTATION_UNEXPECTED_ERROR",
     );
-    const requestedSubtotal = nightlyPrice
-      .mul(requestedNights)
-      .toDecimalPlaces(2);
-    const requestedCleaningFee = new Prisma.Decimal(0);
-    const requestedTaxes = new Prisma.Decimal(0);
-    const requestedDiscounts = new Prisma.Decimal(0);
-    const requestedTotal = requestedSubtotal
-      .add(requestedCleaningFee)
-      .add(requestedTaxes)
-      .sub(requestedDiscounts)
-      .toDecimalPlaces(2);
-
-    return {
-      pricingMode: "FULL_STAY_CURRENT_PRICE",
-      requestedSubtotal,
-      requestedCleaningFee,
-      requestedTaxes,
-      requestedDiscounts,
-      requestedTotal,
-      financialDifference: requestedTotal
-        .sub(reservation.total)
-        .toDecimalPlaces(2),
-    };
   }
 
-  const originalCheckOutDate = dateOnlyFromDate(reservation.checkOutDate);
-  const addedNights = countNights(
-    originalCheckOutDate,
-    input.requestedCheckOutDate,
+  const cents = Number(match[1]) * 100 + Number(match[2]);
+
+  if (!Number.isSafeInteger(cents) || cents < 0) {
+    throw new AdminReservationDateMutationError(
+      "ADMIN_DATE_MUTATION_UNEXPECTED_ERROR",
+    );
+  }
+
+  return cents;
+}
+
+function moneyCentsToDecimal(cents: number): Prisma.Decimal {
+  if (!Number.isSafeInteger(cents) || cents < 0) {
+    throw new AdminReservationDateMutationError(
+      "ADMIN_DATE_MUTATION_UNEXPECTED_ERROR",
+    );
+  }
+
+  return new Prisma.Decimal(cents).div(100).toDecimalPlaces(2);
+}
+
+function pricingSnapshotSegmentCount(snapshot: Prisma.InputJsonValue): number {
+  if (
+    typeof snapshot === "object" &&
+    snapshot !== null &&
+    !Array.isArray(snapshot) &&
+    Array.isArray(snapshot.segments)
+  ) {
+    return snapshot.segments.length;
+  }
+
+  return 0;
+}
+
+async function calculateDateMutationQuote(
+  transaction: Prisma.TransactionClient,
+  reservation: ReservationForDateMutation,
+  input: NormalizedCreateInput,
+): Promise<DateMutationQuote> {
+  let pricing;
+
+  try {
+    pricing = await resolveLifecyclePricing(
+      {
+        requestType: input.requestType,
+        propertyId: reservation.propertyId,
+        originalCheckInDate: dateOnlyFromDate(reservation.checkInDate),
+        originalCheckOutDate: dateOnlyFromDate(reservation.checkOutDate),
+        requestedCheckInDate: input.requestedCheckInDate,
+        requestedCheckOutDate: input.requestedCheckOutDate,
+        originalSubtotalCents: moneyDecimalToCents(reservation.subtotal),
+        originalTotalCents: moneyDecimalToCents(reservation.total),
+        originalPricingSnapshot: reservation.pricingSnapshot,
+      },
+      { prismaClient: transaction },
+    );
+  } catch (error) {
+    if (error instanceof LifecyclePricingError) {
+      throw new AdminReservationDateMutationError(
+        error.code === "LIFECYCLE_PRICING_PROPERTY_NOT_FOUND"
+          ? "ADMIN_DATE_MUTATION_PROPERTY_NOT_ELIGIBLE"
+          : "ADMIN_DATE_MUTATION_UNEXPECTED_ERROR",
+      );
+    }
+
+    throw error;
+  }
+
+  const requestedSubtotal = moneyCentsToDecimal(
+    pricing.requestedSubtotalCents,
   );
-  const addedNightsSubtotal = nightlyPrice
-    .mul(addedNights)
-    .toDecimalPlaces(2);
+  const requestedTotal = moneyCentsToDecimal(pricing.requestedTotalCents);
+  const requestedCleaningFee =
+    input.requestType === "DATE_CHANGE"
+      ? new Prisma.Decimal(0)
+      : reservation.cleaningFee;
+  const requestedTaxes =
+    input.requestType === "DATE_CHANGE"
+      ? new Prisma.Decimal(0)
+      : reservation.taxes;
+  const requestedDiscounts =
+    input.requestType === "DATE_CHANGE"
+      ? new Prisma.Decimal(0)
+      : reservation.discounts;
 
   return {
-    pricingMode: "ADDED_NIGHTS_CURRENT_PRICE",
-    requestedSubtotal: reservation.subtotal
-      .add(addedNightsSubtotal)
+    pricingMode: pricingModeForRequestType(input.requestType),
+    requestedSubtotal,
+    requestedCleaningFee,
+    requestedTaxes,
+    requestedDiscounts,
+    requestedTotal,
+    financialDifference: requestedTotal
+      .sub(reservation.total)
       .toDecimalPlaces(2),
-    requestedCleaningFee: reservation.cleaningFee,
-    requestedTaxes: reservation.taxes,
-    requestedDiscounts: reservation.discounts,
-    requestedTotal: reservation.total
-      .add(addedNightsSubtotal)
-      .toDecimalPlaces(2),
-    financialDifference: addedNightsSubtotal,
+    originalPricingSnapshot: reservation.pricingSnapshot,
+    requestedPricingSnapshot:
+      pricing.requestedPricingSnapshot as Prisma.InputJsonValue,
   };
 }
 
@@ -1113,7 +1155,11 @@ async function createDateMutationRequestTransaction(
         );
       }
 
-      const quote = calculateDateMutationQuote(reservation, input);
+      const quote = await calculateDateMutationQuote(
+        transaction,
+        reservation,
+        input,
+      );
       const sourcePayment = reservation.payments[0];
 
       if (!sourcePayment) {
@@ -1153,6 +1199,12 @@ async function createDateMutationRequestTransaction(
           originalTaxes: reservation.taxes,
           originalDiscounts: reservation.discounts,
           originalTotal: reservation.total,
+          ...(quote.originalPricingSnapshot === null
+            ? {}
+            : {
+                originalPricingSnapshot:
+                  quote.originalPricingSnapshot as Prisma.InputJsonValue,
+              }),
           currency: reservation.currency,
           requestedCheckInDate: dateOnlyToUtcDate(
             input.requestedCheckInDate,
@@ -1166,6 +1218,7 @@ async function createDateMutationRequestTransaction(
           requestedTaxes: quote.requestedTaxes,
           requestedDiscounts: quote.requestedDiscounts,
           requestedTotal: quote.requestedTotal,
+          requestedPricingSnapshot: quote.requestedPricingSnapshot,
           financialDifference: quote.financialDifference,
           createdByAdminId: adminActor.id,
           expectedReservationUpdatedAt: reservation.updatedAt,
@@ -1203,6 +1256,11 @@ async function createDateMutationRequestTransaction(
             financialDifference: quote.financialDifference.toFixed(2),
             currency: reservation.currency,
             pricingMode: quote.pricingMode,
+            originalPricingSnapshotPresent:
+              quote.originalPricingSnapshot !== null,
+            requestedPricingSnapshotVersion: "FINAL_C_V1",
+            requestedPricingSnapshotSegmentCount:
+              pricingSnapshotSegmentCount(quote.requestedPricingSnapshot),
             availabilityValidatedAt: now.toISOString(),
             availabilityAffectedAccommodationIds:
               availability.affectedAccommodationIds,

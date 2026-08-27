@@ -7,9 +7,11 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-C — Pricing rules: seasonal and length-of-stay
 Subphase: Final-C.4 — Admin pricing-rule management
-Status: In progress — implementation prepared for validation
+Status: Completed and accepted
 Preparation date: 2026-08-27
+Acceptance date: 2026-08-27
 Implementation base head: c8fc39d111d7b33ee4a375264c5a3c25030de185
+Accepted head: 0a57b9772da55a78e8d445dc06ea2b738b412f11
 Previous subphase: Final-C.3 — Completed and accepted on 2026-08-26
 Final-C.3 accepted head: c8fc39d111d7b33ee4a375264c5a3c25030de185
 Authoritative strategy: docs/173-final-c-1-pricing-strategy-precedence-and-persistence-contract.md
@@ -323,6 +325,6 @@ preview base-only, LOS and seasonal/mixed ranges
 avoid cross-Property pricing contamination
 ```
 
-Final-C.4 remains **In progress** until the repository gate and controlled admin acceptance are green.
+Final-C.4 is **Completed and accepted** on 2026-08-27 at `0a57b9772da55a78e8d445dc06ea2b738b412f11`. The owner confirmed the implementation worked without errors and explicitly advanced the track to Final-C.5.
 
-After acceptance, Final-C.5 becomes the next subphase. Phase 13 remains **Not started**.
+Final-C.5 is the active subphase. Phase 13 remains **Not started**.

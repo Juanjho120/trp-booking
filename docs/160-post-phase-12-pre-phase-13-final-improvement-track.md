@@ -5,7 +5,7 @@
 ```text
 Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
-Status: Active — Final-A and Final-B completed and accepted; Final-C is in progress at Final-C.4
+Status: Active — Final-A and Final-B completed and accepted; Final-C is in progress at Final-C.5
 Registration date: 2026-08-11
 Registration base head: dac105088d2c46be05a900abed3dfe83e608e964
 Previous gate: Phase 12 — Completed and accepted
@@ -271,7 +271,7 @@ Final-B.3 authoritative record: docs/169-final-b-3-admin-external-calendar-read-
 Final-B.4 authoritative record: docs/170-final-b-4-airbnb-inbound-configuration-and-operational-actions.md
 Final-B.5 authoritative record: docs/171-final-b-5-trp-outbound-copy-rotation-and-export-controls.md
 Final-B.6 authoritative record: docs/172-final-b-6-integrated-acceptance-regression-and-documentation-closure.md
-Following package: Final-C — Pricing rules: seasonal and length-of-stay — In progress at Final-C.4
+Following package: Final-C — Pricing rules: seasonal and length-of-stay — In progress at Final-C.5
 Phase 13: Not started
 ```
 
@@ -432,7 +432,7 @@ explicitly re-accepting the strategy.
 ```text
 Package: Final-C — In progress
 Implementation base head: e7ce19c49c5cfd45e1cc08796ee897a2dce0d1ed
-Current subphase: Final-C.4 — Admin pricing-rule management — In progress
+Current subphase: Final-C.5 — DATE_CHANGE/STAY_EXTENSION pricing integration — In progress
 Final-C.1 status: Completed and accepted on 2026-08-25
 Final-C.1 accepted strategy head: 16d8b0411e573aaaa6b510ddb27a9b5d9c666478
 Final-C.1 record: docs/173-final-c-1-pricing-strategy-precedence-and-persistence-contract.md
@@ -445,9 +445,12 @@ Final-C.3 status: Completed and accepted on 2026-08-26
 Final-C.3 accepted head: c8fc39d111d7b33ee4a375264c5a3c25030de185
 Final-C.3 record: docs/175-final-c-3-central-pricing-engine-and-public-pending-reservation-integration.md
 Final-C.4 implementation base head: c8fc39d111d7b33ee4a375264c5a3c25030de185
-Final-C.4 status: In progress — Admin pricing-rule management
+Final-C.4 status: Completed and accepted on 2026-08-27
+Final-C.4 accepted head: 0a57b9772da55a78e8d445dc06ea2b738b412f11
 Final-C.4 record: docs/176-final-c-4-admin-pricing-rule-management.md
-Final-C.5 status: Not started — DATE_CHANGE/STAY_EXTENSION pricing integration
+Final-C.5 implementation base head: 0a57b9772da55a78e8d445dc06ea2b738b412f11
+Final-C.5 status: In progress — central lifecycle pricing integration prepared for validation
+Final-C.5 record: docs/177-final-c-5-date-change-stay-extension-pricing-integration.md
 Final-C.6 status: Not started — Integrated regression and documentation closure
 Next package after Final-C closure: Final-D — Additional charges and guest payment requests — Not started
 Phase 13: Not started
@@ -469,7 +472,7 @@ Final-C.5 DATE_CHANGE/STAY_EXTENSION pricing integration
 Final-C.6 Integrated regression and documentation closure
 ```
 
-Final-C.1, Final-C.2 and Final-C.3 are completed and accepted. Final-C.3 was accepted at `c8fc39d111d7b33ee4a375264c5a3c25030de185`. Final-C.4 now adds protected admin management and preview for seasonal/LOS pricing; lifecycle repricing remains deferred to C.5.
+Final-C.1 through Final-C.4 are completed and accepted. Final-C.4 was accepted at `0a57b9772da55a78e8d445dc06ea2b738b412f11`. Final-C.5 now routes DATE_CHANGE and STAY_EXTENSION pricing through the central Final-C pricing contract while preserving accepted lifecycle financial branches and immutable pricing evidence.
 
 ## Included Pricing Types
 
@@ -1172,7 +1175,7 @@ Phase 13 still owns:
 Phase 12 — Completed and accepted
 Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
 Current package — Final-C pricing rules: seasonal and length-of-stay — In progress
-Current subphase — Final-C.4 Admin pricing-rule management — In progress
+Current subphase — Final-C.5 DATE_CHANGE/STAY_EXTENSION pricing integration — In progress
 Final-C implementation base — e7ce19c49c5cfd45e1cc08796ee897a2dce0d1ed
 Final-C.1 accepted strategy head — 16d8b0411e573aaaa6b510ddb27a9b5d9c666478
 Final-C.1 record — docs/173-final-c-1-pricing-strategy-precedence-and-persistence-contract.md
@@ -1197,7 +1200,7 @@ Final-B.4 record — docs/170-final-b-4-airbnb-inbound-configuration-and-operati
 Final-B.5 record — docs/171-final-b-5-trp-outbound-copy-rotation-and-export-controls.md
 Final-B.6 record — docs/172-final-b-6-integrated-acceptance-regression-and-documentation-closure.md
 Last completed package — Final-B admin external-calendar integrations
-Last completed subphase — Final-C.2 pricing persistence foundation and migration — completed and accepted on 2026-08-26 at 2168262784b0a8213062b0d84ca9fe6069e98fc6
+Last completed subphase — Final-C.4 admin pricing-rule management — completed and accepted on 2026-08-27 at 0a57b9772da55a78e8d445dc06ea2b738b412f11
 Final-A — Completed and accepted on 2026-08-12 at 66afbeacd6ee7d669cb4bc251c8416160fae3f49
 Final-B — Completed and accepted on 2026-08-25 at 1fe06de8c55ab1563999b2db1d210bfc9a82c613
 Final-B.1 — Completed and accepted on 2026-08-14 at 2627161d5b3960995be0f517682f84272431c291
@@ -1206,12 +1209,12 @@ Final-B.3 — Completed and accepted on 2026-08-25 at 84e3f5158e76527a82b2b66556
 Final-B.4 — Completed and accepted on 2026-08-25 at a3724f018449515363159ec9f23af892a21b24be
 Final-B.5 — Completed and accepted on 2026-08-25 at bc6b3db1bec219913164ef267fe5279b19f49a27
 Final-B.6 — Completed and accepted on 2026-08-25 at 1fe06de8c55ab1563999b2db1d210bfc9a82c613
-Final-C — In progress; Final-C.1, Final-C.2 and Final-C.3 completed and accepted; Final-C.4 in progress
+Final-C — In progress; Final-C.1 through Final-C.4 completed and accepted; Final-C.5 in progress
 Final-C.1 — Completed and accepted on 2026-08-25 at 16d8b0411e573aaaa6b510ddb27a9b5d9c666478
 Final-C.2 — Completed and accepted on 2026-08-26 at 2168262784b0a8213062b0d84ca9fe6069e98fc6
 Final-C.3 — Completed and accepted on 2026-08-26 at c8fc39d111d7b33ee4a375264c5a3c25030de185
-Final-C.4 — In progress; protected admin pricing-rule management prepared for validation
-Final-C.5 — Not started
+Final-C.4 — Completed and accepted on 2026-08-27 at 0a57b9772da55a78e8d445dc06ea2b738b412f11
+Final-C.5 — In progress
 Final-C.6 — Not started
 Final-D — Not started
 Final-E — Not started
