@@ -192,6 +192,7 @@ const reservationTemplateSchema = z
       total: amountSchema,
       currency: currencySchema,
       confirmedAt: z.string().datetime({ offset: true }),
+      appliedPricingSummary: optionalNormalizedTextSchema,
     }),
   })
   .superRefine((input, context) => {
@@ -369,6 +370,7 @@ export function buildReservationEmailTemplateViewModel(
       baseUrl,
     ).toString(),
     supportEmail: getSupportEmail(locale),
+    appliedPricingSummary: reservation.appliedPricingSummary,
   };
 }
 

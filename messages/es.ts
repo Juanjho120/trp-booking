@@ -232,6 +232,18 @@ export const esMessages = {
       createHoldDisabled: "Crear hold de reserva en la siguiente fase",
       phaseBoundaryNote:
         "Phase 8.3 solo captura datos y calcula cotización. No guarda reservaciones, no bloquea fechas y no procesa pagos.",
+      pricingBreakdown: {
+        title: "Detalle del precio por noche",
+        description:
+          "Las noches consecutivas con la misma tarifa se muestran agrupadas.",
+        nightsAtRate: "{nights} noche(s) × {rate}",
+        sources: {
+          BASE: "Tarifa base",
+          SEASONAL: "Tarifa estacional",
+          LENGTH_OF_STAY:
+            "Tarifa por estancia de {minimumNights}+ noches",
+        },
+      },
     },
     requestUx: {
       dateRange: {
@@ -516,6 +528,25 @@ export const esMessages = {
       title: "Reservas",
       description:
         "Busca y filtra reservas sin cargar pagos, eventos ni configuración de calendario en la misma página.",
+      pricingBreakdown: {
+        title: "Desglose del precio aceptado",
+        description:
+          "Este detalle proviene de la evidencia de pricing guardada con la reservación y no se recalcula con las tarifas actuales.",
+        subtotal: "Subtotal del alojamiento",
+        segmentSubtotal: "Subtotal del tramo",
+        nightsAtRate: "{nights} noche(s) × {rate}",
+        legacyNights: "{nights} noche(s)",
+        unavailable:
+          "Esta reservación no tiene evidencia detallada de pricing disponible.",
+        sources: {
+          BASE: "Tarifa base",
+          SEASONAL: "Tarifa estacional",
+          LENGTH_OF_STAY:
+            "Estancia de {minimumNights}+ noches",
+          PRESERVED_LEGACY_STAY:
+            "Precio histórico preservado",
+        },
+      },
       labels: {
         search: "Buscar reservas",
         propertyFilter: "Alojamiento",
@@ -2846,6 +2877,10 @@ export const esMessages = {
       supportLabel: "Soporte de reservas",
       footer:
         "Tu Refugio Perfecto · Panajachel, Guatemala · Reserva directa segura",
+      appliedRates: "Tarifas aplicadas",
+      seasonalRate: "Tarifa estacional",
+      lengthOfStayRate:
+        "Estancia de {minimumNights}+ noches",
     },
     reservationConfirmed: {
       subjectPrefix: "Reserva confirmada",

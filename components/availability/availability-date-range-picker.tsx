@@ -57,7 +57,7 @@ export type AvailabilityDateRangePickerProps = Readonly<{
   doneLabel: string;
   fixedStartDate?: Date;
   helperText?: string;
-  label: string;
+  label?: string;
   minimumFixedEndDate?: Date;
   month: Date;
   onClear: () => void;
@@ -140,7 +140,7 @@ export function AvailabilityDateRangePicker({
 
   return (
     <div className="grid gap-2 text-sm font-medium text-foreground">
-      <span>{label}</span>
+      {label ? <span>{label}</span> : null}
       <div className="relative">
         <button
           className="flex h-11 w-full items-center justify-between gap-3 rounded-2xl border border-border/70 bg-background px-4 text-left text-sm text-foreground shadow-sm outline-none transition hover:border-primary/60 focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-50"

@@ -9,12 +9,14 @@ import {
 import type {
   AdminReservationDetailData,
   AdminReservationFinancialSummary,
+  AdminReservationPricingBreakdown
 } from "@/types/admin-reservation-detail";
 
 import { getAdminReservationOperationalHistory } from "./reservation-operational-history";
 import { getAdminCancellationRequestsForReservation } from "./reservation-cancellation";
 import { getAdminDateMutationRequestsForReservation } from "./reservation-date-mutation";
 import { getAdminRefundsForReservation } from "./refunds";
+import { parseFinalCPricingSnapshot } from "@/lib/pricing";
 
 const PROVIDER_MESSAGE_ID_MAX_LENGTH = 180;
 const ERROR_CODE_MAX_LENGTH = 120;
@@ -91,6 +93,90 @@ async function getAdminFinancialSummary(
   }
 }
 
+function centsToAmount(cents: number): string {
+  return (cents / 100).toFixed(2);
+}
+
+async function getAdminReservationPricingBreakdown(
+  pricingSnapshotValue: unknown,
+  propertyId: string | undefined,
+): Promise<AdminReservationPricingBreakdown | null> {
+  const snapshot = parseFinalCPricingSnapshot(pricingSnapshotValue);
+
+  if (!snapshot) {
+    return null;
+  }
+
+  const seasonalRuleIds = Array.from(
+    new Set(
+      snapshot.segments.flatMap((segment) =>
+        segment.kind === "RESOLVED_RATE" &&
+        segment.source === "SEASONAL"
+          ? [segment.ruleId]
+          : [],
+      ),
+    ),
+  );
+
+  const seasonalRules =
+    seasonalRuleIds.length > 0
+      ? await prisma.seasonalPricingRule.findMany({
+          where: {
+            id: {
+              in: seasonalRuleIds,
+            },
+            propertyId,
+          },
+          select: {
+            id: true,
+            name: true,
+          },
+        })
+      : [];
+
+  const seasonalRuleNames = new Map(
+    seasonalRules.map((rule) => [rule.id, rule.name]),
+  );
+
+  return {
+    currency: snapshot.currency,
+    subtotal: centsToAmount(snapshot.subtotalCents),
+    segments: snapshot.segments.map((segment) => {
+      if (segment.kind === "PRESERVED_LEGACY_STAY") {
+        return {
+          kind: segment.kind,
+          startDate: segment.startDate,
+          endDate: segment.endDate,
+          nights: segment.nights,
+          source: null,
+          seasonalRuleName: null,
+          minimumNights: null,
+          nightlyRate: null,
+          subtotal: centsToAmount(segment.acceptedSubtotalCents),
+        };
+      }
+
+      return {
+        kind: segment.kind,
+        startDate: segment.startDate,
+        endDate: segment.endDate,
+        nights: segment.nights,
+        source: segment.source,
+        seasonalRuleName:
+          segment.source === "SEASONAL"
+            ? seasonalRuleNames.get(segment.ruleId) ?? null
+            : null,
+        minimumNights:
+          segment.source === "LENGTH_OF_STAY"
+            ? segment.minimumNights
+            : null,
+        nightlyRate: centsToAmount(segment.nightlyRateCents),
+        subtotal: centsToAmount(segment.subtotalCents),
+      };
+    }),
+  };
+}
+
 export async function getAdminReservationDetail(
   reservationId: string,
 ): Promise<AdminReservationDetailData | null> {
@@ -118,6 +204,7 @@ export async function getAdminReservationDetail(
       taxes: true,
       discounts: true,
       total: true,
+      pricingSnapshot: true,
       currency: true,
       expiresAt: true,
       confirmedAt: true,
@@ -183,6 +270,11 @@ export async function getAdminReservationDetail(
     },
   });
 
+  const pricingBreakdown = await getAdminReservationPricingBreakdown(
+    reservation?.pricingSnapshot,
+    reservation?.property.id
+  );
+
   if (!reservation) {
     return null;
   }
@@ -226,6 +318,7 @@ export async function getAdminReservationDetail(
     cancelledAt: reservation.cancelledAt?.toISOString() ?? null,
     createdAt: reservation.createdAt.toISOString(),
     updatedAt: reservation.updatedAt.toISOString(),
+    pricingBreakdown,
     payments: reservation.payments.map((payment) => ({
       id: payment.id,
       purpose: payment.purpose,

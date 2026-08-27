@@ -12,6 +12,7 @@ import type { AvailabilityDateRange } from "@/types/availability";
 import type { FinalCPricingSnapshot } from "@/types/pricing";
 import type {
   ReservationQuote,
+  ReservationQuotePricingSegment,
   ReservationQuoteAmount,
   ReservationQuoteCurrency,
   ReservationQuoteErrorCode,
@@ -40,6 +41,33 @@ export class ReservationQuoteError extends Error {
     this.name = "ReservationQuoteError";
     this.code = code;
   }
+}
+
+function toReservationQuotePricingBreakdown(
+  snapshot: FinalCPricingSnapshot,
+): readonly ReservationQuotePricingSegment[] {
+  return snapshot.segments.flatMap((segment) => {
+    if (segment.kind !== "RESOLVED_RATE") {
+      return [];
+    }
+
+    return [
+      {
+        startDate: segment.startDate,
+        endDate: segment.endDate,
+        nights: segment.nights,
+        source: segment.source,
+        minimumNights:
+          segment.source === "LENGTH_OF_STAY"
+            ? segment.minimumNights
+            : null,
+        nightlyRate: toReservationQuoteAmount(
+          segment.nightlyRateCents,
+        ),
+        subtotal: toReservationQuoteAmount(segment.subtotalCents),
+      },
+    ];
+  });
 }
 
 function assertReservationQuoteDateRange(
@@ -165,6 +193,9 @@ export async function calculateReservationQuoteWithPricingSnapshot(
     checkOutDate: input.checkOutDate,
     guestCount: input.guestCount,
     maxGuests: accommodation.maxGuests,
+    pricingBreakdown: toReservationQuotePricingBreakdown(
+      pricing.snapshot,
+    ),
     nights,
     nightlyRate:
       pricing.uniformNightlyRateCents === null

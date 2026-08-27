@@ -37,6 +37,7 @@ export type ReservationEmailTemplateReservation = Readonly<{
   total: string;
   currency: string;
   confirmedAt: string;
+  appliedPricingSummary: string | null;
 }>;
 
 export type ReservationEmailTemplateInput = Readonly<{
@@ -80,6 +81,7 @@ export type ReservationEmailTemplateViewModel = Readonly<{
   publicHomeUrl: string;
   adminReservationUrl: string;
   supportEmail: string;
+  appliedPricingSummary: string | null;
 }>;
 
 export type ArrivalInstructionsEmailTemplateViewModel =

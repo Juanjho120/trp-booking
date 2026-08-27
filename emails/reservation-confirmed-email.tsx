@@ -113,10 +113,16 @@ export async function buildReservationConfirmedEmail(
         />
         <EmailDetailRow label={messages.common.nights} value={nights} />
         <EmailDetailRow label={messages.common.guests} value={guests} />
-        <EmailDetailRow
+                <EmailDetailRow
           label={messages.common.arrivalTime}
           value={arrivalTime}
         />
+        {view.appliedPricingSummary ? (
+          <EmailDetailRow
+            label={messages.common.appliedRates}
+            value={view.appliedPricingSummary}
+          />
+        ) : null}
         <EmailDetailRow label={messages.common.total} last value={view.total} />
       </EmailSection>
 
@@ -174,9 +180,17 @@ export async function buildReservationConfirmedEmail(
       { label: messages.common.checkIn, value: view.checkInDate },
       { label: messages.common.checkOut, value: view.checkOutDate },
       { label: messages.common.checkOutTime, value: checkOutTime },
-      { label: messages.common.nights, value: nights },
+            { label: messages.common.nights, value: nights },
       { label: messages.common.guests, value: guests },
       { label: messages.common.arrivalTime, value: arrivalTime },
+      ...(view.appliedPricingSummary
+        ? [
+            {
+              label: messages.common.appliedRates,
+              value: view.appliedPricingSummary,
+            },
+          ]
+        : []),
       { label: messages.common.total, value: view.total },
     ]),
     buildPlainTextHouseRules(messages.common.houseRules, view.houseRules),

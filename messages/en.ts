@@ -232,6 +232,18 @@ export const enMessages = {
       createHoldDisabled: "Create reservation hold in the next phase",
       phaseBoundaryNote:
         "Phase 8.3 only collects details and calculates a quote. It does not save reservations, block dates, or process payments.",
+      pricingBreakdown: {
+        title: "Nightly price breakdown",
+        description:
+          "Consecutive nights with the same rate are grouped together.",
+        nightsAtRate: "{nights} night(s) × {rate}",
+        sources: {
+          BASE: "Base rate",
+          SEASONAL: "Seasonal rate",
+          LENGTH_OF_STAY:
+            "{minimumNights}+ night stay rate",
+        },
+      },
     },
     requestUx: {
       dateRange: {
@@ -516,6 +528,25 @@ export const enMessages = {
       title: "Reservations",
       description:
         "Search and filter reservations without loading payments, events, and calendar settings on the same page.",
+      pricingBreakdown: {
+        title: "Accepted price breakdown",
+        description:
+          "This breakdown comes from the pricing evidence stored with the reservation and is not recalculated using current rates.",
+        subtotal: "Accommodation subtotal",
+        segmentSubtotal: "Segment subtotal",
+        nightsAtRate: "{nights} night(s) × {rate}",
+        legacyNights: "{nights} night(s)",
+        unavailable:
+          "Detailed pricing evidence is not available for this reservation.",
+        sources: {
+          BASE: "Base rate",
+          SEASONAL: "Seasonal rate",
+          LENGTH_OF_STAY:
+            "{minimumNights}+ night stay",
+          PRESERVED_LEGACY_STAY:
+            "Preserved historical price",
+        },
+      },
       labels: {
         search: "Search reservations",
         propertyFilter: "Accommodation",
@@ -2844,6 +2875,10 @@ export const enMessages = {
       supportLabel: "Reservation support",
       footer:
         "Tu Refugio Perfecto · Panajachel, Guatemala · Secure direct booking",
+      appliedRates: "Applied rates",
+      seasonalRate: "Seasonal rate",
+      lengthOfStayRate:
+        "{minimumNights}+ night stay",
     },
     reservationConfirmed: {
       subjectPrefix: "Reservation confirmed",

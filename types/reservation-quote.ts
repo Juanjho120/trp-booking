@@ -1,5 +1,6 @@
 import type { AccommodationId, LocalizedText } from "@/types/accommodation";
 import type { DateOnlyString } from "@/types/availability";
+import type { FinalCPricingResolutionSource, LengthOfStayMinimumNights } from "@/types/pricing";
 
 export type ReservationQuoteCurrency = "USD";
 
@@ -14,6 +15,16 @@ export type ReservationQuoteInput = Readonly<{
   checkInDate: DateOnlyString;
   checkOutDate: DateOnlyString;
   guestCount: number;
+}>;
+
+export type ReservationQuotePricingSegment = Readonly<{
+  startDate: DateOnlyString;
+  endDate: DateOnlyString;
+  nights: number;
+  source: FinalCPricingResolutionSource;
+  minimumNights: LengthOfStayMinimumNights | null;
+  nightlyRate: ReservationQuoteAmount;
+  subtotal: ReservationQuoteAmount;
 }>;
 
 export type ReservationQuote = Readonly<{
@@ -34,6 +45,7 @@ export type ReservationQuote = Readonly<{
   currency: ReservationQuoteCurrency;
   paymentRequired: true;
   quoteKind: "NON_BINDING";
+  pricingBreakdown: readonly ReservationQuotePricingSegment[];
 }>;
 
 export type ReservationQuoteErrorCode =

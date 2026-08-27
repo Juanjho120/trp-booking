@@ -70,6 +70,24 @@ export type AdminReservationDetailEmailNotification = Readonly<{
   updatedAt: string;
 }>;
 
+export type AdminReservationPricingBreakdownSegment = Readonly<{
+  kind: "RESOLVED_RATE" | "PRESERVED_LEGACY_STAY";
+  startDate: DateOnlyString;
+  endDate: DateOnlyString;
+  nights: number;
+  source: "BASE" | "LENGTH_OF_STAY" | "SEASONAL" | null;
+  seasonalRuleName: string | null;
+  minimumNights: number | null;
+  nightlyRate: string | null;
+  subtotal: string;
+}>;
+
+export type AdminReservationPricingBreakdown = Readonly<{
+  currency: string;
+  subtotal: string;
+  segments: readonly AdminReservationPricingBreakdownSegment[];
+}>;
+
 export type AdminReservationDetailData = Readonly<{
   id: string;
   property: AdminPropertyOption &
@@ -104,4 +122,5 @@ export type AdminReservationDetailData = Readonly<{
   financialSummary: AdminReservationFinancialSummary | null;
   operationalHistory: readonly AdminReservationOperationalHistoryEvent[];
   refundApiExecutionEnabled: boolean;
+  pricingBreakdown: AdminReservationPricingBreakdown | null;
 }>;

@@ -37,6 +37,8 @@ import {
   calculateNextEmailNotificationAttemptAt,
   EMAIL_NOTIFICATION_MAX_ATTEMPTS,
 } from "./retry-policy";
+import { parseFinalCPricingSnapshot } from "@/lib/pricing";
+import { enMessages, esMessages } from "@/messages";
 
 const recipientSchema = z
   .string()
@@ -336,6 +338,7 @@ async function readClaimedNotification(claim: EmailNotificationClaim) {
           total: true,
           currency: true,
           confirmedAt: true,
+          pricingSnapshot: true,
           property: {
             select: {
               nameEs: true,
@@ -393,6 +396,7 @@ class EmailNotificationDeliveryError extends Error {
 
 function buildTemplateReservation(
   notification: ClaimedNotification,
+  locale: "es" | "en",
 ): ReservationEmailTemplateReservation {
   const reservation = notification.reservation;
   const preferredLocale = normalizeLocale(reservation.preferredLocale);
@@ -404,6 +408,54 @@ function buildTemplateReservation(
     );
   }
 
+  const pricingSnapshot = parseFinalCPricingSnapshot(
+    reservation.pricingSnapshot,
+  );
+
+  const pricingMessages =
+    locale === "es"
+      ? esMessages.emails.common
+      : enMessages.emails.common;
+
+  const appliedPricingLabels: string[] = [];
+
+  if (pricingSnapshot) {
+    const hasSeasonal = pricingSnapshot.segments.some(
+      (segment) =>
+        segment.kind === "RESOLVED_RATE" &&
+        segment.source === "SEASONAL",
+    );
+
+    if (hasSeasonal) {
+      appliedPricingLabels.push(pricingMessages.seasonalRate);
+    }
+
+    const losTiers = Array.from(
+      new Set(
+        pricingSnapshot.segments.flatMap((segment) =>
+          segment.kind === "RESOLVED_RATE" &&
+          segment.source === "LENGTH_OF_STAY"
+            ? [segment.minimumNights]
+            : [],
+        ),
+      ),
+    );
+
+    for (const minimumNights of losTiers) {
+      appliedPricingLabels.push(
+        pricingMessages.lengthOfStayRate.replace(
+          "{minimumNights}",
+          String(minimumNights),
+        ),
+      );
+    }
+  }
+
+  const appliedPricingSummary =
+    appliedPricingLabels.length > 0
+      ? appliedPricingLabels.join(" · ")
+      : null;
+
   return {
     id: reservation.id,
     guestName: reservation.guestName,
@@ -413,6 +465,7 @@ function buildTemplateReservation(
     preferredLocale,
     propertyNameEs: reservation.property.nameEs,
     propertyNameEn: reservation.property.nameEn,
+    appliedPricingSummary,
     houseRules: reservation.property.rules
       .filter(({ rule }) => rule.deletedAt === null)
       .sort((first, second) => {
@@ -458,7 +511,7 @@ async function buildNotificationContent(
     locale,
     publicBaseUrl,
     brandLogoUrl,
-    reservation: buildTemplateReservation(notification),
+    reservation: buildTemplateReservation(notification, locale),
   };
 
   if (notification.type === EmailNotificationType.RESERVATION_CONFIRMED) {

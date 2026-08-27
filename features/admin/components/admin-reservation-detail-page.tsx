@@ -540,6 +540,12 @@ export function AdminReservationDetailPage({
             </CardContent>
           </Card>
 
+          <ReservationPricingBreakdownCard
+              breakdown={reservation.pricingBreakdown}
+              formatDate={formatDate}
+              formatMoney={formatMoney}
+            />
+
           <Card className="mt-6 border-border/70 bg-card shadow-sm">
             <CardHeader>
               <CardTitle>{correspondenceCopy.title}</CardTitle>
@@ -1191,5 +1197,134 @@ function MoneyRow({
       <dt className="text-sm text-muted-foreground">{label}</dt>
       <dd className="text-sm font-semibold text-foreground">{value}</dd>
     </div>
+  );
+}
+
+function ReservationPricingBreakdownCard({
+  breakdown,
+  formatDate,
+  formatMoney,
+}: Readonly<{
+  breakdown: AdminReservationDetailData["pricingBreakdown"];
+  formatDate: (value: string) => string;
+  formatMoney: (value: string, currency: string) => string;
+}>) {
+  const { locale, messages } = useLocale();
+  const copy = messages.admin.reservationsPage.pricingBreakdown;
+
+  function previousDate(value: string): string {
+    const date = new Date(`${value}T00:00:00.000Z`);
+    date.setUTCDate(date.getUTCDate() - 1);
+    return date.toISOString().slice(0, 10);
+  }
+
+  function sourceLabel(
+    segment: NonNullable<
+      AdminReservationDetailData["pricingBreakdown"]
+    >["segments"][number],
+  ): string {
+    if (segment.kind === "PRESERVED_LEGACY_STAY") {
+      return copy.sources.PRESERVED_LEGACY_STAY;
+    }
+
+    if (segment.source === "SEASONAL") {
+      return segment.seasonalRuleName
+        ? `${copy.sources.SEASONAL} · ${segment.seasonalRuleName}`
+        : copy.sources.SEASONAL;
+    }
+
+    if (
+      segment.source === "LENGTH_OF_STAY" &&
+      segment.minimumNights !== null
+    ) {
+      return copy.sources.LENGTH_OF_STAY.replace(
+        "{minimumNights}",
+        String(segment.minimumNights),
+      );
+    }
+
+    return copy.sources.BASE;
+  }
+
+  return (
+    <Card className="mt-6 border-border/70 bg-card shadow-sm">
+      <CardHeader>
+        <CardTitle>{copy.title}</CardTitle>
+        <CardDescription>{copy.description}</CardDescription>
+      </CardHeader>
+
+      <CardContent>
+        {!breakdown ? (
+          <p className="text-sm leading-6 text-muted-foreground">
+            {copy.unavailable}
+          </p>
+        ) : (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between gap-4 rounded-2xl border border-primary/20 bg-primary/5 p-4">
+              <span className="text-sm text-muted-foreground">
+                {copy.subtotal}
+              </span>
+              <span className="text-lg font-semibold tabular-nums">
+                {formatMoney(breakdown.subtotal, breakdown.currency)}
+              </span>
+            </div>
+
+            <div className="grid gap-3">
+              {breakdown.segments.map((segment, index) => (
+                <div
+                  className="grid gap-3 rounded-2xl border border-border/70 bg-muted/20 p-4 lg:grid-cols-[minmax(0,1fr)_auto]"
+                  key={`${segment.startDate}-${segment.endDate}-${index}`}
+                >
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="secondary">
+                        {sourceLabel(segment)}
+                      </Badge>
+                    </div>
+
+                    <p className="mt-3 text-sm font-medium">
+                      {formatDate(segment.startDate)} —{" "}
+                      {formatDate(previousDate(segment.endDate))}
+                    </p>
+
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {segment.nightlyRate
+                        ? copy.nightsAtRate
+                            .replace(
+                              "{nights}",
+                              String(segment.nights),
+                            )
+                            .replace(
+                              "{rate}",
+                              formatMoney(
+                                segment.nightlyRate,
+                                breakdown.currency,
+                              ),
+                            )
+                        : copy.legacyNights.replace(
+                            "{nights}",
+                            String(segment.nights),
+                          )}
+                    </p>
+                  </div>
+
+                  <div className="lg:text-right">
+                    <p className="text-xs text-muted-foreground">
+                      {copy.segmentSubtotal}
+                    </p>
+                    <p className="mt-1 font-semibold tabular-nums">
+                      {formatMoney(
+                        segment.subtotal,
+                        breakdown.currency,
+                      )}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
