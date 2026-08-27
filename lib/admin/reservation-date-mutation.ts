@@ -818,16 +818,13 @@ function moneyCentsToDecimal(cents: number): Prisma.Decimal {
 }
 
 function pricingSnapshotSegmentCount(snapshot: Prisma.InputJsonValue): number {
-  if (
-    typeof snapshot === "object" &&
-    snapshot !== null &&
-    !Array.isArray(snapshot) &&
-    Array.isArray(snapshot.segments)
-  ) {
-    return snapshot.segments.length;
+  if (typeof snapshot !== "object" || snapshot === null) {
+    return 0;
   }
 
-  return 0;
+  const segments: unknown = Reflect.get(snapshot, "segments");
+
+  return Array.isArray(segments) ? segments.length : 0;
 }
 
 async function calculateDateMutationQuote(
