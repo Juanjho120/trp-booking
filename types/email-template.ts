@@ -126,6 +126,9 @@ export type TransactionalEmailMessages = Readonly<{
     guestPlural: string;
     supportLabel: string;
     footer: string;
+    appliedRates: string;
+    seasonalRate: string;
+    lengthOfStayRate: string;
   }>;
   reservationConfirmed: Readonly<{
     subjectPrefix: string;

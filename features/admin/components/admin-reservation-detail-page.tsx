@@ -1209,7 +1209,7 @@ function ReservationPricingBreakdownCard({
   formatDate: (value: string) => string;
   formatMoney: (value: string, currency: string) => string;
 }>) {
-  const { locale, messages } = useLocale();
+  const { messages } = useLocale();
   const copy = messages.admin.reservationsPage.pricingBreakdown;
 
   function previousDate(value: string): string {

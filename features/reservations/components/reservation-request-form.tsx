@@ -1304,7 +1304,7 @@ function PendingHoldSummary({
 }
 
 function QuoteSummary({ quote }: Readonly<{ quote: ReservationQuote }>) {
-  const { locale, messages } = useLocale();
+  const { messages } = useLocale();
   const requestMessages = messages.reservations.request;
 
   return (
