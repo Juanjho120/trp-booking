@@ -7,7 +7,11 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-C — Pricing rules: seasonal and length-of-stay
 Subphase: Final-C.5 — DATE_CHANGE/STAY_EXTENSION pricing integration
-Status: In progress — implementation prepared for validation
+Status: Completed and accepted
+Acceptance date: 2026-08-27
+Implementation feature head: a88b26c0e2782daad7ea3215eb5b12f8f5124806
+Correction head: 4fd36fd25484adda7d24a7df4da3c1738835474c
+Accepted head: 4fd36fd25484adda7d24a7df4da3c1738835474c
 Preparation date: 2026-08-27
 Implementation base head: 0a57b9772da55a78e8d445dc06ea2b738b412f11
 Previous subphase: Final-C.4 — Completed and accepted on 2026-08-27
@@ -435,15 +439,25 @@ Additional charges remain Final-D.
 
 # 13. Current Decision
 
-Final-C.5 implementation is prepared for repository validation and targeted lifecycle acceptance.
+Final-C.5 is completed and accepted on 2026-08-27.
 
-Until that validation is accepted:
+Acceptance evidence:
 
 ```text
-Final-C.5 — In progress
-Final-C.6 — Not started
+Feature head: a88b26c0e2782daad7ea3215eb5b12f8f5124806
+Snapshot narrowing correction: 4fd36fd25484adda7d24a7df4da3c1738835474c
+Accepted head: 4fd36fd25484adda7d24a7df4da3c1738835474c
+Repository validation reported green by the owner after the correction
+No additional C.5 runtime error remained before opening C.6
+```
+
+Current boundary:
+
+```text
+Final-C.5 — Completed and accepted
+Final-C.6 — In progress
 Final-D — Not started
 Phase 13 — Not started
 ```
 
-Final-C.6 begins only after explicit C.5 acceptance.
+Final-C.6 begins from the accepted C.5 head `4fd36fd25484adda7d24a7df4da3c1738835474c` and owns the consolidated Final-C regression, Hosted Test and documentation closure gate.
