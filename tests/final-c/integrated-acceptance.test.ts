@@ -172,6 +172,12 @@ test("C.6 Final-C migration remains prospective and does not fabricate historica
 test("C.6 admin mutation boundary retains validation, optimistic concurrency and Serializable overlap protection", () => {
   const pricing = source("lib/admin/pricing.ts");
   const route = source("app/api/admin/pricing/route.ts");
+  const manager = source(
+    "features/admin/components/admin-pricing-manager.tsx",
+  );
+  const dateRangeCalendar = source(
+    "features/admin/components/admin-pricing-date-range-calendar.tsx",
+  );
 
   assert.match(route, /getAdminSessionActor/);
   assert.match(route, /isValidAdminMutationOrigin/);
@@ -182,4 +188,17 @@ test("C.6 admin mutation boundary retains validation, optimistic concurrency and
   assert.match(pricing, /P2034/);
   assert.match(pricing, /P2002/);
   assert.match(pricing, /adminAuditLog\.create/);
+
+  assert.match(manager, /Tabs defaultValue="overview"/);
+  assert.match(manager, /copy\.summary\.title/);
+  assert.match(manager, /type="number"/);
+  assert.match(manager, /text-right tabular-nums/);
+  assert.match(manager, /AdminPricingDateRangeCalendar/);
+  assert.match(manager, /disablePastDates/);
+  assert.match(manager, /seasonalDisabledDateRanges/);
+  assert.match(manager, /grid gap-5 px-6 py-2 pb-6/);
+  assert.match(manager, /toSeasonalPersistenceRange/);
+  assert.match(dateRangeCalendar, /disabledRanges/);
+  assert.match(dateRangeCalendar, /dateIsInsideHalfOpenRange/);
+  assert.match(dateRangeCalendar, /rangeCrossesDisabledDate/);
 });

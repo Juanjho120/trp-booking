@@ -1978,11 +1978,29 @@ export const esMessages = {
         title: "Administrar precios",
         description:
           "Configura tarifas estacionales y por duración de estadía con la misma precedencia que usa la cotización pública.",
+        tabs: {
+          overview: "Resumen",
+          seasonal: "Tarifas estacionales",
+          los: "Duración de estadía",
+        },
         base: {
           title: "Tarifa base",
           description:
             "La tarifa base es la referencia final cuando ninguna tarifa estacional o por duración aplica.",
           label: "Precio base por noche",
+        },
+        summary: {
+          title: "Resumen de precios configurados",
+          description:
+            "Consulta en un solo lugar las tarifas estacionales y por duración configuradas para este alojamiento.",
+          seasonalTitle: "Tarifas estacionales",
+          seasonalDescription:
+            "Incluye tarifas activas y desactivadas que no han sido eliminadas.",
+          losTitle: "Tarifas por duración de estadía",
+          losDescription:
+            "Muestra únicamente los umbrales que ya tienen una tarifa configurada.",
+          noSeasonal: "No hay tarifas estacionales configuradas.",
+          noLos: "No hay tarifas por duración configuradas.",
         },
         seasonal: {
           title: "Tarifas estacionales",
@@ -1995,7 +2013,7 @@ export const esMessages = {
           createTitle: "Crear tarifa estacional",
           editTitle: "Editar tarifa estacional",
           formDescription:
-            "La fecha inicial es inclusiva y la fecha final es exclusiva para las noches cobradas.",
+            "Selecciona la primera y la última noche que tendrán esta tarifa y define el precio nocturno.",
         },
         los: {
           title: "Tarifas por duración de estadía",
@@ -2006,7 +2024,7 @@ export const esMessages = {
         preview: {
           title: "Vista previa de precio",
           description:
-            "Prueba un rango sin crear una reserva. La vista previa usa el mismo motor central de precios que la cotización pública.",
+            "Selecciona entrada y salida para probar un rango sin crear una reserva. La vista previa usa el mismo motor central de precios que la cotización pública.",
           nights: "Noches",
           uniformRate: "Tarifa nocturna",
           mixedRate: "Tarifa mixta",
@@ -2016,6 +2034,20 @@ export const esMessages = {
             LENGTH_OF_STAY: "Duración de estadía",
             SEASONAL: "Tarifa estacional",
           },
+        },
+        calendar: {
+          seasonalRange: "Rango de la tarifa estacional",
+          seasonalHelp:
+            "Selecciona la primera y la última noche incluidas en la tarifa.",
+          seasonalUnavailable:
+            "Las fechas anteriores a hoy y las noches cubiertas por otra tarifa estacional activa están deshabilitadas.",
+          previewHelp:
+            "Selecciona primero la fecha de entrada y luego la fecha de salida.",
+          previousMonth: "Mes anterior",
+          nextMonth: "Mes siguiente",
+          selectStart: "Selecciona la fecha inicial del rango.",
+          selectEnd: "Ahora selecciona la fecha final del rango.",
+          notSelected: "Sin seleccionar",
         },
         labels: {
           name: "Nombre interno",

@@ -1976,11 +1976,29 @@ export const enMessages = {
         title: "Manage pricing",
         description:
           "Configure seasonal and length-of-stay rates using the same precedence as the public quote.",
+        tabs: {
+          overview: "Overview",
+          seasonal: "Seasonal rates",
+          los: "Length of stay",
+        },
         base: {
           title: "Base rate",
           description:
             "The base rate is the final fallback when no seasonal or length-of-stay rate applies.",
           label: "Base nightly price",
+        },
+        summary: {
+          title: "Configured pricing summary",
+          description:
+            "Review the seasonal and length-of-stay rates configured for this accommodation in one place.",
+          seasonalTitle: "Seasonal rates",
+          seasonalDescription:
+            "Includes enabled and disabled rates that have not been deleted.",
+          losTitle: "Length-of-stay rates",
+          losDescription:
+            "Shows only thresholds that already have a configured rate.",
+          noSeasonal: "No seasonal rates are configured.",
+          noLos: "No length-of-stay rates are configured.",
         },
         seasonal: {
           title: "Seasonal rates",
@@ -1993,7 +2011,7 @@ export const enMessages = {
           createTitle: "Create seasonal rate",
           editTitle: "Edit seasonal rate",
           formDescription:
-            "The start date is inclusive and the end date is exclusive for charged nights.",
+            "Select the first and last night that will use this rate, then define the nightly price.",
         },
         los: {
           title: "Length-of-stay rates",
@@ -2004,7 +2022,7 @@ export const enMessages = {
         preview: {
           title: "Pricing preview",
           description:
-            "Test a date range without creating a reservation. The preview uses the same central pricing engine as the public quote.",
+            "Select check-in and check-out to test a range without creating a reservation. The preview uses the same central pricing engine as the public quote.",
           nights: "Nights",
           uniformRate: "Nightly rate",
           mixedRate: "Mixed rate",
@@ -2014,6 +2032,20 @@ export const enMessages = {
             LENGTH_OF_STAY: "Length of stay",
             SEASONAL: "Seasonal rate",
           },
+        },
+        calendar: {
+          seasonalRange: "Seasonal rate range",
+          seasonalHelp:
+            "Select the first and last night included in the seasonal rate.",
+          seasonalUnavailable:
+            "Dates before today and nights covered by another enabled seasonal rate are disabled.",
+          previewHelp:
+            "Select the check-in date first and then the check-out date.",
+          previousMonth: "Previous month",
+          nextMonth: "Next month",
+          selectStart: "Select the start date for the range.",
+          selectEnd: "Now select the end date for the range.",
+          notSelected: "Not selected",
         },
         labels: {
           name: "Internal name",
