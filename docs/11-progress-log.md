@@ -8,8 +8,8 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 Current phase state: Phase 12 — Test Deployment & External Integration Validation — Completed and accepted on 2026-08-11
 Current numbered phase: none active
 Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
-Current package: Final-C — Pricing rules: seasonal and length-of-stay — In progress
-Current subphase: Final-C.6 — Integrated regression and documentation closure — In progress
+Current package: Final-D — Additional charges and guest payment requests — Not started
+Current subphase: none
 Final-C implementation base head: e7ce19c49c5cfd45e1cc08796ee897a2dce0d1ed
 Final-C.1 status: Completed and accepted on 2026-08-25
 Final-C.1 accepted strategy head: 16d8b0411e573aaaa6b510ddb27a9b5d9c666478
@@ -58,10 +58,14 @@ Final-C.5 feature head: a88b26c0e2782daad7ea3215eb5b12f8f5124806
 Final-C.5 accepted head: 4fd36fd25484adda7d24a7df4da3c1738835474c
 Final-C.5 record: docs/177-final-c-5-date-change-stay-extension-pricing-integration.md
 Final-C.6 implementation base head: 4fd36fd25484adda7d24a7df4da3c1738835474c
-Final-C.6 status: In progress — consolidated regression/Hosted Test/documentation closure prepared for validation
+Final-C.6 closure-gate commit: 1391b69a6bb591cc7d4e8a68b577ea8bda4fb8fe
+Final-C.6 status: Completed and accepted on 2026-08-28
+Final-C.6 accepted feature head: dca50f51abe1836d3b678b762693219143b12099
 Final-C.6 record: docs/178-final-c-6-integrated-regression-and-documentation-closure.md
-Next planned package after Final-C.6 acceptance: Final-D — Additional charges and guest payment requests — Not started
-Last completed package: Final-B — Admin external-calendar integrations — Completed and accepted on 2026-08-25 at 1fe06de8c55ab1563999b2db1d210bfc9a82c613
+Final-C status: Completed and accepted on 2026-08-28
+Final-C accepted feature head: dca50f51abe1836d3b678b762693219143b12099
+Next planned package: Final-D — Additional charges and guest payment requests — Not started
+Last completed package: Final-C — Pricing rules: seasonal and length-of-stay — Completed and accepted on 2026-08-28 at dca50f51abe1836d3b678b762693219143b12099
 Final-A.1 status: Completed and accepted on 2026-08-11
 Final-A.1 accepted head: 19531568752a44446d0802d6581262260b881aaf
 Final-A.2 status: Completed and accepted on 2026-08-11
@@ -86,8 +90,8 @@ Final-A.4 record: docs/164-final-a-4-negative-date-change-multi-payment-integrat
 Final-A.5 record: docs/165-final-a-5-admin-refund-ux-notification-and-operational-history.md
 Final-A.6 record: docs/166-final-a-6-integrated-acceptance-and-documentation-closure.md
 Phase 13 status: Not started
-Last updated: 2026-08-26
-Last completed subphase: Final-C.5 DATE_CHANGE/STAY_EXTENSION pricing integration — completed and accepted on 2026-08-27 at 4fd36fd25484adda7d24a7df4da3c1738835474c
+Last updated: 2026-08-28
+Last completed subphase: Final-C.6 Integrated regression and documentation closure — completed and accepted on 2026-08-28 at accepted feature head dca50f51abe1836d3b678b762693219143b12099
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 11.6.5 acceptance: All 15 protected-history, ordering, relation, retry, ES/EN, responsive, security, and integrated criteria passed on 2026-08-05
 11.6.5 implementation and acceptance document: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md
@@ -154,7 +158,7 @@ Phase 12.9 acceptance closure: docs/158-phase-12.9-acceptance-closure.md
 Phase 12.10 status: Completed and accepted on 2026-08-11 — Phase 12 validation and closure
 Phase 12.10 validated repository head: ebe28579872cbc2414573ef852b15139a2501551
 Phase 12 closure record: docs/159-phase-12.10-phase-12-validation-and-closure.md
-Post-Phase-12 / Pre-Phase-13 Final Improvement Track: Active — Final-A and Final-B completed and accepted; Final-C is in progress at Final-C.6
+Post-Phase-12 / Pre-Phase-13 Final Improvement Track: Active — Final-A, Final-B and Final-C completed and accepted; Final-D is next / Not started
 Final-A status: Completed and accepted on 2026-08-12 at 66afbeacd6ee7d669cb4bc251c8416160fae3f49 — Reservation financial correctness and effective stay value
 Final-A.1 status: Completed and accepted on 2026-08-11 at 19531568752a44446d0802d6581262260b881aaf — Financial source-of-truth and refund-allocation contract
 Final-A.2 status: Completed and accepted on 2026-08-11 at 9f4e04068726451ca87614dd99b1f10656510825 — Central financial summary and cancellation-policy correction
@@ -180,7 +184,7 @@ Final-B.4 status: Completed and accepted on 2026-08-25 at a3724f018449515363159e
 Final-B.5 status: Completed and accepted on 2026-08-25 at bc6b3db1bec219913164ef267fe5279b19f49a27 — TRP outbound Copy URL / Rotate URL / export controls
 Final-B.5 record: docs/171-final-b-5-trp-outbound-copy-rotation-and-export-controls.md
 Final-B.6 status: Completed and accepted on 2026-08-25 at 1fe06de8c55ab1563999b2db1d210bfc9a82c613 — Integrated acceptance, regression and documentation closure
-Final-C status: In progress — Pricing rules: seasonal and length-of-stay; last-minute pricing explicitly excluded
+Final-C status: Completed and accepted on 2026-08-28 at dca50f51abe1836d3b678b762693219143b12099 — Pricing rules: seasonal and length-of-stay; last-minute pricing explicitly excluded
 Final-C.1 status: Completed and accepted on 2026-08-25 — Pricing strategy, precedence and persistence contract
 Final-C.1 implementation base head: e7ce19c49c5cfd45e1cc08796ee897a2dce0d1ed
 Final-C.1 accepted strategy head: 16d8b0411e573aaaa6b510ddb27a9b5d9c666478
@@ -195,8 +199,8 @@ Final-C.4 accepted head: 0a57b9772da55a78e8d445dc06ea2b738b412f11
 Final-C.5 implementation base head: 0a57b9772da55a78e8d445dc06ea2b738b412f11
 Final-C.5 status: Completed and accepted on 2026-08-27 at 4fd36fd25484adda7d24a7df4da3c1738835474c
 Final-C.5 record: docs/177-final-c-5-date-change-stay-extension-pricing-integration.md
-Final-C.6 status: In progress — Integrated regression and documentation closure; implementation base 4fd36fd25484adda7d24a7df4da3c1738835474c; record: docs/178-final-c-6-integrated-regression-and-documentation-closure.md
-Final-D status: Not started — Additional charges and guest payment requests
+Final-C.6 status: Completed and accepted on 2026-08-28 at accepted feature head dca50f51abe1836d3b678b762693219143b12099 — Integrated regression and documentation closure; closure-gate commit 1391b69a6bb591cc7d4e8a68b577ea8bda4fb8fe; implementation base 4fd36fd25484adda7d24a7df4da3c1738835474c; record: docs/178-final-c-6-integrated-regression-and-documentation-closure.md
+Final-D status: Next / Not started — Additional charges and guest payment requests
 Final-E status: Not started — Reservation reviews and post-checkout invitation
 Final-F status: Not started — Twilio WhatsApp communication and staff alerts
 Final-G status: Not started — Performance audit and optimization
@@ -1091,14 +1095,18 @@ Status: **Completed and accepted on 2026-08-27**
 
 ### Final-C.6 — Integrated regression and documentation closure
 
-Status: **In progress — prepared for consolidated validation**
+Status: **Completed and accepted on 2026-08-28**
 
 ```text
 - Implementation base head: 4fd36fd25484adda7d24a7df4da3c1738835474c.
+- Closure-gate commit: 1391b69a6bb591cc7d4e8a68b577ea8bda4fb8fe.
+- Accepted feature head: dca50f51abe1836d3b678b762693219143b12099.
 - C.6 extends the existing final-c:validate gate instead of creating a parallel validator.
-- The consolidated suite now owns the complete C.1 acceptance matrix across base/LOS, seasonal precedence, public quote/pending holds, historical stability, lifecycle, and admin/security/audit contracts.
-- Hosted Test validation remains required before Final-C can be marked completed and accepted.
-- Final-D remains Not started until Final-C.6 is explicitly accepted.
+- Final-C validation passed 41/41 registered tests.
+- The consolidated matrix across base/LOS, seasonal precedence, public quote/pending holds, historical stability, lifecycle, and admin/security/audit contracts passed.
+- Hosted Test and owner acceptance completed successfully, including the final pricing UX refinements.
+- Final-C is completed and accepted on 2026-08-28.
+- Final-D is next / Not started.
 - Phase 13 remains Not started.
 - Record: docs/178-final-c-6-integrated-regression-and-documentation-closure.md.
 ```

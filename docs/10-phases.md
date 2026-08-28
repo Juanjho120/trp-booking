@@ -17,8 +17,8 @@ Deferred — Intentionally postponed.
 Current phase state: Phase 12 — Test Deployment & External Integration Validation — Completed and accepted on 2026-08-11
 Current numbered phase: none active
 Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
-Current package: Final-C — Pricing rules: seasonal and length-of-stay — In progress
-Current subphase: Final-C.6 — Integrated regression and documentation closure — In progress
+Current package: Final-D — Additional charges and guest payment requests — Not started
+Current subphase: none
 Final-C implementation base head: e7ce19c49c5cfd45e1cc08796ee897a2dce0d1ed
 Final-C.1 status: Completed and accepted on 2026-08-25
 Final-C.1 accepted strategy head: 16d8b0411e573aaaa6b510ddb27a9b5d9c666478
@@ -67,10 +67,14 @@ Final-C.5 feature head: a88b26c0e2782daad7ea3215eb5b12f8f5124806
 Final-C.5 accepted head: 4fd36fd25484adda7d24a7df4da3c1738835474c
 Final-C.5 record: docs/177-final-c-5-date-change-stay-extension-pricing-integration.md
 Final-C.6 implementation base head: 4fd36fd25484adda7d24a7df4da3c1738835474c
-Final-C.6 status: In progress — consolidated regression/Hosted Test/documentation closure prepared for validation
+Final-C.6 closure-gate commit: 1391b69a6bb591cc7d4e8a68b577ea8bda4fb8fe
+Final-C.6 status: Completed and accepted on 2026-08-28
+Final-C.6 accepted feature head: dca50f51abe1836d3b678b762693219143b12099
 Final-C.6 record: docs/178-final-c-6-integrated-regression-and-documentation-closure.md
-Next planned package after Final-C.6 acceptance: Final-D — Additional charges and guest payment requests — Not started
-Last completed package: Final-B — Admin external-calendar integrations — Completed and accepted on 2026-08-25 at 1fe06de8c55ab1563999b2db1d210bfc9a82c613
+Final-C status: Completed and accepted on 2026-08-28
+Final-C accepted feature head: dca50f51abe1836d3b678b762693219143b12099
+Next planned package: Final-D — Additional charges and guest payment requests — Not started
+Last completed package: Final-C — Pricing rules: seasonal and length-of-stay — Completed and accepted on 2026-08-28 at dca50f51abe1836d3b678b762693219143b12099
 Final-A.1 status: Completed and accepted on 2026-08-11
 Final-A.1 accepted head: 19531568752a44446d0802d6581262260b881aaf
 Final-A.2 status: Completed and accepted on 2026-08-11
@@ -94,7 +98,7 @@ Final-A.3 record: docs/163-final-a-3-standard-and-extraordinary-multi-payment-re
 Final-A.4 record: docs/164-final-a-4-negative-date-change-multi-payment-integration.md
 Final-A.5 record: docs/165-final-a-5-admin-refund-ux-notification-and-operational-history.md
 Final-A.6 record: docs/166-final-a-6-integrated-acceptance-and-documentation-closure.md
-Last completed subphase: Final-C.5 DATE_CHANGE/STAY_EXTENSION pricing integration — completed and accepted on 2026-08-27 at 4fd36fd25484adda7d24a7df4da3c1738835474c
+Last completed subphase: Final-C.6 Integrated regression and documentation closure — completed and accepted on 2026-08-28 at accepted feature head dca50f51abe1836d3b678b762693219143b12099
 Phase 13 status: Not started
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 11.6.5 acceptance: All 15 protected-history, ordering, relation, retry, ES/EN, responsive, security, and integrated criteria passed on 2026-08-05
@@ -154,7 +158,7 @@ Phase 12.9 closure: docs/158-phase-12.9-acceptance-closure.md
 Phase 12.10 status: Completed and accepted on 2026-08-11 — Phase 12 validation and closure
 Phase 12.10 validated repository head: ebe28579872cbc2414573ef852b15139a2501551
 Phase 12 closure: docs/159-phase-12.10-phase-12-validation-and-closure.md
-Next work: validate Final-C.6 consolidated Final-C regression/Hosted Test/documentation closure; Final-D begins only after Final-C acceptance, and Phase 13 remains blocked until Final-H closes and the track is explicitly accepted
+Next work: Final-D — Additional charges and guest payment requests — is next but Not started; Phase 13 remains blocked until Final-H closes and the complete Final Improvement Track is explicitly accepted
 Next planned numbered phase: Phase 13 — Production Infrastructure, Deployment & Go-Live — Not started
 Pre-Phase-12 Improvement Track status: Completed and accepted — Packages A, B, C, E, and F accepted; Package D remains deferred outside the current gate
 Pre-Phase-12 Improvement Track registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
@@ -1217,7 +1221,7 @@ Phase 12 explicitly excludes company-owned production account provisioning, prod
 
 ## Inter-Phase Work — Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 
-Status: **Active — Final-A and Final-B are completed and accepted; Final-C is in progress at Final-C.6; Phase 13 remains Not started**
+Status: **Active — Final-A, Final-B and Final-C are completed and accepted; Final-D is next / Not started; Phase 13 remains Not started**
 
 Goal: Complete the final owner-approved feature, correctness, communication, pricing, and performance round before Production while preserving the accepted Test/Production ownership boundary.
 
@@ -1238,14 +1242,14 @@ Final-B Admin external-calendar integrations — Completed and accepted on 2026-
   Final-B.4 Airbnb inbound configuration and operational actions — Completed and accepted on 2026-08-25 at a3724f018449515363159ec9f23af892a21b24be; record: docs/170-final-b-4-airbnb-inbound-configuration-and-operational-actions.md
   Final-B.5 TRP outbound Copy URL / Rotate URL / export controls — Completed and accepted on 2026-08-25 at bc6b3db1bec219913164ef267fe5279b19f49a27; record: docs/171-final-b-5-trp-outbound-copy-rotation-and-export-controls.md
   Final-B.6 Integrated acceptance, regression and documentation closure — Completed and accepted on 2026-08-25 at 1fe06de8c55ab1563999b2db1d210bfc9a82c613; record: docs/172-final-b-6-integrated-acceptance-regression-and-documentation-closure.md
-Final-C Pricing rules: seasonal and length-of-stay — In progress
+Final-C Pricing rules: seasonal and length-of-stay — Completed and accepted on 2026-08-28 at dca50f51abe1836d3b678b762693219143b12099
   Final-C.1 Pricing strategy, precedence and persistence contract — Completed and accepted on 2026-08-25 at 16d8b0411e573aaaa6b510ddb27a9b5d9c666478; record: docs/173-final-c-1-pricing-strategy-precedence-and-persistence-contract.md
   Final-C.2 Pricing persistence foundation and migration — Completed and accepted on 2026-08-26 at 2168262784b0a8213062b0d84ca9fe6069e98fc6; record: docs/174-final-c-2-pricing-persistence-foundation-and-migration.md
   Final-C.3 Central pricing engine and public quote/pending-reservation integration — Completed and accepted on 2026-08-26 at c8fc39d111d7b33ee4a375264c5a3c25030de185; record: docs/175-final-c-3-central-pricing-engine-and-public-pending-reservation-integration.md
   Final-C.4 Admin pricing-rule management — Completed and accepted on 2026-08-27 at 0a57b9772da55a78e8d445dc06ea2b738b412f11; record: docs/176-final-c-4-admin-pricing-rule-management.md
   Final-C.5 DATE_CHANGE/STAY_EXTENSION pricing integration — Completed and accepted on 2026-08-27 at 4fd36fd25484adda7d24a7df4da3c1738835474c; feature head a88b26c0e2782daad7ea3215eb5b12f8f5124806; record: docs/177-final-c-5-date-change-stay-extension-pricing-integration.md
-  Final-C.6 Integrated regression and documentation closure — In progress; implementation base 4fd36fd25484adda7d24a7df4da3c1738835474c; record: docs/178-final-c-6-integrated-regression-and-documentation-closure.md
-Final-D Additional charges and guest payment requests — Not started
+  Final-C.6 Integrated regression and documentation closure — Completed and accepted on 2026-08-28 at dca50f51abe1836d3b678b762693219143b12099; closure-gate commit 1391b69a6bb591cc7d4e8a68b577ea8bda4fb8fe; implementation base 4fd36fd25484adda7d24a7df4da3c1738835474c; record: docs/178-final-c-6-integrated-regression-and-documentation-closure.md
+Final-D Additional charges and guest payment requests — Next / Not started
 Final-E Reservation reviews and post-checkout invitation — Not started
 Final-F Twilio WhatsApp communication and staff alerts — Not started
 Final-G Performance audit and optimization — Not started

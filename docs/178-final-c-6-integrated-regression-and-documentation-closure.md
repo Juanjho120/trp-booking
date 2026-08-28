@@ -7,9 +7,12 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-C — Pricing rules: seasonal and length-of-stay
 Subphase: Final-C.6 — Integrated regression and documentation closure
-Status: In progress — consolidated regression/Hosted Test/documentation closure prepared for validation
+Status: Completed and accepted on 2026-08-28
 Preparation date: 2026-08-27
+Acceptance date: 2026-08-28
 Implementation base head: 4fd36fd25484adda7d24a7df4da3c1738835474c
+Final-C.6 closure-gate commit: 1391b69a6bb591cc7d4e8a68b577ea8bda4fb8fe
+Final-C accepted feature head: dca50f51abe1836d3b678b762693219143b12099
 Previous subphase: Final-C.5 — Completed and accepted on 2026-08-27
 Final-C.5 feature head: a88b26c0e2782daad7ea3215eb5b12f8f5124806
 Final-C.5 accepted head: 4fd36fd25484adda7d24a7df4da3c1738835474c
@@ -18,6 +21,7 @@ Persistence foundation: docs/174-final-c-2-pricing-persistence-foundation-and-mi
 Central pricing engine: docs/175-final-c-3-central-pricing-engine-and-public-pending-reservation-integration.md
 Admin pricing management: docs/176-final-c-4-admin-pricing-rule-management.md
 Lifecycle pricing integration: docs/177-final-c-5-date-change-stay-extension-pricing-integration.md
+Final-C status: Completed and accepted on 2026-08-28
 Next package after Final-C acceptance: Final-D — Additional charges and guest payment requests
 Phase 13: Not started
 ```
@@ -350,28 +354,63 @@ C.6 does not require changing Production pricing or connecting any new provider.
 
 ---
 
-# 11. Acceptance Evidence to Record
+# 11. Accepted Closure Evidence
 
-Before Final-C closure, record:
+Final-C.6 and Final-C are completed and accepted.
+
+Accepted evidence:
 
 ```text
-C.6 implementation commit/head
-41/41 Final-C regression result
-Final-A gate result
-Final-B gate result
-Prisma validation/migration status result
-lint result
-build result
-git diff --check result
-Hosted Test date
-three-Property pricing isolation result
-public mixed-rate result
-DATE_CHANGE/STAY_EXTENSION result
-Test environment / zero-cron confirmation
+Final-C.6 closure-gate commit:
+1391b69a6bb591cc7d4e8a68b577ea8bda4fb8fe
+
+Final-C accepted feature head:
+dca50f51abe1836d3b678b762693219143b12099
+
+Permanent Final-C regression:
+- npm run final-c:validate: 41/41 PASS
+
+Repository / integration gate:
+- required Final-C repository validation matrix: PASS
+- existing Final-A regression remained compatible
+- existing Final-B regression remained compatible
+- Prisma validation/migration status remained valid
+- lint/build validation passed during Final-C implementation and refinement
+- no Final-C database migration was introduced by C.6
+
+Hosted Test / functional acceptance:
+- all three supported Properties remained pricing-isolated
+- base-only pricing passed
+- LOS pricing and threshold behavior passed
+- Seasonal pricing passed
+- Seasonal > LOS > Base precedence passed
+- mixed Seasonal / LOS pricing passed
+- public mixed-rate behavior passed
+- pending-reservation pricing evidence passed
+- DATE_CHANGE repricing passed
+- STAY_EXTENSION added-night pricing passed
+- accepted reservation pricing remained historical and snapshot-backed
+- Test remained TRP_ENVIRONMENT=test
+- Test remained scheduler-free
+
+Final accepted refinements:
+- admin Pricing UI refinement accepted
+- accepted pricing breakdown exposed in Reservation admin detail
+- guest quote pricing breakdown accepted
+- reservation-confirmation pricing summary accepted
+- Pricing Preview and Seasonal date pickers aligned with the established booking calendar design
+- Pricing Preview datepicker clipping corrected
+- desktop LOS two-column layout accepted
+- desktop Pricing Preview layout refinement accepted
+- mobile behavior remained unchanged for the final responsive refinements
+
+Owner acceptance:
+- full Final-C acceptance matrix confirmed passed
+- final Pricing UX refinements confirmed working
+- Final-C explicitly accepted for official closure on 2026-08-28
 ```
 
-If any gate fails, Final-C remains In progress and the fix is committed on top of the C.6
-implementation head before re-running only the affected and final consolidated gates.
+No Production infrastructure was touched and Phase 13 remains Not started.
 
 ---
 
@@ -395,13 +434,11 @@ Final-G optimization
 Phase 13 infrastructure
 ```
 
-Final-D remains the next package only after explicit Final-C acceptance.
+Final-D remains the next package after explicit Final-C acceptance.
 
 ---
 
 # 13. Current Decision
-
-At package preparation time:
 
 ```text
 Final-C.1 — Completed and accepted
@@ -409,11 +446,28 @@ Final-C.2 — Completed and accepted
 Final-C.3 — Completed and accepted
 Final-C.4 — Completed and accepted
 Final-C.5 — Completed and accepted at 4fd36fd25484adda7d24a7df4da3c1738835474c
-Final-C.6 — In progress
-Final-C — In progress
-Final-D — Not started
+Final-C.6 — Completed and accepted on 2026-08-28
+Final-C — Completed and accepted on 2026-08-28
+Final-C accepted feature head — dca50f51abe1836d3b678b762693219143b12099
+Final-D — Next / Not started
 Phase 13 — Not started
 ```
 
-Final-C becomes Completed and accepted only after the owner confirms the consolidated repository gate
-and Hosted Test matrix, followed by the final tracker reconciliation commit.
+Final-C.6 is **Completed and accepted**.
+
+Final-C — Pricing rules: seasonal and length-of-stay — is **Completed and accepted** on
+2026-08-28 at accepted feature head:
+
+```text
+dca50f51abe1836d3b678b762693219143b12099
+```
+
+The next package is:
+
+```text
+Final-D — Additional charges and guest payment requests — Next / Not started
+```
+
+No Final-D implementation is started by this closure. Phase 13 remains **Not started** and remains
+blocked until Final-H is completed and the owner explicitly accepts the complete Final Improvement
+Track.
