@@ -1010,7 +1010,7 @@ function LengthOfStayRatesSection({
         </p>
       </div>
 
-      <div className="mt-5 grid gap-3">
+      <div className="mt-5 grid gap-3 lg:grid-cols-2">
         {rules.map((rule) => (
           <Card key={rule.minimumNights}>
             <CardContent className="grid gap-4 p-5 lg:grid-cols-[minmax(0,0.35fr)_minmax(0,1fr)_auto_auto] lg:items-end">
@@ -1115,24 +1115,24 @@ function PricingPreviewCard({
         </p>
       </div>
       <Card className="mt-5 overflow-visible">
-        <CardContent className="space-y-5 p-5">
-          <div className="grid gap-3">
-            <RangeSelectionSummary
-              endLabel={copy.labels.checkOutDate}
-              endValue={formatDate(range.endDate)}
-              startLabel={copy.labels.checkInDate}
-              startValue={formatDate(range.startDate)}
-            />
-            <AdminPricingDateRangeCalendar
-              copy={calendarCopy}
-              locale={locale}
-              onChange={onRangeChange}
-              range={range}
-            />
-            <p className="text-xs leading-5 text-muted-foreground">
-              {copy.calendar.previewHelp}
-            </p>
-          </div>
+          <CardContent className="space-y-5 p-5">
+            <div className="grid gap-3 lg:w-1/2">
+              <AdminPricingDateRangeCalendar
+                copy={calendarCopy}
+                locale={locale}
+                onChange={onRangeChange}
+                range={range}
+              />
+              <p className="text-xs leading-5 text-muted-foreground">
+                {copy.calendar.previewHelp}
+              </p>
+              <RangeSelectionSummary
+                endLabel={copy.labels.checkOutDate}
+                endValue={formatDate(range.endDate)}
+                startLabel={copy.labels.checkInDate}
+                startValue={formatDate(range.startDate)}
+              />
+            </div>
 
           <Button
             disabled={busy || !range.startDate || !range.endDate}
