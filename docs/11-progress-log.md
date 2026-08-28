@@ -8,8 +8,8 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 Current phase state: Phase 12 — Test Deployment & External Integration Validation — Completed and accepted on 2026-08-11
 Current numbered phase: none active
 Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
-Current package: Final-D — Additional charges and guest payment requests — Not started
-Current subphase: none
+Current package: Final-D — Additional charges and guest payment requests — In progress
+Current subphase: Final-D.1 — Additional-charge/payment-request strategy and financial-isolation contract — In progress
 Final-C implementation base head: e7ce19c49c5cfd45e1cc08796ee897a2dce0d1ed
 Final-C.1 status: Completed and accepted on 2026-08-25
 Final-C.1 accepted strategy head: 16d8b0411e573aaaa6b510ddb27a9b5d9c666478
@@ -64,7 +64,10 @@ Final-C.6 accepted feature head: dca50f51abe1836d3b678b762693219143b12099
 Final-C.6 record: docs/178-final-c-6-integrated-regression-and-documentation-closure.md
 Final-C status: Completed and accepted on 2026-08-28
 Final-C accepted feature head: dca50f51abe1836d3b678b762693219143b12099
-Next planned package: Final-D — Additional charges and guest payment requests — Not started
+Final-D implementation base head: 0839b2935fdc2349d23de6ce6b38177504e514c6
+Final-D.1 status: In progress — strategy prepared for owner review and acceptance
+Final-D.1 record: docs/179-final-d-1-additional-charge-payment-request-strategy-and-financial-isolation-contract.md
+Next planned subphase after Final-D.1 acceptance: Final-D.2 — Persistence foundation and migration — Not started
 Last completed package: Final-C — Pricing rules: seasonal and length-of-stay — Completed and accepted on 2026-08-28 at dca50f51abe1836d3b678b762693219143b12099
 Final-A.1 status: Completed and accepted on 2026-08-11
 Final-A.1 accepted head: 19531568752a44446d0802d6581262260b881aaf
@@ -158,7 +161,7 @@ Phase 12.9 acceptance closure: docs/158-phase-12.9-acceptance-closure.md
 Phase 12.10 status: Completed and accepted on 2026-08-11 — Phase 12 validation and closure
 Phase 12.10 validated repository head: ebe28579872cbc2414573ef852b15139a2501551
 Phase 12 closure record: docs/159-phase-12.10-phase-12-validation-and-closure.md
-Post-Phase-12 / Pre-Phase-13 Final Improvement Track: Active — Final-A, Final-B and Final-C completed and accepted; Final-D is next / Not started
+Post-Phase-12 / Pre-Phase-13 Final Improvement Track: Active — Final-A, Final-B and Final-C completed and accepted; Final-D is in progress at Final-D.1
 Final-A status: Completed and accepted on 2026-08-12 at 66afbeacd6ee7d669cb4bc251c8416160fae3f49 — Reservation financial correctness and effective stay value
 Final-A.1 status: Completed and accepted on 2026-08-11 at 19531568752a44446d0802d6581262260b881aaf — Financial source-of-truth and refund-allocation contract
 Final-A.2 status: Completed and accepted on 2026-08-11 at 9f4e04068726451ca87614dd99b1f10656510825 — Central financial summary and cancellation-policy correction
@@ -200,7 +203,11 @@ Final-C.5 implementation base head: 0a57b9772da55a78e8d445dc06ea2b738b412f11
 Final-C.5 status: Completed and accepted on 2026-08-27 at 4fd36fd25484adda7d24a7df4da3c1738835474c
 Final-C.5 record: docs/177-final-c-5-date-change-stay-extension-pricing-integration.md
 Final-C.6 status: Completed and accepted on 2026-08-28 at accepted feature head dca50f51abe1836d3b678b762693219143b12099 — Integrated regression and documentation closure; closure-gate commit 1391b69a6bb591cc7d4e8a68b577ea8bda4fb8fe; implementation base 4fd36fd25484adda7d24a7df4da3c1738835474c; record: docs/178-final-c-6-integrated-regression-and-documentation-closure.md
-Final-D status: Next / Not started — Additional charges and guest payment requests
+Final-D status: In progress — Additional charges and guest payment requests; current subphase Final-D.1
+Final-D.1 implementation base head: 0839b2935fdc2349d23de6ce6b38177504e514c6
+Final-D.1 status: In progress — Additional-charge/payment-request strategy and financial-isolation contract prepared for owner review and acceptance
+Final-D.1 record: docs/179-final-d-1-additional-charge-payment-request-strategy-and-financial-isolation-contract.md
+Final-D.2 status: Not started — Persistence foundation and migration
 Final-E status: Not started — Reservation reviews and post-checkout invitation
 Final-F status: Not started — Twilio WhatsApp communication and staff alerts
 Final-G status: Not started — Performance audit and optimization
@@ -1106,9 +1113,22 @@ Status: **Completed and accepted on 2026-08-28**
 - The consolidated matrix across base/LOS, seasonal precedence, public quote/pending holds, historical stability, lifecycle, and admin/security/audit contracts passed.
 - Hosted Test and owner acceptance completed successfully, including the final pricing UX refinements.
 - Final-C is completed and accepted on 2026-08-28.
-- Final-D is next / Not started.
+- Final-D is now in progress at Final-D.1.
 - Phase 13 remains Not started.
 - Record: docs/178-final-c-6-integrated-regression-and-documentation-closure.md.
+```
+
+### Final-D.1 — Additional-charge/payment-request strategy and financial-isolation contract
+
+Status: **In progress — strategy prepared for owner review and acceptance**
+
+```text
+- Implementation base head: 0839b2935fdc2349d23de6ce6b38177504e514c6.
+- Freezes ancillary-charge categories, charge/request state, grouping, private-link security, Tilopay branching, refund allocation, email delivery, admin UX, concurrency, and financial-isolation boundaries.
+- Additional-charge money remains separate from Reservation.total, currentStayValue, standard cancellation-policy entitlement, and DATE_CHANGE/STAY_EXTENSION stay pricing.
+- D.1 changes documentation only; no schema, migration, runtime code, provider call, visible UI behavior, or Production infrastructure is introduced.
+- Final-D.2 remains Not started until D.1 is explicitly accepted.
+- Record: docs/179-final-d-1-additional-charge-payment-request-strategy-and-financial-isolation-contract.md.
 ```
 
 ## Continuity Notes for New Conversations

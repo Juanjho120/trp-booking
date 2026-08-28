@@ -5,7 +5,7 @@
 ```text
 Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
-Status: Active — Final-A, Final-B and Final-C completed and accepted; Final-D is next / Not started
+Status: Active — Final-A, Final-B and Final-C completed and accepted; Final-D is in progress at Final-D.1
 Registration date: 2026-08-11
 Registration base head: dac105088d2c46be05a900abed3dfe83e608e964
 Previous gate: Phase 12 — Completed and accepted
@@ -582,10 +582,36 @@ docs/174-final-c-2-pricing-persistence-foundation-and-migration.md
 
 # Final-D — Additional Charges and Guest Payment Requests
 
+## Status
+
+```text
+Package: Final-D — In progress
+Implementation base head: 0839b2935fdc2349d23de6ce6b38177504e514c6
+Current subphase: Final-D.1 — Additional-charge/payment-request strategy and financial-isolation contract — In progress
+Final-D.1 status: In progress — strategy prepared for owner review and acceptance
+Final-D.1 record: docs/179-final-d-1-additional-charge-payment-request-strategy-and-financial-isolation-contract.md
+Next planned subphase after Final-D.1 acceptance: Final-D.2 — Persistence foundation and migration — Not started
+Phase 13: Not started
+```
+
 ## Goal
 
 Allow admins to create auditable ancillary charges associated with a Reservation and collect them
 through secure guest payment links without treating them as accommodation price.
+
+## Frozen Subphase Split
+
+```text
+Final-D.1 Additional-charge/payment-request strategy and financial-isolation contract
+Final-D.2 Persistence foundation and migration
+Final-D.3 Admin charge management and payment-request creation
+Final-D.4 Private guest payment link and Tilopay collection
+Final-D.5 Additional-charge refunds and financial-summary integration
+Final-D.6 Email delivery and protected operational UX/history
+Final-D.7 Integrated regression and documentation closure
+```
+
+Final-D.1 is authoritative in `docs/179-final-d-1-additional-charge-payment-request-strategy-and-financial-isolation-contract.md`. D.2 through D.7 must not weaken that contract without an explicit strategy update and owner acceptance.
 
 ## Initial charge categories
 
@@ -1182,8 +1208,12 @@ Phase 13 still owns:
 ```text
 Phase 12 — Completed and accepted
 Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
-Current package — Final-D additional charges and guest payment requests — Not started
-Current subphase — none
+Current package — Final-D additional charges and guest payment requests — In progress
+Current subphase — Final-D.1 Additional-charge/payment-request strategy and financial-isolation contract — In progress
+Final-D implementation base — 0839b2935fdc2349d23de6ce6b38177504e514c6
+Final-D.1 status — In progress; strategy prepared for owner review and acceptance
+Final-D.1 record — docs/179-final-d-1-additional-charge-payment-request-strategy-and-financial-isolation-contract.md
+Next planned subphase after Final-D.1 acceptance — Final-D.2 Persistence foundation and migration — Not started
 Final-C implementation base — e7ce19c49c5cfd45e1cc08796ee897a2dce0d1ed
 Final-C.1 accepted strategy head — 16d8b0411e573aaaa6b510ddb27a9b5d9c666478
 Final-C.1 record — docs/173-final-c-1-pricing-strategy-precedence-and-persistence-contract.md
@@ -1224,7 +1254,9 @@ Final-C.3 — Completed and accepted on 2026-08-26 at c8fc39d111d7b33ee4a375264c
 Final-C.4 — Completed and accepted on 2026-08-27 at 0a57b9772da55a78e8d445dc06ea2b738b412f11
 Final-C.5 — Completed and accepted on 2026-08-27 at 4fd36fd25484adda7d24a7df4da3c1738835474c
 Final-C.6 — Completed and accepted on 2026-08-28 at dca50f51abe1836d3b678b762693219143b12099; closure-gate commit 1391b69a6bb591cc7d4e8a68b577ea8bda4fb8fe; implementation base 4fd36fd25484adda7d24a7df4da3c1738835474c; record: docs/178-final-c-6-integrated-regression-and-documentation-closure.md
-Final-D — Next / Not started
+Final-D — In progress
+Final-D.1 — In progress — Additional-charge/payment-request strategy and financial-isolation contract
+Final-D.2 — Not started
 Final-E — Not started
 Final-F — Not started
 Final-G — Not started

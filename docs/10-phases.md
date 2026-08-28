@@ -17,8 +17,8 @@ Deferred — Intentionally postponed.
 Current phase state: Phase 12 — Test Deployment & External Integration Validation — Completed and accepted on 2026-08-11
 Current numbered phase: none active
 Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
-Current package: Final-D — Additional charges and guest payment requests — Not started
-Current subphase: none
+Current package: Final-D — Additional charges and guest payment requests — In progress
+Current subphase: Final-D.1 — Additional-charge/payment-request strategy and financial-isolation contract — In progress
 Final-C implementation base head: e7ce19c49c5cfd45e1cc08796ee897a2dce0d1ed
 Final-C.1 status: Completed and accepted on 2026-08-25
 Final-C.1 accepted strategy head: 16d8b0411e573aaaa6b510ddb27a9b5d9c666478
@@ -73,7 +73,10 @@ Final-C.6 accepted feature head: dca50f51abe1836d3b678b762693219143b12099
 Final-C.6 record: docs/178-final-c-6-integrated-regression-and-documentation-closure.md
 Final-C status: Completed and accepted on 2026-08-28
 Final-C accepted feature head: dca50f51abe1836d3b678b762693219143b12099
-Next planned package: Final-D — Additional charges and guest payment requests — Not started
+Final-D implementation base head: 0839b2935fdc2349d23de6ce6b38177504e514c6
+Final-D.1 status: In progress — strategy prepared for owner review and acceptance
+Final-D.1 record: docs/179-final-d-1-additional-charge-payment-request-strategy-and-financial-isolation-contract.md
+Next planned subphase after Final-D.1 acceptance: Final-D.2 — Persistence foundation and migration — Not started
 Last completed package: Final-C — Pricing rules: seasonal and length-of-stay — Completed and accepted on 2026-08-28 at dca50f51abe1836d3b678b762693219143b12099
 Final-A.1 status: Completed and accepted on 2026-08-11
 Final-A.1 accepted head: 19531568752a44446d0802d6581262260b881aaf
@@ -158,7 +161,7 @@ Phase 12.9 closure: docs/158-phase-12.9-acceptance-closure.md
 Phase 12.10 status: Completed and accepted on 2026-08-11 — Phase 12 validation and closure
 Phase 12.10 validated repository head: ebe28579872cbc2414573ef852b15139a2501551
 Phase 12 closure: docs/159-phase-12.10-phase-12-validation-and-closure.md
-Next work: Final-D — Additional charges and guest payment requests — is next but Not started; Phase 13 remains blocked until Final-H closes and the complete Final Improvement Track is explicitly accepted
+Next work: review and explicitly accept the Final-D.1 ancillary-charge/payment-request strategy; Final-D.2 begins only after D.1 acceptance, and Phase 13 remains blocked until Final-H closes and the complete Final Improvement Track is explicitly accepted
 Next planned numbered phase: Phase 13 — Production Infrastructure, Deployment & Go-Live — Not started
 Pre-Phase-12 Improvement Track status: Completed and accepted — Packages A, B, C, E, and F accepted; Package D remains deferred outside the current gate
 Pre-Phase-12 Improvement Track registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
@@ -1221,7 +1224,7 @@ Phase 12 explicitly excludes company-owned production account provisioning, prod
 
 ## Inter-Phase Work — Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 
-Status: **Active — Final-A, Final-B and Final-C are completed and accepted; Final-D is next / Not started; Phase 13 remains Not started**
+Status: **Active — Final-A, Final-B and Final-C are completed and accepted; Final-D is in progress at Final-D.1; Phase 13 remains Not started**
 
 Goal: Complete the final owner-approved feature, correctness, communication, pricing, and performance round before Production while preserving the accepted Test/Production ownership boundary.
 
@@ -1249,7 +1252,8 @@ Final-C Pricing rules: seasonal and length-of-stay — Completed and accepted on
   Final-C.4 Admin pricing-rule management — Completed and accepted on 2026-08-27 at 0a57b9772da55a78e8d445dc06ea2b738b412f11; record: docs/176-final-c-4-admin-pricing-rule-management.md
   Final-C.5 DATE_CHANGE/STAY_EXTENSION pricing integration — Completed and accepted on 2026-08-27 at 4fd36fd25484adda7d24a7df4da3c1738835474c; feature head a88b26c0e2782daad7ea3215eb5b12f8f5124806; record: docs/177-final-c-5-date-change-stay-extension-pricing-integration.md
   Final-C.6 Integrated regression and documentation closure — Completed and accepted on 2026-08-28 at dca50f51abe1836d3b678b762693219143b12099; closure-gate commit 1391b69a6bb591cc7d4e8a68b577ea8bda4fb8fe; implementation base 4fd36fd25484adda7d24a7df4da3c1738835474c; record: docs/178-final-c-6-integrated-regression-and-documentation-closure.md
-Final-D Additional charges and guest payment requests — Next / Not started
+Final-D Additional charges and guest payment requests — In progress
+  Final-D.1 Additional-charge/payment-request strategy and financial-isolation contract — In progress; implementation base 0839b2935fdc2349d23de6ce6b38177504e514c6; record: docs/179-final-d-1-additional-charge-payment-request-strategy-and-financial-isolation-contract.md
 Final-E Reservation reviews and post-checkout invitation — Not started
 Final-F Twilio WhatsApp communication and staff alerts — Not started
 Final-G Performance audit and optimization — Not started
