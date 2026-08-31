@@ -7,13 +7,15 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-D — Additional charges and guest payment requests
 Subphase: Final-D.1 — Additional-charge/payment-request strategy and financial-isolation contract
-Status: In progress — strategy prepared for owner review and acceptance
+Status: Completed and accepted on 2026-08-31
 Preparation date: 2026-08-28
+Acceptance date: 2026-08-31
 Implementation base head: 0839b2935fdc2349d23de6ce6b38177504e514c6
+Accepted strategy head: 3dc4fa7d81d65244a94e7e43726e2f12591e578f
 Previous package: Final-C — Completed and accepted on 2026-08-28
 Final-C accepted feature head: dca50f51abe1836d3b678b762693219143b12099
 Authoritative track plan: docs/160-post-phase-12-pre-phase-13-final-improvement-track.md
-Next planned subphase after D.1 acceptance: Final-D.2 — Persistence foundation and migration
+Next subphase: Final-D.2 — Persistence foundation and migration — In progress
 Phase 13: Not started
 ```
 
@@ -939,11 +941,12 @@ Final-D.7 owns one consolidated gate. Minimum coverage:
 
 ```text
 Final-D — In progress
-Final-D.1 — In progress; strategy prepared for owner review/acceptance
+Final-D.1 — Completed and accepted on 2026-08-31
+Final-D.1 accepted strategy head — 3dc4fa7d81d65244a94e7e43726e2f12591e578f
 Implementation base — 0839b2935fdc2349d23de6ce6b38177504e514c6
-Final-D.2 — Not started
+Final-D.2 — In progress; persistence foundation and migration prepared for Local/Test validation
 Final-E — Not started
 Phase 13 — Not started
 ```
 
-No schema or runtime implementation begins until D.1 is explicitly accepted.
+D.1 is completed and accepted. Final-D.2 now owns the persistence foundation and migration; runtime charge/payment behavior remains deferred to D.3 and later subphases.

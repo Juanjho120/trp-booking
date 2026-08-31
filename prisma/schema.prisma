@@ -51,6 +51,7 @@ enum PaymentProvider {
 enum PaymentPurpose {
   INITIAL_RESERVATION
   LIFECYCLE_ADJUSTMENT
+  ADDITIONAL_CHARGE
 
   @@map("payment_purpose")
 }
@@ -77,6 +78,7 @@ enum PaymentSubmissionSource {
   INITIAL_CHECKOUT
   RETRY_PAGE
   LIFECYCLE_ADJUSTMENT
+  ADDITIONAL_CHARGE
 
   @@map("payment_submission_source")
 }
@@ -122,6 +124,7 @@ enum RefundAuthorizationType {
   STANDARD_POLICY
   EXTRAORDINARY
   LIFECYCLE_ADJUSTMENT
+  ADDITIONAL_CHARGE
 
   @@map("refund_authorization_type")
 }
@@ -256,6 +259,36 @@ enum CalendarSyncStatus {
   @@map("calendar_sync_status")
 }
 
+enum AdditionalChargeCategory {
+  CLEANING
+  DAMAGE
+  TRANSPORT
+  LATE_CHECKOUT
+  EXTRA_SERVICE
+  OTHER
+
+  @@map("additional_charge_category")
+}
+
+enum AdditionalChargeStatus {
+  PENDING
+  PAID
+  PARTIALLY_REFUNDED
+  REFUNDED
+  CANCELLED
+
+  @@map("additional_charge_status")
+}
+
+enum GuestPaymentRequestStatus {
+  PENDING
+  PAID
+  EXPIRED
+  CANCELLED
+
+  @@map("guest_payment_request_status")
+}
+
 enum EmailNotificationType {
   RESERVATION_CONFIRMED
   PAYMENT_APPROVED
@@ -270,6 +303,7 @@ enum EmailNotificationType {
   STAY_EXTENSION_PAYMENT_REQUIRED
   ADMIN_DATE_CHANGE_PAYMENT_LINK_DELIVERY_STATUS
   ADMIN_STAY_EXTENSION_PAYMENT_LINK_DELIVERY_STATUS
+  ADDITIONAL_CHARGE_PAYMENT_REQUIRED
   REFUND_PROCESSED
   ADMIN_REFUND_PROCESSED
   ARRIVAL_INSTRUCTIONS
@@ -314,6 +348,8 @@ model User {
   createdLifecycleRequests    ReservationLifecycleRequest[] @relation("LifecycleRequestCreatedByAdmin")
   reviewedLifecycleRequests   ReservationLifecycleRequest[] @relation("LifecycleRequestReviewedByAdmin")
   requestedRefunds            Refund[]                      @relation("RefundRequestedByAdmin")
+  createdAdditionalCharges    AdditionalCharge[]            @relation("AdditionalChargeCreatedByAdmin")
+  createdGuestPaymentRequests GuestPaymentRequest[]         @relation("GuestPaymentRequestCreatedByAdmin")
   cronJobExecutions           CronJobExecution[]            @relation("CronJobExecutionAdminActor")
   auditLogs                   AdminAuditLog[]
 
@@ -567,6 +603,8 @@ model Reservation {
   calendarBlocks            CalendarBlock[]
   emailNotifications        EmailNotification[]
   lifecycleRequests         ReservationLifecycleRequest[]
+  additionalCharges         AdditionalCharge[]
+  guestPaymentRequests      GuestPaymentRequest[]
 
   @@index([propertyId, checkInDate, checkOutDate])
   @@index([status])
@@ -589,10 +627,82 @@ model ReservationGuest {
   @@map("reservation_guests")
 }
 
+model AdditionalCharge {
+  id               String                   @id @default(cuid())
+  reservationId    String                   @map("reservation_id")
+  category         AdditionalChargeCategory
+  description      String                   @db.Text
+  internalNote     String?                  @map("internal_note") @db.Text
+  amount           Decimal                  @db.Decimal(10, 2)
+  currency         String                   @default("USD") @db.VarChar(3)
+  status           AdditionalChargeStatus   @default(PENDING)
+  createdByAdminId String                   @map("created_by_admin_id")
+  cancelledAt      DateTime?                @map("cancelled_at")
+  createdAt        DateTime                 @default(now()) @map("created_at")
+  updatedAt        DateTime                 @updatedAt @map("updated_at")
+
+  reservation         Reservation                        @relation(fields: [reservationId], references: [id], onDelete: Restrict)
+  createdByAdmin      User                               @relation("AdditionalChargeCreatedByAdmin", fields: [createdByAdminId], references: [id], onDelete: Restrict)
+  paymentRequestItems GuestPaymentRequestItem[]
+  refundAllocations   AdditionalChargeRefundAllocation[]
+
+  @@index([reservationId, status])
+  @@index([createdByAdminId])
+  @@index([status])
+  @@map("additional_charges")
+}
+
+model GuestPaymentRequest {
+  id                   String                    @id @default(cuid())
+  reservationId        String                    @map("reservation_id")
+  status               GuestPaymentRequestStatus @default(PENDING)
+  totalAmount          Decimal                   @map("total_amount") @db.Decimal(10, 2)
+  currency             String                    @default("USD") @db.VarChar(3)
+  accessTokenHash      String                    @unique @map("access_token_hash") @db.VarChar(64)
+  accessTokenEncrypted String                    @map("access_token_encrypted") @db.Text
+  expiresAt            DateTime                  @map("expires_at")
+  createdByAdminId     String                    @map("created_by_admin_id")
+  clientRequestId      String                    @unique @map("client_request_id") @db.VarChar(120)
+  paidAt               DateTime?                 @map("paid_at")
+  cancelledAt          DateTime?                 @map("cancelled_at")
+  createdAt            DateTime                  @default(now()) @map("created_at")
+  updatedAt            DateTime                  @updatedAt @map("updated_at")
+
+  reservation        Reservation               @relation(fields: [reservationId], references: [id], onDelete: Restrict)
+  createdByAdmin     User                      @relation("GuestPaymentRequestCreatedByAdmin", fields: [createdByAdminId], references: [id], onDelete: Restrict)
+  items              GuestPaymentRequestItem[]
+  payment            Payment?
+  emailNotifications EmailNotification[]
+
+  @@index([reservationId, status])
+  @@index([status, expiresAt])
+  @@index([createdByAdminId])
+  @@map("guest_payment_requests")
+}
+
+model GuestPaymentRequestItem {
+  id                  String                   @id @default(cuid())
+  paymentRequestId    String                   @map("payment_request_id")
+  additionalChargeId  String                   @map("additional_charge_id")
+  categorySnapshot    AdditionalChargeCategory @map("category_snapshot")
+  descriptionSnapshot String                   @map("description_snapshot") @db.Text
+  amountSnapshot      Decimal                  @map("amount_snapshot") @db.Decimal(10, 2)
+  currencySnapshot    String                   @default("USD") @map("currency_snapshot") @db.VarChar(3)
+  createdAt           DateTime                 @default(now()) @map("created_at")
+
+  paymentRequest   GuestPaymentRequest @relation(fields: [paymentRequestId], references: [id], onDelete: Restrict)
+  additionalCharge AdditionalCharge    @relation(fields: [additionalChargeId], references: [id], onDelete: Restrict)
+
+  @@unique([paymentRequestId, additionalChargeId], map: "guest_payment_request_items_request_charge_key")
+  @@index([additionalChargeId])
+  @@map("guest_payment_request_items")
+}
+
 model Payment {
   id                    String          @id @default(cuid())
   reservationId         String          @map("reservation_id")
   lifecycleRequestId    String?         @map("lifecycle_request_id")
+  guestPaymentRequestId String?         @unique @map("guest_payment_request_id")
   provider              PaymentProvider @default(TILOPAY)
   purpose               PaymentPurpose  @default(INITIAL_RESERVATION)
   providerTransactionId String?         @map("provider_transaction_id")
@@ -608,6 +718,7 @@ model Payment {
 
   reservation                Reservation                   @relation(fields: [reservationId], references: [id], onDelete: Restrict)
   lifecycleRequest           ReservationLifecycleRequest?  @relation("LifecycleAdjustmentPayments", fields: [lifecycleRequestId], references: [id], onDelete: SetNull)
+  guestPaymentRequest        GuestPaymentRequest?          @relation(fields: [guestPaymentRequestId], references: [id], onDelete: Restrict)
   sourceForLifecycleRequests ReservationLifecycleRequest[] @relation("LifecycleSourcePayment")
   refunds                    Refund[]
   clientEvents               PaymentClientEvent[]
@@ -724,10 +835,11 @@ model Refund {
   createdAt           DateTime                @default(now()) @map("created_at")
   updatedAt           DateTime                @updatedAt @map("updated_at")
 
-  payment            Payment                      @relation(fields: [paymentId], references: [id], onDelete: Restrict)
-  lifecycleRequest   ReservationLifecycleRequest? @relation(fields: [lifecycleRequestId], references: [id], onDelete: SetNull)
-  requestedByAdmin   User?                        @relation("RefundRequestedByAdmin", fields: [requestedByAdminId], references: [id], onDelete: SetNull)
-  emailNotifications EmailNotification[]
+  payment                     Payment                            @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+  lifecycleRequest            ReservationLifecycleRequest?       @relation(fields: [lifecycleRequestId], references: [id], onDelete: SetNull)
+  requestedByAdmin            User?                              @relation("RefundRequestedByAdmin", fields: [requestedByAdminId], references: [id], onDelete: SetNull)
+  emailNotifications          EmailNotification[]
+  additionalChargeAllocations AdditionalChargeRefundAllocation[]
 
   @@index([paymentId])
   @@index([lifecycleRequestId])
@@ -736,6 +848,21 @@ model Refund {
   @@index([requestedByAdminId])
   @@index([status, processingMode])
   @@map("refunds")
+}
+
+model AdditionalChargeRefundAllocation {
+  id                 String   @id @default(cuid())
+  refundId           String   @map("refund_id")
+  additionalChargeId String   @map("additional_charge_id")
+  allocatedAmount    Decimal  @map("allocated_amount") @db.Decimal(10, 2)
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  refund           Refund           @relation(fields: [refundId], references: [id], onDelete: Restrict)
+  additionalCharge AdditionalCharge @relation(fields: [additionalChargeId], references: [id], onDelete: Restrict)
+
+  @@unique([refundId, additionalChargeId], map: "additional_charge_refund_allocations_refund_charge_key")
+  @@index([additionalChargeId])
+  @@map("additional_charge_refund_allocations")
 }
 
 model ReservationLifecycleRequest {
@@ -978,6 +1105,7 @@ model EmailNotification {
   reservationId                  String                  @map("reservation_id")
   lifecycleRequestId             String?                 @map("lifecycle_request_id")
   refundId                       String?                 @map("refund_id")
+  guestPaymentRequestId          String?                 @map("guest_payment_request_id")
   type                           EmailNotificationType
   recipient                      String
   locale                         String
@@ -1005,6 +1133,7 @@ model EmailNotification {
   reservation                 Reservation                  @relation(fields: [reservationId], references: [id], onDelete: Cascade)
   lifecycleRequest            ReservationLifecycleRequest? @relation(fields: [lifecycleRequestId], references: [id], onDelete: SetNull)
   refund                      Refund?                      @relation(fields: [refundId], references: [id], onDelete: SetNull)
+  guestPaymentRequest         GuestPaymentRequest?         @relation(fields: [guestPaymentRequestId], references: [id], onDelete: SetNull)
   parentNotification          EmailNotification?           @relation("EmailNotificationManualResends", fields: [parentNotificationId], references: [id], onDelete: SetNull)
   manualResends               EmailNotification[]          @relation("EmailNotificationManualResends")
   sourceNotification          EmailNotification?           @relation("EmailNotificationDeliveryStatuses", fields: [sourceNotificationId], references: [id], onDelete: SetNull)
@@ -1014,6 +1143,7 @@ model EmailNotification {
   @@index([reservationId])
   @@index([lifecycleRequestId])
   @@index([refundId])
+  @@index([guestPaymentRequestId])
   @@index([status, nextAttemptAt])
   @@index([type])
   @@index([origin])

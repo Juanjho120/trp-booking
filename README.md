@@ -21,7 +21,7 @@ The stable test domain is:
 trp-booking.juantzun.dev
 ```
 
-As of 2026-08-28, Phase 12 — Test Deployment & External Integration Validation — is completed and accepted. The stable HTTPS Test deployment at `trp-booking.juantzun.dev` remains `TRP_ENVIRONMENT=test` on the developer-owned stack with zero Vercel scheduler registrations. The Post-Phase-12 / Pre-Phase-13 Final Improvement Track is active: Final-A — reservation financial correctness and effective stay value — is completed and accepted, including its 44/44 integrated regression gate; Final-B — admin external-calendar integrations — is completed and accepted at `1fe06de8c55ab1563999b2db1d210bfc9a82c613`, including its permanent 38/38 regression gate and controlled three-property Hosted Test acceptance; Final-C — pricing rules: seasonal and length-of-stay — is completed and accepted on 2026-08-28 at accepted feature head `dca50f51abe1836d3b678b762693219143b12099`, including its permanent 41/41 Final-C regression gate, three-property pricing isolation, public/pending-reservation pricing integration, DATE_CHANGE/STAY_EXTENSION integration, accepted pricing evidence, and final admin/public/email pricing UX refinements. Final-D — additional charges and guest payment requests — is now in progress at Final-D.1, which freezes the ancillary-charge/payment-request and financial-isolation contract before schema or runtime implementation. Phase 13 — Production Infrastructure, Deployment & Go-Live — remains Not started until Final-H closes and the owner explicitly accepts the complete improvement track.
+As of 2026-08-31, Phase 12 — Test Deployment & External Integration Validation — is completed and accepted. The stable HTTPS Test deployment at `trp-booking.juantzun.dev` remains `TRP_ENVIRONMENT=test` on the developer-owned stack with zero Vercel scheduler registrations. The Post-Phase-12 / Pre-Phase-13 Final Improvement Track is active: Final-A — reservation financial correctness and effective stay value — is completed and accepted, including its 44/44 integrated regression gate; Final-B — admin external-calendar integrations — is completed and accepted at `1fe06de8c55ab1563999b2db1d210bfc9a82c613`, including its permanent 38/38 regression gate and controlled three-property Hosted Test acceptance; Final-C — pricing rules: seasonal and length-of-stay — is completed and accepted on 2026-08-28 at accepted feature head `dca50f51abe1836d3b678b762693219143b12099`, including its permanent 41/41 Final-C regression gate, three-property pricing isolation, public/pending-reservation pricing integration, DATE_CHANGE/STAY_EXTENSION integration, accepted pricing evidence, and final admin/public/email pricing UX refinements. Final-D — additional charges and guest payment requests — is in progress at Final-D.2; Final-D.1 is completed and accepted at `3dc4fa7d81d65244a94e7e43726e2f12591e578f`, and D.2 prepares the additive ancillary-charge/payment-request persistence foundation and migration without activating runtime collection behavior. Phase 13 — Production Infrastructure, Deployment & Go-Live — remains Not started until Final-H closes and the owner explicitly accepts the complete improvement track.
 
 ## Environment Strategy
 
@@ -484,6 +484,7 @@ docs/176-final-c-4-admin-pricing-rule-management.md
 docs/177-final-c-5-date-change-stay-extension-pricing-integration.md
 docs/178-final-c-6-integrated-regression-and-documentation-closure.md
 docs/179-final-d-1-additional-charge-payment-request-strategy-and-financial-isolation-contract.md
+docs/180-final-d-2-additional-charge-persistence-foundation-and-migration.md
 ```
 
 ## Development Status
@@ -493,7 +494,7 @@ Current phase state: Phase 12 — Test Deployment & External Integration Validat
 Current numbered phase: none active
 Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
 Current package: Final-D — Additional charges and guest payment requests — In progress
-Current subphase: Final-D.1 — Additional-charge/payment-request strategy and financial-isolation contract — In progress
+Current subphase: Final-D.2 — Persistence foundation and migration — In progress
 Final-C implementation base head: e7ce19c49c5cfd45e1cc08796ee897a2dce0d1ed
 Final-C.1 status: Completed and accepted on 2026-08-25
 Final-C.1 accepted strategy head: 16d8b0411e573aaaa6b510ddb27a9b5d9c666478
@@ -549,9 +550,13 @@ Final-C.6 record: docs/178-final-c-6-integrated-regression-and-documentation-clo
 Final-C status: Completed and accepted on 2026-08-28
 Final-C accepted feature head: dca50f51abe1836d3b678b762693219143b12099
 Final-D implementation base head: 0839b2935fdc2349d23de6ce6b38177504e514c6
-Final-D.1 status: In progress — strategy prepared for owner review and acceptance
+Final-D.1 status: Completed and accepted on 2026-08-31
+Final-D.1 accepted strategy head: 3dc4fa7d81d65244a94e7e43726e2f12591e578f
 Final-D.1 record: docs/179-final-d-1-additional-charge-payment-request-strategy-and-financial-isolation-contract.md
-Next planned subphase after Final-D.1 acceptance: Final-D.2 — Persistence foundation and migration — Not started
+Final-D.2 implementation base head: 3dc4fa7d81d65244a94e7e43726e2f12591e578f
+Final-D.2 status: In progress — persistence foundation and migration prepared for Local/Test validation
+Final-D.2 record: docs/180-final-d-2-additional-charge-persistence-foundation-and-migration.md
+Next planned subphase after Final-D.2 acceptance: Final-D.3 — Admin charge management and payment-request creation — Not started
 Last completed package: Final-C — Pricing rules: seasonal and length-of-stay — Completed and accepted on 2026-08-28 at dca50f51abe1836d3b678b762693219143b12099
 Final-A.1 status: Completed and accepted on 2026-08-11
 Final-A.1 accepted head: 19531568752a44446d0802d6581262260b881aaf
