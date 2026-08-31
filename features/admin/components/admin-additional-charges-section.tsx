@@ -121,7 +121,7 @@ export function AdminAdditionalChargesSection({
 
       return copy.errors.ADMIN_ADDITIONAL_CHARGE_UNEXPECTED_ERROR;
     },
-    [copy.errors],
+    [copy],
   );
 
   const loadManagement = useCallback(
