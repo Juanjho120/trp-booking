@@ -34,7 +34,7 @@ type StoredAttempt = Readonly<{
   paymentId: string;
   reservationId: string;
   attemptNumber: number;
-  source: CreatablePaymentSubmissionAttemptSource;
+  source: PaymentSubmissionSource;
   status: PaymentSubmissionStatus;
   environment: string;
   locale: string;
