@@ -547,6 +547,162 @@ export const esMessages = {
             "Precio histórico preservado",
         },
       },
+      additionalCharges: {
+        badge: "Cargos adicionales",
+        title: "Cargos adicionales",
+        description:
+          "Crea y administra obligaciones adicionales ligadas a la reservación sin mezclarlas con el valor confirmado del alojamiento.",
+        loading: "Cargando cargos adicionales y solicitudes de pago...",
+        sections: {
+          charges: "Cargos",
+          requests: "Solicitudes de pago del huésped",
+        },
+        labels: {
+          category: "Categoría",
+          description: "Descripción visible para el huésped",
+          internalNote: "Nota interna",
+          amount: "Monto",
+          createdAt: "Creado",
+          expiresAt: "Expira",
+          request: "Solicitud",
+          total: "Total solicitado",
+        },
+        categories: {
+          CLEANING: "Limpieza adicional",
+          DAMAGE: "Daños",
+          TRANSPORT: "Transporte",
+          LATE_CHECKOUT: "Salida tardía",
+          EXTRA_SERVICE: "Servicio adicional",
+          OTHER: "Otro",
+        },
+        chargeStatuses: {
+          PENDING: "Pendiente",
+          PAID: "Pagado",
+          PARTIALLY_REFUNDED: "Parcialmente reembolsado",
+          REFUNDED: "Reembolsado",
+          CANCELLED: "Cancelado",
+        },
+        requestStatuses: {
+          PENDING: "Pendiente",
+          PAID: "Pagada",
+          EXPIRED: "Expirada",
+          CANCELLED: "Cancelada",
+        },
+        actions: {
+          createCharge: "Crear cargo",
+          editCharge: "Editar",
+          cancelCharge: "Cancelar cargo",
+          selectCharge: "Seleccionar cargo",
+          createRequest: "Crear solicitud de pago",
+          cancelRequest: "Cancelar solicitud",
+          saveCharge: "Guardar cargo",
+          saving: "Guardando...",
+          creatingRequest: "Creando solicitud...",
+          confirmCreateRequest: "Crear solicitud",
+          confirmCancelCharge: "Cancelar cargo",
+          confirmCancelRequest: "Cancelar solicitud",
+          close: "Cerrar",
+        },
+        placeholders: {
+          description:
+            "Describe claramente el cargo para el huésped, sin datos internos ni información exclusiva del proveedor.",
+          internalNote:
+            "Contexto interno opcional. Esta nota nunca se copia al item de la solicitud de pago del huésped.",
+          amount: "0.00",
+        },
+        notes: {
+          financialIsolationTitle: "Separado del valor del alojamiento",
+          financialIsolation:
+            "Estos cargos no modifican el total de la reservación, el snapshot de pricing aceptado, la base de la política de cancelación ni el pool de pagos/reembolsos de la estadía.",
+          chargeBoundary:
+            "Solo un cargo pendiente que nunca haya sido solicitado puede editarse. Un cargo pendiente sin solicitud activa puede cancelarse o seleccionarse para cobro.",
+          requestBoundary:
+            "La solicitud de pago congela sus líneas, monto y vencimiento de siete días. El checkout del huésped y la entrega por correo se activan en los flujos posteriores de pago y notificación.",
+        },
+        states: {
+          reservationNotEligible:
+            "Los cargos adicionales solo pueden crearse para una reservación que haya sido confirmada previamente y cuyo estado actual sea Confirmada o Cancelada.",
+          activeRequest: "Solicitud activa",
+        },
+        createDialog: {
+          title: "Crear cargo adicional",
+          description:
+            "Registra una obligación positiva en USD vinculada a esta reservación.",
+          boundary:
+            "La descripción será visible para el huésped. Guarda el contexto operativo privado en la nota interna. Crear el cargo no crea ni ejecuta un pago.",
+        },
+        editDialog: {
+          title: "Editar cargo adicional",
+          description:
+            "Solo pueden reescribirse cargos que nunca hayan formado parte de una solicitud de pago.",
+          boundary:
+            "Cuando un cargo ya tiene historial de solicitudes, su monto y descripción originales permanecen como evidencia inmutable.",
+        },
+        cancelChargeDialog: {
+          title: "Cancelar cargo adicional",
+          description:
+            "Cancela esta obligación no pagada únicamente cuando el motivo de negocio ya no aplique. El historial de solicitudes permanece preservado.",
+        },
+        createRequestDialog: {
+          title: "Crear solicitud de pago del huésped",
+          description:
+            "Agrupa los cargos pendientes seleccionados en una solicitud inmutable con vigencia de siete días.",
+          boundary:
+            "Esta acción guarda un hash SHA-256 del token y una copia cifrada recuperable. Todavía no inicia checkout con Tilopay, no crea un Payment y no envía correo.",
+        },
+        cancelRequestDialog: {
+          title: "Cancelar solicitud de pago del huésped",
+          description:
+            "Cancela esta solicitud todavía no pagada. Sus snapshots inmutables permanecen en el historial y los cargos pendientes elegibles podrán solicitarse nuevamente.",
+        },
+        success: {
+          created: "El cargo adicional fue creado.",
+          updated: "El cargo adicional fue actualizado.",
+          cancelled: "El cargo adicional fue cancelado.",
+          requestCreated: "La solicitud de pago del huésped fue creada.",
+          requestCancelled: "La solicitud de pago del huésped fue cancelada.",
+        },
+        empty: {
+          charges: "Esta reservación todavía no tiene cargos adicionales.",
+          requests: "Esta reservación todavía no tiene solicitudes de pago del huésped.",
+        },
+        errors: {
+          ADMIN_UNAUTHORIZED:
+            "Tu sesión no tiene autorización administrativa.",
+          ADMIN_ADDITIONAL_CHARGE_ORIGIN_INVALID:
+            "La operación fue bloqueada porque su origen no coincide con este entorno de TRP Booking.",
+          INVALID_ADMIN_ADDITIONAL_CHARGE_REQUEST:
+            "Revisa la categoría, descripción, monto y versión actual del registro antes de continuar.",
+          ADMIN_ADDITIONAL_CHARGE_RESERVATION_NOT_FOUND:
+            "No encontramos la reservación seleccionada.",
+          ADMIN_ADDITIONAL_CHARGE_RESERVATION_NOT_ELIGIBLE:
+            "Esta reservación no es elegible para administrar cargos adicionales.",
+          ADMIN_ADDITIONAL_CHARGE_NOT_FOUND:
+            "No encontramos el cargo adicional seleccionado.",
+          ADMIN_ADDITIONAL_CHARGE_NOT_EDITABLE:
+            "Este cargo ya no puede editarse o cancelarse desde su estado actual.",
+          ADMIN_ADDITIONAL_CHARGE_ACTIVE_REQUEST:
+            "Este cargo forma parte de una solicitud de pago activa. Cancela primero esa solicitud si la obligación debe retirarse.",
+          ADMIN_ADDITIONAL_CHARGE_STALE:
+            "El cargo cambió después de que abriste esta página. Recarga antes de intentarlo nuevamente.",
+          ADMIN_GUEST_PAYMENT_REQUEST_CHARGES_REQUIRED:
+            "Selecciona al menos un cargo pendiente elegible.",
+          ADMIN_GUEST_PAYMENT_REQUEST_CHARGE_NOT_ELIGIBLE:
+            "Uno o más cargos seleccionados cambiaron o dejaron de ser elegibles. Recarga antes de continuar.",
+          ADMIN_GUEST_PAYMENT_REQUEST_ACTIVE_CONFLICT:
+            "Uno de los cargos seleccionados ya forma parte de otra solicitud de pago activa.",
+          ADMIN_GUEST_PAYMENT_REQUEST_IDEMPOTENCY_CONFLICT:
+            "El identificador de esta operación ya fue utilizado con cargos diferentes.",
+          ADMIN_GUEST_PAYMENT_REQUEST_NOT_FOUND:
+            "No encontramos la solicitud de pago seleccionada.",
+          ADMIN_GUEST_PAYMENT_REQUEST_NOT_CANCELLABLE:
+            "La solicitud de pago ya no está pendiente y no puede cancelarse.",
+          ADMIN_GUEST_PAYMENT_REQUEST_STALE:
+            "La solicitud de pago cambió después de que abriste esta página. Recarga antes de continuar.",
+          ADMIN_ADDITIONAL_CHARGE_UNEXPECTED_ERROR:
+            "No pudimos completar la operación de cargos adicionales. Inténtalo nuevamente.",
+        },
+      },
       labels: {
         search: "Buscar reservas",
         propertyFilter: "Alojamiento",

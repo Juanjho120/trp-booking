@@ -547,6 +547,162 @@ export const enMessages = {
             "Preserved historical price",
         },
       },
+      additionalCharges: {
+        badge: "Ancillary charges",
+        title: "Additional charges",
+        description:
+          "Create and manage reservation-linked ancillary obligations separately from the confirmed accommodation value.",
+        loading: "Loading additional charges and payment requests...",
+        sections: {
+          charges: "Charges",
+          requests: "Guest payment requests",
+        },
+        labels: {
+          category: "Category",
+          description: "Guest-visible description",
+          internalNote: "Internal note",
+          amount: "Amount",
+          createdAt: "Created",
+          expiresAt: "Expires",
+          request: "Request",
+          total: "Request total",
+        },
+        categories: {
+          CLEANING: "Additional cleaning",
+          DAMAGE: "Damage",
+          TRANSPORT: "Transport",
+          LATE_CHECKOUT: "Late checkout",
+          EXTRA_SERVICE: "Extra service",
+          OTHER: "Other",
+        },
+        chargeStatuses: {
+          PENDING: "Pending",
+          PAID: "Paid",
+          PARTIALLY_REFUNDED: "Partially refunded",
+          REFUNDED: "Refunded",
+          CANCELLED: "Cancelled",
+        },
+        requestStatuses: {
+          PENDING: "Pending",
+          PAID: "Paid",
+          EXPIRED: "Expired",
+          CANCELLED: "Cancelled",
+        },
+        actions: {
+          createCharge: "Create charge",
+          editCharge: "Edit",
+          cancelCharge: "Cancel charge",
+          selectCharge: "Select charge",
+          createRequest: "Create payment request",
+          cancelRequest: "Cancel request",
+          saveCharge: "Save charge",
+          saving: "Saving...",
+          creatingRequest: "Creating request...",
+          confirmCreateRequest: "Create request",
+          confirmCancelCharge: "Cancel charge",
+          confirmCancelRequest: "Cancel request",
+          close: "Close",
+        },
+        placeholders: {
+          description:
+            "Describe the charge clearly for the guest, without internal or provider-only details.",
+          internalNote:
+            "Optional internal context. This note is never copied into the guest payment-request item.",
+          amount: "0.00",
+        },
+        notes: {
+          financialIsolationTitle: "Separate from accommodation value",
+          financialIsolation:
+            "These charges do not change the reservation total, accepted pricing snapshot, cancellation-policy base, or stay-payment/refund pool.",
+          chargeBoundary:
+            "Only a never-requested pending charge can be edited. A pending charge without an active request can be cancelled or selected for collection.",
+          requestBoundary:
+            "A payment request freezes its selected line items, amount, and seven-day expiry. Guest checkout and email delivery are activated by later payment and notification flows.",
+        },
+        states: {
+          reservationNotEligible:
+            "Additional charges can only be created for a reservation that was previously confirmed and is currently Confirmed or Cancelled.",
+          activeRequest: "Active request",
+        },
+        createDialog: {
+          title: "Create additional charge",
+          description:
+            "Record a positive USD obligation linked to this reservation.",
+          boundary:
+            "The description is guest-visible. Keep private operational context in the internal note. Creating the charge does not create or execute a payment.",
+        },
+        editDialog: {
+          title: "Edit additional charge",
+          description:
+            "Only charges that have never been included in a payment request can be rewritten.",
+          boundary:
+            "Once a charge has request history, its original amount and guest-visible description remain immutable evidence.",
+        },
+        cancelChargeDialog: {
+          title: "Cancel additional charge",
+          description:
+            "Cancel this unpaid obligation only when the business reason no longer applies. Historical request evidence remains preserved.",
+        },
+        createRequestDialog: {
+          title: "Create guest payment request",
+          description:
+            "Group the selected pending charges into one immutable seven-day request.",
+          boundary:
+            "This action stores a SHA-256 token hash and an encrypted recoverable token. It does not start Tilopay checkout, create a Payment, or send an email yet.",
+        },
+        cancelRequestDialog: {
+          title: "Cancel guest payment request",
+          description:
+            "Cancel this still-unpaid request. Its immutable item snapshots remain in history, and eligible pending charges can be requested again.",
+        },
+        success: {
+          created: "The additional charge was created.",
+          updated: "The additional charge was updated.",
+          cancelled: "The additional charge was cancelled.",
+          requestCreated: "The guest payment request was created.",
+          requestCancelled: "The guest payment request was cancelled.",
+        },
+        empty: {
+          charges: "This reservation does not have additional charges yet.",
+          requests: "This reservation does not have guest payment requests yet.",
+        },
+        errors: {
+          ADMIN_UNAUTHORIZED:
+            "Your session is not authorized for administration.",
+          ADMIN_ADDITIONAL_CHARGE_ORIGIN_INVALID:
+            "This operation was blocked because its origin does not match this TRP Booking environment.",
+          INVALID_ADMIN_ADDITIONAL_CHARGE_REQUEST:
+            "Review the category, description, amount, and current record version before continuing.",
+          ADMIN_ADDITIONAL_CHARGE_RESERVATION_NOT_FOUND:
+            "We could not find the selected reservation.",
+          ADMIN_ADDITIONAL_CHARGE_RESERVATION_NOT_ELIGIBLE:
+            "This reservation is not eligible for additional-charge management.",
+          ADMIN_ADDITIONAL_CHARGE_NOT_FOUND:
+            "We could not find the selected additional charge.",
+          ADMIN_ADDITIONAL_CHARGE_NOT_EDITABLE:
+            "This charge can no longer be edited or cancelled from its current state.",
+          ADMIN_ADDITIONAL_CHARGE_ACTIVE_REQUEST:
+            "This charge is inside an active payment request. Cancel that request first if the obligation should be withdrawn.",
+          ADMIN_ADDITIONAL_CHARGE_STALE:
+            "The charge changed after you opened this page. Reload before trying again.",
+          ADMIN_GUEST_PAYMENT_REQUEST_CHARGES_REQUIRED:
+            "Select at least one eligible pending charge.",
+          ADMIN_GUEST_PAYMENT_REQUEST_CHARGE_NOT_ELIGIBLE:
+            "One or more selected charges changed or are no longer eligible. Reload before continuing.",
+          ADMIN_GUEST_PAYMENT_REQUEST_ACTIVE_CONFLICT:
+            "One of the selected charges is already inside another active payment request.",
+          ADMIN_GUEST_PAYMENT_REQUEST_IDEMPOTENCY_CONFLICT:
+            "This payment-request operation identifier was already used with different charges.",
+          ADMIN_GUEST_PAYMENT_REQUEST_NOT_FOUND:
+            "We could not find the selected guest payment request.",
+          ADMIN_GUEST_PAYMENT_REQUEST_NOT_CANCELLABLE:
+            "This payment request is no longer pending and cannot be cancelled.",
+          ADMIN_GUEST_PAYMENT_REQUEST_STALE:
+            "The payment request changed after you opened this page. Reload before continuing.",
+          ADMIN_ADDITIONAL_CHARGE_UNEXPECTED_ERROR:
+            "We could not complete the additional-charge operation. Please try again.",
+        },
+      },
       labels: {
         search: "Search reservations",
         propertyFilter: "Accommodation",

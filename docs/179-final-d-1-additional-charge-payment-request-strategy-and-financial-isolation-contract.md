@@ -15,7 +15,7 @@ Accepted strategy head: 3dc4fa7d81d65244a94e7e43726e2f12591e578f
 Previous package: Final-C — Completed and accepted on 2026-08-28
 Final-C accepted feature head: dca50f51abe1836d3b678b762693219143b12099
 Authoritative track plan: docs/160-post-phase-12-pre-phase-13-final-improvement-track.md
-Next subphase: Final-D.2 — Persistence foundation and migration — In progress
+Following progress: Final-D.2 — Completed and accepted on 2026-08-31 at 74ac3011eb22277a896d81c92897f1bee6a4d51b; Final-D.3 — In progress
 Phase 13: Not started
 ```
 
@@ -944,9 +944,10 @@ Final-D — In progress
 Final-D.1 — Completed and accepted on 2026-08-31
 Final-D.1 accepted strategy head — 3dc4fa7d81d65244a94e7e43726e2f12591e578f
 Implementation base — 0839b2935fdc2349d23de6ce6b38177504e514c6
-Final-D.2 — In progress; persistence foundation and migration prepared for Local/Test validation
+Final-D.2 — Completed and accepted on 2026-08-31 at 74ac3011eb22277a896d81c92897f1bee6a4d51b
+Final-D.3 — In progress; admin charge management and payment-request creation prepared for Local/Test validation
 Final-E — Not started
 Phase 13 — Not started
 ```
 
-D.1 is completed and accepted. Final-D.2 now owns the persistence foundation and migration; runtime charge/payment behavior remains deferred to D.3 and later subphases.
+D.1 and D.2 are completed and accepted. Final-D.3 now owns protected admin charge management and immutable payment-request creation; private checkout, provider collection, ancillary refunds and payment-request email delivery remain deferred to D.4-D.6.

@@ -7,14 +7,14 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-D — Additional charges and guest payment requests
 Subphase: Final-D.2 — Persistence foundation and migration
-Status: In progress — implementation prepared for Local/Test migration validation
+Status: Completed and accepted on 2026-08-31 at `74ac3011eb22277a896d81c92897f1bee6a4d51b`
 Preparation date: 2026-08-31
 Implementation base head: 3dc4fa7d81d65244a94e7e43726e2f12591e578f
 Previous subphase: Final-D.1 — Completed and accepted on 2026-08-31
 Final-D.1 accepted strategy head: 3dc4fa7d81d65244a94e7e43726e2f12591e578f
 Authoritative strategy: docs/179-final-d-1-additional-charge-payment-request-strategy-and-financial-isolation-contract.md
 Migration: prisma/migrations/20260831135000_final_d_2_additional_charge_persistence_foundation/migration.sql
-Next planned subphase after acceptance: Final-D.3 — Admin charge management and payment-request creation
+Following subphase: Final-D.3 — Admin charge management and payment-request creation — In progress
 Phase 13: Not started
 ```
 
@@ -481,7 +481,7 @@ For D.2 acceptance every count should be `0`. D.2 intentionally supplies no test
 
 # 13. D.2 Acceptance Matrix
 
-Final-D.2 remains **In progress** until the owner validates the migration and technical gates.
+Final-D.2 is **Completed and accepted on 2026-08-31** at `74ac3011eb22277a896d81c92897f1bee6a4d51b`. The matrix below remains the acceptance contract and historical validation checklist for this persistence foundation.
 
 ```text
 [ ] Prisma schema formats without unexpected changes
@@ -516,8 +516,7 @@ Final-D.2 remains **In progress** until the owner validates the migration and te
 [ ] Phase 13 remains Not started
 ```
 
-After these checks pass and the owner accepts the result, D.2 may be marked Completed and accepted.
-Only then may Final-D.3 begin.
+Owner acceptance advanced the package from D.2 to D.3 at accepted D.2 head `74ac3011eb22277a896d81c92897f1bee6a4d51b`. Final-D.3 may build runtime admin charge/request behavior on this schema without retroactively rewriting D.2 persistence history.
 
 ---
 
@@ -526,8 +525,8 @@ Only then may Final-D.3 begin.
 ```text
 Final-D — In progress
 Final-D.1 — Completed and accepted on 2026-08-31 at 3dc4fa7d81d65244a94e7e43726e2f12591e578f
-Final-D.2 — In progress; implementation prepared for Local/Test migration validation
-Final-D.3 — Not started
+Final-D.2 — Completed and accepted on 2026-08-31 at 74ac3011eb22277a896d81c92897f1bee6a4d51b
+Final-D.3 — In progress; admin charge management and payment-request creation prepared for Local/Test validation
 Final-E — Not started
 Phase 13 — Not started
 ```

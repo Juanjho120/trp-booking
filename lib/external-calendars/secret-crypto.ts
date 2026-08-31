@@ -16,6 +16,7 @@ const EXPECTED_KEY_LENGTH_BYTES = 32;
 export const externalCalendarSecretPurposes = [
   "AIRBNB_IMPORT",
   "TRP_EXPORT_TOKEN",
+  "GUEST_PAYMENT_REQUEST",
 ] as const;
 
 export type ExternalCalendarSecretPurpose =
@@ -74,11 +75,20 @@ function getAdditionalAuthenticatedData(
   purpose: ExternalCalendarSecretPurpose,
   propertyId: string,
 ): Buffer {
+  const normalizedId = normalizePropertyId(propertyId);
+
+  if (purpose === "GUEST_PAYMENT_REQUEST") {
+    return Buffer.from(
+      `trp-booking:guest-payment-request:${normalizedId}`,
+      "utf8",
+    );
+  }
+
   const purposeSegment =
     purpose === "AIRBNB_IMPORT" ? "airbnb-import" : "trp-export-token";
 
   return Buffer.from(
-    `trp-booking:external-calendar:${purposeSegment}:${normalizePropertyId(propertyId)}`,
+    `trp-booking:external-calendar:${purposeSegment}:${normalizedId}`,
     "utf8",
   );
 }

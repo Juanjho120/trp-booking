@@ -54,6 +54,15 @@ export {
   updateAdminArrivalInstructions,
 } from "./arrival-instructions";
 export { adminApiErrorResponse, adminApiSuccessResponse } from "./api-response";
+export {
+  AdminAdditionalChargeError,
+  cancelAdminAdditionalCharge,
+  cancelAdminGuestPaymentRequest,
+  createAdminAdditionalCharge,
+  createAdminGuestPaymentRequest,
+  getAdminAdditionalChargeManagement,
+  updateAdminAdditionalCharge,
+} from "./additional-charges";
 export { getAdminDashboardSummary } from "./dashboard";
 export {
   AdminEmailNotificationResendError,
