@@ -167,7 +167,7 @@ export function AdminAdditionalChargesSection({
         return true;
       } catch {
         setErrorMessage(
-          copy.errors.ADMIN_ADDITIONAL_CHARGE_UNEXPECTED_ERROR,
+          resolveError("ADMIN_ADDITIONAL_CHARGE_UNEXPECTED_ERROR"),
         );
         return false;
       } finally {
@@ -176,11 +176,7 @@ export function AdminAdditionalChargesSection({
         }
       }
     },
-    [
-      copy.errors.ADMIN_ADDITIONAL_CHARGE_UNEXPECTED_ERROR,
-      reservationId,
-      resolveError,
-    ],
+    [reservationId, resolveError],
   );
 
   useEffect(() => {

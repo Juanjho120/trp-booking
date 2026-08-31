@@ -178,6 +178,9 @@ test("C.6 admin mutation boundary retains validation, optimistic concurrency and
   const dateRangeCalendar = source(
     "features/admin/components/admin-pricing-date-range-calendar.tsx",
   );
+  const availabilityDateRangePicker = source(
+    "components/availability/availability-date-range-picker.tsx",
+  );
 
   assert.match(route, /getAdminSessionActor/);
   assert.match(route, /isValidAdminMutationOrigin/);
@@ -199,6 +202,9 @@ test("C.6 admin mutation boundary retains validation, optimistic concurrency and
   assert.match(manager, /grid gap-5 px-6 py-2 pb-6/);
   assert.match(manager, /toSeasonalPersistenceRange/);
   assert.match(dateRangeCalendar, /disabledRanges/);
-  assert.match(dateRangeCalendar, /dateIsInsideHalfOpenRange/);
-  assert.match(dateRangeCalendar, /rangeCrossesDisabledDate/);
+  assert.match(dateRangeCalendar, /expandDisabledRanges/);
+  assert.match(dateRangeCalendar, /cursor\.getTime\(\) < end\.getTime\(\)/);
+  assert.match(dateRangeCalendar, /blockedDates=\{disabledDates\}/);
+  assert.match(availabilityDateRangePicker, /disabled=\{disabledMatchers\}/);
+  assert.match(availabilityDateRangePicker, /excludeDisabled/);
 });
