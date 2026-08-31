@@ -1,4 +1,8 @@
-import { PaymentProvider, PaymentStatus } from "@prisma/client";
+import {
+  PaymentProvider,
+  PaymentPurpose,
+  PaymentStatus,
+} from "@prisma/client";
 
 import { prisma } from "@/lib/db/prisma";
 import {
@@ -151,6 +155,7 @@ export async function validateTilopayPaymentPreflight(input: Readonly<{
       id: input.paymentId,
       reservationId: validation.reservationId,
       provider: PaymentProvider.TILOPAY,
+      purpose: PaymentPurpose.INITIAL_RESERVATION,
       status: PaymentStatus.PENDING,
     },
     select: {

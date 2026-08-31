@@ -1,7 +1,13 @@
 export type PaymentSubmissionAttemptSource =
   | "INITIAL_CHECKOUT"
   | "RETRY_PAGE"
-  | "LIFECYCLE_ADJUSTMENT";
+  | "LIFECYCLE_ADJUSTMENT"
+  | "ADDITIONAL_CHARGE";
+
+export type CreatablePaymentSubmissionAttemptSource = Exclude<
+  PaymentSubmissionAttemptSource,
+  "ADDITIONAL_CHARGE"
+>;
 
 export type PaymentSubmissionAttemptStatus =
   | "STARTED"

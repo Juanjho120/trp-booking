@@ -11,8 +11,8 @@ import {
 import { prisma } from "@/lib/db/prisma";
 import type { PaymentAttemptErrorCode } from "@/types/payment-attempt";
 import type {
+  CreatablePaymentSubmissionAttemptSource,
   PaymentSubmissionAttempt,
-  PaymentSubmissionAttemptSource,
   PaymentSubmissionAttemptStatus,
 } from "@/types/payment-submission-attempt";
 
@@ -34,7 +34,7 @@ type StoredAttempt = Readonly<{
   paymentId: string;
   reservationId: string;
   attemptNumber: number;
-  source: PaymentSubmissionSource;
+  source: CreatablePaymentSubmissionAttemptSource;
   status: PaymentSubmissionStatus;
   environment: string;
   locale: string;
@@ -77,8 +77,21 @@ function isRetryableTransactionError(error: unknown): boolean {
 
 function assertSourceMatchesPaymentPurpose(
   purpose: PaymentPurpose,
-  source: PaymentSubmissionSource,
+  source: CreatablePaymentSubmissionAttemptSource,
 ): void {
+  if (purpose === PaymentPurpose.INITIAL_RESERVATION) {
+    if (
+      source !== PaymentSubmissionSource.INITIAL_CHECKOUT &&
+      source !== PaymentSubmissionSource.RETRY_PAGE
+    ) {
+      throw new PaymentSubmissionAttemptError(
+        "INVALID_PAYMENT_HANDOFF_REQUEST",
+      );
+    }
+
+    return;
+  }
+
   if (purpose === PaymentPurpose.LIFECYCLE_ADJUSTMENT) {
     if (source !== PaymentSubmissionSource.LIFECYCLE_ADJUSTMENT) {
       throw new PaymentSubmissionAttemptError(
@@ -89,14 +102,7 @@ function assertSourceMatchesPaymentPurpose(
     return;
   }
 
-  if (
-    source !== PaymentSubmissionSource.INITIAL_CHECKOUT &&
-    source !== PaymentSubmissionSource.RETRY_PAGE
-  ) {
-    throw new PaymentSubmissionAttemptError(
-      "INVALID_PAYMENT_HANDOFF_REQUEST",
-    );
-  }
+  throw new PaymentSubmissionAttemptError("INVALID_PAYMENT_HANDOFF_REQUEST");
 }
 
 function parseActivePreflightExpiration(value: string, now: Date): Date {
@@ -115,7 +121,7 @@ function parseActivePreflightExpiration(value: string, now: Date): Date {
 async function createAttemptOnce(input: Readonly<{
   paymentId: string;
   reservationReference: string;
-  source: PaymentSubmissionSource;
+  source: CreatablePaymentSubmissionAttemptSource;
   environment: string;
   locale: "es" | "en";
   preflightExpiresAt: string;
@@ -239,17 +245,14 @@ async function createAttemptOnce(input: Readonly<{
 export async function createPaymentSubmissionAttempt(input: Readonly<{
   paymentId: string;
   reservationReference: string;
-  source: PaymentSubmissionAttemptSource;
+  source: CreatablePaymentSubmissionAttemptSource;
   environment: string;
   locale: "es" | "en";
   preflightExpiresAt: string;
 }>): Promise<PaymentSubmissionAttempt> {
   for (let attempt = 1; attempt <= MAX_CREATE_RETRIES; attempt += 1) {
     try {
-      return await createAttemptOnce({
-        ...input,
-        source: input.source as PaymentSubmissionSource,
-      });
+      return await createAttemptOnce(input);
     } catch (error) {
       if (
         attempt < MAX_CREATE_RETRIES &&

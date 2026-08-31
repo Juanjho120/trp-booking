@@ -15,6 +15,7 @@ import {
 import { enMessages } from "@/messages/en";
 import { esMessages } from "@/messages/es";
 import type { TilopayPaymentPreflightErrorCode } from "@/types/tilopay-payment-preflight";
+import type { CreatablePaymentSubmissionAttemptSource } from "@/types/payment-submission-attempt";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -67,7 +68,7 @@ function resolveErrorStatus(code: TilopayPaymentPreflightErrorCode): number {
 function resolveSubmissionSource(
   request: Request,
   reservationReference: string,
-): PaymentSubmissionSource {
+): CreatablePaymentSubmissionAttemptSource {
   if (isLifecycleAdjustmentHandoffToken(reservationReference)) {
     return PaymentSubmissionSource.LIFECYCLE_ADJUSTMENT;
   }
