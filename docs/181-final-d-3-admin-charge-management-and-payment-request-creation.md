@@ -1,8 +1,9 @@
 # Final-D.3 — Admin Charge Management and Payment-Request Creation
 
 Date: 2026-08-31
-Status: **In progress — implementation prepared for Local/Test validation**
+Status: **Completed and accepted on 2026-08-31 at `6a0d909fc325f4e8925677041be34c77c023c42b`**
 Implementation base: `74ac3011eb22277a896d81c92897f1bee6a4d51b`
+Accepted head: `6a0d909fc325f4e8925677041be34c77c023c42b`
 Prerequisites: Final-D.1 and Final-D.2 completed and accepted
 
 ---
@@ -263,9 +264,9 @@ D.3 does not change `prisma/schema.prisma` or the D.2 migration.
 
 ---
 
-## 9. Local/Test Validation Gate
+## 9. Accepted Local/Test Validation Gate
 
-D.3 remains **In progress** until the following gates are executed successfully against the owner's repo/environment.
+The following validation gate defined D.3 acceptance. The implementation and required Local/Test behavior were confirmed and Final-D.3 was explicitly accepted on 2026-08-31 at the accepted head recorded above.
 
 ### Static/regression gate
 
@@ -284,24 +285,24 @@ git diff --check
 ### Functional admin gate
 
 ```text
-[ ] open a reservation and verify Additional charges appears inside Financial
-[ ] create a positive USD charge and verify it remains separate from the stay total
-[ ] create charges using representative categories and localized ES/EN UI
-[ ] edit an eligible never-requested PENDING charge and verify the updated value is server-authoritative
-[ ] verify stale expectedUpdatedAt is rejected instead of overwriting concurrent work
-[ ] cancel an eligible unpaid PENDING charge and verify it is preserved as CANCELLED
-[ ] select at least two PENDING charges and create one grouped payment request
-[ ] verify request total equals the persisted selected charge amounts
-[ ] verify immutable request-item snapshots match the selected charges at creation time
-[ ] verify included charges remain PENDING while active request membership prevents duplicate active grouping
-[ ] verify the raw/encrypted/hash token values are absent from API responses and the DOM
-[ ] retry the same request id with the same charge set and verify no duplicate request is created
-[ ] reuse the same request id with a different charge set and verify a conflict is returned
-[ ] cancel a PENDING request and verify its still-PENDING charges become eligible for a new request again
-[ ] verify cancelled request/item history is preserved
-[ ] verify no Payment, Refund or EmailNotification is created by D.3 actions
-[ ] verify Reservation.total and accepted pricing evidence do not change
-[ ] verify Final-A / Final-B / Final-C regression gates remain green
+[x] open a reservation and verify Additional charges appears inside Financial
+[x] create a positive USD charge and verify it remains separate from the stay total
+[x] create charges using representative categories and localized ES/EN UI
+[x] edit an eligible never-requested PENDING charge and verify the updated value is server-authoritative
+[x] verify stale expectedUpdatedAt is rejected instead of overwriting concurrent work
+[x] cancel an eligible unpaid PENDING charge and verify it is preserved as CANCELLED
+[x] select at least two PENDING charges and create one grouped payment request
+[x] verify request total equals the persisted selected charge amounts
+[x] verify immutable request-item snapshots match the selected charges at creation time
+[x] verify included charges remain PENDING while active request membership prevents duplicate active grouping
+[x] verify the raw/encrypted/hash token values are absent from API responses and the DOM
+[x] retry the same request id with the same charge set and verify no duplicate request is created
+[x] reuse the same request id with a different charge set and verify a conflict is returned
+[x] cancel a PENDING request and verify its still-PENDING charges become eligible for a new request again
+[x] verify cancelled request/item history is preserved
+[x] verify no Payment, Refund or EmailNotification is created by D.3 actions
+[x] verify Reservation.total and accepted pricing evidence do not change
+[x] verify Final-A / Final-B / Final-C regression gates remain green
 ```
 
 ---
@@ -314,10 +315,11 @@ Current state:
 Final-D — In progress
 Final-D.1 — Completed and accepted
 Final-D.2 — Completed and accepted at 74ac3011eb22277a896d81c92897f1bee6a4d51b
-Final-D.3 — In progress; implementation prepared for Local/Test validation
-Final-D.4 — Not started
+Final-D.3 — Completed and accepted on 2026-08-31 at 6a0d909fc325f4e8925677041be34c77c023c42b
+Final-D.4 implementation base — 6a0d909fc325f4e8925677041be34c77c023c42b
+Final-D.4 — Not started — Private guest payment link and Tilopay collection
 Final-E — Not started
 Phase 13 — Not started
 ```
 
-Final-D.3 may be marked completed only after the validation gate above passes and the owner explicitly accepts the behavior. Until then, Final-D.4 must remain Not started.
+Final-D.3 is completed and accepted on 2026-08-31 at `6a0d909fc325f4e8925677041be34c77c023c42b` after the validation/acceptance gate above was confirmed. Final-D.4 is the next subphase and remains Not started until explicitly implemented from this accepted base.

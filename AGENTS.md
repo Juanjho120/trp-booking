@@ -8,9 +8,24 @@ This file defines the working rules for TRP Booking.
 - Internal project name: `TRP Booking`.
 - Public brand: `Tu Refugio Perfecto` / `Bungalows Tu Refugio Perfecto`.
 - Official production domain: `turefugioperfecto.com`.
-- Stable Test domain: `trp-booking.juantzun.dev`; the Vercel Test deployment and Phase 12 acceptance are completed. The current work boundary is the registered Post-Phase-12 / Pre-Phase-13 Final Improvement Track, starting with Final-A. Phase 13 remains Not started.
+- Stable Test domain: `trp-booking.juantzun.dev`; the Vercel Test deployment and Phase 12 acceptance are completed. The current work boundary is the registered Post-Phase-12 / Pre-Phase-13 Final Improvement Track. Phase 13 remains Not started.
 - This project is a direct booking website, not a PMS.
 - TAMIAS remains the PMS / internal operations system.
+
+## Current Active Work
+
+- Phase 12 is completed and accepted.
+- The Post-Phase-12 / Pre-Phase-13 Final Improvement Track is active.
+- Final-A, Final-B, and Final-C are completed and accepted.
+- Final-D is active.
+- Final-D.1 is completed and accepted.
+- Final-D.2 is completed and accepted.
+- Final-D.3 is completed and accepted on 2026-08-31 at `6a0d909fc325f4e8925677041be34c77c023c42b`.
+- The next subphase is Final-D.4 — Private guest payment link and Tilopay collection.
+- Final-D.4 is Not started until work is explicitly requested from the accepted Final-D.3 base.
+- Final-D.4 implementation base: `6a0d909fc325f4e8925677041be34c77c023c42b`.
+- Ignore any incomplete or abandoned Final-D.4 work that is not present in the repository history at or after this accepted base.
+- Phase 13 remains Not started and must not be activated implicitly.
 
 ## Environment Isolation
 
@@ -32,42 +47,121 @@ This file defines the working rules for TRP Booking.
 
 ## Required Working Style
 
-- Always review the current repository state before suggesting code changes.
-- Always use cache-busting when reviewing GitHub repository contents.
+- Always inspect the actual repository state before proposing or making code changes.
+- When working from a local clone, the local Git `HEAD`, index, and working tree are the source of truth.
+- When reviewing repository state remotely through GitHub, use cache-busting where applicable and verify the current HEAD explicitly.
 - Do not assume a file exists unless it has been verified.
-- For non-trivial changes, provide a ZIP with real files respecting the folder structure.
-- For surgical changes, provide exact file names and exact snippets.
+- When Codex is working directly in the repository, modify the real working tree; do not create ZIP delivery packages unless explicitly requested.
+- When working through a conversational artifact workflow that cannot edit the repository directly, non-trivial deliveries may use ZIPs containing real files with the repository folder structure preserved.
+- For surgical changes, exact file names and exact snippets are acceptable when explicitly requested.
 - Do not provide `.ps1` or `.sh` scripts as the main delivery method.
-- Do not invent fields, database columns, components, or services that are not documented or explicitly proposed.
+- Do not invent fields, database columns, components, services, scripts, or npm commands that are not present or explicitly proposed.
 - Do not move the project toward PMS features unless explicitly requested.
 
-## ZIP Delivery Gate
+## Git and Working-Tree Safety
 
-Before preparing any ZIP delivery for this repository, the implementation must pass this gate:
+Before modifying any file:
+
+```text
+- Inspect git status.
+- Inspect the current HEAD.
+- Read AGENTS.md.
+- Read docs/10-phases.md.
+- Read docs/11-progress-log.md.
+- Read docs/160-post-phase-12-pre-phase-13-final-improvement-track.md while the Final Improvement Track is active.
+- Read the authoritative record(s) for the active package/subphase.
+```
+
+Rules:
+
+- Never reset, revert, overwrite, delete, or discard pre-existing owner changes unless explicitly asked.
+- Treat uncommitted owner changes as authoritative working state that must be preserved.
+- Do not amend, squash, rebase, rewrite, or force-update existing commits unless explicitly asked.
+- Do not silently restore an older implementation because a historical document or prior assistant output differs from the current working tree.
+- Do not make unrelated cleanup/refactors in the same task unless they are required for correctness and clearly documented.
+- Review the final diff for accidental or unrelated changes before declaring work complete.
+
+## Phase and Subphase Discipline
+
+- Work on exactly one explicitly active phase/subphase at a time.
+- Never begin the following subphase automatically.
+- Do not implement future-subphase behavior "while already here".
+- Do not activate Production or Phase 13 work from a Final Improvement Track task.
+- A subphase may be declared completed only after implementation, required validation, documentation reconciliation, and owner acceptance are recorded.
+- If documentation and the accepted repository state disagree, stop advancement and reconcile the authoritative trackers before implementing the next subphase.
+- For the current handoff, Final-D.3 is accepted at `6a0d909fc325f4e8925677041be34c77c023c42b`; Final-D.4 is the next Not-started subphase.
+
+## Implementation Completion Gate
+
+Before declaring a non-trivial implementation complete:
 
 ```text
 - AGENTS.md reviewed.
 - docs/10-phases.md reviewed.
 - docs/11-progress-log.md reviewed.
-- Current phase/subphase confirmed.
-- Public-facing and admin-facing copy reviewed.
+- Active phase/subphase and implementation base confirmed.
+- Relevant authoritative strategy/contract documents reviewed.
+- git status and git diff reviewed.
+- Public-facing and admin-facing copy reviewed when applicable.
 - New visible copy is centralized in messages/es.ts and messages/en.ts.
 - No new visible strings are introduced through feature-local copy files.
 - No visible TSX labels, section titles, CTA copy, empty states, guardrails, or helper text are hardcoded directly in components.
 - Visible reservation/payment statuses and event labels are localized when shown to users or admins.
-- No .ps1 or .sh files are used as the main delivery method.
-- ZIP contains real files respecting the repository folder structure.
+- Relevant targeted validation is executed.
+- Existing required regression gates are executed.
+- npm run lint is executed when applicable.
+- npm run build is executed when applicable.
+- git diff --check is executed.
+- No unrelated files are changed.
+- Authoritative progress documentation is reconciled before moving to the next subphase.
 ```
 
-If any gate item cannot be satisfied, the ZIP must not be delivered until the issue is fixed or explicitly documented.
+If a required gate cannot be executed because of environment/provider limitations, report the exact blocker and do not claim the gate passed.
+
+### Current validation commands
+
+The repository currently exposes these permanent Final-track regression commands:
+
+```text
+npm run final-a:validate
+npm run final-b:validate
+npm run final-c:validate
+```
+
+Final-D.7 owns the consolidated Final-D regression gate. Until a `final-d:validate` command is actually added to `package.json`, do not invent or assume that command exists. For Final-D.4, run the relevant existing regression commands plus targeted tests/checks introduced or affected by D.4, together with the database/lint/build/diff checks required by the active record.
 
 ## Phase and Progress Tracking
 
 - `docs/10-phases.md` is the official phase plan.
 - `docs/11-progress-log.md` is the official progress tracker.
 - `docs/160-post-phase-12-pre-phase-13-final-improvement-track.md` is the authoritative plan for the current Final-A through Final-H inter-phase track.
-- Any completed phase or subphase must be reflected in the progress tracker before moving to a new major phase.
-- When migrating to a new conversation, use `README.md`, `docs/10-phases.md`, and `docs/11-progress-log.md` as the minimum continuity context. While the Final Improvement Track is active, also review `docs/160-post-phase-12-pre-phase-13-final-improvement-track.md`. Historical Phase 12 deployment work remains grounded by `docs/89-test-and-production-environment-strategy.md`, `docs/136-phase-12.1-test-deployment-and-environment-strategy.md`, and the Phase 12 closure records.
+- `docs/179-final-d-1-additional-charge-payment-request-strategy-and-financial-isolation-contract.md` is the frozen Final-D behavioral/financial contract unless explicitly re-accepted after a documented change.
+- `docs/181-final-d-3-admin-charge-management-and-payment-request-creation.md` is the Final-D.3 implementation/acceptance record.
+- Any completed phase or subphase must be reflected in the progress tracker before moving to a new major phase or subphase.
+- When migrating to a new conversation or agent, use `AGENTS.md`, `README.md`, `docs/10-phases.md`, and `docs/11-progress-log.md` as the minimum continuity context. While the Final Improvement Track is active, also review `docs/160-post-phase-12-pre-phase-13-final-improvement-track.md` and the active package's authoritative records.
+- Historical Phase 12 deployment work remains grounded by `docs/89-test-and-production-environment-strategy.md`, `docs/136-phase-12.1-test-deployment-and-environment-strategy.md`, and the Phase 12 closure records.
+
+## Final-D.4 Mandatory Contract
+
+Before implementing Final-D.4, read the complete Final-D.1 contract and the accepted D.2/D.3 records. D.4 is limited to the private guest payment link and Tilopay ancillary collection branch.
+
+At minimum, preserve these frozen boundaries:
+
+```text
+- Private access uses the opaque GuestPaymentRequest token contract.
+- Raw token appears only in the intended private URL and is never persisted or logged in plaintext.
+- Token lookup uses the persisted SHA-256 hash; controlled reuse/resend may use the encrypted copy already established by D.3.
+- A link is payable only while the request is PENDING and unexpired and its integrity checks pass.
+- Initial expiry remains 168 hours / 7 days from request creation unless the frozen contract is explicitly changed and re-accepted.
+- PaymentPurpose.ADDITIONAL_CHARGE and PaymentSubmissionSource.ADDITIONAL_CHARGE remain a distinct third payment branch.
+- Payment amount/currency come only from the immutable GuestPaymentRequest snapshot.
+- Validated APPROVED provider evidence is required before marking the request or charges PAID.
+- Approved ancillary payment must not confirm/reconfirm the Reservation, mutate Reservation.total, mutate pricingSnapshot, alter stay cancellation-policy money, or complete a lifecycle date mutation.
+- Rejected/failed payment attempts keep the still-valid request and charges PENDING and remain auditable.
+- Provider callback/retry behavior must remain idempotent.
+- The private guest page exposes only bounded guest-safe request context and must not grant access to admin reservation/payment/refund/lifecycle data.
+- Final-D.4 must not implement D.5 refunds, D.6 email delivery/history, D.7 consolidated closure, Final-E, Final-F, Final-G, Final-H, or Phase 13 work.
+```
 
 ## UI and Design System Rules
 
@@ -91,17 +185,18 @@ If any gate item cannot be satisfied, the ZIP must not be delivered until the is
 
 ## Security Rules
 
-- Do not commit secrets, API keys, webhook secrets, iCal URLs with tokens, or real credentials.
+- Do not commit secrets, API keys, webhook secrets, iCal URLs with tokens, private guest payment tokens, or real credentials.
 - Do not hardcode Airbnb iCal URLs in code or docs.
 - Keep sensitive operational configuration in environment variables, secure database configuration, or admin-managed private settings.
 - Do not store card data.
 - Confirm reservations only after a provider payment result is validated server-side.
-- Validate prices, availability, and guest counts on the server.
+- Mark ancillary payment requests/charges paid only after validated provider evidence in the dedicated ancillary-payment branch.
+- Validate prices, availability, guest counts, request status, request integrity, amount, and currency on the server as applicable.
 
 ## Deletion Rules
 
-- Do not hard-delete reservation, payment, refund, guest, calendar, or sync history data.
-- Use soft delete for admin-managed business records unless the documentation explicitly allows hard delete.
+- Do not hard-delete reservation, payment, refund, guest, calendar, sync, AdditionalCharge, GuestPaymentRequest, request-item, or related operational-history data.
+- Use soft delete/state transitions for admin-managed business records unless the documentation explicitly allows hard delete.
 - Preserve operational history needed for auditability, troubleshooting, refunds, and reservation disputes.
 
 ## Reservation Rules
@@ -111,6 +206,7 @@ If any gate item cannot be satisfied, the ZIP must not be delivered until the is
 - Stay extensions require availability validation and additional payment handling when applicable.
 - Confirmed reservations and imported Airbnb bookings must generate preparation buffer blocks automatically.
 - Preparation buffer blocks must affect public availability and iCal exports unless manually unlocked by admin.
+- Additional-charge collection is financially isolated from the accommodation stay value and must not silently mutate Reservation totals or stay pricing evidence.
 
 ## Development Standards
 
@@ -120,4 +216,4 @@ If any gate item cannot be satisfied, the ZIP must not be delivered until the is
 - Keep business logic out of UI components when services are introduced.
 - Use Prisma as the database access layer once the database phase starts.
 - Do not introduce new dependencies without a clear reason.
-- Do not integrate Tilopay, Cloudinary, Resend, or Airbnb iCal before the corresponding phase.
+- Do not integrate Tilopay, Cloudinary, Resend, Airbnb iCal, Twilio, or other providers before the corresponding phase/subphase permits it.

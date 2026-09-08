@@ -14,7 +14,7 @@ Previous subphase: Final-D.1 — Completed and accepted on 2026-08-31
 Final-D.1 accepted strategy head: 3dc4fa7d81d65244a94e7e43726e2f12591e578f
 Authoritative strategy: docs/179-final-d-1-additional-charge-payment-request-strategy-and-financial-isolation-contract.md
 Migration: prisma/migrations/20260831135000_final_d_2_additional_charge_persistence_foundation/migration.sql
-Following subphase: Final-D.3 — Admin charge management and payment-request creation — In progress
+Following progress: Final-D.3 — Admin charge management and payment-request creation — Completed and accepted on 2026-08-31 at 6a0d909fc325f4e8925677041be34c77c023c42b; Final-D.4 — Private guest payment link and Tilopay collection — Not started
 Phase 13: Not started
 ```
 
@@ -526,7 +526,8 @@ Owner acceptance advanced the package from D.2 to D.3 at accepted D.2 head `74ac
 Final-D — In progress
 Final-D.1 — Completed and accepted on 2026-08-31 at 3dc4fa7d81d65244a94e7e43726e2f12591e578f
 Final-D.2 — Completed and accepted on 2026-08-31 at 74ac3011eb22277a896d81c92897f1bee6a4d51b
-Final-D.3 — In progress; admin charge management and payment-request creation prepared for Local/Test validation
+Final-D.3 — Completed and accepted on 2026-08-31 at 6a0d909fc325f4e8925677041be34c77c023c42b
+Final-D.4 — Not started — Private guest payment link and Tilopay collection; implementation base 6a0d909fc325f4e8925677041be34c77c023c42b
 Final-E — Not started
 Phase 13 — Not started
 ```

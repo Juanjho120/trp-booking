@@ -5,7 +5,7 @@
 ```text
 Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
-Status: Active — Final-A, Final-B and Final-C completed and accepted; Final-D is in progress at Final-D.3
+Status: Active — Final-A, Final-B and Final-C completed and accepted; Final-D is in progress with Final-D.3 completed and Final-D.4 next
 Registration date: 2026-08-11
 Registration base head: dac105088d2c46be05a900abed3dfe83e608e964
 Previous gate: Phase 12 — Completed and accepted
@@ -587,7 +587,7 @@ docs/174-final-c-2-pricing-persistence-foundation-and-migration.md
 ```text
 Package: Final-D — In progress
 Implementation base head: 0839b2935fdc2349d23de6ce6b38177504e514c6
-Current subphase: Final-D.3 — Admin charge management and payment-request creation — In progress
+Current subphase: Final-D.4 — Private guest payment link and Tilopay collection — Not started
 Final-D.1 status: Completed and accepted on 2026-08-31
 Final-D.1 accepted strategy head: 3dc4fa7d81d65244a94e7e43726e2f12591e578f
 Final-D.1 record: docs/179-final-d-1-additional-charge-payment-request-strategy-and-financial-isolation-contract.md
@@ -596,9 +596,11 @@ Final-D.2 status: Completed and accepted on 2026-08-31
 Final-D.2 accepted head: 74ac3011eb22277a896d81c92897f1bee6a4d51b
 Final-D.2 record: docs/180-final-d-2-additional-charge-persistence-foundation-and-migration.md
 Final-D.3 implementation base head: 74ac3011eb22277a896d81c92897f1bee6a4d51b
-Final-D.3 status: In progress — admin charge management and payment-request creation prepared for Local/Test validation
+Final-D.3 status: Completed and accepted on 2026-08-31
+Final-D.3 accepted head: 6a0d909fc325f4e8925677041be34c77c023c42b
 Final-D.3 record: docs/181-final-d-3-admin-charge-management-and-payment-request-creation.md
-Next planned subphase after Final-D.3 acceptance: Final-D.4 — Private guest payment link and Tilopay collection — Not started
+Final-D.4 implementation base head: 6a0d909fc325f4e8925677041be34c77c023c42b
+Final-D.4 status: Not started — Private guest payment link and Tilopay collection
 Phase 13: Not started
 ```
 
@@ -1217,7 +1219,7 @@ Phase 13 still owns:
 Phase 12 — Completed and accepted
 Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
 Current package — Final-D additional charges and guest payment requests — In progress
-Current subphase — Final-D.3 Admin charge management and payment-request creation — In progress
+Current subphase — Final-D.4 Private guest payment link and Tilopay collection — Not started
 Final-D implementation base — 0839b2935fdc2349d23de6ce6b38177504e514c6
 Final-D.1 status — Completed and accepted on 2026-08-31 at 3dc4fa7d81d65244a94e7e43726e2f12591e578f
 Final-D.1 record — docs/179-final-d-1-additional-charge-payment-request-strategy-and-financial-isolation-contract.md
@@ -1225,9 +1227,10 @@ Final-D.2 implementation base — 3dc4fa7d81d65244a94e7e43726e2f12591e578f
 Final-D.2 status — Completed and accepted on 2026-08-31 at 74ac3011eb22277a896d81c92897f1bee6a4d51b
 Final-D.2 record — docs/180-final-d-2-additional-charge-persistence-foundation-and-migration.md
 Final-D.3 implementation base — 74ac3011eb22277a896d81c92897f1bee6a4d51b
-Final-D.3 status — In progress; admin charge management and payment-request creation prepared for Local/Test validation
+Final-D.3 status — Completed and accepted on 2026-08-31 at 6a0d909fc325f4e8925677041be34c77c023c42b
 Final-D.3 record — docs/181-final-d-3-admin-charge-management-and-payment-request-creation.md
-Next planned subphase after Final-D.3 acceptance — Final-D.4 Private guest payment link and Tilopay collection — Not started
+Final-D.4 implementation base — 6a0d909fc325f4e8925677041be34c77c023c42b
+Final-D.4 status — Not started — Private guest payment link and Tilopay collection
 Final-C implementation base — e7ce19c49c5cfd45e1cc08796ee897a2dce0d1ed
 Final-C.1 accepted strategy head — 16d8b0411e573aaaa6b510ddb27a9b5d9c666478
 Final-C.1 record — docs/173-final-c-1-pricing-strategy-precedence-and-persistence-contract.md
@@ -1271,7 +1274,8 @@ Final-C.6 — Completed and accepted on 2026-08-28 at dca50f51abe1836d3b678b7626
 Final-D — In progress
 Final-D.1 — Completed and accepted on 2026-08-31 at 3dc4fa7d81d65244a94e7e43726e2f12591e578f
 Final-D.2 — Completed and accepted on 2026-08-31 at 74ac3011eb22277a896d81c92897f1bee6a4d51b
-Final-D.3 — In progress — Admin charge management and payment-request creation
+Final-D.3 — Completed and accepted on 2026-08-31 at 6a0d909fc325f4e8925677041be34c77c023c42b — Admin charge management and payment-request creation
+Final-D.4 — Not started — Private guest payment link and Tilopay collection; implementation base 6a0d909fc325f4e8925677041be34c77c023c42b
 Final-E — Not started
 Final-F — Not started
 Final-G — Not started
