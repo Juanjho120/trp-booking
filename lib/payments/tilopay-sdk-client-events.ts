@@ -61,9 +61,24 @@ function normalizeEventType(
   return value;
 }
 
-function sanitizePrimitive(value: unknown): Prisma.InputJsonValue | null {
+function sanitizePrimitive(
+  value: unknown,
+  sensitiveValues: readonly string[] = [],
+): Prisma.InputJsonValue | null {
   if (typeof value === "string") {
-    return value.slice(0, MAX_PAYLOAD_STRING_LENGTH);
+    const normalizedValue = value.slice(0, MAX_PAYLOAD_STRING_LENGTH);
+
+    if (
+      sensitiveValues.some(
+        (sensitiveValue) =>
+          sensitiveValue.trim() &&
+          normalizedValue.includes(sensitiveValue.trim()),
+      )
+    ) {
+      return null;
+    }
+
+    return normalizedValue;
   }
 
   if (typeof value === "number" || typeof value === "boolean") {
@@ -73,7 +88,10 @@ function sanitizePrimitive(value: unknown): Prisma.InputJsonValue | null {
   return null;
 }
 
-function sanitizeSdkPayload(value: unknown): StoredSdkPayload | null {
+function sanitizeSdkPayload(
+  value: unknown,
+  sensitiveValues: readonly string[] = [],
+): StoredSdkPayload | null {
   if (!value) {
     return null;
   }
@@ -107,12 +125,13 @@ function sanitizeSdkPayload(value: unknown): StoredSdkPayload | null {
       lowerKey.includes("cvv") ||
       lowerKey.includes("expiration") ||
       lowerKey.includes("expiry") ||
+      lowerKey.includes("token") ||
       lowerKey.includes("number")
     ) {
       continue;
     }
 
-    const sanitizedValue = sanitizePrimitive(rawValue);
+    const sanitizedValue = sanitizePrimitive(rawValue, sensitiveValues);
 
     if (sanitizedValue !== null) {
       result[normalizedKey.slice(0, MAX_SHORT_TEXT_LENGTH)] = sanitizedValue;
@@ -181,7 +200,12 @@ export async function recordTilopaySdkClientEvent(
     throw new TilopaySdkClientEventError("PAYMENT_NOT_FOUND");
   }
 
-  const sdkPayload = sanitizeSdkPayload(input.sdkPayload);
+  const sdkPayload = sanitizeSdkPayload(
+    input.sdkPayload,
+    isGuestPaymentRequestAccessToken(input.reservationId)
+      ? [input.reservationId]
+      : [],
+  );
 
   await prisma.$executeRaw`
     INSERT INTO "payment_client_events" (

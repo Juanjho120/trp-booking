@@ -288,8 +288,10 @@ function assertRequestPaymentIntegrity(
 
   for (const item of request.items) {
     if (
+      item.additionalCharge.id !== item.additionalChargeId ||
       item.currencySnapshot !== request.currency ||
       item.amountSnapshot.lessThanOrEqualTo(0) ||
+      item.additionalCharge.amount.comparedTo(item.amountSnapshot) !== 0 ||
       item.additionalCharge.reservationId !== request.reservationId ||
       item.additionalCharge.currency !== request.currency
     ) {
@@ -337,7 +339,8 @@ function assertPayableRequest(
   now: Date,
 ): void {
   if (
-    request.status === GuestPaymentRequestStatus.PENDING &&
+    (request.status === GuestPaymentRequestStatus.PENDING ||
+      request.status === GuestPaymentRequestStatus.EXPIRED) &&
     request.expiresAt <= now
   ) {
     throw new GuestPaymentRequestPaymentError(
@@ -922,6 +925,7 @@ export async function markGuestPaymentRequestPaidFromApprovedPayment(
       request.items.some(
         (item) =>
           item.currencySnapshot !== request.currency ||
+          item.additionalCharge.amount.comparedTo(item.amountSnapshot) !== 0 ||
           item.additionalCharge.reservationId !== request.reservationId ||
           item.additionalCharge.currency !== request.currency,
       )
