@@ -7,7 +7,7 @@ Package: Final-D — Additional charges and guest payment requests — In progre
 Subphase: Final-D.4 — Private guest payment link and Tilopay collection
 Implementation base head: 6a0d909fc325f4e8925677041be34c77c023c42b
 Initial implementation commit: d2ad7687b8519a4fd0c083f72ca2bfec7f90ce83
-Implementation record: this D.4 implementation plus corrective validation-strengthening changeset
+Implementation record: this D.4 implementation plus corrective validation-strengthening and token-sanitization hardening changesets
 Owner acceptance: Pending; do not mark D.4 accepted until the owner explicitly accepts it
 Next subphase: Final-D.5 — Additional-charge refunds and financial-summary integration — Not started
 Phase 13: Not started
@@ -30,7 +30,7 @@ Phase 13: Not started
 - Raw guest-payment tokens remain limited to the intended private URL and transient server/client request handling for that URL.
 - Normal guest summary DTOs omit `requestId`, `reservationId`, `additionalChargeId`, guest name, guest email, and raw token fields.
 - The Tilopay SDK session DTO and `returnData` use a non-secret `guest-payment-request` marker instead of returning the raw token.
-- Preflight and client-event APIs receive the raw token only as the private-page reference, validate it by hash, and persist the real reservation id in operational history without persisting the token. SDK diagnostic payload sanitization drops token-like keys before persistence.
+- Preflight and client-event APIs receive the raw token only as the private-page reference, validate it by hash, and persist the real reservation id in operational history without persisting the token. SDK client-event sanitization now treats that token as a sensitive value across free-text diagnostics and SDK payload object/string/Error branches before truncation, dropping sensitive fields instead of persisting partial, masked or derived token values.
 - D.4 does not implement refunds, email delivery/resend/history, consolidated Final-D closure, review invitations, WhatsApp, performance work, or Phase 13 production work.
 
 ## Validation Executed
@@ -41,7 +41,7 @@ npm run db:generate — Passed; Prisma Client generated.
 npm run db:migrate:status — Initial sandbox attempt failed with a generic Schema engine error against Supabase; rerun with network access passed, 17 migrations found, database schema up to date.
 npm run lint — Passed.
 npm run build — Initial sandbox attempt failed because Next could not fetch Google Fonts; rerun with network access passed after the D.4 TypeScript fix.
-npx tsx --tsconfig tests/final-d/tsconfig.json tests/final-d/run.ts — Passed 15/15 with source-contract guards plus behavioral coverage for valid/invalid/expired/cancelled/paid tokens, immutable ADDITIONAL_CHARGE Payment creation, one logical Payment per request, rejected/failed retry behavior, approved idempotent application, stay/lifecycle isolation, mismatch rejection, and raw-token persistence exclusion. The local Windows run used a temporary NODE_OPTIONS preload for the Node 22 os.userInfo ENOMEM issue; no repository files were changed for that workaround.
+npx tsx --tsconfig tests/final-d/tsconfig.json tests/final-d/run.ts — Passed 18/18 with source-contract guards plus behavioral coverage for valid/invalid/expired/cancelled/paid tokens, immutable ADDITIONAL_CHARGE Payment creation, one logical Payment per request, rejected/failed retry behavior, approved idempotent application, stay/lifecycle isolation, mismatch rejection, and raw-token persistence exclusion across client-event text diagnostics plus SDK payload object/string/Error branches. The local Windows run used a temporary NODE_OPTIONS preload for the Node 22 os.userInfo ENOMEM issue; no repository files were changed for that workaround.
 npm run final-a:validate — Passed 44/44 with the same temporary tsx preload.
 npm run final-b:validate — Passed 38/38 with the same temporary tsx preload.
 npm run final-c:validate — Passed 41/41 with the same temporary tsx preload.

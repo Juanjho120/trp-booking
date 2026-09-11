@@ -39,9 +39,18 @@ export class TilopaySdkClientEventError extends Error {
 function normalizeOptionalString(
   value: string | null | undefined,
   maxLength = MAX_SHORT_TEXT_LENGTH,
+  sensitiveValues: readonly string[] = [],
 ): string | null {
   const normalizedValue = value?.trim();
-  return normalizedValue ? normalizedValue.slice(0, maxLength) : null;
+
+  if (
+    !normalizedValue ||
+    containsSensitiveValue(normalizedValue, sensitiveValues)
+  ) {
+    return null;
+  }
+
+  return normalizedValue.slice(0, maxLength);
 }
 
 function normalizeOptionalDate(value: string | null | undefined): Date | null {
@@ -61,24 +70,38 @@ function normalizeEventType(
   return value;
 }
 
+function containsSensitiveValue(
+  value: string,
+  sensitiveValues: readonly string[],
+): boolean {
+  return sensitiveValues.some((sensitiveValue) => {
+    const normalizedSensitiveValue = sensitiveValue.trim();
+
+    return (
+      normalizedSensitiveValue.length > 0 &&
+      value.includes(normalizedSensitiveValue)
+    );
+  });
+}
+
+function sanitizeString(
+  value: string,
+  maxLength: number,
+  sensitiveValues: readonly string[] = [],
+): string | null {
+  if (containsSensitiveValue(value, sensitiveValues)) {
+    return null;
+  }
+
+  return value.slice(0, maxLength);
+}
+
 function sanitizePrimitive(
   value: unknown,
   sensitiveValues: readonly string[] = [],
 ): Prisma.InputJsonValue | null {
   if (typeof value === "string") {
-    const normalizedValue = value.slice(0, MAX_PAYLOAD_STRING_LENGTH);
-
-    if (
-      sensitiveValues.some(
-        (sensitiveValue) =>
-          sensitiveValue.trim() &&
-          normalizedValue.includes(sensitiveValue.trim()),
-      )
-    ) {
-      return null;
-    }
-
-    return normalizedValue;
+    return sanitizeString(value, MAX_PAYLOAD_STRING_LENGTH, sensitiveValues);
   }
 
   if (typeof value === "number" || typeof value === "boolean") {
@@ -97,14 +120,37 @@ function sanitizeSdkPayload(
   }
 
   if (value instanceof Error) {
-    return {
-      name: value.name.slice(0, MAX_SHORT_TEXT_LENGTH),
-      message: value.message.slice(0, MAX_MESSAGE_LENGTH),
-    };
+    const errorPayload: Record<string, Prisma.InputJsonValue> = {};
+    const name = sanitizeString(
+      value.name,
+      MAX_SHORT_TEXT_LENGTH,
+      sensitiveValues,
+    );
+    const message = sanitizeString(
+      value.message,
+      MAX_MESSAGE_LENGTH,
+      sensitiveValues,
+    );
+
+    if (name) {
+      errorPayload.name = name;
+    }
+
+    if (message) {
+      errorPayload.message = message;
+    }
+
+    return Object.keys(errorPayload).length > 0 ? errorPayload : null;
   }
 
   if (typeof value === "string") {
-    return { message: value.slice(0, MAX_MESSAGE_LENGTH) };
+    const message = sanitizeString(
+      value,
+      MAX_MESSAGE_LENGTH,
+      sensitiveValues,
+    );
+
+    return message ? { message } : null;
   }
 
   if (typeof value !== "object" || Array.isArray(value)) {
@@ -121,6 +167,7 @@ function sanitizeSdkPayload(
 
     if (
       !normalizedKey ||
+      containsSensitiveValue(normalizedKey, sensitiveValues) ||
       lowerKey.includes("card") ||
       lowerKey.includes("cvv") ||
       lowerKey.includes("expiration") ||
@@ -200,11 +247,12 @@ export async function recordTilopaySdkClientEvent(
     throw new TilopaySdkClientEventError("PAYMENT_NOT_FOUND");
   }
 
+  const sensitiveValues = isGuestPaymentRequestAccessToken(input.reservationId)
+    ? [input.reservationId]
+    : [];
   const sdkPayload = sanitizeSdkPayload(
     input.sdkPayload,
-    isGuestPaymentRequestAccessToken(input.reservationId)
-      ? [input.reservationId]
-      : [],
+    sensitiveValues,
   );
 
   await prisma.$executeRaw`
@@ -217,15 +265,15 @@ export async function recordTilopaySdkClientEvent(
       ${randomUUID()}, ${input.paymentId}, ${reservationId},
       ${PaymentProvider.TILOPAY}::payment_provider,
       ${normalizeEventType(input.eventType)}::payment_client_event_type,
-      ${normalizeOptionalString(input.environment)},
-      ${normalizeOptionalString(input.locale)},
-      ${normalizeOptionalString(input.paymentMethodId)},
-      ${normalizeOptionalString(input.paymentMethodName)},
-      ${normalizeOptionalString(input.paymentMethodType)},
-      ${normalizeOptionalString(input.detectedCardBrand)},
-      ${normalizeOptionalString(input.sdkMessage, MAX_MESSAGE_LENGTH)},
+      ${normalizeOptionalString(input.environment, MAX_SHORT_TEXT_LENGTH, sensitiveValues)},
+      ${normalizeOptionalString(input.locale, MAX_SHORT_TEXT_LENGTH, sensitiveValues)},
+      ${normalizeOptionalString(input.paymentMethodId, MAX_SHORT_TEXT_LENGTH, sensitiveValues)},
+      ${normalizeOptionalString(input.paymentMethodName, MAX_SHORT_TEXT_LENGTH, sensitiveValues)},
+      ${normalizeOptionalString(input.paymentMethodType, MAX_SHORT_TEXT_LENGTH, sensitiveValues)},
+      ${normalizeOptionalString(input.detectedCardBrand, MAX_SHORT_TEXT_LENGTH, sensitiveValues)},
+      ${normalizeOptionalString(input.sdkMessage, MAX_MESSAGE_LENGTH, sensitiveValues)},
       ${toJsonSql(sdkPayload)},
-      ${normalizeOptionalString(input.preflightStatus)},
+      ${normalizeOptionalString(input.preflightStatus, MAX_SHORT_TEXT_LENGTH, sensitiveValues)},
       ${normalizeOptionalDate(input.preflightExpiresAt)}
     )
   `;

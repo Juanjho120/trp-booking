@@ -25,6 +25,14 @@ const VALID_TOKEN = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789a
 const WRONG_TOKEN = "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210";
 const BASE_NOW = new Date("2026-09-11T12:00:00.000Z");
 const TEST_GUEST_EMAIL = "guest.final-d4.behavior@juantzun.dev";
+const CLIENT_EVENT_VALUE_INDEX = {
+  paymentMethodId: 7,
+  paymentMethodName: 8,
+  paymentMethodType: 9,
+  detectedCardBrand: 10,
+  sdkMessage: 11,
+  preflightStatus: 13,
+} as const;
 
 type MockReservation = {
   id: string;
@@ -985,6 +993,24 @@ function assertNoRawTokenStored(state: MockState, token = VALID_TOKEN): void {
   );
 }
 
+function assertNoTokenPrefixStored(state: MockState, token = VALID_TOKEN): void {
+  const persisted = JSON.stringify(state);
+
+  assert.equal(
+    persisted.includes(token.slice(0, 16)),
+    false,
+    "guest-payment token prefixes must not be present in mocked persistence",
+  );
+}
+
+function latestClientEventValues(state: MockState): readonly unknown[] {
+  const event = state.clientEvents.at(-1);
+
+  assert.ok(event, "expected a captured payment_client_events write");
+
+  return event.values;
+}
+
 function preserveTilopayEnv(): () => void {
   const keys = [
     "TRP_ENVIRONMENT",
@@ -1366,6 +1392,126 @@ test("D.4 behavior keeps failed SDK outcomes pending and records client events w
   );
   assert.equal(store.current.clientEvents[0]?.reservationId, "reservation-final-d4");
   assertNoRawTokenStored(store.current);
+});
+
+test("D.4 behavior drops guest-payment tokens from SDK event text diagnostics", async () => {
+  const store = installMockPrisma(baseState());
+  const { attempts, clientEvents, payments } = await d4Modules();
+  const prepared = await payments.prepareGuestPaymentRequestPayment(VALID_TOKEN);
+  const tokenCrossingShortTextBoundary = `${"x".repeat(154)}${VALID_TOKEN}`;
+  const tokenCrossingMessageBoundary = `${"x".repeat(984)}${VALID_TOKEN}`;
+  const tokenCrossingPayloadBoundary = `${"x".repeat(484)}${VALID_TOKEN}`;
+
+  await attempts.createPaymentSubmissionAttempt({
+    paymentId: prepared.payment.id,
+    reservationReference: VALID_TOKEN,
+    source: PaymentSubmissionSource.ADDITIONAL_CHARGE,
+    environment: "sandbox",
+    locale: "es",
+    preflightExpiresAt: prepared.expiresAt,
+  });
+  await clientEvents.recordTilopaySdkClientEvent({
+    paymentId: prepared.payment.id,
+    reservationId: VALID_TOKEN,
+    eventType: "TILOPAY_SDK_START_PAYMENT_FAILED",
+    environment: "sandbox",
+    locale: "es",
+    paymentMethodId: `pm-${VALID_TOKEN}`,
+    paymentMethodName: `Card ${VALID_TOKEN}`,
+    paymentMethodType: `type-${VALID_TOKEN}`,
+    detectedCardBrand: `brand-${VALID_TOKEN}`,
+    sdkMessage: tokenCrossingMessageBoundary,
+    sdkPayload: {
+      safeLookingDiagnostic: tokenCrossingPayloadBoundary,
+    },
+    preflightStatus: tokenCrossingShortTextBoundary,
+    preflightExpiresAt: prepared.expiresAt,
+  });
+
+  const values = latestClientEventValues(store.current);
+
+  assert.equal(values[CLIENT_EVENT_VALUE_INDEX.paymentMethodId], null);
+  assert.equal(values[CLIENT_EVENT_VALUE_INDEX.paymentMethodName], null);
+  assert.equal(values[CLIENT_EVENT_VALUE_INDEX.paymentMethodType], null);
+  assert.equal(values[CLIENT_EVENT_VALUE_INDEX.detectedCardBrand], null);
+  assert.equal(values[CLIENT_EVENT_VALUE_INDEX.sdkMessage], null);
+  assert.equal(values[CLIENT_EVENT_VALUE_INDEX.preflightStatus], null);
+  assert.equal(store.current.clientEvents[0]?.reservationId, "reservation-final-d4");
+  assertNoRawTokenStored(store.current);
+  assertNoTokenPrefixStored(store.current);
+});
+
+test("D.4 behavior drops guest-payment tokens from direct string SDK payloads", async () => {
+  const store = installMockPrisma(baseState());
+  const { attempts, clientEvents, payments } = await d4Modules();
+  const prepared = await payments.prepareGuestPaymentRequestPayment(VALID_TOKEN);
+  const tokenCrossingPayloadBoundary = `${"x".repeat(984)}${VALID_TOKEN}`;
+
+  await attempts.createPaymentSubmissionAttempt({
+    paymentId: prepared.payment.id,
+    reservationReference: VALID_TOKEN,
+    source: PaymentSubmissionSource.ADDITIONAL_CHARGE,
+    environment: "sandbox",
+    locale: "es",
+    preflightExpiresAt: prepared.expiresAt,
+  });
+  await clientEvents.recordTilopaySdkClientEvent({
+    paymentId: prepared.payment.id,
+    reservationId: VALID_TOKEN,
+    eventType: "TILOPAY_SDK_START_PAYMENT_NON_SUCCESS",
+    environment: "sandbox",
+    locale: "es",
+    paymentMethodId: "card",
+    paymentMethodName: "Card",
+    paymentMethodType: "card",
+    detectedCardBrand: "visa",
+    sdkMessage: "SDK returned a non-success status",
+    sdkPayload: tokenCrossingPayloadBoundary,
+    preflightStatus: "READY_FOR_PAYMENT",
+    preflightExpiresAt: prepared.expiresAt,
+  });
+
+  assert.equal(store.current.clientEvents[0]?.reservationId, "reservation-final-d4");
+  assertNoRawTokenStored(store.current);
+  assertNoTokenPrefixStored(store.current);
+});
+
+test("D.4 behavior drops guest-payment tokens from Error SDK payload diagnostics", async () => {
+  const store = installMockPrisma(baseState());
+  const { attempts, clientEvents, payments } = await d4Modules();
+  const prepared = await payments.prepareGuestPaymentRequestPayment(VALID_TOKEN);
+  const tokenCrossingMessageBoundary = `${"x".repeat(984)}${VALID_TOKEN}`;
+  const sdkError = new Error(tokenCrossingMessageBoundary);
+
+  sdkError.name = `TokenizedError-${VALID_TOKEN}`;
+
+  await attempts.createPaymentSubmissionAttempt({
+    paymentId: prepared.payment.id,
+    reservationReference: VALID_TOKEN,
+    source: PaymentSubmissionSource.ADDITIONAL_CHARGE,
+    environment: "sandbox",
+    locale: "es",
+    preflightExpiresAt: prepared.expiresAt,
+  });
+  await clientEvents.recordTilopaySdkClientEvent({
+    paymentId: prepared.payment.id,
+    reservationId: VALID_TOKEN,
+    eventType: "TILOPAY_SDK_START_PAYMENT_FAILED",
+    environment: "sandbox",
+    locale: "es",
+    paymentMethodId: "card",
+    paymentMethodName: "Card",
+    paymentMethodType: "card",
+    detectedCardBrand: "visa",
+    sdkMessage: "SDK error received",
+    sdkPayload: sdkError,
+    preflightStatus: "READY_FOR_PAYMENT",
+    preflightExpiresAt: prepared.expiresAt,
+  });
+
+  assert.equal(store.current.clientEvents[0]?.reservationId, "reservation-final-d4");
+  assertNoRawTokenStored(store.current);
+  assertNoTokenPrefixStored(store.current);
 });
 
 test("D.4 behavior applies approved provider evidence without mutating stay or lifecycle state and is idempotent", async () => {
