@@ -313,7 +313,7 @@ export const esMessages = {
       paymentSubmitted:
         "El pago fue enviado a Tilopay. Espera la respuesta del formulario seguro antes de cerrar esta página.",
       providerNote:
-        "El resultado se aplicará únicamente después de validar el pago en el servidor. Un ajuste aprobado no cambia fechas hasta completar su transición autorizada.",
+        "El resultado se aplicará únicamente después de validar el pago en el servidor. Un cobro aprobado solo activa la transición autorizada para su flujo.",
       sessionError: "No pudimos preparar el formulario de pago. Inténtalo de nuevo.",
       sdkError: "No pudimos inicializar el formulario seguro de Tilopay. Inténtalo de nuevo.",
       paymentError: "No pudimos enviar el pago a Tilopay. Revisa los datos e inténtalo de nuevo.",
@@ -355,6 +355,76 @@ export const esMessages = {
           "Este ajuste ya no admite otro pago. Verifica el estado con el administrador.",
         LIFECYCLE_ADJUSTMENT_PAYMENT_MISMATCH:
           "El pago ya no coincide con la solicitud aprobada. No se realizó ningún cargo nuevo.",
+      },
+    },
+    additionalCharge: {
+      title: "Pagar cargo adicional",
+      description:
+        "Revisa el resumen privado y completa únicamente los cargos adicionales solicitados por el alojamiento.",
+      retryTitle: "Intenta el pago nuevamente",
+      retryDescription:
+        "Tilopay no aprobó el intento anterior. La solicitud sigue pendiente mientras el enlace esté vigente.",
+      paidTitle: "Cargo adicional pagado",
+      paidDescription:
+        "Tilopay aprobó el pago y los cargos adicionales de esta solicitud quedaron marcados como pagados.",
+      expiredTitle: "Enlace de pago expirado",
+      expiredDescription:
+        "Este enlace privado ya venció. Solicita al alojamiento una nueva solicitud si el cargo sigue pendiente.",
+      cancelledTitle: "Solicitud de pago cancelada",
+      cancelledDescription:
+        "Esta solicitud privada fue cancelada y ya no acepta pago.",
+      unavailableTitle: "Enlace de pago no disponible",
+      paidNote:
+        "Este pago es independiente del valor confirmado del alojamiento y no cambia las fechas ni el total de la reservación.",
+      securityNote:
+        "Este enlace es privado, vence a los siete días de la solicitud y no muestra datos administrativos de la reservación.",
+      unavailableNote:
+        "No se realizó ningún nuevo cobro desde esta página. Contacta al alojamiento si necesitas ayuda.",
+      sections: {
+        lineItems: "Cargos incluidos",
+      },
+      labels: {
+        accommodation: "Alojamiento",
+        reservationReference: "Referencia de reserva",
+        confirmedDates: "Fechas confirmadas",
+        expiresAt: "Disponible hasta",
+        paidAt: "Pagado el",
+        linkAvailableUntil: "Enlace disponible hasta",
+        total: "Total por pagar",
+      },
+      categories: {
+        CLEANING: "Limpieza adicional",
+        DAMAGE: "Daños",
+        TRANSPORT: "Transporte",
+        LATE_CHECKOUT: "Salida tardía",
+        EXTRA_SERVICE: "Servicio adicional",
+        OTHER: "Otro",
+      },
+      requestStatuses: {
+        PENDING: "Pendiente",
+        PAID: "Pagada",
+        EXPIRED: "Expirada",
+        CANCELLED: "Cancelada",
+      },
+      paymentStatuses: {
+        PENDING: "Pago pendiente",
+        APPROVED: "Pago aprobado",
+        REJECTED: "Pago rechazado",
+        FAILED: "Pago fallido",
+        REFUNDED: "Pago reembolsado",
+        PARTIALLY_REFUNDED: "Pago parcialmente reembolsado",
+      },
+      errors: {
+        INVALID_GUEST_PAYMENT_REQUEST:
+          "El enlace no es válido o fue alterado. Solicita un enlace nuevo al alojamiento.",
+        GUEST_PAYMENT_REQUEST_EXPIRED:
+          "Este enlace privado de pago expiró.",
+        GUEST_PAYMENT_REQUEST_NOT_PAYABLE:
+          "Esta solicitud ya no está disponible para pago.",
+        GUEST_PAYMENT_REQUEST_PAYMENT_MISMATCH:
+          "El pago ya no coincide con la solicitud original. No se realizó ningún nuevo cargo.",
+        ADDITIONAL_CHARGE_PAYMENT_APPLICATION_FAILED:
+          "Tilopay aprobó el pago, pero no pudimos marcar esta solicitud como pagada de forma segura. El alojamiento debe revisarla antes de cualquier nuevo intento.",
       },
     },
     retry: {
@@ -594,6 +664,8 @@ export const esMessages = {
           cancelCharge: "Cancelar cargo",
           selectCharge: "Seleccionar cargo",
           createRequest: "Crear solicitud de pago",
+          copyRequestLink: "Copiar enlace privado",
+          copyingRequestLink: "Copiando enlace...",
           cancelRequest: "Cancelar solicitud",
           saveCharge: "Guardar cargo",
           saving: "Guardando...",
@@ -617,7 +689,7 @@ export const esMessages = {
           chargeBoundary:
             "Solo un cargo pendiente que nunca haya sido solicitado puede editarse. Un cargo pendiente sin solicitud activa puede cancelarse o seleccionarse para cobro.",
           requestBoundary:
-            "La solicitud de pago congela sus líneas, monto y vencimiento de siete días. El checkout del huésped y la entrega por correo se activan en los flujos posteriores de pago y notificación.",
+            "La solicitud de pago congela sus líneas, monto y vencimiento de siete días. D.4 habilita el enlace privado y checkout con Tilopay; la entrega por correo queda reservada para D.6.",
         },
         states: {
           reservationNotEligible:
@@ -648,7 +720,7 @@ export const esMessages = {
           description:
             "Agrupa los cargos pendientes seleccionados en una solicitud inmutable con vigencia de siete días.",
           boundary:
-            "Esta acción guarda un hash SHA-256 del token y una copia cifrada recuperable. Todavía no inicia checkout con Tilopay, no crea un Payment y no envía correo.",
+            "Esta acción guarda un hash SHA-256 del token y una copia cifrada recuperable. No crea el Payment hasta que el huésped prepare el checkout privado y no envía correo.",
         },
         cancelRequestDialog: {
           title: "Cancelar solicitud de pago del huésped",
@@ -660,6 +732,8 @@ export const esMessages = {
           updated: "El cargo adicional fue actualizado.",
           cancelled: "El cargo adicional fue cancelado.",
           requestCreated: "La solicitud de pago del huésped fue creada.",
+          requestLinkCopied:
+            "El enlace privado de pago fue copiado sin mostrarse en la página.",
           requestCancelled: "La solicitud de pago del huésped fue cancelada.",
         },
         empty: {
@@ -697,10 +771,16 @@ export const esMessages = {
             "No encontramos la solicitud de pago seleccionada.",
           ADMIN_GUEST_PAYMENT_REQUEST_NOT_CANCELLABLE:
             "La solicitud de pago ya no está pendiente y no puede cancelarse.",
+          ADMIN_GUEST_PAYMENT_REQUEST_NOT_PAYABLE:
+            "La solicitud de pago ya no está disponible para checkout privado.",
+          ADMIN_GUEST_PAYMENT_REQUEST_LINK_UNAVAILABLE:
+            "No pudimos recuperar de forma segura el enlace privado. No se mostró ninguna URL.",
           ADMIN_GUEST_PAYMENT_REQUEST_STALE:
             "La solicitud de pago cambió después de que abriste esta página. Recarga antes de continuar.",
           ADMIN_ADDITIONAL_CHARGE_UNEXPECTED_ERROR:
             "No pudimos completar la operación de cargos adicionales. Inténtalo nuevamente.",
+          clipboardFailed:
+            "El navegador no permitió copiar el enlace privado. La URL no se mostrará como alternativa; revisa el permiso del portapapeles e inténtalo nuevamente.",
         },
       },
       labels: {
@@ -2970,6 +3050,14 @@ export const esMessages = {
           "El total de esta reserva cambió antes del pago. Calcula nuevamente la reserva.",
         PAYMENT_HANDOFF_UNEXPECTED_ERROR:
           "No pudimos validar la reserva antes del pago. Inténtalo de nuevo.",
+        GUEST_PAYMENT_REQUEST_NOT_FOUND:
+          "No encontramos esta solicitud privada de pago.",
+        GUEST_PAYMENT_REQUEST_NOT_PAYABLE:
+          "Esta solicitud privada ya no está disponible para pago.",
+        GUEST_PAYMENT_REQUEST_EXPIRED:
+          "El enlace privado de pago expiró. Solicita un enlace actualizado al alojamiento.",
+        GUEST_PAYMENT_REQUEST_PAYMENT_MISMATCH:
+          "El pago no coincide con la solicitud privada original. No se realizó ningún nuevo cargo.",
         PAYMENT_ATTEMPT_AMOUNT_MISMATCH:
           "Ya existe un intento de pago pendiente que no coincide con el total actual. Crea una nueva reserva o contacta al alojamiento.",
         PAYMENT_ATTEMPT_UNEXPECTED_ERROR:
@@ -2988,6 +3076,14 @@ export const esMessages = {
           "El total de esta reserva cambió antes del pago. Calcula nuevamente la reserva.",
         PAYMENT_HANDOFF_UNEXPECTED_ERROR:
           "No pudimos validar la reserva antes del pago. Inténtalo de nuevo.",
+        GUEST_PAYMENT_REQUEST_NOT_FOUND:
+          "No encontramos esta solicitud privada de pago.",
+        GUEST_PAYMENT_REQUEST_NOT_PAYABLE:
+          "Esta solicitud privada ya no está disponible para pago.",
+        GUEST_PAYMENT_REQUEST_EXPIRED:
+          "El enlace privado de pago expiró. Solicita un enlace actualizado al alojamiento.",
+        GUEST_PAYMENT_REQUEST_PAYMENT_MISMATCH:
+          "El pago no coincide con la solicitud privada original. No se realizó ningún nuevo cargo.",
         PAYMENT_ATTEMPT_AMOUNT_MISMATCH:
           "Ya existe un intento de pago pendiente que no coincide con el total actual. Crea una nueva reserva o contacta al alojamiento.",
         PAYMENT_ATTEMPT_UNEXPECTED_ERROR:

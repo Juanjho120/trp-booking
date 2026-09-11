@@ -9,7 +9,7 @@ Current phase state: Phase 12 — Test Deployment & External Integration Validat
 Current numbered phase: none active
 Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
 Current package: Final-D — Additional charges and guest payment requests — In progress
-Current subphase: Final-D.4 — Private guest payment link and Tilopay collection — Not started
+Current subphase: Final-D.4 — Private guest payment link and Tilopay collection — Implemented and locally validated on 2026-09-11; owner acceptance pending
 Final-C implementation base head: e7ce19c49c5cfd45e1cc08796ee897a2dce0d1ed
 Final-C.1 status: Completed and accepted on 2026-08-25
 Final-C.1 accepted strategy head: 16d8b0411e573aaaa6b510ddb27a9b5d9c666478
@@ -77,7 +77,9 @@ Final-D.3 status: Completed and accepted on 2026-08-31
 Final-D.3 accepted head: 6a0d909fc325f4e8925677041be34c77c023c42b
 Final-D.3 record: docs/181-final-d-3-admin-charge-management-and-payment-request-creation.md
 Final-D.4 implementation base head: 6a0d909fc325f4e8925677041be34c77c023c42b
-Final-D.4 status: Not started — Private guest payment link and Tilopay collection
+Final-D.4 status: Implemented and locally validated on 2026-09-11; owner acceptance pending — Private guest payment link and Tilopay collection
+Final-D.4 record: docs/182-final-d-4-private-guest-payment-link-and-tilopay-collection.md
+Final-D.5 status: Not started — Additional-charge refunds and financial-summary integration
 Last completed package: Final-C — Pricing rules: seasonal and length-of-stay — Completed and accepted on 2026-08-28 at dca50f51abe1836d3b678b762693219143b12099
 Final-A.1 status: Completed and accepted on 2026-08-11
 Final-A.1 accepted head: 19531568752a44446d0802d6581262260b881aaf
@@ -103,7 +105,7 @@ Final-A.4 record: docs/164-final-a-4-negative-date-change-multi-payment-integrat
 Final-A.5 record: docs/165-final-a-5-admin-refund-ux-notification-and-operational-history.md
 Final-A.6 record: docs/166-final-a-6-integrated-acceptance-and-documentation-closure.md
 Phase 13 status: Not started
-Last updated: 2026-08-31
+Last updated: 2026-09-11
 Last completed subphase: Final-D.3 Admin charge management and payment-request creation — completed and accepted on 2026-08-31 at 6a0d909fc325f4e8925677041be34c77c023c42b
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 11.6.5 acceptance: All 15 protected-history, ordering, relation, retry, ES/EN, responsive, security, and integrated criteria passed on 2026-08-05
@@ -171,7 +173,7 @@ Phase 12.9 acceptance closure: docs/158-phase-12.9-acceptance-closure.md
 Phase 12.10 status: Completed and accepted on 2026-08-11 — Phase 12 validation and closure
 Phase 12.10 validated repository head: ebe28579872cbc2414573ef852b15139a2501551
 Phase 12 closure record: docs/159-phase-12.10-phase-12-validation-and-closure.md
-Post-Phase-12 / Pre-Phase-13 Final Improvement Track: Active — Final-A, Final-B and Final-C completed and accepted; Final-D is in progress with Final-D.3 completed and Final-D.4 next
+Post-Phase-12 / Pre-Phase-13 Final Improvement Track: Active — Final-A, Final-B and Final-C completed and accepted; Final-D is in progress with Final-D.4 implemented and owner acceptance pending
 Final-A status: Completed and accepted on 2026-08-12 at 66afbeacd6ee7d669cb4bc251c8416160fae3f49 — Reservation financial correctness and effective stay value
 Final-A.1 status: Completed and accepted on 2026-08-11 at 19531568752a44446d0802d6581262260b881aaf — Financial source-of-truth and refund-allocation contract
 Final-A.2 status: Completed and accepted on 2026-08-11 at 9f4e04068726451ca87614dd99b1f10656510825 — Central financial summary and cancellation-policy correction
@@ -227,7 +229,9 @@ Final-D.3 status: Completed and accepted on 2026-08-31
 Final-D.3 accepted head: 6a0d909fc325f4e8925677041be34c77c023c42b
 Final-D.3 record: docs/181-final-d-3-admin-charge-management-and-payment-request-creation.md
 Final-D.4 implementation base head: 6a0d909fc325f4e8925677041be34c77c023c42b
-Final-D.4 status: Not started — Private guest payment link and Tilopay collection
+Final-D.4 status: Implemented and locally validated on 2026-09-11; owner acceptance pending — Private guest payment link and Tilopay collection
+Final-D.4 record: docs/182-final-d-4-private-guest-payment-link-and-tilopay-collection.md
+Final-D.5 status: Not started — Additional-charge refunds and financial-summary integration
 Final-E status: Not started — Reservation reviews and post-checkout invitation
 Final-F status: Not started — Twilio WhatsApp communication and staff alerts
 Final-G status: Not started — Performance audit and optimization
@@ -1169,7 +1173,7 @@ Status: **Completed and accepted on 2026-08-31 at `74ac3011eb22277a896d81c92897f
 
 ### Final-D.3 — Admin charge management and payment-request creation
 
-Status: **In progress — implementation prepared for Local/Test validation**
+Status: **Completed and accepted on 2026-08-31 at 6a0d909fc325f4e8925677041be34c77c023c42b**
 
 ```text
 - Implementation base head: 74ac3011eb22277a896d81c92897f1bee6a4d51b.
@@ -1183,10 +1187,29 @@ Status: **In progress — implementation prepared for Local/Test validation**
 - Reservation.total, accepted pricing evidence, current stay value, cancellation-policy base and stay-refund balance remain isolated from ancillary money.
 - Extends the payment-attempt history label contract so the D.2 ADDITIONAL_CHARGE source can never be displayed as initial checkout.
 - Centralizes all new visible admin copy in messages/es.ts and messages/en.ts and uses the existing shadcn/Radix/Tailwind interaction primitives.
-- Static/regression and Local/Test functional validation were completed and owner acceptance was recorded on 2026-08-31 at 6a0d909fc325f4e8925677041be34c77c023c42b; Final-D.4 is the next Not-started subphase.
+- Static/regression and Local/Test functional validation were completed and owner acceptance was recorded on 2026-08-31 at 6a0d909fc325f4e8925677041be34c77c023c42b; Final-D.4 has since been implemented and locally validated with owner acceptance pending.
 - Record: docs/181-final-d-3-admin-charge-management-and-payment-request-creation.md.
 ```
 
+
+### Final-D.4 — Private guest payment link and Tilopay collection
+
+Status: **Implemented and locally validated on 2026-09-11; owner acceptance pending**
+
+```text
+- Implementation base head: 6a0d909fc325f4e8925677041be34c77c023c42b.
+- Added private guest payment links at /reservas/cargos/[token] backed by GuestPaymentRequest token-hash lookup.
+- Added the protected admin Copy private link action without rendering or retaining the raw URL in admin component state.
+- Prepared one logical Tilopay Payment per GuestPaymentRequest with PaymentPurpose.ADDITIONAL_CHARGE and PaymentSubmissionSource.ADDITIONAL_CHARGE.
+- Reused the accepted Tilopay SDK, preflight, redirect/result, client-event and payment-attempt abstractions for the distinct ancillary branch.
+- Approved provider evidence marks only the immutable request and included AdditionalCharge rows PAID; it does not confirm/reconfirm a Reservation, mutate Reservation.total, mutate pricing evidence, change cancellation-policy stay money, or complete lifecycle date mutations.
+- Rejected or failed provider outcomes keep the request and charges pending and auditable for retry while the request remains valid.
+- Added guest-safe bilingual public copy and admin/error copy in messages/es.ts and messages/en.ts.
+- Added focused source-contract validation under tests/final-d without adding an npm final-d:validate script.
+- Validation passed locally: D.4 targeted 7/7, Final-A 44/44, Final-B 38/38, Final-C 41/41, Prisma validate/generate/migrate status, lint, build, and git diff --check after documentation reconciliation.
+- Owner acceptance remains pending; Final-D.5 is Not started.
+- Record: docs/182-final-d-4-private-guest-payment-link-and-tilopay-collection.md.
+```
 ## Continuity Notes for New Conversations
 
 Minimum context files:

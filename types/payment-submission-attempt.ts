@@ -4,10 +4,8 @@ export type PaymentSubmissionAttemptSource =
   | "LIFECYCLE_ADJUSTMENT"
   | "ADDITIONAL_CHARGE";
 
-export type CreatablePaymentSubmissionAttemptSource = Exclude<
-  PaymentSubmissionAttemptSource,
-  "ADDITIONAL_CHARGE"
->;
+export type CreatablePaymentSubmissionAttemptSource =
+  PaymentSubmissionAttemptSource;
 
 export type PaymentSubmissionAttemptStatus =
   | "STARTED"

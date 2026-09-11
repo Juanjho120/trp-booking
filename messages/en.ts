@@ -313,7 +313,7 @@ export const enMessages = {
       paymentSubmitted:
         "The payment was sent to Tilopay. Wait for the secure form response before closing this page.",
       providerNote:
-        "The result is applied only after server-side payment validation. An approved adjustment does not change dates until its authorized transition is completed.",
+        "The result is applied only after server-side payment validation. An approved charge only activates the authorized transition for its flow.",
       sessionError: "We could not prepare the payment form. Please try again.",
       sdkError: "We could not initialize the Tilopay secure form. Please try again.",
       paymentError: "We could not send the payment to Tilopay. Review the details and try again.",
@@ -355,6 +355,76 @@ export const enMessages = {
           "This adjustment no longer accepts another payment. Check its status with the administrator.",
         LIFECYCLE_ADJUSTMENT_PAYMENT_MISMATCH:
           "The payment no longer matches the approved request. No new charge was made.",
+      },
+    },
+    additionalCharge: {
+      title: "Pay additional charge",
+      description:
+        "Review the private summary and complete only the additional charges requested by the accommodation.",
+      retryTitle: "Try the payment again",
+      retryDescription:
+        "Tilopay did not approve the previous attempt. The request remains pending while the link is valid.",
+      paidTitle: "Additional charge paid",
+      paidDescription:
+        "Tilopay approved the payment and this request's additional charges were marked paid.",
+      expiredTitle: "Payment link expired",
+      expiredDescription:
+        "This private link has expired. Ask the accommodation for a new request if the charge is still pending.",
+      cancelledTitle: "Payment request cancelled",
+      cancelledDescription:
+        "This private request was cancelled and no longer accepts payment.",
+      unavailableTitle: "Payment link unavailable",
+      paidNote:
+        "This payment is separate from the confirmed accommodation value and does not change reservation dates or total.",
+      securityNote:
+        "This private link expires seven days after the request and does not show administrative reservation data.",
+      unavailableNote:
+        "No new charge was made from this page. Contact the accommodation if you need help.",
+      sections: {
+        lineItems: "Included charges",
+      },
+      labels: {
+        accommodation: "Accommodation",
+        reservationReference: "Reservation reference",
+        confirmedDates: "Confirmed dates",
+        expiresAt: "Available until",
+        paidAt: "Paid at",
+        linkAvailableUntil: "Link available until",
+        total: "Total due",
+      },
+      categories: {
+        CLEANING: "Additional cleaning",
+        DAMAGE: "Damage",
+        TRANSPORT: "Transport",
+        LATE_CHECKOUT: "Late checkout",
+        EXTRA_SERVICE: "Extra service",
+        OTHER: "Other",
+      },
+      requestStatuses: {
+        PENDING: "Pending",
+        PAID: "Paid",
+        EXPIRED: "Expired",
+        CANCELLED: "Cancelled",
+      },
+      paymentStatuses: {
+        PENDING: "Payment pending",
+        APPROVED: "Payment approved",
+        REJECTED: "Payment rejected",
+        FAILED: "Payment failed",
+        REFUNDED: "Payment refunded",
+        PARTIALLY_REFUNDED: "Payment partially refunded",
+      },
+      errors: {
+        INVALID_GUEST_PAYMENT_REQUEST:
+          "The link is invalid or was altered. Request a new link from the accommodation.",
+        GUEST_PAYMENT_REQUEST_EXPIRED:
+          "This private payment link has expired.",
+        GUEST_PAYMENT_REQUEST_NOT_PAYABLE:
+          "This request is no longer available for payment.",
+        GUEST_PAYMENT_REQUEST_PAYMENT_MISMATCH:
+          "The payment no longer matches the original request. No new charge was made.",
+        ADDITIONAL_CHARGE_PAYMENT_APPLICATION_FAILED:
+          "Tilopay approved the payment, but we could not safely mark this request as paid. The accommodation must review it before any new attempt.",
       },
     },
     retry: {
@@ -594,6 +664,8 @@ export const enMessages = {
           cancelCharge: "Cancel charge",
           selectCharge: "Select charge",
           createRequest: "Create payment request",
+          copyRequestLink: "Copy private link",
+          copyingRequestLink: "Copying link...",
           cancelRequest: "Cancel request",
           saveCharge: "Save charge",
           saving: "Saving...",
@@ -617,7 +689,7 @@ export const enMessages = {
           chargeBoundary:
             "Only a never-requested pending charge can be edited. A pending charge without an active request can be cancelled or selected for collection.",
           requestBoundary:
-            "A payment request freezes its selected line items, amount, and seven-day expiry. Guest checkout and email delivery are activated by later payment and notification flows.",
+            "A payment request freezes its selected line items, amount, and seven-day expiry. D.4 enables the private link and Tilopay checkout; email delivery remains reserved for D.6.",
         },
         states: {
           reservationNotEligible:
@@ -648,7 +720,7 @@ export const enMessages = {
           description:
             "Group the selected pending charges into one immutable seven-day request.",
           boundary:
-            "This action stores a SHA-256 token hash and an encrypted recoverable token. It does not start Tilopay checkout, create a Payment, or send an email yet.",
+            "This action stores a SHA-256 token hash and an encrypted recoverable token. It does not create the Payment until the guest prepares private checkout and does not send email.",
         },
         cancelRequestDialog: {
           title: "Cancel guest payment request",
@@ -660,6 +732,8 @@ export const enMessages = {
           updated: "The additional charge was updated.",
           cancelled: "The additional charge was cancelled.",
           requestCreated: "The guest payment request was created.",
+          requestLinkCopied:
+            "The private payment link was copied without being rendered on the page.",
           requestCancelled: "The guest payment request was cancelled.",
         },
         empty: {
@@ -697,10 +771,16 @@ export const enMessages = {
             "We could not find the selected guest payment request.",
           ADMIN_GUEST_PAYMENT_REQUEST_NOT_CANCELLABLE:
             "This payment request is no longer pending and cannot be cancelled.",
+          ADMIN_GUEST_PAYMENT_REQUEST_NOT_PAYABLE:
+            "This payment request is no longer available for private checkout.",
+          ADMIN_GUEST_PAYMENT_REQUEST_LINK_UNAVAILABLE:
+            "We could not safely recover the private link. No URL was displayed.",
           ADMIN_GUEST_PAYMENT_REQUEST_STALE:
             "The payment request changed after you opened this page. Reload before continuing.",
           ADMIN_ADDITIONAL_CHARGE_UNEXPECTED_ERROR:
             "We could not complete the additional-charge operation. Please try again.",
+          clipboardFailed:
+            "The browser did not allow the private link to be copied. The URL will not be displayed as a fallback; review clipboard permissions and try again.",
         },
       },
       labels: {
@@ -2968,6 +3048,14 @@ export const enMessages = {
           "The reservation total changed before payment. Please calculate the reservation again.",
         PAYMENT_HANDOFF_UNEXPECTED_ERROR:
           "We could not validate the reservation before payment. Please try again.",
+        GUEST_PAYMENT_REQUEST_NOT_FOUND:
+          "We could not find this private payment request.",
+        GUEST_PAYMENT_REQUEST_NOT_PAYABLE:
+          "This private request is no longer available for payment.",
+        GUEST_PAYMENT_REQUEST_EXPIRED:
+          "The private payment link expired. Ask the accommodation for an updated link.",
+        GUEST_PAYMENT_REQUEST_PAYMENT_MISMATCH:
+          "The payment does not match the original private request. No new charge was made.",
         PAYMENT_ATTEMPT_AMOUNT_MISMATCH:
           "A pending payment attempt already exists and does not match the current total. Create a new reservation or contact the property.",
         PAYMENT_ATTEMPT_UNEXPECTED_ERROR:
@@ -2986,6 +3074,14 @@ export const enMessages = {
           "The reservation total changed before payment. Please calculate the reservation again.",
         PAYMENT_HANDOFF_UNEXPECTED_ERROR:
           "We could not validate the reservation before payment. Please try again.",
+        GUEST_PAYMENT_REQUEST_NOT_FOUND:
+          "We could not find this private payment request.",
+        GUEST_PAYMENT_REQUEST_NOT_PAYABLE:
+          "This private request is no longer available for payment.",
+        GUEST_PAYMENT_REQUEST_EXPIRED:
+          "The private payment link expired. Ask the accommodation for an updated link.",
+        GUEST_PAYMENT_REQUEST_PAYMENT_MISMATCH:
+          "The payment does not match the original private request. No new charge was made.",
         PAYMENT_ATTEMPT_AMOUNT_MISMATCH:
           "A pending payment attempt already exists and does not match the current total. Create a new reservation or contact the property.",
         PAYMENT_ATTEMPT_UNEXPECTED_ERROR:

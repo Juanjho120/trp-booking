@@ -67,7 +67,8 @@ export type TilopaySdkSession = Readonly<{
   initConfig: TilopaySdkInitConfig;
   phaseBoundary:
     | "TILOPAY_SDK_V2_CHECKOUT_FOUNDATION"
-    | "LIFECYCLE_ADJUSTMENT_CHECKOUT_READY";
+    | "LIFECYCLE_ADJUSTMENT_CHECKOUT_READY"
+    | "ADDITIONAL_CHARGE_CHECKOUT_READY";
 }>;
 
 export type CreateTilopaySdkSessionApiSuccessResponse = Readonly<{

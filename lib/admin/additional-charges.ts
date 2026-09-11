@@ -2,6 +2,7 @@ import {
   AdditionalChargeCategory,
   AdditionalChargeStatus,
   GuestPaymentRequestStatus,
+  PaymentStatus,
   Prisma,
   ReservationStatus,
 } from "@prisma/client";
@@ -138,6 +139,12 @@ const paymentRequestSummarySelect = {
       createdAt: true,
     },
     orderBy: { createdAt: "asc" as const },
+  },
+  payment: {
+    select: {
+      id: true,
+      status: true,
+    },
   },
 } satisfies Prisma.GuestPaymentRequestSelect;
 
@@ -325,6 +332,11 @@ function toPaymentRequestSummary(
     row.status === GuestPaymentRequestStatus.PENDING && row.expiresAt <= now
       ? GuestPaymentRequestStatus.EXPIRED
       : row.status;
+  const pendingAndActive =
+    effectiveStatus === GuestPaymentRequestStatus.PENDING &&
+    row.expiresAt > now;
+  const hasAssociatedPayment = row.payment !== null;
+  const hasApprovedPayment = row.payment?.status === PaymentStatus.APPROVED;
 
   return {
     id: row.id,
@@ -338,9 +350,8 @@ function toPaymentRequestSummary(
     cancelledAt: row.cancelledAt?.toISOString() ?? null,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
-    canCancel:
-      effectiveStatus === GuestPaymentRequestStatus.PENDING &&
-      row.expiresAt > now,
+    canCancel: pendingAndActive && !hasAssociatedPayment,
+    canCopyLink: pendingAndActive && !hasApprovedPayment,
     items: row.items.map((item) => ({
       id: item.id,
       additionalChargeId: item.additionalChargeId,
@@ -976,7 +987,8 @@ export async function cancelAdminGuestPaymentRequest(
 
       if (
         existing.status !== GuestPaymentRequestStatus.PENDING ||
-        existing.expiresAt <= now
+        existing.expiresAt <= now ||
+        existing.payment
       ) {
         throw new AdminAdditionalChargeError(
           "ADMIN_GUEST_PAYMENT_REQUEST_NOT_CANCELLABLE",
@@ -994,6 +1006,7 @@ export async function cancelAdminGuestPaymentRequest(
           id: requestId,
           status: GuestPaymentRequestStatus.PENDING,
           expiresAt: { gt: now },
+          payment: { is: null },
           updatedAt: expectedUpdatedAt,
         },
         data: {

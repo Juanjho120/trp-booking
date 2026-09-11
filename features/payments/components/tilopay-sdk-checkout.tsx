@@ -556,7 +556,7 @@ export function TilopaySdkCheckout({
   ): Promise<TilopayPaymentPreflight> {
     const response = await fetch("/api/payments/tilopay/preflight", {
       body: JSON.stringify({
-        reservationId: activeSession.reservationId,
+        reservationId,
         paymentId: activeSession.paymentId,
         locale,
       }),
@@ -589,7 +589,7 @@ export function TilopaySdkCheckout({
     const selectedMethod = getSelectedPaymentMethod();
     const request: TilopaySdkClientEventRequest = {
       paymentId: session.paymentId,
-      reservationId: session.reservationId,
+      reservationId,
       eventType: input.eventType,
       environment: session.environment,
       locale,

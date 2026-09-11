@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/db/prisma";
 import { getTilopayEnv } from "@/lib/env/server";
+import { getGuestPaymentRequestPaymentPathForPayment } from "@/lib/payments/guest-payment-request-payment";
 import { createLifecycleAdjustmentHandoffToken } from "@/lib/payments/lifecycle-adjustment-handoff";
 import { finalizePaymentSubmissionAttempt } from "@/lib/payments/payment-submission-attempts";
 import {
@@ -19,14 +20,22 @@ function isLifecycleAdjustmentTarget(url: URL): boolean {
   return url.pathname.startsWith("/reservas/ajuste/");
 }
 
+function isGuestPaymentRequestTarget(url: URL): boolean {
+  return url.pathname.startsWith("/reservas/cargos/");
+}
+
+function isPrivatePaymentTarget(url: URL): boolean {
+  return isLifecycleAdjustmentTarget(url) || isGuestPaymentRequestTarget(url);
+}
+
 function buildResultRedirectUrl(
   baseUrl: string,
   result: ProcessedTilopayPaymentResult,
 ): URL {
   const url = new URL(baseUrl);
-  const lifecycleTarget = isLifecycleAdjustmentTarget(url);
+  const privateTarget = isPrivatePaymentTarget(url);
 
-  if (!lifecycleTarget) {
+  if (!privateTarget) {
     url.searchParams.set("paymentId", result.paymentId);
     url.searchParams.set("reservationId", result.reservationId);
     url.searchParams.set(
@@ -55,14 +64,16 @@ function buildErrorRedirectUrl(
   error: unknown,
 ): URL {
   const url = new URL(baseUrl);
+  const privateTarget = isPrivatePaymentTarget(url);
+
   url.searchParams.set("paymentStatus", "failed");
-  url.searchParams.set("reservationConfirmed", "false");
   url.searchParams.set("code", code);
 
-  if (
-    !isLifecycleAdjustmentTarget(url) &&
-    error instanceof TilopayPaymentResultError
-  ) {
+  if (!privateTarget) {
+    url.searchParams.set("reservationConfirmed", "false");
+  }
+
+  if (!privateTarget && error instanceof TilopayPaymentResultError) {
     if (error.paymentId) {
       url.searchParams.set("paymentId", error.paymentId);
     }
@@ -125,6 +136,19 @@ async function getLifecycleAdjustmentTarget(
   ).toString();
 }
 
+async function getGuestPaymentRequestTarget(
+  requestUrl: string,
+  paymentId: string | undefined,
+): Promise<string | null> {
+  if (!paymentId) {
+    return null;
+  }
+
+  const path = await getGuestPaymentRequestPaymentPathForPayment(paymentId);
+
+  return path ? new URL(path, requestUrl).toString() : null;
+}
+
 async function resolveResultTargetUrl(
   requestUrl: string,
   env: ReturnType<typeof getTilopayEnv>,
@@ -137,6 +161,15 @@ async function resolveResultTargetUrl(
 
   if (lifecycleTarget) {
     return lifecycleTarget;
+  }
+
+  const guestPaymentRequestTarget = await getGuestPaymentRequestTarget(
+    requestUrl,
+    result.paymentId,
+  );
+
+  if (guestPaymentRequestTarget) {
+    return guestPaymentRequestTarget;
   }
 
   if (result.redirectTarget === "success") {
@@ -174,6 +207,10 @@ function errorAttemptStatus(
     return "APPROVED";
   }
 
+  if (error.code === "ADDITIONAL_CHARGE_PAYMENT_APPLICATION_FAILED") {
+    return "APPROVED";
+  }
+
   if (error.code === "TILOPAY_CONSULT_UNAVAILABLE") {
     return "UNKNOWN";
   }
@@ -207,6 +244,8 @@ async function recordFailedResult(error: unknown): Promise<void> {
       safeResultCode:
         error.code === "RESERVATION_CONFIRMATION_FAILED"
           ? "PAYMENT_APPROVED_RESERVATION_CONFIRMATION_FAILED"
+          : error.code === "ADDITIONAL_CHARGE_PAYMENT_APPLICATION_FAILED"
+            ? "PAYMENT_APPROVED_ADDITIONAL_CHARGE_APPLICATION_FAILED"
           : error.code,
     });
   } catch {
@@ -232,10 +271,14 @@ export async function GET(request: Request) {
       request.url,
       error instanceof TilopayPaymentResultError ? error.paymentId : undefined,
     );
+    const guestPaymentRequestTarget = await getGuestPaymentRequestTarget(
+      request.url,
+      error instanceof TilopayPaymentResultError ? error.paymentId : undefined,
+    );
 
     return NextResponse.redirect(
       buildErrorRedirectUrl(
-        lifecycleTarget ?? env.TILOPAY_ERROR_URL,
+        lifecycleTarget ?? guestPaymentRequestTarget ?? env.TILOPAY_ERROR_URL,
         code,
         error,
       ),

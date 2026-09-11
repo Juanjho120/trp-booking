@@ -1,4 +1,5 @@
 import {
+  GuestPaymentRequestStatus,
   LifecycleRequestHoldStatus,
   PaymentPurpose,
   PaymentStatus,
@@ -9,6 +10,10 @@ import {
 } from "@prisma/client";
 
 import { prisma } from "@/lib/db/prisma";
+import {
+  hashGuestPaymentRequestAccessToken,
+  isGuestPaymentRequestAccessToken,
+} from "@/lib/payments/guest-payment-request-token";
 import type { PaymentAttemptErrorCode } from "@/types/payment-attempt";
 import type {
   CreatablePaymentSubmissionAttemptSource,
@@ -102,6 +107,16 @@ function assertSourceMatchesPaymentPurpose(
     return;
   }
 
+  if (purpose === PaymentPurpose.ADDITIONAL_CHARGE) {
+    if (source !== PaymentSubmissionSource.ADDITIONAL_CHARGE) {
+      throw new PaymentSubmissionAttemptError(
+        "INVALID_PAYMENT_HANDOFF_REQUEST",
+      );
+    }
+
+    return;
+  }
+
   throw new PaymentSubmissionAttemptError("INVALID_PAYMENT_HANDOFF_REQUEST");
 }
 
@@ -157,6 +172,13 @@ async function createAttemptOnce(input: Readonly<{
               },
             },
           },
+          guestPaymentRequest: {
+            select: {
+              accessTokenHash: true,
+              status: true,
+              expiresAt: true,
+            },
+          },
         },
       });
 
@@ -181,7 +203,7 @@ async function createAttemptOnce(input: Readonly<{
             "PENDING_HOLD_NOT_PAYABLE",
           );
         }
-      } else {
+      } else if (payment.purpose === PaymentPurpose.LIFECYCLE_ADJUSTMENT) {
         const hold = payment.lifecycleRequest?.hold;
 
         if (
@@ -193,6 +215,22 @@ async function createAttemptOnce(input: Readonly<{
         ) {
           throw new PaymentSubmissionAttemptError(
             "PENDING_HOLD_NOT_PAYABLE",
+          );
+        }
+      } else {
+        const request = payment.guestPaymentRequest;
+
+        if (
+          !request ||
+          !isGuestPaymentRequestAccessToken(input.reservationReference) ||
+          hashGuestPaymentRequestAccessToken(input.reservationReference) !==
+            request.accessTokenHash ||
+          request.status !== GuestPaymentRequestStatus.PENDING ||
+          request.expiresAt.getTime() <= now.getTime() ||
+          request.expiresAt.getTime() !== preflightExpiresAt.getTime()
+        ) {
+          throw new PaymentSubmissionAttemptError(
+            "GUEST_PAYMENT_REQUEST_NOT_PAYABLE",
           );
         }
       }

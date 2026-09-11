@@ -11,6 +11,11 @@ import {
   prepareLifecycleAdjustmentPayment,
 } from "@/lib/payments/lifecycle-adjustment-handoff";
 import {
+  GuestPaymentRequestPaymentError,
+  prepareGuestPaymentRequestPayment,
+} from "@/lib/payments/guest-payment-request-payment";
+import { isGuestPaymentRequestAccessToken } from "@/lib/payments/guest-payment-request-token";
+import {
   PaymentHandoffValidationError,
   validatePaymentHandoff,
 } from "@/lib/reservations/payment-handoff";
@@ -92,6 +97,30 @@ function mapLifecycleError(
   }
 }
 
+function mapGuestPaymentRequestError(
+  error: GuestPaymentRequestPaymentError,
+): TilopayPaymentPreflightError {
+  switch (error.code) {
+    case "GUEST_PAYMENT_REQUEST_EXPIRED":
+      return new TilopayPaymentPreflightError(
+        "GUEST_PAYMENT_REQUEST_EXPIRED",
+      );
+    case "GUEST_PAYMENT_REQUEST_NOT_PAYABLE":
+      return new TilopayPaymentPreflightError(
+        "GUEST_PAYMENT_REQUEST_NOT_PAYABLE",
+      );
+    case "GUEST_PAYMENT_REQUEST_PAYMENT_MISMATCH":
+      return new TilopayPaymentPreflightError(
+        "GUEST_PAYMENT_REQUEST_PAYMENT_MISMATCH",
+      );
+    case "INVALID_GUEST_PAYMENT_REQUEST":
+    default:
+      return new TilopayPaymentPreflightError(
+        "GUEST_PAYMENT_REQUEST_NOT_FOUND",
+      );
+  }
+}
+
 async function validateLifecycleAdjustmentPreflight(input: Readonly<{
   reservationId: string;
   paymentId: string;
@@ -126,11 +155,49 @@ async function validateLifecycleAdjustmentPreflight(input: Readonly<{
   };
 }
 
+async function validateGuestPaymentRequestPreflight(input: Readonly<{
+  reservationId: string;
+  paymentId: string;
+}>): Promise<TilopayPaymentPreflight> {
+  let prepared;
+
+  try {
+    prepared = await prepareGuestPaymentRequestPayment(input.reservationId);
+  } catch (error) {
+    if (error instanceof GuestPaymentRequestPaymentError) {
+      throw mapGuestPaymentRequestError(error);
+    }
+
+    throw error;
+  }
+
+  if (
+    prepared.payment.id !== input.paymentId ||
+    prepared.payment.status !== PaymentStatus.PENDING
+  ) {
+    throw new TilopayPaymentPreflightError(
+      "PAYMENT_ATTEMPT_UNEXPECTED_ERROR",
+    );
+  }
+
+  return {
+    paymentId: prepared.payment.id,
+    reservationId: "guest-payment-request",
+    status: "READY_FOR_PAYMENT",
+    expiresAt: prepared.expiresAt,
+    phaseBoundary: "ADDITIONAL_CHARGE_PREFLIGHT_READY",
+  };
+}
+
 export async function validateTilopayPaymentPreflight(input: Readonly<{
   reservationId: string;
   paymentId: string;
   locale: "es" | "en";
 }>): Promise<TilopayPaymentPreflight> {
+  if (isGuestPaymentRequestAccessToken(input.reservationId)) {
+    return validateGuestPaymentRequestPreflight(input);
+  }
+
   if (isLifecycleAdjustmentHandoffToken(input.reservationId)) {
     return validateLifecycleAdjustmentPreflight(input);
   }

@@ -8,6 +8,11 @@ import {
   LifecycleAdjustmentHandoffError,
   resolveLifecycleAdjustmentClientEventReservation,
 } from "@/lib/payments/lifecycle-adjustment-handoff";
+import {
+  GuestPaymentRequestPaymentError,
+  resolveGuestPaymentRequestClientEventReservation,
+} from "@/lib/payments/guest-payment-request-payment";
+import { isGuestPaymentRequestAccessToken } from "@/lib/payments/guest-payment-request-token";
 import { finalizePaymentSubmissionAttemptFromSdkEvent } from "@/lib/payments/payment-submission-attempts";
 import type {
   TilopaySdkClientEventRequest,
@@ -126,6 +131,21 @@ function toJsonSql(value: StoredSdkPayload | null): Prisma.Sql {
 async function resolveReservationId(
   input: TilopaySdkClientEventRequest,
 ): Promise<string> {
+  if (isGuestPaymentRequestAccessToken(input.reservationId)) {
+    try {
+      return await resolveGuestPaymentRequestClientEventReservation(
+        input.reservationId,
+        input.paymentId,
+      );
+    } catch (error) {
+      if (error instanceof GuestPaymentRequestPaymentError) {
+        throw new TilopaySdkClientEventError("PAYMENT_NOT_FOUND");
+      }
+
+      throw error;
+    }
+  }
+
   if (!isLifecycleAdjustmentHandoffToken(input.reservationId)) {
     return input.reservationId;
   }

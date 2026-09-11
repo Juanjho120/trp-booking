@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getTilopayEnv } from "@/lib/env/server";
+import { isGuestPaymentRequestAccessToken } from "@/lib/payments/guest-payment-request-token";
 import { isLifecycleAdjustmentHandoffToken } from "@/lib/payments/lifecycle-adjustment-handoff";
 import {
   createPaymentSubmissionAttempt,
@@ -49,6 +50,7 @@ function toErrorResponse(
 function resolveErrorStatus(code: TilopayPaymentPreflightErrorCode): number {
   switch (code) {
     case "PENDING_HOLD_NOT_FOUND":
+    case "GUEST_PAYMENT_REQUEST_NOT_FOUND":
       return 404;
     case "PENDING_HOLD_NOT_PAYABLE":
     case "PENDING_HOLD_EXPIRED":
@@ -56,6 +58,9 @@ function resolveErrorStatus(code: TilopayPaymentPreflightErrorCode): number {
     case "PAYMENT_HANDOFF_QUOTE_CHANGED":
     case "PAYMENT_ATTEMPT_AMOUNT_MISMATCH":
     case "PAYMENT_ATTEMPT_UNEXPECTED_ERROR":
+    case "GUEST_PAYMENT_REQUEST_NOT_PAYABLE":
+    case "GUEST_PAYMENT_REQUEST_EXPIRED":
+    case "GUEST_PAYMENT_REQUEST_PAYMENT_MISMATCH":
       return 409;
     case "PAYMENT_HANDOFF_UNEXPECTED_ERROR":
       return 500;
@@ -69,6 +74,10 @@ function resolveSubmissionSource(
   request: Request,
   reservationReference: string,
 ): CreatablePaymentSubmissionAttemptSource {
+  if (isGuestPaymentRequestAccessToken(reservationReference)) {
+    return PaymentSubmissionSource.ADDITIONAL_CHARGE;
+  }
+
   if (isLifecycleAdjustmentHandoffToken(reservationReference)) {
     return PaymentSubmissionSource.LIFECYCLE_ADJUSTMENT;
   }

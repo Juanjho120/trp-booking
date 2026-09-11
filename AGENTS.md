@@ -21,10 +21,11 @@ This file defines the working rules for TRP Booking.
 - Final-D.1 is completed and accepted.
 - Final-D.2 is completed and accepted.
 - Final-D.3 is completed and accepted on 2026-08-31 at `6a0d909fc325f4e8925677041be34c77c023c42b`.
-- The next subphase is Final-D.4 — Private guest payment link and Tilopay collection.
-- Final-D.4 is Not started until work is explicitly requested from the accepted Final-D.3 base.
+- Current subphase: Final-D.4 — Private guest payment link and Tilopay collection — implementation completed; owner acceptance pending.
+- Final-D.4 implementation is completed in the current D.4 changeset, but D.4 is not accepted until owner acceptance is explicitly recorded.
 - Final-D.4 implementation base: `6a0d909fc325f4e8925677041be34c77c023c42b`.
-- Ignore any incomplete or abandoned Final-D.4 work that is not present in the repository history at or after this accepted base.
+- Final-D.4 implementation record: `docs/182-final-d-4-private-guest-payment-link-and-tilopay-collection.md`.
+- Final-D.5 remains Not started and must not begin until Final-D.4 receives explicit owner acceptance.
 - Phase 13 remains Not started and must not be activated implicitly.
 
 ## Environment Isolation
@@ -89,7 +90,7 @@ Rules:
 - Do not activate Production or Phase 13 work from a Final Improvement Track task.
 - A subphase may be declared completed only after implementation, required validation, documentation reconciliation, and owner acceptance are recorded.
 - If documentation and the accepted repository state disagree, stop advancement and reconcile the authoritative trackers before implementing the next subphase.
-- For the current handoff, Final-D.3 is accepted at `6a0d909fc325f4e8925677041be34c77c023c42b`; Final-D.4 is the next Not-started subphase.
+- For the current handoff, Final-D.3 is accepted at `6a0d909fc325f4e8925677041be34c77c023c42b`; Final-D.4 is implemented and locally validated with owner acceptance pending, and Final-D.5 remains Not started.
 
 ## Implementation Completion Gate
 

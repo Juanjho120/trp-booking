@@ -40,12 +40,16 @@ function toErrorResponse(
 function resolveErrorStatus(code: TilopaySdkSessionErrorCode): number {
   switch (code) {
     case "PENDING_HOLD_NOT_FOUND":
+    case "GUEST_PAYMENT_REQUEST_NOT_FOUND":
       return 404;
     case "PENDING_HOLD_NOT_PAYABLE":
     case "PENDING_HOLD_EXPIRED":
     case "PAYMENT_HANDOFF_UNAVAILABLE_DATES":
     case "PAYMENT_HANDOFF_QUOTE_CHANGED":
     case "PAYMENT_ATTEMPT_AMOUNT_MISMATCH":
+    case "GUEST_PAYMENT_REQUEST_NOT_PAYABLE":
+    case "GUEST_PAYMENT_REQUEST_EXPIRED":
+    case "GUEST_PAYMENT_REQUEST_PAYMENT_MISMATCH":
       return 409;
     case "TILOPAY_SDK_TOKEN_UNAVAILABLE":
       return 502;

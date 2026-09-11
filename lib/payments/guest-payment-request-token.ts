@@ -18,8 +18,20 @@ export function generateGuestPaymentRequestAccessToken(): string {
   return randomBytes(ACCESS_TOKEN_LENGTH_BYTES).toString("hex");
 }
 
+export function isGuestPaymentRequestAccessToken(value: string): boolean {
+  return ACCESS_TOKEN_PATTERN.test(value.trim());
+}
+
 export function hashGuestPaymentRequestAccessToken(rawToken: string): string {
-  return createHash("sha256").update(rawToken, "utf8").digest("hex");
+  const normalizedToken = rawToken.trim();
+
+  if (!isGuestPaymentRequestAccessToken(normalizedToken)) {
+    throw new Error(
+      "Guest payment request token must contain exactly 256 bits encoded as lowercase hexadecimal.",
+    );
+  }
+
+  return createHash("sha256").update(normalizedToken, "utf8").digest("hex");
 }
 
 export function createGuestPaymentRequestTokenMaterial(
@@ -28,7 +40,7 @@ export function createGuestPaymentRequestTokenMaterial(
 ): GuestPaymentRequestTokenMaterial {
   const normalizedToken = rawToken.trim();
 
-  if (!ACCESS_TOKEN_PATTERN.test(normalizedToken)) {
+  if (!isGuestPaymentRequestAccessToken(normalizedToken)) {
     throw new Error(
       "Guest payment request token must contain exactly 256 bits encoded as lowercase hexadecimal.",
     );

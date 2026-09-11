@@ -2,6 +2,7 @@
 
 import {
   Check,
+  Copy,
   CreditCard,
   PencilLine,
   Plus,
@@ -66,6 +67,10 @@ type MutationResponse =
     }>
   | Readonly<{ error: { code: AdminAdditionalChargeErrorCode | string } }>;
 
+type PaymentLinkResponse =
+  | Readonly<{ paymentUrl: string }>
+  | Readonly<{ error: { code: AdminAdditionalChargeErrorCode | string } }>;
+
 const emptyChargeForm: ChargeFormState = {
   category: "OTHER",
   description: "",
@@ -80,9 +85,15 @@ function isManagementResponse(
 }
 
 function isErrorResponse(
-  response: ManagementResponse | MutationResponse,
+  response: ManagementResponse | MutationResponse | PaymentLinkResponse,
 ): response is { error: { code: string } } {
   return "error" in response;
+}
+
+function isPaymentLinkResponse(
+  response: PaymentLinkResponse,
+): response is { paymentUrl: string } {
+  return "paymentUrl" in response && typeof response.paymentUrl === "string";
 }
 
 export function AdminAdditionalChargesSection({
@@ -423,6 +434,48 @@ export function AdminAdditionalChargesSection({
     }
   }
 
+  async function copyPaymentRequestLink(
+    request: AdminGuestPaymentRequestSummary,
+  ): Promise<void> {
+    setBusyKey(`request-copy-${request.id}`);
+    setSuccessMessage(null);
+    setErrorMessage(null);
+
+    try {
+      const response = await fetch(
+        `/api/admin/guest-payment-requests/${encodeURIComponent(
+          request.id,
+        )}/payment-link`,
+        {
+          headers: {
+            accept: "application/json",
+          },
+          method: "POST",
+        },
+      );
+      const payload = (await response.json().catch(() => ({
+        error: {
+          code: "ADMIN_ADDITIONAL_CHARGE_UNEXPECTED_ERROR",
+        },
+      }))) as PaymentLinkResponse;
+
+      if (!response.ok || !isPaymentLinkResponse(payload)) {
+        const code = isErrorResponse(payload)
+          ? payload.error.code
+          : "ADMIN_ADDITIONAL_CHARGE_UNEXPECTED_ERROR";
+        setErrorMessage(resolveError(code));
+        return;
+      }
+
+      await navigator.clipboard.writeText(payload.paymentUrl);
+      setSuccessMessage(copy.success.requestLinkCopied);
+    } catch {
+      setErrorMessage(copy.errors.clipboardFailed);
+    } finally {
+      setBusyKey(null);
+    }
+  }
+
   if (loading) {
     return (
       <Card className="mt-6 border-border/70 bg-card shadow-sm">
@@ -650,17 +703,33 @@ export function AdminAdditionalChargesSection({
                             {formatMoney(request.totalAmount)}
                           </p>
                         </div>
-                        {request.canCancel ? (
-                          <Button
-                            onClick={() => setCancelRequestTarget(request)}
-                            size="sm"
-                            type="button"
-                            variant="outline"
-                          >
-                            <Trash2 aria-hidden="true" />
-                            {copy.actions.cancelRequest}
-                          </Button>
-                        ) : null}
+                        <div className="flex flex-wrap justify-end gap-2">
+                          {request.canCopyLink ? (
+                            <Button
+                              disabled={busyKey !== null}
+                              onClick={() => void copyPaymentRequestLink(request)}
+                              size="sm"
+                              type="button"
+                              variant="outline"
+                            >
+                              <Copy aria-hidden="true" />
+                              {busyKey === `request-copy-${request.id}`
+                                ? copy.actions.copyingRequestLink
+                                : copy.actions.copyRequestLink}
+                            </Button>
+                          ) : null}
+                          {request.canCancel ? (
+                            <Button
+                              onClick={() => setCancelRequestTarget(request)}
+                              size="sm"
+                              type="button"
+                              variant="outline"
+                            >
+                              <Trash2 aria-hidden="true" />
+                              {copy.actions.cancelRequest}
+                            </Button>
+                          ) : null}
+                        </div>
                       </div>
                     </div>
                   </div>

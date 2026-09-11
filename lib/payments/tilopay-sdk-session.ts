@@ -6,6 +6,11 @@ import {
   prepareLifecycleAdjustmentPayment,
 } from "@/lib/payments/lifecycle-adjustment-handoff";
 import {
+  GuestPaymentRequestPaymentError,
+  prepareGuestPaymentRequestPayment,
+} from "@/lib/payments/guest-payment-request-payment";
+import { isGuestPaymentRequestAccessToken } from "@/lib/payments/guest-payment-request-token";
+import {
   createPaymentAttemptForPendingReservation,
   PaymentAttemptCreationError,
 } from "@/lib/payments/payment-attempts";
@@ -207,6 +212,24 @@ function mapLifecycleHandoffError(
   }
 }
 
+function mapGuestPaymentRequestError(
+  error: GuestPaymentRequestPaymentError,
+): TilopaySdkSessionError {
+  switch (error.code) {
+    case "GUEST_PAYMENT_REQUEST_EXPIRED":
+      return new TilopaySdkSessionError("GUEST_PAYMENT_REQUEST_EXPIRED");
+    case "GUEST_PAYMENT_REQUEST_NOT_PAYABLE":
+      return new TilopaySdkSessionError("GUEST_PAYMENT_REQUEST_NOT_PAYABLE");
+    case "GUEST_PAYMENT_REQUEST_PAYMENT_MISMATCH":
+      return new TilopaySdkSessionError(
+        "GUEST_PAYMENT_REQUEST_PAYMENT_MISMATCH",
+      );
+    case "INVALID_GUEST_PAYMENT_REQUEST":
+    default:
+      return new TilopaySdkSessionError("GUEST_PAYMENT_REQUEST_NOT_FOUND");
+  }
+}
+
 async function createLifecycleAdjustmentTilopaySdkSession(
   input: CreateTilopaySdkSessionInput,
 ): Promise<TilopaySdkSession> {
@@ -273,9 +296,79 @@ async function createLifecycleAdjustmentTilopaySdkSession(
   };
 }
 
+async function createGuestPaymentRequestTilopaySdkSession(
+  input: CreateTilopaySdkSessionInput,
+): Promise<TilopaySdkSession> {
+  let prepared;
+
+  try {
+    prepared = await prepareGuestPaymentRequestPayment(input.reservationId);
+  } catch (error) {
+    if (error instanceof GuestPaymentRequestPaymentError) {
+      throw mapGuestPaymentRequestError(error);
+    }
+
+    throw error;
+  }
+
+  if (prepared.payment.currency !== "USD") {
+    throw new TilopaySdkSessionError(
+      "GUEST_PAYMENT_REQUEST_PAYMENT_MISMATCH",
+    );
+  }
+
+  const amount = toQuoteAmount(prepared.payment.amount);
+  const existingPaymentAttempt = Boolean(prepared.payment.providerReference);
+  const providerReference = await ensurePaymentProviderReference(
+    prepared.payment.id,
+    prepared.payment.providerReference,
+  );
+  const token = await requestTilopaySdkToken();
+  const env = getTilopayEnv();
+  const returnData = buildReturnData({
+    locale: input.locale,
+    orderNumber: providerReference,
+    paymentId: prepared.payment.id,
+    reservationId: "guest-payment-request",
+  });
+  const initConfig = buildSdkInitConfig({
+    amount,
+    currency: "USD",
+    guestCountry: prepared.reservation.guestCountry,
+    guestEmail: prepared.reservation.guestEmail,
+    guestName: prepared.reservation.guestName,
+    guestPhone: prepared.reservation.guestPhone,
+    locale: input.locale,
+    orderNumber: providerReference,
+    redirectUrl: env.TILOPAY_REDIRECT_URL,
+    returnData,
+    token,
+  });
+
+  return {
+    paymentId: prepared.payment.id,
+    reservationId: "guest-payment-request",
+    provider: "TILOPAY",
+    providerReference,
+    paymentStatus: "PENDING",
+    amount,
+    currency: "USD",
+    expiresAt: prepared.expiresAt,
+    existingPaymentAttempt,
+    environment: env.TILOPAY_ENVIRONMENT,
+    sdkScriptUrl: TILOPAY_SDK_SCRIPT_URL,
+    initConfig,
+    phaseBoundary: "ADDITIONAL_CHARGE_CHECKOUT_READY",
+  };
+}
+
 export async function createTilopaySdkSession(
   input: CreateTilopaySdkSessionInput,
 ): Promise<TilopaySdkSession> {
+  if (isGuestPaymentRequestAccessToken(input.reservationId)) {
+    return createGuestPaymentRequestTilopaySdkSession(input);
+  }
+
   if (isLifecycleAdjustmentHandoffToken(input.reservationId)) {
     return createLifecycleAdjustmentTilopaySdkSession(input);
   }

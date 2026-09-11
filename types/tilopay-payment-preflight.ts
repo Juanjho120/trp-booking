@@ -9,7 +9,8 @@ export type TilopayPaymentPreflight = Readonly<{
   expiresAt: string;
   phaseBoundary:
     | "TILOPAY_PREFLIGHT_READY"
-    | "LIFECYCLE_ADJUSTMENT_PREFLIGHT_READY";
+    | "LIFECYCLE_ADJUSTMENT_PREFLIGHT_READY"
+    | "ADDITIONAL_CHARGE_PREFLIGHT_READY";
 }>;
 
 export type TilopayPaymentPreflightApiSuccessResponse = Readonly<{

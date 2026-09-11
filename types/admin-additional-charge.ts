@@ -20,6 +20,8 @@ export type AdminAdditionalChargeErrorCode =
   | "ADMIN_GUEST_PAYMENT_REQUEST_IDEMPOTENCY_CONFLICT"
   | "ADMIN_GUEST_PAYMENT_REQUEST_NOT_FOUND"
   | "ADMIN_GUEST_PAYMENT_REQUEST_NOT_CANCELLABLE"
+  | "ADMIN_GUEST_PAYMENT_REQUEST_NOT_PAYABLE"
+  | "ADMIN_GUEST_PAYMENT_REQUEST_LINK_UNAVAILABLE"
   | "ADMIN_GUEST_PAYMENT_REQUEST_STALE"
   | "ADMIN_ADDITIONAL_CHARGE_UNEXPECTED_ERROR";
 
@@ -72,6 +74,7 @@ export type AdminGuestPaymentRequestSummary = Readonly<{
   updatedAt: string;
   items: readonly AdminGuestPaymentRequestItemSummary[];
   canCancel: boolean;
+  canCopyLink: boolean;
 }>;
 
 export type AdminAdditionalChargeManagement = Readonly<{
