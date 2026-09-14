@@ -2,8 +2,10 @@ import {
   AdditionalChargeCategory,
   AdditionalChargeStatus,
   GuestPaymentRequestStatus,
+  PaymentPurpose,
   PaymentStatus,
   Prisma,
+  RefundStatus,
   ReservationStatus,
 } from "@prisma/client";
 
@@ -24,6 +26,7 @@ import type {
 import { GUEST_PAYMENT_REQUEST_EXPIRY_HOURS } from "@/types/additional-charge";
 
 import { resolveAdminActor } from "./admin-actor";
+import { toAdminRefundDiagnostics } from "./refunds";
 
 const TRP_CURRENCY = "USD";
 const DESCRIPTION_MAX_LENGTH = 1_000;
@@ -35,6 +38,21 @@ const ELIGIBLE_RESERVATION_STATUSES = [
 ] as const;
 const ADDITIONAL_CHARGE_TRANSACTION_MAX_ATTEMPTS = 3;
 const ADDITIONAL_CHARGE_TRANSACTION_RETRY_DELAY_MS = 75;
+const ADDITIONAL_CHARGE_CAPTURED_PAYMENT_STATUSES = [
+  PaymentStatus.APPROVED,
+  PaymentStatus.PARTIALLY_REFUNDED,
+  PaymentStatus.REFUNDED,
+] as const;
+const COMMITTED_REFUND_STATUSES = [
+  RefundStatus.PENDING,
+  RefundStatus.PROCESSING,
+  RefundStatus.APPROVED,
+  RefundStatus.MANUAL,
+] as const;
+const COMPLETED_REFUND_STATUSES = [
+  RefundStatus.APPROVED,
+  RefundStatus.MANUAL,
+] as const;
 
 function isAdditionalChargeSerializationFailure(error: unknown): boolean {
   return (
@@ -98,11 +116,51 @@ const chargeSummarySelect = {
   },
   paymentRequestItems: {
     select: {
+      amountSnapshot: true,
+      currencySnapshot: true,
       paymentRequest: {
         select: {
           id: true,
           status: true,
           expiresAt: true,
+          payment: {
+            select: {
+              id: true,
+              purpose: true,
+              status: true,
+              providerReference: true,
+              updatedAt: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" as const },
+  },
+  refundAllocations: {
+    select: {
+      id: true,
+      allocatedAmount: true,
+      createdAt: true,
+      refund: {
+        select: {
+          id: true,
+          paymentId: true,
+          authorizationType: true,
+          amount: true,
+          currency: true,
+          status: true,
+          processingMode: true,
+          providerRefundId: true,
+          rawPayload: true,
+          createdAt: true,
+          updatedAt: true,
+          requestedByAdmin: {
+            select: {
+              name: true,
+              email: true,
+            },
+          },
         },
       },
     },
@@ -143,7 +201,10 @@ const paymentRequestSummarySelect = {
   payment: {
     select: {
       id: true,
+      purpose: true,
       status: true,
+      providerReference: true,
+      updatedAt: true,
     },
   },
 } satisfies Prisma.GuestPaymentRequestSelect;
@@ -298,10 +359,59 @@ function hasActiveRequest(row: ChargeRow, now: Date): string | null {
   );
 }
 
+function isCapturedAdditionalChargePayment(
+  payment: ChargeRow["paymentRequestItems"][number]["paymentRequest"]["payment"],
+): payment is NonNullable<typeof payment> {
+  return Boolean(
+    payment &&
+      payment.purpose === PaymentPurpose.ADDITIONAL_CHARGE &&
+      ADDITIONAL_CHARGE_CAPTURED_PAYMENT_STATUSES.includes(
+        payment.status as (typeof ADDITIONAL_CHARGE_CAPTURED_PAYMENT_STATUSES)[number],
+      ),
+  );
+}
+
+function sumRefundAllocations(
+  row: ChargeRow,
+  statuses: readonly RefundStatus[],
+): Prisma.Decimal {
+  return row.refundAllocations.reduce((total, allocation) => {
+    if (
+      allocation.refund.authorizationType !== "ADDITIONAL_CHARGE" ||
+      allocation.refund.currency !== TRP_CURRENCY ||
+      !statuses.includes(allocation.refund.status)
+    ) {
+      return total;
+    }
+
+    return total.add(allocation.allocatedAmount).toDecimalPlaces(2);
+  }, new Prisma.Decimal(0));
+}
+
 function toChargeSummary(row: ChargeRow, now: Date): AdminAdditionalChargeSummary {
   const everRequested = row.paymentRequestItems.length > 0;
   const activePaymentRequestId = hasActiveRequest(row, now);
   const pending = row.status === AdditionalChargeStatus.PENDING;
+  const capturedItem = row.paymentRequestItems.find((item) =>
+    isCapturedAdditionalChargePayment(item.paymentRequest.payment),
+  );
+  const capturedPayment = capturedItem?.paymentRequest.payment ?? null;
+  const capturedAmount = capturedItem?.amountSnapshot ?? new Prisma.Decimal(0);
+  const committedRefundAmount = sumRefundAllocations(
+    row,
+    COMMITTED_REFUND_STATUSES,
+  );
+  const refundedAmount = sumRefundAllocations(row, COMPLETED_REFUND_STATUSES);
+  const remainingRefundableAmount = capturedAmount
+    .sub(committedRefundAmount)
+    .toDecimalPlaces(2);
+  const canRefund =
+    capturedPayment !== null &&
+    row.currency === TRP_CURRENCY &&
+    capturedItem?.currencySnapshot === TRP_CURRENCY &&
+    remainingRefundableAmount.greaterThan(0) &&
+    (row.status === AdditionalChargeStatus.PAID ||
+      row.status === AdditionalChargeStatus.PARTIALLY_REFUNDED);
 
   return {
     id: row.id,
@@ -318,6 +428,31 @@ function toChargeSummary(row: ChargeRow, now: Date): AdminAdditionalChargeSummar
     updatedAt: row.updatedAt.toISOString(),
     everRequested,
     activePaymentRequestId,
+    paidPaymentRequestId: capturedItem?.paymentRequest.id ?? null,
+    paymentId: capturedPayment?.id ?? null,
+    paymentUpdatedAt: capturedPayment?.updatedAt.toISOString() ?? null,
+    providerReference: capturedPayment?.providerReference ?? null,
+    capturedAmount: capturedAmount.toFixed(2),
+    committedRefundAmount: committedRefundAmount.toFixed(2),
+    refundedAmount: refundedAmount.toFixed(2),
+    remainingRefundableAmount: remainingRefundableAmount.toFixed(2),
+    canRefund,
+    refundAllocations: row.refundAllocations.map((allocation) => ({
+      id: allocation.id,
+      refundId: allocation.refund.id,
+      paymentId: allocation.refund.paymentId,
+      allocatedAmount: allocation.allocatedAmount.toFixed(2),
+      refundAmount: allocation.refund.amount.toFixed(2),
+      currency: TRP_CURRENCY,
+      authorizationType: allocation.refund.authorizationType,
+      status: allocation.refund.status,
+      processingMode: allocation.refund.processingMode,
+      providerRefundId: allocation.refund.providerRefundId,
+      diagnostics: toAdminRefundDiagnostics(allocation.refund.rawPayload),
+      requestedByAdmin: allocation.refund.requestedByAdmin,
+      createdAt: allocation.refund.createdAt.toISOString(),
+      updatedAt: allocation.refund.updatedAt.toISOString(),
+    })),
     canEdit: pending && !everRequested,
     canCancel: pending && activePaymentRequestId === null,
     canRequest: pending && activePaymentRequestId === null,

@@ -212,3 +212,46 @@ test("D.4 admin detail places additional charges in their own tab between lifecy
   );
   assert.equal(attemptHistory.includes("useParams"), false);
 });
+
+test("D.5 additional-charge refunds use the dedicated authorization type, allocations, and shared Tilopay refund flow", () => {
+  const refunds = source("lib/admin/refunds.ts");
+  const route = source(
+    "app/api/admin/reservations/[reservationId]/additional-charges/refunds/route.ts",
+  );
+  const schema = source("prisma/schema.prisma");
+
+  assert.match(schema, /model AdditionalChargeRefundAllocation/);
+  assert.match(refunds, /RefundAuthorizationType\.ADDITIONAL_CHARGE/);
+  assert.match(refunds, /additionalChargeAllocations/);
+  assert.match(refunds, /buildAdditionalChargeRefundAllocationPlan/);
+  assert.match(refunds, /processTilopayModification/);
+  assert.match(refunds, /observeTilopayConsultTransaction/);
+  assert.match(
+    refunds,
+    /refund\.authorizationType !== RefundAuthorizationType\.ADDITIONAL_CHARGE/,
+  );
+  assert.match(route, /authorizationType:\s*"ADDITIONAL_CHARGE"/);
+  assert.match(route, /createAdminRefundAuthorization/);
+});
+
+test("D.5 ancillary refunds stay isolated from reservation stay refund surfaces", () => {
+  const financialSummary = source("lib/reservations/financial-summary.ts");
+  const detailPage = source(
+    "features/admin/components/admin-reservation-detail-page.tsx",
+  );
+  const additionalCharges = source(
+    "features/admin/components/admin-additional-charges-section.tsx",
+  );
+
+  assert.match(financialSummary, /additionalChargeGrossAmount/);
+  assert.match(financialSummary, /additionalChargeCapturedAmount/);
+  assert.match(financialSummary, /additionalChargeRefundedAmount/);
+  assert.match(financialSummary, /RefundAuthorizationType\.ADDITIONAL_CHARGE/);
+  assert.match(detailPage, /refund\.authorizationType !== "ADDITIONAL_CHARGE"/);
+  assert.match(
+    detailPage,
+    /paymentPurposeById\.get\(refund\.paymentId\) !== "ADDITIONAL_CHARGE"/,
+  );
+  assert.match(additionalCharges, /refundAllocations/);
+  assert.match(additionalCharges, /additional-charges\/refunds/);
+});

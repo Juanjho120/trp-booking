@@ -1,6 +1,8 @@
 import {
+  AdditionalChargeStatus,
   PaymentPurpose,
   PaymentStatus,
+  RefundAuthorizationType,
   Prisma,
   RefundStatus,
   ReservationLifecycleRequestStatus,
@@ -40,6 +42,7 @@ const reservationFinancialSummarySelect = {
         in: [
           PaymentPurpose.INITIAL_RESERVATION,
           PaymentPurpose.LIFECYCLE_ADJUSTMENT,
+          PaymentPurpose.ADDITIONAL_CHARGE,
         ],
       },
       status: {
@@ -55,6 +58,7 @@ const reservationFinancialSummarySelect = {
       id: true,
       reservationId: true,
       lifecycleRequestId: true,
+      guestPaymentRequestId: true,
       purpose: true,
       status: true,
       amount: true,
@@ -79,6 +83,39 @@ const reservationFinancialSummarySelect = {
           amount: true,
           currency: true,
           status: true,
+        },
+      },
+    },
+  },
+  additionalCharges: {
+    orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+    select: {
+      id: true,
+      reservationId: true,
+      amount: true,
+      currency: true,
+      status: true,
+      refundAllocations: {
+        select: {
+          id: true,
+          allocatedAmount: true,
+          refund: {
+            select: {
+              id: true,
+              paymentId: true,
+              authorizationType: true,
+              currency: true,
+              status: true,
+              payment: {
+                select: {
+                  id: true,
+                  reservationId: true,
+                  purpose: true,
+                  guestPaymentRequestId: true,
+                },
+              },
+            },
+          },
         },
       },
     },
@@ -122,6 +159,7 @@ export type ReservationFinancialPaymentSnapshot = Readonly<{
   id: string;
   reservationId: string;
   lifecycleRequestId: string | null;
+  guestPaymentRequestId: string | null;
   purpose: PaymentPurpose;
   status: PaymentStatus;
   amount: Prisma.Decimal;
@@ -134,11 +172,40 @@ export type ReservationFinancialPaymentSnapshot = Readonly<{
   refunds: readonly ReservationFinancialRefundSnapshot[];
 }>;
 
+export type ReservationFinancialAdditionalChargeRefundAllocationSnapshot =
+  Readonly<{
+    id: string;
+    allocatedAmount: Prisma.Decimal;
+    refund: Readonly<{
+      id: string;
+      paymentId: string;
+      authorizationType: RefundAuthorizationType;
+      currency: string;
+      status: RefundStatus;
+      payment: Readonly<{
+        id: string;
+        reservationId: string;
+        purpose: PaymentPurpose;
+        guestPaymentRequestId: string | null;
+      }>;
+    }>;
+  }>;
+
+export type ReservationFinancialAdditionalChargeSnapshot = Readonly<{
+  id: string;
+  reservationId: string;
+  status: AdditionalChargeStatus;
+  amount: Prisma.Decimal;
+  currency: string;
+  refundAllocations: readonly ReservationFinancialAdditionalChargeRefundAllocationSnapshot[];
+}>;
+
 export type ReservationFinancialSnapshot = Readonly<{
   id: string;
   total: Prisma.Decimal;
   currency: string;
   payments: readonly ReservationFinancialPaymentSnapshot[];
+  additionalCharges: readonly ReservationFinancialAdditionalChargeSnapshot[];
 }>;
 
 export type ReservationFinancialEligiblePayment = Readonly<{
@@ -201,6 +268,50 @@ function sumRefunds(
     }
 
     return add(total, refund.amount);
+  }, zero());
+}
+
+function isCapturedAdditionalChargePayment(
+  payment: ReservationFinancialPaymentSnapshot,
+  reservation: ReservationFinancialSnapshot,
+): boolean {
+  return (
+    payment.purpose === PaymentPurpose.ADDITIONAL_CHARGE &&
+    payment.reservationId === reservation.id &&
+    payment.currency === reservation.currency &&
+    Boolean(payment.guestPaymentRequestId) &&
+    STAY_PAYMENT_HISTORY_STATUSES.has(payment.status)
+  );
+}
+
+function sumAdditionalChargeRefundAllocations(
+  charge: ReservationFinancialAdditionalChargeSnapshot,
+  reservation: ReservationFinancialSnapshot,
+  statuses: ReadonlySet<RefundStatus>,
+): Prisma.Decimal {
+  return charge.refundAllocations.reduce((total, allocation) => {
+    const refund = allocation.refund;
+
+    if (!statuses.has(refund.status)) {
+      return total;
+    }
+
+    if (
+      charge.reservationId !== reservation.id ||
+      charge.currency !== reservation.currency ||
+      refund.currency !== reservation.currency ||
+      refund.authorizationType !== RefundAuthorizationType.ADDITIONAL_CHARGE ||
+      refund.payment.id !== refund.paymentId ||
+      refund.payment.reservationId !== reservation.id ||
+      refund.payment.purpose !== PaymentPurpose.ADDITIONAL_CHARGE ||
+      !refund.payment.guestPaymentRequestId
+    ) {
+      throw new ReservationFinancialSummaryError(
+        "RESERVATION_FINANCIAL_SUMMARY_INCONSISTENT",
+      );
+    }
+
+    return add(total, allocation.allocatedAmount);
   }, zero());
 }
 
@@ -400,6 +511,41 @@ export function buildReservationFinancialSummary(
     (total, payment) => add(total, payment.remainingRefundableAmount),
     zero(),
   );
+  const additionalChargeGrossAmount = reservation.additionalCharges.reduce(
+    (total, charge) => {
+      if (charge.status === AdditionalChargeStatus.CANCELLED) {
+        return total;
+      }
+
+      if (
+        charge.reservationId !== reservation.id ||
+        charge.currency !== reservation.currency ||
+        charge.amount.lessThan(0)
+      ) {
+        throw new ReservationFinancialSummaryError(
+          "RESERVATION_FINANCIAL_SUMMARY_INCONSISTENT",
+        );
+      }
+
+      return add(total, charge.amount);
+    },
+    zero(),
+  );
+  const additionalChargeCapturedAmount = reservation.payments
+    .filter((payment) => isCapturedAdditionalChargePayment(payment, reservation))
+    .reduce((total, payment) => add(total, payment.amount), zero());
+  const additionalChargeRefundedAmount = reservation.additionalCharges.reduce(
+    (total, charge) =>
+      add(
+        total,
+        sumAdditionalChargeRefundAllocations(
+          charge,
+          reservation,
+          APPROVED_REFUND_STATUSES,
+        ),
+      ),
+    zero(),
+  );
   const currentStayValue = reservation.total.toDecimalPlaces(2);
 
   if (currentStayValue.greaterThan(capturedStayPayments)) {
@@ -418,9 +564,9 @@ export function buildReservationFinancialSummary(
     committedStayRefunds,
     approvedStayRefunds,
     remainingRefundableStayBalance,
-    additionalChargeGrossAmount: zero(),
-    additionalChargeCapturedAmount: zero(),
-    additionalChargeRefundedAmount: zero(),
+    additionalChargeGrossAmount,
+    additionalChargeCapturedAmount,
+    additionalChargeRefundedAmount,
     eligibleStayPayments: eligiblePayments,
   };
 }

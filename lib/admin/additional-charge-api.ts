@@ -28,6 +28,8 @@ export function adminAdditionalChargeErrorResponse(error: unknown) {
     case "ADMIN_GUEST_PAYMENT_REQUEST_NOT_PAYABLE":
     case "ADMIN_GUEST_PAYMENT_REQUEST_LINK_UNAVAILABLE":
     case "ADMIN_GUEST_PAYMENT_REQUEST_STALE":
+    case "ADMIN_ADDITIONAL_CHARGE_REFUND_NOT_ELIGIBLE":
+    case "ADMIN_ADDITIONAL_CHARGE_REFUND_ALLOCATION_INVALID":
       return adminApiErrorResponse(error.code, 409);
     case "ADMIN_UNAUTHORIZED":
       return adminApiErrorResponse(error.code, 401);

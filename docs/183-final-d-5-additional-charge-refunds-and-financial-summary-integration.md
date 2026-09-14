@@ -1,0 +1,117 @@
+# 183 — Final-D.5 Additional-Charge Refunds and Financial-Summary Integration
+
+## Record
+
+```text
+Project: TRP Booking
+Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
+Package: Final-D — Additional charges and guest payment requests
+Subphase: Final-D.5 — Additional-charge refunds and financial-summary integration
+Status: Implementation completed and validation executed; owner acceptance pending
+Implementation base head: 63f55e22d03270bce0d27be2197373e3ce3e5de8
+Previous accepted subphase: Final-D.4 — Completed and accepted on 2026-09-14 at 7d996fd20db42b2560df11f7e00d7a5e9cc0d18c
+Next subphase: Final-D.6 — Email delivery and protected operational UX/history — Not started
+Phase 13: Not started
+```
+
+## Scope Completed
+
+Final-D.5 implements the ancillary refund branch reserved by D.1/D.2 while preserving the D.4 private-payment boundary:
+
+- `RefundAuthorizationType.ADDITIONAL_CHARGE` is now authorized against a real `PaymentPurpose.ADDITIONAL_CHARGE` payment.
+- Refund allocations persist through `AdditionalChargeRefundAllocation`; no new migration was required.
+- Allocation validation is Serializable, exact-payment/request scoped, charge-level, and balance preserving.
+- Pending/processing/approved/manual ancillary allocations reserve charge balance; failed attempts release it.
+- Existing Tilopay refund execution, consult, and reconciliation services are reused. No alternate provider client, endpoint, or abstraction was introduced.
+- Approved ancillary refund evidence updates `Payment.status` and `AdditionalCharge.status` only.
+- `Reservation.total`, pricing snapshots, stay cancellation-policy money, lifecycle completion, and stay refund pools remain isolated.
+- The Final-A financial summary now reports ancillary gross/captured/refunded amounts separately.
+- The existing Additional Charges tab now shows per-charge captured/refunded/refundable balances, refund history/evidence, and a minimal refund authorization action.
+
+## Financial Definitions Implemented
+
+```text
+additionalChargeGrossAmount
+= sum original AdditionalCharge.amount where status != CANCELLED
+
+additionalChargeCapturedAmount
+= sum captured ADDITIONAL_CHARGE Payments in APPROVED / PARTIALLY_REFUNDED / REFUNDED history states
+
+additionalChargeRefundedAmount
+= sum AdditionalChargeRefundAllocation.allocatedAmount for ADDITIONAL_CHARGE refunds in APPROVED / MANUAL states
+```
+
+These fields do not alter:
+
+```text
+originalStayAmount
+currentStayValue
+capturedStayPayments
+committedStayRefunds
+approvedStayRefunds
+remainingRefundableStayBalance
+Reservation.total
+Reservation.pricingSnapshot
+```
+
+## Explicit Non-Scope
+
+Final-D.5 did not implement:
+
+- D.6 email delivery, resend, or protected operational-history email UX;
+- D.7 consolidated Final-D closure;
+- Final-E, Final-F, Final-G, Final-H;
+- Phase 13 or Production work.
+
+## Validation Executed
+
+```text
+npx tsx tests/final-d/run.ts
+Initial run blocked by Windows/Node tsx uv_os_get_passwd ENOMEM.
+Re-run with a temporary NODE_OPTIONS preload outside the repository: passed 32/32.
+
+npm run final-a:validate
+Initial run blocked by the same tsx uv_os_get_passwd ENOMEM.
+Re-run with the temporary NODE_OPTIONS preload outside the repository: passed 44/44.
+
+npm run final-b:validate
+Run with the temporary NODE_OPTIONS preload outside the repository: passed 38/38.
+
+npm run final-c:validate
+Run with the temporary NODE_OPTIONS preload outside the repository: passed 41/41.
+
+npm run db:generate
+Passed. Prisma emitted the existing package.json#prisma deprecation warning.
+
+npm run db:validate
+Passed. Prisma emitted the existing package.json#prisma deprecation warning.
+
+npm run db:migrate:status
+Initial sandbox run failed with a Prisma Schema engine error against the remote Supabase datasource.
+Re-run with sandbox escalation for the configured datasource: passed; database schema is up to date with 18 migrations.
+
+npm run lint
+Passed after removing one unused-type warning.
+
+npm run build
+Initial sandbox run failed because next/font could not fetch Google Fonts.
+Re-run with sandbox escalation for network font fetch: passed.
+
+git diff --check
+Passed after documentation reconciliation.
+```
+
+## Current Decision
+
+```text
+Final-D.1 — Completed and accepted
+Final-D.2 — Completed and accepted
+Final-D.3 — Completed and accepted
+Final-D.4 — Completed and accepted on 2026-09-14 at 7d996fd20db42b2560df11f7e00d7a5e9cc0d18c
+Final-D.5 — Implementation completed and validation executed; owner acceptance pending
+Final-D.6 — Next / Not started
+Final-D.7 — Not started
+Phase 13 — Not started
+```
+
+Final-D.5 must not be marked accepted until owner acceptance is explicitly recorded after the required review/Hosted Test gate.

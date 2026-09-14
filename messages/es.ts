@@ -635,7 +635,19 @@ export const esMessages = {
           createdAt: "Creado",
           expiresAt: "Expira",
           request: "Solicitud",
+          refund: "Reembolso",
           total: "Total solicitado",
+          capturedAmount: "Capturado",
+          refundedAmount: "Reembolsado",
+          committedRefundAmount: "Reservado",
+          remainingRefundableAmount: "Reembolsable",
+          allocatedAmount: "Asignado",
+          refundHistory: "Historial de reembolsos",
+          processingMode: "Modo de procesamiento",
+          providerRefundId: "Referencia de reembolso",
+          resultClassification: "Evidencia",
+          reason: "Motivo interno",
+          unavailable: "No disponible",
         },
         categories: {
           CLEANING: "Limpieza adicional",
@@ -658,10 +670,23 @@ export const esMessages = {
           EXPIRED: "Expirada",
           CANCELLED: "Cancelada",
         },
+        refundStatuses: {
+          PENDING: "Pendiente",
+          PROCESSING: "Procesando",
+          APPROVED: "Aprobado",
+          FAILED: "Fallido",
+          MANUAL: "Manual",
+        },
+        processingModes: {
+          TILOPAY_API: "API de Tilopay",
+          TILOPAY_PORTAL_FALLBACK: "Portal de Tilopay",
+          LEGACY_UNSPECIFIED: "Histórico sin modo normalizado",
+        },
         actions: {
           createCharge: "Crear cargo",
           editCharge: "Editar",
           cancelCharge: "Cancelar cargo",
+          refundCharge: "Reembolsar",
           selectCharge: "Seleccionar cargo",
           createRequest: "Crear solicitud de pago",
           copyRequestLink: "Copiar enlace privado",
@@ -673,6 +698,8 @@ export const esMessages = {
           confirmCreateRequest: "Crear solicitud",
           confirmCancelCharge: "Cancelar cargo",
           confirmCancelRequest: "Cancelar solicitud",
+          authorizingRefund: "Autorizando...",
+          confirmAuthorizeRefund: "Autorizar reembolso",
           close: "Cerrar",
         },
         placeholders: {
@@ -681,6 +708,8 @@ export const esMessages = {
           internalNote:
             "Contexto interno opcional. Esta nota nunca se copia al item de la solicitud de pago del huésped.",
           amount: "0.00",
+          refundReason:
+            "Documenta el motivo operativo y la evidencia para reembolsar este cargo adicional.",
         },
         notes: {
           financialIsolationTitle: "Separado del valor del alojamiento",
@@ -727,6 +756,13 @@ export const esMessages = {
           description:
             "Cancela esta solicitud todavía no pagada. Sus snapshots inmutables permanecen en el historial y los cargos pendientes elegibles podrán solicitarse nuevamente.",
         },
+        refundDialog: {
+          title: "Autorizar reembolso de cargo adicional",
+          description:
+            "Crea una asignación pendiente de reembolso para este cargo adicional capturado.",
+          boundary:
+            "La autorización todavía no mueve dinero. La ejecución y reconciliación con Tilopay permanecen separadas, y la evidencia aprobada actualiza únicamente el estado financiero del cargo adicional.",
+        },
         success: {
           created: "El cargo adicional fue creado.",
           updated: "El cargo adicional fue actualizado.",
@@ -735,6 +771,8 @@ export const esMessages = {
           requestLinkCopied:
             "El enlace privado de pago fue copiado sin mostrarse en la página.",
           requestCancelled: "La solicitud de pago del huésped fue cancelada.",
+          refundAuthorized:
+            "El reembolso del cargo adicional quedó autorizado y pendiente de procesamiento.",
         },
         empty: {
           charges: "Esta reservación todavía no tiene cargos adicionales.",
@@ -777,6 +815,20 @@ export const esMessages = {
             "No pudimos recuperar de forma segura el enlace privado. No se mostró ninguna URL.",
           ADMIN_GUEST_PAYMENT_REQUEST_STALE:
             "La solicitud de pago cambió después de que abriste esta página. Recarga antes de continuar.",
+          INVALID_ADMIN_REFUND_REQUEST:
+            "Revisa el monto, motivo, modo y saldo actual del cargo antes de continuar.",
+          ADMIN_REFUND_PAYMENT_NOT_FOUND:
+            "No encontramos el pago capturado del cargo adicional.",
+          ADMIN_REFUND_PAYMENT_NOT_REFUNDABLE:
+            "Este pago de cargo adicional ya no es reembolsable.",
+          ADMIN_REFUND_AMOUNT_EXCEEDS_PAYMENT:
+            "El monto supera el saldo reembolsable restante de este cargo.",
+          ADMIN_REFUND_STALE:
+            "El cargo, pago o reembolso cambió. Recarga antes de continuar.",
+          ADMIN_REFUND_API_EXECUTION_NOT_ALLOWED:
+            "Este reembolso no puede ejecutarse mediante la API de Tilopay sin una orden del proveedor.",
+          ADMIN_REFUND_UNEXPECTED_ERROR:
+            "No pudimos completar el reembolso del cargo adicional. Inténtalo nuevamente.",
           ADMIN_ADDITIONAL_CHARGE_UNEXPECTED_ERROR:
             "No pudimos completar la operación de cargos adicionales. Inténtalo nuevamente.",
           clipboardFailed:
@@ -1272,6 +1324,7 @@ export const esMessages = {
           LEGACY_UNSPECIFIED: "Histórico sin clasificación",
           STANDARD_POLICY: "Según política de cancelación",
           EXTRAORDINARY: "Reembolso extraordinario",
+          ADDITIONAL_CHARGE: "Reembolso de cargo adicional",
         },
         processingModes: {
           TILOPAY_API: "API de Tilopay",

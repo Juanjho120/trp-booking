@@ -3,6 +3,10 @@ import type {
   AdditionalChargeStatus,
   GuestPaymentRequestStatus,
 } from "@/types/additional-charge";
+import type {
+  AdminRefundDiagnostics,
+  AdminRefundProcessingMode,
+} from "@/types/admin-refund";
 
 export type AdminAdditionalChargeErrorCode =
   | "ADMIN_UNAUTHORIZED"
@@ -23,6 +27,8 @@ export type AdminAdditionalChargeErrorCode =
   | "ADMIN_GUEST_PAYMENT_REQUEST_NOT_PAYABLE"
   | "ADMIN_GUEST_PAYMENT_REQUEST_LINK_UNAVAILABLE"
   | "ADMIN_GUEST_PAYMENT_REQUEST_STALE"
+  | "ADMIN_ADDITIONAL_CHARGE_REFUND_NOT_ELIGIBLE"
+  | "ADMIN_ADDITIONAL_CHARGE_REFUND_ALLOCATION_INVALID"
   | "ADMIN_ADDITIONAL_CHARGE_UNEXPECTED_ERROR";
 
 export type AdminAdditionalChargeActorSummary = Readonly<{
@@ -45,9 +51,36 @@ export type AdminAdditionalChargeSummary = Readonly<{
   updatedAt: string;
   everRequested: boolean;
   activePaymentRequestId: string | null;
+  paidPaymentRequestId: string | null;
+  paymentId: string | null;
+  paymentUpdatedAt: string | null;
+  providerReference: string | null;
+  capturedAmount: string;
+  committedRefundAmount: string;
+  refundedAmount: string;
+  remainingRefundableAmount: string;
+  canRefund: boolean;
+  refundAllocations: readonly AdminAdditionalChargeRefundAllocationSummary[];
   canEdit: boolean;
   canCancel: boolean;
   canRequest: boolean;
+}>;
+
+export type AdminAdditionalChargeRefundAllocationSummary = Readonly<{
+  id: string;
+  refundId: string;
+  paymentId: string;
+  allocatedAmount: string;
+  refundAmount: string;
+  currency: "USD";
+  authorizationType: string;
+  status: string;
+  processingMode: AdminRefundProcessingMode | string;
+  providerRefundId: string | null;
+  diagnostics: AdminRefundDiagnostics | null;
+  requestedByAdmin: AdminAdditionalChargeActorSummary | null;
+  createdAt: string;
+  updatedAt: string;
 }>;
 
 export type AdminGuestPaymentRequestItemSummary = Readonly<{
@@ -123,4 +156,21 @@ export type CreateAdminGuestPaymentRequestInput = Readonly<{
 export type CancelAdminGuestPaymentRequestInput = Readonly<{
   requestId: string;
   expectedUpdatedAt: string;
+}>;
+
+export type CreateAdminAdditionalChargeRefundAllocationInput = Readonly<{
+  additionalChargeId: string;
+  amount: string;
+  expectedChargeUpdatedAt: string;
+}>;
+
+export type CreateAdminAdditionalChargeRefundInput = Readonly<{
+  reservationId: string;
+  paymentId: string;
+  amount: string;
+  reason: string;
+  processingMode: AdminRefundProcessingMode;
+  requestId: string;
+  expectedPaymentUpdatedAt: string;
+  allocations: readonly CreateAdminAdditionalChargeRefundAllocationInput[];
 }>;

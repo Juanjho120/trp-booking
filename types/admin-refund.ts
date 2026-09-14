@@ -2,6 +2,7 @@ export const adminRefundAuthorizationTypes = [
   "STANDARD_POLICY",
   "EXTRAORDINARY",
   "LIFECYCLE_ADJUSTMENT",
+  "ADDITIONAL_CHARGE",
 ] as const;
 
 export type AdminRefundAuthorizationType =
@@ -148,9 +149,28 @@ export type CreateAdminExtraordinaryRefundInput = Readonly<{
   expectedPaymentUpdatedAt?: string;
 }>;
 
+export type CreateAdminAdditionalChargeRefundAllocationInput = Readonly<{
+  additionalChargeId: string;
+  amount: string;
+  expectedChargeUpdatedAt: string;
+}>;
+
+export type CreateAdminAdditionalChargeRefundInput = Readonly<{
+  reservationId: string;
+  paymentId: string;
+  authorizationType: "ADDITIONAL_CHARGE";
+  amount: string;
+  reason: string;
+  processingMode: AdminRefundProcessingMode;
+  requestId: string;
+  expectedPaymentUpdatedAt: string;
+  allocations: readonly CreateAdminAdditionalChargeRefundAllocationInput[];
+}>;
+
 export type CreateAdminRefundInput =
   | CreateAdminStandardRefundInput
-  | CreateAdminExtraordinaryRefundInput;
+  | CreateAdminExtraordinaryRefundInput
+  | CreateAdminAdditionalChargeRefundInput;
 
 export type ExecuteAdminRefundInput = Readonly<{
   refundId: string;

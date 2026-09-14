@@ -7,6 +7,7 @@ import {
   PencilLine,
   Plus,
   ReceiptText,
+  RotateCcw,
   Trash2,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -46,6 +47,10 @@ import type {
   AdminAdditionalChargeSummary,
   AdminGuestPaymentRequestSummary,
 } from "@/types/admin-additional-charge";
+import type {
+  AdminRefundAuthorizationResult,
+  AdminRefundProcessingMode,
+} from "@/types/admin-refund";
 
 import { AdminSnackbar } from "./admin-snackbar";
 
@@ -56,6 +61,12 @@ type ChargeFormState = Readonly<{
   amount: string;
 }>;
 
+type RefundFormState = Readonly<{
+  amount: string;
+  reason: string;
+  processingMode: AdminRefundProcessingMode;
+}>;
+
 type ManagementResponse =
   | Readonly<{ management: AdminAdditionalChargeManagement }>
   | Readonly<{ error: { code: AdminAdditionalChargeErrorCode | string } }>;
@@ -64,6 +75,7 @@ type MutationResponse =
   | Readonly<{
       charge?: AdminAdditionalChargeSummary;
       paymentRequest?: AdminGuestPaymentRequestSummary;
+      result?: AdminRefundAuthorizationResult;
     }>
   | Readonly<{ error: { code: AdminAdditionalChargeErrorCode | string } }>;
 
@@ -76,6 +88,12 @@ const emptyChargeForm: ChargeFormState = {
   description: "",
   internalNote: "",
   amount: "",
+};
+
+const emptyRefundForm: RefundFormState = {
+  amount: "",
+  reason: "",
+  processingMode: "TILOPAY_API",
 };
 
 function isManagementResponse(
@@ -119,6 +137,11 @@ export function AdminAdditionalChargesSection({
     useState<string | null>(null);
   const [cancelRequestTarget, setCancelRequestTarget] =
     useState<AdminGuestPaymentRequestSummary | null>(null);
+  const [refundTarget, setRefundTarget] =
+    useState<AdminAdditionalChargeSummary | null>(null);
+  const [refundForm, setRefundForm] =
+    useState<RefundFormState>(emptyRefundForm);
+  const [refundRequestId, setRefundRequestId] = useState<string | null>(null);
   const [selectedChargeIds, setSelectedChargeIds] = useState<readonly string[]>(
     [],
   );
@@ -242,9 +265,25 @@ export function AdminAdditionalChargesSection({
     return copy.requestStatuses[status];
   }
 
+  function processingModeLabel(mode: string): string {
+    return (
+      copy.processingModes[mode as keyof typeof copy.processingModes] ?? mode
+    );
+  }
+
+  function refundStatusLabel(status: string): string {
+    return copy.refundStatuses[status as keyof typeof copy.refundStatuses] ?? status;
+  }
+
   function resetChargeForm(): void {
     setEditingCharge(null);
     setChargeForm(emptyChargeForm);
+  }
+
+  function resetRefundForm(): void {
+    setRefundTarget(null);
+    setRefundForm(emptyRefundForm);
+    setRefundRequestId(null);
   }
 
   function openCreateCharge(): void {
@@ -377,6 +416,23 @@ export function AdminAdditionalChargesSection({
     setRequestSheetOpen(true);
   }
 
+  function openRefundSheet(charge: AdminAdditionalChargeSummary): void {
+    if (!charge.canRefund || !charge.paymentId || !charge.paymentUpdatedAt) {
+      setErrorMessage(copy.errors.ADMIN_REFUND_PAYMENT_NOT_REFUNDABLE);
+      return;
+    }
+
+    setRefundTarget(charge);
+    setRefundRequestId(window.crypto.randomUUID());
+    setRefundForm({
+      amount: charge.remainingRefundableAmount,
+      reason: "",
+      processingMode: charge.providerReference
+        ? "TILOPAY_API"
+        : "TILOPAY_PORTAL_FALLBACK",
+    });
+  }
+
   async function createPaymentRequest(): Promise<void> {
     if (selectedCharges.length === 0) {
       setErrorMessage(
@@ -412,6 +468,55 @@ export function AdminAdditionalChargesSection({
       setRequestClientRequestId(null);
       setSelectedChargeIds([]);
       setSuccessMessage(copy.success.requestCreated);
+    }
+  }
+
+  async function authorizeAdditionalChargeRefund(): Promise<void> {
+    if (
+      !refundTarget ||
+      !refundTarget.paymentId ||
+      !refundTarget.paymentUpdatedAt ||
+      !refundForm.reason.trim() ||
+      Number(refundForm.amount) <= 0 ||
+      Number(refundForm.amount) >
+        Number(refundTarget.remainingRefundableAmount)
+    ) {
+      setErrorMessage(copy.errors.INVALID_ADMIN_REFUND_REQUEST);
+      return;
+    }
+
+    const clientRequestId = refundRequestId ?? window.crypto.randomUUID();
+
+    if (!refundRequestId) {
+      setRefundRequestId(clientRequestId);
+    }
+
+    const success = await runMutation(
+      `/api/admin/reservations/${encodeURIComponent(
+        reservationId,
+      )}/additional-charges/refunds`,
+      "POST",
+      {
+        paymentId: refundTarget.paymentId,
+        amount: refundForm.amount,
+        reason: refundForm.reason,
+        processingMode: refundForm.processingMode,
+        requestId: clientRequestId,
+        expectedPaymentUpdatedAt: refundTarget.paymentUpdatedAt,
+        allocations: [
+          {
+            additionalChargeId: refundTarget.id,
+            amount: refundForm.amount,
+            expectedChargeUpdatedAt: refundTarget.updatedAt,
+          },
+        ],
+      },
+      `refund-authorize-${refundTarget.id}`,
+    );
+
+    if (success) {
+      resetRefundForm();
+      setSuccessMessage(copy.success.refundAuthorized);
     }
   }
 
@@ -598,6 +703,66 @@ export function AdminAdditionalChargesSection({
                           <p className="mt-2 text-xs text-muted-foreground">
                             {copy.labels.createdAt}: {formatDateTime(charge.createdAt)}
                           </p>
+                          <div className="mt-3 grid gap-2 text-xs sm:grid-cols-3">
+                            <DetailMetric
+                              label={copy.labels.capturedAmount}
+                              value={formatMoney(charge.capturedAmount)}
+                            />
+                            <DetailMetric
+                              label={copy.labels.refundedAmount}
+                              value={formatMoney(charge.refundedAmount)}
+                            />
+                            <DetailMetric
+                              label={copy.labels.remainingRefundableAmount}
+                              value={formatMoney(charge.remainingRefundableAmount)}
+                            />
+                          </div>
+                          {charge.refundAllocations.length > 0 ? (
+                            <div className="mt-3 grid gap-2">
+                              <p className="text-xs font-medium text-foreground">
+                                {copy.labels.refundHistory}
+                              </p>
+                              {charge.refundAllocations.map((allocation) => (
+                                <div
+                                  className="rounded-xl border border-border/60 bg-background p-3 text-xs"
+                                  key={allocation.id}
+                                >
+                                  <div className="flex flex-wrap items-center justify-between gap-2">
+                                    <span className="break-all font-medium">
+                                      {copy.labels.refund}{" "}
+                                      {allocation.refundId}
+                                    </span>
+                                    <Badge variant="outline">
+                                      {refundStatusLabel(allocation.status)}
+                                    </Badge>
+                                  </div>
+                                  <div className="mt-2 grid gap-1 text-muted-foreground sm:grid-cols-2">
+                                    <span>
+                                      {copy.labels.allocatedAmount}:{" "}
+                                      {formatMoney(allocation.allocatedAmount)}
+                                    </span>
+                                    <span>
+                                      {copy.labels.processingMode}:{" "}
+                                      {processingModeLabel(
+                                        allocation.processingMode,
+                                      )}
+                                    </span>
+                                    <span>
+                                      {copy.labels.providerRefundId}:{" "}
+                                      {allocation.providerRefundId ??
+                                        copy.labels.unavailable}
+                                    </span>
+                                    <span>
+                                      {copy.labels.resultClassification}:{" "}
+                                      {allocation.diagnostics
+                                        ?.resultClassification ??
+                                        copy.labels.unavailable}
+                                    </span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : null}
                         </div>
                       </div>
 
@@ -626,6 +791,17 @@ export function AdminAdditionalChargesSection({
                             >
                               <Trash2 aria-hidden="true" />
                               {copy.actions.cancelCharge}
+                            </Button>
+                          ) : null}
+                          {charge.canRefund ? (
+                            <Button
+                              onClick={() => openRefundSheet(charge)}
+                              size="sm"
+                              type="button"
+                              variant="outline"
+                            >
+                              <RotateCcw aria-hidden="true" />
+                              {copy.actions.refundCharge}
                             </Button>
                           ) : null}
                         </div>
@@ -1009,6 +1185,123 @@ export function AdminAdditionalChargesSection({
         </SheetContent>
       </Sheet>
 
+      <Sheet
+        onOpenChange={(open) => {
+          if (!open && !busyKey?.startsWith("refund-authorize-")) {
+            resetRefundForm();
+          }
+        }}
+        open={refundTarget !== null}
+      >
+        <SheetContent
+          className="overflow-y-auto"
+          closeLabel={copy.actions.close}
+        >
+          <SheetHeader>
+            <SheetTitle>{copy.refundDialog.title}</SheetTitle>
+            <SheetDescription>
+              {copy.refundDialog.description}
+            </SheetDescription>
+          </SheetHeader>
+          {refundTarget ? (
+            <div className="grid gap-5 px-6 py-4">
+              <div className="rounded-2xl border border-border/70 bg-muted/20 p-4 text-sm">
+                <p className="font-medium">
+                  {categoryLabel(refundTarget.category)} ·{" "}
+                  {formatMoney(refundTarget.amount)}
+                </p>
+                <p className="mt-1 text-muted-foreground">
+                  {refundTarget.description}
+                </p>
+                <div className="mt-3 grid gap-2 text-xs sm:grid-cols-3">
+                  <DetailMetric
+                    label={copy.labels.capturedAmount}
+                    value={formatMoney(refundTarget.capturedAmount)}
+                  />
+                  <DetailMetric
+                    label={copy.labels.refundedAmount}
+                    value={formatMoney(refundTarget.refundedAmount)}
+                  />
+                  <DetailMetric
+                    label={copy.labels.remainingRefundableAmount}
+                    value={formatMoney(refundTarget.remainingRefundableAmount)}
+                  />
+                </div>
+              </div>
+              <ChargeInput
+                inputMode="decimal"
+                label={copy.labels.amount}
+                max={refundTarget.remainingRefundableAmount}
+                min="0.01"
+                onChange={(amount) =>
+                  setRefundForm((current) => ({ ...current, amount }))
+                }
+                placeholder={copy.placeholders.amount}
+                step="0.01"
+                type="number"
+                value={refundForm.amount}
+              />
+              <ChargeTextArea
+                label={copy.labels.reason}
+                maxLength={2_000}
+                onChange={(reason) =>
+                  setRefundForm((current) => ({ ...current, reason }))
+                }
+                placeholder={copy.placeholders.refundReason}
+                value={refundForm.reason}
+              />
+              <div className="grid gap-2 text-sm font-medium text-foreground">
+                <span>{copy.labels.processingMode}</span>
+                <Select
+                  onValueChange={(processingMode) =>
+                    setRefundForm((current) => ({
+                      ...current,
+                      processingMode:
+                        processingMode as AdminRefundProcessingMode,
+                    }))
+                  }
+                  value={refundForm.processingMode}
+                >
+                  <SelectTrigger aria-label={copy.labels.processingMode}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="TILOPAY_API">
+                      {copy.processingModes.TILOPAY_API}
+                    </SelectItem>
+                    <SelectItem value="TILOPAY_PORTAL_FALLBACK">
+                      {copy.processingModes.TILOPAY_PORTAL_FALLBACK}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <p className="text-xs leading-5 text-muted-foreground">
+                {copy.refundDialog.boundary}
+              </p>
+            </div>
+          ) : null}
+          <SheetFooter>
+            <Button
+              disabled={busyKey !== null}
+              onClick={resetRefundForm}
+              type="button"
+              variant="outline"
+            >
+              {copy.actions.close}
+            </Button>
+            <Button
+              disabled={busyKey !== null || !refundTarget}
+              onClick={() => void authorizeAdditionalChargeRefund()}
+              type="button"
+            >
+              {busyKey?.startsWith("refund-authorize-")
+                ? copy.actions.authorizingRefund
+                : copy.actions.confirmAuthorizeRefund}
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+
       <AdminSnackbar
         closeLabel={copy.actions.close}
         message={successMessage}
@@ -1027,6 +1320,7 @@ export function AdminAdditionalChargesSection({
 function ChargeInput({
   inputMode,
   label,
+  max,
   min,
   onChange,
   placeholder,
@@ -1036,6 +1330,7 @@ function ChargeInput({
 }: Readonly<{
   inputMode?: "decimal" | "numeric" | "text";
   label: string;
+  max?: string;
   min?: string;
   onChange: (value: string) => void;
   placeholder: string;
@@ -1049,6 +1344,7 @@ function ChargeInput({
       <input
         className="h-11 rounded-2xl border border-border/70 bg-background px-4 text-sm text-foreground shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
         inputMode={inputMode}
+        max={max}
         min={min}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
@@ -1084,6 +1380,21 @@ function ChargeTextArea({
         value={value}
       />
     </label>
+  );
+}
+
+function DetailMetric({
+  label,
+  value,
+}: Readonly<{
+  label: string;
+  value: string;
+}>) {
+  return (
+    <div className="rounded-xl border border-border/60 bg-background px-3 py-2">
+      <p className="text-muted-foreground">{label}</p>
+      <p className="mt-1 font-semibold tabular-nums text-foreground">{value}</p>
+    </div>
   );
 }
 

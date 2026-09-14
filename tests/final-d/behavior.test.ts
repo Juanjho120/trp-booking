@@ -6,6 +6,8 @@ import {
   PaymentProvider,
   PaymentPurpose,
   PaymentStatus,
+  RefundAuthorizationType,
+  RefundStatus,
   PaymentSubmissionSource,
   PaymentSubmissionStatus,
   Prisma,
@@ -18,6 +20,16 @@ import {
   type TilopayOrderHashInput,
 } from "@/lib/payments/tilopay-order-hash";
 import { hashGuestPaymentRequestAccessToken } from "@/lib/payments/guest-payment-request-token";
+import {
+  AdditionalChargeRefundAllocationError,
+  buildAdditionalChargeRefundAllocationPlan,
+  resolveAdditionalChargeStatusFromApprovedRefunds,
+} from "@/lib/reservations/additional-charge-refund-allocation";
+import {
+  buildReservationFinancialSummary,
+  type ReservationFinancialAdditionalChargeSnapshot,
+  type ReservationFinancialPaymentSnapshot,
+} from "@/lib/reservations/financial-summary";
 
 import { test } from "./harness";
 
@@ -1832,4 +1844,272 @@ test("D.4 behavior rejects payment/request/charge evidence mismatches and rolls 
   assert.equal(store.current.payments[0]?.status, PaymentStatus.PENDING);
   assert.equal(store.current.additionalCharges[0]?.status, AdditionalChargeStatus.PENDING);
   assertNoRawTokenStored(store.current);
+});
+
+function d5AdditionalRefundAllocation(input: Readonly<{
+  id: string;
+  paymentId?: string;
+  amount: string;
+  status: RefundStatus;
+  authorizationType?: RefundAuthorizationType;
+}>): ReservationFinancialAdditionalChargeSnapshot["refundAllocations"][number] {
+  const paymentId = input.paymentId ?? "payment-additional-d5";
+
+  return {
+    id: input.id,
+    allocatedAmount: money(input.amount),
+    refund: {
+      id: `refund-${input.id}`,
+      paymentId,
+      authorizationType:
+        input.authorizationType ?? RefundAuthorizationType.ADDITIONAL_CHARGE,
+      currency: "USD",
+      status: input.status,
+      payment: {
+        id: paymentId,
+        reservationId: "reservation-final-d5",
+        purpose: PaymentPurpose.ADDITIONAL_CHARGE,
+        guestPaymentRequestId: "request-final-d5",
+      },
+    },
+  };
+}
+
+function d5AdditionalCharge(input: Readonly<{
+  id: string;
+  amount: string;
+  status?: AdditionalChargeStatus;
+  refundAllocations?: readonly ReservationFinancialAdditionalChargeSnapshot["refundAllocations"][number][];
+}>): ReservationFinancialAdditionalChargeSnapshot {
+  return {
+    id: input.id,
+    reservationId: "reservation-final-d5",
+    status: input.status ?? AdditionalChargeStatus.PAID,
+    amount: money(input.amount),
+    currency: "USD",
+    refundAllocations: input.refundAllocations ?? [],
+  };
+}
+
+function d5FinancialPayment(input: Readonly<{
+  id: string;
+  purpose?: PaymentPurpose;
+  amount: string;
+  guestPaymentRequestId?: string | null;
+}>): ReservationFinancialPaymentSnapshot {
+  const purpose = input.purpose ?? PaymentPurpose.INITIAL_RESERVATION;
+
+  return {
+    id: input.id,
+    reservationId: "reservation-final-d5",
+    lifecycleRequestId: null,
+    guestPaymentRequestId: input.guestPaymentRequestId ?? null,
+    purpose,
+    status: PaymentStatus.APPROVED,
+    amount: money(input.amount),
+    currency: "USD",
+    providerReference: `TRP-${input.id}`,
+    paidAt: new Date("2026-09-14T12:00:00.000Z"),
+    createdAt: new Date("2026-09-14T12:00:00.000Z"),
+    updatedAt: new Date("2026-09-14T12:00:01.000Z"),
+    lifecycleRequest: null,
+    refunds: [],
+  };
+}
+
+test("D.5 behavior reports ancillary summary values without reducing the stay refund pool", () => {
+  const summary = buildReservationFinancialSummary({
+    id: "reservation-final-d5",
+    total: money("130.00"),
+    currency: "USD",
+    payments: [
+      d5FinancialPayment({ id: "initial", amount: "130.00" }),
+      d5FinancialPayment({
+        id: "payment-additional-d5",
+        purpose: PaymentPurpose.ADDITIONAL_CHARGE,
+        amount: "30.00",
+        guestPaymentRequestId: "request-final-d5",
+      }),
+    ],
+    additionalCharges: [
+      d5AdditionalCharge({
+        id: "charge-d5-1",
+        amount: "12.50",
+        refundAllocations: [
+          d5AdditionalRefundAllocation({
+            id: "approved",
+            amount: "5.00",
+            status: RefundStatus.APPROVED,
+          }),
+          d5AdditionalRefundAllocation({
+            id: "pending",
+            amount: "2.00",
+            status: RefundStatus.PENDING,
+          }),
+        ],
+      }),
+      d5AdditionalCharge({
+        id: "charge-d5-2",
+        amount: "17.50",
+        refundAllocations: [
+          d5AdditionalRefundAllocation({
+            id: "manual",
+            amount: "7.50",
+            status: RefundStatus.MANUAL,
+          }),
+          d5AdditionalRefundAllocation({
+            id: "failed",
+            amount: "3.00",
+            status: RefundStatus.FAILED,
+          }),
+        ],
+      }),
+      d5AdditionalCharge({
+        id: "charge-d5-cancelled",
+        amount: "99.00",
+        status: AdditionalChargeStatus.CANCELLED,
+      }),
+    ],
+  });
+
+  assert.equal(summary.originalStayAmount.toFixed(2), "130.00");
+  assert.equal(summary.capturedStayPayments.toFixed(2), "130.00");
+  assert.equal(summary.remainingRefundableStayBalance.toFixed(2), "130.00");
+  assert.equal(summary.additionalChargeGrossAmount.toFixed(2), "30.00");
+  assert.equal(summary.additionalChargeCapturedAmount.toFixed(2), "30.00");
+  assert.equal(summary.additionalChargeRefundedAmount.toFixed(2), "12.50");
+});
+
+test("D.5 behavior allocates refunds only against captured additional-charge balances", () => {
+  const plan = buildAdditionalChargeRefundAllocationPlan({
+    reservationId: "reservation-final-d5",
+    paymentId: "payment-additional-d5",
+    paymentRequestId: "request-final-d5",
+    amount: money("15.00"),
+    currency: "USD",
+    candidates: [
+      {
+        additionalChargeId: "charge-d5-1",
+        reservationId: "reservation-final-d5",
+        paymentId: "payment-additional-d5",
+        paymentRequestId: "request-final-d5",
+        status: AdditionalChargeStatus.PAID,
+        capturedAmount: money("12.50"),
+        currency: "USD",
+        committedRefundAmount: money("2.50"),
+        requestedRefundAmount: money("10.00"),
+      },
+      {
+        additionalChargeId: "charge-d5-2",
+        reservationId: "reservation-final-d5",
+        paymentId: "payment-additional-d5",
+        paymentRequestId: "request-final-d5",
+        status: AdditionalChargeStatus.PARTIALLY_REFUNDED,
+        capturedAmount: money("17.50"),
+        currency: "USD",
+        committedRefundAmount: money("10.00"),
+        requestedRefundAmount: money("5.00"),
+      },
+    ],
+  });
+
+  assert.deepEqual(
+    plan.map((allocation) => [
+      allocation.additionalChargeId,
+      allocation.allocatedAmount.toFixed(2),
+      allocation.remainingRefundableAmountAfter.toFixed(2),
+    ]),
+    [
+      ["charge-d5-1", "10.00", "0.00"],
+      ["charge-d5-2", "5.00", "2.50"],
+    ],
+  );
+});
+
+test("D.5 behavior reserves pending ancillary allocations and rejects concurrent over-refunds", () => {
+  assert.throws(
+    () =>
+      buildAdditionalChargeRefundAllocationPlan({
+        reservationId: "reservation-final-d5",
+        paymentId: "payment-additional-d5",
+        paymentRequestId: "request-final-d5",
+        amount: money("3.00"),
+        currency: "USD",
+        candidates: [
+          {
+            additionalChargeId: "charge-d5-1",
+            reservationId: "reservation-final-d5",
+            paymentId: "payment-additional-d5",
+            paymentRequestId: "request-final-d5",
+            status: AdditionalChargeStatus.PAID,
+            capturedAmount: money("10.00"),
+            currency: "USD",
+            committedRefundAmount: money("8.00"),
+            requestedRefundAmount: money("3.00"),
+          },
+        ],
+      }),
+    (error: unknown) =>
+      error instanceof AdditionalChargeRefundAllocationError &&
+      error.code === "ADDITIONAL_CHARGE_REFUND_ALLOCATION_EXCEEDS_BALANCE",
+  );
+});
+
+test("D.5 behavior releases failed ancillary attempts from the refundable balance calculation", () => {
+  const plan = buildAdditionalChargeRefundAllocationPlan({
+    reservationId: "reservation-final-d5",
+    paymentId: "payment-additional-d5",
+    paymentRequestId: "request-final-d5",
+    amount: money("10.00"),
+    currency: "USD",
+    candidates: [
+      {
+        additionalChargeId: "charge-d5-1",
+        reservationId: "reservation-final-d5",
+        paymentId: "payment-additional-d5",
+        paymentRequestId: "request-final-d5",
+        status: AdditionalChargeStatus.PAID,
+        capturedAmount: money("10.00"),
+        currency: "USD",
+        committedRefundAmount: money("0.00"),
+        requestedRefundAmount: money("10.00"),
+      },
+    ],
+  });
+
+  assert.equal(plan[0]?.remainingRefundableAmountAfter.toFixed(2), "0.00");
+});
+
+test("D.5 behavior resolves additional-charge financial states from approved evidence only", () => {
+  assert.equal(
+    resolveAdditionalChargeStatusFromApprovedRefunds(
+      money("20.00"),
+      money("0.00"),
+    ),
+    AdditionalChargeStatus.PAID,
+  );
+  assert.equal(
+    resolveAdditionalChargeStatusFromApprovedRefunds(
+      money("20.00"),
+      money("7.50"),
+    ),
+    AdditionalChargeStatus.PARTIALLY_REFUNDED,
+  );
+  assert.equal(
+    resolveAdditionalChargeStatusFromApprovedRefunds(
+      money("20.00"),
+      money("20.00"),
+    ),
+    AdditionalChargeStatus.REFUNDED,
+  );
+  assert.throws(
+    () =>
+      resolveAdditionalChargeStatusFromApprovedRefunds(
+        money("20.00"),
+        money("20.01"),
+      ),
+    (error: unknown) =>
+      error instanceof AdditionalChargeRefundAllocationError &&
+      error.code === "ADDITIONAL_CHARGE_REFUND_ALLOCATION_INCONSISTENT",
+  );
 });

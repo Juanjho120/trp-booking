@@ -39,6 +39,9 @@ export type AdminReservationFinancialSummary = Readonly<{
   committedStayRefunds: string;
   approvedStayRefunds: string;
   remainingRefundableStayBalance: string;
+  additionalChargeGrossAmount: string;
+  additionalChargeCapturedAmount: string;
+  additionalChargeRefundedAmount: string;
   eligibleStayPayments: readonly AdminReservationFinancialSummaryEligiblePayment[];
 }>;
 

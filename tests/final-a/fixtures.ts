@@ -8,6 +8,7 @@ import {
 } from "@prisma/client";
 
 import type {
+  ReservationFinancialAdditionalChargeSnapshot,
   ReservationFinancialLifecycleSnapshot,
   ReservationFinancialPaymentSnapshot,
   ReservationFinancialRefundSnapshot,
@@ -56,6 +57,7 @@ export function lifecycleSnapshot(input: Readonly<{
 export function financialPayment(input: Readonly<{
   id: string;
   reservationId?: string;
+  guestPaymentRequestId?: string | null;
   purpose?: PaymentPurpose;
   status?: PaymentStatus;
   amount: string;
@@ -84,6 +86,7 @@ export function financialPayment(input: Readonly<{
     id: input.id,
     reservationId,
     lifecycleRequestId: lifecycleRequest?.id ?? null,
+    guestPaymentRequestId: input.guestPaymentRequestId ?? null,
     purpose: input.purpose ?? PaymentPurpose.INITIAL_RESERVATION,
     status: input.status ?? PaymentStatus.APPROVED,
     amount: money(input.amount),
@@ -103,6 +106,7 @@ export function financialPayment(input: Readonly<{
 export function financialSnapshot(input: Readonly<{
   total: string;
   payments: readonly ReservationFinancialPaymentSnapshot[];
+  additionalCharges?: readonly ReservationFinancialAdditionalChargeSnapshot[];
   reservationId?: string;
   currency?: string;
 }>): ReservationFinancialSnapshot {
@@ -111,6 +115,7 @@ export function financialSnapshot(input: Readonly<{
     total: money(input.total),
     currency: input.currency ?? "USD",
     payments: input.payments,
+    additionalCharges: input.additionalCharges ?? [],
   };
 }
 

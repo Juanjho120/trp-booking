@@ -635,7 +635,19 @@ export const enMessages = {
           createdAt: "Created",
           expiresAt: "Expires",
           request: "Request",
+          refund: "Refund",
           total: "Request total",
+          capturedAmount: "Captured",
+          refundedAmount: "Refunded",
+          committedRefundAmount: "Reserved",
+          remainingRefundableAmount: "Refundable",
+          allocatedAmount: "Allocated",
+          refundHistory: "Refund history",
+          processingMode: "Processing mode",
+          providerRefundId: "Refund reference",
+          resultClassification: "Evidence",
+          reason: "Internal reason",
+          unavailable: "Unavailable",
         },
         categories: {
           CLEANING: "Additional cleaning",
@@ -658,10 +670,23 @@ export const enMessages = {
           EXPIRED: "Expired",
           CANCELLED: "Cancelled",
         },
+        refundStatuses: {
+          PENDING: "Pending",
+          PROCESSING: "Processing",
+          APPROVED: "Approved",
+          FAILED: "Failed",
+          MANUAL: "Manual",
+        },
+        processingModes: {
+          TILOPAY_API: "Tilopay API",
+          TILOPAY_PORTAL_FALLBACK: "Tilopay portal",
+          LEGACY_UNSPECIFIED: "Historical unspecified mode",
+        },
         actions: {
           createCharge: "Create charge",
           editCharge: "Edit",
           cancelCharge: "Cancel charge",
+          refundCharge: "Refund",
           selectCharge: "Select charge",
           createRequest: "Create payment request",
           copyRequestLink: "Copy private link",
@@ -673,6 +698,8 @@ export const enMessages = {
           confirmCreateRequest: "Create request",
           confirmCancelCharge: "Cancel charge",
           confirmCancelRequest: "Cancel request",
+          authorizingRefund: "Authorizing...",
+          confirmAuthorizeRefund: "Authorize refund",
           close: "Close",
         },
         placeholders: {
@@ -681,6 +708,8 @@ export const enMessages = {
           internalNote:
             "Optional internal context. This note is never copied into the guest payment-request item.",
           amount: "0.00",
+          refundReason:
+            "Document the operational reason and evidence for refunding this ancillary charge.",
         },
         notes: {
           financialIsolationTitle: "Separate from accommodation value",
@@ -727,6 +756,13 @@ export const enMessages = {
           description:
             "Cancel this still-unpaid request. Its immutable item snapshots remain in history, and eligible pending charges can be requested again.",
         },
+        refundDialog: {
+          title: "Authorize additional-charge refund",
+          description:
+            "Create a pending refund allocation for this captured ancillary charge.",
+          boundary:
+            "Authorization does not move money. Tilopay execution and reconciliation remain separate, and approved evidence updates only the additional-charge financial state.",
+        },
         success: {
           created: "The additional charge was created.",
           updated: "The additional charge was updated.",
@@ -735,6 +771,8 @@ export const enMessages = {
           requestLinkCopied:
             "The private payment link was copied without being rendered on the page.",
           requestCancelled: "The guest payment request was cancelled.",
+          refundAuthorized:
+            "The additional-charge refund was authorized and is pending processing.",
         },
         empty: {
           charges: "This reservation does not have additional charges yet.",
@@ -777,6 +815,20 @@ export const enMessages = {
             "We could not safely recover the private link. No URL was displayed.",
           ADMIN_GUEST_PAYMENT_REQUEST_STALE:
             "The payment request changed after you opened this page. Reload before continuing.",
+          INVALID_ADMIN_REFUND_REQUEST:
+            "Review the refund amount, reason, mode, and current charge balance before continuing.",
+          ADMIN_REFUND_PAYMENT_NOT_FOUND:
+            "We could not find the captured additional-charge payment.",
+          ADMIN_REFUND_PAYMENT_NOT_REFUNDABLE:
+            "This additional-charge payment is no longer refundable.",
+          ADMIN_REFUND_AMOUNT_EXCEEDS_PAYMENT:
+            "The refund amount exceeds the remaining refundable balance for this charge.",
+          ADMIN_REFUND_STALE:
+            "The charge, payment, or refund changed. Reload before continuing.",
+          ADMIN_REFUND_API_EXECUTION_NOT_ALLOWED:
+            "This refund cannot be executed through the Tilopay API without a provider order.",
+          ADMIN_REFUND_UNEXPECTED_ERROR:
+            "We could not complete the additional-charge refund operation. Please try again.",
           ADMIN_ADDITIONAL_CHARGE_UNEXPECTED_ERROR:
             "We could not complete the additional-charge operation. Please try again.",
           clipboardFailed:
@@ -1271,6 +1323,7 @@ export const enMessages = {
           LEGACY_UNSPECIFIED: "Historical unspecified",
           STANDARD_POLICY: "Cancellation-policy refund",
           EXTRAORDINARY: "Extraordinary refund",
+          ADDITIONAL_CHARGE: "Additional-charge refund",
         },
         processingModes: {
           TILOPAY_API: "Tilopay API",

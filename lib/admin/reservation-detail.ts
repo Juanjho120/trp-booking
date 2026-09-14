@@ -59,6 +59,11 @@ function toAdminFinancialSummary(
     approvedStayRefunds: summary.approvedStayRefunds.toFixed(2),
     remainingRefundableStayBalance:
       summary.remainingRefundableStayBalance.toFixed(2),
+    additionalChargeGrossAmount: summary.additionalChargeGrossAmount.toFixed(2),
+    additionalChargeCapturedAmount:
+      summary.additionalChargeCapturedAmount.toFixed(2),
+    additionalChargeRefundedAmount:
+      summary.additionalChargeRefundedAmount.toFixed(2),
     eligibleStayPayments: summary.eligibleStayPayments.map((payment) => ({
       paymentId: payment.paymentId,
       purpose: payment.purpose,

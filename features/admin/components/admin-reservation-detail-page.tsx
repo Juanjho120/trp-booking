@@ -404,14 +404,20 @@ export function AdminReservationDetailPage({
   const standardRefundReservation: AdminReservationDetailData = {
     ...reservation,
     refunds: reservation.refunds.filter(
-      (refund) => refund.authorizationType !== "LIFECYCLE_ADJUSTMENT",
+      (refund) =>
+        refund.authorizationType !== "LIFECYCLE_ADJUSTMENT" &&
+        refund.authorizationType !== "ADDITIONAL_CHARGE",
     ),
   };
+  const paymentPurposeById = new Map(
+    reservation.payments.map((payment) => [payment.id, payment.purpose]),
+  );
   const effectiveRefundAmount = reservation.refunds
     .filter(
       (refund) =>
         refund.currency === reservation.currency &&
-        effectiveRefundStatuses.has(refund.status),
+        effectiveRefundStatuses.has(refund.status) &&
+        paymentPurposeById.get(refund.paymentId) !== "ADDITIONAL_CHARGE",
     )
     .reduce((total, refund) => total + Number(refund.amount), 0);
   const netReservationTotal = Math.max(

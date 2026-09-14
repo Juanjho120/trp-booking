@@ -1,4 +1,6 @@
 import {
+  AdditionalChargeStatus,
+  GuestPaymentRequestStatus,
   PaymentPurpose,
   PaymentStatus,
   Prisma,
@@ -15,6 +17,11 @@ import {
   getReservationFinancialSummary,
   ReservationFinancialSummaryError,
 } from "@/lib/reservations/financial-summary";
+import {
+  AdditionalChargeRefundAllocationError,
+  buildAdditionalChargeRefundAllocationPlan,
+  resolveAdditionalChargeStatusFromApprovedRefunds,
+} from "@/lib/reservations/additional-charge-refund-allocation";
 import {
   allocateReservationRefund,
   ReservationRefundAllocationError,
@@ -44,6 +51,7 @@ import type {
   AdminRefundReconciliationResult,
   AdminRefundSummary,
   ConsultAdminRefundInput,
+  CreateAdminAdditionalChargeRefundInput,
   CreateAdminExtraordinaryRefundInput,
   CreateAdminRefundInput,
   CreateAdminStandardRefundInput,
@@ -149,6 +157,44 @@ type LifecycleRequestForRefund = Prisma.ReservationLifecycleRequestGetPayload<{
   select: typeof lifecycleRequestForRefundSelect;
 }>;
 
+const additionalChargePaymentForRefundSelect = {
+  id: true,
+  reservationId: true,
+  guestPaymentRequestId: true,
+  purpose: true,
+  status: true,
+  amount: true,
+  currency: true,
+  providerReference: true,
+  updatedAt: true,
+  guestPaymentRequest: {
+    select: {
+      id: true,
+      reservationId: true,
+      status: true,
+      totalAmount: true,
+      currency: true,
+      items: {
+        select: {
+          additionalChargeId: true,
+          amountSnapshot: true,
+          currencySnapshot: true,
+          additionalCharge: {
+            select: {
+              id: true,
+              reservationId: true,
+              amount: true,
+              currency: true,
+              status: true,
+              updatedAt: true,
+            },
+          },
+        },
+      },
+    },
+  },
+} satisfies Prisma.PaymentSelect;
+
 const refundForActionSelect = {
   ...refundSummarySelect,
   payment: {
@@ -157,6 +203,7 @@ const refundForActionSelect = {
       reservationId: true,
       purpose: true,
       lifecycleRequestId: true,
+      guestPaymentRequestId: true,
       providerReference: true,
       status: true,
       amount: true,
@@ -235,6 +282,43 @@ function parsePositiveAmount(value: string): Prisma.Decimal {
   }
 
   return amount;
+}
+
+function parseExpectedUpdatedAt(value: string): Date {
+  const parsed = new Date(value);
+
+  if (!value.trim() || Number.isNaN(parsed.getTime())) {
+    throw new AdminRefundError("INVALID_ADMIN_REFUND_REQUEST");
+  }
+
+  return parsed;
+}
+
+function normalizeAdditionalChargeRefundAllocations(
+  input: CreateAdminAdditionalChargeRefundInput,
+): readonly Readonly<{
+  additionalChargeId: string;
+  amount: Prisma.Decimal;
+  expectedChargeUpdatedAt: Date;
+}>[] {
+  if (input.allocations.length === 0 || input.allocations.length > 50) {
+    throw new AdminRefundError("INVALID_ADMIN_REFUND_REQUEST");
+  }
+
+  const allocations = input.allocations.map((allocation) => ({
+    additionalChargeId: allocation.additionalChargeId.trim(),
+    amount: parsePositiveAmount(allocation.amount),
+    expectedChargeUpdatedAt: parseExpectedUpdatedAt(
+      allocation.expectedChargeUpdatedAt,
+    ),
+  }));
+  const ids = allocations.map((allocation) => allocation.additionalChargeId);
+
+  if (ids.some((id) => !id) || new Set(ids).size !== ids.length) {
+    throw new AdminRefundError("INVALID_ADMIN_REFUND_REQUEST");
+  }
+
+  return allocations;
 }
 
 function toSafeJson(value: Record<string, unknown>): Prisma.InputJsonObject {
@@ -347,6 +431,10 @@ function toDiagnostics(rawPayload: Prisma.JsonValue | null) {
   } as const;
 }
 
+export function toAdminRefundDiagnostics(rawPayload: Prisma.JsonValue | null) {
+  return toDiagnostics(rawPayload);
+}
+
 function toAdminSummary(admin: Readonly<{ name: string | null; email: string }>) {
   return {
     name: normalizeOptionalText(admin.name, 160),
@@ -410,6 +498,13 @@ function buildExtraordinaryRefundOperationKey(
   requestId: string,
 ): string {
   return `extraordinary/${reservationId}/${requestId}`;
+}
+
+function buildAdditionalChargeRefundOperationKey(
+  reservationId: string,
+  requestId: string,
+): string {
+  return `additional-charge/${reservationId}/${requestId}`;
 }
 
 function buildRefundChildRequestId(
@@ -505,6 +600,28 @@ function mapFinancialSummaryError(
       error.code === "RESERVATION_FINANCIAL_SUMMARY_INITIAL_PAYMENT_NOT_FOUND")
   ) {
     return new AdminRefundError("ADMIN_REFUND_PAYMENT_NOT_FOUND");
+  }
+
+  return new AdminRefundError("ADMIN_REFUND_UNEXPECTED_ERROR");
+}
+
+function mapAdditionalChargeAllocationError(
+  error: AdditionalChargeRefundAllocationError,
+): AdminRefundError {
+  if (
+    error.code ===
+    "ADDITIONAL_CHARGE_REFUND_ALLOCATION_EXCEEDS_BALANCE"
+  ) {
+    return new AdminRefundError("ADMIN_REFUND_AMOUNT_EXCEEDS_PAYMENT");
+  }
+
+  if (
+    error.code ===
+      "ADDITIONAL_CHARGE_REFUND_ALLOCATION_AMOUNT_MISMATCH" ||
+    error.code ===
+      "ADDITIONAL_CHARGE_REFUND_ALLOCATION_CHARGE_NOT_ELIGIBLE"
+  ) {
+    return new AdminRefundError("INVALID_ADMIN_REFUND_REQUEST");
   }
 
   return new AdminRefundError("ADMIN_REFUND_UNEXPECTED_ERROR");
@@ -686,6 +803,89 @@ async function readExistingOperation(
         refund.lifecycleRequestId !== input.lifecycleRequestId ||
         refund.processingMode !== input.processingMode ||
         refund.reason !== normalizedReason,
+    )
+  ) {
+    throw new AdminRefundError("ADMIN_REFUND_UNEXPECTED_ERROR");
+  }
+
+  return toAuthorizationResult(
+    existing,
+    input.requestedAmount,
+    input.operationKey,
+    true,
+  );
+}
+
+async function readExistingAdditionalChargeOperation(
+  transaction: Pick<Prisma.TransactionClient, "refund">,
+  input: Readonly<{
+    operationKey: string;
+    paymentId: string;
+    requestedAmount: Prisma.Decimal;
+    processingMode: RefundProcessingMode | string;
+    reason: string;
+    allocations: readonly Readonly<{
+      additionalChargeId: string;
+      amount: Prisma.Decimal;
+    }>[];
+  }>,
+): Promise<AdminRefundAuthorizationResult | null> {
+  const existing = await transaction.refund.findMany({
+    where: { refundOperationKey: input.operationKey },
+    orderBy: [{ clientRequestId: "asc" }, { id: "asc" }],
+    select: {
+      ...refundSummarySelect,
+      additionalChargeAllocations: {
+        select: {
+          additionalChargeId: true,
+          allocatedAmount: true,
+        },
+        orderBy: { additionalChargeId: "asc" },
+      },
+    },
+  });
+
+  if (existing.length === 0) {
+    return null;
+  }
+
+  if (existing.length !== 1) {
+    throw new AdminRefundError("ADMIN_REFUND_UNEXPECTED_ERROR");
+  }
+
+  const [refund] = existing;
+  const normalizedReason = normalizeRequiredText(
+    input.reason,
+    REFUND_REASON_MAX_LENGTH,
+  );
+  const expectedAllocations = [...input.allocations]
+    .map((allocation) => ({
+      additionalChargeId: allocation.additionalChargeId,
+      amount: allocation.amount.toFixed(2),
+    }))
+    .sort((left, right) =>
+      left.additionalChargeId.localeCompare(right.additionalChargeId),
+    );
+  const actualAllocations = refund.additionalChargeAllocations.map(
+    (allocation) => ({
+      additionalChargeId: allocation.additionalChargeId,
+      amount: allocation.allocatedAmount.toFixed(2),
+    }),
+  );
+
+  if (
+    refund.paymentId !== input.paymentId ||
+    refund.lifecycleRequestId !== null ||
+    refund.authorizationType !== RefundAuthorizationType.ADDITIONAL_CHARGE ||
+    refund.processingMode !== input.processingMode ||
+    refund.reason !== normalizedReason ||
+    !refund.amount.equals(input.requestedAmount) ||
+    actualAllocations.length !== expectedAllocations.length ||
+    actualAllocations.some(
+      (allocation, index) =>
+        allocation.additionalChargeId !==
+          expectedAllocations[index]?.additionalChargeId ||
+        allocation.amount !== expectedAllocations[index]?.amount,
     )
   ) {
     throw new AdminRefundError("ADMIN_REFUND_UNEXPECTED_ERROR");
@@ -1103,12 +1303,295 @@ async function createExtraordinaryRefundAuthorizationTransaction(
   );
 }
 
+async function createAdditionalChargeRefundAuthorizationTransaction(
+  input: CreateAdminAdditionalChargeRefundInput,
+  actor: AdminActor,
+): Promise<AdminRefundAuthorizationResult> {
+  const reservationId = input.reservationId.trim();
+  const paymentId = input.paymentId.trim();
+  const requestId = input.requestId.trim();
+  const operationKey = buildAdditionalChargeRefundOperationKey(
+    reservationId,
+    requestId,
+  );
+  const amount = parsePositiveAmount(input.amount);
+  const normalizedReason = normalizeRequiredText(
+    input.reason,
+    REFUND_REASON_MAX_LENGTH,
+  );
+  const expectedPaymentUpdatedAt = parseExpectedUpdatedAt(
+    input.expectedPaymentUpdatedAt,
+  );
+  const requestedAllocations =
+    normalizeAdditionalChargeRefundAllocations(input);
+
+  return prisma.$transaction(
+    async (transaction) => {
+      const existingOperation =
+        await readExistingAdditionalChargeOperation(transaction, {
+          operationKey,
+          paymentId,
+          requestedAmount: amount,
+          processingMode: input.processingMode,
+          reason: normalizedReason,
+          allocations: requestedAllocations,
+        });
+
+      if (existingOperation) {
+        return existingOperation;
+      }
+
+      const payment = await transaction.payment.findUnique({
+        where: { id: paymentId },
+        select: additionalChargePaymentForRefundSelect,
+      });
+
+      if (!payment) {
+        throw new AdminRefundError("ADMIN_REFUND_PAYMENT_NOT_FOUND");
+      }
+
+      if (
+        payment.reservationId !== reservationId ||
+        payment.purpose !== PaymentPurpose.ADDITIONAL_CHARGE ||
+        payment.guestPaymentRequestId === null ||
+        !payment.guestPaymentRequest ||
+        payment.guestPaymentRequest.id !== payment.guestPaymentRequestId ||
+        payment.guestPaymentRequest.reservationId !== reservationId ||
+        payment.guestPaymentRequest.status !== GuestPaymentRequestStatus.PAID ||
+        payment.currency !== payment.guestPaymentRequest.currency ||
+        !payment.amount.equals(payment.guestPaymentRequest.totalAmount) ||
+        !REFUNDABLE_PAYMENT_STATUSES.includes(
+          payment.status as (typeof REFUNDABLE_PAYMENT_STATUSES)[number],
+        )
+      ) {
+        throw new AdminRefundError("ADMIN_REFUND_PAYMENT_NOT_REFUNDABLE");
+      }
+
+      const paymentRequestId = payment.guestPaymentRequestId;
+
+      if (payment.updatedAt.getTime() !== expectedPaymentUpdatedAt.getTime()) {
+        throw new AdminRefundError("ADMIN_REFUND_STALE");
+      }
+
+      if (
+        input.processingMode === RefundProcessingMode.TILOPAY_API &&
+        !payment.providerReference?.trim()
+      ) {
+        throw new AdminRefundError("ADMIN_REFUND_API_EXECUTION_NOT_ALLOWED");
+      }
+
+      const itemByChargeId = new Map(
+        payment.guestPaymentRequest.items.map((item) => [
+          item.additionalChargeId,
+          item,
+        ]),
+      );
+      const chargeIds = requestedAllocations.map(
+        (allocation) => allocation.additionalChargeId,
+      );
+      const committedAllocations =
+        await transaction.additionalChargeRefundAllocation.findMany({
+          where: {
+            additionalChargeId: { in: chargeIds },
+            refund: {
+              authorizationType: RefundAuthorizationType.ADDITIONAL_CHARGE,
+              status: { in: [...COMMITTED_REFUND_STATUSES] },
+            },
+          },
+          select: {
+            additionalChargeId: true,
+            allocatedAmount: true,
+          },
+        });
+      const committedByChargeId = new Map<string, Prisma.Decimal>();
+
+      for (const allocation of committedAllocations) {
+        committedByChargeId.set(
+          allocation.additionalChargeId,
+          (committedByChargeId.get(allocation.additionalChargeId) ??
+            new Prisma.Decimal(0))
+            .add(allocation.allocatedAmount)
+            .toDecimalPlaces(2),
+        );
+      }
+
+      const candidates = requestedAllocations.map((requested) => {
+        const item = itemByChargeId.get(requested.additionalChargeId);
+        const charge = item?.additionalCharge;
+
+        if (
+          !item ||
+          !charge ||
+          item.currencySnapshot !== payment.currency ||
+          charge.reservationId !== reservationId ||
+          charge.currency !== payment.currency ||
+          !charge.amount.equals(item.amountSnapshot) ||
+          charge.updatedAt.getTime() !==
+            requested.expectedChargeUpdatedAt.getTime()
+        ) {
+          throw new AdminRefundError("ADMIN_REFUND_PAYMENT_NOT_REFUNDABLE");
+        }
+
+        return {
+          additionalChargeId: requested.additionalChargeId,
+          reservationId,
+          paymentId,
+          paymentRequestId,
+          status: charge.status,
+          capturedAmount: item.amountSnapshot,
+          currency: item.currencySnapshot,
+          committedRefundAmount:
+            committedByChargeId.get(requested.additionalChargeId) ??
+            new Prisma.Decimal(0),
+          requestedRefundAmount: requested.amount,
+        };
+      });
+      let allocationPlan: ReturnType<
+        typeof buildAdditionalChargeRefundAllocationPlan
+      >;
+
+      try {
+        allocationPlan = buildAdditionalChargeRefundAllocationPlan({
+          reservationId,
+          paymentId,
+          paymentRequestId,
+          amount,
+          currency: payment.currency,
+          candidates,
+        });
+      } catch (error) {
+        if (error instanceof AdditionalChargeRefundAllocationError) {
+          throw mapAdditionalChargeAllocationError(error);
+        }
+
+        throw error;
+      }
+
+      const paymentFence = await transaction.payment.updateMany({
+        where: {
+          id: payment.id,
+          purpose: PaymentPurpose.ADDITIONAL_CHARGE,
+          status: { in: [...REFUNDABLE_PAYMENT_STATUSES] },
+          updatedAt: expectedPaymentUpdatedAt,
+        },
+        data: {
+          updatedAt: payment.updatedAt,
+        },
+      });
+
+      if (paymentFence.count !== 1) {
+        throw new AdminRefundError("ADMIN_REFUND_STALE");
+      }
+
+      for (const allocation of requestedAllocations) {
+        const chargeFence = await transaction.additionalCharge.updateMany({
+          where: {
+            id: allocation.additionalChargeId,
+            reservationId,
+            status: {
+              in: [
+                AdditionalChargeStatus.PAID,
+                AdditionalChargeStatus.PARTIALLY_REFUNDED,
+              ],
+            },
+            updatedAt: allocation.expectedChargeUpdatedAt,
+          },
+          data: {
+            updatedAt: allocation.expectedChargeUpdatedAt,
+          },
+        });
+
+        if (chargeFence.count !== 1) {
+          throw new AdminRefundError("ADMIN_REFUND_STALE");
+        }
+      }
+
+      const adminActor = await resolveAdminActor(transaction, actor);
+      const refund = await transaction.refund.create({
+        data: {
+          paymentId: payment.id,
+          lifecycleRequestId: null,
+          refundOperationKey: operationKey,
+          requestedByAdminId: adminActor.id,
+          clientRequestId: buildRefundChildRequestId(requestId, 0, payment.id),
+          idempotencyKey: buildRefundChildIdempotencyKey(
+            operationKey,
+            0,
+            payment.id,
+          ),
+          authorizationType: RefundAuthorizationType.ADDITIONAL_CHARGE,
+          amount,
+          currency: payment.currency,
+          reason: normalizedReason,
+          status: RefundStatus.PENDING,
+          processingMode: input.processingMode as RefundProcessingMode,
+          additionalChargeAllocations: {
+            create: allocationPlan.map((allocation) => ({
+              additionalChargeId: allocation.additionalChargeId,
+              allocatedAmount: allocation.allocatedAmount,
+            })),
+          },
+        },
+        select: refundSummarySelect,
+      });
+
+      await transaction.adminAuditLog.create({
+        data: {
+          userId: adminActor.id,
+          action: "ADDITIONAL_CHARGE_REFUND_AUTHORIZED",
+          entityType: "Refund",
+          entityId: refund.id,
+          metadata: {
+            actorEmail: adminActor.email,
+            reservationId,
+            guestPaymentRequestId: paymentRequestId,
+            clientRequestId: requestId,
+            refundOperationKey: operationKey,
+            refundId: refund.id,
+            paymentId: payment.id,
+            providerReferencePresent: Boolean(payment.providerReference),
+            amount: amount.toFixed(2),
+            currency: payment.currency,
+            authorizationType: RefundAuthorizationType.ADDITIONAL_CHARGE,
+            processingMode: input.processingMode,
+            allocations: allocationPlan.map((allocation) => ({
+              additionalChargeId: allocation.additionalChargeId,
+              allocatedAmount: allocation.allocatedAmount.toFixed(2),
+              capturedAmount: allocation.capturedAmount.toFixed(2),
+              committedRefundAmountBefore:
+                allocation.committedRefundAmountBefore.toFixed(2),
+              remainingRefundableAmountBefore:
+                allocation.remainingRefundableAmountBefore.toFixed(2),
+              remainingRefundableAmountAfter:
+                allocation.remainingRefundableAmountAfter.toFixed(2),
+            })),
+            providerCalled: false,
+            reservationTotalMutated: false,
+            reservationPricingSnapshotMutated: false,
+            lifecycleMutationCompleted: false,
+          },
+        },
+      });
+
+      return toAuthorizationResult([refund], amount, operationKey, false);
+    },
+    {
+      isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+    },
+  );
+}
+
 async function findExistingAuthorizationAfterConflict(
   input: CreateAdminRefundInput,
   requestedAmount: Prisma.Decimal,
 ): Promise<AdminRefundAuthorizationResult | null> {
   const operationKey =
-    input.authorizationType === "EXTRAORDINARY"
+    input.authorizationType === "ADDITIONAL_CHARGE"
+      ? buildAdditionalChargeRefundOperationKey(
+          input.reservationId.trim(),
+          input.requestId.trim(),
+        )
+      : input.authorizationType === "EXTRAORDINARY"
       ? buildExtraordinaryRefundOperationKey(
           input.reservationId.trim(),
           input.requestId.trim(),
@@ -1118,13 +1601,28 @@ async function findExistingAuthorizationAfterConflict(
           input.requestId.trim(),
         );
   const lifecycleRequestId =
-    input.authorizationType === "EXTRAORDINARY"
+    input.authorizationType === "EXTRAORDINARY" ||
+    input.authorizationType === "ADDITIONAL_CHARGE"
       ? null
       : input.lifecycleRequestId.trim();
   const authorizationType =
-    input.authorizationType === "EXTRAORDINARY"
+    input.authorizationType === "ADDITIONAL_CHARGE"
+      ? RefundAuthorizationType.ADDITIONAL_CHARGE
+      : input.authorizationType === "EXTRAORDINARY"
       ? RefundAuthorizationType.EXTRAORDINARY
       : RefundAuthorizationType.STANDARD_POLICY;
+
+  if (input.authorizationType === "ADDITIONAL_CHARGE") {
+    return readExistingAdditionalChargeOperation(prisma, {
+      operationKey,
+      paymentId: input.paymentId.trim(),
+      requestedAmount,
+      processingMode: input.processingMode,
+      reason: input.reason,
+      allocations: normalizeAdditionalChargeRefundAllocations(input),
+    });
+  }
+
   const existingOperation = await readExistingOperation(prisma, {
     operationKey,
     requestedAmount,
@@ -1156,6 +1654,13 @@ export async function createAdminRefundAuthorization(
   const requestedAmount = parsePositiveAmount(input.amount);
 
   try {
+    if (input.authorizationType === "ADDITIONAL_CHARGE") {
+      return await createAdditionalChargeRefundAuthorizationTransaction(
+        input,
+        actor,
+      );
+    }
+
     return input.authorizationType === "EXTRAORDINARY"
       ? await createExtraordinaryRefundAuthorizationTransaction(input, actor)
       : await createStandardRefundAuthorizationTransaction(input, actor);
@@ -1236,6 +1741,31 @@ function isCompletedPositiveStayAdjustmentPayment(
 }
 
 function assertRefundPaymentRelationship(refund: RefundForAction): void {
+  if (refund.authorizationType === RefundAuthorizationType.ADDITIONAL_CHARGE) {
+    const reservationStatusAllowed =
+      refund.payment.reservation.status === ReservationStatus.CONFIRMED ||
+      refund.payment.reservation.status === ReservationStatus.CANCELLED;
+
+    if (!reservationStatusAllowed) {
+      throw new AdminRefundError("ADMIN_REFUND_RESERVATION_NOT_ELIGIBLE");
+    }
+
+    if (
+      refund.lifecycleRequestId !== null ||
+      refund.payment.purpose !== PaymentPurpose.ADDITIONAL_CHARGE ||
+      refund.payment.lifecycleRequestId !== null ||
+      !refund.payment.guestPaymentRequestId ||
+      !REFUND_PAYMENT_HISTORY_STATUSES.includes(
+        refund.payment.status as (typeof REFUND_PAYMENT_HISTORY_STATUSES)[number],
+      ) ||
+      refund.payment.currency !== refund.currency
+    ) {
+      throw new AdminRefundError("ADMIN_REFUND_PAYMENT_NOT_REFUNDABLE");
+    }
+
+    return;
+  }
+
   const reservationStatusAllowed =
     refund.authorizationType === RefundAuthorizationType.EXTRAORDINARY
       ? refund.payment.reservation.status === ReservationStatus.CONFIRMED ||
@@ -1845,6 +2375,148 @@ async function approvedRefundTotalExcluding(
   });
 }
 
+async function assertAdditionalChargeRefundApprovalFits(
+  transaction: Prisma.TransactionClient,
+  refund: RefundForAction,
+): Promise<void> {
+  const allocations =
+    await transaction.additionalChargeRefundAllocation.findMany({
+      where: { refundId: refund.id },
+      select: {
+        additionalChargeId: true,
+        allocatedAmount: true,
+        additionalCharge: {
+          select: {
+            id: true,
+            reservationId: true,
+            amount: true,
+            currency: true,
+            status: true,
+          },
+        },
+      },
+    });
+
+  if (allocations.length === 0) {
+    throw new AdminRefundError("ADMIN_REFUND_PAYMENT_NOT_REFUNDABLE");
+  }
+
+  const allocationTotal = allocations.reduce(
+    (total, allocation) => total.add(allocation.allocatedAmount),
+    new Prisma.Decimal(0),
+  );
+
+  if (!allocationTotal.toDecimalPlaces(2).equals(refund.amount)) {
+    throw new AdminRefundError("INVALID_ADMIN_REFUND_REQUEST");
+  }
+
+  for (const allocation of allocations) {
+    const charge = allocation.additionalCharge;
+
+    if (
+      charge.reservationId !== refund.payment.reservationId ||
+      charge.currency !== refund.currency ||
+      (charge.status !== AdditionalChargeStatus.PAID &&
+        charge.status !== AdditionalChargeStatus.PARTIALLY_REFUNDED)
+    ) {
+      throw new AdminRefundError("ADMIN_REFUND_PAYMENT_NOT_REFUNDABLE");
+    }
+
+    const approvedBefore = await transaction.additionalChargeRefundAllocation.aggregate({
+      where: {
+        additionalChargeId: allocation.additionalChargeId,
+        refundId: { not: refund.id },
+        refund: {
+          authorizationType: RefundAuthorizationType.ADDITIONAL_CHARGE,
+          status: { in: [...COMPLETED_REFUND_STATUSES] },
+        },
+      },
+      _sum: { allocatedAmount: true },
+    });
+    const approvedAfter = (
+      approvedBefore._sum.allocatedAmount ?? new Prisma.Decimal(0)
+    )
+      .add(allocation.allocatedAmount)
+      .toDecimalPlaces(2);
+
+    if (approvedAfter.greaterThan(charge.amount)) {
+      throw new AdminRefundError("ADMIN_REFUND_AMOUNT_EXCEEDS_PAYMENT");
+    }
+  }
+}
+
+async function updateAdditionalChargeStatusesAfterApprovedRefund(
+  transaction: Prisma.TransactionClient,
+  refundId: string,
+): Promise<readonly string[]> {
+  const allocations =
+    await transaction.additionalChargeRefundAllocation.findMany({
+      where: { refundId },
+      select: {
+        additionalChargeId: true,
+        additionalCharge: {
+          select: {
+            id: true,
+            amount: true,
+            status: true,
+          },
+        },
+      },
+    });
+  const updatedChargeIds: string[] = [];
+
+  for (const allocation of allocations) {
+    const approvedTotal =
+      await transaction.additionalChargeRefundAllocation.aggregate({
+        where: {
+          additionalChargeId: allocation.additionalChargeId,
+          refund: {
+            authorizationType: RefundAuthorizationType.ADDITIONAL_CHARGE,
+            status: { in: [...COMPLETED_REFUND_STATUSES] },
+          },
+        },
+        _sum: { allocatedAmount: true },
+      });
+    let nextStatus: AdditionalChargeStatus;
+
+    try {
+      nextStatus = resolveAdditionalChargeStatusFromApprovedRefunds(
+        allocation.additionalCharge.amount,
+        approvedTotal._sum.allocatedAmount ?? new Prisma.Decimal(0),
+      );
+    } catch (error) {
+      if (error instanceof AdditionalChargeRefundAllocationError) {
+        throw mapAdditionalChargeAllocationError(error);
+      }
+
+      throw error;
+    }
+    const updated = await transaction.additionalCharge.updateMany({
+      where: {
+        id: allocation.additionalCharge.id,
+        status: {
+          in: [
+            AdditionalChargeStatus.PAID,
+            AdditionalChargeStatus.PARTIALLY_REFUNDED,
+            AdditionalChargeStatus.REFUNDED,
+          ],
+        },
+      },
+      data: {
+        status: nextStatus,
+      },
+    });
+
+    if (updated.count !== 1) {
+      throw new AdminRefundError("ADMIN_REFUND_STALE");
+    }
+
+    updatedChargeIds.push(allocation.additionalChargeId);
+  }
+
+  return updatedChargeIds;
+}
+
 export async function reconcileAdminRefund(
   input: ReconcileAdminRefundInput,
   actor: AdminActor,
@@ -1978,6 +2650,11 @@ export async function reconcileAdminRefund(
 
       if (input.outcome === "APPROVED") {
         assertPaymentCanReceiveApprovedRefund(refund);
+        if (
+          refund.authorizationType === RefundAuthorizationType.ADDITIONAL_CHARGE
+        ) {
+          await assertAdditionalChargeRefundApprovalFits(transaction, refund);
+        }
       }
 
       const reconciledAt = new Date();
@@ -2076,8 +2753,17 @@ export async function reconcileAdminRefund(
         throw new AdminRefundError("ADMIN_REFUND_STALE");
       }
 
+      const additionalChargeStatusUpdates =
+        input.outcome === "APPROVED" &&
+        refund.authorizationType === RefundAuthorizationType.ADDITIONAL_CHARGE
+          ? await updateAdditionalChargeStatusesAfterApprovedRefund(
+              transaction,
+              refund.id,
+            )
+          : [];
       const lifecycleNotificationIntents =
-        input.outcome === "APPROVED"
+        input.outcome === "APPROVED" &&
+        refund.authorizationType !== RefundAuthorizationType.ADDITIONAL_CHARGE
           ? await createRefundNotificationIntents(transaction, {
               reservationId: refund.payment.reservationId,
               lifecycleRequestId: refund.lifecycleRequestId,
@@ -2112,7 +2798,13 @@ export async function reconcileAdminRefund(
             cumulativeApprovedAmount: cumulativeApprovedAmount.toFixed(2),
             reservationStatus: refund.payment.reservation.status,
             reservationRestored: false,
-            lifecycleNotificationCreated: input.outcome === "APPROVED",
+            additionalChargeStatusUpdates,
+            ancillaryFinancialIsolationPreserved:
+              refund.authorizationType === RefundAuthorizationType.ADDITIONAL_CHARGE,
+            lifecycleNotificationCreated:
+              input.outcome === "APPROVED" &&
+              refund.authorizationType !==
+                RefundAuthorizationType.ADDITIONAL_CHARGE,
             lifecycleNotificationCount: lifecycleNotificationIntents.length,
             lifecycleNotificationIds: lifecycleNotificationIntents.map(
               ({ id }) => id,

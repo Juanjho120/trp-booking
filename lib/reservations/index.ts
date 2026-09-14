@@ -40,3 +40,13 @@ export type {
   ReservationRefundAllocation,
   ReservationRefundAllocationLeg,
 } from "./refund-allocation";
+export {
+  buildAdditionalChargeRefundAllocationPlan,
+  resolveAdditionalChargeStatusFromApprovedRefunds,
+  AdditionalChargeRefundAllocationError,
+} from "./additional-charge-refund-allocation";
+export type {
+  AdditionalChargeRefundAllocationCandidate,
+  AdditionalChargeRefundAllocationErrorCode,
+  AdditionalChargeRefundAllocationPlan,
+} from "./additional-charge-refund-allocation";

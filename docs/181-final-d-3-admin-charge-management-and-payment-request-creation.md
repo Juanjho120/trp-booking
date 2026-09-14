@@ -128,7 +128,7 @@ DATE_CHANGE / STAY_EXTENSION pricing evidence
 
 No D.3 operation creates a `Payment` or a `Refund`.
 
-Additional-charge money therefore remains outside the existing accommodation financial totals until D.4/D.5 intentionally integrate captured/refunded ancillary money through the dedicated Final-A summary fields.
+Additional-charge money therefore remains outside the existing accommodation financial totals. D.5 intentionally integrates captured/refunded ancillary money through the dedicated Final-A summary fields without changing stay value.
 
 ---
 
@@ -318,9 +318,10 @@ Final-D.2 — Completed and accepted at 74ac3011eb22277a896d81c92897f1bee6a4d51b
 Final-D.3 — Completed and accepted on 2026-08-31 at 6a0d909fc325f4e8925677041be34c77c023c42b
 Final-D.4 implementation base — 6a0d909fc325f4e8925677041be34c77c023c42b
 Final-D.4 — Completed and accepted on 2026-09-14 at 7d996fd20db42b2560df11f7e00d7a5e9cc0d18c — Private guest payment link and Tilopay collection; initial implementation commit d2ad7687b8519a4fd0c083f72ca2bfec7f90ce83
-Final-D.5 — Next / Not started — Additional-charge refunds and financial-summary integration
+Final-D.5 — Implementation completed and validation executed; owner acceptance pending — Additional-charge refunds and financial-summary integration
+Final-D.5 record — docs/183-final-d-5-additional-charge-refunds-and-financial-summary-integration.md
 Final-E — Not started
 Phase 13 — Not started
 ```
 
-Final-D.3 is completed and accepted on 2026-08-31 at `6a0d909fc325f4e8925677041be34c77c023c42b` after the validation/acceptance gate above was confirmed. Final-D.4 has since been completed and accepted on 2026-09-14 at `7d996fd20db42b2560df11f7e00d7a5e9cc0d18c` from this accepted base. Final-D.5 is Next / Not started.
+Final-D.3 is completed and accepted on 2026-08-31 at `6a0d909fc325f4e8925677041be34c77c023c42b` after the validation/acceptance gate above was confirmed. Final-D.4 has since been completed and accepted on 2026-09-14 at `7d996fd20db42b2560df11f7e00d7a5e9cc0d18c` from this accepted base. Final-D.5 has since been implemented and validated, with owner acceptance pending.
