@@ -22,6 +22,8 @@ import type {
 import type { TilopayPaymentResultErrorCode } from "@/types/tilopay-payment-result";
 import type { TilopayRetryPaymentIssue } from "@/types/tilopay-retry-payment";
 
+const TRP_PAYMENT_TIME_ZONE = "America/Guatemala";
+
 type AdditionalChargePaymentPageErrorCode =
   | GuestPaymentRequestPaymentErrorCode
   | Extract<
@@ -134,6 +136,7 @@ export function AdditionalChargePaymentPage({
     new Intl.DateTimeFormat(intlLocale, {
       dateStyle: "medium",
       timeStyle: "short",
+      timeZone: TRP_PAYMENT_TIME_ZONE,
     }).format(new Date(value));
 
   return (

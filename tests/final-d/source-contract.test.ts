@@ -154,3 +154,45 @@ test("D.4 public page uses centralized copy and stays within the private charge 
   assert.equal(page.includes("refund"), false);
   assert.equal(page.includes("RESERVATION_CONFIRMED"), false);
 });
+
+test("D.4 public page formats visible request timestamps in a fixed property time zone", () => {
+  const page = source(
+    "features/payments/components/additional-charge-payment-page.tsx",
+  );
+
+  assert.match(page, /TRP_PAYMENT_TIME_ZONE\s*=\s*"America\/Guatemala"/);
+  assert.match(
+    page,
+    /function AdditionalChargePaymentPage[\s\S]*formatDateTime[\s\S]*timeZone:\s*TRP_PAYMENT_TIME_ZONE/,
+  );
+  assert.equal(page.includes("suppressHydrationWarning"), false);
+});
+
+test("D.4 admin detail places additional charges in their own tab between lifecycle and refunds", () => {
+  const detailPage = source(
+    "features/admin/components/admin-reservation-detail-page.tsx",
+  );
+  const attemptHistory = source(
+    "features/admin/components/admin-payment-submission-attempt-history.tsx",
+  );
+  const lifecycleTabIndex = detailPage.indexOf('value="lifecycle"');
+  const additionalChargesTabIndex = detailPage.indexOf(
+    'value="additionalCharges"',
+  );
+  const refundsTabIndex = detailPage.indexOf('value="refunds"');
+
+  assert.match(detailPage, /import \{ AdminAdditionalChargesSection \}/);
+  assert.match(detailPage, /ReceiptText/);
+  assert.ok(lifecycleTabIndex >= 0);
+  assert.ok(additionalChargesTabIndex > lifecycleTabIndex);
+  assert.ok(refundsTabIndex > additionalChargesTabIndex);
+  assert.match(
+    detailPage,
+    /AdminAdditionalChargesSection reservationId=\{reservation\.id\}/,
+  );
+  assert.equal(
+    attemptHistory.includes("AdminAdditionalChargesSection"),
+    false,
+  );
+  assert.equal(attemptHistory.includes("useParams"), false);
+});

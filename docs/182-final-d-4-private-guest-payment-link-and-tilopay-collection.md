@@ -7,7 +7,7 @@ Package: Final-D — Additional charges and guest payment requests — In progre
 Subphase: Final-D.4 — Private guest payment link and Tilopay collection
 Implementation base head: 6a0d909fc325f4e8925677041be34c77c023c42b
 Initial implementation commit: d2ad7687b8519a4fd0c083f72ca2bfec7f90ce83
-Implementation record: this D.4 implementation plus corrective validation-strengthening and token-sanitization hardening changesets
+Implementation record: this D.4 implementation plus corrective validation-strengthening, token-sanitization hardening, hydration, SDK-session error handling, and admin-tab placement changesets
 Owner acceptance: Pending; do not mark D.4 accepted until the owner explicitly accepts it
 Next subphase: Final-D.5 — Additional-charge refunds and financial-summary integration — Not started
 Phase 13: Not started
@@ -19,10 +19,13 @@ Phase 13: Not started
 - Added a protected admin Copy private link action that decrypts the recoverable D.3 token only server-side, verifies its SHA-256 hash, returns the URL with `no-store`, copies it through the Clipboard API, and does not render or keep the raw URL in component state.
 - Added the D.4 ancillary payment domain service that resolves private access by token hash, expires overdue pending requests, validates immutable request/item amount and currency snapshots, and prepares one logical Tilopay `Payment` with `PaymentPurpose.ADDITIONAL_CHARGE`.
 - Integrated the additional-charge branch into the accepted Tilopay SDK session, preflight, submission-attempt, client-event, and redirect/result flows.
+- Hardened Tilopay SDK token acquisition so `/loginSdk` network failures, HTTP non-success responses, invalid JSON, and missing `access_token` responses are normalized to `TILOPAY_SDK_TOKEN_UNAVAILABLE` instead of escaping as a generic SDK-session 500.
 - Preserved the established initial-reservation and lifecycle-adjustment branches while keeping D.4 on `PaymentSubmissionSource.ADDITIONAL_CHARGE`.
 - On validated approved Tilopay evidence, marks the request and included additional charges paid through a Serializable transaction and audit log without confirming/reconfirming the reservation, mutating `Reservation.total`, mutating `pricingSnapshot`, altering stay cancellation-policy money, or completing any lifecycle date mutation.
 - On rejected/failed provider outcomes, keeps the request and charges pending and routes safely back to the private payment page while preserving auditable payment-attempt history.
 - Added bilingual centralized public/admin/payment error copy in `messages/es.ts` and `messages/en.ts`.
+- Fixed private payment-page timestamp rendering for `expiresAt` and `paidAt` by formatting visible request datetimes in the explicit TRP property time zone, `America/Guatemala`, preventing SSR/client timezone drift without suppressing hydration warnings or moving the page client-only.
+- Moved the admin Additional Charges surface out of the payment-attempt history block and into its own Reservation detail tab between Reservation lifecycle and Refunds, reusing the existing component and centralized copy.
 - Added a focused Final-D.4 validation suite under `tests/final-d` with source-contract guards and in-memory behavioral tests that execute the D.4 payment-request, Tilopay result, submission-attempt and client-event logic without adding or inventing an `npm run final-d:validate` package script.
 
 ## Security and Isolation Notes
@@ -40,8 +43,8 @@ npm run db:validate — Passed; Prisma schema valid.
 npm run db:generate — Passed; Prisma Client generated.
 npm run db:migrate:status — Initial sandbox attempt failed with a generic Schema engine error against Supabase; rerun with network access passed, 17 migrations found, database schema up to date.
 npm run lint — Passed.
-npm run build — Initial sandbox attempt failed because Next could not fetch Google Fonts; rerun with network access passed after the D.4 TypeScript fix.
-npx tsx --tsconfig tests/final-d/tsconfig.json tests/final-d/run.ts — Passed 18/18 with source-contract guards plus behavioral coverage for valid/invalid/expired/cancelled/paid tokens, immutable ADDITIONAL_CHARGE Payment creation, one logical Payment per request, rejected/failed retry behavior, approved idempotent application, stay/lifecycle isolation, mismatch rejection, and raw-token persistence exclusion across client-event text diagnostics plus SDK payload object/string/Error branches. The local Windows run used a temporary NODE_OPTIONS preload for the Node 22 os.userInfo ENOMEM issue; no repository files were changed for that workaround.
+npm run build — Initial sandbox attempt failed because Next could not fetch Google Fonts; rerun with network access passed.
+npx tsx --tsconfig tests/final-d/tsconfig.json tests/final-d/run.ts — Passed 24/24 with source-contract guards plus behavioral coverage for valid/invalid/expired/cancelled/paid tokens, immutable ADDITIONAL_CHARGE Payment creation, one logical Payment per request, Tilopay SDK session creation/reuse, provider-reference assignment, token-safe `returnData`, typed `/loginSdk` provider failure handling, route-level 502 mapping for known SDK-token failures, rejected/failed retry behavior, approved idempotent application, stay/lifecycle isolation, mismatch rejection, raw-token persistence exclusion across client-event text diagnostics plus SDK payload object/string/Error branches, explicit TRP timezone formatting for the private page, and the dedicated admin Additional Charges tab placement. The local Windows run used a temporary NODE_OPTIONS preload for the Node 22 os.userInfo ENOMEM issue; no repository files were changed for that workaround.
 npm run final-a:validate — Passed 44/44 with the same temporary tsx preload.
 npm run final-b:validate — Passed 38/38 with the same temporary tsx preload.
 npm run final-c:validate — Passed 41/41 with the same temporary tsx preload.

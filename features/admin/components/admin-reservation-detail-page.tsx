@@ -10,6 +10,7 @@ import {
   History,
   Loader2,
   Mail,
+  ReceiptText,
   RefreshCcw,
   RotateCcw,
   Send,
@@ -54,6 +55,7 @@ import type {
 import type { Locale } from "@/types/locale";
 
 import { AdminPageHeader } from "./admin-page-header";
+import { AdminAdditionalChargesSection } from "./admin-additional-charges-section";
 import {
   AdminRecordPagination,
   useAdminRecordPagination,
@@ -462,6 +464,13 @@ export function AdminReservationDetailPage({
               <ShieldCheck aria-hidden="true" className="size-4 shrink-0" />
               {reservationCopy.cancellation.badge}
             </TabsTrigger>
+            <TabsTrigger
+              className="min-h-10 shrink-0 gap-2"
+              value="additionalCharges"
+            >
+              <ReceiptText aria-hidden="true" className="size-4 shrink-0" />
+              {reservationCopy.additionalCharges.badge}
+            </TabsTrigger>
             <TabsTrigger className="min-h-10 shrink-0 gap-2" value="refunds">
               <RefreshCcw aria-hidden="true" className="size-4 shrink-0" />
               {reservationCopy.refunds.badge}
@@ -869,6 +878,14 @@ export function AdminReservationDetailPage({
           <div className="-mt-6">
             <AdminReservationCancellationSection reservation={reservation} />
           </div>
+        </TabsContent>
+
+        <TabsContent
+          className="mt-4 data-[state=inactive]:hidden sm:mt-6"
+          forceMount
+          value="additionalCharges"
+        >
+          <AdminAdditionalChargesSection reservationId={reservation.id} />
         </TabsContent>
 
         <TabsContent

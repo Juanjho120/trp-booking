@@ -67,24 +67,38 @@ function getAccessToken(payload: unknown): string {
 
 async function requestTilopaySdkToken(): Promise<string> {
   const env = getTilopayEnv();
-  const response = await fetch(`${TILOPAY_API_BASE_URL}/loginSdk`, {
-    body: JSON.stringify({
-      apiuser: env.TILOPAY_API_USER,
-      password: env.TILOPAY_API_PASSWORD,
-      key: env.TILOPAY_API_KEY,
-    }),
-    headers: {
-      accept: "application/json",
-      "content-type": "application/json",
-    },
-    method: "POST",
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(`${TILOPAY_API_BASE_URL}/loginSdk`, {
+      body: JSON.stringify({
+        apiuser: env.TILOPAY_API_USER,
+        password: env.TILOPAY_API_PASSWORD,
+        key: env.TILOPAY_API_KEY,
+      }),
+      headers: {
+        accept: "application/json",
+        "content-type": "application/json",
+      },
+      method: "POST",
+    });
+  } catch {
+    throw new TilopaySdkSessionError("TILOPAY_SDK_TOKEN_UNAVAILABLE");
+  }
 
   if (!response.ok) {
     throw new TilopaySdkSessionError("TILOPAY_SDK_TOKEN_UNAVAILABLE");
   }
 
-  return getAccessToken((await response.json()) as unknown);
+  try {
+    return getAccessToken((await response.json()) as unknown);
+  } catch (error) {
+    if (error instanceof TilopaySdkSessionError) {
+      throw error;
+    }
+
+    throw new TilopaySdkSessionError("TILOPAY_SDK_TOKEN_UNAVAILABLE");
+  }
 }
 
 function normalizeText(value: string | null | undefined): string {

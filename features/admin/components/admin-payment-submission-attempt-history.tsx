@@ -1,7 +1,5 @@
 "use client";
 
-import { useParams } from "next/navigation";
-
 import {
   Accordion,
   AccordionContent,
@@ -23,7 +21,6 @@ import type {
   PaymentSubmissionAttemptStatus,
 } from "@/types/payment-submission-attempt";
 
-import { AdminAdditionalChargesSection } from "./admin-additional-charges-section";
 import {
   AdminRecordPagination,
   useAdminRecordPagination,
@@ -36,7 +33,6 @@ type AdminPaymentSubmissionAttemptHistoryProps = Readonly<{
 export function AdminPaymentSubmissionAttemptHistory({
   history,
 }: AdminPaymentSubmissionAttemptHistoryProps) {
-  const params = useParams<{ reservationId?: string | string[] }>();
   const { locale, messages } = useLocale();
   const paymentCopy = messages.admin.paymentsPage;
   const reservationCopy = messages.admin.reservationsPage;
@@ -45,9 +41,6 @@ export function AdminPaymentSubmissionAttemptHistory({
   const paymentStatuses = messages.admin.statuses.payment;
   const pagination = useAdminRecordPagination(history.attempts);
   const intlLocale = locale === "en" ? "en-US" : "es-GT";
-  const reservationId = Array.isArray(params.reservationId)
-    ? (params.reservationId[0] ?? "")
-    : (params.reservationId ?? "");
   const paginationLabels = {
     next: reservationCopy.actions.next,
     of: reservationCopy.labels.of,
@@ -101,145 +94,137 @@ export function AdminPaymentSubmissionAttemptHistory({
   }
 
   return (
-    <>
-      {reservationId ? (
-        <AdminAdditionalChargesSection reservationId={reservationId} />
-      ) : null}
+    <Card className="mt-6 border-border/70 bg-card shadow-sm">
+      <CardHeader>
+        <CardTitle>
+          {paymentCopy.title} · {notificationLabels.attempts}
+        </CardTitle>
+        <CardDescription>{historyCopy.description}</CardDescription>
+      </CardHeader>
+      <CardContent className="grid gap-6">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <SummaryValue
+            label={notificationLabels.attempts}
+            value={String(history.totalAttempts)}
+          />
+          <SummaryValue
+            label={`${paymentStatuses.REJECTED} / ${paymentStatuses.FAILED}`}
+            value={String(history.rejectedOrFailedAttempts)}
+          />
+          <SummaryValue
+            label={notificationLabels.lastAttempt}
+            value={formatDateTime(history.lastAttemptAt)}
+          />
+          <SummaryValue
+            label={notificationLabels.origin}
+            value={
+              history.lastSource
+                ? sourceLabel(history.lastSource)
+                : paymentCopy.labels.unavailable
+            }
+          />
+        </div>
 
-      <Card className="mt-6 border-border/70 bg-card shadow-sm">
-        <CardHeader>
-          <CardTitle>
-            {paymentCopy.title} · {notificationLabels.attempts}
-          </CardTitle>
-          <CardDescription>{historyCopy.description}</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-6">
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <SummaryValue
-              label={notificationLabels.attempts}
-              value={String(history.totalAttempts)}
-            />
-            <SummaryValue
-              label={`${paymentStatuses.REJECTED} / ${paymentStatuses.FAILED}`}
-              value={String(history.rejectedOrFailedAttempts)}
-            />
-            <SummaryValue
-              label={notificationLabels.lastAttempt}
-              value={formatDateTime(history.lastAttemptAt)}
-            />
-            <SummaryValue
-              label={notificationLabels.origin}
-              value={
-                history.lastSource
-                  ? sourceLabel(history.lastSource)
-                  : paymentCopy.labels.unavailable
-              }
-            />
-          </div>
-
-          {history.attempts.length > 0 ? (
-            <>
-              <Accordion
-                className="grid gap-3"
-                collapsible
-                key={`${pagination.page}-${pagination.pageSize}`}
-                type="single"
-              >
-                {pagination.pageItems.map((attempt) => (
-                  <AccordionItem
-                    className="overflow-hidden rounded-2xl border border-border bg-muted/20 last:border-b"
-                    key={attempt.id}
-                    value={attempt.id}
-                  >
-                    <AccordionTrigger className="px-4 py-3 hover:bg-muted/40 sm:px-5">
-                      <div className="grid min-w-0 flex-1 gap-3 pr-2 sm:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_auto] sm:items-center">
-                        <div className="min-w-0">
-                          <p className="break-all text-sm font-semibold">
-                            {notificationLabels.attempts} #{attempt.attemptNumber}
-                          </p>
-                          <p className="mt-1 truncate text-sm text-muted-foreground">
-                            {sourceLabel(attempt.source)}
-                          </p>
-                        </div>
-                        <p className="truncate text-sm text-muted-foreground">
-                          {formatDateTime(attempt.startedAt)}
+        {history.attempts.length > 0 ? (
+          <>
+            <Accordion
+              className="grid gap-3"
+              collapsible
+              key={`${pagination.page}-${pagination.pageSize}`}
+              type="single"
+            >
+              {pagination.pageItems.map((attempt) => (
+                <AccordionItem
+                  className="overflow-hidden rounded-2xl border border-border bg-muted/20 last:border-b"
+                  key={attempt.id}
+                  value={attempt.id}
+                >
+                  <AccordionTrigger className="px-4 py-3 hover:bg-muted/40 sm:px-5">
+                    <div className="grid min-w-0 flex-1 gap-3 pr-2 sm:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_auto] sm:items-center">
+                      <div className="min-w-0">
+                        <p className="break-all text-sm font-semibold">
+                          {notificationLabels.attempts} #{attempt.attemptNumber}
                         </p>
-                        <Badge
-                          className="justify-self-start sm:justify-self-end"
-                          variant="outline"
-                        >
-                          {statusLabel(attempt.status)}
-                        </Badge>
+                        <p className="mt-1 truncate text-sm text-muted-foreground">
+                          {sourceLabel(attempt.source)}
+                        </p>
                       </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="border-t border-border/70 px-4 pt-4 sm:px-5">
-                      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                        <DetailValue
-                          label={paymentCopy.labels.payment}
-                          value={attempt.paymentId}
-                        />
-                        <DetailValue
-                          label={notificationLabels.origin}
-                          value={sourceLabel(attempt.source)}
-                        />
-                        <DetailValue
-                          label={paymentCopy.labels.statusFilter}
-                          value={statusLabel(attempt.status)}
-                        />
-                        <DetailValue
-                          label={paymentCopy.labels.environment}
-                          value={attempt.environment}
-                        />
-                        <DetailValue
-                          label={notificationLabels.locale}
-                          value={
-                            messages.admin.reservationsPage.notifications.locales[
-                              attempt.locale
-                            ]
-                          }
-                        />
-                        <DetailValue
-                          label={paymentCopy.labels.createdAt}
-                          value={formatDateTime(attempt.startedAt)}
-                        />
-                        <DetailValue
-                          label={historyCopy.labels.expiresAt}
-                          value={formatDateTime(attempt.preflightExpiresAt)}
-                        />
-                        <DetailValue
-                          label={notificationLabels.lastAttempt}
-                          value={formatDateTime(attempt.completedAt)}
-                        />
-                        <DetailValue
-                          label={historyCopy.labels.errorCode}
-                          value={
-                            attempt.safeResultCode ??
-                            paymentCopy.labels.unavailable
-                          }
-                        />
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
-              <AdminRecordPagination
-                labels={paginationLabels}
-                onPageChange={pagination.setPage}
-                onPageSizeChange={pagination.changePageSize}
-                page={pagination.page}
-                pageSize={pagination.pageSize}
-                totalItems={pagination.totalItems}
-                totalPages={pagination.totalPages}
-              />
-            </>
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              {historyCopy.empty}
-            </p>
-          )}
-        </CardContent>
-      </Card>
-    </>
+                      <p className="truncate text-sm text-muted-foreground">
+                        {formatDateTime(attempt.startedAt)}
+                      </p>
+                      <Badge
+                        className="justify-self-start sm:justify-self-end"
+                        variant="outline"
+                      >
+                        {statusLabel(attempt.status)}
+                      </Badge>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="border-t border-border/70 px-4 pt-4 sm:px-5">
+                    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                      <DetailValue
+                        label={paymentCopy.labels.payment}
+                        value={attempt.paymentId}
+                      />
+                      <DetailValue
+                        label={notificationLabels.origin}
+                        value={sourceLabel(attempt.source)}
+                      />
+                      <DetailValue
+                        label={paymentCopy.labels.statusFilter}
+                        value={statusLabel(attempt.status)}
+                      />
+                      <DetailValue
+                        label={paymentCopy.labels.environment}
+                        value={attempt.environment}
+                      />
+                      <DetailValue
+                        label={notificationLabels.locale}
+                        value={
+                          messages.admin.reservationsPage.notifications.locales[
+                            attempt.locale
+                          ]
+                        }
+                      />
+                      <DetailValue
+                        label={paymentCopy.labels.createdAt}
+                        value={formatDateTime(attempt.startedAt)}
+                      />
+                      <DetailValue
+                        label={historyCopy.labels.expiresAt}
+                        value={formatDateTime(attempt.preflightExpiresAt)}
+                      />
+                      <DetailValue
+                        label={notificationLabels.lastAttempt}
+                        value={formatDateTime(attempt.completedAt)}
+                      />
+                      <DetailValue
+                        label={historyCopy.labels.errorCode}
+                        value={
+                          attempt.safeResultCode ??
+                          paymentCopy.labels.unavailable
+                        }
+                      />
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+            <AdminRecordPagination
+              labels={paginationLabels}
+              onPageChange={pagination.setPage}
+              onPageSizeChange={pagination.changePageSize}
+              page={pagination.page}
+              pageSize={pagination.pageSize}
+              totalItems={pagination.totalItems}
+              totalPages={pagination.totalPages}
+            />
+          </>
+        ) : (
+          <p className="text-sm text-muted-foreground">{historyCopy.empty}</p>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 

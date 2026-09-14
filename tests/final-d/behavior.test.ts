@@ -227,6 +227,8 @@ type D4Modules = Readonly<{
   attempts: typeof import("@/lib/payments/payment-submission-attempts");
   clientEvents: typeof import("@/lib/payments/tilopay-sdk-client-events");
   result: typeof import("@/lib/payments/tilopay-payment-result");
+  sdkSession: typeof import("@/lib/payments/tilopay-sdk-session");
+  sdkSessionRoute: typeof import("@/app/api/payments/tilopay/sdk-session/route");
 }>;
 
 let modulesPromise: Promise<D4Modules> | null = null;
@@ -957,11 +959,15 @@ async function d4Modules(): Promise<D4Modules> {
     import("@/lib/payments/payment-submission-attempts"),
     import("@/lib/payments/tilopay-sdk-client-events"),
     import("@/lib/payments/tilopay-payment-result"),
-  ]).then(([payments, attempts, clientEvents, result]) => ({
+    import("@/lib/payments/tilopay-sdk-session"),
+    import("@/app/api/payments/tilopay/sdk-session/route"),
+  ]).then(([payments, attempts, clientEvents, result, sdkSession, sdkSessionRoute]) => ({
     payments,
     attempts,
     clientEvents,
     result,
+    sdkSession,
+    sdkSessionRoute,
   }));
 
   return modulesPromise;
@@ -978,6 +984,20 @@ function assertRequestError(
   return (
     error instanceof Error &&
     error.name === "GuestPaymentRequestPaymentError" &&
+    "code" in error &&
+    error.code === expectedCode
+  );
+}
+
+function assertSdkSessionError(
+  error: unknown,
+  expectedCode:
+    | "TILOPAY_SDK_TOKEN_UNAVAILABLE"
+    | "GUEST_PAYMENT_REQUEST_PAYMENT_MISMATCH",
+): boolean {
+  return (
+    error instanceof Error &&
+    error.name === "TilopaySdkSessionError" &&
     "code" in error &&
     error.code === expectedCode
   );
@@ -1173,6 +1193,62 @@ function installTilopayFetch(input: Readonly<{
   };
 }
 
+function installTilopaySdkFetch(
+  outcome:
+    | "success"
+    | "http-error"
+    | "invalid-json"
+    | "missing-access-token"
+    | "network-error" = "success",
+): () => void {
+  const originalFetch = globalThis.fetch;
+
+  globalThis.fetch = async (resource: RequestInfo | URL) => {
+    const url =
+      typeof resource === "string"
+        ? resource
+        : resource instanceof URL
+          ? resource.toString()
+          : resource.url;
+
+    if (!url.endsWith("/loginSdk")) {
+      throw new Error(`Unexpected Tilopay SDK mock fetch URL: ${url}`);
+    }
+
+    if (outcome === "network-error") {
+      throw new Error("Simulated Tilopay SDK login network failure");
+    }
+
+    if (outcome === "http-error") {
+      return new Response(JSON.stringify({ error: "unavailable" }), {
+        status: 503,
+      });
+    }
+
+    if (outcome === "invalid-json") {
+      return new Response("not-json", { status: 200 });
+    }
+
+    if (outcome === "missing-access-token") {
+      return new Response(JSON.stringify({ token_type: "Bearer" }), {
+        status: 200,
+      });
+    }
+
+    return new Response(
+      JSON.stringify({
+        access_token: "final-d4-sdk-access-token",
+        token_type: "Bearer",
+      }),
+      { status: 200 },
+    );
+  };
+
+  return () => {
+    globalThis.fetch = originalFetch;
+  };
+}
+
 function setProviderReference(
   state: MockState,
   paymentId: string,
@@ -1182,6 +1258,13 @@ function setProviderReference(
 
   assert.ok(payment);
   payment.providerReference = providerReference;
+}
+
+function decodeReturnData(value: string): Record<string, unknown> {
+  return JSON.parse(Buffer.from(value, "base64").toString("utf8")) as Record<
+    string,
+    unknown
+  >;
 }
 
 test("D.4 behavior resolves only a valid pending unexpired token to a payable guest summary", async () => {
@@ -1273,6 +1356,142 @@ test("D.4 behavior creates exactly one immutable USD ADDITIONAL_CHARGE payment p
   assert.equal(storedPayment.guestPaymentRequestId, "request-final-d4");
   assert.equal(storedPayment.reservationId, "reservation-final-d4");
   assertNoRawTokenStored(store.current);
+});
+
+test("D.4 behavior creates an ADDITIONAL_CHARGE Tilopay SDK session without returning the raw request token", async () => {
+  const restoreEnv = preserveTilopayEnv();
+  const restoreFetch = installTilopaySdkFetch("success");
+  const store = installMockPrisma(baseState());
+  const { sdkSession } = await d4Modules();
+
+  try {
+    const session = await sdkSession.createTilopaySdkSession({
+      reservationId: VALID_TOKEN,
+      locale: "es",
+    });
+    const storedPayment = store.current.payments[0];
+    const returnData = decodeReturnData(session.initConfig.returnData);
+
+    assert.ok(storedPayment);
+    assert.equal(store.current.payments.length, 1);
+    assert.equal(storedPayment.purpose, PaymentPurpose.ADDITIONAL_CHARGE);
+    assert.equal(storedPayment.currency, "USD");
+    assert.equal(storedPayment.amount.toFixed(2), "30.00");
+    assert.equal(storedPayment.guestPaymentRequestId, "request-final-d4");
+    assert.equal(storedPayment.providerReference, session.providerReference);
+    assert.equal(session.paymentId, storedPayment.id);
+    assert.equal(session.reservationId, "guest-payment-request");
+    assert.equal(session.phaseBoundary, "ADDITIONAL_CHARGE_CHECKOUT_READY");
+    assert.equal(session.existingPaymentAttempt, false);
+    assert.equal(session.amount.amount, "30.00");
+    assert.equal(session.amount.amountCents, 3000);
+    assert.equal(session.currency, "USD");
+    assert.equal(session.initConfig.token, "final-d4-sdk-access-token");
+    assert.equal(session.initConfig.orderNumber, session.providerReference);
+    assert.equal(returnData.paymentId, session.paymentId);
+    assert.equal(returnData.orderNumber, session.providerReference);
+    assert.equal(returnData.reservationId, "guest-payment-request");
+    assert.equal(JSON.stringify(session).includes(VALID_TOKEN), false);
+    assertNoRawTokenStored(store.current);
+  } finally {
+    restoreFetch();
+    restoreEnv();
+  }
+});
+
+test("D.4 behavior reuses an existing ADDITIONAL_CHARGE Payment for the Tilopay SDK session", async () => {
+  const restoreEnv = preserveTilopayEnv();
+  const restoreFetch = installTilopaySdkFetch("success");
+  const store = installMockPrisma(
+    baseState({ paymentStatus: PaymentStatus.PENDING }),
+  );
+  const { sdkSession } = await d4Modules();
+
+  try {
+    const session = await sdkSession.createTilopaySdkSession({
+      reservationId: VALID_TOKEN,
+      locale: "en",
+    });
+
+    assert.equal(store.current.payments.length, 1);
+    assert.equal(session.paymentId, "payment-existing");
+    assert.equal(session.providerReference, "TRP-D4-EXISTING");
+    assert.equal(session.existingPaymentAttempt, true);
+    assert.equal(session.amount.amount, "30.00");
+    assert.equal(session.currency, "USD");
+    assert.equal(session.initConfig.language, "en");
+    assert.equal(session.initConfig.returnData.includes(VALID_TOKEN), false);
+    assertNoRawTokenStored(store.current);
+  } finally {
+    restoreFetch();
+    restoreEnv();
+  }
+});
+
+test("D.4 behavior maps Tilopay SDK provider login failures to a typed unavailable error", async () => {
+  const restoreEnv = preserveTilopayEnv();
+  const { sdkSession } = await d4Modules();
+
+  try {
+    for (const outcome of [
+      "network-error",
+      "http-error",
+      "invalid-json",
+      "missing-access-token",
+    ] as const) {
+      const restoreFetch = installTilopaySdkFetch(outcome);
+      const store = installMockPrisma(baseState());
+
+      try {
+        await assert.rejects(
+          () =>
+            sdkSession.createTilopaySdkSession({
+              reservationId: VALID_TOKEN,
+              locale: "es",
+            }),
+          (error: unknown) =>
+            assertSdkSessionError(error, "TILOPAY_SDK_TOKEN_UNAVAILABLE"),
+        );
+        assert.equal(store.current.payments.length, 1);
+        assertNoRawTokenStored(store.current);
+      } finally {
+        restoreFetch();
+      }
+    }
+  } finally {
+    restoreEnv();
+  }
+});
+
+test("D.4 behavior returns the expected SDK-session API status for known Tilopay token failures", async () => {
+  const restoreEnv = preserveTilopayEnv();
+  const restoreFetch = installTilopaySdkFetch("invalid-json");
+  const store = installMockPrisma(baseState());
+  const { sdkSessionRoute } = await d4Modules();
+
+  try {
+    const response = await sdkSessionRoute.POST(
+      new Request("https://example.test/api/payments/tilopay/sdk-session", {
+        body: JSON.stringify({
+          reservationId: VALID_TOKEN,
+          locale: "es",
+        }),
+        method: "POST",
+      }),
+    );
+    const payload = (await response.json()) as {
+      error?: { code?: string; message?: string };
+    };
+
+    assert.equal(response.status, 502);
+    assert.equal(payload.error?.code, "TILOPAY_SDK_TOKEN_UNAVAILABLE");
+    assert.notEqual(payload.error?.code, "TILOPAY_SDK_SESSION_UNEXPECTED_ERROR");
+    assert.equal(store.current.payments.length, 1);
+    assertNoRawTokenStored(store.current);
+  } finally {
+    restoreFetch();
+    restoreEnv();
+  }
 });
 
 test("D.4 behavior keeps rejected provider outcomes pending and retryable with audit history", async () => {
