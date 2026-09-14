@@ -1,15 +1,16 @@
 # Final-D.4 — Private guest payment link and Tilopay collection
 
-Status: **Implemented and locally validated on 2026-09-11; owner acceptance pending**
+Status: **Completed and accepted on 2026-09-14**
 
 ```text
 Package: Final-D — Additional charges and guest payment requests — In progress
 Subphase: Final-D.4 — Private guest payment link and Tilopay collection
 Implementation base head: 6a0d909fc325f4e8925677041be34c77c023c42b
 Initial implementation commit: d2ad7687b8519a4fd0c083f72ca2bfec7f90ce83
+Accepted implementation head: 7d996fd20db42b2560df11f7e00d7a5e9cc0d18c
 Implementation record: this D.4 implementation plus corrective validation-strengthening, token-sanitization hardening, hydration, SDK-session error handling, admin-tab placement, and PostgreSQL payment-purpose constraint changesets
-Owner acceptance: Pending; do not mark D.4 accepted until the owner explicitly accepts it
-Next subphase: Final-D.5 — Additional-charge refunds and financial-summary integration — Not started
+Owner acceptance: Completed on 2026-09-14 after Hosted Test functional validation
+Next subphase: Final-D.5 — Additional-charge refunds and financial-summary integration — Next / Not started
 Phase 13: Not started
 ```
 
@@ -40,6 +41,10 @@ Phase 13: Not started
 ## Hosted-Test 500 Diagnosis and Correction
 
 Manual Hosted Test reproduced `POST /api/payments/tilopay/sdk-session` returning `TILOPAY_SDK_SESSION_UNEXPECTED_ERROR` when preparing a real `GuestPaymentRequest`.
+
+Final documented root cause: `payments_purpose_relation_check`.
+
+Corrective migration: `20260914150000_final_d_4_allow_additional_charge_payment_constraint`.
 
 Safe Local/Test database inspection after the 500 found:
 
@@ -82,6 +87,23 @@ Rollback-only dry run against real request cmu1bky2q0009l304jogg4sd7: create_pay
 Rollback-only POST /api/payments/tilopay/sdk-session using a diagnostic GuestPaymentRequest in the same database and a mocked /loginSdk boundary: HTTP 201; prepareGuestPaymentRequestPayment PASS; ensurePaymentProviderReference PASS; getTilopayEnv PASS; requestTilopaySdkToken PASS; buildReturnData/buildSdkInitConfig PASS; diagnostic rows rolled back.
 ```
 
+## Hosted Test Owner Acceptance
+
+On 2026-09-14, the owner completed and accepted the final Hosted Test validation for Final-D.4.
+
+Confirmed Hosted Test behavior:
+
+```text
+- The private GuestPaymentRequest link loads correctly.
+- React hydration error #418 no longer reproduces.
+- Additional Charges appears in its own tab between Reservation lifecycle and Refunds.
+- Prepare secure payment prepares the checkout correctly.
+- The Payment with purpose ADDITIONAL_CHARGE is created correctly.
+- The Tilopay form displays correctly.
+- The flow no longer returns TILOPAY_SDK_SESSION_UNEXPECTED_ERROR.
+- The owner explicitly accepts Final-D.4.
+```
+
 ## Validation Executed
 
 ```text
@@ -101,4 +123,4 @@ git diff --check — Passed after documentation reconciliation.
 
 ## Acceptance State
 
-Final-D.4 implementation and executable local validation are complete in this change set, but Final-D.4 is **not accepted** until owner acceptance is explicitly recorded. Final-D.5 remains Not started.
+Final-D.4 is **Completed and accepted** on 2026-09-14 at accepted implementation head `7d996fd20db42b2560df11f7e00d7a5e9cc0d18c`. Final-D.5 is the next subphase and remains Next / Not started. Phase 13 remains Not started.

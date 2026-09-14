@@ -21,7 +21,7 @@ The stable test domain is:
 trp-booking.juantzun.dev
 ```
 
-As of 2026-09-11, Phase 12 — Test Deployment & External Integration Validation — is completed and accepted. The stable HTTPS Test deployment at `trp-booking.juantzun.dev` remains `TRP_ENVIRONMENT=test` on the developer-owned stack with zero Vercel scheduler registrations. The Post-Phase-12 / Pre-Phase-13 Final Improvement Track is active: Final-A — reservation financial correctness and effective stay value — is completed and accepted, including its 44/44 integrated regression gate; Final-B — admin external-calendar integrations — is completed and accepted at `1fe06de8c55ab1563999b2db1d210bfc9a82c613`, including its permanent 38/38 regression gate and controlled three-property Hosted Test acceptance; Final-C — pricing rules: seasonal and length-of-stay — is completed and accepted on 2026-08-28 at accepted feature head `dca50f51abe1836d3b678b762693219143b12099`, including its permanent 41/41 Final-C regression gate, three-property pricing isolation, public/pending-reservation pricing integration, DATE_CHANGE/STAY_EXTENSION integration, accepted pricing evidence, and final admin/public/email pricing UX refinements. Final-D — additional charges and guest payment requests — is in progress with Final-D.3 completed and accepted on 2026-08-31 at `6a0d909fc325f4e8925677041be34c77c023c42b`; Final-D.1 is completed and accepted at `3dc4fa7d81d65244a94e7e43726e2f12591e578f`, Final-D.2 is completed and accepted at `74ac3011eb22277a896d81c92897f1bee6a4d51b`, and Final-D.4 — Private guest payment link and Tilopay collection — is implemented and locally validated with owner acceptance pending from accepted D.3 base `6a0d909fc325f4e8925677041be34c77c023c42b`. Final-D.5 remains Not started. Phase 13 — Production Infrastructure, Deployment & Go-Live — remains Not started until Final-H closes and the owner explicitly accepts the complete improvement track.
+As of 2026-09-14, Phase 12 — Test Deployment & External Integration Validation — is completed and accepted. The stable HTTPS Test deployment at `trp-booking.juantzun.dev` remains `TRP_ENVIRONMENT=test` on the developer-owned stack with zero Vercel scheduler registrations. The Post-Phase-12 / Pre-Phase-13 Final Improvement Track is active: Final-A — reservation financial correctness and effective stay value — is completed and accepted, including its 44/44 integrated regression gate; Final-B — admin external-calendar integrations — is completed and accepted at `1fe06de8c55ab1563999b2db1d210bfc9a82c613`, including its permanent 38/38 regression gate and controlled three-property Hosted Test acceptance; Final-C — pricing rules: seasonal and length-of-stay — is completed and accepted on 2026-08-28 at accepted feature head `dca50f51abe1836d3b678b762693219143b12099`, including its permanent 41/41 Final-C regression gate, three-property pricing isolation, public/pending-reservation pricing integration, DATE_CHANGE/STAY_EXTENSION integration, accepted pricing evidence, and final admin/public/email pricing UX refinements. Final-D — additional charges and guest payment requests — is in progress with Final-D.1 completed and accepted at `3dc4fa7d81d65244a94e7e43726e2f12591e578f`, Final-D.2 completed and accepted at `74ac3011eb22277a896d81c92897f1bee6a4d51b`, Final-D.3 completed and accepted on 2026-08-31 at `6a0d909fc325f4e8925677041be34c77c023c42b`, and Final-D.4 — Private guest payment link and Tilopay collection — completed and accepted on 2026-09-14 at `7d996fd20db42b2560df11f7e00d7a5e9cc0d18c`. Final-D.5 is Next / Not started. Phase 13 — Production Infrastructure, Deployment & Go-Live — remains Not started until Final-H closes and the owner explicitly accepts the complete improvement track.
 
 ## Environment Strategy
 
@@ -496,7 +496,7 @@ Current phase state: Phase 12 — Test Deployment & External Integration Validat
 Current numbered phase: none active
 Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
 Current package: Final-D — Additional charges and guest payment requests — In progress
-Current subphase: Final-D.4 — Private guest payment link and Tilopay collection — Implemented and locally validated on 2026-09-11; owner acceptance pending
+Current/next subphase: Final-D.5 — Additional-charge refunds and financial-summary integration — Next / Not started
 Final-C implementation base head: e7ce19c49c5cfd45e1cc08796ee897a2dce0d1ed
 Final-C.1 status: Completed and accepted on 2026-08-25
 Final-C.1 accepted strategy head: 16d8b0411e573aaaa6b510ddb27a9b5d9c666478
@@ -564,11 +564,12 @@ Final-D.3 status: Completed and accepted on 2026-08-31
 Final-D.3 accepted head: 6a0d909fc325f4e8925677041be34c77c023c42b
 Final-D.3 record: docs/181-final-d-3-admin-charge-management-and-payment-request-creation.md
 Final-D.4 implementation base head: 6a0d909fc325f4e8925677041be34c77c023c42b
-Final-D.4 status: Implemented and locally validated on 2026-09-11; owner acceptance pending — Private guest payment link and Tilopay collection
+Final-D.4 status: Completed and accepted on 2026-09-14 at 7d996fd20db42b2560df11f7e00d7a5e9cc0d18c — Private guest payment link and Tilopay collection
+Final-D.4 accepted implementation head: 7d996fd20db42b2560df11f7e00d7a5e9cc0d18c
 Final-D.4 record: docs/182-final-d-4-private-guest-payment-link-and-tilopay-collection.md
-Final-D.5 status: Not started — Additional-charge refunds and financial-summary integration
+Final-D.5 status: Next / Not started — Additional-charge refunds and financial-summary integration
 Last completed package: Final-C — Pricing rules: seasonal and length-of-stay — Completed and accepted on 2026-08-28 at dca50f51abe1836d3b678b762693219143b12099
-Last completed subphase: Final-D.3 Admin charge management and payment-request creation — completed and accepted on 2026-08-31 at 6a0d909fc325f4e8925677041be34c77c023c42b
+Last completed subphase: Final-D.4 Private guest payment link and Tilopay collection — completed and accepted on 2026-09-14 at 7d996fd20db42b2560df11f7e00d7a5e9cc0d18c
 Final-A.1 status: Completed and accepted on 2026-08-11
 Final-A.1 accepted head: 19531568752a44446d0802d6581262260b881aaf
 Final-A.2 status: Completed and accepted on 2026-08-11

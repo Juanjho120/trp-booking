@@ -317,10 +317,10 @@ Final-D.1 — Completed and accepted
 Final-D.2 — Completed and accepted at 74ac3011eb22277a896d81c92897f1bee6a4d51b
 Final-D.3 — Completed and accepted on 2026-08-31 at 6a0d909fc325f4e8925677041be34c77c023c42b
 Final-D.4 implementation base — 6a0d909fc325f4e8925677041be34c77c023c42b
-Final-D.4 — Implemented and validated; owner acceptance pending — Private guest payment link and Tilopay collection; initial implementation commit d2ad7687b8519a4fd0c083f72ca2bfec7f90ce83
-Final-D.5 — Not started — Additional-charge refunds and financial-summary integration
+Final-D.4 — Completed and accepted on 2026-09-14 at 7d996fd20db42b2560df11f7e00d7a5e9cc0d18c — Private guest payment link and Tilopay collection; initial implementation commit d2ad7687b8519a4fd0c083f72ca2bfec7f90ce83
+Final-D.5 — Next / Not started — Additional-charge refunds and financial-summary integration
 Final-E — Not started
 Phase 13 — Not started
 ```
 
-Final-D.3 is completed and accepted on 2026-08-31 at `6a0d909fc325f4e8925677041be34c77c023c42b` after the validation/acceptance gate above was confirmed. Final-D.4 has since been implemented and validated from this accepted base at initial implementation commit `d2ad7687b8519a4fd0c083f72ca2bfec7f90ce83`, but remains pending owner acceptance. Final-D.5 remains Not started.
+Final-D.3 is completed and accepted on 2026-08-31 at `6a0d909fc325f4e8925677041be34c77c023c42b` after the validation/acceptance gate above was confirmed. Final-D.4 has since been completed and accepted on 2026-09-14 at `7d996fd20db42b2560df11f7e00d7a5e9cc0d18c` from this accepted base. Final-D.5 is Next / Not started.

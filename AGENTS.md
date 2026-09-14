@@ -21,11 +21,13 @@ This file defines the working rules for TRP Booking.
 - Final-D.1 is completed and accepted.
 - Final-D.2 is completed and accepted.
 - Final-D.3 is completed and accepted on 2026-08-31 at `6a0d909fc325f4e8925677041be34c77c023c42b`.
-- Current subphase: Final-D.4 — Private guest payment link and Tilopay collection — implementation completed; owner acceptance pending.
-- Final-D.4 implementation is completed in the current D.4 changeset, but D.4 is not accepted until owner acceptance is explicitly recorded.
+- Final-D.4 is completed and accepted on 2026-09-14 at `7d996fd20db42b2560df11f7e00d7a5e9cc0d18c`.
+- Current/next subphase: Final-D.5 — Additional-charge refunds and financial-summary integration — Next / Not started.
 - Final-D.4 implementation base: `6a0d909fc325f4e8925677041be34c77c023c42b`.
+- Final-D.4 accepted implementation head: `7d996fd20db42b2560df11f7e00d7a5e9cc0d18c`.
 - Final-D.4 implementation record: `docs/182-final-d-4-private-guest-payment-link-and-tilopay-collection.md`.
-- Final-D.5 remains Not started and must not begin until Final-D.4 receives explicit owner acceptance.
+- Final-D.5 remains Not started and must not begin until explicitly requested.
+- Final-D.6, Final-D.7, Final-E, Final-F, Final-G, and Final-H remain Not started.
 - Phase 13 remains Not started and must not be activated implicitly.
 
 ## Environment Isolation
@@ -90,7 +92,7 @@ Rules:
 - Do not activate Production or Phase 13 work from a Final Improvement Track task.
 - A subphase may be declared completed only after implementation, required validation, documentation reconciliation, and owner acceptance are recorded.
 - If documentation and the accepted repository state disagree, stop advancement and reconcile the authoritative trackers before implementing the next subphase.
-- For the current handoff, Final-D.3 is accepted at `6a0d909fc325f4e8925677041be34c77c023c42b`; Final-D.4 is implemented and locally validated with owner acceptance pending, and Final-D.5 remains Not started.
+- For the current handoff, Final-D.3 is accepted at `6a0d909fc325f4e8925677041be34c77c023c42b`; Final-D.4 is completed and accepted on 2026-09-14 at `7d996fd20db42b2560df11f7e00d7a5e9cc0d18c`; Final-D.5 is the next subphase but remains Not started until explicitly requested.
 
 ## Implementation Completion Gate
 
