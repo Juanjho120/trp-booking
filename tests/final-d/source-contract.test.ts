@@ -255,3 +255,31 @@ test("D.5 ancillary refunds stay isolated from reservation stay refund surfaces"
   assert.match(additionalCharges, /refundAllocations/);
   assert.match(additionalCharges, /additional-charges\/refunds/);
 });
+
+test("D.5 additional-charge tab exposes the shared refund execution, consult, and reconciliation workflow", () => {
+  const detailPage = source(
+    "features/admin/components/admin-reservation-detail-page.tsx",
+  );
+  const additionalCharges = source(
+    "features/admin/components/admin-additional-charges-section.tsx",
+  );
+  const sharedControls = source(
+    "features/admin/components/admin-refund-operational-controls.tsx",
+  );
+
+  assert.match(additionalCharges, /AdminRefundOperationCard/);
+  assert.match(additionalCharges, /AdminRefundExecutionSheet/);
+  assert.match(additionalCharges, /AdminRefundReconciliationSheet/);
+  assert.match(additionalCharges, /\/api\/admin\/refunds\/\$[\s\S]*\/execute/);
+  assert.match(additionalCharges, /\/api\/admin\/refunds\/\$[\s\S]*\/consult/);
+  assert.match(additionalCharges, /\/api\/admin\/refunds\/\$[\s\S]*\/reconcile/);
+  assert.match(additionalCharges, /refundApiExecutionEnabled/);
+  assert.match(sharedControls, /canExecute/);
+  assert.match(sharedControls, /canConsult/);
+  assert.match(sharedControls, /canReconcile/);
+  assert.match(detailPage, /refund\.authorizationType !== "ADDITIONAL_CHARGE"/);
+  assert.match(
+    detailPage,
+    /paymentPurposeById\.get\(refund\.paymentId\) !== "ADDITIONAL_CHARGE"/,
+  );
+});

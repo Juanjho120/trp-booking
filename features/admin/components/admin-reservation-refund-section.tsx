@@ -2,9 +2,7 @@
 
 import {
   CircleDollarSign,
-  ExternalLink,
   Loader2,
-  RefreshCw,
   RotateCcw,
   ShieldCheck,
 } from "lucide-react";
@@ -68,6 +66,7 @@ import {
   AdminRecordPagination,
   useAdminRecordPagination,
 } from "./admin-record-pagination";
+import { AdminRefundOperationCard } from "./admin-refund-operational-controls";
 import { AdminSnackbar } from "./admin-snackbar";
 
 const inputClassName =
@@ -750,7 +749,7 @@ export function AdminReservationRefundSection({
                 {refundPagination.pageItems.map((group) =>
                   group.refundOperationKey === null &&
                   group.refunds.length === 1 ? (
-                    <RefundCard
+                    <AdminRefundOperationCard
                       apiExecutionEnabled={reservation.refundApiExecutionEnabled}
                       authorizationTypeLabel={authorizationTypeLabel(
                         group.refunds[0].authorizationType,
@@ -1261,7 +1260,7 @@ function RefundOperationCard({
         </p>
         <Accordion className="mt-4 grid gap-3" collapsible type="single">
           {group.refunds.map((refund) => (
-            <RefundCard
+            <AdminRefundOperationCard
               apiExecutionEnabled={apiExecutionEnabled}
               authorizationTypeLabel={authorizationTypeLabel}
               busyAction={busyAction}
@@ -1280,239 +1279,6 @@ function RefundOperationCard({
             />
           ))}
         </Accordion>
-      </AccordionContent>
-    </AccordionItem>
-  );
-}
-
-function RefundCard({
-  refund,
-  payment,
-  apiExecutionEnabled,
-  copy,
-  statusLabel,
-  authorizationTypeLabel,
-  modeLabel,
-  classificationLabel,
-  formatMoney,
-  formatDateTime,
-  busyAction,
-  onExecute,
-  onConsult,
-  onReconcile,
-}: Readonly<{
-  refund: AdminRefundSummary;
-  payment: AdminReservationDetailPayment | null;
-  apiExecutionEnabled: boolean;
-  copy: ReturnType<typeof useLocale>["messages"]["admin"]["reservationsPage"]["refunds"];
-  statusLabel: string;
-  authorizationTypeLabel: string;
-  modeLabel: string;
-  classificationLabel: (classification: string) => string;
-  formatMoney: (value: string, currency: string) => string;
-  formatDateTime: (value: string | null) => string;
-  busyAction: string | null;
-  onExecute: () => void;
-  onConsult: () => void;
-  onReconcile: () => void;
-}>) {
-  const canExecute =
-    refund.status === "PENDING" &&
-    refund.processingMode === "TILOPAY_API" &&
-    apiExecutionEnabled &&
-    Boolean(payment?.providerReference);
-  const canConsult =
-    refund.status === "PROCESSING" &&
-    refund.processingMode === "TILOPAY_API" &&
-    apiExecutionEnabled &&
-    Boolean(payment?.providerReference);
-  const canReconcile =
-    refund.status === "PENDING" || refund.status === "PROCESSING";
-  const requestedBy = refund.requestedByAdmin
-    ? refund.requestedByAdmin.name
-      ? `${refund.requestedByAdmin.name} · ${refund.requestedByAdmin.email}`
-      : refund.requestedByAdmin.email
-    : copy.labels.unavailable;
-
-  return (
-    <AccordionItem
-      className="overflow-hidden rounded-2xl border border-border bg-muted/20 last:border-b"
-      value={refund.id}
-    >
-      <AccordionTrigger className="px-4 py-3 hover:bg-muted/40 sm:px-5">
-        <div className="grid min-w-0 flex-1 gap-3 pr-2 sm:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)_minmax(0,1fr)_auto] sm:items-center">
-          <div className="min-w-0">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">
-              {copy.labels.refund}
-            </p>
-            <p className="mt-1 break-all text-sm font-semibold">{refund.id}</p>
-          </div>
-          <div className="min-w-0">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">
-              {copy.labels.amount}
-            </p>
-            <p className="mt-1 text-sm font-semibold">
-              {formatMoney(refund.amount, refund.currency)}
-            </p>
-          </div>
-          <div className="min-w-0">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">
-              {copy.labels.authorizationType}
-            </p>
-            <p className="mt-1 break-words text-sm font-medium">
-              {authorizationTypeLabel}
-            </p>
-          </div>
-          <Badge className="justify-self-start sm:justify-self-end" variant="outline">
-            {statusLabel}
-          </Badge>
-        </div>
-      </AccordionTrigger>
-      <AccordionContent className="border-t border-border/70 px-4 pt-4 sm:px-5">
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <DetailValue
-            label={copy.labels.amount}
-            value={formatMoney(refund.amount, refund.currency)}
-          />
-          <DetailValue
-            label={copy.labels.authorizationType}
-            value={authorizationTypeLabel}
-          />
-          <DetailValue label={copy.labels.processingMode} value={modeLabel} />
-          <DetailValue label={copy.labels.requestedBy} value={requestedBy} />
-          <DetailValue
-            label={copy.labels.createdAt}
-            value={formatDateTime(refund.createdAt)}
-          />
-          <DetailValue label={copy.labels.payment} value={refund.paymentId} />
-          <DetailValue
-            label={copy.labels.providerOrder}
-            value={payment?.providerReference ?? copy.labels.unavailable}
-          />
-          <DetailValue
-            label={copy.labels.providerRefundId}
-            value={refund.providerRefundId ?? copy.labels.unavailable}
-          />
-          <DetailValue
-            label={copy.labels.updatedAt}
-            value={formatDateTime(refund.updatedAt)}
-          />
-        </div>
-        {refund.reason ? (
-          <div className="mt-4 rounded-xl border border-border/70 bg-background/60 p-4">
-            <DetailValue label={copy.labels.reason} value={refund.reason} />
-          </div>
-        ) : null}
-        {refund.diagnostics ? (
-          <div className="mt-4 grid gap-4 rounded-xl border border-border/70 bg-background/60 p-4 sm:grid-cols-2 xl:grid-cols-4">
-            <DetailValue
-              label={copy.labels.diagnosticSource}
-              value={refund.diagnostics.source}
-            />
-            <DetailValue
-              label={copy.labels.responseCode}
-              value={
-                refund.diagnostics.responseCode ?? copy.labels.unavailable
-              }
-            />
-            <DetailValue
-              label={copy.labels.resultClassification}
-              value={
-                refund.diagnostics.resultClassification
-                  ? classificationLabel(
-                      refund.diagnostics.resultClassification,
-                    )
-                  : copy.labels.unavailable
-              }
-            />
-            <DetailValue
-              label={copy.labels.observedAt}
-              value={formatDateTime(refund.diagnostics.observedAt)}
-            />
-            {refund.diagnostics.orderNumber ? (
-              <DetailValue
-                label={copy.labels.observedOrder}
-                value={refund.diagnostics.orderNumber}
-              />
-            ) : null}
-            {refund.diagnostics.amount ? (
-              <DetailValue
-                label={copy.labels.observedAmount}
-                value={
-                  refund.diagnostics.currency
-                    ? formatMoney(
-                        refund.diagnostics.amount,
-                        refund.diagnostics.currency,
-                      )
-                    : refund.diagnostics.amount
-                }
-              />
-            ) : null}
-            {refund.diagnostics.modificationType ? (
-              <DetailValue
-                label={copy.labels.modificationType}
-                value={refund.diagnostics.modificationType}
-              />
-            ) : null}
-            {refund.diagnostics.candidateCount !== null ? (
-              <DetailValue
-                label={copy.labels.candidateCount}
-                value={String(refund.diagnostics.candidateCount)}
-              />
-            ) : null}
-            {refund.diagnostics.description ? (
-              <div className="sm:col-span-2 xl:col-span-4">
-                <DetailValue
-                  label={copy.labels.safeDescription}
-                  value={refund.diagnostics.description}
-                />
-              </div>
-            ) : null}
-          </div>
-        ) : null}
-        {canExecute || canConsult || canReconcile ? (
-          <div className="mt-4 flex flex-wrap justify-end gap-3 border-t border-border/70 pt-4">
-            {canConsult ? (
-              <Button
-                disabled={busyAction !== null}
-                onClick={onConsult}
-                type="button"
-                variant="outline"
-              >
-                {busyAction === `consult:${refund.id}` ? (
-                  <Loader2 aria-hidden="true" className="animate-spin" />
-                ) : (
-                  <RefreshCw aria-hidden="true" />
-                )}
-                {busyAction === `consult:${refund.id}`
-                  ? copy.actions.consulting
-                  : copy.actions.consult}
-              </Button>
-            ) : null}
-            {canReconcile ? (
-              <Button
-                disabled={busyAction !== null}
-                onClick={onReconcile}
-                type="button"
-                variant="outline"
-              >
-                <ExternalLink aria-hidden="true" />
-                {copy.actions.reconcile}
-              </Button>
-            ) : null}
-            {canExecute ? (
-              <Button
-                disabled={busyAction !== null}
-                onClick={onExecute}
-                type="button"
-                variant="destructive"
-              >
-                <RotateCcw aria-hidden="true" />
-                {copy.actions.executeSandbox}
-              </Button>
-            ) : null}
-          </div>
-        ) : null}
       </AccordionContent>
     </AccordionItem>
   );

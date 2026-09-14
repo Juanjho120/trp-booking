@@ -1,5 +1,6 @@
 import "./source-contract.test";
 import "./behavior.test";
+import "./refund-runtime.test";
 
 import { runFinalDTests } from "./harness";
 

@@ -26,7 +26,19 @@ Final-D.5 implements the ancillary refund branch reserved by D.1/D.2 while prese
 - Approved ancillary refund evidence updates `Payment.status` and `AdditionalCharge.status` only.
 - `Reservation.total`, pricing snapshots, stay cancellation-policy money, lifecycle completion, and stay refund pools remain isolated.
 - The Final-A financial summary now reports ancillary gross/captured/refunded amounts separately.
-- The existing Additional Charges tab now shows per-charge captured/refunded/refundable balances, refund history/evidence, and a minimal refund authorization action.
+- The existing Additional Charges tab now shows per-charge captured/refunded/refundable balances, refund history/evidence, refund authorization, and the full shared refund execution/consult/reconciliation workflow.
+- Ancillary refunds remain intentionally excluded from the general reservation Refunds tab and are operated only from the Additional Charges tab.
+
+## Review Closure Update
+
+The independent Final-D.5 review identified one remaining product/runtime gap and one coverage gap. This closure corrected both while preserving the accepted architecture:
+
+- The Additional Charges tab now reuses the shared Final-A refund operational controls for Execute, Consult, and Reconcile against the existing `/api/admin/refunds/[refundId]/execute`, `/consult`, and `/reconcile` endpoints.
+- No alternate Tilopay refund client, endpoint, or provider abstraction was introduced.
+- The general reservation Refunds tab continues to filter out `ADDITIONAL_CHARGE` refunds so ancillary refund operations cannot mix into the stay-refund surface.
+- `tests/final-d/refund-runtime.test.ts` now executes `createAdminRefundAuthorization`, `executeAdminTilopayRefund`, and `reconcileAdminRefund` against an in-memory Prisma-compatible mock, including provider acceptance/rejection and reconciliation outcomes.
+- A rollback-only Local/Test database validation was executed against the configured Supabase database using an existing `ADDITIONAL_CHARGE` payment fixture; it verified real `Refund` plus `AdditionalChargeRefundAllocation` persistence constraints and confirmed no rows remained after rollback.
+- No real Tilopay refund was executed.
 
 ## Financial Definitions Implemented
 
@@ -68,17 +80,20 @@ Final-D.5 did not implement:
 ```text
 npx tsx tests/final-d/run.ts
 Initial run blocked by Windows/Node tsx uv_os_get_passwd ENOMEM.
-Re-run with a temporary NODE_OPTIONS preload outside the repository: passed 32/32.
+Re-run with a temporary NODE_OPTIONS preload outside the repository: passed 40/40.
 
 npm run final-a:validate
-Initial run blocked by the same tsx uv_os_get_passwd ENOMEM.
-Re-run with the temporary NODE_OPTIONS preload outside the repository: passed 44/44.
+Run with the temporary NODE_OPTIONS preload outside the repository: passed 44/44.
 
 npm run final-b:validate
 Run with the temporary NODE_OPTIONS preload outside the repository: passed 38/38.
 
 npm run final-c:validate
 Run with the temporary NODE_OPTIONS preload outside the repository: passed 41/41.
+
+Final-D.5 rollback-only DB validation against the configured Local/Test Supabase datasource
+Initial sandbox run could not reach the remote Supabase datasource.
+Re-run with sandbox escalation: passed; one rollback-only ADDITIONAL_CHARGE Refund plus AdditionalChargeRefundAllocation was inserted inside a Serializable transaction, verified, rolled back, and confirmed absent afterward. No Tilopay refund call was made.
 
 npm run db:generate
 Passed. Prisma emitted the existing package.json#prisma deprecation warning.
@@ -87,11 +102,10 @@ npm run db:validate
 Passed. Prisma emitted the existing package.json#prisma deprecation warning.
 
 npm run db:migrate:status
-Initial sandbox run failed with a Prisma Schema engine error against the remote Supabase datasource.
-Re-run with sandbox escalation for the configured datasource: passed; database schema is up to date with 18 migrations.
+Run with sandbox escalation for the configured datasource: passed; database schema is up to date with 18 migrations.
 
 npm run lint
-Passed after removing one unused-type warning.
+Passed.
 
 npm run build
 Initial sandbox run failed because next/font could not fetch Google Fonts.

@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { Accordion } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -48,11 +49,26 @@ import type {
   AdminGuestPaymentRequestSummary,
 } from "@/types/admin-additional-charge";
 import type {
+  AdminRefundConsultResult,
   AdminRefundAuthorizationResult,
+  AdminRefundErrorCode,
+  AdminRefundExecutionResult,
   AdminRefundProcessingMode,
+  AdminRefundReconciliationResult,
+  AdminRefundSummary,
 } from "@/types/admin-refund";
 
 import { AdminSnackbar } from "./admin-snackbar";
+import {
+  AdminRefundExecutionSheet,
+  AdminRefundOperationCard,
+  AdminRefundReconciliationSheet,
+  hasConclusiveRefundConsultEvidence,
+  initialRefundReconciliationDraft,
+  refundConsultOutcome,
+  type AdminRefundOperationalPayment,
+  type AdminRefundReconciliationDraft,
+} from "./admin-refund-operational-controls";
 
 type ChargeFormState = Readonly<{
   category: AdditionalChargeCategory;
@@ -82,6 +98,16 @@ type MutationResponse =
 type PaymentLinkResponse =
   | Readonly<{ paymentUrl: string }>
   | Readonly<{ error: { code: AdminAdditionalChargeErrorCode | string } }>;
+
+type RefundApiResponse<Result> = Readonly<{
+  result?: Result;
+  error?: Readonly<{ code?: AdminRefundErrorCode }>;
+}>;
+
+type RefundOperationTarget = Readonly<{
+  refund: AdminRefundSummary;
+  payment: AdminRefundOperationalPayment;
+}>;
 
 const emptyChargeForm: ChargeFormState = {
   category: "OTHER",
@@ -142,10 +168,30 @@ export function AdminAdditionalChargesSection({
   const [refundForm, setRefundForm] =
     useState<RefundFormState>(emptyRefundForm);
   const [refundRequestId, setRefundRequestId] = useState<string | null>(null);
+  const [executionTarget, setExecutionTarget] =
+    useState<RefundOperationTarget | null>(null);
+  const [executionRequestId, setExecutionRequestId] = useState("");
+  const [reconciliationTarget, setReconciliationTarget] =
+    useState<RefundOperationTarget | null>(null);
+  const [reconciliationRequestId, setReconciliationRequestId] = useState("");
+  const [reconciliationDraft, setReconciliationDraft] =
+    useState<AdminRefundReconciliationDraft>({
+      outcome: "APPROVED",
+      source: "TILOPAY_PORTAL",
+      finalProcessingMode: "TILOPAY_PORTAL_FALLBACK",
+      providerRefundId: "",
+      note: "",
+    });
   const [selectedChargeIds, setSelectedChargeIds] = useState<readonly string[]>(
     [],
   );
   const intlLocale = locale === "en" ? "en-US" : "es-GT";
+  const refundCopy = messages.admin.reservationsPage.refunds;
+  const isBusy = busyKey !== null;
+  const reconciliationRefund = reconciliationTarget?.refund ?? null;
+  const reconciliationConsultOutcome = refundConsultOutcome(reconciliationRefund);
+  const reconciliationHasConclusiveConsultEvidence =
+    hasConclusiveRefundConsultEvidence(reconciliationRefund);
 
   const resolveError = useCallback(
     (code: string): string => {
@@ -244,7 +290,16 @@ export function AdminAdditionalChargesSection({
     }).format(Number(amount));
   }
 
-  function formatDateTime(value: string): string {
+  function formatRefundMoney(amount: string, currency: string): string {
+    return new Intl.NumberFormat(intlLocale, {
+      style: "currency",
+      currency,
+    }).format(Number(amount));
+  }
+
+  function formatDateTime(value: string | null): string {
+    if (!value) return copy.labels.unavailable;
+
     return new Intl.DateTimeFormat(intlLocale, {
       dateStyle: "medium",
       timeStyle: "short",
@@ -265,14 +320,85 @@ export function AdminAdditionalChargesSection({
     return copy.requestStatuses[status];
   }
 
-  function processingModeLabel(mode: string): string {
+  function refundStatusLabel(status: string): string {
     return (
-      copy.processingModes[mode as keyof typeof copy.processingModes] ?? mode
+      refundCopy.statuses[status as keyof typeof refundCopy.statuses] ??
+      copy.refundStatuses[status as keyof typeof copy.refundStatuses] ??
+      status
     );
   }
 
-  function refundStatusLabel(status: string): string {
-    return copy.refundStatuses[status as keyof typeof copy.refundStatuses] ?? status;
+  function refundModeLabel(mode: string): string {
+    return (
+      refundCopy.processingModes[
+        mode as keyof typeof refundCopy.processingModes
+      ] ??
+      copy.processingModes[mode as keyof typeof copy.processingModes] ??
+      mode
+    );
+  }
+
+  function refundAuthorizationTypeLabel(type: string): string {
+    return (
+      refundCopy.authorizationTypes[
+        type as keyof typeof refundCopy.authorizationTypes
+      ] ?? type
+    );
+  }
+
+  function refundClassificationLabel(classification: string): string {
+    return (
+      refundCopy.resultClassifications[
+        classification as keyof typeof refundCopy.resultClassifications
+      ] ?? classification
+    );
+  }
+
+  function refundErrorMessage(code: AdminRefundErrorCode | undefined): string {
+    return code
+      ? (refundCopy.errors[code] ?? refundCopy.errors.ADMIN_REFUND_UNEXPECTED_ERROR)
+      : refundCopy.errors.ADMIN_REFUND_UNEXPECTED_ERROR;
+  }
+
+  function refundSummaryFromAllocation(
+    allocation: AdminAdditionalChargeSummary["refundAllocations"][number],
+  ): AdminRefundSummary {
+    return {
+      id: allocation.refundId,
+      paymentId: allocation.paymentId,
+      lifecycleRequestId: null,
+      refundOperationKey: allocation.refundOperationKey,
+      requestedByAdmin: allocation.requestedByAdmin,
+      clientRequestId: allocation.clientRequestId,
+      authorizationType: allocation.authorizationType,
+      amount: allocation.refundAmount,
+      currency: allocation.currency,
+      reason: allocation.reason,
+      status: allocation.status,
+      processingMode: allocation.processingMode,
+      providerRefundId: allocation.providerRefundId,
+      processingStartedAt: allocation.processingStartedAt,
+      approvedAt: allocation.approvedAt,
+      failedAt: allocation.failedAt,
+      failureCode: allocation.failureCode,
+      diagnostics: allocation.diagnostics,
+      createdAt: allocation.createdAt,
+      updatedAt: allocation.updatedAt,
+    };
+  }
+
+  function paymentForCharge(
+    charge: AdminAdditionalChargeSummary,
+  ): AdminRefundOperationalPayment | null {
+    if (!charge.paymentId || !charge.paymentUpdatedAt) {
+      return null;
+    }
+
+    return {
+      id: charge.paymentId,
+      providerReference: charge.providerReference,
+      updatedAt: charge.paymentUpdatedAt,
+    };
   }
 
   function resetChargeForm(): void {
@@ -520,6 +646,201 @@ export function AdminAdditionalChargesSection({
     }
   }
 
+  function openExecution(
+    refund: AdminRefundSummary,
+    payment: AdminRefundOperationalPayment | null,
+  ): void {
+    if (!payment) {
+      setErrorMessage(refundCopy.errors.ADMIN_REFUND_PAYMENT_NOT_FOUND);
+      return;
+    }
+
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    setExecutionRequestId(window.crypto.randomUUID());
+    setExecutionTarget({ refund, payment });
+  }
+
+  function openReconciliation(
+    refund: AdminRefundSummary,
+    payment: AdminRefundOperationalPayment | null,
+  ): void {
+    if (!payment) {
+      setErrorMessage(refundCopy.errors.ADMIN_REFUND_PAYMENT_NOT_FOUND);
+      return;
+    }
+
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    setReconciliationRequestId(window.crypto.randomUUID());
+    setReconciliationDraft(initialRefundReconciliationDraft(refund));
+    setReconciliationTarget({ refund, payment });
+  }
+
+  async function executeRefund(): Promise<void> {
+    if (!executionTarget || isBusy) return;
+
+    setBusyKey(`execute:${executionTarget.refund.id}`);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+
+    try {
+      const response = await fetch(
+        `/api/admin/refunds/${encodeURIComponent(
+          executionTarget.refund.id,
+        )}/execute`,
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            requestId: executionRequestId,
+            expectedRefundUpdatedAt: executionTarget.refund.updatedAt,
+            expectedPaymentUpdatedAt: executionTarget.payment.updatedAt,
+          }),
+        },
+      );
+      const payload =
+        (await response.json()) as RefundApiResponse<AdminRefundExecutionResult>;
+
+      if (!response.ok || !payload.result) {
+        setErrorMessage(refundErrorMessage(payload.error?.code));
+        return;
+      }
+
+      setExecutionTarget(null);
+
+      const classification =
+        payload.result.refund.diagnostics?.resultClassification;
+
+      if (payload.result.refund.status === "FAILED") {
+        setErrorMessage(
+          classification === "PROVIDER_REJECTED"
+            ? refundCopy.success.providerRejected
+            : refundCopy.success.executionFailedSafely,
+        );
+      } else {
+        setSuccessMessage(
+          classification === "PROVIDER_ACCEPTED_PENDING_CONFIRMATION"
+            ? refundCopy.success.providerAcceptedPending
+            : refundCopy.success.providerUncertain,
+        );
+      }
+
+      await loadManagement();
+    } catch {
+      setErrorMessage(refundCopy.errors.ADMIN_REFUND_UNEXPECTED_ERROR);
+    } finally {
+      setBusyKey(null);
+    }
+  }
+
+  async function consultRefund(refund: AdminRefundSummary): Promise<void> {
+    if (isBusy) return;
+
+    setBusyKey(`consult:${refund.id}`);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+
+    try {
+      const response = await fetch(
+        `/api/admin/refunds/${encodeURIComponent(refund.id)}/consult`,
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            requestId: window.crypto.randomUUID(),
+            expectedRefundUpdatedAt: refund.updatedAt,
+          }),
+        },
+      );
+      const payload =
+        (await response.json()) as RefundApiResponse<AdminRefundConsultResult>;
+
+      if (!response.ok || !payload.result) {
+        setErrorMessage(refundErrorMessage(payload.error?.code));
+        return;
+      }
+
+      const classification =
+        payload.result.refund.diagnostics?.resultClassification;
+
+      setSuccessMessage(
+        classification === "PROVIDER_ACCEPTED"
+          ? refundCopy.success.consultedAccepted
+          : classification === "PROVIDER_REJECTED"
+            ? refundCopy.success.consultedRejected
+            : refundCopy.success.consultedInconclusive,
+      );
+      await loadManagement();
+    } catch {
+      setErrorMessage(refundCopy.errors.ADMIN_REFUND_UNEXPECTED_ERROR);
+    } finally {
+      setBusyKey(null);
+    }
+  }
+
+  async function reconcileRefund(): Promise<void> {
+    if (
+      !reconciliationTarget ||
+      isBusy ||
+      !reconciliationDraft.note.trim()
+    ) {
+      setErrorMessage(refundCopy.errors.INVALID_ADMIN_REFUND_REQUEST);
+      return;
+    }
+
+    if (
+      reconciliationDraft.outcome === "APPROVED" &&
+      !reconciliationDraft.providerRefundId.trim()
+    ) {
+      setErrorMessage(refundCopy.errors.INVALID_ADMIN_REFUND_REQUEST);
+      return;
+    }
+
+    setBusyKey(`reconcile:${reconciliationTarget.refund.id}`);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+
+    try {
+      const response = await fetch(
+        `/api/admin/refunds/${encodeURIComponent(
+          reconciliationTarget.refund.id,
+        )}/reconcile`,
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            ...reconciliationDraft,
+            providerRefundId:
+              reconciliationDraft.providerRefundId.trim() || null,
+            requestId: reconciliationRequestId,
+            expectedRefundUpdatedAt: reconciliationTarget.refund.updatedAt,
+            expectedPaymentUpdatedAt: reconciliationTarget.payment.updatedAt,
+          }),
+        },
+      );
+      const payload =
+        (await response.json()) as RefundApiResponse<AdminRefundReconciliationResult>;
+
+      if (!response.ok || !payload.result) {
+        setErrorMessage(refundErrorMessage(payload.error?.code));
+        return;
+      }
+
+      setReconciliationTarget(null);
+      setSuccessMessage(
+        payload.result.refund.status === "APPROVED"
+          ? refundCopy.success.reconciledApproved
+          : refundCopy.success.reconciledFailed,
+      );
+      await loadManagement();
+    } catch {
+      setErrorMessage(refundCopy.errors.ADMIN_REFUND_UNEXPECTED_ERROR);
+    } finally {
+      setBusyKey(null);
+    }
+  }
+
   async function cancelPaymentRequest(): Promise<void> {
     if (!cancelRequestTarget) {
       return;
@@ -722,45 +1043,59 @@ export function AdminAdditionalChargesSection({
                               <p className="text-xs font-medium text-foreground">
                                 {copy.labels.refundHistory}
                               </p>
-                              {charge.refundAllocations.map((allocation) => (
-                                <div
-                                  className="rounded-xl border border-border/60 bg-background p-3 text-xs"
-                                  key={allocation.id}
-                                >
-                                  <div className="flex flex-wrap items-center justify-between gap-2">
-                                    <span className="break-all font-medium">
-                                      {copy.labels.refund}{" "}
-                                      {allocation.refundId}
-                                    </span>
-                                    <Badge variant="outline">
-                                      {refundStatusLabel(allocation.status)}
-                                    </Badge>
-                                  </div>
-                                  <div className="mt-2 grid gap-1 text-muted-foreground sm:grid-cols-2">
-                                    <span>
-                                      {copy.labels.allocatedAmount}:{" "}
-                                      {formatMoney(allocation.allocatedAmount)}
-                                    </span>
-                                    <span>
-                                      {copy.labels.processingMode}:{" "}
-                                      {processingModeLabel(
-                                        allocation.processingMode,
+                              <Accordion
+                                className="grid gap-2"
+                                collapsible
+                                type="single"
+                              >
+                                {charge.refundAllocations.map((allocation) => {
+                                  const refund =
+                                    refundSummaryFromAllocation(allocation);
+                                  const payment = paymentForCharge(charge);
+
+                                  return (
+                                    <AdminRefundOperationCard
+                                      apiExecutionEnabled={
+                                        management.refundApiExecutionEnabled
+                                      }
+                                      authorizationTypeLabel={refundAuthorizationTypeLabel(
+                                        refund.authorizationType,
                                       )}
-                                    </span>
-                                    <span>
-                                      {copy.labels.providerRefundId}:{" "}
-                                      {allocation.providerRefundId ??
-                                        copy.labels.unavailable}
-                                    </span>
-                                    <span>
-                                      {copy.labels.resultClassification}:{" "}
-                                      {allocation.diagnostics
-                                        ?.resultClassification ??
-                                        copy.labels.unavailable}
-                                    </span>
-                                  </div>
-                                </div>
-                              ))}
+                                      busyAction={busyKey}
+                                      classificationLabel={refundClassificationLabel}
+                                      copy={refundCopy}
+                                      extraDetails={[
+                                        {
+                                          label: copy.labels.allocatedAmount,
+                                          value: formatMoney(
+                                            allocation.allocatedAmount,
+                                          ),
+                                        },
+                                      ]}
+                                      formatDateTime={formatDateTime}
+                                      formatMoney={formatRefundMoney}
+                                      key={allocation.id}
+                                      modeLabel={refundModeLabel(
+                                        refund.processingMode,
+                                      )}
+                                      onConsult={() =>
+                                        void consultRefund(refund)
+                                      }
+                                      onExecute={() =>
+                                        openExecution(refund, payment)
+                                      }
+                                      onReconcile={() =>
+                                        openReconciliation(refund, payment)
+                                      }
+                                      payment={payment}
+                                      refund={refund}
+                                      statusLabel={refundStatusLabel(
+                                        refund.status,
+                                      )}
+                                    />
+                                  );
+                                })}
+                              </Accordion>
                             </div>
                           ) : null}
                         </div>
@@ -1301,6 +1636,34 @@ export function AdminAdditionalChargesSection({
           </SheetFooter>
         </SheetContent>
       </Sheet>
+
+      <AdminRefundExecutionSheet
+        busyAction={busyKey}
+        closeLabel={copy.actions.close}
+        copy={refundCopy}
+        formatMoney={formatRefundMoney}
+        isBusy={isBusy}
+        onClose={() => setExecutionTarget(null)}
+        onConfirm={() => void executeRefund()}
+        refund={executionTarget?.refund ?? null}
+      />
+
+      <AdminRefundReconciliationSheet
+        busyAction={busyKey}
+        closeLabel={copy.actions.close}
+        consultOutcome={reconciliationConsultOutcome}
+        copy={refundCopy}
+        draft={reconciliationDraft}
+        hasConclusiveConsultEvidence={
+          reconciliationHasConclusiveConsultEvidence
+        }
+        isBusy={isBusy}
+        modeLabel={refundModeLabel}
+        onClose={() => setReconciliationTarget(null)}
+        onConfirm={() => void reconcileRefund()}
+        refund={reconciliationTarget?.refund ?? null}
+        setDraft={(update) => setReconciliationDraft(update)}
+      />
 
       <AdminSnackbar
         closeLabel={copy.actions.close}

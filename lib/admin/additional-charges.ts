@@ -10,6 +10,7 @@ import {
 } from "@prisma/client";
 
 import { prisma } from "@/lib/db/prisma";
+import { getTilopayEnv } from "@/lib/env/server";
 import { createGuestPaymentRequestTokenMaterial } from "@/lib/payments/guest-payment-request-token";
 import type { AdminActor } from "@/types/admin";
 import type {
@@ -147,11 +148,18 @@ const chargeSummarySelect = {
           id: true,
           paymentId: true,
           authorizationType: true,
+          clientRequestId: true,
+          refundOperationKey: true,
           amount: true,
           currency: true,
+          reason: true,
           status: true,
           processingMode: true,
           providerRefundId: true,
+          processingStartedAt: true,
+          approvedAt: true,
+          failedAt: true,
+          failureCode: true,
           rawPayload: true,
           createdAt: true,
           updatedAt: true,
@@ -448,6 +456,14 @@ function toChargeSummary(row: ChargeRow, now: Date): AdminAdditionalChargeSummar
       status: allocation.refund.status,
       processingMode: allocation.refund.processingMode,
       providerRefundId: allocation.refund.providerRefundId,
+      reason: allocation.refund.reason,
+      clientRequestId: allocation.refund.clientRequestId,
+      refundOperationKey: allocation.refund.refundOperationKey,
+      processingStartedAt:
+        allocation.refund.processingStartedAt?.toISOString() ?? null,
+      approvedAt: allocation.refund.approvedAt?.toISOString() ?? null,
+      failedAt: allocation.refund.failedAt?.toISOString() ?? null,
+      failureCode: allocation.refund.failureCode,
       diagnostics: toAdminRefundDiagnostics(allocation.refund.rawPayload),
       requestedByAdmin: allocation.refund.requestedByAdmin,
       createdAt: allocation.refund.createdAt.toISOString(),
@@ -591,6 +607,7 @@ export async function getAdminAdditionalChargeManagement(
     reservationConfirmedAt: reservation.confirmedAt?.toISOString() ?? null,
     currency: TRP_CURRENCY,
     canCreateCharge: eligible,
+    refundApiExecutionEnabled: getTilopayEnv().TILOPAY_ENVIRONMENT === "sandbox",
     charges: reservation.additionalCharges.map((charge) =>
       toChargeSummary(charge, now),
     ),

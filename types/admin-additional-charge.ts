@@ -77,6 +77,13 @@ export type AdminAdditionalChargeRefundAllocationSummary = Readonly<{
   status: string;
   processingMode: AdminRefundProcessingMode | string;
   providerRefundId: string | null;
+  reason: string | null;
+  clientRequestId: string | null;
+  refundOperationKey: string | null;
+  processingStartedAt: string | null;
+  approvedAt: string | null;
+  failedAt: string | null;
+  failureCode: string | null;
   diagnostics: AdminRefundDiagnostics | null;
   requestedByAdmin: AdminAdditionalChargeActorSummary | null;
   createdAt: string;
@@ -116,6 +123,7 @@ export type AdminAdditionalChargeManagement = Readonly<{
   reservationConfirmedAt: string | null;
   currency: "USD";
   canCreateCharge: boolean;
+  refundApiExecutionEnabled: boolean;
   charges: readonly AdminAdditionalChargeSummary[];
   paymentRequests: readonly AdminGuestPaymentRequestSummary[];
 }>;
