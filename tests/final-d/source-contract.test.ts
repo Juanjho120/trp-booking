@@ -82,6 +82,22 @@ test("D.4 payment submission attempts allow and validate the ADDITIONAL_CHARGE s
   assert.match(attempts, /GuestPaymentRequestStatus\.PENDING/);
 });
 
+test("D.4 database payment-purpose constraint permits the dedicated additional-charge relation", () => {
+  const migration = source(
+    "prisma/migrations/20260914150000_final_d_4_allow_additional_charge_payment_constraint/migration.sql",
+  );
+
+  assert.match(migration, /DROP CONSTRAINT "payments_purpose_relation_check"/);
+  assert.match(migration, /ADD CONSTRAINT "payments_purpose_relation_check"/);
+  assert.match(migration, /"purpose" = 'INITIAL_RESERVATION'/);
+  assert.match(migration, /"lifecycle_request_id" IS NULL/);
+  assert.match(migration, /"guest_payment_request_id" IS NULL/);
+  assert.match(migration, /"purpose" = 'LIFECYCLE_ADJUSTMENT'/);
+  assert.match(migration, /"lifecycle_request_id" IS NOT NULL/);
+  assert.match(migration, /"purpose" = 'ADDITIONAL_CHARGE'/);
+  assert.match(migration, /"guest_payment_request_id" IS NOT NULL/);
+});
+
 test("D.4 approved ancillary collection marks request and charges paid without reservation confirmation or stay-value mutation", () => {
   const paymentService = source(
     "lib/payments/guest-payment-request-payment.ts",

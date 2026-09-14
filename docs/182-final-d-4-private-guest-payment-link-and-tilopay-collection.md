@@ -7,7 +7,7 @@ Package: Final-D — Additional charges and guest payment requests — In progre
 Subphase: Final-D.4 — Private guest payment link and Tilopay collection
 Implementation base head: 6a0d909fc325f4e8925677041be34c77c023c42b
 Initial implementation commit: d2ad7687b8519a4fd0c083f72ca2bfec7f90ce83
-Implementation record: this D.4 implementation plus corrective validation-strengthening, token-sanitization hardening, hydration, SDK-session error handling, and admin-tab placement changesets
+Implementation record: this D.4 implementation plus corrective validation-strengthening, token-sanitization hardening, hydration, SDK-session error handling, admin-tab placement, and PostgreSQL payment-purpose constraint changesets
 Owner acceptance: Pending; do not mark D.4 accepted until the owner explicitly accepts it
 Next subphase: Final-D.5 — Additional-charge refunds and financial-summary integration — Not started
 Phase 13: Not started
@@ -19,6 +19,7 @@ Phase 13: Not started
 - Added a protected admin Copy private link action that decrypts the recoverable D.3 token only server-side, verifies its SHA-256 hash, returns the URL with `no-store`, copies it through the Clipboard API, and does not render or keep the raw URL in component state.
 - Added the D.4 ancillary payment domain service that resolves private access by token hash, expires overdue pending requests, validates immutable request/item amount and currency snapshots, and prepares one logical Tilopay `Payment` with `PaymentPurpose.ADDITIONAL_CHARGE`.
 - Integrated the additional-charge branch into the accepted Tilopay SDK session, preflight, submission-attempt, client-event, and redirect/result flows.
+- Corrected the real PostgreSQL `payments_purpose_relation_check` constraint so it now permits the dedicated `PaymentPurpose.ADDITIONAL_CHARGE` + `guestPaymentRequestId` relation while preserving the accepted INITIAL_RESERVATION and LIFECYCLE_ADJUSTMENT relation rules.
 - Hardened Tilopay SDK token acquisition so `/loginSdk` network failures, HTTP non-success responses, invalid JSON, and missing `access_token` responses are normalized to `TILOPAY_SDK_TOKEN_UNAVAILABLE` instead of escaping as a generic SDK-session 500.
 - Preserved the established initial-reservation and lifecycle-adjustment branches while keeping D.4 on `PaymentSubmissionSource.ADDITIONAL_CHARGE`.
 - On validated approved Tilopay evidence, marks the request and included additional charges paid through a Serializable transaction and audit log without confirming/reconfirming the reservation, mutating `Reservation.total`, mutating `pricingSnapshot`, altering stay cancellation-policy money, or completing any lifecycle date mutation.
@@ -36,15 +37,62 @@ Phase 13: Not started
 - Preflight and client-event APIs receive the raw token only as the private-page reference, validate it by hash, and persist the real reservation id in operational history without persisting the token. SDK client-event sanitization now treats that token as a sensitive value across free-text diagnostics and SDK payload object/string/Error branches before truncation, dropping sensitive fields instead of persisting partial, masked or derived token values.
 - D.4 does not implement refunds, email delivery/resend/history, consolidated Final-D closure, review invitations, WhatsApp, performance work, or Phase 13 production work.
 
+## Hosted-Test 500 Diagnosis and Correction
+
+Manual Hosted Test reproduced `POST /api/payments/tilopay/sdk-session` returning `TILOPAY_SDK_SESSION_UNEXPECTED_ERROR` when preparing a real `GuestPaymentRequest`.
+
+Safe Local/Test database inspection after the 500 found:
+
+```text
+GuestPaymentRequest id: cmu1bky2q0009l304jogg4sd7
+Reservation id: cmtbxbvjg000ai804kuu5c5t1
+Request status: PENDING
+Request total/currency: 100 USD
+Expires at: 2026-09-21T14:09:59.422Z
+Included charges: 2, both still PENDING
+Associated Payment: none
+Case: A — failure occurred inside prepareGuestPaymentRequestPayment()
+```
+
+The local environment could not decrypt that request's encrypted token copy, so the raw token was not recovered or printed. A rollback-only PostgreSQL dry run against the same request isolated the real failure to the `create_payment` stage:
+
+```text
+prepareGuestPaymentRequestPayment stage: create_payment
+Prisma error class: PrismaClientUnknownRequestError
+PostgreSQL error code: 23514
+Constraint: payments_purpose_relation_check
+Cause: the existing Phase 11 payment-purpose check constraint allowed only INITIAL_RESERVATION and LIFECYCLE_ADJUSTMENT relation shapes. D.2 added Payment.guestPaymentRequestId and PaymentPurpose.ADDITIONAL_CHARGE but did not replace that existing check constraint, so PostgreSQL rejected the D.4 ancillary Payment before providerReference assignment or Tilopay SDK login.
+```
+
+Correction:
+
+```text
+Migration: prisma/migrations/20260914150000_final_d_4_allow_additional_charge_payment_constraint/migration.sql
+Change: drops and recreates payments_purpose_relation_check with three explicit allowed shapes:
+- INITIAL_RESERVATION requires lifecycle_request_id IS NULL and guest_payment_request_id IS NULL.
+- LIFECYCLE_ADJUSTMENT requires lifecycle_request_id IS NOT NULL and guest_payment_request_id IS NULL.
+- ADDITIONAL_CHARGE requires lifecycle_request_id IS NULL and guest_payment_request_id IS NOT NULL.
+```
+
+Post-migration Local/Test evidence:
+
+```text
+db:migrate:deploy applied 20260914150000_final_d_4_allow_additional_charge_payment_constraint successfully.
+Rollback-only dry run against real request cmu1bky2q0009l304jogg4sd7: create_payment PASS; no Payment persisted by the dry run.
+Rollback-only POST /api/payments/tilopay/sdk-session using a diagnostic GuestPaymentRequest in the same database and a mocked /loginSdk boundary: HTTP 201; prepareGuestPaymentRequestPayment PASS; ensurePaymentProviderReference PASS; getTilopayEnv PASS; requestTilopaySdkToken PASS; buildReturnData/buildSdkInitConfig PASS; diagnostic rows rolled back.
+```
+
 ## Validation Executed
 
 ```text
 npm run db:validate — Passed; Prisma schema valid.
 npm run db:generate — Passed; Prisma Client generated.
-npm run db:migrate:status — Initial sandbox attempt failed with a generic Schema engine error against Supabase; rerun with network access passed, 17 migrations found, database schema up to date.
+npm run db:migrate:status — Initial D.4 correction run reported one pending migration, 20260914150000_final_d_4_allow_additional_charge_payment_constraint, before deployment.
+npm run db:migrate:deploy — Passed; applied 20260914150000_final_d_4_allow_additional_charge_payment_constraint to the shared Local/Test database.
+npm run db:migrate:status — Passed after deployment; 18 migrations found and database schema is up to date.
 npm run lint — Passed.
 npm run build — Initial sandbox attempt failed because Next could not fetch Google Fonts; rerun with network access passed.
-npx tsx --tsconfig tests/final-d/tsconfig.json tests/final-d/run.ts — Passed 24/24 with source-contract guards plus behavioral coverage for valid/invalid/expired/cancelled/paid tokens, immutable ADDITIONAL_CHARGE Payment creation, one logical Payment per request, Tilopay SDK session creation/reuse, provider-reference assignment, token-safe `returnData`, typed `/loginSdk` provider failure handling, route-level 502 mapping for known SDK-token failures, rejected/failed retry behavior, approved idempotent application, stay/lifecycle isolation, mismatch rejection, raw-token persistence exclusion across client-event text diagnostics plus SDK payload object/string/Error branches, explicit TRP timezone formatting for the private page, and the dedicated admin Additional Charges tab placement. The local Windows run used a temporary NODE_OPTIONS preload for the Node 22 os.userInfo ENOMEM issue; no repository files were changed for that workaround.
+npx tsx --tsconfig tests/final-d/tsconfig.json tests/final-d/run.ts — Passed 25/25 with source-contract guards plus behavioral coverage for valid/invalid/expired/cancelled/paid tokens, immutable ADDITIONAL_CHARGE Payment creation, the PostgreSQL payment-purpose constraint migration, one logical Payment per request, Tilopay SDK session creation/reuse, provider-reference assignment, token-safe `returnData`, typed `/loginSdk` provider failure handling, route-level 502 mapping for known SDK-token failures, rejected/failed retry behavior, approved idempotent application, stay/lifecycle isolation, mismatch rejection, raw-token persistence exclusion across client-event text diagnostics plus SDK payload object/string/Error branches, explicit TRP timezone formatting for the private page, and the dedicated admin Additional Charges tab placement. The local Windows run used a temporary NODE_OPTIONS preload for the Node 22 os.userInfo ENOMEM issue; no repository files were changed for that workaround.
 npm run final-a:validate — Passed 44/44 with the same temporary tsx preload.
 npm run final-b:validate — Passed 38/38 with the same temporary tsx preload.
 npm run final-c:validate — Passed 41/41 with the same temporary tsx preload.
