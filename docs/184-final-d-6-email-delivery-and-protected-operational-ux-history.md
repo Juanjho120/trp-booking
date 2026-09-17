@@ -22,6 +22,7 @@ Final-D.6 implements the email delivery and protected operational UX/history lay
 - Preserved idempotent replay of the same admin `clientRequestId`: the existing request is returned, no new token is generated, and no duplicate notification is created.
 - Reused the existing `processEmailNotifications`/retry/provider infrastructure instead of adding a new worker, cron route, provider client or endpoint.
 - Added manual resend support through the existing generic `/api/admin/email-notifications/[notificationId]/resend` endpoint while preserving the same request/token, parent/child notification relation, recipient and locale.
+- Corrected manual resend eligibility so overdue PENDING GuestPaymentRequest records are converged to EXPIRED before the rejecting resend transaction, preventing rollback from leaving stale payable-request state.
 - Added protected Additional Charges tab notification visibility and resend UX with safe status/origin/recipient/locale/attempt/timestamp/error-code fields only.
 - Extended operational history with safe GuestPaymentRequest relations for automatic intent, delivery attempts/results and manual resend activity.
 
@@ -32,13 +33,14 @@ Final-D.6 implements the email delivery and protected operational UX/history lay
 - Raw tokens, private URLs, encrypted tokens, provider diagnostics, internal notes, payment identifiers and raw error messages are not persisted in the D.6 email/admin/history surfaces.
 - Delivery eligibility requires the request to be PENDING, unexpired, relation-valid, amount/currency-valid, item-valid and token/hash-valid.
 - Overdue PENDING requests are converged to EXPIRED before the notification is skipped.
+- Manual resend of an overdue PENDING additional-charge payment notification is rejected without creating a manual child notification or provider call, while the GuestPaymentRequest EXPIRED state is persisted outside the rejecting transaction.
 - PAID, CANCELLED, EXPIRED, overdue or integrity-invalid requests are not sent.
 - Additional-charge email delivery remains financially isolated from Reservation.total, accepted stay pricing evidence, stay refund balances, lifecycle completion and reservation confirmation.
 
 ## Validation Executed
 
 ```text
-tests/final-d suite — Passed: 46/46
+tests/final-d suite — Passed: 50/50, including manual-resend overdue expiry persistence, terminal-state resend rejection, cancelled-reservation resend reuse, and transaction rollback coverage for automatic notification creation failure
 npm run final-a:validate — Passed: 44/44 after rerun with temporary os.userInfo preload; first sandbox attempt hit the known Windows tsx uv_os_get_passwd ENOMEM issue
 npm run final-b:validate — Passed: 38/38 with temporary os.userInfo preload
 npm run final-c:validate — Passed: 41/41 with temporary os.userInfo preload

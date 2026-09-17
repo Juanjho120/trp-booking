@@ -19,7 +19,10 @@ import {
   deliverClaimedAdditionalChargePaymentEmailNotification,
 } from "@/lib/email/additional-charge-payment-notifications";
 import { createAdminGuestPaymentRequest } from "@/lib/admin/additional-charges";
-import { requestAdminEmailNotificationResend } from "@/lib/admin/email-notification-resend";
+import {
+  AdminEmailNotificationResendError,
+  requestAdminEmailNotificationResend,
+} from "@/lib/admin/email-notification-resend";
 import { getAdminReservationOperationalHistory } from "@/lib/admin/reservation-operational-history";
 import {
   createGuestPaymentRequestTokenMaterial,
@@ -129,10 +132,81 @@ type D6Store = {
   }>;
   notifications: D6Notification[];
   auditLogs: Array<{ action: string; metadata: unknown }>;
+  failAutomaticNotificationCreate: boolean;
 };
 
 function money(value: string | number): Prisma.Decimal {
   return new Prisma.Decimal(value).toDecimalPlaces(2);
+}
+
+function cloneDate(value: Date | null): Date | null {
+  return value ? new Date(value.getTime()) : null;
+}
+
+function cloneJson<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value)) as T;
+}
+
+function cloneD6Store(store: D6Store): D6Store {
+  return {
+    users: store.users.map((user) => ({ ...user })),
+    reservation: {
+      ...store.reservation,
+      confirmedAt: cloneDate(store.reservation.confirmedAt),
+      cancelledAt: cloneDate(store.reservation.cancelledAt),
+      updatedAt: new Date(store.reservation.updatedAt.getTime()),
+      createdAt: new Date(store.reservation.createdAt.getTime()),
+      property: { ...store.reservation.property },
+    },
+    charges: store.charges.map((charge) => ({
+      ...charge,
+      amount: money(charge.amount.toFixed(2)),
+      cancelledAt: cloneDate(charge.cancelledAt),
+      createdAt: new Date(charge.createdAt.getTime()),
+      updatedAt: new Date(charge.updatedAt.getTime()),
+      createdByAdmin: { ...charge.createdByAdmin },
+      paymentRequestItems: cloneJson(charge.paymentRequestItems),
+      refundAllocations: cloneJson(charge.refundAllocations),
+    })),
+    requests: store.requests.map((request) => ({
+      ...request,
+      totalAmount: money(request.totalAmount.toFixed(2)),
+      expiresAt: new Date(request.expiresAt.getTime()),
+      paidAt: cloneDate(request.paidAt),
+      cancelledAt: cloneDate(request.cancelledAt),
+      createdAt: new Date(request.createdAt.getTime()),
+      updatedAt: new Date(request.updatedAt.getTime()),
+    })),
+    requestItems: store.requestItems.map((item) => ({
+      ...item,
+      amountSnapshot: money(item.amountSnapshot.toFixed(2)),
+      createdAt: new Date(item.createdAt.getTime()),
+    })),
+    notifications: store.notifications.map((notification) => ({
+      ...notification,
+      requestedAt: cloneDate(notification.requestedAt),
+      lastAttemptAt: cloneDate(notification.lastAttemptAt),
+      nextAttemptAt: cloneDate(notification.nextAttemptAt),
+      processingStartedAt: cloneDate(notification.processingStartedAt),
+      sentAt: cloneDate(notification.sentAt),
+      createdAt: new Date(notification.createdAt.getTime()),
+      updatedAt: new Date(notification.updatedAt.getTime()),
+    })),
+    auditLogs: cloneJson(store.auditLogs),
+    failAutomaticNotificationCreate: store.failAutomaticNotificationCreate,
+  };
+}
+
+function restoreD6Store(target: D6Store, snapshot: D6Store): void {
+  target.users = snapshot.users;
+  target.reservation = snapshot.reservation;
+  target.charges = snapshot.charges;
+  target.requests = snapshot.requests;
+  target.requestItems = snapshot.requestItems;
+  target.notifications = snapshot.notifications;
+  target.auditLogs = snapshot.auditLogs;
+  target.failAutomaticNotificationCreate =
+    snapshot.failAutomaticNotificationCreate;
 }
 
 function preserveD6Env(): () => void {
@@ -302,6 +376,7 @@ function d6Store(): D6Store {
     requestItems: [],
     notifications: [],
     auditLogs: [],
+    failAutomaticNotificationCreate: false,
   };
 }
 
@@ -385,7 +460,14 @@ function notificationWithRelations(store: D6Store, notification: D6Notification)
 function installD6Prisma(store: D6Store): void {
   const client = {
     async $transaction<T>(operation: (transaction: typeof client) => Promise<T>): Promise<T> {
-      return operation(client);
+      const before = cloneD6Store(store);
+
+      try {
+        return await operation(client);
+      } catch (error) {
+        restoreD6Store(store, before);
+        throw error;
+      }
     },
     user: {
       async upsert(args: { where: { email: string }; create: { email: string; name: string | null; role: UserRole }; update: { name?: string; role: UserRole } }) {
@@ -438,12 +520,49 @@ function installD6Prisma(store: D6Store): void {
           : store.requests.find((candidate) => candidate.id === args.where.id);
         return request ? enrichRequest(store, request) : null;
       },
-      async updateMany(args: { where: { id?: string; status?: GuestPaymentRequestStatus; expiresAt?: { lte?: Date } }; data: { status?: GuestPaymentRequestStatus } }) {
+      async updateMany(args: {
+        where: {
+          id?: string;
+          reservationId?: string;
+          status?: GuestPaymentRequestStatus;
+          expiresAt?: { lte?: Date };
+          emailNotifications?: {
+            some?: {
+              id?: string;
+              reservationId?: string;
+              type?: EmailNotificationType;
+            };
+          };
+        };
+        data: { status?: GuestPaymentRequestStatus };
+      }) {
         let count = 0;
         for (const request of store.requests) {
           if (args.where.id && request.id !== args.where.id) continue;
+          if (
+            args.where.reservationId &&
+            request.reservationId !== args.where.reservationId
+          ) {
+            continue;
+          }
           if (args.where.status && request.status !== args.where.status) continue;
           if (args.where.expiresAt?.lte && request.expiresAt > args.where.expiresAt.lte) continue;
+          const notificationFilter = args.where.emailNotifications?.some;
+          if (notificationFilter) {
+            const hasMatchingNotification = store.notifications.some(
+              (notification) =>
+                notification.guestPaymentRequestId === request.id &&
+                (!notificationFilter.id ||
+                  notification.id === notificationFilter.id) &&
+                (!notificationFilter.reservationId ||
+                  notification.reservationId ===
+                    notificationFilter.reservationId) &&
+                (!notificationFilter.type ||
+                  notification.type === notificationFilter.type),
+            );
+
+            if (!hasMatchingNotification) continue;
+          }
           if (args.data.status) request.status = args.data.status;
           count += 1;
         }
@@ -558,6 +677,15 @@ function installD6Prisma(store: D6Store): void {
         return { count };
       },
       async create(args: { data: Record<string, unknown> }) {
+        if (
+          store.failAutomaticNotificationCreate &&
+          args.data.type ===
+            EmailNotificationType.ADDITIONAL_CHARGE_PAYMENT_REQUIRED &&
+          args.data.origin === EmailNotificationOrigin.AUTOMATIC
+        ) {
+          throw new Error("forced automatic notification failure");
+        }
+
         const notification: D6Notification = {
           id: `notification-final-d6-${store.notifications.length + 1}`,
           reservationId: String(args.data.reservationId),
@@ -632,6 +760,146 @@ function installD6Prisma(store: D6Store): void {
 
 function assertNoRawToken(value: unknown, token = D6_TOKEN): void {
   assert.equal(JSON.stringify(value).includes(token), false);
+}
+
+function seedD6PaymentRequest(
+  store: D6Store,
+  options: Readonly<{
+    status?: GuestPaymentRequestStatus;
+    expiresAt?: Date;
+    withItems?: boolean;
+  }> = {},
+): void {
+  const tokenMaterial = createGuestPaymentRequestTokenMaterial(
+    D6_RESERVATION_ID,
+    D6_TOKEN,
+  );
+
+  store.requests.push({
+    id: D6_REQUEST_ID,
+    reservationId: D6_RESERVATION_ID,
+    status: options.status ?? GuestPaymentRequestStatus.PENDING,
+    totalAmount: money("30.00"),
+    currency: "USD",
+    accessTokenHash: tokenMaterial.tokenHash,
+    accessTokenEncrypted: tokenMaterial.encryptedToken,
+    expiresAt:
+      options.expiresAt ?? new Date("2026-09-24T12:00:00.000Z"),
+    createdByAdminId: "admin-final-d6",
+    clientRequestId: "client-d6-seeded",
+    paidAt: null,
+    cancelledAt: null,
+    createdAt: D6_BASE_NOW,
+    updatedAt: D6_BASE_NOW,
+  });
+
+  if (options.withItems === false) {
+    return;
+  }
+
+  store.requestItems.push(
+    {
+      id: "item-d6-1",
+      paymentRequestId: D6_REQUEST_ID,
+      additionalChargeId: "charge-d6-1",
+      categorySnapshot: "TRANSPORT",
+      descriptionSnapshot: "Airport pickup",
+      amountSnapshot: money("12.50"),
+      currencySnapshot: "USD",
+      createdAt: D6_BASE_NOW,
+    },
+    {
+      id: "item-d6-2",
+      paymentRequestId: D6_REQUEST_ID,
+      additionalChargeId: "charge-d6-2",
+      categorySnapshot: "CLEANING",
+      descriptionSnapshot: "Extra cleaning",
+      amountSnapshot: money("17.50"),
+      currencySnapshot: "USD",
+      createdAt: D6_BASE_NOW,
+    },
+  );
+}
+
+function seedD6SourceNotification(
+  store: D6Store,
+  options: Readonly<{
+    status?: EmailNotificationStatus;
+    updatedAt?: Date;
+  }> = {},
+): void {
+  const timestamp = options.updatedAt ?? D6_BASE_NOW;
+
+  store.notifications.push({
+    id: D6_NOTIFICATION_ID,
+    reservationId: D6_RESERVATION_ID,
+    guestPaymentRequestId: D6_REQUEST_ID,
+    lifecycleRequestId: null,
+    refundId: null,
+    type: EmailNotificationType.ADDITIONAL_CHARGE_PAYMENT_REQUIRED,
+    recipient: "guest.final-d6@juantzun.dev",
+    locale: "es",
+    deduplicationKey: `additional-charge-payment-required/${D6_REQUEST_ID}/guest.final-d6@juantzun.dev`,
+    origin: EmailNotificationOrigin.AUTOMATIC,
+    parentNotificationId: null,
+    requestedByAdminId: null,
+    requestedAt: null,
+    status: options.status ?? EmailNotificationStatus.SENT,
+    attemptCount: 1,
+    lastAttemptAt: D6_BASE_NOW,
+    nextAttemptAt: null,
+    processingStartedAt: null,
+    providerMessageId: "msg-source-d6",
+    sentAt: D6_BASE_NOW,
+    errorCode: null,
+    errorMessage: null,
+    createdAt: D6_BASE_NOW,
+    updatedAt: timestamp,
+  });
+}
+
+function d6ManualResendInput(
+  requestId: string,
+  expectedUpdatedAt = D6_BASE_NOW.toISOString(),
+) {
+  return {
+    sourceNotificationId: D6_NOTIFICATION_ID,
+    reservationId: D6_RESERVATION_ID,
+    expectedUpdatedAt,
+    requestId,
+  };
+}
+
+async function assertD6ResendRejected(
+  input: Parameters<typeof requestAdminEmailNotificationResend>[0],
+): Promise<void> {
+  await assert.rejects(
+    () =>
+      requestAdminEmailNotificationResend(input, {
+        email: "admin@juantzun.dev",
+        name: "Admin Final D6",
+      }),
+    (error: unknown) =>
+      error instanceof AdminEmailNotificationResendError &&
+      error.code === "ADMIN_EMAIL_NOTIFICATION_RESEND_NOT_ALLOWED",
+  );
+}
+
+async function withFetchCallCounter(
+  run: (calls: () => number) => Promise<void>,
+): Promise<void> {
+  const originalFetch = globalThis.fetch;
+  let callCount = 0;
+  globalThis.fetch = (async () => {
+    callCount += 1;
+    throw new Error("unexpected provider call");
+  }) as typeof fetch;
+
+  try {
+    await run(() => callCount);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 }
 
 test("D.6 behavior renders localized additional-charge payment emails without internal fields", async () => {
@@ -749,6 +1017,39 @@ test("D.6 behavior creates the automatic email intent with the guest payment req
     assert.equal(store.notifications[0]?.guestPaymentRequestId, D6_REQUEST_ID);
     assert.equal(store.notifications[0]?.status, EmailNotificationStatus.PENDING);
     assert.equal(store.notifications[0]?.origin, EmailNotificationOrigin.AUTOMATIC);
+    assertNoRawToken(store);
+  } finally {
+    restoreEnv();
+  }
+});
+
+test("D.6 behavior rolls back the guest payment request when automatic email intent creation fails", async () => {
+  const restoreEnv = preserveD6Env();
+  const store = d6Store();
+  store.failAutomaticNotificationCreate = true;
+  installD6Prisma(store);
+
+  try {
+    await assert.rejects(
+      () =>
+        createAdminGuestPaymentRequest(
+          {
+            reservationId: D6_RESERVATION_ID,
+            clientRequestId: "00000000-0000-4000-8000-000000000d62",
+            charges: store.charges.map((charge) => ({
+              chargeId: charge.id,
+              expectedUpdatedAt: charge.updatedAt.toISOString(),
+            })),
+          },
+          { email: "admin@juantzun.dev", name: "Admin Final D6" },
+        ),
+      /forced automatic notification failure/,
+    );
+
+    assert.equal(store.requests.length, 0);
+    assert.equal(store.requestItems.length, 0);
+    assert.equal(store.notifications.length, 0);
+    assert.equal(store.auditLogs.length, 0);
     assertNoRawToken(store);
   } finally {
     restoreEnv();
@@ -1050,6 +1351,115 @@ test("D.6 behavior creates idempotent manual resends tied to the same guest paym
     assertNoRawToken(store);
   } finally {
     restoreEnv();
+  }
+});
+
+test("D.6 behavior persists overdue manual-resend expiry while rejecting the resend", async () => {
+  const restoreEnv = preserveD6Env();
+  enableD6EmailEnv();
+  const store = d6Store();
+  seedD6PaymentRequest(store, {
+    expiresAt: new Date("2026-09-16T12:00:00.000Z"),
+    withItems: false,
+  });
+  seedD6SourceNotification(store);
+  installD6Prisma(store);
+
+  try {
+    await withFetchCallCounter(async (providerCalls) => {
+      await assertD6ResendRejected(
+        d6ManualResendInput("00000000-0000-4000-8000-000000000d63"),
+      );
+
+      assert.equal(
+        store.requests[0]?.status,
+        GuestPaymentRequestStatus.EXPIRED,
+      );
+      assert.equal(
+        store.notifications.filter(
+          (notification) =>
+            notification.parentNotificationId === D6_NOTIFICATION_ID,
+        ).length,
+        0,
+      );
+      assert.equal(providerCalls(), 0);
+      assertNoRawToken(store);
+    });
+  } finally {
+    restoreEnv();
+  }
+});
+
+test("D.6 behavior allows manual resend for a historically confirmed cancelled reservation", async () => {
+  const restoreEnv = preserveD6Env();
+  const store = d6Store();
+  store.reservation.status = ReservationStatus.CANCELLED;
+  store.reservation.cancelledAt = new Date("2026-09-15T12:00:00.000Z");
+  seedD6PaymentRequest(store);
+  seedD6SourceNotification(store);
+  installD6Prisma(store);
+  const encryptedToken = store.requests[0]?.accessTokenEncrypted;
+
+  try {
+    const result = await requestAdminEmailNotificationResend(
+      d6ManualResendInput("00000000-0000-4000-8000-000000000d64"),
+      { email: "admin@juantzun.dev", name: "Admin Final D6" },
+    );
+    const children = store.notifications.filter(
+      (notification) => notification.parentNotificationId === D6_NOTIFICATION_ID,
+    );
+
+    assert.equal(result.created, true);
+    assert.equal(children.length, 1);
+    assert.equal(children[0]?.guestPaymentRequestId, D6_REQUEST_ID);
+    assert.equal(store.requests[0]?.accessTokenEncrypted, encryptedToken);
+    assert.equal(
+      store.requests[0]?.accessTokenHash,
+      hashGuestPaymentRequestAccessToken(D6_TOKEN),
+    );
+    assertNoRawToken(store);
+  } finally {
+    restoreEnv();
+  }
+});
+
+test("D.6 behavior rejects manual resend for terminal guest payment request states", async () => {
+  const terminalStatuses = [
+    GuestPaymentRequestStatus.PAID,
+    GuestPaymentRequestStatus.CANCELLED,
+    GuestPaymentRequestStatus.EXPIRED,
+  ] as const;
+
+  for (const status of terminalStatuses) {
+    const restoreEnv = preserveD6Env();
+    enableD6EmailEnv();
+    const store = d6Store();
+    seedD6PaymentRequest(store, { status, withItems: false });
+    seedD6SourceNotification(store);
+    installD6Prisma(store);
+
+    try {
+      await withFetchCallCounter(async (providerCalls) => {
+        await assertD6ResendRejected(
+          d6ManualResendInput(
+            `00000000-0000-4000-8000-000000000${status.toLowerCase().slice(0, 3)}`,
+          ),
+        );
+
+        assert.equal(store.requests[0]?.status, status);
+        assert.equal(
+          store.notifications.filter(
+            (notification) =>
+              notification.parentNotificationId === D6_NOTIFICATION_ID,
+          ).length,
+          0,
+        );
+        assert.equal(providerCalls(), 0);
+        assertNoRawToken(store);
+      });
+    } finally {
+      restoreEnv();
+    }
   }
 });
 

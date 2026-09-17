@@ -205,7 +205,10 @@ function assertReservationStateSupportsNotification(
   }
 }
 
-function assertSourceRelationIsComplete(source: SourceNotification): void {
+function assertSourceRelationIsComplete(
+  source: SourceNotification,
+  now: Date,
+): void {
   if (additionalChargePaymentNotificationTypes.has(source.type)) {
     if (!source.guestPaymentRequestId || !source.guestPaymentRequest) {
       throw new AdminEmailNotificationResendError(
@@ -216,7 +219,7 @@ function assertSourceRelationIsComplete(source: SourceNotification): void {
     try {
       validateAdditionalChargePaymentRequestEmailEligibility(
         source.guestPaymentRequest,
-        new Date(),
+        now,
       );
     } catch {
       throw new AdminEmailNotificationResendError(
@@ -246,6 +249,7 @@ function assertSourceRelationIsComplete(source: SourceNotification): void {
 function assertSourceIsEligible(
   source: SourceNotification,
   expectedUpdatedAt: string,
+  now: Date,
 ): void {
   if (source.updatedAt.toISOString() !== expectedUpdatedAt) {
     throw new AdminEmailNotificationResendError(
@@ -271,7 +275,31 @@ function assertSourceIsEligible(
   }
 
   assertReservationStateSupportsNotification(source);
-  assertSourceRelationIsComplete(source);
+  assertSourceRelationIsComplete(source, now);
+}
+
+async function convergeExpiredAdditionalChargePaymentRequestForManualResend(
+  input: Readonly<{
+    sourceNotificationId: string;
+    reservationId: string;
+    now: Date;
+  }>,
+): Promise<void> {
+  await prisma.guestPaymentRequest.updateMany({
+    where: {
+      reservationId: input.reservationId,
+      status: GuestPaymentRequestStatus.PENDING,
+      expiresAt: { lte: input.now },
+      emailNotifications: {
+        some: {
+          id: input.sourceNotificationId,
+          reservationId: input.reservationId,
+          type: EmailNotificationType.ADDITIONAL_CHARGE_PAYMENT_REQUIRED,
+        },
+      },
+    },
+    data: { status: GuestPaymentRequestStatus.EXPIRED },
+  });
 }
 
 async function persistManualResendRequest(
@@ -285,6 +313,13 @@ async function persistManualResendRequest(
     sourceNotificationId,
     requestId,
   );
+  const eligibilityCheckedAt = new Date();
+
+  await convergeExpiredAdditionalChargePaymentRequestForManualResend({
+    sourceNotificationId,
+    reservationId,
+    now: eligibilityCheckedAt,
+  });
 
   try {
     return await prisma.$transaction(
@@ -331,24 +366,11 @@ async function persistManualResendRequest(
           );
         }
 
-        const eligibilityCheckedAt = new Date();
-
-        if (
-          source.guestPaymentRequest?.status ===
-            GuestPaymentRequestStatus.PENDING &&
-          source.guestPaymentRequest.expiresAt <= eligibilityCheckedAt
-        ) {
-          await transaction.guestPaymentRequest.updateMany({
-            where: {
-              id: source.guestPaymentRequest.id,
-              status: GuestPaymentRequestStatus.PENDING,
-              expiresAt: { lte: eligibilityCheckedAt },
-            },
-            data: { status: GuestPaymentRequestStatus.EXPIRED },
-          });
-        }
-
-        assertSourceIsEligible(source, input.expectedUpdatedAt);
+        assertSourceIsEligible(
+          source,
+          input.expectedUpdatedAt,
+          eligibilityCheckedAt,
+        );
         const requestedAt = new Date();
         const sourceFenceWhere: Prisma.EmailNotificationWhereInput = {
           id: source.id,
