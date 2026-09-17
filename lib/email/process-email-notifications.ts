@@ -14,6 +14,10 @@ import type {
 } from "@/types/email-notification";
 
 import {
+  deliverClaimedAdditionalChargePaymentEmailNotification,
+  isAdditionalChargePaymentNotificationType,
+} from "./additional-charge-payment-notifications";
+import {
   deliverClaimedLifecycleAdjustmentPaymentEmailNotification,
   isLifecycleAdjustmentPaymentNotificationType,
   reconcileLifecycleAdjustmentPaymentDeliveryStatusIntents,
@@ -298,9 +302,15 @@ export async function processEmailNotifications(
         staleRecovered += 1;
       }
 
-      const outcome = isLifecycleAdjustmentPaymentNotificationType(
-        candidate.type,
-      )
+      const outcome = isAdditionalChargePaymentNotificationType(candidate.type)
+        ? await deliverClaimedAdditionalChargePaymentEmailNotification({
+            claim: retryClaim.claim,
+            provider,
+            publicBaseUrl: emailEnv.publicBaseUrl,
+            brandLogoUrl: emailEnv.brandLogoUrl,
+            now,
+          })
+        : isLifecycleAdjustmentPaymentNotificationType(candidate.type)
         ? await deliverClaimedLifecycleAdjustmentPaymentEmailNotification({
             claim: retryClaim.claim,
             provider,

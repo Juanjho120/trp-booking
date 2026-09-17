@@ -19,3 +19,4 @@ export {
   buildDateChangePaymentRequiredEmail,
   buildStayExtensionPaymentRequiredEmail,
 } from "./lifecycle-adjustment-payment-email-templates";
+export { buildAdditionalChargePaymentRequiredEmail } from "./additional-charge-payment-email";

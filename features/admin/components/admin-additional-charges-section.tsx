@@ -4,10 +4,12 @@ import {
   Check,
   Copy,
   CreditCard,
+  Mail,
   PencilLine,
   Plus,
   ReceiptText,
   RotateCcw,
+  Send,
   Trash2,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -46,8 +48,10 @@ import type {
   AdminAdditionalChargeErrorCode,
   AdminAdditionalChargeManagement,
   AdminAdditionalChargeSummary,
+  AdminGuestPaymentRequestEmailNotificationSummary,
   AdminGuestPaymentRequestSummary,
 } from "@/types/admin-additional-charge";
+import type { AdminEmailNotificationResendResult } from "@/types/admin-email-notification-resend";
 import type {
   AdminRefundConsultResult,
   AdminRefundAuthorizationResult,
@@ -99,9 +103,18 @@ type PaymentLinkResponse =
   | Readonly<{ paymentUrl: string }>
   | Readonly<{ error: { code: AdminAdditionalChargeErrorCode | string } }>;
 
+type EmailResendResponse =
+  | Readonly<{ result: AdminEmailNotificationResendResult }>
+  | Readonly<{ error: { code: string } }>;
+
 type RefundApiResponse<Result> = Readonly<{
   result?: Result;
   error?: Readonly<{ code?: AdminRefundErrorCode }>;
+}>;
+
+type EmailResendTarget = Readonly<{
+  request: AdminGuestPaymentRequestSummary;
+  notification: AdminGuestPaymentRequestEmailNotificationSummary;
 }>;
 
 type RefundOperationTarget = Readonly<{
@@ -129,7 +142,11 @@ function isManagementResponse(
 }
 
 function isErrorResponse(
-  response: ManagementResponse | MutationResponse | PaymentLinkResponse,
+  response:
+    | ManagementResponse
+    | MutationResponse
+    | PaymentLinkResponse
+    | EmailResendResponse,
 ): response is { error: { code: string } } {
   return "error" in response;
 }
@@ -138,6 +155,12 @@ function isPaymentLinkResponse(
   response: PaymentLinkResponse,
 ): response is { paymentUrl: string } {
   return "paymentUrl" in response && typeof response.paymentUrl === "string";
+}
+
+function isEmailResendSuccessResponse(
+  response: EmailResendResponse,
+): response is { result: AdminEmailNotificationResendResult } {
+  return "result" in response;
 }
 
 export function AdminAdditionalChargesSection({
@@ -163,6 +186,9 @@ export function AdminAdditionalChargesSection({
     useState<string | null>(null);
   const [cancelRequestTarget, setCancelRequestTarget] =
     useState<AdminGuestPaymentRequestSummary | null>(null);
+  const [resendEmailTarget, setResendEmailTarget] =
+    useState<EmailResendTarget | null>(null);
+  const [resendEmailRequestId, setResendEmailRequestId] = useState("");
   const [refundTarget, setRefundTarget] =
     useState<AdminAdditionalChargeSummary | null>(null);
   const [refundForm, setRefundForm] =
@@ -320,6 +346,24 @@ export function AdminAdditionalChargesSection({
     return copy.requestStatuses[status];
   }
 
+  function notificationStatusLabel(
+    status: AdminGuestPaymentRequestEmailNotificationSummary["status"],
+  ): string {
+    return copy.notificationStatuses[status];
+  }
+
+  function notificationOriginLabel(
+    origin: AdminGuestPaymentRequestEmailNotificationSummary["origin"],
+  ): string {
+    return copy.notificationOrigins[origin];
+  }
+
+  function notificationLocaleLabel(
+    value: AdminGuestPaymentRequestEmailNotificationSummary["locale"],
+  ): string {
+    return copy.notificationLocales[value];
+  }
+
   function refundStatusLabel(status: string): string {
     return (
       refundCopy.statuses[status as keyof typeof refundCopy.statuses] ??
@@ -358,6 +402,17 @@ export function AdminAdditionalChargesSection({
     return code
       ? (refundCopy.errors[code] ?? refundCopy.errors.ADMIN_REFUND_UNEXPECTED_ERROR)
       : refundCopy.errors.ADMIN_REFUND_UNEXPECTED_ERROR;
+  }
+
+  function emailResendSuccessMessage(
+    result: AdminEmailNotificationResendResult,
+  ): string {
+    if (result.outcome === "sent") return copy.success.emailSent;
+    if (result.outcome === "failed") return copy.success.emailFailed;
+    if (result.outcome === "already-processed") {
+      return copy.success.emailAlreadyProcessed;
+    }
+    return copy.success.emailQueued;
   }
 
   function refundSummaryFromAllocation(
@@ -902,6 +957,67 @@ export function AdminAdditionalChargesSection({
     }
   }
 
+  function openEmailResend(
+    request: AdminGuestPaymentRequestSummary,
+    notification: AdminGuestPaymentRequestEmailNotificationSummary,
+  ): void {
+    setResendEmailTarget({ request, notification });
+    setResendEmailRequestId(window.crypto.randomUUID());
+  }
+
+  async function resendPaymentRequestEmail(): Promise<void> {
+    if (!resendEmailTarget || !resendEmailRequestId) {
+      return;
+    }
+
+    const { request, notification } = resendEmailTarget;
+    setBusyKey(`email-resend-${notification.id}`);
+    setSuccessMessage(null);
+    setErrorMessage(null);
+
+    try {
+      const response = await fetch(
+        `/api/admin/email-notifications/${encodeURIComponent(
+          notification.id,
+        )}/resend`,
+        {
+          method: "POST",
+          headers: {
+            accept: "application/json",
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({
+            reservationId: request.reservationId,
+            expectedUpdatedAt: notification.updatedAt,
+            requestId: resendEmailRequestId,
+          }),
+        },
+      );
+      const payload = (await response.json().catch(() => ({
+        error: {
+          code: "ADMIN_EMAIL_NOTIFICATION_UNEXPECTED_ERROR",
+        },
+      }))) as EmailResendResponse;
+
+      if (!response.ok || !isEmailResendSuccessResponse(payload)) {
+        const code = isErrorResponse(payload)
+          ? payload.error.code
+          : "ADMIN_EMAIL_NOTIFICATION_UNEXPECTED_ERROR";
+        setErrorMessage(resolveError(code));
+        return;
+      }
+
+      setResendEmailTarget(null);
+      setResendEmailRequestId("");
+      setSuccessMessage(emailResendSuccessMessage(payload.result));
+      await loadManagement();
+    } catch {
+      setErrorMessage(copy.errors.ADMIN_EMAIL_NOTIFICATION_UNEXPECTED_ERROR);
+    } finally {
+      setBusyKey(null);
+    }
+  }
+
   if (loading) {
     return (
       <Card className="mt-6 border-border/70 bg-card shadow-sm">
@@ -1202,6 +1318,111 @@ export function AdminAdditionalChargesSection({
                               </span>
                             </div>
                           ))}
+                        </div>
+                        <div className="mt-4 grid gap-2">
+                          <p className="flex items-center gap-2 text-xs font-medium text-foreground">
+                            <Mail aria-hidden="true" className="size-3.5" />
+                            {copy.labels.notificationDelivery}
+                          </p>
+                          {request.emailNotifications.length > 0 ? (
+                            request.emailNotifications.map((notification) => (
+                              <div
+                                className="rounded-xl border border-border/60 bg-background p-3 text-xs"
+                                key={notification.id}
+                              >
+                                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                  <div className="min-w-0">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                      <Badge variant="outline">
+                                        {notificationStatusLabel(
+                                          notification.status,
+                                        )}
+                                      </Badge>
+                                      <Badge variant="secondary">
+                                        {notificationOriginLabel(
+                                          notification.origin,
+                                        )}
+                                      </Badge>
+                                    </div>
+                                    <div className="mt-3 grid gap-2 text-muted-foreground sm:grid-cols-2">
+                                      <DetailMetric
+                                        label={copy.labels.recipient}
+                                        value={notification.recipient}
+                                      />
+                                      <DetailMetric
+                                        label={copy.labels.locale}
+                                        value={notificationLocaleLabel(
+                                          notification.locale,
+                                        )}
+                                      />
+                                      <DetailMetric
+                                        label={copy.labels.attempts}
+                                        value={String(notification.attemptCount)}
+                                      />
+                                      <DetailMetric
+                                        label={copy.labels.emailCreatedAt}
+                                        value={formatDateTime(
+                                          notification.createdAt,
+                                        )}
+                                      />
+                                      <DetailMetric
+                                        label={copy.labels.requestedAt}
+                                        value={formatDateTime(
+                                          notification.requestedAt,
+                                        )}
+                                      />
+                                      <DetailMetric
+                                        label={copy.labels.lastAttemptAt}
+                                        value={formatDateTime(
+                                          notification.lastAttemptAt,
+                                        )}
+                                      />
+                                      <DetailMetric
+                                        label={copy.labels.nextAttemptAt}
+                                        value={formatDateTime(
+                                          notification.nextAttemptAt,
+                                        )}
+                                      />
+                                      <DetailMetric
+                                        label={copy.labels.sentAt}
+                                        value={formatDateTime(
+                                          notification.sentAt,
+                                        )}
+                                      />
+                                      <DetailMetric
+                                        label={copy.labels.errorCode}
+                                        value={
+                                          notification.errorCode ??
+                                          copy.labels.unavailable
+                                        }
+                                      />
+                                    </div>
+                                  </div>
+                                  {notification.canResend ? (
+                                    <Button
+                                      disabled={busyKey !== null}
+                                      onClick={() =>
+                                        openEmailResend(request, notification)
+                                      }
+                                      size="sm"
+                                      type="button"
+                                      variant="outline"
+                                    >
+                                      <Send aria-hidden="true" />
+                                      {busyKey ===
+                                      `email-resend-${notification.id}`
+                                        ? copy.actions.resendingEmail
+                                        : copy.actions.resendEmail}
+                                    </Button>
+                                  ) : null}
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <p className="rounded-xl border border-dashed border-border p-3 text-xs text-muted-foreground">
+                              {copy.empty.notifications}
+                            </p>
+                          )}
                         </div>
                       </div>
 
@@ -1522,6 +1743,67 @@ export function AdminAdditionalChargesSection({
 
       <Sheet
         onOpenChange={(open) => {
+          if (!open && !busyKey?.startsWith("email-resend-")) {
+            setResendEmailTarget(null);
+            setResendEmailRequestId("");
+          }
+        }}
+        open={resendEmailTarget !== null}
+      >
+        <SheetContent closeLabel={copy.actions.close}>
+          <SheetHeader>
+            <SheetTitle>{copy.resendEmailDialog.title}</SheetTitle>
+            <SheetDescription>
+              {copy.resendEmailDialog.description}
+            </SheetDescription>
+          </SheetHeader>
+          {resendEmailTarget ? (
+            <div className="mx-6 mt-4 grid gap-3 rounded-2xl border border-border/70 bg-muted/20 p-4 text-sm">
+              <p className="break-all font-medium">
+                {copy.labels.request} {resendEmailTarget.request.id}
+              </p>
+              <DetailMetric
+                label={copy.labels.recipient}
+                value={resendEmailTarget.notification.recipient}
+              />
+              <DetailMetric
+                label={copy.labels.notificationStatus}
+                value={notificationStatusLabel(
+                  resendEmailTarget.notification.status,
+                )}
+              />
+              <p className="text-xs leading-5 text-muted-foreground">
+                {copy.resendEmailDialog.boundary}
+              </p>
+            </div>
+          ) : null}
+          <SheetFooter className="mt-6">
+            <Button
+              disabled={busyKey !== null}
+              onClick={() => {
+                setResendEmailTarget(null);
+                setResendEmailRequestId("");
+              }}
+              type="button"
+              variant="outline"
+            >
+              {copy.actions.close}
+            </Button>
+            <Button
+              disabled={busyKey !== null || !resendEmailTarget}
+              onClick={() => void resendPaymentRequestEmail()}
+              type="button"
+            >
+              {busyKey?.startsWith("email-resend-")
+                ? copy.actions.resendingEmail
+                : copy.actions.confirmResendEmail}
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+
+      <Sheet
+        onOpenChange={(open) => {
           if (!open && !busyKey?.startsWith("refund-authorize-")) {
             resetRefundForm();
           }
@@ -1756,7 +2038,9 @@ function DetailMetric({
   return (
     <div className="rounded-xl border border-border/60 bg-background px-3 py-2">
       <p className="text-muted-foreground">{label}</p>
-      <p className="mt-1 font-semibold tabular-nums text-foreground">{value}</p>
+      <p className="mt-1 break-words font-semibold tabular-nums text-foreground">
+        {value}
+      </p>
     </div>
   );
 }

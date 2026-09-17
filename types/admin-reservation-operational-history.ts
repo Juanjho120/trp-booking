@@ -84,6 +84,7 @@ export const adminReservationOperationalHistoryRelationKinds = [
   "HOLD",
   "PAYMENT",
   "REFUND",
+  "GUEST_PAYMENT_REQUEST",
   "PARENT_NOTIFICATION",
   "SOURCE_NOTIFICATION",
 ] as const;

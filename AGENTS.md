@@ -23,15 +23,18 @@ This file defines the working rules for TRP Booking.
 - Final-D.3 is completed and accepted on 2026-08-31 at `6a0d909fc325f4e8925677041be34c77c023c42b`.
 - Final-D.4 is completed and accepted on 2026-09-14 at `7d996fd20db42b2560df11f7e00d7a5e9cc0d18c`.
 - Final-D.5 is completed and accepted on 2026-09-17 at `06b3de23fbae23a77b58b432760abf12afd5a6c7`.
-- Current subphase: Final-D.6 — Email delivery and protected operational UX/history — Next / Not started until explicitly requested.
+- Current subphase: Final-D.6 — Email delivery and protected operational UX/history — Implementation completed and validation executed; owner acceptance pending.
 - Final-D.4 implementation base: `6a0d909fc325f4e8925677041be34c77c023c42b`.
 - Final-D.4 accepted implementation head: `7d996fd20db42b2560df11f7e00d7a5e9cc0d18c`.
 - Final-D.4 implementation record: `docs/182-final-d-4-private-guest-payment-link-and-tilopay-collection.md`.
 - Final-D.5 implementation base: `63f55e22d03270bce0d27be2197373e3ce3e5de8`.
 - Final-D.5 accepted implementation head: `06b3de23fbae23a77b58b432760abf12afd5a6c7`.
 - Final-D.5 implementation record: `docs/183-final-d-5-additional-charge-refunds-and-financial-summary-integration.md`.
-- Final-D.6 is the next subphase but remains Not started until explicitly requested.
-- Final-D.7, Final-E, Final-F, Final-G, and Final-H remain Not started.
+- Final-D.6 implementation base: `1f3f30f63c0198afa219df9feea4f415cbc1ccd2`.
+- Final-D.6 implementation record: `docs/184-final-d-6-email-delivery-and-protected-operational-ux-history.md`.
+- Final-D.6 is not accepted until owner acceptance is explicitly recorded.
+- Final-D.7 is the next subphase but remains Not started until explicitly requested.
+- Final-E, Final-F, Final-G, and Final-H remain Not started.
 - Phase 13 remains Not started and must not be activated implicitly.
 
 ## Environment Isolation
@@ -96,7 +99,7 @@ Rules:
 - Do not activate Production or Phase 13 work from a Final Improvement Track task.
 - A subphase may be declared completed only after implementation, required validation, documentation reconciliation, and owner acceptance are recorded.
 - If documentation and the accepted repository state disagree, stop advancement and reconcile the authoritative trackers before implementing the next subphase.
-- For the current handoff, Final-D.3 is accepted at `6a0d909fc325f4e8925677041be34c77c023c42b`; Final-D.4 is completed and accepted on 2026-09-14 at `7d996fd20db42b2560df11f7e00d7a5e9cc0d18c`; Final-D.5 is completed and accepted on 2026-09-17 at `06b3de23fbae23a77b58b432760abf12afd5a6c7`; Final-D.6 remains Not started until explicitly requested.
+- For the current handoff, Final-D.3 is accepted at `6a0d909fc325f4e8925677041be34c77c023c42b`; Final-D.4 is completed and accepted on 2026-09-14 at `7d996fd20db42b2560df11f7e00d7a5e9cc0d18c`; Final-D.5 is completed and accepted on 2026-09-17 at `06b3de23fbae23a77b58b432760abf12afd5a6c7`; Final-D.6 implementation is completed with owner acceptance pending; Final-D.7 remains Not started until explicitly requested.
 
 ## Implementation Completion Gate
 
@@ -146,13 +149,14 @@ Final-D.7 owns the consolidated Final-D regression gate. Until a `final-d:valida
 - `docs/181-final-d-3-admin-charge-management-and-payment-request-creation.md` is the Final-D.3 implementation/acceptance record.
 - `docs/182-final-d-4-private-guest-payment-link-and-tilopay-collection.md` is the Final-D.4 implementation/acceptance record.
 - `docs/183-final-d-5-additional-charge-refunds-and-financial-summary-integration.md` is the Final-D.5 implementation/acceptance record.
+- `docs/184-final-d-6-email-delivery-and-protected-operational-ux-history.md` is the Final-D.6 implementation/validation record while owner acceptance is pending.
 - Any completed phase or subphase must be reflected in the progress tracker before moving to a new major phase or subphase.
 - When migrating to a new conversation or agent, use `AGENTS.md`, `README.md`, `docs/10-phases.md`, and `docs/11-progress-log.md` as the minimum continuity context. While the Final Improvement Track is active, also review `docs/160-post-phase-12-pre-phase-13-final-improvement-track.md` and the active package's authoritative records.
 - Historical Phase 12 deployment work remains grounded by `docs/89-test-and-production-environment-strategy.md`, `docs/136-phase-12.1-test-deployment-and-environment-strategy.md`, and the Phase 12 closure records.
 
-## Final-D Accepted Boundaries Through D.5
+## Final-D Accepted Boundaries Through D.6 Implementation
 
-Before implementing or continuing future Final-D work, read the complete Final-D.1 contract and the accepted D.2/D.3/D.4/D.5 records. Final-D.6 remains Not started until explicitly requested.
+Before implementing or continuing future Final-D work, read the complete Final-D.1 contract, the accepted D.2/D.3/D.4/D.5 records, and the current D.6 implementation record. Final-D.7 remains Not started until explicitly requested and D.6 acceptance is reconciled.
 
 At minimum, preserve these frozen boundaries:
 
@@ -169,7 +173,7 @@ At minimum, preserve these frozen boundaries:
 - Rejected/failed payment attempts keep the still-valid request and charges PENDING and remain auditable.
 - Provider callback/retry behavior must remain idempotent.
 - The private guest page exposes only bounded guest-safe request context and must not grant access to admin reservation/payment/refund/lifecycle data.
-- D.5 must not implement D.6 email delivery/history, D.7 consolidated closure, Final-E, Final-F, Final-G, Final-H, or Phase 13 work.
+- D.6 must not implement D.7 consolidated closure, Final-E, Final-F, Final-G, Final-H, or Phase 13 work.
 ```
 
 ## UI and Design System Rules

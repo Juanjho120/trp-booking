@@ -1,3 +1,5 @@
+import { EmailNotificationType } from "@prisma/client";
+
 import { dateOnlyFromDate } from "@/lib/availability/rules";
 import { prisma } from "@/lib/db/prisma";
 import { getTilopayEnv } from "@/lib/env/server";
@@ -240,6 +242,11 @@ export async function getAdminReservationDetail(
         },
       },
       emailNotifications: {
+        where: {
+          type: {
+            not: EmailNotificationType.ADDITIONAL_CHARGE_PAYMENT_REQUIRED,
+          },
+        },
         orderBy: [{ createdAt: "desc" }, { id: "desc" }],
         select: {
           id: true,

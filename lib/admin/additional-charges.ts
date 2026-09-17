@@ -1,6 +1,8 @@
 import {
   AdditionalChargeCategory,
   AdditionalChargeStatus,
+  EmailNotificationStatus,
+  EmailNotificationType,
   GuestPaymentRequestStatus,
   PaymentPurpose,
   PaymentStatus,
@@ -11,6 +13,10 @@ import {
 
 import { prisma } from "@/lib/db/prisma";
 import { getTilopayEnv } from "@/lib/env/server";
+import {
+  createAdditionalChargePaymentRequiredNotificationIntent,
+  deliverAdditionalChargePaymentNotificationsBestEffort,
+} from "@/lib/email";
 import { createGuestPaymentRequestTokenMaterial } from "@/lib/payments/guest-payment-request-token";
 import type { AdminActor } from "@/types/admin";
 import type {
@@ -53,6 +59,11 @@ const COMMITTED_REFUND_STATUSES = [
 const COMPLETED_REFUND_STATUSES = [
   RefundStatus.APPROVED,
   RefundStatus.MANUAL,
+] as const;
+const RESENDABLE_NOTIFICATION_STATUSES = [
+  EmailNotificationStatus.PENDING,
+  EmailNotificationStatus.FAILED,
+  EmailNotificationStatus.SENT,
 ] as const;
 
 function isAdditionalChargeSerializationFailure(error: unknown): boolean {
@@ -215,6 +226,39 @@ const paymentRequestSummarySelect = {
       updatedAt: true,
     },
   },
+  emailNotifications: {
+    where: {
+      type: EmailNotificationType.ADDITIONAL_CHARGE_PAYMENT_REQUIRED,
+    },
+    select: {
+      id: true,
+      type: true,
+      recipient: true,
+      locale: true,
+      origin: true,
+      parentNotificationId: true,
+      manualResends: {
+        take: 1,
+        select: { id: true },
+      },
+      requestedAt: true,
+      requestedByAdmin: {
+        select: {
+          name: true,
+          email: true,
+        },
+      },
+      status: true,
+      attemptCount: true,
+      lastAttemptAt: true,
+      nextAttemptAt: true,
+      sentAt: true,
+      errorCode: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+    orderBy: [{ createdAt: "desc" as const }, { id: "desc" as const }],
+  },
 } satisfies Prisma.GuestPaymentRequestSelect;
 
 type ChargeRow = Prisma.AdditionalChargeGetPayload<{
@@ -229,6 +273,8 @@ type EligibleReservation = Readonly<{
   id: string;
   status: ReservationStatus;
   confirmedAt: Date | null;
+  guestEmail: string;
+  preferredLocale: string;
   currency: string;
   updatedAt: Date;
 }>;
@@ -488,6 +534,10 @@ function toPaymentRequestSummary(
     row.expiresAt > now;
   const hasAssociatedPayment = row.payment !== null;
   const hasApprovedPayment = row.payment?.status === PaymentStatus.APPROVED;
+  const canUseEmail =
+    pendingAndActive &&
+    !hasApprovedPayment &&
+    row.status === GuestPaymentRequestStatus.PENDING;
 
   return {
     id: row.id,
@@ -511,6 +561,32 @@ function toPaymentRequestSummary(
       amount: item.amountSnapshot.toFixed(2),
       currency: TRP_CURRENCY,
       createdAt: item.createdAt.toISOString(),
+    })),
+    emailNotifications: row.emailNotifications.map((notification) => ({
+      id: notification.id,
+      type: "ADDITIONAL_CHARGE_PAYMENT_REQUIRED",
+      recipient: notification.recipient,
+      locale: notification.locale === "en" ? "en" : "es",
+      origin: notification.origin,
+      parentNotificationId: notification.parentNotificationId,
+      hasManualResends: notification.manualResends.length > 0,
+      requestedAt: notification.requestedAt?.toISOString() ?? null,
+      requestedByAdmin: notification.requestedByAdmin,
+      status: notification.status,
+      attemptCount: notification.attemptCount,
+      lastAttemptAt: notification.lastAttemptAt?.toISOString() ?? null,
+      nextAttemptAt: notification.nextAttemptAt?.toISOString() ?? null,
+      sentAt: notification.sentAt?.toISOString() ?? null,
+      errorCode: notification.errorCode,
+      createdAt: notification.createdAt.toISOString(),
+      updatedAt: notification.updatedAt.toISOString(),
+      canResend:
+        canUseEmail &&
+        RESENDABLE_NOTIFICATION_STATUSES.includes(
+          notification.status as (typeof RESENDABLE_NOTIFICATION_STATUSES)[number],
+        ) &&
+        (notification.status === EmailNotificationStatus.SENT ||
+          notification.manualResends.length === 0),
     })),
   };
 }
@@ -542,6 +618,8 @@ async function readReservation(
       id: true,
       status: true,
       confirmedAt: true,
+      guestEmail: true,
+      preferredLocale: true,
       currency: true,
       updatedAt: true,
     },
@@ -916,7 +994,7 @@ export async function createAdminGuestPaymentRequest(
   const now = new Date();
 
   try {
-    return await runAdditionalChargeTransactionWithRetry(
+    const result = await runAdditionalChargeTransactionWithRetry(
       async (transaction) => {
         const adminActor = await resolveAdminActor(transaction, actor);
         await expirePendingRequests(reservationId, transaction, now);
@@ -936,7 +1014,10 @@ export async function createAdminGuestPaymentRequest(
             );
           }
 
-          return toPaymentRequestSummary(existingRequest, now);
+          return {
+            paymentRequest: toPaymentRequestSummary(existingRequest, now),
+            notificationId: null,
+          };
         }
 
         const reservation = await readReservation(transaction, reservationId);
@@ -1079,9 +1160,61 @@ export async function createAdminGuestPaymentRequest(
           },
         });
 
-        return toPaymentRequestSummary(request, now);
+        const notification =
+          await createAdditionalChargePaymentRequiredNotificationIntent(
+            transaction,
+            {
+              reservationId,
+              guestPaymentRequestId: request.id,
+              recipient: reservation.guestEmail,
+              locale: reservation.preferredLocale === "en" ? "en" : "es",
+            },
+          );
+
+        await transaction.adminAuditLog.create({
+          data: {
+            userId: adminActor.id,
+            action: "ADDITIONAL_CHARGE_PAYMENT_EMAIL_QUEUED",
+            entityType: "EmailNotification",
+            entityId: notification.id,
+            metadata: {
+              actorEmail: adminActor.email,
+              reservationId,
+              guestPaymentRequestId: request.id,
+              notificationType:
+                EmailNotificationType.ADDITIONAL_CHARGE_PAYMENT_REQUIRED,
+              intendedRecipient: reservation.guestEmail.toLowerCase(),
+              locale: reservation.preferredLocale === "en" ? "en" : "es",
+              requestStatus: request.status,
+              totalAmountCents: toAmountCents(totalAmount),
+              currency: TRP_CURRENCY,
+            },
+          },
+        });
+
+        return {
+          paymentRequest: toPaymentRequestSummary(request, now),
+          notificationId: notification.created ? notification.id : null,
+        };
       },
     );
+
+    if (result.notificationId) {
+      await deliverAdditionalChargePaymentNotificationsBestEffort([
+        result.notificationId,
+      ]);
+
+      const refreshed = await prisma.guestPaymentRequest.findUnique({
+        where: { id: result.paymentRequest.id },
+        select: paymentRequestSummarySelect,
+      });
+
+      return refreshed
+        ? toPaymentRequestSummary(refreshed, new Date())
+        : result.paymentRequest;
+    }
+
+    return result.paymentRequest;
   } catch (error) {
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&

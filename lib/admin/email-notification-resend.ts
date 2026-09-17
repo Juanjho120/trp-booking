@@ -2,15 +2,19 @@ import {
   EmailNotificationOrigin,
   EmailNotificationStatus,
   EmailNotificationType,
+  GuestPaymentRequestStatus,
   Prisma,
   ReservationStatus,
 } from "@prisma/client";
 
 import { prisma } from "@/lib/db/prisma";
 import {
+  deliverAdditionalChargePaymentNotificationsBestEffort,
   deliverLifecycleNotificationsBestEffort,
   deliverPendingEmailNotificationsBestEffort,
+  isAdditionalChargePaymentNotificationType,
   isLifecycleNotificationType,
+  validateAdditionalChargePaymentRequestEmailEligibility,
 } from "@/lib/email";
 import type { AdminActor } from "@/types/admin";
 import type {
@@ -33,6 +37,7 @@ const supportedManualResendTypes = new Set<EmailNotificationType>([
   EmailNotificationType.ADMIN_STAY_EXTENSION_CONFIRMED,
   EmailNotificationType.REFUND_PROCESSED,
   EmailNotificationType.ADMIN_REFUND_PROCESSED,
+  EmailNotificationType.ADDITIONAL_CHARGE_PAYMENT_REQUIRED,
 ]);
 
 const cancellationNotificationTypes = new Set<EmailNotificationType>([
@@ -43,6 +48,10 @@ const cancellationNotificationTypes = new Set<EmailNotificationType>([
 const refundNotificationTypes = new Set<EmailNotificationType>([
   EmailNotificationType.REFUND_PROCESSED,
   EmailNotificationType.ADMIN_REFUND_PROCESSED,
+]);
+
+const additionalChargePaymentNotificationTypes = new Set<EmailNotificationType>([
+  EmailNotificationType.ADDITIONAL_CHARGE_PAYMENT_REQUIRED,
 ]);
 
 const eligibleSourceStatuses = new Set<EmailNotificationStatus>([
@@ -56,6 +65,7 @@ const notificationSelect = {
   reservationId: true,
   lifecycleRequestId: true,
   refundId: true,
+  guestPaymentRequestId: true,
   type: true,
   recipient: true,
   locale: true,
@@ -69,6 +79,51 @@ const notificationSelect = {
     select: {
       status: true,
       confirmedAt: true,
+    },
+  },
+  guestPaymentRequest: {
+    select: {
+      id: true,
+      reservationId: true,
+      status: true,
+      totalAmount: true,
+      currency: true,
+      accessTokenHash: true,
+      accessTokenEncrypted: true,
+      expiresAt: true,
+      reservation: {
+        select: {
+          id: true,
+          status: true,
+          confirmedAt: true,
+        },
+      },
+      items: {
+        select: {
+          additionalChargeId: true,
+          categorySnapshot: true,
+          descriptionSnapshot: true,
+          amountSnapshot: true,
+          currencySnapshot: true,
+          additionalCharge: {
+            select: {
+              id: true,
+              reservationId: true,
+              status: true,
+              amount: true,
+              currency: true,
+            },
+          },
+        },
+      },
+      payment: {
+        select: {
+          purpose: true,
+          status: true,
+          amount: true,
+          currency: true,
+        },
+      },
     },
   },
 } satisfies Prisma.EmailNotificationSelect;
@@ -131,6 +186,18 @@ function assertReservationStateSupportsNotification(
     return;
   }
 
+  if (additionalChargePaymentNotificationTypes.has(source.type)) {
+    if (
+      source.reservation.status !== ReservationStatus.CONFIRMED &&
+      source.reservation.status !== ReservationStatus.CANCELLED
+    ) {
+      throw new AdminEmailNotificationResendError(
+        "ADMIN_EMAIL_NOTIFICATION_RESEND_NOT_ALLOWED",
+      );
+    }
+    return;
+  }
+
   if (source.reservation.status !== ReservationStatus.CONFIRMED) {
     throw new AdminEmailNotificationResendError(
       "ADMIN_EMAIL_NOTIFICATION_RESERVATION_NOT_CONFIRMED",
@@ -139,6 +206,27 @@ function assertReservationStateSupportsNotification(
 }
 
 function assertSourceRelationIsComplete(source: SourceNotification): void {
+  if (additionalChargePaymentNotificationTypes.has(source.type)) {
+    if (!source.guestPaymentRequestId || !source.guestPaymentRequest) {
+      throw new AdminEmailNotificationResendError(
+        "ADMIN_EMAIL_NOTIFICATION_RESEND_NOT_ALLOWED",
+      );
+    }
+
+    try {
+      validateAdditionalChargePaymentRequestEmailEligibility(
+        source.guestPaymentRequest,
+        new Date(),
+      );
+    } catch {
+      throw new AdminEmailNotificationResendError(
+        "ADMIN_EMAIL_NOTIFICATION_RESEND_NOT_ALLOWED",
+      );
+    }
+
+    return;
+  }
+
   if (!isLifecycleNotificationType(source.type)) {
     return;
   }
@@ -243,6 +331,23 @@ async function persistManualResendRequest(
           );
         }
 
+        const eligibilityCheckedAt = new Date();
+
+        if (
+          source.guestPaymentRequest?.status ===
+            GuestPaymentRequestStatus.PENDING &&
+          source.guestPaymentRequest.expiresAt <= eligibilityCheckedAt
+        ) {
+          await transaction.guestPaymentRequest.updateMany({
+            where: {
+              id: source.guestPaymentRequest.id,
+              status: GuestPaymentRequestStatus.PENDING,
+              expiresAt: { lte: eligibilityCheckedAt },
+            },
+            data: { status: GuestPaymentRequestStatus.EXPIRED },
+          });
+        }
+
         assertSourceIsEligible(source, input.expectedUpdatedAt);
         const requestedAt = new Date();
         const sourceFenceWhere: Prisma.EmailNotificationWhereInput = {
@@ -273,6 +378,7 @@ async function persistManualResendRequest(
             reservationId: source.reservationId,
             lifecycleRequestId: source.lifecycleRequestId,
             refundId: source.refundId,
+            guestPaymentRequestId: source.guestPaymentRequestId,
             type: source.type,
             recipient: source.recipient,
             locale: source.locale,
@@ -298,6 +404,7 @@ async function persistManualResendRequest(
               reservationId: source.reservationId,
               lifecycleRequestId: source.lifecycleRequestId,
               refundId: source.refundId,
+              guestPaymentRequestId: source.guestPaymentRequestId,
               sourceNotificationId: source.id,
               sourceStatus: source.status,
               notificationType: source.type,
@@ -380,13 +487,19 @@ export async function requestAdminEmailNotificationResend(
   actor: AdminActor,
 ): Promise<AdminEmailNotificationResendResult> {
   const persisted = await persistManualResendRequest(input, actor);
-  const delivery = isLifecycleNotificationType(persisted.notificationType)
-    ? await deliverLifecycleNotificationsBestEffort([
+  const delivery = isAdditionalChargePaymentNotificationType(
+    persisted.notificationType,
+  )
+    ? await deliverAdditionalChargePaymentNotificationsBestEffort([
         persisted.notificationId,
       ])
-    : await deliverPendingEmailNotificationsBestEffort([
-        persisted.notificationId,
-      ]);
+    : isLifecycleNotificationType(persisted.notificationType)
+      ? await deliverLifecycleNotificationsBestEffort([
+          persisted.notificationId,
+        ])
+      : await deliverPendingEmailNotificationsBestEffort([
+          persisted.notificationId,
+        ]);
   const notification = await prisma.emailNotification.findUnique({
     where: { id: persisted.notificationId },
     select: {

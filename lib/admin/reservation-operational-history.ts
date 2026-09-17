@@ -1,6 +1,7 @@
 import {
   EmailNotificationOrigin,
   EmailNotificationStatus,
+  PaymentPurpose,
   PaymentStatus,
   Prisma,
   RefundStatus,
@@ -102,6 +103,7 @@ type LifecycleRequestHistoryRecord =
 const paymentHistorySelect = {
   id: true,
   lifecycleRequestId: true,
+  guestPaymentRequestId: true,
   purpose: true,
   status: true,
   amount: true,
@@ -150,6 +152,7 @@ const emailHistorySelect = {
   id: true,
   lifecycleRequestId: true,
   refundId: true,
+  guestPaymentRequestId: true,
   type: true,
   recipient: true,
   locale: true,
@@ -555,7 +558,10 @@ function buildRequestEvents(
 function paymentRelations(
   payment: PaymentHistoryRecord,
 ): AdminReservationOperationalHistoryRelation[] {
-  return relation("LIFECYCLE_REQUEST", payment.lifecycleRequestId);
+  return [
+    ...relation("LIFECYCLE_REQUEST", payment.lifecycleRequestId),
+    ...relation("GUEST_PAYMENT_REQUEST", payment.guestPaymentRequestId),
+  ];
 }
 
 function buildPaymentEvents(
@@ -751,6 +757,7 @@ function emailRelations(
   return [
     ...relation("LIFECYCLE_REQUEST", notification.lifecycleRequestId),
     ...relation("REFUND", notification.refundId),
+    ...relation("GUEST_PAYMENT_REQUEST", notification.guestPaymentRequestId),
     ...relation("PARENT_NOTIFICATION", notification.parentNotificationId),
     ...relation("SOURCE_NOTIFICATION", notification.sourceNotificationId),
   ];
@@ -926,7 +933,11 @@ export async function getAdminReservationOperationalHistory(
   const hasLifecycleActivity =
     lifecycleRequests.length > 0 ||
     refunds.length > 0 ||
-    payments.some((payment) => payment.purpose === "LIFECYCLE_ADJUSTMENT");
+    payments.some((payment) =>
+      payment.purpose === PaymentPurpose.LIFECYCLE_ADJUSTMENT ||
+      payment.purpose === PaymentPurpose.ADDITIONAL_CHARGE,
+    ) ||
+    notifications.some((notification) => notification.guestPaymentRequestId);
 
   if (!hasLifecycleActivity) {
     return [];

@@ -12,7 +12,7 @@ export function test(name: string, run: FinalDTest["run"]): void {
 export async function runFinalDTests(): Promise<void> {
   let passed = 0;
 
-  console.log("Final-D.4 ancillary payment-link validation");
+  console.log("Final-D behavioral validation");
   console.log(`Registered tests: ${registeredTests.length}`);
 
   for (const current of registeredTests) {
@@ -26,5 +26,5 @@ export async function runFinalDTests(): Promise<void> {
     }
   }
 
-  console.log(`Final-D.4 validation passed: ${passed}/${registeredTests.length} tests.`);
+  console.log(`Final-D validation passed: ${passed}/${registeredTests.length} tests.`);
 }

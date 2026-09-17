@@ -647,6 +647,18 @@ export const esMessages = {
           providerRefundId: "Referencia de reembolso",
           resultClassification: "Evidencia",
           reason: "Motivo interno",
+          notificationDelivery: "Entrega de correo",
+          notificationStatus: "Estado de correo",
+          origin: "Origen",
+          recipient: "Destinatario",
+          locale: "Idioma",
+          attempts: "Intentos",
+          lastAttemptAt: "Último intento",
+          nextAttemptAt: "Próximo intento",
+          sentAt: "Enviado",
+          requestedAt: "Solicitado",
+          emailCreatedAt: "Correo creado",
+          errorCode: "Código seguro",
           unavailable: "No disponible",
         },
         categories: {
@@ -677,6 +689,21 @@ export const esMessages = {
           FAILED: "Fallido",
           MANUAL: "Manual",
         },
+        notificationStatuses: {
+          PENDING: "Pendiente",
+          PROCESSING: "Procesando",
+          SENT: "Enviado",
+          FAILED: "Fallido",
+          SKIPPED: "Omitido",
+        },
+        notificationOrigins: {
+          AUTOMATIC: "Automático",
+          MANUAL: "Manual",
+        },
+        notificationLocales: {
+          es: "Español",
+          en: "Inglés",
+        },
         processingModes: {
           TILOPAY_API: "API de Tilopay",
           TILOPAY_PORTAL_FALLBACK: "Portal de Tilopay",
@@ -700,6 +727,9 @@ export const esMessages = {
           confirmCancelRequest: "Cancelar solicitud",
           authorizingRefund: "Autorizando...",
           confirmAuthorizeRefund: "Autorizar reembolso",
+          resendEmail: "Reenviar correo",
+          resendingEmail: "Reenviando...",
+          confirmResendEmail: "Solicitar reenvío",
           close: "Cerrar",
         },
         placeholders: {
@@ -718,7 +748,7 @@ export const esMessages = {
           chargeBoundary:
             "Solo un cargo pendiente que nunca haya sido solicitado puede editarse. Un cargo pendiente sin solicitud activa puede cancelarse o seleccionarse para cobro.",
           requestBoundary:
-            "La solicitud de pago congela sus líneas, monto y vencimiento de siete días. D.4 habilita el enlace privado y checkout con Tilopay; la entrega por correo queda reservada para D.6.",
+            "La solicitud de pago congela sus líneas, monto y vencimiento de siete días. El correo usa el mismo enlace privado protegido y el historial conserva solo estado operativo seguro.",
         },
         states: {
           reservationNotEligible:
@@ -763,6 +793,13 @@ export const esMessages = {
           boundary:
             "La autorización todavía no mueve dinero. La ejecución y reconciliación con Tilopay permanecen separadas, y la evidencia aprobada actualiza únicamente el estado financiero del cargo adicional.",
         },
+        resendEmailDialog: {
+          title: "Reenviar correo de cobro adicional",
+          description:
+            "Crea una notificación hija para el mismo enlace privado sin rotar el token ni cambiar los cargos solicitados.",
+          boundary:
+            "Solo se reenvía si la solicitud sigue pendiente, vigente y con integridad válida. La URL privada no se muestra en esta pantalla.",
+        },
         success: {
           created: "El cargo adicional fue creado.",
           updated: "El cargo adicional fue actualizado.",
@@ -773,10 +810,18 @@ export const esMessages = {
           requestCancelled: "La solicitud de pago del huésped fue cancelada.",
           refundAuthorized:
             "El reembolso del cargo adicional quedó autorizado y pendiente de procesamiento.",
+          emailSent: "El correo de cobro fue enviado.",
+          emailQueued: "El reenvío de correo quedó en cola.",
+          emailAlreadyProcessed:
+            "Esta solicitud de reenvío ya había sido procesada.",
+          emailFailed:
+            "El correo no pudo enviarse ahora; el estado seguro quedó registrado.",
         },
         empty: {
           charges: "Esta reservación todavía no tiene cargos adicionales.",
           requests: "Esta reservación todavía no tiene solicitudes de pago del huésped.",
+          notifications:
+            "Esta solicitud todavía no tiene eventos de correo registrados.",
         },
         errors: {
           ADMIN_UNAUTHORIZED:
@@ -831,6 +876,20 @@ export const esMessages = {
             "No pudimos completar el reembolso del cargo adicional. Inténtalo nuevamente.",
           ADMIN_ADDITIONAL_CHARGE_UNEXPECTED_ERROR:
             "No pudimos completar la operación de cargos adicionales. Inténtalo nuevamente.",
+          INVALID_ADMIN_EMAIL_NOTIFICATION_RESEND_REQUEST:
+            "No pudimos validar la solicitud de reenvío. Recarga antes de continuar.",
+          ADMIN_EMAIL_NOTIFICATION_NOT_FOUND:
+            "No encontramos la notificación seleccionada.",
+          ADMIN_EMAIL_NOTIFICATION_STALE:
+            "La notificación cambió después de que abriste esta página. Recarga antes de continuar.",
+          ADMIN_EMAIL_NOTIFICATION_PROCESSING_ACTIVE:
+            "Esta notificación ya está en procesamiento.",
+          ADMIN_EMAIL_NOTIFICATION_RESEND_NOT_ALLOWED:
+            "Esta notificación ya no admite reenvío manual.",
+          ADMIN_EMAIL_NOTIFICATION_RESERVATION_NOT_CONFIRMED:
+            "Solo se pueden reenviar correos vinculados a una reservación confirmada previamente.",
+          ADMIN_EMAIL_NOTIFICATION_UNEXPECTED_ERROR:
+            "No pudimos crear la nueva notificación. Inténtalo nuevamente.",
           clipboardFailed:
             "El navegador no permitió copiar el enlace privado. La URL no se mostrará como alternativa; revisa el permiso del portapapeles e inténtalo nuevamente.",
         },
@@ -1542,6 +1601,8 @@ export const esMessages = {
             "Pago requerido para cambio de fechas",
           STAY_EXTENSION_PAYMENT_REQUIRED:
             "Pago requerido para extensión",
+          ADDITIONAL_CHARGE_PAYMENT_REQUIRED:
+            "Pago requerido por cargo adicional",
           ADMIN_DATE_CHANGE_PAYMENT_LINK_DELIVERY_STATUS:
             "Resultado del correo de pago para cambio de fechas",
           ADMIN_STAY_EXTENSION_PAYMENT_LINK_DELIVERY_STATUS:
@@ -1658,6 +1719,7 @@ export const esMessages = {
           HOLD: "Hold relacionado",
           PAYMENT: "Pago relacionado",
           REFUND: "Reembolso relacionado",
+          GUEST_PAYMENT_REQUEST: "Solicitud de pago adicional",
           PARENT_NOTIFICATION: "Notificación original",
           SOURCE_NOTIFICATION: "Notificación fuente",
         },
@@ -1689,12 +1751,14 @@ export const esMessages = {
         paymentPurposes: {
           INITIAL_RESERVATION: "Pago inicial de reservación",
           LIFECYCLE_ADJUSTMENT: "Pago de diferencia",
+          ADDITIONAL_CHARGE: "Pago de cargo adicional",
         },
         refundAuthorizationTypes: {
           LEGACY_UNSPECIFIED: "Histórico sin clasificación",
           STANDARD_POLICY: "Según política de cancelación",
           EXTRAORDINARY: "Extraordinario",
           LIFECYCLE_ADJUSTMENT: "Ajuste de estadía",
+          ADDITIONAL_CHARGE: "Cargo adicional",
         },
         events: {
           RESERVATION_CREATED: {
@@ -3271,6 +3335,35 @@ export const esMessages = {
         attemptsLabel: "Intentos",
         observedAtLabel: "Resultado observado",
         errorCodeLabel: "Código seguro de error",
+      },
+    },
+    additionalChargePaymentRequired: {
+      subjectPrefix: "Pago pendiente por cargo adicional",
+      preview: "Completa el pago de tus cargos adicionales",
+      eyebrow: "Acción requerida",
+      title: "Completa el pago de tus cargos adicionales",
+      introduction:
+        "Hay cargos adicionales vinculados a tu reserva y listos para pagarse mediante este enlace privado.",
+      pendingNotice:
+        "Estos cargos son independientes del valor confirmado del alojamiento. El pago se aplicará únicamente a los cargos detallados abajo.",
+      summaryTitle: "Resumen del cobro",
+      itemsTitle: "Cargos incluidos",
+      requestLabel: "Solicitud de pago",
+      totalLabel: "Total por pagar",
+      expiresAtLabel: "Enlace disponible hasta",
+      actionLabel: "Pagar cargos adicionales",
+      actionFallback: "Si el botón no funciona, abre este enlace:",
+      securityNote:
+        "Este enlace es privado y vence siete días después de emitirse.",
+      supportDescription:
+        "Si necesitas ayuda, responde a este correo o escríbenos a",
+      categories: {
+        CLEANING: "Limpieza adicional",
+        DAMAGE: "Daños",
+        TRANSPORT: "Transporte",
+        LATE_CHECKOUT: "Salida tardía",
+        EXTRA_SERVICE: "Servicio adicional",
+        OTHER: "Otro",
       },
     },
     adminNewReservation: {

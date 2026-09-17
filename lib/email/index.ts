@@ -41,6 +41,16 @@ export {
 } from "./retry-policy";
 
 export {
+  additionalChargePaymentNotificationTypes,
+  buildAdditionalChargePaymentRequiredNotificationKey,
+  createAdditionalChargePaymentRequiredNotificationIntent,
+  deliverAdditionalChargePaymentNotificationsBestEffort,
+  deliverClaimedAdditionalChargePaymentEmailNotification,
+  isAdditionalChargePaymentNotificationType,
+  validateAdditionalChargePaymentRequestEmailEligibility,
+} from "./additional-charge-payment-notifications";
+
+export {
   deliverClaimedLifecycleAdjustmentPaymentEmailNotification,
   deliverLifecycleAdjustmentPaymentNotificationsBestEffort,
   ensureAndDeliverLifecycleAdjustmentPaymentRequiredNotificationBestEffort,

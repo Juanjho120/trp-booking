@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-head-element, @next/next/no-img-element -- Transactional email markup requires literal document elements and absolute image URLs. */
 
 import { render } from "@react-email/render";
+import React from "react";
 import type { CSSProperties, ReactElement, ReactNode } from "react";
 
 import type { TransactionalEmailLocale } from "@/types/email-provider";

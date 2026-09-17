@@ -647,6 +647,18 @@ export const enMessages = {
           providerRefundId: "Refund reference",
           resultClassification: "Evidence",
           reason: "Internal reason",
+          notificationDelivery: "Email delivery",
+          notificationStatus: "Email status",
+          origin: "Origin",
+          recipient: "Recipient",
+          locale: "Language",
+          attempts: "Attempts",
+          lastAttemptAt: "Last attempt",
+          nextAttemptAt: "Next attempt",
+          sentAt: "Sent",
+          requestedAt: "Requested",
+          emailCreatedAt: "Email created",
+          errorCode: "Safe code",
           unavailable: "Unavailable",
         },
         categories: {
@@ -677,6 +689,21 @@ export const enMessages = {
           FAILED: "Failed",
           MANUAL: "Manual",
         },
+        notificationStatuses: {
+          PENDING: "Pending",
+          PROCESSING: "Processing",
+          SENT: "Sent",
+          FAILED: "Failed",
+          SKIPPED: "Skipped",
+        },
+        notificationOrigins: {
+          AUTOMATIC: "Automatic",
+          MANUAL: "Manual",
+        },
+        notificationLocales: {
+          es: "Spanish",
+          en: "English",
+        },
         processingModes: {
           TILOPAY_API: "Tilopay API",
           TILOPAY_PORTAL_FALLBACK: "Tilopay portal",
@@ -700,6 +727,9 @@ export const enMessages = {
           confirmCancelRequest: "Cancel request",
           authorizingRefund: "Authorizing...",
           confirmAuthorizeRefund: "Authorize refund",
+          resendEmail: "Resend email",
+          resendingEmail: "Resending...",
+          confirmResendEmail: "Request resend",
           close: "Close",
         },
         placeholders: {
@@ -718,7 +748,7 @@ export const enMessages = {
           chargeBoundary:
             "Only a never-requested pending charge can be edited. A pending charge without an active request can be cancelled or selected for collection.",
           requestBoundary:
-            "A payment request freezes its selected line items, amount, and seven-day expiry. D.4 enables the private link and Tilopay checkout; email delivery remains reserved for D.6.",
+            "A payment request freezes its selected line items, amount, and seven-day expiry. Email uses the same protected private link, and history retains only safe operational state.",
         },
         states: {
           reservationNotEligible:
@@ -763,6 +793,13 @@ export const enMessages = {
           boundary:
             "Authorization does not move money. Tilopay execution and reconciliation remain separate, and approved evidence updates only the additional-charge financial state.",
         },
+        resendEmailDialog: {
+          title: "Resend additional-charge payment email",
+          description:
+            "Create a child notification for the same private link without rotating the token or changing the requested charges.",
+          boundary:
+            "Email is resent only while the request is pending, unexpired, and integrity-valid. The private URL is not shown on this screen.",
+        },
         success: {
           created: "The additional charge was created.",
           updated: "The additional charge was updated.",
@@ -773,10 +810,18 @@ export const enMessages = {
           requestCancelled: "The guest payment request was cancelled.",
           refundAuthorized:
             "The additional-charge refund was authorized and is pending processing.",
+          emailSent: "The payment email was sent.",
+          emailQueued: "The email resend was queued.",
+          emailAlreadyProcessed:
+            "This resend request had already been processed.",
+          emailFailed:
+            "The email could not be sent now; safe state was recorded.",
         },
         empty: {
           charges: "This reservation does not have additional charges yet.",
           requests: "This reservation does not have guest payment requests yet.",
+          notifications:
+            "This request does not have email events recorded yet.",
         },
         errors: {
           ADMIN_UNAUTHORIZED:
@@ -831,6 +876,20 @@ export const enMessages = {
             "We could not complete the additional-charge refund operation. Please try again.",
           ADMIN_ADDITIONAL_CHARGE_UNEXPECTED_ERROR:
             "We could not complete the additional-charge operation. Please try again.",
+          INVALID_ADMIN_EMAIL_NOTIFICATION_RESEND_REQUEST:
+            "We could not validate the resend request. Reload before continuing.",
+          ADMIN_EMAIL_NOTIFICATION_NOT_FOUND:
+            "We could not find the selected notification.",
+          ADMIN_EMAIL_NOTIFICATION_STALE:
+            "The notification changed after you opened this page. Reload before continuing.",
+          ADMIN_EMAIL_NOTIFICATION_PROCESSING_ACTIVE:
+            "This notification is already processing.",
+          ADMIN_EMAIL_NOTIFICATION_RESEND_NOT_ALLOWED:
+            "This notification can no longer be resent manually.",
+          ADMIN_EMAIL_NOTIFICATION_RESERVATION_NOT_CONFIRMED:
+            "Only emails linked to a previously confirmed reservation can be resent.",
+          ADMIN_EMAIL_NOTIFICATION_UNEXPECTED_ERROR:
+            "The new notification could not be created. Try again.",
           clipboardFailed:
             "The browser did not allow the private link to be copied. The URL will not be displayed as a fallback; review clipboard permissions and try again.",
         },
@@ -1540,6 +1599,8 @@ export const enMessages = {
             "Payment required for date change",
           STAY_EXTENSION_PAYMENT_REQUIRED:
             "Payment required for stay extension",
+          ADDITIONAL_CHARGE_PAYMENT_REQUIRED:
+            "Payment required for additional charge",
           ADMIN_DATE_CHANGE_PAYMENT_LINK_DELIVERY_STATUS:
             "Date-change payment email delivery result",
           ADMIN_STAY_EXTENSION_PAYMENT_LINK_DELIVERY_STATUS:
@@ -1656,6 +1717,7 @@ export const enMessages = {
           HOLD: "Related hold",
           PAYMENT: "Related payment",
           REFUND: "Related refund",
+          GUEST_PAYMENT_REQUEST: "Additional-charge payment request",
           PARENT_NOTIFICATION: "Original notification",
           SOURCE_NOTIFICATION: "Source notification",
         },
@@ -1687,12 +1749,14 @@ export const enMessages = {
         paymentPurposes: {
           INITIAL_RESERVATION: "Initial reservation payment",
           LIFECYCLE_ADJUSTMENT: "Adjustment payment",
+          ADDITIONAL_CHARGE: "Additional-charge payment",
         },
         refundAuthorizationTypes: {
           LEGACY_UNSPECIFIED: "Unclassified legacy",
           STANDARD_POLICY: "Cancellation policy",
           EXTRAORDINARY: "Extraordinary",
           LIFECYCLE_ADJUSTMENT: "Stay adjustment",
+          ADDITIONAL_CHARGE: "Additional charge",
         },
         events: {
           RESERVATION_CREATED: {
@@ -3269,6 +3333,35 @@ export const enMessages = {
         attemptsLabel: "Attempts",
         observedAtLabel: "Result observed",
         errorCodeLabel: "Safe error code",
+      },
+    },
+    additionalChargePaymentRequired: {
+      subjectPrefix: "Payment pending for additional charge",
+      preview: "Complete payment for your additional charges",
+      eyebrow: "Action required",
+      title: "Complete payment for your additional charges",
+      introduction:
+        "There are additional charges linked to your reservation and ready to be paid through this private link.",
+      pendingNotice:
+        "These charges are separate from the confirmed accommodation value. Payment applies only to the charges listed below.",
+      summaryTitle: "Payment summary",
+      itemsTitle: "Included charges",
+      requestLabel: "Payment request",
+      totalLabel: "Total due",
+      expiresAtLabel: "Link available until",
+      actionLabel: "Pay additional charges",
+      actionFallback: "If the button does not work, open this link:",
+      securityNote:
+        "This link is private and expires seven days after it is issued.",
+      supportDescription:
+        "For assistance, reply to this email or contact us at",
+      categories: {
+        CLEANING: "Additional cleaning",
+        DAMAGE: "Damage",
+        TRANSPORT: "Transport",
+        LATE_CHECKOUT: "Late checkout",
+        EXTRA_SERVICE: "Extra service",
+        OTHER: "Other",
       },
     },
     adminNewReservation: {

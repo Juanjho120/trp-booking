@@ -175,4 +175,29 @@ export type TransactionalEmailMessages = Readonly<{
     supportDescription: string;
     closing: string;
   }>;
+  additionalChargePaymentRequired: Readonly<{
+    subjectPrefix: string;
+    preview: string;
+    eyebrow: string;
+    title: string;
+    introduction: string;
+    pendingNotice: string;
+    summaryTitle: string;
+    itemsTitle: string;
+    requestLabel: string;
+    totalLabel: string;
+    expiresAtLabel: string;
+    actionLabel: string;
+    actionFallback: string;
+    securityNote: string;
+    supportDescription: string;
+    categories: Readonly<{
+      CLEANING: string;
+      DAMAGE: string;
+      TRANSPORT: string;
+      LATE_CHECKOUT: string;
+      EXTRA_SERVICE: string;
+      OTHER: string;
+    }>;
+  }>;
 }>;

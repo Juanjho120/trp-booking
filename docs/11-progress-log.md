@@ -9,7 +9,7 @@ Current phase state: Phase 12 — Test Deployment & External Integration Validat
 Current numbered phase: none active
 Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
 Current package: Final-D — Additional charges and guest payment requests — In progress
-Current subphase: Final-D.6 — Email delivery and protected operational UX/history — Next / Not started
+Current subphase: Final-D.6 — Email delivery and protected operational UX/history — Implementation completed and validation executed; owner acceptance pending
 Final-C implementation base head: e7ce19c49c5cfd45e1cc08796ee897a2dce0d1ed
 Final-C.1 status: Completed and accepted on 2026-08-25
 Final-C.1 accepted strategy head: 16d8b0411e573aaaa6b510ddb27a9b5d9c666478
@@ -84,7 +84,10 @@ Final-D.5 status: Completed and accepted on 2026-09-17 at 06b3de23fbae23a77b58b4
 Final-D.5 implementation base head: 63f55e22d03270bce0d27be2197373e3ce3e5de8
 Final-D.5 accepted implementation head: 06b3de23fbae23a77b58b432760abf12afd5a6c7
 Final-D.5 record: docs/183-final-d-5-additional-charge-refunds-and-financial-summary-integration.md
-Final-D.6 status: Next / Not started — Email delivery and protected operational UX/history
+Final-D.6 implementation base head: 1f3f30f63c0198afa219df9feea4f415cbc1ccd2
+Final-D.6 status: Implementation completed and validation executed; owner acceptance pending — Email delivery and protected operational UX/history
+Final-D.6 record: docs/184-final-d-6-email-delivery-and-protected-operational-ux-history.md
+Final-D.7 status: Not started — Integrated regression and documentation closure
 Last completed package: Final-C — Pricing rules: seasonal and length-of-stay — Completed and accepted on 2026-08-28 at dca50f51abe1836d3b678b762693219143b12099
 Final-A.1 status: Completed and accepted on 2026-08-11
 Final-A.1 accepted head: 19531568752a44446d0802d6581262260b881aaf
@@ -178,7 +181,7 @@ Phase 12.9 acceptance closure: docs/158-phase-12.9-acceptance-closure.md
 Phase 12.10 status: Completed and accepted on 2026-08-11 — Phase 12 validation and closure
 Phase 12.10 validated repository head: ebe28579872cbc2414573ef852b15139a2501551
 Phase 12 closure record: docs/159-phase-12.10-phase-12-validation-and-closure.md
-Post-Phase-12 / Pre-Phase-13 Final Improvement Track: Active — Final-A, Final-B and Final-C completed and accepted; Final-D is in progress with Final-D.5 completed and accepted; Final-D.6 is Next / Not started
+Post-Phase-12 / Pre-Phase-13 Final Improvement Track: Active — Final-A, Final-B and Final-C completed and accepted; Final-D is in progress with Final-D.6 implementation completed and validation executed; owner acceptance pending
 Final-A status: Completed and accepted on 2026-08-12 at 66afbeacd6ee7d669cb4bc251c8416160fae3f49 — Reservation financial correctness and effective stay value
 Final-A.1 status: Completed and accepted on 2026-08-11 at 19531568752a44446d0802d6581262260b881aaf — Financial source-of-truth and refund-allocation contract
 Final-A.2 status: Completed and accepted on 2026-08-11 at 9f4e04068726451ca87614dd99b1f10656510825 — Central financial summary and cancellation-policy correction
@@ -220,7 +223,7 @@ Final-C.5 implementation base head: 0a57b9772da55a78e8d445dc06ea2b738b412f11
 Final-C.5 status: Completed and accepted on 2026-08-27 at 4fd36fd25484adda7d24a7df4da3c1738835474c
 Final-C.5 record: docs/177-final-c-5-date-change-stay-extension-pricing-integration.md
 Final-C.6 status: Completed and accepted on 2026-08-28 at accepted feature head dca50f51abe1836d3b678b762693219143b12099 — Integrated regression and documentation closure; closure-gate commit 1391b69a6bb591cc7d4e8a68b577ea8bda4fb8fe; implementation base 4fd36fd25484adda7d24a7df4da3c1738835474c; record: docs/178-final-c-6-integrated-regression-and-documentation-closure.md
-Final-D status: In progress — Additional charges and guest payment requests; Final-D.5 completed and accepted, Final-D.6 Next / Not started
+Final-D status: In progress — Additional charges and guest payment requests; Final-D.5 completed and accepted, Final-D.6 implementation completed and validation executed with owner acceptance pending
 Final-D.1 implementation base head: 0839b2935fdc2349d23de6ce6b38177504e514c6
 Final-D.1 status: Completed and accepted on 2026-08-31
 Final-D.1 accepted strategy head: 3dc4fa7d81d65244a94e7e43726e2f12591e578f
@@ -241,7 +244,10 @@ Final-D.5 status: Completed and accepted on 2026-09-17 at 06b3de23fbae23a77b58b4
 Final-D.5 implementation base head: 63f55e22d03270bce0d27be2197373e3ce3e5de8
 Final-D.5 accepted implementation head: 06b3de23fbae23a77b58b432760abf12afd5a6c7
 Final-D.5 record: docs/183-final-d-5-additional-charge-refunds-and-financial-summary-integration.md
-Final-D.6 status: Next / Not started — Email delivery and protected operational UX/history
+Final-D.6 implementation base head: 1f3f30f63c0198afa219df9feea4f415cbc1ccd2
+Final-D.6 status: Implementation completed and validation executed; owner acceptance pending — Email delivery and protected operational UX/history
+Final-D.6 record: docs/184-final-d-6-email-delivery-and-protected-operational-ux-history.md
+Final-D.7 status: Not started — Integrated regression and documentation closure
 Final-E status: Not started — Reservation reviews and post-checkout invitation
 Final-F status: Not started — Twilio WhatsApp communication and staff alerts
 Final-G status: Not started — Performance audit and optimization
@@ -1235,11 +1241,30 @@ Status: **Completed and accepted on 2026-09-17 at 06b3de23fbae23a77b58b432760abf
 - Failed ancillary attempts do not update AdditionalCharge statuses and release reserved ancillary refundable balance.
 - Added Final-A financial-summary integration for additionalChargeGrossAmount, additionalChargeCapturedAmount and additionalChargeRefundedAmount while keeping Reservation.total, current stay value, cancellation-policy money and stay refund balances isolated.
 - Added admin UX in the existing Additional Charges tab for per-charge balances, refund history/evidence, refund authorization, Execute, Consult and Reconcile.
-- D.6 email delivery/resend/history was not implemented; D.7 consolidated closure was not started.
+- At D.5 closure, D.6 email delivery/resend/history remained outside the D.5 scope; D.7 consolidated closure was not started.
 - Validation executed locally: Final-D targeted 40/40, Final-A 44/44, Final-B 38/38, Final-C 41/41, rollback-only Local/Test DB validation, Prisma generate/validate/migrate status, lint, build and git diff --check.
 - Hosted Test owner acceptance completed on 2026-09-17: the Additional Charges tab displayed the refund workflow, ancillary refund authorization, Tilopay Sandbox execution, Consult, Reconcile, partial refund, full refund, AdditionalCharge and Payment transitions to PARTIALLY_REFUNDED then REFUNDED, correct remaining refundable balance ending at 0, no flow errors, and correct separation from the stay refund workflow.
-- Final-D.6 is Next / Not started.
+- Final-D.6 implementation is completed with validation executed; owner acceptance remains pending.
 - Record: docs/183-final-d-5-additional-charge-refunds-and-financial-summary-integration.md.
+```
+
+### Final-D.6 — Email delivery and protected operational UX/history
+
+Status: **Implementation completed and validation executed; owner acceptance pending**
+
+```text
+- Implementation base head: 1f3f30f63c0198afa219df9feea4f415cbc1ccd2.
+- Created the ADDITIONAL_CHARGE_PAYMENT_REQUIRED email renderer and transactional intent path for GuestPaymentRequest creation.
+- The automatic notification intent is created in the same Serializable transaction as the payment request and delivered best-effort only after commit.
+- Replay of the same admin clientRequestId reuses the existing request and does not create a duplicate notification.
+- Delivery eligibility requires a PENDING, unexpired, integrity-valid GuestPaymentRequest and verified token hash/encrypted-token consistency before the private URL is rendered.
+- Manual resend reuses the existing request/token through the generic email-notification resend endpoint and keeps parent/child notification history.
+- The Additional Charges admin tab now exposes safe notification state, resend controls, and protected operational history relations without raw tokens, private URLs, encrypted tokens, provider diagnostics, or raw error messages.
+- D.7 consolidated closure, Final-E/F/G/H, Phase 13 and Production work were not started.
+- Validation executed locally: Final-D targeted 46/46, Final-A 44/44, Final-B 38/38, Final-C 41/41, rollback-only Local/Test DB validation, Prisma generate/validate/migrate status, lint, build and git diff --check.
+- Owner acceptance remains pending; do not mark Final-D.6 accepted until explicit owner acceptance is recorded.
+- Final-D.7 is Next / Not started.
+- Record: docs/184-final-d-6-email-delivery-and-protected-operational-ux-history.md.
 ```
 
 ## Continuity Notes for New Conversations

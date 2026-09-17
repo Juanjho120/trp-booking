@@ -1,4 +1,8 @@
 import type {
+  EmailNotificationOrigin,
+  EmailNotificationStatus,
+} from "@prisma/client";
+import type {
   AdditionalChargeCategory,
   AdditionalChargeStatus,
   GuestPaymentRequestStatus,
@@ -100,6 +104,27 @@ export type AdminGuestPaymentRequestItemSummary = Readonly<{
   createdAt: string;
 }>;
 
+export type AdminGuestPaymentRequestEmailNotificationSummary = Readonly<{
+  id: string;
+  type: "ADDITIONAL_CHARGE_PAYMENT_REQUIRED";
+  recipient: string;
+  locale: "es" | "en";
+  origin: EmailNotificationOrigin;
+  parentNotificationId: string | null;
+  hasManualResends: boolean;
+  requestedAt: string | null;
+  requestedByAdmin: AdminAdditionalChargeActorSummary | null;
+  status: EmailNotificationStatus;
+  attemptCount: number;
+  lastAttemptAt: string | null;
+  nextAttemptAt: string | null;
+  sentAt: string | null;
+  errorCode: string | null;
+  createdAt: string;
+  updatedAt: string;
+  canResend: boolean;
+}>;
+
 export type AdminGuestPaymentRequestSummary = Readonly<{
   id: string;
   reservationId: string;
@@ -113,6 +138,7 @@ export type AdminGuestPaymentRequestSummary = Readonly<{
   createdAt: string;
   updatedAt: string;
   items: readonly AdminGuestPaymentRequestItemSummary[];
+  emailNotifications: readonly AdminGuestPaymentRequestEmailNotificationSummary[];
   canCancel: boolean;
   canCopyLink: boolean;
 }>;
