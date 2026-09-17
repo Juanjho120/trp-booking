@@ -10,7 +10,7 @@ Initial implementation commit: d2ad7687b8519a4fd0c083f72ca2bfec7f90ce83
 Accepted implementation head: 7d996fd20db42b2560df11f7e00d7a5e9cc0d18c
 Implementation record: this D.4 implementation plus corrective validation-strengthening, token-sanitization hardening, hydration, SDK-session error handling, admin-tab placement, and PostgreSQL payment-purpose constraint changesets
 Owner acceptance: Completed on 2026-09-14 after Hosted Test functional validation
-Next subphase: Final-D.5 — Additional-charge refunds and financial-summary integration — Implementation completed and validation executed; owner acceptance pending
+Next subphase: Final-D.6 — Email delivery and protected operational UX/history — Not started
 Phase 13: Not started
 ```
 
@@ -123,4 +123,4 @@ git diff --check — Passed after documentation reconciliation.
 
 ## Acceptance State
 
-Final-D.4 is **Completed and accepted** on 2026-09-14 at accepted implementation head `7d996fd20db42b2560df11f7e00d7a5e9cc0d18c`. Final-D.5 has since been implemented and validated, with owner acceptance pending. Final-D.6 is the next subphase but remains Not started. Phase 13 remains Not started.
+Final-D.4 is **Completed and accepted** on 2026-09-14 at accepted implementation head `7d996fd20db42b2560df11f7e00d7a5e9cc0d18c`. Final-D.5 has since been completed and accepted on 2026-09-17 at `06b3de23fbae23a77b58b432760abf12afd5a6c7`. Final-D.6 is the next subphase but remains Not started. Phase 13 remains Not started.

@@ -14,7 +14,7 @@ Previous subphase: Final-D.1 — Completed and accepted on 2026-08-31
 Final-D.1 accepted strategy head: 3dc4fa7d81d65244a94e7e43726e2f12591e578f
 Authoritative strategy: docs/179-final-d-1-additional-charge-payment-request-strategy-and-financial-isolation-contract.md
 Migration: prisma/migrations/20260831135000_final_d_2_additional_charge_persistence_foundation/migration.sql
-Following progress: Final-D.3 — Admin charge management and payment-request creation — Completed and accepted on 2026-08-31 at 6a0d909fc325f4e8925677041be34c77c023c42b; Final-D.4 — Private guest payment link and Tilopay collection — Completed and accepted on 2026-09-14 at 7d996fd20db42b2560df11f7e00d7a5e9cc0d18c; initial implementation commit d2ad7687b8519a4fd0c083f72ca2bfec7f90ce83; Final-D.5 — Implementation completed and validation executed, owner acceptance pending
+Following progress: Final-D.3 — Admin charge management and payment-request creation — Completed and accepted on 2026-08-31 at 6a0d909fc325f4e8925677041be34c77c023c42b; Final-D.4 — Private guest payment link and Tilopay collection — Completed and accepted on 2026-09-14 at 7d996fd20db42b2560df11f7e00d7a5e9cc0d18c; initial implementation commit d2ad7687b8519a4fd0c083f72ca2bfec7f90ce83; Final-D.5 — Completed and accepted on 2026-09-17 at 06b3de23fbae23a77b58b432760abf12afd5a6c7
 Phase 13: Not started
 ```
 
@@ -528,8 +528,9 @@ Final-D.1 — Completed and accepted on 2026-08-31 at 3dc4fa7d81d65244a94e7e4372
 Final-D.2 — Completed and accepted on 2026-08-31 at 74ac3011eb22277a896d81c92897f1bee6a4d51b
 Final-D.3 — Completed and accepted on 2026-08-31 at 6a0d909fc325f4e8925677041be34c77c023c42b
 Final-D.4 — Completed and accepted on 2026-09-14 at 7d996fd20db42b2560df11f7e00d7a5e9cc0d18c — Private guest payment link and Tilopay collection; implementation base 6a0d909fc325f4e8925677041be34c77c023c42b; initial implementation commit d2ad7687b8519a4fd0c083f72ca2bfec7f90ce83
-Final-D.5 — Implementation completed and validation executed; owner acceptance pending — Additional-charge refunds and financial-summary integration
+Final-D.5 — Completed and accepted on 2026-09-17 at 06b3de23fbae23a77b58b432760abf12afd5a6c7 — Additional-charge refunds and financial-summary integration
 Final-D.5 record — docs/183-final-d-5-additional-charge-refunds-and-financial-summary-integration.md
+Final-D.6 — Next / Not started — Email delivery and protected operational UX/history
 Final-E — Not started
 Phase 13 — Not started
 ```

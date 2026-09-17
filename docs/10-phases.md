@@ -18,7 +18,7 @@ Current phase state: Phase 12 — Test Deployment & External Integration Validat
 Current numbered phase: none active
 Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
 Current package: Final-D — Additional charges and guest payment requests — In progress
-Current subphase: Final-D.5 — Additional-charge refunds and financial-summary integration — Implementation completed and validation executed; owner acceptance pending
+Current subphase: Final-D.6 — Email delivery and protected operational UX/history — Next / Not started
 Final-C implementation base head: e7ce19c49c5cfd45e1cc08796ee897a2dce0d1ed
 Final-C.1 status: Completed and accepted on 2026-08-25
 Final-C.1 accepted strategy head: 16d8b0411e573aaaa6b510ddb27a9b5d9c666478
@@ -90,7 +90,8 @@ Final-D.4 status: Completed and accepted on 2026-09-14 at 7d996fd20db42b2560df11
 Final-D.4 accepted implementation head: 7d996fd20db42b2560df11f7e00d7a5e9cc0d18c
 Final-D.4 record: docs/182-final-d-4-private-guest-payment-link-and-tilopay-collection.md
 Final-D.5 implementation base head: 63f55e22d03270bce0d27be2197373e3ce3e5de8
-Final-D.5 status: Implementation completed and validation executed; owner acceptance pending — Additional-charge refunds and financial-summary integration
+Final-D.5 status: Completed and accepted on 2026-09-17 at 06b3de23fbae23a77b58b432760abf12afd5a6c7 — Additional-charge refunds and financial-summary integration
+Final-D.5 accepted implementation head: 06b3de23fbae23a77b58b432760abf12afd5a6c7
 Final-D.5 record: docs/183-final-d-5-additional-charge-refunds-and-financial-summary-integration.md
 Final-D.6 status: Next / Not started — Email delivery and protected operational UX/history
 Last completed package: Final-C — Pricing rules: seasonal and length-of-stay — Completed and accepted on 2026-08-28 at dca50f51abe1836d3b678b762693219143b12099
@@ -117,7 +118,7 @@ Final-A.3 record: docs/163-final-a-3-standard-and-extraordinary-multi-payment-re
 Final-A.4 record: docs/164-final-a-4-negative-date-change-multi-payment-integration.md
 Final-A.5 record: docs/165-final-a-5-admin-refund-ux-notification-and-operational-history.md
 Final-A.6 record: docs/166-final-a-6-integrated-acceptance-and-documentation-closure.md
-Last accepted subphase: Final-D.4 Private guest payment link and Tilopay collection — completed and accepted on 2026-09-14 at 7d996fd20db42b2560df11f7e00d7a5e9cc0d18c
+Last accepted subphase: Final-D.5 Additional-charge refunds and financial-summary integration — completed and accepted on 2026-09-17 at 06b3de23fbae23a77b58b432760abf12afd5a6c7
 Phase 13 status: Not started
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 11.6.5 acceptance: All 15 protected-history, ordering, relation, retry, ES/EN, responsive, security, and integrated criteria passed on 2026-08-05
@@ -177,7 +178,7 @@ Phase 12.9 closure: docs/158-phase-12.9-acceptance-closure.md
 Phase 12.10 status: Completed and accepted on 2026-08-11 — Phase 12 validation and closure
 Phase 12.10 validated repository head: ebe28579872cbc2414573ef852b15139a2501551
 Phase 12 closure: docs/159-phase-12.10-phase-12-validation-and-closure.md
-Next work: Final-D.5 owner acceptance / Hosted Test review; Final-D.6 remains Not started until explicitly requested. Phase 13 remains blocked until Final-H closes and the complete Final Improvement Track is explicitly accepted
+Next work: Final-D.6 Email delivery and protected operational UX/history remains Not started until explicitly requested. Phase 13 remains blocked until Final-H closes and the complete Final Improvement Track is explicitly accepted
 Next planned numbered phase: Phase 13 — Production Infrastructure, Deployment & Go-Live — Not started
 Pre-Phase-12 Improvement Track status: Completed and accepted — Packages A, B, C, E, and F accepted; Package D remains deferred outside the current gate
 Pre-Phase-12 Improvement Track registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
@@ -1240,7 +1241,7 @@ Phase 12 explicitly excludes company-owned production account provisioning, prod
 
 ## Inter-Phase Work — Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 
-Status: **Active — Final-A, Final-B and Final-C are completed and accepted; Final-D is in progress with Final-D.5 implemented and validated, owner acceptance pending; Phase 13 remains Not started**
+Status: **Active — Final-A, Final-B and Final-C are completed and accepted; Final-D is in progress with Final-D.5 completed and accepted and Final-D.6 Next / Not started; Phase 13 remains Not started**
 
 Goal: Complete the final owner-approved feature, correctness, communication, pricing, and performance round before Production while preserving the accepted Test/Production ownership boundary.
 
@@ -1273,7 +1274,7 @@ Final-D Additional charges and guest payment requests — In progress
   Final-D.2 Persistence foundation and migration — Completed and accepted on 2026-08-31 at 74ac3011eb22277a896d81c92897f1bee6a4d51b; implementation base 3dc4fa7d81d65244a94e7e43726e2f12591e578f; record: docs/180-final-d-2-additional-charge-persistence-foundation-and-migration.md
   Final-D.3 Admin charge management and payment-request creation — Completed and accepted on 2026-08-31 at 6a0d909fc325f4e8925677041be34c77c023c42b; implementation base 74ac3011eb22277a896d81c92897f1bee6a4d51b; record: docs/181-final-d-3-admin-charge-management-and-payment-request-creation.md
   Final-D.4 Private guest payment link and Tilopay collection — Completed and accepted on 2026-09-14 at 7d996fd20db42b2560df11f7e00d7a5e9cc0d18c; implementation base 6a0d909fc325f4e8925677041be34c77c023c42b; record: docs/182-final-d-4-private-guest-payment-link-and-tilopay-collection.md
-  Final-D.5 Additional-charge refunds and financial-summary integration — Implementation completed and validation executed; owner acceptance pending; implementation base 63f55e22d03270bce0d27be2197373e3ce3e5de8; record: docs/183-final-d-5-additional-charge-refunds-and-financial-summary-integration.md
+  Final-D.5 Additional-charge refunds and financial-summary integration — Completed and accepted on 2026-09-17 at 06b3de23fbae23a77b58b432760abf12afd5a6c7; implementation base 63f55e22d03270bce0d27be2197373e3ce3e5de8; record: docs/183-final-d-5-additional-charge-refunds-and-financial-summary-integration.md
   Final-D.6 Email delivery and protected operational UX/history — Next / Not started
 Final-E Reservation reviews and post-checkout invitation — Not started
 Final-F Twilio WhatsApp communication and staff alerts — Not started

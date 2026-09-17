@@ -7,8 +7,10 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-D — Additional charges and guest payment requests
 Subphase: Final-D.5 — Additional-charge refunds and financial-summary integration
-Status: Implementation completed and validation executed; owner acceptance pending
+Status: Completed and accepted
+Acceptance date: 2026-09-17
 Implementation base head: 63f55e22d03270bce0d27be2197373e3ce3e5de8
+Accepted implementation head: 06b3de23fbae23a77b58b432760abf12afd5a6c7
 Previous accepted subphase: Final-D.4 — Completed and accepted on 2026-09-14 at 7d996fd20db42b2560df11f7e00d7a5e9cc0d18c
 Next subphase: Final-D.6 — Email delivery and protected operational UX/history — Not started
 Phase 13: Not started
@@ -39,6 +41,30 @@ The independent Final-D.5 review identified one remaining product/runtime gap an
 - `tests/final-d/refund-runtime.test.ts` now executes `createAdminRefundAuthorization`, `executeAdminTilopayRefund`, and `reconcileAdminRefund` against an in-memory Prisma-compatible mock, including provider acceptance/rejection and reconciliation outcomes.
 - A rollback-only Local/Test database validation was executed against the configured Supabase database using an existing `ADDITIONAL_CHARGE` payment fixture; it verified real `Refund` plus `AdditionalChargeRefundAllocation` persistence constraints and confirmed no rows remained after rollback.
 - No real Tilopay refund was executed.
+
+## Hosted Test Owner Acceptance
+
+On 2026-09-17, the owner completed and explicitly accepted the Hosted Test validation for Final-D.5.
+
+Confirmed Hosted Test behavior:
+
+- The refund workflow displays inside the Additional Charges tab.
+- Ancillary refund authorization works.
+- Tilopay Sandbox execution works.
+- Consult works.
+- Reconcile works.
+- Partial ancillary refund works.
+- The `AdditionalCharge` transitions to `PARTIALLY_REFUNDED`.
+- The `Payment` transitions to `PARTIALLY_REFUNDED`.
+- The remaining refundable balance is correct after the partial refund.
+- A second refund for the remaining balance works.
+- Full ancillary refund works.
+- The `AdditionalCharge` transitions to `REFUNDED`.
+- The `Payment` transitions to `REFUNDED`.
+- The remaining refundable amount reaches 0.
+- The flow works without errors.
+- Ancillary refunds remain correctly separated from the stay refund workflow.
+- Owner acceptance was explicitly granted.
 
 ## Financial Definitions Implemented
 
@@ -122,10 +148,10 @@ Final-D.1 — Completed and accepted
 Final-D.2 — Completed and accepted
 Final-D.3 — Completed and accepted
 Final-D.4 — Completed and accepted on 2026-09-14 at 7d996fd20db42b2560df11f7e00d7a5e9cc0d18c
-Final-D.5 — Implementation completed and validation executed; owner acceptance pending
+Final-D.5 — Completed and accepted on 2026-09-17 at 06b3de23fbae23a77b58b432760abf12afd5a6c7
 Final-D.6 — Next / Not started
 Final-D.7 — Not started
 Phase 13 — Not started
 ```
 
-Final-D.5 must not be marked accepted until owner acceptance is explicitly recorded after the required review/Hosted Test gate.
+Final-D.6 is the next subphase but remains Not started until explicitly requested.
