@@ -69,6 +69,8 @@ test("D.4 Tilopay session and preflight classify the private token without retur
 
   assert.match(checkout, /reservationId,\s*paymentId:\s*activeSession\.paymentId/);
   assert.equal(checkout.includes("reservationId: activeSession.reservationId"), false);
+  assert.match(checkout, /readApiJsonResponse/);
+  assert.equal(checkout.includes("response.json()"), false);
 });
 
 test("D.4 payment submission attempts allow and validate the ADDITIONAL_CHARGE source", () => {
@@ -138,18 +140,47 @@ test("D.4 admin copy action is protected and never stores the private URL in com
   const component = source(
     "features/admin/components/admin-additional-charges-section.tsx",
   );
-  const paymentService = source(
-    "lib/payments/guest-payment-request-payment.ts",
+  const linkService = source(
+    "lib/admin/guest-payment-request-payment-link.ts",
+  );
+  const linkHelper = source(
+    "lib/payments/guest-payment-request-link.ts",
   );
 
   assert.match(route, /getAdminSessionActor/);
   assert.match(route, /isValidAdminMutationOrigin/);
+  assert.match(route, /lib\/admin\/guest-payment-request-payment-link/);
   assert.match(route, /cache-control":\s*"private, no-store, max-age=0"/);
-  assert.match(paymentService, /GUEST_PAYMENT_REQUEST_LINK_COPIED/);
-  assert.match(paymentService, /hashGuestPaymentRequestAccessToken\(rawToken\)/);
+  assert.match(linkService, /GUEST_PAYMENT_REQUEST_LINK_COPIED/);
+  assert.match(linkService, /hashGuestPaymentRequestAccessToken\(rawToken\)/);
+  assert.match(linkService, /buildGuestPaymentRequestPaymentPath/);
+  assert.match(linkHelper, /isGuestPaymentRequestAccessToken/);
   assert.match(component, /navigator\.clipboard\.writeText\(payload\.paymentUrl\)/);
   assert.equal(component.includes("setPaymentUrl"), false);
   assert.equal(component.includes("paymentUrl,"), false);
+});
+
+test("D.6 ancillary email link building does not reintroduce the payment-admin-email import cycle", () => {
+  const paymentService = source(
+    "lib/payments/guest-payment-request-payment.ts",
+  );
+  const emailDelivery = source(
+    "lib/email/additional-charge-payment-notifications.ts",
+  );
+  const linkHelper = source("lib/payments/guest-payment-request-link.ts");
+
+  assert.equal(paymentService.includes("@/lib/admin/additional-charges"), false);
+  assert.equal(
+    paymentService.includes("getAdminGuestPaymentRequestPaymentLink"),
+    false,
+  );
+  assert.equal(
+    emailDelivery.includes("@/lib/payments/guest-payment-request-payment"),
+    false,
+  );
+  assert.match(emailDelivery, /@\/lib\/payments\/guest-payment-request-link/);
+  assert.match(linkHelper, /buildGuestPaymentRequestPaymentPath/);
+  assert.match(linkHelper, /isGuestPaymentRequestAccessToken/);
 });
 
 test("D.4 public page uses centralized copy and stays within the private charge payment scope", () => {

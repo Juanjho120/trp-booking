@@ -8,22 +8,17 @@ import {
   ReservationStatus,
 } from "@prisma/client";
 
-import { environmentConfig } from "@/config/site";
 import { dateOnlyFromDate } from "@/lib/availability/rules";
 import { prisma } from "@/lib/db/prisma";
-import { validateServerEnv } from "@/lib/env/server";
+import { buildGuestPaymentRequestPaymentPath } from "@/lib/payments/guest-payment-request-link";
 import {
   decryptGuestPaymentRequestAccessToken,
   hashGuestPaymentRequestAccessToken,
   isGuestPaymentRequestAccessToken,
 } from "@/lib/payments/guest-payment-request-token";
-import { resolveAdminActor } from "@/lib/admin/admin-actor";
-import { AdminAdditionalChargeError } from "@/lib/admin/additional-charges";
-import type { AdminActor } from "@/types/admin";
 import type { AdditionalChargeCategory } from "@/types/additional-charge";
 
 const TRP_CURRENCY = "USD";
-const PAYMENT_LINK_PATH_PREFIX = "/reservas/cargos";
 const REQUEST_PAYMENT_TRANSACTION_MAX_ATTEMPTS = 3;
 const REQUEST_PAYMENT_TRANSACTION_RETRY_DELAY_MS = 75;
 
@@ -452,36 +447,6 @@ function reservationReference(reservationId: string): string {
   return reservationId.slice(-8).toUpperCase();
 }
 
-export function buildGuestPaymentRequestPaymentPath(rawToken: string): string {
-  const token = normalizeToken(rawToken);
-  return `${PAYMENT_LINK_PATH_PREFIX}/${encodeURIComponent(token.rawToken)}`;
-}
-
-function buildGuestPaymentRequestPaymentUrl(
-  rawToken: string,
-  baseUrl: string,
-): string {
-  return new URL(
-    buildGuestPaymentRequestPaymentPath(rawToken),
-    baseUrl,
-  ).toString();
-}
-
-function resolvePaymentLinkBaseUrl(
-  requestOrigin: string | null,
-  envSource: NodeJS.ProcessEnv = process.env,
-): string {
-  const environment = validateServerEnv(envSource).TRP_ENVIRONMENT;
-
-  if (environment === "local" && requestOrigin) {
-    return new URL(requestOrigin).origin;
-  }
-
-  return environment === "test"
-    ? environmentConfig.test.applicationUrl
-    : environmentConfig.production.applicationUrl;
-}
-
 export async function getGuestPaymentRequestPaymentSummary(
   rawToken: string,
 ): Promise<GuestPaymentRequestPaymentSummary> {
@@ -711,133 +676,6 @@ export async function getGuestPaymentRequestPaymentPathForPayment(
   } catch {
     return null;
   }
-}
-
-export async function getAdminGuestPaymentRequestPaymentLink(
-  input: Readonly<{
-    requestId: string;
-    requestOrigin: string | null;
-    env?: NodeJS.ProcessEnv;
-  }>,
-  actor: AdminActor,
-): Promise<string> {
-  const requestId = input.requestId.trim();
-
-  if (!requestId) {
-    throw new AdminAdditionalChargeError(
-      "INVALID_ADMIN_ADDITIONAL_CHARGE_REQUEST",
-    );
-  }
-
-  const now = new Date();
-  const request = await prisma.guestPaymentRequest.findUnique({
-    where: { id: requestId },
-    select: {
-      id: true,
-      reservationId: true,
-      status: true,
-      totalAmount: true,
-      currency: true,
-      accessTokenHash: true,
-      accessTokenEncrypted: true,
-      expiresAt: true,
-      payment: {
-        select: {
-          id: true,
-          status: true,
-        },
-      },
-    },
-  });
-
-  if (!request) {
-    throw new AdminAdditionalChargeError(
-      "ADMIN_GUEST_PAYMENT_REQUEST_NOT_FOUND",
-    );
-  }
-
-  if (
-    request.status === GuestPaymentRequestStatus.PENDING &&
-    request.expiresAt <= now
-  ) {
-    await prisma.guestPaymentRequest.updateMany({
-      where: {
-        id: request.id,
-        status: GuestPaymentRequestStatus.PENDING,
-        expiresAt: { lte: now },
-      },
-      data: {
-        status: GuestPaymentRequestStatus.EXPIRED,
-      },
-    });
-
-    throw new AdminAdditionalChargeError(
-      "ADMIN_GUEST_PAYMENT_REQUEST_NOT_PAYABLE",
-    );
-  }
-
-  if (
-    request.status !== GuestPaymentRequestStatus.PENDING ||
-    request.payment?.status === PaymentStatus.APPROVED
-  ) {
-    throw new AdminAdditionalChargeError(
-      "ADMIN_GUEST_PAYMENT_REQUEST_NOT_PAYABLE",
-    );
-  }
-
-  let rawToken: string;
-
-  try {
-    rawToken = decryptGuestPaymentRequestAccessToken(
-      request.reservationId,
-      request.accessTokenEncrypted,
-    );
-  } catch {
-    throw new AdminAdditionalChargeError(
-      "ADMIN_GUEST_PAYMENT_REQUEST_LINK_UNAVAILABLE",
-    );
-  }
-
-  try {
-    if (
-      hashGuestPaymentRequestAccessToken(rawToken) !== request.accessTokenHash
-    ) {
-      throw new Error("Guest payment request token hash mismatch");
-    }
-  } catch {
-    throw new AdminAdditionalChargeError(
-      "ADMIN_GUEST_PAYMENT_REQUEST_LINK_UNAVAILABLE",
-    );
-  }
-
-  const paymentUrl = buildGuestPaymentRequestPaymentUrl(
-    rawToken,
-    resolvePaymentLinkBaseUrl(input.requestOrigin, input.env ?? process.env),
-  );
-
-  const adminActor = await resolveAdminActor(prisma, actor);
-
-  await prisma.adminAuditLog.create({
-    data: {
-      userId: adminActor.id,
-      action: "GUEST_PAYMENT_REQUEST_LINK_COPIED",
-      entityType: "GuestPaymentRequest",
-      entityId: request.id,
-      metadata: {
-        actorEmail: adminActor.email,
-        reservationId: request.reservationId,
-        guestPaymentRequestId: request.id,
-        paymentId: request.payment?.id ?? null,
-        requestStatus: request.status,
-        paymentStatus: request.payment?.status ?? null,
-        amountCents: amountCents(request.totalAmount),
-        currency: request.currency,
-        expiresAt: request.expiresAt.toISOString(),
-      },
-    },
-  });
-
-  return paymentUrl;
 }
 
 export async function markGuestPaymentRequestPaidFromApprovedPayment(

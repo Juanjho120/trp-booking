@@ -95,6 +95,20 @@ function isTilopayPaymentPreflightSuccessResponse(
   return "tilopayPaymentPreflight" in payload;
 }
 
+async function readApiJsonResponse<T>(response: Response): Promise<T | null> {
+  const text = await response.text();
+
+  if (!text.trim()) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    return null;
+  }
+}
+
 function isSuccessMessage(value: string | undefined): boolean {
   return typeof value === "string" && value.toLowerCase() === "success";
 }
@@ -468,10 +482,20 @@ export function TilopaySdkCheckout({
         },
         method: "POST",
       });
-      const payload = (await response.json()) as CreateTilopaySdkSessionApiResponse;
+      const payload =
+        await readApiJsonResponse<CreateTilopaySdkSessionApiResponse>(
+          response,
+        );
 
-      if (!response.ok || !isTilopaySdkSessionSuccessResponse(payload)) {
-        const message = "error" in payload ? payload.error.message : copy.sessionError;
+      if (
+        !payload ||
+        !response.ok ||
+        !isTilopaySdkSessionSuccessResponse(payload)
+      ) {
+        const message =
+          payload && "error" in payload
+            ? payload.error.message
+            : copy.sessionError;
         throw new Error(message);
       }
 
@@ -566,10 +590,18 @@ export function TilopaySdkCheckout({
       },
       method: "POST",
     });
-    const payload = (await response.json()) as TilopayPaymentPreflightApiResponse;
+    const payload =
+      await readApiJsonResponse<TilopayPaymentPreflightApiResponse>(response);
 
-    if (!response.ok || !isTilopayPaymentPreflightSuccessResponse(payload)) {
-      const message = "error" in payload ? payload.error.message : copy.sessionError;
+    if (
+      !payload ||
+      !response.ok ||
+      !isTilopayPaymentPreflightSuccessResponse(payload)
+    ) {
+      const message =
+        payload && "error" in payload
+          ? payload.error.message
+          : copy.paymentError;
       throw new Error(message);
     }
 

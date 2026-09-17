@@ -8,7 +8,7 @@ import {
 } from "@/lib/admin";
 import { adminAdditionalChargeErrorResponse } from "@/lib/admin/additional-charge-api";
 import { AdminAdditionalChargeError } from "@/lib/admin/additional-charges";
-import { getAdminGuestPaymentRequestPaymentLink } from "@/lib/payments/guest-payment-request-payment";
+import { getAdminGuestPaymentRequestPaymentLink } from "@/lib/admin/guest-payment-request-payment-link";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";

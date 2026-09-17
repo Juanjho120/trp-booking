@@ -2,6 +2,9 @@ import assert from "node:assert/strict";
 
 import {
   AdditionalChargeStatus,
+  EmailNotificationOrigin,
+  EmailNotificationStatus,
+  EmailNotificationType,
   GuestPaymentRequestStatus,
   PaymentProvider,
   PaymentPurpose,
@@ -164,12 +167,27 @@ type MockClientEvent = {
   values: readonly unknown[];
 };
 
+type MockEmailNotification = {
+  id: string;
+  reservationId: string;
+  guestPaymentRequestId: string;
+  type: EmailNotificationType;
+  recipient: string;
+  locale: "es" | "en";
+  origin: EmailNotificationOrigin;
+  status: EmailNotificationStatus;
+  attemptCount: number;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 type MockState = {
   reservations: MockReservation[];
   additionalCharges: MockAdditionalCharge[];
   guestPaymentRequests: MockGuestPaymentRequest[];
   guestPaymentRequestItems: MockGuestPaymentRequestItem[];
   payments: MockPayment[];
+  emailNotifications: MockEmailNotification[];
   paymentSubmissionAttempts: MockPaymentSubmissionAttempt[];
   lifecycleRequests: MockLifecycleRequest[];
   lifecycleHolds: MockLifecycleHold[];
@@ -294,6 +312,11 @@ function cloneState(state: MockState): MockState {
       createdAt: new Date(payment.createdAt.getTime()),
       updatedAt: new Date(payment.updatedAt.getTime()),
     })),
+    emailNotifications: state.emailNotifications.map((notification) => ({
+      ...notification,
+      createdAt: new Date(notification.createdAt.getTime()),
+      updatedAt: new Date(notification.updatedAt.getTime()),
+    })),
     paymentSubmissionAttempts: state.paymentSubmissionAttempts.map(
       (attempt) => ({
         ...attempt,
@@ -339,6 +362,7 @@ function baseState(
     paymentAmount?: string;
     reservationStatus?: ReservationStatus;
     paidAt?: Date | null;
+    includeEmailNotification?: boolean;
   }> = {},
 ): MockState {
   const token = options.token ?? VALID_TOKEN;
@@ -451,6 +475,23 @@ function baseState(
               updatedAt: new Date("2026-09-11T10:15:00.000Z"),
             },
           ],
+    emailNotifications: options.includeEmailNotification
+      ? [
+          {
+            id: "email-notification-final-d6",
+            reservationId: "reservation-final-d4",
+            guestPaymentRequestId: "request-final-d4",
+            type: EmailNotificationType.ADDITIONAL_CHARGE_PAYMENT_REQUIRED,
+            recipient: TEST_GUEST_EMAIL,
+            locale: "es",
+            origin: EmailNotificationOrigin.AUTOMATIC,
+            status: EmailNotificationStatus.SENT,
+            attemptCount: 1,
+            createdAt: BASE_NOW,
+            updatedAt: BASE_NOW,
+          },
+        ]
+      : [],
     paymentSubmissionAttempts: [],
     lifecycleRequests: [
       {
@@ -1404,6 +1445,56 @@ test("D.4 behavior creates an ADDITIONAL_CHARGE Tilopay SDK session without retu
     assert.equal(returnData.orderNumber, session.providerReference);
     assert.equal(returnData.reservationId, "guest-payment-request");
     assert.equal(JSON.stringify(session).includes(VALID_TOKEN), false);
+    assertNoRawTokenStored(store.current);
+  } finally {
+    restoreFetch();
+    restoreEnv();
+  }
+});
+
+test("D.6 behavior keeps automatic email request history compatible with the SDK-session route", async () => {
+  const restoreEnv = preserveTilopayEnv();
+  const restoreFetch = installTilopaySdkFetch("success");
+  const store = installMockPrisma(
+    baseState({ includeEmailNotification: true }),
+  );
+  const { sdkSessionRoute } = await d4Modules();
+
+  try {
+    const response = await sdkSessionRoute.POST(
+      new Request("https://example.test/api/payments/tilopay/sdk-session", {
+        body: JSON.stringify({
+          reservationId: VALID_TOKEN,
+          locale: "es",
+        }),
+        method: "POST",
+      }),
+    );
+    const payload = (await response.json()) as {
+      tilopaySdkSession?: { phaseBoundary?: string; paymentId?: string };
+    };
+    const storedPayment = store.current.payments[0];
+    const emailNotification = store.current.emailNotifications[0];
+
+    assert.equal(response.status, 201);
+    assert.equal(
+      payload.tilopaySdkSession?.phaseBoundary,
+      "ADDITIONAL_CHARGE_CHECKOUT_READY",
+    );
+    assert.ok(storedPayment);
+    assert.equal(storedPayment.guestPaymentRequestId, "request-final-d4");
+    assert.equal(storedPayment.purpose, PaymentPurpose.ADDITIONAL_CHARGE);
+    assert.equal(storedPayment.providerReference?.startsWith("TRP-"), true);
+    assert.ok(emailNotification);
+    assert.equal(
+      emailNotification.type,
+      EmailNotificationType.ADDITIONAL_CHARGE_PAYMENT_REQUIRED,
+    );
+    assert.equal(emailNotification.origin, EmailNotificationOrigin.AUTOMATIC);
+    assert.equal(emailNotification.status, EmailNotificationStatus.SENT);
+    assert.equal(emailNotification.guestPaymentRequestId, "request-final-d4");
+    assert.equal(store.current.guestPaymentRequestItems.length, 2);
+    assert.equal(JSON.stringify(payload).includes(VALID_TOKEN), false);
     assertNoRawTokenStored(store.current);
   } finally {
     restoreFetch();

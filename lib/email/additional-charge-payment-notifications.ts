@@ -17,9 +17,7 @@ import {
 } from "@/emails";
 import { prisma } from "@/lib/db/prisma";
 import { getEmailEnv } from "@/lib/env/server";
-import {
-  buildGuestPaymentRequestPaymentPath,
-} from "@/lib/payments/guest-payment-request-payment";
+import { buildGuestPaymentRequestPaymentPath } from "@/lib/payments/guest-payment-request-link";
 import {
   decryptGuestPaymentRequestAccessToken,
   hashGuestPaymentRequestAccessToken,
