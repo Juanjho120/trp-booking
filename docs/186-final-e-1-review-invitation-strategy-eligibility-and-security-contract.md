@@ -7,13 +7,14 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-E — Reservation reviews and post-checkout invitation
 Subphase: Final-E.1 — Review/invitation strategy, eligibility and security contract
-Status: Implementation completed as docs-only; owner acceptance pending
+Status: Completed and accepted on 2026-09-18
 Preparation date: 2026-09-18
 Implementation base head: 2c9802b07ebf60e8953f32226962669eaf01cfc2
+Accepted strategy head: e83ad8443bd533715058e701769b10c2d5505436
 Previous package: Final-D — Completed and accepted on 2026-09-18
 Final-D accepted feature head: fd75663bb28be8a95b15c341eaa51f74e521241b
 Authoritative track plan: docs/160-post-phase-12-pre-phase-13-final-improvement-track.md
-Next planned subphase: Final-E.2 — Review/invitation persistence foundation and migration
+Next subphase: Final-E.2 — Review/invitation persistence foundation and migration — Not started
 Final-F/G/H: Not started
 Phase 13: Not started
 ```
@@ -28,6 +29,66 @@ job or UI is implemented.
 
 E.1 is documentation-only. It does not create Prisma models, database migrations, pages, APIs,
 email templates, cron jobs, validation scripts or provider behavior.
+
+## Owner Acceptance
+
+The owner explicitly accepted Final-E.1 on 2026-09-18 after reviewing the review invitation
+strategy, eligibility, security, privacy, moderation, scheduling and delivery activation boundary.
+
+Accepted strategy head:
+
+```text
+e83ad8443bd533715058e701769b10c2d5505436
+```
+
+The final correction accepted with this head freezes the E.3/E.4 activation boundary so no
+intermediate deployment can create durable REVIEW_INVITATION email rows before the email processor
+and dispatcher support that type.
+
+## Accepted Frozen Contract Summary
+
+Final-E.1 accepts and freezes:
+
+```text
+checkoutAt =
+Reservation.checkOutDate
++
+Property.checkOutTime
+in America/Guatemala
+
+eligibleAt =
+checkoutAt + 2 hours
+
+invalid/null checkOutTime
+=> fail closed
+
+automatic scheduler catch-up:
+7 days
+
+ReviewInvitation lifetime:
+30 days
+
+one ReviewInvitation per Reservation
+
+one Review per Reservation
+
+256-bit opaque raw token
+
+SHA-256 persisted lookup hash
+
+AES-256-GCM encrypted recoverable copy
+
+crypto purpose:
+REVIEW_INVITATION
+
+review moderation:
+PENDING
+PUBLISHED
+HIDDEN
+
+public review surface:
+PUBLISHED only
+```
 
 ## Repository Findings
 
@@ -985,9 +1046,9 @@ approval.
 ```text
 Final-D — Completed and accepted on 2026-09-18 at fd75663bb28be8a95b15c341eaa51f74e521241b
 Final-E — In progress
-Final-E.1 — Review/invitation strategy, eligibility and security contract
-Final-E.1 implementation — Completed as docs-only; owner acceptance pending
-Final-E.2 — Not started
+Final-E.1 — Review/invitation strategy, eligibility and security contract — Completed and accepted on 2026-09-18
+Final-E.1 accepted strategy head — e83ad8443bd533715058e701769b10c2d5505436
+Final-E.2 — Next / Not started
 Final-E.3 — Not started
 Final-E.4 — Not started
 Final-E.5 — Not started
@@ -997,5 +1058,5 @@ Final-F/G/H — Not started
 Phase 13 — Not started
 ```
 
-Final-E.2 must not begin until the owner explicitly accepts or otherwise instructs continuation from
-this E.1 contract.
+Final-E.2 must not begin until explicitly requested. Final-E.3 through Final-E.7, Final-F/G/H and
+Phase 13 remain Not started.

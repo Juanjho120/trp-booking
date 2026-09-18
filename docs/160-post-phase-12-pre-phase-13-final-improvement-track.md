@@ -5,7 +5,7 @@
 ```text
 Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
-Status: Active — Final-A, Final-B, Final-C and Final-D completed and accepted; Final-E is In progress at Final-E.1
+Status: Active — Final-A, Final-B, Final-C and Final-D completed and accepted; Final-E is In progress with Final-E.1 completed and accepted
 Registration date: 2026-08-11
 Registration base head: dac105088d2c46be05a900abed3dfe83e608e964
 Previous gate: Phase 12 — Completed and accepted
@@ -589,7 +589,7 @@ Package: Final-D — Completed and accepted on 2026-09-18
 Implementation base head: 0839b2935fdc2349d23de6ce6b38177504e514c6
 Accepted feature head: fd75663bb28be8a95b15c341eaa51f74e521241b
 Permanent regression: npm run final-d:validate — 66/66 PASS
-Following package: Final-E — Reservation reviews and post-checkout invitation — In progress at Final-E.1; docs-only implementation completed with owner acceptance pending
+Following package: Final-E — Reservation reviews and post-checkout invitation — In progress; Final-E.1 completed and accepted, Final-E.2 Next / Not started
 Final-D.1 status: Completed and accepted on 2026-08-31
 Final-D.1 accepted strategy head: 3dc4fa7d81d65244a94e7e43726e2f12591e578f
 Final-D.1 record: docs/179-final-d-1-additional-charge-payment-request-strategy-and-financial-isolation-contract.md
@@ -725,10 +725,11 @@ Refundability of an additional charge depends on that charge's own business stat
 
 ```text
 Package: Final-E — In progress
-Final-E.1 — Review/invitation strategy, eligibility and security contract — Implementation completed as docs-only; owner acceptance pending
+Final-E.1 — Review/invitation strategy, eligibility and security contract — Completed and accepted on 2026-09-18
 Final-E.1 implementation base head: 2c9802b07ebf60e8953f32226962669eaf01cfc2
+Final-E.1 accepted strategy head: e83ad8443bd533715058e701769b10c2d5505436
 Final-E.1 record: docs/186-final-e-1-review-invitation-strategy-eligibility-and-security-contract.md
-Final-E.2 — Review/invitation persistence foundation and migration — Not started
+Final-E.2 — Review/invitation persistence foundation and migration — Next / Not started
 Final-E.3 — Eligibility and invitation/token lifecycle foundation — Not started
 Final-E.4 — Review-invitation scheduling, cron integration and email delivery — Not started
 Final-E.5 — Private guest review submission — Not started
@@ -1361,7 +1362,7 @@ Phase 13 still owns:
 Phase 12 — Completed and accepted
 Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
 Current package — Final-E Reservation reviews and post-checkout invitation — In progress
-Current subphase — Final-E.1 Review/invitation strategy, eligibility and security contract — Implementation completed as docs-only; owner acceptance pending
+Current/next subphase — Final-E.2 Review/invitation persistence foundation and migration — Next / Not started
 Final-D implementation base — 0839b2935fdc2349d23de6ce6b38177504e514c6
 Final-D.1 status — Completed and accepted on 2026-08-31 at 3dc4fa7d81d65244a94e7e43726e2f12591e578f
 Final-D.1 record — docs/179-final-d-1-additional-charge-payment-request-strategy-and-financial-isolation-contract.md
@@ -1391,9 +1392,10 @@ Final-D status — Completed and accepted on 2026-09-18 at fd75663bb28be8a95b15c
 Final-D accepted feature head — fd75663bb28be8a95b15c341eaa51f74e521241b
 Final-D permanent regression — npm run final-d:validate — 66/66 PASS
 Final-E.1 implementation base — 2c9802b07ebf60e8953f32226962669eaf01cfc2
-Final-E.1 status — Implementation completed as docs-only; owner acceptance pending
+Final-E.1 status — Completed and accepted on 2026-09-18
+Final-E.1 accepted strategy head — e83ad8443bd533715058e701769b10c2d5505436
 Final-E.1 record — docs/186-final-e-1-review-invitation-strategy-eligibility-and-security-contract.md
-Final-E.2 — Not started
+Final-E.2 — Next / Not started
 Final-E.3 — Not started
 Final-E.4 — Not started
 Final-E.5 — Not started
@@ -1423,7 +1425,7 @@ Final-B.4 record — docs/170-final-b-4-airbnb-inbound-configuration-and-operati
 Final-B.5 record — docs/171-final-b-5-trp-outbound-copy-rotation-and-export-controls.md
 Final-B.6 record — docs/172-final-b-6-integrated-acceptance-regression-and-documentation-closure.md
 Last completed package — Final-D additional charges and guest payment requests — completed and accepted on 2026-09-18 at fd75663bb28be8a95b15c341eaa51f74e521241b
-Last accepted subphase — Final-D.7 Integrated regression and documentation closure — completed and accepted on 2026-09-18 at fd75663bb28be8a95b15c341eaa51f74e521241b
+Last accepted subphase — Final-E.1 Review/invitation strategy, eligibility and security contract — completed and accepted on 2026-09-18 at e83ad8443bd533715058e701769b10c2d5505436
 Final-A — Completed and accepted on 2026-08-12 at 66afbeacd6ee7d669cb4bc251c8416160fae3f49
 Final-B — Completed and accepted on 2026-08-25 at 1fe06de8c55ab1563999b2db1d210bfc9a82c613
 Final-B.1 — Completed and accepted on 2026-08-14 at 2627161d5b3960995be0f517682f84272431c291
@@ -1449,8 +1451,8 @@ Final-D.6 — Completed and accepted on 2026-09-18 at 965045c697a9bfd0a3318db939
 Final-D.7 — Completed and accepted on 2026-09-18 at fd75663bb28be8a95b15c341eaa51f74e521241b — Integrated regression and documentation closure; record docs/185-final-d-7-integrated-regression-and-documentation-closure.md
 Final-D permanent regression — npm run final-d:validate — 66/66 PASS
 Final-E — In progress
-Final-E.1 — Implementation completed as docs-only; owner acceptance pending
-Final-E.2 — Not started
+Final-E.1 — Completed and accepted on 2026-09-18 at e83ad8443bd533715058e701769b10c2d5505436
+Final-E.2 — Next / Not started
 Final-E.3 — Not started
 Final-E.4 — Not started
 Final-E.5 — Not started

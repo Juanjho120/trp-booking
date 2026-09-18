@@ -28,7 +28,8 @@ This file defines the working rules for TRP Booking.
 - Final-D accepted feature head: `fd75663bb28be8a95b15c341eaa51f74e521241b`.
 - Permanent Final-D regression gate: `npm run final-d:validate` — 66/66 accepted.
 - Current package: Final-E — Reservation reviews and post-checkout invitation — In progress.
-- Current subphase: Final-E.1 — Review/invitation strategy, eligibility and security contract — Implementation completed as docs-only; owner acceptance pending.
+- Last accepted subphase: Final-E.1 — Review/invitation strategy, eligibility and security contract — Completed and accepted on 2026-09-18 at `e83ad8443bd533715058e701769b10c2d5505436`.
+- Current/next subphase: Final-E.2 — Review/invitation persistence foundation and migration — Next / Not started.
 - Final-D.4 implementation base: `6a0d909fc325f4e8925677041be34c77c023c42b`.
 - Final-D.4 accepted implementation head: `7d996fd20db42b2560df11f7e00d7a5e9cc0d18c`.
 - Final-D.4 implementation record: `docs/182-final-d-4-private-guest-payment-link-and-tilopay-collection.md`.
@@ -42,9 +43,10 @@ This file defines the working rules for TRP Booking.
 - Final-D.7 accepted implementation/validation head: `fd75663bb28be8a95b15c341eaa51f74e521241b`.
 - Final-D.7 implementation/acceptance record: `docs/185-final-d-7-integrated-regression-and-documentation-closure.md`.
 - Final-E.1 implementation base: `2c9802b07ebf60e8953f32226962669eaf01cfc2`.
-- Final-E.1 implementation record: `docs/186-final-e-1-review-invitation-strategy-eligibility-and-security-contract.md`.
-- Final-E.1 is not accepted until owner acceptance is explicitly recorded.
-- Final-E.2, Final-E.3, Final-E.4, Final-E.5, Final-E.6, and Final-E.7 remain Not started.
+- Final-E.1 accepted strategy head: `e83ad8443bd533715058e701769b10c2d5505436`.
+- Final-E.1 implementation and acceptance record: `docs/186-final-e-1-review-invitation-strategy-eligibility-and-security-contract.md`.
+- Final-E.2 is next but remains Not started until explicitly requested.
+- Final-E.3, Final-E.4, Final-E.5, Final-E.6, and Final-E.7 remain Not started.
 - Final-F, Final-G, and Final-H remain Not started.
 - Phase 13 remains Not started and must not be activated implicitly.
 
@@ -110,7 +112,7 @@ Rules:
 - Do not activate Production or Phase 13 work from a Final Improvement Track task.
 - A subphase may be declared completed only after implementation, required validation, documentation reconciliation, and owner acceptance are recorded.
 - If documentation and the accepted repository state disagree, stop advancement and reconcile the authoritative trackers before implementing the next subphase.
-- For the current handoff, Final-D.3 is accepted at `6a0d909fc325f4e8925677041be34c77c023c42b`; Final-D.4 is completed and accepted on 2026-09-14 at `7d996fd20db42b2560df11f7e00d7a5e9cc0d18c`; Final-D.5 is completed and accepted on 2026-09-17 at `06b3de23fbae23a77b58b432760abf12afd5a6c7`; Final-D.6 is completed and accepted on 2026-09-18 at `965045c697a9bfd0a3318db9396b15214a0cd066`; Final-D.7 and Final-D are completed and accepted on 2026-09-18 at `fd75663bb28be8a95b15c341eaa51f74e521241b`. Final-E is active at Final-E.1, whose docs-only implementation is complete with owner acceptance pending. Final-E.2 through Final-E.7 remain Not started until explicitly requested after E.1 acceptance.
+- For the current handoff, Final-D.3 is accepted at `6a0d909fc325f4e8925677041be34c77c023c42b`; Final-D.4 is completed and accepted on 2026-09-14 at `7d996fd20db42b2560df11f7e00d7a5e9cc0d18c`; Final-D.5 is completed and accepted on 2026-09-17 at `06b3de23fbae23a77b58b432760abf12afd5a6c7`; Final-D.6 is completed and accepted on 2026-09-18 at `965045c697a9bfd0a3318db9396b15214a0cd066`; Final-D.7 and Final-D are completed and accepted on 2026-09-18 at `fd75663bb28be8a95b15c341eaa51f74e521241b`. Final-E is in progress; Final-E.1 is completed and accepted on 2026-09-18 at `e83ad8443bd533715058e701769b10c2d5505436`. Final-E.2 is Next / Not started, and Final-E.3 through Final-E.7 remain Not started until explicitly requested.
 
 ## Implementation Completion Gate
 
@@ -163,14 +165,14 @@ Final-D.7 introduced the consolidated Final-D regression gate. For any future Fi
 - `docs/183-final-d-5-additional-charge-refunds-and-financial-summary-integration.md` is the Final-D.5 implementation/acceptance record.
 - `docs/184-final-d-6-email-delivery-and-protected-operational-ux-history.md` is the Final-D.6 implementation and acceptance record.
 - `docs/185-final-d-7-integrated-regression-and-documentation-closure.md` is the Final-D.7 implementation/acceptance record and Final-D package closure record.
-- `docs/186-final-e-1-review-invitation-strategy-eligibility-and-security-contract.md` is the Final-E.1 implementation record while owner acceptance is pending.
+- `docs/186-final-e-1-review-invitation-strategy-eligibility-and-security-contract.md` is the Final-E.1 implementation and acceptance record.
 - Any completed phase or subphase must be reflected in the progress tracker before moving to a new major phase or subphase.
 - When migrating to a new conversation or agent, use `AGENTS.md`, `README.md`, `docs/10-phases.md`, and `docs/11-progress-log.md` as the minimum continuity context. While the Final Improvement Track is active, also review `docs/160-post-phase-12-pre-phase-13-final-improvement-track.md` and the active package's authoritative records.
 - Historical Phase 12 deployment work remains grounded by `docs/89-test-and-production-environment-strategy.md`, `docs/136-phase-12.1-test-deployment-and-environment-strategy.md`, and the Phase 12 closure records.
 
-## Final-D Accepted Boundaries and Final-E.1 Active Boundary
+## Final-D Accepted Boundaries and Final-E.1 Accepted Boundary
 
-Before continuing Final-E work, read the complete Final-D.1 contract, the accepted D.2/D.3/D.4/D.5/D.6/D.7 records, and the current Final-E.1 record. Do not reopen D.1-D.7 unless new evidence or an explicit owner instruction requires it. Final-E.2 through Final-E.7 remain Not started until explicitly requested after E.1 acceptance.
+Before implementing or continuing Final-E.2 or later work, read the complete Final-D.1 contract, the accepted D.2/D.3/D.4/D.5/D.6/D.7 records, and the accepted Final-E.1 record. Do not reopen D.1-D.7 or Final-E.1 unless new evidence or an explicit owner instruction requires it. Final-E.2 is Next / Not started, and Final-E.3 through Final-E.7 remain Not started until explicitly requested.
 
 At minimum, preserve these frozen boundaries:
 
