@@ -118,6 +118,15 @@ type D6Refund = {
     currency: string;
     guestPaymentRequestId: string | null;
     reservationId: string;
+    refunds: Array<{
+      id: string;
+      authorizationType: RefundAuthorizationType;
+      status: RefundStatus;
+      amount: Prisma.Decimal;
+      approvedAt: Date | null;
+      createdAt: Date;
+      updatedAt: Date;
+    }>;
   };
   additionalChargeAllocations: Array<{
     additionalChargeId: string;
@@ -242,6 +251,13 @@ function cloneD6Refund(refund: D6Refund): D6Refund {
     payment: {
       ...refund.payment,
       amount: money(refund.payment.amount.toFixed(2)),
+      refunds: refund.payment.refunds.map((paymentRefund) => ({
+        ...paymentRefund,
+        amount: money(paymentRefund.amount.toFixed(2)),
+        approvedAt: cloneDate(paymentRefund.approvedAt),
+        createdAt: new Date(paymentRefund.createdAt.getTime()),
+        updatedAt: new Date(paymentRefund.updatedAt.getTime()),
+      })),
     },
     additionalChargeAllocations: refund.additionalChargeAllocations.map(
       (allocation) => ({
@@ -1166,6 +1182,7 @@ function seedD6RetryNotification(
     type: EmailNotificationType;
     recipient: string;
     deduplicationKey: string;
+    locale?: "es" | "en";
     refundId?: string | null;
   }>,
 ): void {
@@ -1177,7 +1194,7 @@ function seedD6RetryNotification(
     refundId: input.refundId ?? null,
     type: input.type,
     recipient: input.recipient,
-    locale: "es",
+    locale: input.locale ?? "es",
     deduplicationKey: input.deduplicationKey,
     origin: EmailNotificationOrigin.AUTOMATIC,
     parentNotificationId: null,
@@ -1482,11 +1499,32 @@ test("D.6 behavior renders ancillary admin, approval, and refund templates with 
         adminRefund,
       ];
       const allText = rendered.map((email) => email.text).join("\n");
+      const expected = locale === "es"
+        ? {
+            pending: "Pendiente",
+            paid: "Pagado",
+            approved: "Aprobado",
+            partial: "Parcialmente reembolsado",
+            portal: "Portal de Tilopay",
+          }
+        : {
+            pending: "Pending",
+            paid: "Paid",
+            approved: "Approved",
+            partial: "Partially refunded",
+            portal: "Tilopay portal",
+          };
 
       assert.match(allText, /Airport pickup/);
       assert.match(allText, /Extra cleaning/);
       assert.match(allText, /30\.00|30,00/);
       assert.match(allText, /7\.50|7,50/);
+      assert.match(adminPending.text, new RegExp(expected.pending));
+      assert.match(adminApproved.text, new RegExp(expected.approved));
+      assert.match(adminApproved.text, new RegExp(expected.paid));
+      assert.match(guestRefund.text, new RegExp(expected.partial));
+      assert.match(adminRefund.text, new RegExp(expected.partial));
+      assert.match(adminRefund.text, new RegExp(expected.portal));
       assert.match(adminApproved.text, /TRP-D6-SAFE/);
       assert.match(adminRefund.text, /refund-provider-safe/);
       assert.equal(allText.includes(D6_TOKEN), false);
@@ -1494,6 +1532,10 @@ test("D.6 behavior renders ancillary admin, approval, and refund templates with 
       assert.doesNotMatch(
         allText,
         /driver-internal-note|4111|rawPayload|provider raw/i,
+      );
+      assert.doesNotMatch(
+        allText,
+        /\b(?:PENDING|PAID|APPROVED|PARTIALLY_REFUNDED|REFUNDED|TILOPAY_API|TILOPAY_PORTAL_FALLBACK)\b/,
       );
     }
   } finally {
@@ -1939,6 +1981,18 @@ test("D.6 behavior renders delayed ancillary refund retries as of the target ref
     createdAt: new Date("2026-09-17T14:30:00.000Z"),
     updatedAt: refundBApprovedAt,
   };
+  const paymentRefunds = [
+    {
+      ...refundTimelineA,
+      authorizationType: RefundAuthorizationType.ADDITIONAL_CHARGE,
+      amount: money("30.00"),
+    },
+    {
+      ...refundTimelineB,
+      authorizationType: RefundAuthorizationType.ADDITIONAL_CHARGE,
+      amount: money("70.00"),
+    },
+  ];
   const allocationCharge = {
     id: "charge-d6-1",
     category: "TRANSPORT" as const,
@@ -1982,6 +2036,7 @@ test("D.6 behavior renders delayed ancillary refund retries as of the target ref
       currency: "USD",
       guestPaymentRequestId: D6_REQUEST_ID,
       reservationId: D6_RESERVATION_ID,
+      refunds: paymentRefunds,
     },
     additionalChargeAllocations: [
       {
@@ -1991,66 +2046,167 @@ test("D.6 behavior renders delayed ancillary refund retries as of the target ref
       },
     ],
   });
-  seedD6RetryNotification(store, {
-    id: "notification-d6-refund-guest-retry",
-    type: EmailNotificationType.ADDITIONAL_CHARGE_REFUND_PROCESSED,
-    recipient: "guest.final-d6@juantzun.dev",
-    deduplicationKey:
-      "additional-charge-refund-processed/refund-d6-email-a/guest.final-d6@juantzun.dev",
-    refundId: "refund-d6-email-a",
+  store.refunds.push({
+    id: "refund-d6-email-b",
+    paymentId: "payment-d6-refund-email",
+    authorizationType: RefundAuthorizationType.ADDITIONAL_CHARGE,
+    status: RefundStatus.APPROVED,
+    amount: money("70.00"),
+    currency: "USD",
+    processingMode: "TILOPAY_API",
+    providerRefundId: "safe-refund-b",
+    reason: "Second ancillary refund",
+    approvedAt: refundBApprovedAt,
+    createdAt: new Date("2026-09-17T14:30:00.000Z"),
+    updatedAt: refundBApprovedAt,
+    requestedByAdmin: {
+      name: "Admin Final D6",
+      email: "admin@juantzun.dev",
+    },
+    payment: {
+      id: "payment-d6-refund-email",
+      purpose: PaymentPurpose.ADDITIONAL_CHARGE,
+      status: PaymentStatus.REFUNDED,
+      amount: money("100.00"),
+      currency: "USD",
+      guestPaymentRequestId: D6_REQUEST_ID,
+      reservationId: D6_RESERVATION_ID,
+      refunds: paymentRefunds,
+    },
+    additionalChargeAllocations: [
+      {
+        additionalChargeId: "charge-d6-1",
+        allocatedAmount: money("70.00"),
+        additionalCharge: allocationCharge,
+      },
+    ],
   });
-  seedD6RetryNotification(store, {
-    id: "notification-d6-refund-admin-retry",
-    type: EmailNotificationType.ADMIN_ADDITIONAL_CHARGE_REFUND_PROCESSED,
-    recipient: "admin@juantzun.dev",
-    deduplicationKey:
-      "admin-additional-charge-refund-processed/refund-d6-email-a/admin@juantzun.dev",
-    refundId: "refund-d6-email-a",
-  });
+  const refundRetryKeys = {
+    guestEsA:
+      "additional-charge-refund-processed/refund-d6-email-a/guest.es@juantzun.dev",
+    adminEsA:
+      "admin-additional-charge-refund-processed/refund-d6-email-a/admin.es@juantzun.dev",
+    adminEnA:
+      "admin-additional-charge-refund-processed/refund-d6-email-a/admin.en@juantzun.dev",
+    guestEsB:
+      "additional-charge-refund-processed/refund-d6-email-b/guest.es@juantzun.dev",
+    adminEsB:
+      "admin-additional-charge-refund-processed/refund-d6-email-b/admin.es@juantzun.dev",
+    adminEnB:
+      "admin-additional-charge-refund-processed/refund-d6-email-b/admin.en@juantzun.dev",
+  } as const;
+  const retryInputs = [
+    {
+      id: "notification-d6-refund-a-guest-es-retry",
+      type: EmailNotificationType.ADDITIONAL_CHARGE_REFUND_PROCESSED,
+      recipient: "guest.es@juantzun.dev",
+      deduplicationKey: refundRetryKeys.guestEsA,
+      locale: "es" as const,
+      refundId: "refund-d6-email-a",
+    },
+    {
+      id: "notification-d6-refund-a-admin-es-retry",
+      type: EmailNotificationType.ADMIN_ADDITIONAL_CHARGE_REFUND_PROCESSED,
+      recipient: "admin.es@juantzun.dev",
+      deduplicationKey: refundRetryKeys.adminEsA,
+      locale: "es" as const,
+      refundId: "refund-d6-email-a",
+    },
+    {
+      id: "notification-d6-refund-a-admin-en-retry",
+      type: EmailNotificationType.ADMIN_ADDITIONAL_CHARGE_REFUND_PROCESSED,
+      recipient: "admin.en@juantzun.dev",
+      deduplicationKey: refundRetryKeys.adminEnA,
+      locale: "en" as const,
+      refundId: "refund-d6-email-a",
+    },
+    {
+      id: "notification-d6-refund-b-guest-es-retry",
+      type: EmailNotificationType.ADDITIONAL_CHARGE_REFUND_PROCESSED,
+      recipient: "guest.es@juantzun.dev",
+      deduplicationKey: refundRetryKeys.guestEsB,
+      locale: "es" as const,
+      refundId: "refund-d6-email-b",
+    },
+    {
+      id: "notification-d6-refund-b-admin-es-retry",
+      type: EmailNotificationType.ADMIN_ADDITIONAL_CHARGE_REFUND_PROCESSED,
+      recipient: "admin.es@juantzun.dev",
+      deduplicationKey: refundRetryKeys.adminEsB,
+      locale: "es" as const,
+      refundId: "refund-d6-email-b",
+    },
+    {
+      id: "notification-d6-refund-b-admin-en-retry",
+      type: EmailNotificationType.ADMIN_ADDITIONAL_CHARGE_REFUND_PROCESSED,
+      recipient: "admin.en@juantzun.dev",
+      deduplicationKey: refundRetryKeys.adminEnB,
+      locale: "en" as const,
+      refundId: "refund-d6-email-b",
+    },
+  ];
+  retryInputs.forEach((input) => seedD6RetryNotification(store, input));
   installD6Prisma(store);
 
   try {
     const { payloads, providerCalls, summary } =
       await processD6EmailRetryWithProviderCounter();
-    const guestPayload = payloads.find(
-      (payload) => payload.audience === "guest",
-    );
-    const adminPayload = payloads.find(
-      (payload) => payload.audience === "admin",
-    );
+    const payloadByKey = (
+      key: (typeof refundRetryKeys)[keyof typeof refundRetryKeys],
+    ) => {
+      const payload = payloads.find(
+        (candidate) => candidate.idempotencyKey === key,
+      );
+      assert.ok(
+        payload,
+        `Expected retry payload ${key}; sent ${payloads
+          .map((candidate) => candidate.idempotencyKey)
+          .join(", ")}`,
+      );
+      return payload;
+    };
+    const guestEsA = payloadByKey(refundRetryKeys.guestEsA);
+    const adminEsA = payloadByKey(refundRetryKeys.adminEsA);
+    const adminEnA = payloadByKey(refundRetryKeys.adminEnA);
+    const guestEsB = payloadByKey(refundRetryKeys.guestEsB);
+    const adminEsB = payloadByKey(refundRetryKeys.adminEsB);
+    const adminEnB = payloadByKey(refundRetryKeys.adminEnB);
+    const allPayloadContent = joinedPayloadContent(payloads);
 
-    assert.equal(summary.candidates, 2);
-    assert.equal(summary.claimed, 2);
-    assert.equal(summary.attempted, 2);
-    assert.equal(summary.sent, 2);
-    assert.equal(providerCalls, 2);
-    assert.ok(guestPayload);
-    assert.ok(adminPayload);
-    assert.equal(guestPayload.intendedRecipient, "guest.final-d6@juantzun.dev");
-    assert.equal(adminPayload.intendedRecipient, "admin@juantzun.dev");
-    assert.match(guestPayload.text, /Total reembolsado:\s*[^\n]*30[.,]00/);
-    assert.match(adminPayload.text, /Total reembolsado:\s*[^\n]*30[.,]00/);
+    assert.equal(summary.candidates, 6);
+    assert.equal(summary.claimed, 6);
+    assert.equal(summary.attempted, 6);
+    assert.equal(summary.sent, 6);
+    assert.equal(providerCalls, 6);
+    assert.equal(guestEsA.intendedRecipient, "guest.es@juantzun.dev");
+    assert.equal(adminEsA.intendedRecipient, "admin.es@juantzun.dev");
+    assert.match(guestEsA.text, /Total reembolsado:\s*[^\n]*30[.,]00/);
+    assert.match(adminEsA.text, /Total reembolsado:\s*[^\n]*30[.,]00/);
     assert.match(
-      adminPayload.text,
+      adminEsA.text,
       /Reembolsado acumulado:\s*[^\n]*30[.,]00/,
     );
-    assert.match(guestPayload.text, /Saldo restante:\s*[^\n]*70[.,]00/);
-    assert.match(adminPayload.text, /Saldo restante:\s*[^\n]*70[.,]00/);
-    assert.match(
-      guestPayload.text,
-      /Estado resultante:\s*PARTIALLY_REFUNDED/,
-    );
-    assert.match(
-      adminPayload.text,
-      /Estado resultante:\s*PARTIALLY_REFUNDED/,
-    );
+    assert.match(guestEsA.text, /Saldo restante:\s*[^\n]*70[.,]00/);
+    assert.match(adminEsA.text, /Saldo restante:\s*[^\n]*70[.,]00/);
+    assert.match(guestEsA.text, /Estado resultante:\s*Parcialmente reembolsado/);
+    assert.match(adminEsA.text, /Estado resultante:\s*Parcialmente reembolsado/);
+    assert.match(adminEsA.text, /Estado del pago:\s*Parcialmente reembolsado/);
+    assert.match(adminEsA.text, /Modo de procesamiento:\s*Portal de Tilopay/);
+    assert.match(adminEnA.text, /Payment status:\s*Partially refunded/);
+    assert.match(adminEnA.text, /Processing mode:\s*Tilopay portal/);
+    assert.match(guestEsB.text, /Estado resultante:\s*Reembolsado/);
+    assert.match(adminEsB.text, /Estado del pago:\s*Reembolsado/);
+    assert.match(adminEsB.text, /Modo de procesamiento:\s*API de Tilopay/);
+    assert.match(adminEnB.text, /Payment status:\s*Refunded/);
+    assert.match(adminEnB.text, /Processing mode:\s*Tilopay API/);
     assert.doesNotMatch(
-      joinedPayloadContent(payloads),
-      /Estado resultante:\s*REFUNDED/,
-    );
-    assert.doesNotMatch(
-      adminPayload.text,
+      adminEsA.text,
       /Reembolsado acumulado:\s*[^\n]*100[.,]00/,
+    );
+    assert.doesNotMatch(adminEsA.text, /Estado del pago:\s*Reembolsado/);
+    assert.doesNotMatch(
+      allPayloadContent,
+      /\b(?:PARTIALLY_REFUNDED|REFUNDED|TILOPAY_PORTAL_FALLBACK|TILOPAY_API)\b/,
     );
     assertNoRawToken(payloads);
   } finally {
@@ -2076,7 +2232,7 @@ test("D.6 behavior keeps delayed payment-approved retries on the original paid e
     status: PaymentStatus.REFUNDED,
     amount: money("30.00"),
     currency: "USD",
-    providerReference: "TRP-D6-APPROVED",
+    providerReference: "TRP-D6-SAFE-PAYMENT",
     paidAt,
     createdAt: paidAt,
     updatedAt: new Date("2026-09-17T15:00:00.000Z"),
@@ -2095,6 +2251,14 @@ test("D.6 behavior keeps delayed payment-approved retries on the original paid e
     deduplicationKey:
       "admin-additional-charge-payment-approved/request-final-d6/admin@juantzun.dev",
   });
+  seedD6RetryNotification(store, {
+    id: "notification-d6-approved-admin-en-retry",
+    type: EmailNotificationType.ADMIN_ADDITIONAL_CHARGE_PAYMENT_APPROVED,
+    recipient: "admin.en@juantzun.dev",
+    deduplicationKey:
+      "admin-additional-charge-payment-approved/request-final-d6/admin.en@juantzun.dev",
+    locale: "en",
+  });
   installD6Prisma(store);
 
   try {
@@ -2103,34 +2267,46 @@ test("D.6 behavior keeps delayed payment-approved retries on the original paid e
     const guestPayload = payloads.find(
       (payload) => payload.audience === "guest",
     );
-    const adminPayload = payloads.find(
-      (payload) => payload.audience === "admin",
+    const adminEsPayload = payloads.find(
+      (payload) =>
+        payload.idempotencyKey ===
+        "admin-additional-charge-payment-approved/request-final-d6/admin@juantzun.dev",
+    );
+    const adminEnPayload = payloads.find(
+      (payload) =>
+        payload.idempotencyKey ===
+        "admin-additional-charge-payment-approved/request-final-d6/admin.en@juantzun.dev",
     );
     const allPayloadContent = joinedPayloadContent(payloads);
 
-    assert.equal(summary.candidates, 2);
-    assert.equal(summary.claimed, 2);
-    assert.equal(summary.attempted, 2);
-    assert.equal(summary.sent, 2);
-    assert.equal(providerCalls, 2);
+    assert.equal(summary.candidates, 3);
+    assert.equal(summary.claimed, 3);
+    assert.equal(summary.attempted, 3);
+    assert.equal(summary.sent, 3);
+    assert.equal(providerCalls, 3);
     assert.ok(guestPayload);
-    assert.ok(adminPayload);
-    assert.match(adminPayload.text, /Estado del pago:\s*APPROVED/);
-    assert.match(guestPayload.text, /\(PAID\)/);
-    assert.match(adminPayload.text, /\(PAID\)/);
+    assert.ok(adminEsPayload);
+    assert.ok(adminEnPayload);
+    assert.match(adminEsPayload.text, /Estado del pago:\s*Aprobado/);
+    assert.match(adminEsPayload.text, /\(Pagado\)/);
+    assert.match(adminEnPayload.text, /Payment status:\s*Approved/);
+    assert.match(adminEnPayload.text, /\(Paid\)/);
     assert.doesNotMatch(
       allPayloadContent,
-      /Estado del cargo:\s*(?:REFUNDED|PARTIALLY_REFUNDED)/,
+      /Estado del cargo:\s*(?:Reembolsado|Parcialmente reembolsado)/,
     );
     assert.doesNotMatch(
       allPayloadContent,
-      /\((?:REFUNDED|PARTIALLY_REFUNDED)\)/,
+      /\((?:Reembolsado|Parcialmente reembolsado)\)/,
     );
     assert.doesNotMatch(
       allPayloadContent,
-      /Estado del pago:\s*(?:REFUNDED|PARTIALLY_REFUNDED)/,
+      /Estado del pago:\s*(?:Reembolsado|Parcialmente reembolsado)/,
     );
-    assert.doesNotMatch(guestPayload.text, /REFUNDED|PARTIALLY_REFUNDED/);
+    assert.doesNotMatch(
+      allPayloadContent,
+      /\b(?:PAID|APPROVED|REFUNDED|PARTIALLY_REFUNDED)\b/,
+    );
     assertNoRawToken(payloads);
   } finally {
     restoreEnv();

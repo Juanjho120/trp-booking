@@ -175,6 +175,33 @@ export type TransactionalEmailMessages = Readonly<{
     supportDescription: string;
     closing: string;
   }>;
+  additionalChargeEmailLabels: Readonly<{
+    guestPaymentRequestStatuses: Readonly<{
+      PENDING: string;
+      PAID: string;
+      CANCELLED: string;
+      EXPIRED: string;
+    }>;
+    paymentStatuses: Readonly<{
+      APPROVED: string;
+      PARTIALLY_REFUNDED: string;
+      REFUNDED: string;
+      PENDING: string;
+      FAILED: string;
+      REJECTED: string;
+    }>;
+    additionalChargeStatuses: Readonly<{
+      PENDING: string;
+      PAID: string;
+      PARTIALLY_REFUNDED: string;
+      REFUNDED: string;
+      CANCELLED: string;
+    }>;
+    refundProcessingModes: Readonly<{
+      TILOPAY_API: string;
+      TILOPAY_PORTAL_FALLBACK: string;
+    }>;
+  }>;
   additionalChargePaymentRequired: Readonly<{
     subjectPrefix: string;
     preview: string;

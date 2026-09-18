@@ -32,7 +32,10 @@ import {
   decryptGuestPaymentRequestAccessToken,
   hashGuestPaymentRequestAccessToken,
 } from "@/lib/payments/guest-payment-request-token";
-import { deriveAdditionalChargeRefundStateAtTarget } from "@/lib/reservations/additional-charge-refund-state";
+import {
+  deriveAdditionalChargePaymentRefundStateAtTarget,
+  deriveAdditionalChargeRefundStateAtTarget,
+} from "@/lib/reservations/additional-charge-refund-state";
 import type { AdditionalChargeCategory } from "@/types/additional-charge";
 import type {
   AdditionalChargeAdminPaymentApprovedEmailTemplateInput,
@@ -255,6 +258,21 @@ const claimedSelect = {
           currency: true,
           guestPaymentRequestId: true,
           reservationId: true,
+          refunds: {
+            where: {
+              authorizationType: RefundAuthorizationType.ADDITIONAL_CHARGE,
+              status: { in: [...completedRefundStatuses] },
+            },
+            select: {
+              id: true,
+              authorizationType: true,
+              status: true,
+              amount: true,
+              approvedAt: true,
+              createdAt: true,
+              updatedAt: true,
+            },
+          },
         },
       },
       additionalChargeAllocations: {
@@ -586,7 +604,7 @@ async function buildPendingGuestContent(
       currency: request.currency,
       expiresAt: request.expiresAt.toISOString(),
       paymentUrl: buildPaymentUrl(rawToken, publicBaseUrl),
-      items: requestItems(request),
+      items: requestItems(request, { status: null }),
     },
   };
 
@@ -661,7 +679,7 @@ async function buildPaymentApprovedGuestContent(
       paidAt: (payment.paidAt ?? request.paidAt).toISOString(),
       totalAmount: request.totalAmount.toFixed(2),
       currency: request.currency,
-      items: requestItems(request, { status: AdditionalChargeStatus.PAID }),
+      items: requestItems(request, { status: null }),
     },
   };
 
@@ -799,6 +817,11 @@ async function buildRefundProcessedAdminContent(
 ): Promise<TransactionalEmailContent> {
   const { request, refund } = assertRefundNotification(notification);
   const locale = normalizeLocale(notification.locale);
+  const paymentRefundState = deriveAdditionalChargePaymentRefundStateAtTarget({
+    paymentAmount: refund.payment.amount,
+    refunds: refund.payment.refunds,
+    targetRefund: refund,
+  });
   const input: AdditionalChargeAdminRefundProcessedEmailTemplateInput = {
     locale,
     publicBaseUrl,
@@ -811,7 +834,7 @@ async function buildRefundProcessedAdminContent(
     refund: {
       id: refund.id,
       paymentId: refund.paymentId,
-      paymentStatus: refund.payment.status,
+      paymentStatus: paymentRefundState.resultingStatus,
       processingMode: refund.processingMode,
       providerRefundId: refund.providerRefundId,
       reason: refund.reason,

@@ -39,6 +39,7 @@ import { test } from "./harness";
 const VALID_TOKEN = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
 const WRONG_TOKEN = "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210";
 const BASE_NOW = new Date("2026-09-11T12:00:00.000Z");
+const ACTIVE_REQUEST_EXPIRES_AT = new Date("2026-10-11T12:00:00.000Z");
 const TEST_GUEST_EMAIL = "guest.final-d4.behavior@juantzun.dev";
 const CLIENT_EVENT_VALUE_INDEX = {
   paymentMethodId: 7,
@@ -382,7 +383,7 @@ function baseState(
       .toFixed(2);
   const paymentStatus = options.paymentStatus ?? null;
   const expiresAt =
-    options.expiresAt ?? new Date(BASE_NOW.getTime() + 7 * 24 * 60 * 60 * 1_000);
+    options.expiresAt ?? new Date(ACTIVE_REQUEST_EXPIRES_AT.getTime());
   const paidAt =
     options.paidAt === undefined
       ? requestStatus === GuestPaymentRequestStatus.PAID

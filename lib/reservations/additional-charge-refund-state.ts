@@ -1,4 +1,10 @@
-import { AdditionalChargeStatus, Prisma, RefundStatus } from "@prisma/client";
+import {
+  AdditionalChargeStatus,
+  PaymentStatus,
+  Prisma,
+  RefundAuthorizationType,
+  RefundStatus,
+} from "@prisma/client";
 
 export type AdditionalChargeRefundTimelineRecord = Readonly<{
   id: string;
@@ -17,6 +23,19 @@ export type AdditionalChargeRefundStateAtTarget = Readonly<{
   cumulativeRefundedAmount: Prisma.Decimal;
   remainingAmount: Prisma.Decimal;
   resultingStatus: AdditionalChargeStatus;
+}>;
+
+export type AdditionalChargePaymentRefundStateRecord =
+  AdditionalChargeRefundTimelineRecord &
+    Readonly<{
+      authorizationType: RefundAuthorizationType;
+      amount: Prisma.Decimal;
+    }>;
+
+export type AdditionalChargePaymentRefundStateAtTarget = Readonly<{
+  cumulativeRefundedAmount: Prisma.Decimal;
+  remainingAmount: Prisma.Decimal;
+  resultingStatus: PaymentStatus;
 }>;
 
 function decimalCents(value: Prisma.Decimal): number {
@@ -89,5 +108,34 @@ export function deriveAdditionalChargeRefundStateAtTarget(input: Readonly<{
         : cumulativeRefundedCents >= originalCents
           ? AdditionalChargeStatus.REFUNDED
           : AdditionalChargeStatus.PARTIALLY_REFUNDED,
+  };
+}
+
+export function deriveAdditionalChargePaymentRefundStateAtTarget(
+  input: Readonly<{
+    paymentAmount: Prisma.Decimal;
+    refunds: readonly AdditionalChargePaymentRefundStateRecord[];
+    targetRefund: AdditionalChargeRefundTimelineRecord;
+  }>,
+): AdditionalChargePaymentRefundStateAtTarget {
+  const paymentCents = decimalCents(input.paymentAmount);
+  const cumulativeRefundedCents = input.refunds
+    .filter(
+      (refund) =>
+        refund.authorizationType === RefundAuthorizationType.ADDITIONAL_CHARGE &&
+        isRefundEffectiveThroughTarget(refund, input.targetRefund),
+    )
+    .reduce((total, refund) => total + decimalCents(refund.amount), 0);
+  const remainingCents = Math.max(paymentCents - cumulativeRefundedCents, 0);
+
+  return {
+    cumulativeRefundedAmount: centsDecimal(cumulativeRefundedCents),
+    remainingAmount: centsDecimal(remainingCents),
+    resultingStatus:
+      cumulativeRefundedCents <= 0
+        ? PaymentStatus.APPROVED
+        : cumulativeRefundedCents >= paymentCents
+          ? PaymentStatus.REFUNDED
+          : PaymentStatus.PARTIALLY_REFUNDED,
   };
 }

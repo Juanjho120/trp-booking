@@ -3388,6 +3388,33 @@ export const enMessages = {
         OTHER: "Other",
       },
     },
+    additionalChargeEmailLabels: {
+      guestPaymentRequestStatuses: {
+        PENDING: "Pending",
+        PAID: "Paid",
+        CANCELLED: "Cancelled",
+        EXPIRED: "Expired",
+      },
+      paymentStatuses: {
+        APPROVED: "Approved",
+        PARTIALLY_REFUNDED: "Partially refunded",
+        REFUNDED: "Refunded",
+        PENDING: "Pending",
+        FAILED: "Failed",
+        REJECTED: "Rejected",
+      },
+      additionalChargeStatuses: {
+        PENDING: "Pending",
+        PAID: "Paid",
+        PARTIALLY_REFUNDED: "Partially refunded",
+        REFUNDED: "Refunded",
+        CANCELLED: "Cancelled",
+      },
+      refundProcessingModes: {
+        TILOPAY_API: "Tilopay API",
+        TILOPAY_PORTAL_FALLBACK: "Tilopay portal",
+      },
+    },
     adminAdditionalChargePaymentRequired: {
       subjectPrefix: "Payment pending for additional charge",
       preview: "An additional-charge payment request was created",

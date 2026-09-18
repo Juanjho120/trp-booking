@@ -10,6 +10,7 @@ Status: Implementation completed and validation executed; owner acceptance pendi
 Implementation base head: 1f3f30f63c0198afa219df9feea4f415cbc1ccd2
 Latest continuation base head: c9baf3839de6bede20d74d614559cf7380b15039
 Latest review continuation base head: 14475269e52b913b4264f3053174318e0768a843
+Latest delayed-retry/human-label hardening base head: f19902aa3908a2e691eed8889ddb77f6a5c0f1d3
 Previous accepted subphase: Final-D.5 — Completed and accepted on 2026-09-17 at 06b3de23fbae23a77b58b432760abf12afd5a6c7
 Next subphase: Final-D.7 — Integrated regression and documentation closure — Not started
 Phase 13: Not started
@@ -183,6 +184,30 @@ Fix applied in this continuation:
 
 No migration was introduced for this follow-up.
 
+## Independent Review Follow-Up After Payment Status Snapshot and Human Labels
+
+After `f19902aa3908a2e691eed8889ddb77f6a5c0f1d3`, the independent review confirmed the D.6 email delivery, resend/history UX, import-cycle fixes, Hosted Test follow-up fixes and delayed refund retry stability were correct.
+
+The same review identified two final presentation/evidence gaps:
+
+```text
+- Admin ancillary refund-processed email retries still displayed the live Payment.status, so retrying Refund A after Refund B could describe the payment as REFUNDED instead of PARTIALLY_REFUNDED as of Refund A.
+- Ancillary emails could expose raw technical status/processing enum values such as PARTIALLY_REFUNDED, REFUNDED, PAID, APPROVED, TILOPAY_API or TILOPAY_PORTAL_FALLBACK in human-facing content.
+```
+
+Fix applied in this continuation:
+
+```text
+- Extended the neutral chronological ancillary refund-state helper to derive Payment refund state as of the target refund from completed same-payment ADDITIONAL_CHARGE refunds, without changing token hashing, D.4 payment architecture, D.5 refund execution or database schema.
+- Admin ancillary refund-processed emails now render the Payment status as of the target refund: Refund A on a 100.00 payment after a later 70.00 Refund B still renders PARTIALLY_REFUNDED with cumulative 30.00 and remaining 70.00; Refund B renders REFUNDED.
+- Added centralized ES/EN email labels for GuestPaymentRequest statuses, Payment statuses, AdditionalCharge statuses and ancillary refund processing modes.
+- Guest payment-required and payment-approved emails omit item statuses; guest refund emails retain localized resulting charge status; admin ancillary emails render localized statuses and processing modes.
+- Added delayed retry coverage for ES/EN refund and payment-approved content, proving raw technical enums are not present in persisted/sent email payloads.
+- Stabilized the Final-D.4 active GuestPaymentRequest behavior fixture so the full Final-D suite continues to represent an unexpired request after the original fixed 2026-09-18 fixture date passed.
+```
+
+No migration was introduced for this follow-up.
+
 ## Validation Executed
 
 ```text
@@ -207,6 +232,21 @@ Schema migration introduced for D.6:
 ```
 
 The migration adds only enum values to `email_notification_type`; it adds no tables, columns or constraints.
+
+Latest validation executed after the payment-status snapshot and human-label follow-up:
+
+```text
+npx tsx --tsconfig tests/final-d/tsconfig.json tests/final-d/run.ts — Passed: 61/61, including admin ancillary refund Payment status as-of-target refund, localized ancillary email status/mode labels, raw enum absence checks, delayed refund retry A/B coverage, delayed payment-approved retry ES/EN admin coverage, and the stabilized active D.4 request fixture. The first sandbox attempt hit the known Windows tsx `uv_os_get_passwd` ENOMEM issue before startup; rerun outside the sandbox passed.
+npm run final-a:validate — Passed: 44/44
+npm run final-b:validate — Passed: 38/38
+npm run final-c:validate — Passed: 41/41
+npm run db:generate — Passed; Prisma reported the existing package.json Prisma-config deprecation warning
+npm run db:validate — Passed; Prisma reported the schema is valid and showed the available major-version update notice
+npm run db:migrate:status — Passed; Local/Test Supabase schema reported up to date with 19 migrations
+npm run lint — Passed
+npm run build — Passed; Next reported only the existing slow-filesystem warning
+git diff --check — Passed; only CRLF conversion warnings were reported
+```
 
 ## Not Implemented
 

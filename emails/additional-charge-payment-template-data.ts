@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { siteConfig } from "@/config/site";
 import { EmailTemplateDataError } from "@/emails/template-data";
+import { getTransactionalEmailMessages } from "@/emails/messages";
 import type {
   AdditionalChargeAdminPaymentApprovedEmailTemplateInput,
   AdditionalChargeAdminPaymentRequiredEmailTemplateInput,
@@ -15,6 +16,7 @@ import {
   type AdditionalChargeCategory,
 } from "@/types/additional-charge";
 import type { TransactionalEmailLocale } from "@/types/email-provider";
+import type { TransactionalEmailMessages } from "@/types/email-template";
 
 const BUSINESS_TIME_ZONE = "America/Guatemala";
 const localeTags = { es: "es-GT", en: "en-US" } as const;
@@ -214,6 +216,22 @@ function formatMoney(
   }).format(Number(value));
 }
 
+function labelFrom(
+  labels: Readonly<Record<string, string>>,
+  value: string,
+): string {
+  const label = labels[value];
+  if (!label) throw new EmailTemplateDataError();
+  return label;
+}
+
+function additionalChargeLabels(locale: TransactionalEmailLocale) {
+  return getTransactionalEmailMessages(locale).additionalChargeEmailLabels;
+}
+
+type AdditionalChargeEmailLabels =
+  TransactionalEmailMessages["additionalChargeEmailLabels"];
+
 function buildBaseView(parsed: z.infer<typeof baseInputSchema>) {
   const baseUrl = normalizeBaseUrl(parsed.publicBaseUrl);
 
@@ -252,6 +270,7 @@ function formatItems(
   items: readonly z.infer<typeof itemSchema>[],
   currency: string,
   locale: TransactionalEmailLocale,
+  statusLabels: AdditionalChargeEmailLabels["additionalChargeStatuses"] | null,
 ) {
   if (items.some((item) => item.currency !== currency)) {
     throw new EmailTemplateDataError();
@@ -261,7 +280,9 @@ function formatItems(
     category: item.category as AdditionalChargeCategory,
     description: item.description,
     amount: formatMoney(item.amount, item.currency, locale),
-    status: item.status ?? null,
+    status: item.status && statusLabels
+      ? labelFrom(statusLabels, item.status)
+      : null,
   }));
 }
 
@@ -269,6 +290,7 @@ function formatRefundAllocations(
   allocations: readonly z.infer<typeof refundAllocationSchema>[],
   currency: string,
   locale: TransactionalEmailLocale,
+  statusLabels: AdditionalChargeEmailLabels["additionalChargeStatuses"],
 ) {
   if (allocations.some((allocation) => allocation.currency !== currency)) {
     throw new EmailTemplateDataError();
@@ -286,7 +308,9 @@ function formatRefundAllocations(
     remainingAmount: allocation.remainingAmount
       ? formatMoney(allocation.remainingAmount, currency, locale)
       : null,
-    resultingStatus: allocation.resultingStatus ?? null,
+    resultingStatus: allocation.resultingStatus
+      ? labelFrom(statusLabels, allocation.resultingStatus)
+      : null,
   }));
 }
 
@@ -321,6 +345,7 @@ export function buildAdditionalChargePaymentRequiredEmailView(
       parsed.paymentRequest.items,
       parsed.paymentRequest.currency,
       parsed.locale,
+      null,
     ),
   } as const;
 }
@@ -332,11 +357,15 @@ export function buildAdditionalChargeAdminPaymentRequiredEmailView(
   if (!result.success) throw new EmailTemplateDataError();
   const parsed = result.data;
   assertBaseIntegrity(parsed);
+  const labels = additionalChargeLabels(parsed.locale);
 
   return {
     ...buildBaseView(parsed),
     requestId: parsed.paymentRequest.id,
-    requestStatus: parsed.paymentRequest.status,
+    requestStatus: labelFrom(
+      labels.guestPaymentRequestStatuses,
+      parsed.paymentRequest.status,
+    ),
     createdAt: formatDateTime(parsed.paymentRequest.createdAt, parsed.locale),
     expiresAt: formatDateTime(parsed.paymentRequest.expiresAt, parsed.locale),
     totalAmount: formatMoney(
@@ -352,6 +381,7 @@ export function buildAdditionalChargeAdminPaymentRequiredEmailView(
       parsed.paymentRequest.items,
       parsed.paymentRequest.currency,
       parsed.locale,
+      labels.additionalChargeStatuses,
     ),
   } as const;
 }
@@ -372,7 +402,12 @@ export function buildAdditionalChargePaymentApprovedEmailView(
       parsed.payment.currency,
       parsed.locale,
     ),
-    items: formatItems(parsed.payment.items, parsed.payment.currency, parsed.locale),
+    items: formatItems(
+      parsed.payment.items,
+      parsed.payment.currency,
+      parsed.locale,
+      null,
+    ),
   } as const;
 }
 
@@ -383,21 +418,30 @@ export function buildAdditionalChargeAdminPaymentApprovedEmailView(
   if (!result.success) throw new EmailTemplateDataError();
   const parsed = result.data;
   assertBaseIntegrity(parsed);
+  const labels = additionalChargeLabels(parsed.locale);
 
   return {
     ...buildBaseView(parsed),
     requestId: parsed.paymentRequest.id,
-    requestStatus: parsed.paymentRequest.status,
+    requestStatus: labelFrom(
+      labels.guestPaymentRequestStatuses,
+      parsed.paymentRequest.status,
+    ),
     paymentId: parsed.payment.id,
     providerReference: parsed.payment.providerReference,
-    paymentStatus: parsed.payment.status,
+    paymentStatus: labelFrom(labels.paymentStatuses, parsed.payment.status),
     paidAt: formatDateTime(parsed.payment.paidAt, parsed.locale),
     totalAmount: formatMoney(
       parsed.payment.totalAmount,
       parsed.payment.currency,
       parsed.locale,
     ),
-    items: formatItems(parsed.payment.items, parsed.payment.currency, parsed.locale),
+    items: formatItems(
+      parsed.payment.items,
+      parsed.payment.currency,
+      parsed.locale,
+      labels.additionalChargeStatuses,
+    ),
   } as const;
 }
 
@@ -408,6 +452,7 @@ export function buildAdditionalChargeRefundProcessedEmailView(
   if (!result.success) throw new EmailTemplateDataError();
   const parsed = result.data;
   assertBaseIntegrity(parsed);
+  const labels = additionalChargeLabels(parsed.locale);
 
   return {
     ...buildBaseView(parsed),
@@ -422,6 +467,7 @@ export function buildAdditionalChargeRefundProcessedEmailView(
       parsed.refund.allocations,
       parsed.refund.currency,
       parsed.locale,
+      labels.additionalChargeStatuses,
     ),
   } as const;
 }
@@ -433,14 +479,21 @@ export function buildAdditionalChargeAdminRefundProcessedEmailView(
   if (!result.success) throw new EmailTemplateDataError();
   const parsed = result.data;
   assertBaseIntegrity(parsed);
+  const labels = additionalChargeLabels(parsed.locale);
 
   return {
     ...buildBaseView(parsed),
     guestPaymentRequestId: parsed.guestPaymentRequestId,
     refundId: parsed.refund.id,
     paymentId: parsed.refund.paymentId,
-    paymentStatus: parsed.refund.paymentStatus,
-    processingMode: parsed.refund.processingMode,
+    paymentStatus: labelFrom(
+      labels.paymentStatuses,
+      parsed.refund.paymentStatus,
+    ),
+    processingMode: labelFrom(
+      labels.refundProcessingModes,
+      parsed.refund.processingMode,
+    ),
     providerRefundId: parsed.refund.providerRefundId,
     reason: parsed.refund.reason,
     requestedByAdmin:
@@ -455,6 +508,7 @@ export function buildAdditionalChargeAdminRefundProcessedEmailView(
       parsed.refund.allocations,
       parsed.refund.currency,
       parsed.locale,
+      labels.additionalChargeStatuses,
     ),
   } as const;
 }

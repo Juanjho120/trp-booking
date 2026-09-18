@@ -3390,6 +3390,33 @@ export const esMessages = {
         OTHER: "Otro",
       },
     },
+    additionalChargeEmailLabels: {
+      guestPaymentRequestStatuses: {
+        PENDING: "Pendiente",
+        PAID: "Pagado",
+        CANCELLED: "Cancelado",
+        EXPIRED: "Vencido",
+      },
+      paymentStatuses: {
+        APPROVED: "Aprobado",
+        PARTIALLY_REFUNDED: "Parcialmente reembolsado",
+        REFUNDED: "Reembolsado",
+        PENDING: "Pendiente",
+        FAILED: "Fallido",
+        REJECTED: "Rechazado",
+      },
+      additionalChargeStatuses: {
+        PENDING: "Pendiente",
+        PAID: "Pagado",
+        PARTIALLY_REFUNDED: "Parcialmente reembolsado",
+        REFUNDED: "Reembolsado",
+        CANCELLED: "Cancelado",
+      },
+      refundProcessingModes: {
+        TILOPAY_API: "API de Tilopay",
+        TILOPAY_PORTAL_FALLBACK: "Portal de Tilopay",
+      },
+    },
     adminAdditionalChargePaymentRequired: {
       subjectPrefix: "Pago pendiente por cargo adicional",
       preview: "Se creó una solicitud de pago por cargos adicionales",
