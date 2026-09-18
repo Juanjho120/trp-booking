@@ -9,7 +9,7 @@ Current phase state: Phase 12 — Test Deployment & External Integration Validat
 Current numbered phase: none active
 Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
 Current package: Final-E — Reservation reviews and post-checkout invitation — In progress
-Current subphase: Final-E.2 — Review/invitation persistence foundation and migration — Implementation completed and validation executed; owner acceptance pending
+Current/next subphase: Final-E.3 — Eligibility and invitation/token lifecycle foundation — Next / Not started
 Final-C implementation base head: e7ce19c49c5cfd45e1cc08796ee897a2dce0d1ed
 Final-C.1 status: Completed and accepted on 2026-08-25
 Final-C.1 accepted strategy head: 16d8b0411e573aaaa6b510ddb27a9b5d9c666478
@@ -100,7 +100,8 @@ Final-E.1 status: Completed and accepted on 2026-09-18 — Review/invitation str
 Final-E.1 accepted strategy head: e83ad8443bd533715058e701769b10c2d5505436
 Final-E.1 record: docs/186-final-e-1-review-invitation-strategy-eligibility-and-security-contract.md
 Final-E.2 implementation base head: 2e1b26850c55364db8450fafc2bb35c6d89a2c3b
-Final-E.2 status: Implementation completed and validation executed; owner acceptance pending — Review/invitation persistence foundation and migration
+Final-E.2 status: Completed and accepted on 2026-09-18 at f77938c5606ed636b697dc1af41c111a22ba1593 — Review/invitation persistence foundation and migration
+Final-E.2 accepted implementation head: f77938c5606ed636b697dc1af41c111a22ba1593
 Final-E.2 record: docs/187-final-e-2-review-invitation-persistence-foundation-and-migration.md
 Final-E.3 status: Next / Not started
 Final-E.4 status: Not started
@@ -134,8 +135,8 @@ Final-A.6 record: docs/166-final-a-6-integrated-acceptance-and-documentation-clo
 Phase 13 status: Not started
 Last updated: 2026-09-18
 Last completed package: Final-D — Additional charges and guest payment requests — Completed and accepted on 2026-09-18 at fd75663bb28be8a95b15c341eaa51f74e521241b
-Last accepted subphase: Final-E.1 Review/invitation strategy, eligibility and security contract — completed and accepted on 2026-09-18 at e83ad8443bd533715058e701769b10c2d5505436
-Current: Final-E.2 Review/invitation persistence foundation and migration — Implementation completed and validation executed; owner acceptance pending
+Last accepted subphase: Final-E.2 Review/invitation persistence foundation and migration — completed and accepted on 2026-09-18 at f77938c5606ed636b697dc1af41c111a22ba1593
+Current: Final-E.3 Eligibility and invitation/token lifecycle foundation — Next / Not started
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 11.6.5 acceptance: All 15 protected-history, ordering, relation, retry, ES/EN, responsive, security, and integrated criteria passed on 2026-08-05
 11.6.5 implementation and acceptance document: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md
@@ -202,7 +203,7 @@ Phase 12.9 acceptance closure: docs/158-phase-12.9-acceptance-closure.md
 Phase 12.10 status: Completed and accepted on 2026-08-11 — Phase 12 validation and closure
 Phase 12.10 validated repository head: ebe28579872cbc2414573ef852b15139a2501551
 Phase 12 closure record: docs/159-phase-12.10-phase-12-validation-and-closure.md
-Post-Phase-12 / Pre-Phase-13 Final Improvement Track: Active — Final-A, Final-B, Final-C and Final-D completed and accepted; Final-E is In progress with Final-E.1 accepted and Final-E.2 implementation completed with owner acceptance pending
+Post-Phase-12 / Pre-Phase-13 Final Improvement Track: Active — Final-A, Final-B, Final-C and Final-D completed and accepted; Final-E is In progress with Final-E.1 and Final-E.2 accepted; Final-E.3 Next / Not started
 Final-A status: Completed and accepted on 2026-08-12 at 66afbeacd6ee7d669cb4bc251c8416160fae3f49 — Reservation financial correctness and effective stay value
 Final-A.1 status: Completed and accepted on 2026-08-11 at 19531568752a44446d0802d6581262260b881aaf — Financial source-of-truth and refund-allocation contract
 Final-A.2 status: Completed and accepted on 2026-08-11 at 9f4e04068726451ca87614dd99b1f10656510825 — Central financial summary and cancellation-policy correction
@@ -278,7 +279,8 @@ Final-D permanent regression: npm run final-d:validate — 66/66 PASS
 Final-E status: In progress — Reservation reviews and post-checkout invitation
 Final-E.1 status: Completed and accepted on 2026-09-18 at e83ad8443bd533715058e701769b10c2d5505436 — Review/invitation strategy, eligibility and security contract
 Final-E.1 record: docs/186-final-e-1-review-invitation-strategy-eligibility-and-security-contract.md
-Final-E.2 status: Implementation completed and validation executed; owner acceptance pending — Review/invitation persistence foundation and migration
+Final-E.2 status: Completed and accepted on 2026-09-18 at f77938c5606ed636b697dc1af41c111a22ba1593 — Review/invitation persistence foundation and migration
+Final-E.2 accepted implementation head: f77938c5606ed636b697dc1af41c111a22ba1593
 Final-E.2 implementation base head: 2e1b26850c55364db8450fafc2bb35c6d89a2c3b
 Final-E.2 record: docs/187-final-e-2-review-invitation-persistence-foundation-and-migration.md
 Final-E.3 status: Next / Not started — Eligibility and invitation/token lifecycle foundation
@@ -1133,7 +1135,7 @@ Status: **Completed and accepted on 2026-08-11**
 
 ## Inter-Phase Work — Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 
-Status: **Active — Final-A, Final-B, Final-C and Final-D completed and accepted; Final-E is In progress with Final-E.1 accepted and Final-E.2 implementation completed with owner acceptance pending**
+Status: **Active — Final-A, Final-B, Final-C and Final-D completed and accepted; Final-E is In progress with Final-E.1 and Final-E.2 accepted; Final-E.3 Next / Not started**
 
 ```text
 Registration base: dac105088d2c46be05a900abed3dfe83e608e964
@@ -1144,7 +1146,7 @@ Final-C Pricing rules: seasonal and length-of-stay — Completed and accepted on
 Final-D Additional charges and guest payment requests — Completed and accepted on 2026-09-18
 Final-E Reservation reviews and post-checkout invitation — In progress
   Final-E.1 Review/invitation strategy, eligibility and security contract — Completed and accepted on 2026-09-18 at e83ad8443bd533715058e701769b10c2d5505436
-  Final-E.2 Review/invitation persistence foundation and migration — Implementation completed and validation executed; owner acceptance pending
+  Final-E.2 Review/invitation persistence foundation and migration — Completed and accepted on 2026-09-18 at f77938c5606ed636b697dc1af41c111a22ba1593
   Final-E.3 Eligibility and invitation/token lifecycle foundation — Next / Not started
   Final-E.4 Review-invitation scheduling, cron integration and email delivery — Not started
   Final-E.5 Private guest review submission — Not started
@@ -1328,7 +1330,7 @@ Status: **Completed and accepted on 2026-09-18 at fd75663bb28be8a95b15c341eaa51f
 - Lint passed.
 - Build passed after network-enabled Google Fonts fetch; the sandbox-only first build attempt failed on font fetch.
 - Final-D is completed and accepted on 2026-09-18.
-- Final-E is In progress; Final-E.1 is completed and accepted, Final-E.2 implementation is completed and validation executed with owner acceptance pending, and Final-E.3 through Final-E.7, Final-F/G/H and Phase 13 remain Not started.
+- Final-E is In progress; Final-E.1 and Final-E.2 are completed and accepted, and Final-E.3 through Final-E.7, Final-F/G/H and Phase 13 remain Not started.
 - Record: docs/185-final-d-7-integrated-regression-and-documentation-closure.md.
 ```
 
@@ -1353,14 +1355,14 @@ Status: **Completed and accepted on 2026-09-18**
 - Froze E.4 as the first subphase that may activate scheduling and REVIEW_INVITATION email delivery, with dispatcher support and ReviewInvitation + EmailNotification transactional creation in the same changeset.
 - No Prisma migration, runtime code, API route, page, email template, cron registration, provider call or validation script was added.
 - Owner acceptance was explicitly recorded on 2026-09-18 after the delivery activation boundary correction.
-- Final-E.2 implementation is completed and validation executed with owner acceptance pending.
+- Final-E.2 is completed and accepted on 2026-09-18 at f77938c5606ed636b697dc1af41c111a22ba1593.
 - Final-E.3 through Final-E.7 remain Not started.
 - Final-F/G/H and Phase 13 remain Not started.
 ```
 
 ### Final-E.2 — Review/invitation persistence foundation and migration
 
-Status: **Implementation completed and validation executed; owner acceptance pending**
+Status: **Completed and accepted on 2026-09-18 at f77938c5606ed636b697dc1af41c111a22ba1593**
 
 ```text
 - Implementation base head: 2e1b26850c55364db8450fafc2bb35c6d89a2c3b.

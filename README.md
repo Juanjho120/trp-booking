@@ -21,7 +21,7 @@ The stable test domain is:
 trp-booking.juantzun.dev
 ```
 
-As of 2026-09-18, Phase 12 — Test Deployment & External Integration Validation — is completed and accepted. The stable HTTPS Test deployment at `trp-booking.juantzun.dev` remains `TRP_ENVIRONMENT=test` on the developer-owned stack with zero Vercel scheduler registrations. The Post-Phase-12 / Pre-Phase-13 Final Improvement Track is active: Final-A — reservation financial correctness and effective stay value — is completed and accepted, including its 44/44 integrated regression gate; Final-B — admin external-calendar integrations — is completed and accepted at `1fe06de8c55ab1563999b2db1d210bfc9a82c613`, including its permanent 38/38 regression gate and controlled three-property Hosted Test acceptance; Final-C — pricing rules: seasonal and length-of-stay — is completed and accepted on 2026-08-28 at accepted feature head `dca50f51abe1836d3b678b762693219143b12099`, including its permanent 41/41 Final-C regression gate, three-property pricing isolation, public/pending-reservation pricing integration, DATE_CHANGE/STAY_EXTENSION integration, accepted pricing evidence, and final admin/public/email pricing UX refinements. Final-D — additional charges and guest payment requests — is completed and accepted on 2026-09-18 at accepted feature head `fd75663bb28be8a95b15c341eaa51f74e521241b`, including the permanent `npm run final-d:validate` regression gate accepted at 66/66. Final-E — Reservation reviews and post-checkout invitation — is In progress: Final-E.1 is completed and accepted on 2026-09-18 at `e83ad8443bd533715058e701769b10c2d5505436`, Final-E.2 implementation is completed and validation executed with owner acceptance pending, Final-E.3 is Next / Not started, and Final-E.4 through Final-E.7 remain Not started. Final-F through Final-H remain Not started. Phase 13 — Production Infrastructure, Deployment & Go-Live — remains Not started until Final-H closes and the owner explicitly accepts the complete improvement track.
+As of 2026-09-18, Phase 12 — Test Deployment & External Integration Validation — is completed and accepted. The stable HTTPS Test deployment at `trp-booking.juantzun.dev` remains `TRP_ENVIRONMENT=test` on the developer-owned stack with zero Vercel scheduler registrations. The Post-Phase-12 / Pre-Phase-13 Final Improvement Track is active: Final-A — reservation financial correctness and effective stay value — is completed and accepted, including its 44/44 integrated regression gate; Final-B — admin external-calendar integrations — is completed and accepted at `1fe06de8c55ab1563999b2db1d210bfc9a82c613`, including its permanent 38/38 regression gate and controlled three-property Hosted Test acceptance; Final-C — pricing rules: seasonal and length-of-stay — is completed and accepted on 2026-08-28 at accepted feature head `dca50f51abe1836d3b678b762693219143b12099`, including its permanent 41/41 Final-C regression gate, three-property pricing isolation, public/pending-reservation pricing integration, DATE_CHANGE/STAY_EXTENSION integration, accepted pricing evidence, and final admin/public/email pricing UX refinements. Final-D — additional charges and guest payment requests — is completed and accepted on 2026-09-18 at accepted feature head `fd75663bb28be8a95b15c341eaa51f74e521241b`, including the permanent `npm run final-d:validate` regression gate accepted at 66/66. Final-E — Reservation reviews and post-checkout invitation — is In progress: Final-E.1 is completed and accepted on 2026-09-18 at `e83ad8443bd533715058e701769b10c2d5505436`, Final-E.2 is completed and accepted on 2026-09-18 at `f77938c5606ed636b697dc1af41c111a22ba1593`, Final-E.3 is Next / Not started, and Final-E.4 through Final-E.7 remain Not started. Final-F through Final-H remain Not started. Phase 13 — Production Infrastructure, Deployment & Go-Live — remains Not started until Final-H closes and the owner explicitly accepts the complete improvement track.
 
 ## Environment Strategy
 
@@ -501,7 +501,7 @@ Current phase state: Phase 12 — Test Deployment & External Integration Validat
 Current numbered phase: none active
 Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
 Current package: Final-E — Reservation reviews and post-checkout invitation — In progress
-Current subphase: Final-E.2 — Review/invitation persistence foundation and migration — Implementation completed and validation executed; owner acceptance pending
+Current/next subphase: Final-E.3 — Eligibility and invitation/token lifecycle foundation — Next / Not started
 Final-C implementation base head: e7ce19c49c5cfd45e1cc08796ee897a2dce0d1ed
 Final-C.1 status: Completed and accepted on 2026-08-25
 Final-C.1 accepted strategy head: 16d8b0411e573aaaa6b510ddb27a9b5d9c666478
@@ -592,7 +592,8 @@ Final-E.1 status: Completed and accepted on 2026-09-18 — Review/invitation str
 Final-E.1 accepted strategy head: e83ad8443bd533715058e701769b10c2d5505436
 Final-E.1 record: docs/186-final-e-1-review-invitation-strategy-eligibility-and-security-contract.md
 Final-E.2 implementation base head: 2e1b26850c55364db8450fafc2bb35c6d89a2c3b
-Final-E.2 status: Implementation completed and validation executed; owner acceptance pending — Review/invitation persistence foundation and migration
+Final-E.2 status: Completed and accepted on 2026-09-18 at f77938c5606ed636b697dc1af41c111a22ba1593 — Review/invitation persistence foundation and migration
+Final-E.2 accepted implementation head: f77938c5606ed636b697dc1af41c111a22ba1593
 Final-E.2 record: docs/187-final-e-2-review-invitation-persistence-foundation-and-migration.md
 Final-E.3 status: Next / Not started — Eligibility and invitation/token lifecycle foundation
 Final-E.4 status: Not started
@@ -600,7 +601,7 @@ Final-E.5 status: Not started
 Final-E.6 status: Not started
 Final-E.7 status: Not started
 Last completed package: Final-D — Additional charges and guest payment requests — Completed and accepted on 2026-09-18 at fd75663bb28be8a95b15c341eaa51f74e521241b
-Last accepted subphase: Final-E.1 Review/invitation strategy, eligibility and security contract — completed and accepted on 2026-09-18 at e83ad8443bd533715058e701769b10c2d5505436
+Last accepted subphase: Final-E.2 Review/invitation persistence foundation and migration — completed and accepted on 2026-09-18 at f77938c5606ed636b697dc1af41c111a22ba1593
 Final-A.1 status: Completed and accepted on 2026-08-11
 Final-A.1 accepted head: 19531568752a44446d0802d6581262260b881aaf
 Final-A.2 status: Completed and accepted on 2026-08-11

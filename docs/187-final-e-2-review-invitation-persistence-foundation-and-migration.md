@@ -7,14 +7,15 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-E - Reservation reviews and post-checkout invitation
 Subphase: Final-E.2 - Review/invitation persistence foundation and migration
-Status: Implementation completed and validation executed; owner acceptance pending
+Status: Completed and accepted on 2026-09-18
 Implementation date: 2026-09-18
 Implementation base head: 2e1b26850c55364db8450fafc2bb35c6d89a2c3b
+Accepted implementation head: f77938c5606ed636b697dc1af41c111a22ba1593
 Accepted strategy: Final-E.1 at e83ad8443bd533715058e701769b10c2d5505436
 Authoritative contract: docs/186-final-e-1-review-invitation-strategy-eligibility-and-security-contract.md
 Foundation migration: 20260918173000_final_e_2_review_invitation_persistence_foundation
 Corrective migration: 20260918183000_final_e_2_expand_review_guest_display_name
-Migration count after E.2 correction: 21
+Migration count: 21
 Next subphase: Final-E.3 - Eligibility and invitation/token lifecycle foundation - Not started
 Final-E.4 through Final-E.7: Not started
 Final-F/G/H: Not started
@@ -25,7 +26,7 @@ Phase 13: Not started
 
 Final-E.2 adds the dormant persistence foundation required by the accepted Final-E.1 contract.
 
-Implemented schema foundation:
+Accepted schema foundation:
 
 ```text
 ReviewInvitationStatus:
@@ -41,9 +42,13 @@ ReviewModerationStatus:
 
 ReviewInvitation
 Review
+Review.guestDisplayName:
+  VARCHAR(160)
 EmailNotification.reviewInvitationId
 CronJobKey.SCHEDULE_REVIEW_INVITATIONS
+  schema support only
 EmailNotificationType.REVIEW_INVITATION
+  schema support only
 REVIEW_INVITATION crypto purpose/AAD
 ```
 
@@ -106,23 +111,27 @@ Enums:
   review_moderation_status PENDING / PUBLISHED / HIDDEN
 
 ReviewInvitation constraints:
+  ReviewInvitation.reservationId UNIQUE
+  ReviewInvitation.accessTokenHash UNIQUE
   access token hash must be lowercase 64-character hex
   encrypted token is nullable or non-blank
   expiresAt > createdAt
   eligibleAt >= checkoutAtSnapshot
-  consumedAt is present if and only if status is CONSUMED
-  reservation FK uses ON DELETE RESTRICT
+  CONSUMED <=> consumedAt IS NOT NULL
 
 Review constraints:
-  reservationId UNIQUE
-  property FK uses ON DELETE RESTRICT
-  moderatedByAdmin FK uses ON DELETE SET NULL
-  rating between 1 and 5
-  trimmed comment length between 1 and 2000
-  guestDisplayName non-blank
+  Review.reservationId UNIQUE
+  rating 1..5
+  comment trimmed 1..2000
+  guestDisplayName nonblank
+  guestDisplayName VARCHAR(160)
 
-EmailNotification relation:
-  reviewInvitationId nullable FK uses ON DELETE SET NULL
+Relations:
+  ReviewInvitation -> Reservation: ON DELETE RESTRICT
+  Review -> Reservation: ON DELETE RESTRICT
+  Review -> Property: ON DELETE RESTRICT
+  Review -> moderatedByAdmin: ON DELETE SET NULL
+  EmailNotification -> ReviewInvitation: ON DELETE SET NULL
 
 Migration count:
   21
@@ -143,7 +152,7 @@ The already-applied foundation migration
 `20260918173000_final_e_2_review_invitation_persistence_foundation` was not modified, rewritten,
 deleted or reapplied. Final-E.2 adds the follow-up corrective migration
 `20260918183000_final_e_2_expand_review_guest_display_name`, which expands only
-`reviews.guest_display_name` to `VARCHAR(160)`.
+`reviews.guest_display_name` from `VARCHAR(120)` to `VARCHAR(160)`.
 
 No operational review data existed when the corrective migration was applied, and this correction
 does not introduce runtime activation, review invitation creation, review submission, email
@@ -198,9 +207,11 @@ Phase 13
 }
 ```
 
-## Validation
+## Accepted Validation Evidence
 
-Executed validation:
+The owner accepted the following validation evidence from the Final-E.2 implementation head
+`f77938c5606ed636b697dc1af41c111a22ba1593`; it was not re-executed as part of the docs-only
+acceptance closure:
 
 ```text
 npm run db:format
@@ -223,6 +234,9 @@ PASS - Final-E targeted validation 3/3.
 
 Database inspection
 PASS - migration count is 21; reviews.guest_display_name is character varying(160); no operational review/invitation/email/cron rows created.
+
+Vercel deployment for f77938c5606ed636b697dc1af41c111a22ba1593
+PASS - SUCCESS.
 
 npm run final-a:validate
 PASS - 44/44.
@@ -250,12 +264,29 @@ No validation script named `final-e:validate` was added; E.7 owns the consolidat
 
 ## Owner Acceptance
 
-Owner acceptance has not yet been recorded for Final-E.2.
+The owner explicitly accepted Final-E.2 on 2026-09-18 after reviewing the persistence foundation and
+the corrective `guestDisplayName` expansion to `VARCHAR(160)`.
 
-Until owner acceptance is explicitly recorded:
+Accepted implementation head:
 
 ```text
-Final-E.2 remains implementation-complete with validation executed, but not accepted.
+f77938c5606ed636b697dc1af41c111a22ba1593
+```
+
+Final-E.2 acceptance preserves the dormant boundary:
+
+```text
+Final-E.2 introduced persistence only.
+ReviewInvitation rows created operationally: NONE
+Review rows created operationally: NONE
+REVIEW_INVITATION EmailNotification rows: NONE
+SCHEDULE_REVIEW_INVITATIONS cron registration: NONE
+public /resenas route: NONE
+review email dispatcher: NONE
+guest review submission: NONE
+admin moderation: NONE
+public review listing: NONE
+npm run final-e:validate: NOT CREATED
 Final-E.3 is Next / Not started.
 Final-E.4 through Final-E.7 remain Not started.
 Final-F/G/H remain Not started.
