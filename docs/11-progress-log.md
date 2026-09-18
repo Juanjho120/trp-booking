@@ -9,7 +9,7 @@ Current phase state: Phase 12 — Test Deployment & External Integration Validat
 Current numbered phase: none active
 Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
 Current package: Final-E — Reservation reviews and post-checkout invitation — In progress
-Current subphase: Final-E.4 — Review-invitation scheduling, cron integration and email delivery — Implementation completed and validation executed; owner acceptance pending
+Current/next subphase: Final-E.5 — Private guest review submission — Next / Not started
 Final-C implementation base head: e7ce19c49c5cfd45e1cc08796ee897a2dce0d1ed
 Final-C.1 status: Completed and accepted on 2026-08-25
 Final-C.1 accepted strategy head: 16d8b0411e573aaaa6b510ddb27a9b5d9c666478
@@ -108,7 +108,8 @@ Final-E.3 status: Completed and accepted on 2026-09-18 at c67d2a59a8bec9ba84ca36
 Final-E.3 accepted implementation head: c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030
 Final-E.3 record: docs/188-final-e-3-eligibility-and-invitation-token-lifecycle-foundation.md
 Final-E.4 implementation base head: 19199e6382b4daa7651417c37c1958ad59300373
-Final-E.4 status: Implementation completed and validation executed; owner acceptance pending — Review-invitation scheduling, cron integration and email delivery
+Final-E.4 status: Completed and accepted on 2026-09-18 at e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1 — Review-invitation scheduling, cron integration and email delivery
+Final-E.4 accepted implementation head: e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1
 Final-E.4 record: docs/189-final-e-4-review-invitation-scheduling-cron-and-email-delivery.md
 Final-E.5 status: Next / Not started
 Final-E.6 status: Not started
@@ -140,9 +141,8 @@ Final-A.6 record: docs/166-final-a-6-integrated-acceptance-and-documentation-clo
 Phase 13 status: Not started
 Last updated: 2026-09-18
 Last completed package: Final-D — Additional charges and guest payment requests — Completed and accepted on 2026-09-18 at fd75663bb28be8a95b15c341eaa51f74e521241b
-Last accepted subphase: Final-E.3 Eligibility and invitation/token lifecycle foundation — completed and accepted on 2026-09-18 at c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030
-Current: Final-E.4 Review-invitation scheduling, cron integration and email delivery — Implementation completed and validation executed; owner acceptance pending
-Next: Final-E.5 Private guest review submission — Not started
+Last accepted subphase: Final-E.4 Review-invitation scheduling, cron integration and email delivery — completed and accepted on 2026-09-18 at e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1
+Current/next: Final-E.5 Private guest review submission — Next / Not started
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 11.6.5 acceptance: All 15 protected-history, ordering, relation, retry, ES/EN, responsive, security, and integrated criteria passed on 2026-08-05
 11.6.5 implementation and acceptance document: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md
@@ -209,7 +209,7 @@ Phase 12.9 acceptance closure: docs/158-phase-12.9-acceptance-closure.md
 Phase 12.10 status: Completed and accepted on 2026-08-11 — Phase 12 validation and closure
 Phase 12.10 validated repository head: ebe28579872cbc2414573ef852b15139a2501551
 Phase 12 closure record: docs/159-phase-12.10-phase-12-validation-and-closure.md
-Post-Phase-12 / Pre-Phase-13 Final Improvement Track: Active — Final-A, Final-B, Final-C and Final-D completed and accepted; Final-E is In progress with Final-E.1, Final-E.2 and Final-E.3 accepted; Final-E.4 implementation completed and validation executed with owner acceptance pending
+Post-Phase-12 / Pre-Phase-13 Final Improvement Track: Active — Final-A, Final-B, Final-C and Final-D completed and accepted; Final-E is In progress with Final-E.1 through Final-E.4 completed and accepted; Final-E.5 is Next / Not started
 Final-A status: Completed and accepted on 2026-08-12 at 66afbeacd6ee7d669cb4bc251c8416160fae3f49 — Reservation financial correctness and effective stay value
 Final-A.1 status: Completed and accepted on 2026-08-11 at 19531568752a44446d0802d6581262260b881aaf — Financial source-of-truth and refund-allocation contract
 Final-A.2 status: Completed and accepted on 2026-08-11 at 9f4e04068726451ca87614dd99b1f10656510825 — Central financial summary and cancellation-policy correction
@@ -292,8 +292,9 @@ Final-E.2 record: docs/187-final-e-2-review-invitation-persistence-foundation-an
 Final-E.3 status: Completed and accepted on 2026-09-18 at c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030 — Eligibility and invitation/token lifecycle foundation
 Final-E.3 accepted implementation head: c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030
 Final-E.3 record: docs/188-final-e-3-eligibility-and-invitation-token-lifecycle-foundation.md
-Final-E.4 status: Implementation completed and validation executed; owner acceptance pending — Review-invitation scheduling, cron integration and email delivery
+Final-E.4 status: Completed and accepted on 2026-09-18 at e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1 — Review-invitation scheduling, cron integration and email delivery
 Final-E.4 implementation base head: 19199e6382b4daa7651417c37c1958ad59300373
+Final-E.4 accepted implementation head: e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1
 Final-E.4 record: docs/189-final-e-4-review-invitation-scheduling-cron-and-email-delivery.md
 Final-E.5 status: Next / Not started — Private guest review submission
 Final-E.6 status: Not started — Admin moderation and public published-review presentation
@@ -1145,7 +1146,7 @@ Status: **Completed and accepted on 2026-08-11**
 
 ## Inter-Phase Work — Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 
-Status: **Active — Final-A, Final-B, Final-C and Final-D completed and accepted; Final-E is In progress with Final-E.1, Final-E.2 and Final-E.3 accepted; Final-E.4 implementation completed and validation executed with owner acceptance pending**
+Status: **Active — Final-A, Final-B, Final-C and Final-D completed and accepted; Final-E is In progress with Final-E.1 through Final-E.4 completed and accepted; Final-E.5 is Next / Not started**
 
 ```text
 Registration base: dac105088d2c46be05a900abed3dfe83e608e964
@@ -1158,7 +1159,7 @@ Final-E Reservation reviews and post-checkout invitation — In progress
   Final-E.1 Review/invitation strategy, eligibility and security contract — Completed and accepted on 2026-09-18 at e83ad8443bd533715058e701769b10c2d5505436
   Final-E.2 Review/invitation persistence foundation and migration — Completed and accepted on 2026-09-18 at f77938c5606ed636b697dc1af41c111a22ba1593
   Final-E.3 Eligibility and invitation/token lifecycle foundation — Completed and accepted on 2026-09-18 at c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030
-  Final-E.4 Review-invitation scheduling, cron integration and email delivery — Implementation completed and validation executed; owner acceptance pending; record: docs/189-final-e-4-review-invitation-scheduling-cron-and-email-delivery.md
+  Final-E.4 Review-invitation scheduling, cron integration and email delivery — Completed and accepted on 2026-09-18 at e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1; record: docs/189-final-e-4-review-invitation-scheduling-cron-and-email-delivery.md
   Final-E.5 Private guest review submission — Next / Not started
   Final-E.6 Admin moderation and public published-review presentation — Not started
   Final-E.7 Integrated regression and documentation closure — Not started
@@ -1340,7 +1341,7 @@ Status: **Completed and accepted on 2026-09-18 at fd75663bb28be8a95b15c341eaa51f
 - Lint passed.
 - Build passed after network-enabled Google Fonts fetch; the sandbox-only first build attempt failed on font fetch.
 - Final-D is completed and accepted on 2026-09-18.
-- Final-E is In progress; Final-E.1, Final-E.2 and Final-E.3 are completed and accepted; Final-E.4 implementation is completed with validation executed and owner acceptance pending; Final-E.5 through Final-E.7, Final-F/G/H and Phase 13 remain Not started.
+- Final-E is In progress; Final-E.1 through Final-E.4 are completed and accepted; Final-E.5 through Final-E.7, Final-F/G/H and Phase 13 remain Not started.
 - Record: docs/185-final-d-7-integrated-regression-and-documentation-closure.md.
 ```
 
@@ -1366,7 +1367,7 @@ Status: **Completed and accepted on 2026-09-18**
 - No Prisma migration, runtime code, API route, page, email template, cron registration, provider call or validation script was added.
 - Owner acceptance was explicitly recorded on 2026-09-18 after the delivery activation boundary correction.
 - Final-E.2 is completed and accepted on 2026-09-18 at f77938c5606ed636b697dc1af41c111a22ba1593.
-- Final-E.3 is completed and accepted on 2026-09-18 at c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030; Final-E.4 implementation is completed with validation executed and owner acceptance pending; Final-E.5 through Final-E.7 remain Not started.
+- Final-E.3 is completed and accepted on 2026-09-18 at c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030; Final-E.4 is completed and accepted on 2026-09-18 at e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1; Final-E.5 through Final-E.7 remain Not started.
 - Final-F/G/H and Phase 13 remain Not started.
 ```
 
@@ -1383,7 +1384,7 @@ Status: **Completed and accepted on 2026-09-18 at f77938c5606ed636b697dc1af41c11
 - Adds REVIEW_INVITATION crypto purpose/AAD support separate from GUEST_PAYMENT_REQUEST.
 - Adds foundation migration 20260918173000_final_e_2_review_invitation_persistence_foundation and corrective migration 20260918183000_final_e_2_expand_review_guest_display_name; the database now has 21 migrations.
 - No ReviewInvitation, Review, REVIEW_INVITATION EmailNotification, cron execution, public review route, email template, admin moderation, public review surface, or provider row is created operationally.
-- Final-E.3 is completed and accepted on 2026-09-18 at c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030; Final-E.4 implementation is completed with validation executed and owner acceptance pending.
+- Final-E.3 is completed and accepted on 2026-09-18 at c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030; Final-E.4 is completed and accepted on 2026-09-18 at e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1.
 - Record: docs/187-final-e-2-review-invitation-persistence-foundation-and-migration.md.
 ```
 
@@ -1404,13 +1405,13 @@ Status: **Completed and accepted on 2026-09-18 at c67d2a59a8bec9ba84ca36c37fc0dd
 - No cron registration, Vercel cron, /resenas route, /admin/reviews route, REVIEW_INVITATION EmailNotification row, email renderer, dispatcher, public review submission, moderation UI, schema migration or final-e:validate script was added.
 - Final-E targeted validation passed 18/18.
 - Owner acceptance was explicitly recorded on 2026-09-18 after the concurrency hardening correction for `ensureReviewInvitationInTransaction`; the owner also verified the corresponding Vercel deployment successfully.
-- Final-E.4 implementation is completed with validation executed and owner acceptance pending.
+- Final-E.4 is completed and accepted on 2026-09-18 at e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1.
 - Record: docs/188-final-e-3-eligibility-and-invitation-token-lifecycle-foundation.md.
 ```
 
 ### Final-E.4 — Review-invitation scheduling, cron integration and email delivery
 
-Status: **Implementation completed and validation executed; owner acceptance pending**
+Status: **Completed and accepted on 2026-09-18 at e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1**
 
 ```text
 - Implementation base head: 19199e6382b4daa7651417c37c1958ad59300373.
@@ -1421,9 +1422,10 @@ Status: **Implementation completed and validation executed; owner acceptance pen
 - Adds REVIEW_INVITATION dispatcher support before generic reservation email handling.
 - Preserves token secrecy: raw review tokens are not persisted and are reconstructed only from the encrypted invitation token for email delivery.
 - Does not add /resenas, /admin/reviews, review submission, moderation, public review listing, schema migration, Vercel cron registration, or npm run final-e:validate.
-- Final-E targeted validation passed 33/33.
+- Final-E targeted validation passed 35/35.
 - Existing Final-A/B/C/D regression gates passed 44/44, 38/38, 41/41 and 66/66.
 - Database checks passed with 21 migrations applied/up to date.
+- Owner acceptance was explicitly recorded on 2026-09-18 after the relation-integrity isolation, race-safe REVIEW_INVITATION intent creation, and actionable repair discovery corrections.
 - Final-E.5 is Next / Not started.
 - Record: docs/189-final-e-4-review-invitation-scheduling-cron-and-email-delivery.md.
 ```

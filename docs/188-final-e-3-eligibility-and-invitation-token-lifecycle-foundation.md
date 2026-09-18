@@ -16,8 +16,7 @@ Accepted Final-E.2 implementation head: f77938c5606ed636b697dc1af41c111a22ba1593
 Authoritative contract: docs/186-final-e-1-review-invitation-strategy-eligibility-and-security-contract.md
 Accepted persistence record: docs/187-final-e-2-review-invitation-persistence-foundation-and-migration.md
 Migration count: 21
-Current subphase: Final-E.4 - Review-invitation scheduling, cron integration and email delivery - Implementation completed and validation executed; owner acceptance pending
-Next subphase: Final-E.5 - Private guest review submission - Not started
+Current/next subphase: Final-E.5 - Private guest review submission - Next / Not started
 Final-E.6 and Final-E.7: Not started
 Final-F/G/H: Not started
 Phase 13: Not started
@@ -531,7 +530,7 @@ REVIEW_INVITATION EmailNotification intent
 
 E.4 applies bounded retry for Prisma serialization conflicts such as `P2034` around the complete
 business transaction and does not add an inner transaction inside the E.3
-`ensureReviewInvitationInTransaction()` primitive. The implementation/validation record is
+`ensureReviewInvitationInTransaction()` primitive. The implementation and acceptance record is
 `docs/189-final-e-4-review-invitation-scheduling-cron-and-email-delivery.md`.
 
 ## Current Decision
@@ -542,7 +541,7 @@ Final-E — In progress
 Final-E.1 — Completed and accepted on 2026-09-18 at e83ad8443bd533715058e701769b10c2d5505436
 Final-E.2 — Completed and accepted on 2026-09-18 at f77938c5606ed636b697dc1af41c111a22ba1593
 Final-E.3 — Completed and accepted on 2026-09-18 at c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030
-Final-E.4 — Implementation completed and validation executed; owner acceptance pending
+Final-E.4 — Completed and accepted on 2026-09-18 at e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1
 Final-E.5 — Next / Not started
 Final-E.6 — Not started
 Final-E.7 — Not started

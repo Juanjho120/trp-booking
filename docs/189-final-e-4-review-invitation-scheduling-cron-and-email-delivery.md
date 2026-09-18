@@ -7,9 +7,10 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-E - Reservation reviews and post-checkout invitation
 Subphase: Final-E.4 - Review-invitation scheduling, cron integration and email delivery
-Status: Implementation completed and validation executed; owner acceptance pending
+Status: Completed and accepted on 2026-09-18
 Implementation date: 2026-09-18
 Implementation base head: 19199e6382b4daa7651417c37c1958ad59300373
+Accepted implementation head: e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1
 Accepted Final-E.1 strategy head: e83ad8443bd533715058e701769b10c2d5505436
 Accepted Final-E.2 implementation head: f77938c5606ed636b697dc1af41c111a22ba1593
 Accepted Final-E.3 implementation head: c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030
@@ -21,6 +22,19 @@ Next subphase: Final-E.5 - Private guest review submission - Not started
 Final-E.6 and Final-E.7: Not started
 Final-F/G/H: Not started
 Phase 13: Not started
+```
+
+## Owner Acceptance
+
+The owner explicitly accepted Final-E.4 on 2026-09-18 at implementation head
+`e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1`.
+
+Acceptance includes the independent-review corrections for:
+
+```text
+relation-integrity isolation
+race-safe REVIEW_INVITATION intent creation
+actionable repair discovery
 ```
 
 ## Scope Implemented
@@ -73,6 +87,17 @@ serialization conflicts.
 If the email intent creation fails, the newly created ReviewInvitation is rolled back with the same
 transaction. Provider delivery is not attempted by the scheduler.
 
+`ensureReviewInvitationInTransaction()` remains caller-owned and does not open an inner
+transaction.
+
+Provider delivery occurs later through:
+
+```text
+PROCESS_EMAIL_NOTIFICATIONS
+```
+
+The scheduler does not call the provider directly.
+
 The stable deduplication key is:
 
 ```text
@@ -96,6 +121,19 @@ If another caller-owned transaction wins the same intent, E.4 reuses the persist
 the intent as existing instead of leaking a unique-constraint failure. A conflicting persisted row
 is rejected as an internal deduplication conflict and is not silently accepted.
 
+Concurrency semantics:
+
+```text
+winner
+  -> created = true
+
+loser
+  -> created = false
+  -> same persisted REVIEW_INVITATION intent
+```
+
+No `P2002` leaks and no duplicate notification intent is created.
+
 Terminal invitations are not reissued.
 
 ## Candidate and Repair Boundary
@@ -103,6 +141,23 @@ Terminal invitations are not reissued.
 New automatic invitation creation remains bounded to recent checkout candidates so activation does
 not spam historical stays. Existing ACTIVE invitation repair is not limited by that catch-up window;
 it is bounded by the active invitation lifecycle and the scheduler batch cap.
+
+Accepted new-candidate boundary:
+
+```text
+new automatic invitation creation uses the accepted 7-day catch-up window
+the DB candidate query is bounded
+E.3 performs the exact temporal eligibility evaluation
+no historical unbounded backfill
+```
+
+Accepted repair boundary:
+
+```text
+repair is not limited by the 7-day creation catch-up
+repair is bounded by the ReviewInvitation 30-day lifetime
+repair candidates require ACTIVE and expiresAt > now
+```
 
 Independent-review hardening narrowed repair discovery so non-actionable rows do not spend the
 operational batch:
@@ -156,6 +211,7 @@ Terminal delivery behavior:
 relation/data-integrity mismatch
   -> SKIPPED EMAIL_REVIEW_INVITATION_RELATION_MISMATCH
   -> ReviewInvitation is not mutated
+  -> status unchanged
   -> no CANCELLED
   -> no EXPIRED
   -> encrypted token remains unchanged
@@ -185,6 +241,23 @@ missing/corrupt encrypted token
 
 Retryable provider failure leaves the ReviewInvitation ACTIVE, schedules the existing bounded email
 retry and reuses the same token/URL on retry.
+
+Retryable provider failure accepted contract:
+
+```text
+EmailNotification -> FAILED
+nextAttemptAt scheduled
+ReviewInvitation remains ACTIVE
+same ReviewInvitation
+same encrypted token
+same decrypted raw token
+same /resenas/{token} URL
+same EmailNotification idempotency key
+no token rotation
+no second invitation
+no second intent
+provider success does not consume invitation
+```
 
 `convergeDeliveryTerminalState()` mutates a ReviewInvitation only after the
 EmailNotification/ReviewInvitation/Reservation relation has already been validated as coherent.
@@ -245,6 +318,14 @@ is part of `cronJobSlugs` and the registry.
 
 No Production scheduler registration is introduced in E.4.
 
+Accepted scheduler registration:
+
+```text
+SCHEDULE_REVIEW_INVITATIONS
+slug: schedule-review-invitations
+schedule metadata: */30 * * * *
+```
+
 ## Shared-Test Staging Boundary
 
 No real shared-Test guest review invitation email was sent during E.4 validation.
@@ -256,6 +337,12 @@ real guest recipients:
 SCHEDULE_REVIEW_INVITATIONS
 +
 PROCESS_EMAIL_NOTIFICATIONS
+```
+
+Reason:
+
+```text
+/resenas/[token] is not implemented until E.5
 ```
 
 Fake-provider and local-safe validation remain allowed.
@@ -284,6 +371,13 @@ Phase 13
 ```
 
 Manual resend support for `REVIEW_INVITATION` was not added to the existing admin resend allow-list.
+The accepted E.4 state is:
+
+```text
+REVIEW_INVITATION manual resend: NOT SUPPORTED
+```
+
+Automatic provider retries are sufficient for E.4.
 
 ## Tests
 
@@ -323,7 +417,8 @@ cron registry, scheduled route, vercel.json empty crons, missing final-e:validat
 
 ## Validation Evidence
 
-Executed validation for this E.4 implementation:
+Accepted validation evidence for
+`e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1`:
 
 ```text
 npx tsx --tsconfig tests/final-e/tsconfig.json tests/final-e/run.ts
@@ -372,6 +467,9 @@ Sandbox-only validation caveats:
 git diff --check
 PASS.
 
+real shared-Test guest review emails
+NONE.
+
 ## Current Decision
 
 ```text
@@ -380,7 +478,7 @@ Final-E - In progress
 Final-E.1 - Completed and accepted on 2026-09-18 at e83ad8443bd533715058e701769b10c2d5505436
 Final-E.2 - Completed and accepted on 2026-09-18 at f77938c5606ed636b697dc1af41c111a22ba1593
 Final-E.3 - Completed and accepted on 2026-09-18 at c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030
-Final-E.4 - Implementation completed and validation executed; owner acceptance pending
+Final-E.4 - Completed and accepted on 2026-09-18 at e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1
 Final-E.5 - Next / Not started
 Final-E.6 - Not started
 Final-E.7 - Not started
