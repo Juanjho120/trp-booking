@@ -18,7 +18,7 @@ Current phase state: Phase 12 — Test Deployment & External Integration Validat
 Current numbered phase: none active
 Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
 Current package: Final-E — Reservation reviews and post-checkout invitation — In progress
-Current/next subphase: Final-E.2 — Review/invitation persistence foundation and migration — Next / Not started
+Current subphase: Final-E.2 — Review/invitation persistence foundation and migration — Implementation completed; owner acceptance pending
 Final-C implementation base head: e7ce19c49c5cfd45e1cc08796ee897a2dce0d1ed
 Final-C.1 status: Completed and accepted on 2026-08-25
 Final-C.1 accepted strategy head: 16d8b0411e573aaaa6b510ddb27a9b5d9c666478
@@ -108,8 +108,10 @@ Final-E.1 implementation base head: 2c9802b07ebf60e8953f32226962669eaf01cfc2
 Final-E.1 status: Completed and accepted on 2026-09-18 — Review/invitation strategy, eligibility and security contract
 Final-E.1 accepted strategy head: e83ad8443bd533715058e701769b10c2d5505436
 Final-E.1 record: docs/186-final-e-1-review-invitation-strategy-eligibility-and-security-contract.md
-Final-E.2 status: Next / Not started — Review/invitation persistence foundation and migration
-Final-E.3 status: Not started
+Final-E.2 implementation base head: 2e1b26850c55364db8450fafc2bb35c6d89a2c3b
+Final-E.2 status: Implementation completed; owner acceptance pending — Review/invitation persistence foundation and migration
+Final-E.2 record: docs/187-final-e-2-review-invitation-persistence-foundation-and-migration.md
+Final-E.3 status: Next / Not started — Eligibility and invitation/token lifecycle foundation
 Final-E.4 status: Not started
 Final-E.5 status: Not started
 Final-E.6 status: Not started
@@ -198,7 +200,7 @@ Phase 12.9 closure: docs/158-phase-12.9-acceptance-closure.md
 Phase 12.10 status: Completed and accepted on 2026-08-11 — Phase 12 validation and closure
 Phase 12.10 validated repository head: ebe28579872cbc2414573ef852b15139a2501551
 Phase 12 closure: docs/159-phase-12.10-phase-12-validation-and-closure.md
-Next work: Final-E.2 Review/invitation persistence foundation and migration — Next / Not started. Final-E.3 through Final-E.7 remain Not started. Phase 13 remains blocked until Final-H closes and the complete Final Improvement Track is explicitly accepted
+Next work: Final-E.3 Eligibility and invitation/token lifecycle foundation — Next / Not started. Final-E.2 implementation is completed with owner acceptance pending. Final-E.4 through Final-E.7 remain Not started. Phase 13 remains blocked until Final-H closes and the complete Final Improvement Track is explicitly accepted
 Next planned numbered phase: Phase 13 — Production Infrastructure, Deployment & Go-Live — Not started
 Pre-Phase-12 Improvement Track status: Completed and accepted — Packages A, B, C, E, and F accepted; Package D remains deferred outside the current gate
 Pre-Phase-12 Improvement Track registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
@@ -1261,7 +1263,7 @@ Phase 12 explicitly excludes company-owned production account provisioning, prod
 
 ## Inter-Phase Work — Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 
-Status: **Active — Final-A, Final-B, Final-C and Final-D are completed and accepted; Final-E is In progress with Final-E.1 accepted and Final-E.2 Next / Not started; Phase 13 remains Not started**
+Status: **Active — Final-A, Final-B, Final-C and Final-D are completed and accepted; Final-E is In progress with Final-E.1 accepted and Final-E.2 implementation completed with owner acceptance pending; Final-E.3 Next / Not started; Phase 13 remains Not started**
 
 Goal: Complete the final owner-approved feature, correctness, communication, pricing, and performance round before Production while preserving the accepted Test/Production ownership boundary.
 
@@ -1300,8 +1302,8 @@ Final-D Additional charges and guest payment requests — Completed and accepted
   Final-D permanent regression — npm run final-d:validate — 66/66 PASS
 Final-E Reservation reviews and post-checkout invitation — In progress
   Final-E.1 Review/invitation strategy, eligibility and security contract — Completed and accepted on 2026-09-18 at e83ad8443bd533715058e701769b10c2d5505436; record: docs/186-final-e-1-review-invitation-strategy-eligibility-and-security-contract.md
-  Final-E.2 Review/invitation persistence foundation and migration — Next / Not started
-  Final-E.3 Eligibility and invitation/token lifecycle foundation — Not started
+  Final-E.2 Review/invitation persistence foundation and migration — Implementation completed; owner acceptance pending; implementation base 2e1b26850c55364db8450fafc2bb35c6d89a2c3b; record: docs/187-final-e-2-review-invitation-persistence-foundation-and-migration.md
+  Final-E.3 Eligibility and invitation/token lifecycle foundation — Next / Not started
   Final-E.4 Review-invitation scheduling, cron integration and email delivery — Not started
   Final-E.5 Private guest review submission — Not started
   Final-E.6 Admin moderation and public published-review presentation — Not started

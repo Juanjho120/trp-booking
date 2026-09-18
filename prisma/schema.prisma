@@ -99,6 +99,7 @@ enum CronJobKey {
   EXPIRE_PENDING_RESERVATION_HOLDS
   PROCESS_EMAIL_NOTIFICATIONS
   SCHEDULE_ARRIVAL_INSTRUCTIONS
+  SCHEDULE_REVIEW_INVITATIONS
 
   @@map("cron_job_key")
 }
@@ -289,6 +290,23 @@ enum GuestPaymentRequestStatus {
   @@map("guest_payment_request_status")
 }
 
+enum ReviewInvitationStatus {
+  ACTIVE
+  CONSUMED
+  EXPIRED
+  CANCELLED
+
+  @@map("review_invitation_status")
+}
+
+enum ReviewModerationStatus {
+  PENDING
+  PUBLISHED
+  HIDDEN
+
+  @@map("review_moderation_status")
+}
+
 enum EmailNotificationType {
   RESERVATION_CONFIRMED
   PAYMENT_APPROVED
@@ -309,6 +327,7 @@ enum EmailNotificationType {
   ADMIN_ADDITIONAL_CHARGE_PAYMENT_APPROVED
   ADDITIONAL_CHARGE_REFUND_PROCESSED
   ADMIN_ADDITIONAL_CHARGE_REFUND_PROCESSED
+  REVIEW_INVITATION
   REFUND_PROCESSED
   ADMIN_REFUND_PROCESSED
   ARRIVAL_INSTRUCTIONS
@@ -355,6 +374,7 @@ model User {
   requestedRefunds            Refund[]                      @relation("RefundRequestedByAdmin")
   createdAdditionalCharges    AdditionalCharge[]            @relation("AdditionalChargeCreatedByAdmin")
   createdGuestPaymentRequests GuestPaymentRequest[]         @relation("GuestPaymentRequestCreatedByAdmin")
+  moderatedReviews            Review[]                      @relation("ReviewModeratedByAdmin")
   cronJobExecutions           CronJobExecution[]            @relation("CronJobExecutionAdminActor")
   auditLogs                   AdminAuditLog[]
 
@@ -411,6 +431,7 @@ model Property {
   lengthOfStayPricingRules LengthOfStayPricingRule[]
   arrivalInstructions      PropertyArrivalInstructions?
   lifecycleRequestHolds    LifecycleRequestHold[]
+  reviews                  Review[]
 
   @@index([status])
   @@index([deletedAt])
@@ -610,6 +631,8 @@ model Reservation {
   lifecycleRequests         ReservationLifecycleRequest[]
   additionalCharges         AdditionalCharge[]
   guestPaymentRequests      GuestPaymentRequest[]
+  reviewInvitation          ReviewInvitation?
+  review                    Review?
 
   @@index([propertyId, checkInDate, checkOutDate])
   @@index([status])
@@ -701,6 +724,54 @@ model GuestPaymentRequestItem {
   @@unique([paymentRequestId, additionalChargeId], map: "guest_payment_request_items_request_charge_key")
   @@index([additionalChargeId])
   @@map("guest_payment_request_items")
+}
+
+model ReviewInvitation {
+  id                   String                 @id @default(cuid())
+  reservationId        String                 @unique @map("reservation_id")
+  status               ReviewInvitationStatus @default(ACTIVE)
+  accessTokenHash      String                 @unique @map("access_token_hash") @db.VarChar(64)
+  accessTokenEncrypted String?                @map("access_token_encrypted") @db.Text
+  checkoutAtSnapshot   DateTime               @map("checkout_at_snapshot")
+  eligibleAt           DateTime               @map("eligible_at")
+  expiresAt            DateTime               @map("expires_at")
+  consumedAt           DateTime?              @map("consumed_at")
+  createdAt            DateTime               @default(now()) @map("created_at")
+  updatedAt            DateTime               @updatedAt @map("updated_at")
+
+  reservation        Reservation         @relation(fields: [reservationId], references: [id], onDelete: Restrict)
+  emailNotifications EmailNotification[]
+
+  @@index([status])
+  @@index([eligibleAt])
+  @@index([expiresAt])
+  @@map("review_invitations")
+}
+
+model Review {
+  id                 String                 @id @default(cuid())
+  reservationId      String                 @unique @map("reservation_id")
+  propertyId         String                 @map("property_id")
+  rating             Int
+  comment            String                 @db.Text
+  guestDisplayName   String                 @map("guest_display_name") @db.VarChar(120)
+  moderationStatus   ReviewModerationStatus @default(PENDING) @map("moderation_status")
+  submittedAt        DateTime               @default(now()) @map("submitted_at")
+  publishedAt        DateTime?              @map("published_at")
+  moderatedAt        DateTime?              @map("moderated_at")
+  moderatedByAdminId String?                @map("moderated_by_admin_id")
+  createdAt          DateTime               @default(now()) @map("created_at")
+  updatedAt          DateTime               @updatedAt @map("updated_at")
+
+  reservation      Reservation @relation(fields: [reservationId], references: [id], onDelete: Restrict)
+  property         Property    @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  moderatedByAdmin User?       @relation("ReviewModeratedByAdmin", fields: [moderatedByAdminId], references: [id], onDelete: SetNull)
+
+  @@index([propertyId])
+  @@index([moderationStatus])
+  @@index([submittedAt])
+  @@index([moderatedByAdminId])
+  @@map("reviews")
 }
 
 model Payment {
@@ -1111,6 +1182,7 @@ model EmailNotification {
   lifecycleRequestId             String?                 @map("lifecycle_request_id")
   refundId                       String?                 @map("refund_id")
   guestPaymentRequestId          String?                 @map("guest_payment_request_id")
+  reviewInvitationId             String?                 @map("review_invitation_id")
   type                           EmailNotificationType
   recipient                      String
   locale                         String
@@ -1139,6 +1211,7 @@ model EmailNotification {
   lifecycleRequest            ReservationLifecycleRequest? @relation(fields: [lifecycleRequestId], references: [id], onDelete: SetNull)
   refund                      Refund?                      @relation(fields: [refundId], references: [id], onDelete: SetNull)
   guestPaymentRequest         GuestPaymentRequest?         @relation(fields: [guestPaymentRequestId], references: [id], onDelete: SetNull)
+  reviewInvitation            ReviewInvitation?            @relation(fields: [reviewInvitationId], references: [id], onDelete: SetNull)
   parentNotification          EmailNotification?           @relation("EmailNotificationManualResends", fields: [parentNotificationId], references: [id], onDelete: SetNull)
   manualResends               EmailNotification[]          @relation("EmailNotificationManualResends")
   sourceNotification          EmailNotification?           @relation("EmailNotificationDeliveryStatuses", fields: [sourceNotificationId], references: [id], onDelete: SetNull)
@@ -1149,6 +1222,7 @@ model EmailNotification {
   @@index([lifecycleRequestId])
   @@index([refundId])
   @@index([guestPaymentRequestId])
+  @@index([reviewInvitationId])
   @@index([status, nextAttemptAt])
   @@index([type])
   @@index([origin])

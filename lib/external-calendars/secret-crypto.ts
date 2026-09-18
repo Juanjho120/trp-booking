@@ -17,6 +17,7 @@ export const externalCalendarSecretPurposes = [
   "AIRBNB_IMPORT",
   "TRP_EXPORT_TOKEN",
   "GUEST_PAYMENT_REQUEST",
+  "REVIEW_INVITATION",
 ] as const;
 
 export type ExternalCalendarSecretPurpose =
@@ -80,6 +81,13 @@ function getAdditionalAuthenticatedData(
   if (purpose === "GUEST_PAYMENT_REQUEST") {
     return Buffer.from(
       `trp-booking:guest-payment-request:${normalizedId}`,
+      "utf8",
+    );
+  }
+
+  if (purpose === "REVIEW_INVITATION") {
+    return Buffer.from(
+      `trp-booking:review-invitation:${normalizedId}`,
       "utf8",
     );
   }
