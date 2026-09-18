@@ -309,7 +309,7 @@ npm run final-a:validate — Passed: 44/44 outside the sandbox
 npm run final-b:validate — Passed: 38/38 outside the sandbox
 npm run final-c:validate — Passed: 41/41 outside the sandbox
 npm run db:generate — Passed; Prisma reported the existing package.json Prisma-config deprecation warning
-npm run db:validate — Passed; Prisma reported the schema is valid and showed the available major-version update notice
+npm run db:validate — Passed; Prisma reported the schema is valid
 npm run db:migrate:status — Initial sandbox attempt failed with a schema-engine error; rerun outside the sandbox passed and reported the Local/Test Supabase schema up to date with 19 migrations
 npm run lint — Passed
 npm run build — Initial sandbox attempt failed because Next could not fetch Google Fonts; rerun outside the sandbox passed and reported only the existing slow-filesystem warning
