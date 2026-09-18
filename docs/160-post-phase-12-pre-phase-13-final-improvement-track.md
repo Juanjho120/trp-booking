@@ -729,7 +729,7 @@ Final-E.1 — Review/invitation strategy, eligibility and security contract — 
 Final-E.1 implementation base head: 2c9802b07ebf60e8953f32226962669eaf01cfc2
 Final-E.1 accepted strategy head: e83ad8443bd533715058e701769b10c2d5505436
 Final-E.1 record: docs/186-final-e-1-review-invitation-strategy-eligibility-and-security-contract.md
-Final-E.2 — Review/invitation persistence foundation and migration — Implementation completed; owner acceptance pending
+Final-E.2 — Review/invitation persistence foundation and migration — Implementation completed and validation executed; owner acceptance pending
 Final-E.2 implementation base head: 2e1b26850c55364db8450fafc2bb35c6d89a2c3b
 Final-E.2 record: docs/187-final-e-2-review-invitation-persistence-foundation-and-migration.md
 Final-E.3 — Eligibility and invitation/token lifecycle foundation — Next / Not started
@@ -1364,7 +1364,7 @@ Phase 13 still owns:
 Phase 12 — Completed and accepted
 Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
 Current package — Final-E Reservation reviews and post-checkout invitation — In progress
-Current subphase — Final-E.2 Review/invitation persistence foundation and migration — Implementation completed; owner acceptance pending
+Current subphase — Final-E.2 Review/invitation persistence foundation and migration — Implementation completed and validation executed; owner acceptance pending
 Final-D implementation base — 0839b2935fdc2349d23de6ce6b38177504e514c6
 Final-D.1 status — Completed and accepted on 2026-08-31 at 3dc4fa7d81d65244a94e7e43726e2f12591e578f
 Final-D.1 record — docs/179-final-d-1-additional-charge-payment-request-strategy-and-financial-isolation-contract.md
@@ -1398,7 +1398,7 @@ Final-E.1 status — Completed and accepted on 2026-09-18
 Final-E.1 accepted strategy head — e83ad8443bd533715058e701769b10c2d5505436
 Final-E.1 record — docs/186-final-e-1-review-invitation-strategy-eligibility-and-security-contract.md
 Final-E.2 implementation base — 2e1b26850c55364db8450fafc2bb35c6d89a2c3b
-Final-E.2 status — Implementation completed; owner acceptance pending
+Final-E.2 status — Implementation completed and validation executed; owner acceptance pending
 Final-E.2 record — docs/187-final-e-2-review-invitation-persistence-foundation-and-migration.md
 Final-E.3 — Next / Not started
 Final-E.4 — Not started
@@ -1456,7 +1456,7 @@ Final-D.7 — Completed and accepted on 2026-09-18 at fd75663bb28be8a95b15c341ea
 Final-D permanent regression — npm run final-d:validate — 66/66 PASS
 Final-E — In progress
 Final-E.1 — Completed and accepted on 2026-09-18 at e83ad8443bd533715058e701769b10c2d5505436
-Final-E.2 — Implementation completed; owner acceptance pending
+Final-E.2 — Implementation completed and validation executed; owner acceptance pending
 Final-E.3 — Next / Not started
 Final-E.4 — Not started
 Final-E.5 — Not started

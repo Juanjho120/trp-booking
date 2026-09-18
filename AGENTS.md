@@ -29,7 +29,7 @@ This file defines the working rules for TRP Booking.
 - Permanent Final-D regression gate: `npm run final-d:validate` — 66/66 accepted.
 - Current package: Final-E — Reservation reviews and post-checkout invitation — In progress.
 - Last accepted subphase: Final-E.1 — Review/invitation strategy, eligibility and security contract — Completed and accepted on 2026-09-18 at `e83ad8443bd533715058e701769b10c2d5505436`.
-- Current subphase: Final-E.2 — Review/invitation persistence foundation and migration — Implementation completed; owner acceptance pending.
+- Current subphase: Final-E.2 — Review/invitation persistence foundation and migration — Implementation completed and validation executed; owner acceptance pending.
 - Final-D.4 implementation base: `6a0d909fc325f4e8925677041be34c77c023c42b`.
 - Final-D.4 accepted implementation head: `7d996fd20db42b2560df11f7e00d7a5e9cc0d18c`.
 - Final-D.4 implementation record: `docs/182-final-d-4-private-guest-payment-link-and-tilopay-collection.md`.
@@ -115,7 +115,7 @@ Rules:
 - Do not activate Production or Phase 13 work from a Final Improvement Track task.
 - A subphase may be declared completed only after implementation, required validation, documentation reconciliation, and owner acceptance are recorded.
 - If documentation and the accepted repository state disagree, stop advancement and reconcile the authoritative trackers before implementing the next subphase.
-- For the current handoff, Final-D.3 is accepted at `6a0d909fc325f4e8925677041be34c77c023c42b`; Final-D.4 is completed and accepted on 2026-09-14 at `7d996fd20db42b2560df11f7e00d7a5e9cc0d18c`; Final-D.5 is completed and accepted on 2026-09-17 at `06b3de23fbae23a77b58b432760abf12afd5a6c7`; Final-D.6 is completed and accepted on 2026-09-18 at `965045c697a9bfd0a3318db9396b15214a0cd066`; Final-D.7 and Final-D are completed and accepted on 2026-09-18 at `fd75663bb28be8a95b15c341eaa51f74e521241b`. Final-E is in progress; Final-E.1 is completed and accepted on 2026-09-18 at `e83ad8443bd533715058e701769b10c2d5505436`. Final-E.2 implementation is completed with owner acceptance pending, and Final-E.3 through Final-E.7 remain Not started until explicitly requested.
+- For the current handoff, Final-D.3 is accepted at `6a0d909fc325f4e8925677041be34c77c023c42b`; Final-D.4 is completed and accepted on 2026-09-14 at `7d996fd20db42b2560df11f7e00d7a5e9cc0d18c`; Final-D.5 is completed and accepted on 2026-09-17 at `06b3de23fbae23a77b58b432760abf12afd5a6c7`; Final-D.6 is completed and accepted on 2026-09-18 at `965045c697a9bfd0a3318db9396b15214a0cd066`; Final-D.7 and Final-D are completed and accepted on 2026-09-18 at `fd75663bb28be8a95b15c341eaa51f74e521241b`. Final-E is in progress; Final-E.1 is completed and accepted on 2026-09-18 at `e83ad8443bd533715058e701769b10c2d5505436`. Final-E.2 implementation is completed and validation executed with owner acceptance pending, and Final-E.3 through Final-E.7 remain Not started until explicitly requested.
 
 ## Implementation Completion Gate
 
@@ -176,7 +176,7 @@ Final-D.7 introduced the consolidated Final-D regression gate. For any future Fi
 
 ## Final-D Accepted Boundaries and Final-E Accepted Boundaries
 
-Before continuing Final-E.3 or later work, read the complete Final-D.1 contract, the accepted D.2/D.3/D.4/D.5/D.6/D.7 records, the accepted Final-E.1 record, and the current Final-E.2 implementation record. Do not reopen D.1-D.7, Final-E.1, or Final-E.2 unless new evidence or an explicit owner instruction requires it. Final-E.2 implementation is completed but not accepted until owner acceptance is recorded. Final-E.3 through Final-E.7 remain Not started until explicitly requested.
+Before continuing Final-E.3 or later work, read the complete Final-D.1 contract, the accepted D.2/D.3/D.4/D.5/D.6/D.7 records, the accepted Final-E.1 record, and the current Final-E.2 implementation record. Do not reopen D.1-D.7, Final-E.1, or Final-E.2 unless new evidence or an explicit owner instruction requires it. Final-E.2 implementation and validation are completed but not accepted until owner acceptance is recorded. Final-E.3 through Final-E.7 remain Not started until explicitly requested.
 
 At minimum, preserve these frozen boundaries:
 

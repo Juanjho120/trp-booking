@@ -7,13 +7,14 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-E - Reservation reviews and post-checkout invitation
 Subphase: Final-E.2 - Review/invitation persistence foundation and migration
-Status: Implementation completed; owner acceptance pending
+Status: Implementation completed and validation executed; owner acceptance pending
 Implementation date: 2026-09-18
 Implementation base head: 2e1b26850c55364db8450fafc2bb35c6d89a2c3b
 Accepted strategy: Final-E.1 at e83ad8443bd533715058e701769b10c2d5505436
 Authoritative contract: docs/186-final-e-1-review-invitation-strategy-eligibility-and-security-contract.md
-Migration: 20260918173000_final_e_2_review_invitation_persistence_foundation
-Migration count after E.2: 20
+Foundation migration: 20260918173000_final_e_2_review_invitation_persistence_foundation
+Corrective migration: 20260918183000_final_e_2_expand_review_guest_display_name
+Migration count after E.2 correction: 21
 Next subphase: Final-E.3 - Eligibility and invitation/token lifecycle foundation - Not started
 Final-E.4 through Final-E.7: Not started
 Final-F/G/H: Not started
@@ -72,7 +73,7 @@ reservationId UNIQUE
 propertyId
 rating
 comment
-guestDisplayName
+guestDisplayName VARCHAR(160)
 moderationStatus
 submittedAt
 publishedAt
@@ -124,7 +125,7 @@ EmailNotification relation:
   reviewInvitationId nullable FK uses ON DELETE SET NULL
 
 Migration count:
-  20
+  21
 
 Operational rows:
   review_invitations = 0
@@ -132,6 +133,21 @@ Operational rows:
   REVIEW_INVITATION email_notifications = 0
   SCHEDULE_REVIEW_INVITATIONS cron executions = 0
 ```
+
+## Independent Review Correction
+
+An independent review found that the applied foundation schema used `Review.guestDisplayName` as
+`VARCHAR(120)`. The accepted Final-E.1/E.2 contract requires `VARCHAR(160)`.
+
+The already-applied foundation migration
+`20260918173000_final_e_2_review_invitation_persistence_foundation` was not modified, rewritten,
+deleted or reapplied. Final-E.2 adds the follow-up corrective migration
+`20260918183000_final_e_2_expand_review_guest_display_name`, which expands only
+`reviews.guest_display_name` to `VARCHAR(160)`.
+
+No operational review data existed when the corrective migration was applied, and this correction
+does not introduce runtime activation, review invitation creation, review submission, email
+delivery, cron registration, admin moderation or public review presentation.
 
 ## Crypto Foundation
 
@@ -190,26 +206,23 @@ Executed validation:
 npm run db:format
 PASS - Prisma formatted prisma/schema.prisma.
 
-npm run db:validate
-PASS - Prisma schema is valid.
-
 npm run db:generate
 PASS - Prisma Client generated successfully.
 
+npm run db:validate
+PASS - Prisma schema is valid.
+
 npm run db:migrate:deploy
-PASS after network-enabled rerun - applied migration 20260918173000_final_e_2_review_invitation_persistence_foundation.
-Initial sandbox attempt failed with a Prisma Schema engine error before applying the migration.
+PASS - 21 migrations found; applied corrective migration 20260918183000_final_e_2_expand_review_guest_display_name.
 
 npm run db:migrate:status
-PASS after rerun - 20 migrations found; database schema is up to date.
-The first parallel status check ran before deploy completed and reported the new migration not yet applied.
+PASS - 21 migrations found; database schema is up to date.
 
 npx tsx --tsconfig tests/final-e/tsconfig.json tests/final-e/run.ts
-PASS after sandbox-independent rerun - Final-E targeted validation 3/3.
-Initial sandbox attempt failed before loading tests with Node/tsx uv_os_get_passwd ENOMEM.
+PASS - Final-E targeted validation 3/3.
 
 Database inspection
-PASS - tables, enums, FKs, indexes and check constraints present; no operational review/invitation/email/cron rows created.
+PASS - migration count is 21; reviews.guest_display_name is character varying(160); no operational review/invitation/email/cron rows created.
 
 npm run final-a:validate
 PASS - 44/44.
@@ -227,8 +240,7 @@ npm run lint
 PASS.
 
 npm run build
-PASS after network-enabled rerun.
-Initial sandbox attempt failed only because Next/Turbopack could not fetch Google Fonts for Inter and Geist Mono.
+PASS - network-enabled run completed successfully.
 
 git diff --check
 PASS.
@@ -243,7 +255,7 @@ Owner acceptance has not yet been recorded for Final-E.2.
 Until owner acceptance is explicitly recorded:
 
 ```text
-Final-E.2 remains implementation-complete but not accepted.
+Final-E.2 remains implementation-complete with validation executed, but not accepted.
 Final-E.3 is Next / Not started.
 Final-E.4 through Final-E.7 remain Not started.
 Final-F/G/H remain Not started.

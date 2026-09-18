@@ -754,7 +754,7 @@ model Review {
   propertyId         String                 @map("property_id")
   rating             Int
   comment            String                 @db.Text
-  guestDisplayName   String                 @map("guest_display_name") @db.VarChar(120)
+  guestDisplayName   String                 @map("guest_display_name") @db.VarChar(160)
   moderationStatus   ReviewModerationStatus @default(PENDING) @map("moderation_status")
   submittedAt        DateTime               @default(now()) @map("submitted_at")
   publishedAt        DateTime?              @map("published_at")
