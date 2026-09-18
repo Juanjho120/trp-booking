@@ -11,6 +11,7 @@ Implementation base head: 1f3f30f63c0198afa219df9feea4f415cbc1ccd2
 Latest continuation base head: c9baf3839de6bede20d74d614559cf7380b15039
 Latest review continuation base head: 14475269e52b913b4264f3053174318e0768a843
 Latest delayed-retry/human-label hardening base head: f19902aa3908a2e691eed8889ddb77f6a5c0f1d3
+Latest Email Delivery presentation follow-up base head: 43100468f0c2932594266f7af47d392f573913e5
 Previous accepted subphase: Final-D.5 — Completed and accepted on 2026-09-17 at 06b3de23fbae23a77b58b432760abf12afd5a6c7
 Next subphase: Final-D.7 — Integrated regression and documentation closure — Not started
 Phase 13: Not started
@@ -33,6 +34,8 @@ Final-D.6 implements the email delivery and protected operational UX/history lay
 - Corrected manual resend eligibility so overdue PENDING GuestPaymentRequest records are converged to EXPIRED before the rejecting resend transaction, preventing rollback from leaving stale payable-request state.
 - Corrected the D.6 ancillary email import graph so the Tilopay SDK-session payment runtime no longer depends on the admin additional-charge module or the email barrel during route module initialization.
 - Corrected Reservation Email Delivery read model so `ADDITIONAL_CHARGE_PAYMENT_REQUIRED` is no longer filtered out; ancillary guest types appear under Guests and `ADMIN_` ancillary types under Administration.
+- Corrected Reservation Email Delivery DTO relation context so ancillary notification rows expose safe `guestPaymentRequestId` and `refundId` identity to the protected admin page.
+- Extracted neutral Email Delivery grouping/type-label helpers and covered the six ancillary guest/admin types with exact ES/EN label and 3/3 grouping regressions.
 - Corrected stale admin pending-payment retry behavior so guest/admin pending notifications share the same payable-request eligibility, overdue convergence, request/item/payment/charge integrity checks and terminal-state suppression before provider delivery.
 - Added protected Additional Charges tab notification visibility and resend UX with safe status/origin/recipient/locale/attempt/timestamp/error-code fields only.
 - Extended operational history with safe GuestPaymentRequest relations for automatic intent, delivery attempts/results and manual resend activity.
@@ -208,6 +211,71 @@ Fix applied in this continuation:
 
 No migration was introduced for this follow-up.
 
+## Hosted Test Follow-Up After Email Delivery Presentation Review
+
+After `43100468f0c2932594266f7af47d392f573913e5`, owner Hosted Test validation confirmed the complete physical delivery path for one AdditionalCharge, one GuestPaymentRequest, one Tilopay Sandbox APPROVED ancillary payment and one APPROVED partial ancillary refund. The six physical messages were received and the email content was correct:
+
+```text
+- guest additional-charge payment-required email
+- admin additional-charge payment-required email
+- guest additional-charge payment-approved email
+- admin additional-charge payment-approved email
+- guest additional-charge refund-processed email
+- admin additional-charge refund-processed email
+```
+
+The same Hosted Test observed an Email Delivery presentation defect in Reservation detail:
+
+```text
+- Guests showed three rows, all titled "Payment received for additional charge".
+- Administration showed two rows, both titled "Payment received for additional charge for administration".
+- The expected groups were three guest rows and three admin rows:
+  ADDITIONAL_CHARGE_PAYMENT_REQUIRED
+  ADDITIONAL_CHARGE_PAYMENT_APPROVED
+  ADDITIONAL_CHARGE_REFUND_PROCESSED
+  ADMIN_ADDITIONAL_CHARGE_PAYMENT_REQUIRED
+  ADMIN_ADDITIONAL_CHARGE_PAYMENT_APPROVED
+  ADMIN_ADDITIONAL_CHARGE_REFUND_PROCESSED
+```
+
+Safe DB inspection of the latest Hosted Test GuestPaymentRequest showed Case A: persistence was correct, no token/private URL/ciphertext/provider payload was printed, and no manual data repair was required.
+
+```text
+GuestPaymentRequest.id: cmu70wb8e0007le04asl4mk0b
+Reservation.id: cmtd8b7ru0001je041jtn6ssk
+Payment.id: cmu70xo16000jle04wjf1im5i
+Payment.status: PARTIALLY_REFUNDED
+Refund.id: cmu710hkg0002l8040twutpp7
+Refund.status: APPROVED
+
+cmu70wc1a000dle04ing9jsmd | ADDITIONAL_CHARGE_PAYMENT_REQUIRED | AUTOMATIC | SENT | guestPaymentRequestId cmu70wb8e0007le04asl4mk0b | refundId null | parent null | dedup prefix additional-charge-payment-required | guest
+cmu70wc7r000fle04xo2cwl79 | ADMIN_ADDITIONAL_CHARGE_PAYMENT_REQUIRED | AUTOMATIC | SENT | guestPaymentRequestId cmu70wb8e0007le04asl4mk0b | refundId null | parent null | dedup prefix admin-additional-charge-payment-required | admin
+cmu70yhf5000rle048qhkbemi | ADDITIONAL_CHARGE_PAYMENT_APPROVED | AUTOMATIC | SENT | guestPaymentRequestId cmu70wb8e0007le04asl4mk0b | refundId null | parent null | dedup prefix additional-charge-payment-approved | guest
+cmu70yhlm000tle04linx804p | ADMIN_ADDITIONAL_CHARGE_PAYMENT_APPROVED | AUTOMATIC | SENT | guestPaymentRequestId cmu70wb8e0007le04asl4mk0b | refundId null | parent null | dedup prefix admin-additional-charge-payment-approved | admin
+cmu711j04000il804vgng0hry | ADDITIONAL_CHARGE_REFUND_PROCESSED | AUTOMATIC | SENT | guestPaymentRequestId cmu70wb8e0007le04asl4mk0b | refundId cmu710hkg0002l8040twutpp7 | parent null | dedup prefix additional-charge-refund-processed | guest
+cmu711j77000kl804xaahly9k | ADMIN_ADDITIONAL_CHARGE_REFUND_PROCESSED | AUTOMATIC | SENT | guestPaymentRequestId cmu70wb8e0007le04asl4mk0b | refundId cmu710hkg0002l8040twutpp7 | parent null | dedup prefix admin-additional-charge-refund-processed | admin
+```
+
+Root cause:
+
+```text
+The Hosted Test symptom was not caused by EmailNotification.type mutation, intent factories or deduplication-key corruption. The persisted rows had the six correct D.6 types and prefixes.
+
+The actionable code defect was in the protected Email Delivery read/presentation layer: the Reservation detail DTO omitted safe ancillary relation context (`guestPaymentRequestId`, `refundId`) and there was no integrated regression proving that the exact six ancillary types survived `getAdminReservationDetail()`, grouped 3/3 by `ADMIN_`, and resolved to the exact ES/EN labels used by the UI. That gap allowed the Hosted UI presentation anomaly to escape even though persistence and physical delivery were correct.
+```
+
+Fix applied in this continuation:
+
+```text
+- Added `guestPaymentRequestId` and `refundId` to the protected Reservation Email Delivery DTO.
+- Added a neutral `features/admin/email-notification-display.ts` helper for the same grouping and type-label resolution used by the UI.
+- Updated `AdminReservationDetailPage` to consume that helper instead of keeping untested inline grouping/label lookup.
+- Added a label/grouping regression for the six ancillary guest/admin notification types in EN and ES.
+- Added an integrated `getAdminReservationDetail()` regression proving the six ancillary rows remain distinct, preserve safe GuestPaymentRequest/refund relations, keep the expected deduplication prefixes and group as three guest plus three administration notifications.
+```
+
+No migration was introduced for this follow-up. No email templates or delivery content were changed.
+
 ## Validation Executed
 
 ```text
@@ -233,18 +301,18 @@ Schema migration introduced for D.6:
 
 The migration adds only enum values to `email_notification_type`; it adds no tables, columns or constraints.
 
-Latest validation executed after the payment-status snapshot and human-label follow-up:
+Latest validation executed after the Email Delivery presentation follow-up:
 
 ```text
-npx tsx --tsconfig tests/final-d/tsconfig.json tests/final-d/run.ts — Passed: 61/61, including admin ancillary refund Payment status as-of-target refund, localized ancillary email status/mode labels, raw enum absence checks, delayed refund retry A/B coverage, delayed payment-approved retry ES/EN admin coverage, and the stabilized active D.4 request fixture. The first sandbox attempt hit the known Windows tsx `uv_os_get_passwd` ENOMEM issue before startup; rerun outside the sandbox passed.
-npm run final-a:validate — Passed: 44/44
-npm run final-b:validate — Passed: 38/38
-npm run final-c:validate — Passed: 41/41
+npx tsx --tsconfig tests/final-d/tsconfig.json tests/final-d/run.ts — Passed: 63/63, including the six-type Email Delivery label/grouping regression and the integrated `getAdminReservationDetail()` read-model regression preserving safe `guestPaymentRequestId`/`refundId` relation context, deduplication prefixes and 3/3 guest/admin grouping. The first sandbox attempt hit the known Windows tsx `uv_os_get_passwd` ENOMEM issue before startup; rerun outside the sandbox passed.
+npm run final-a:validate — Passed: 44/44 outside the sandbox
+npm run final-b:validate — Passed: 38/38 outside the sandbox
+npm run final-c:validate — Passed: 41/41 outside the sandbox
 npm run db:generate — Passed; Prisma reported the existing package.json Prisma-config deprecation warning
 npm run db:validate — Passed; Prisma reported the schema is valid and showed the available major-version update notice
-npm run db:migrate:status — Passed; Local/Test Supabase schema reported up to date with 19 migrations
+npm run db:migrate:status — Initial sandbox attempt failed with a schema-engine error; rerun outside the sandbox passed and reported the Local/Test Supabase schema up to date with 19 migrations
 npm run lint — Passed
-npm run build — Passed; Next reported only the existing slow-filesystem warning
+npm run build — Initial sandbox attempt failed because Next could not fetch Google Fonts; rerun outside the sandbox passed and reported only the existing slow-filesystem warning
 git diff --check — Passed; only CRLF conversion warnings were reported
 ```
 

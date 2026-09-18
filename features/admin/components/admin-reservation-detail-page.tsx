@@ -44,6 +44,10 @@ import {
 } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocale } from "@/features/i18n";
+import {
+  getAdminReservationEmailNotificationTypeLabel,
+  groupAdminReservationEmailNotifications,
+} from "@/features/admin/email-notification-display";
 import type {
   AdminEmailNotificationResendErrorCode,
   AdminEmailNotificationResendResult,
@@ -135,18 +139,9 @@ export function AdminReservationDetailPage({
   const isBusy = busyNotificationId !== null;
   const paymentPagination = useAdminRecordPagination(reservation.payments);
   const emailNotificationGroups = useMemo(() => {
-    const guest: AdminReservationDetailEmailNotification[] = [];
-    const administration: AdminReservationDetailEmailNotification[] = [];
-
-    reservation.emailNotifications.forEach((notification) => {
-      if (notification.type.startsWith("ADMIN_")) {
-        administration.push(notification);
-      } else {
-        guest.push(notification);
-      }
-    });
-
-    return { administration, guest } as const;
+    return groupAdminReservationEmailNotifications(
+      reservation.emailNotifications,
+    );
   }, [reservation.emailNotifications]);
   const guestEmailPagination = useAdminRecordPagination(
     emailNotificationGroups.guest,
@@ -208,8 +203,9 @@ export function AdminReservationDetailPage({
   }
 
   function emailNotificationTypeLabel(type: string): string {
-    return (
-      notificationCopy.types[type as keyof typeof notificationCopy.types] ?? type
+    return getAdminReservationEmailNotificationTypeLabel(
+      notificationCopy.types,
+      type,
     );
   }
 

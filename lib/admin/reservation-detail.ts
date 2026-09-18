@@ -247,6 +247,8 @@ export async function getAdminReservationDetail(
           recipient: true,
           locale: true,
           origin: true,
+          guestPaymentRequestId: true,
+          refundId: true,
           parentNotificationId: true,
           manualResends: {
             take: 1,
@@ -342,6 +344,8 @@ export async function getAdminReservationDetail(
       recipient: notification.recipient,
       locale: notification.locale,
       origin: notification.origin,
+      guestPaymentRequestId: notification.guestPaymentRequestId,
+      refundId: notification.refundId,
       parentNotificationId: notification.parentNotificationId,
       hasManualResends: notification.manualResends.length > 0,
       requestedAt: notification.requestedAt?.toISOString() ?? null,

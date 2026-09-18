@@ -56,6 +56,8 @@ export type AdminReservationDetailEmailNotification = Readonly<{
   recipient: string;
   locale: string;
   origin: string;
+  guestPaymentRequestId: string | null;
+  refundId: string | null;
   parentNotificationId: string | null;
   hasManualResends: boolean;
   requestedAt: string | null;

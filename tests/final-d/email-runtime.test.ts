@@ -29,11 +29,17 @@ import {
 } from "@/lib/email/additional-charge-payment-notifications";
 import { processEmailNotifications } from "@/lib/email";
 import { createAdminGuestPaymentRequest } from "@/lib/admin/additional-charges";
+import { getAdminReservationDetail } from "@/lib/admin/reservation-detail";
 import {
   AdminEmailNotificationResendError,
   requestAdminEmailNotificationResend,
 } from "@/lib/admin/email-notification-resend";
 import { getAdminReservationOperationalHistory } from "@/lib/admin/reservation-operational-history";
+import {
+  getAdminReservationEmailNotificationTypeLabel,
+  groupAdminReservationEmailNotifications,
+} from "@/features/admin/email-notification-display";
+import { enMessages, esMessages } from "@/messages";
 import {
   createGuestPaymentRequestTokenMaterial,
   hashGuestPaymentRequestAccessToken,
@@ -161,11 +167,29 @@ type D6Store = {
     cancelledAt: Date | null;
     guestName: string;
     guestEmail: string;
+    guestPhone: string | null;
+    guestCountry: string | null;
+    arrivalTimeEstimate: string | null;
     preferredLocale: string;
+    checkInDate: Date;
+    checkOutDate: Date;
+    guestCount: number;
+    subtotal: Prisma.Decimal;
+    cleaningFee: Prisma.Decimal;
+    taxes: Prisma.Decimal;
+    discounts: Prisma.Decimal;
+    total: Prisma.Decimal;
     currency: string;
+    expiresAt: Date | null;
+    pricingSnapshot: Prisma.InputJsonValue | null;
     updatedAt: Date;
     createdAt: Date;
-    property: { nameEs: string; nameEn: string };
+    property: {
+      id: string;
+      nameEs: string;
+      nameEn: string;
+      checkInTime: string;
+    };
   };
   charges: Array<{
     id: string;
@@ -297,6 +321,15 @@ function cloneD6Store(store: D6Store): D6Store {
       ...store.reservation,
       confirmedAt: cloneDate(store.reservation.confirmedAt),
       cancelledAt: cloneDate(store.reservation.cancelledAt),
+      checkInDate: new Date(store.reservation.checkInDate.getTime()),
+      checkOutDate: new Date(store.reservation.checkOutDate.getTime()),
+      subtotal: money(store.reservation.subtotal.toFixed(2)),
+      cleaningFee: money(store.reservation.cleaningFee.toFixed(2)),
+      taxes: money(store.reservation.taxes.toFixed(2)),
+      discounts: money(store.reservation.discounts.toFixed(2)),
+      total: money(store.reservation.total.toFixed(2)),
+      expiresAt: cloneDate(store.reservation.expiresAt),
+      pricingSnapshot: cloneJson(store.reservation.pricingSnapshot),
       updatedAt: new Date(store.reservation.updatedAt.getTime()),
       createdAt: new Date(store.reservation.createdAt.getTime()),
       property: { ...store.reservation.property },
@@ -470,13 +503,28 @@ function d6Store(): D6Store {
       cancelledAt: null,
       guestName: "Final D6 Guest",
       guestEmail: "guest.final-d6@juantzun.dev",
+      guestPhone: "+50255550101",
+      guestCountry: "GT",
+      arrivalTimeEstimate: null,
       preferredLocale: "es",
+      checkInDate: new Date("2026-10-01T00:00:00.000Z"),
+      checkOutDate: new Date("2026-10-04T00:00:00.000Z"),
+      guestCount: 2,
+      subtotal: money("360.00"),
+      cleaningFee: money("30.00"),
+      taxes: money("0.00"),
+      discounts: money("0.00"),
+      total: money("390.00"),
       currency: "USD",
+      expiresAt: null,
+      pricingSnapshot: null,
       updatedAt: new Date("2026-09-17T10:00:00.000Z"),
       createdAt: new Date("2026-09-01T10:00:00.000Z"),
       property: {
+        id: "property-final-d6",
         nameEs: "Bungalow Lago",
         nameEn: "Lake Bungalow",
+        checkInTime: "15:00",
       },
     },
     charges: [
@@ -767,8 +815,67 @@ function installD6Prisma(store: D6Store): void {
       },
     },
     reservation: {
-      async findUnique() {
-        return store.reservation;
+      async findUnique(args?: { where?: { id?: string } }) {
+        if (args?.where?.id && args.where.id !== store.reservation.id) {
+          return null;
+        }
+
+        const payments = store.payments
+          .map((payment) => ({
+            id: payment.id,
+            reservationId: store.reservation.id,
+            lifecycleRequestId: null,
+            guestPaymentRequestId: payment.guestPaymentRequestId,
+            provider: "TILOPAY",
+            purpose: payment.purpose,
+            providerTransactionId: null,
+            providerReference: payment.providerReference,
+            status: payment.status,
+            amount: payment.amount,
+            currency: payment.currency,
+            paidAt: payment.paidAt,
+            failedAt: null,
+            rawPayload: null,
+            createdAt: payment.createdAt,
+            updatedAt: payment.updatedAt,
+          }))
+          .sort((first, second) => {
+            const createdOrder =
+              second.createdAt.getTime() - first.createdAt.getTime();
+            return createdOrder !== 0
+              ? createdOrder
+              : second.id.localeCompare(first.id);
+          });
+        const emailNotifications = store.notifications
+          .filter(
+            (notification) =>
+              notification.reservationId === store.reservation.id,
+          )
+          .map((notification) => ({
+            ...notification,
+            manualResends: store.notifications
+              .filter((child) => child.parentNotificationId === notification.id)
+              .slice(0, 1)
+              .map((child) => ({ id: child.id })),
+            requestedByAdmin: notification.requestedByAdminId
+              ? store.users.find(
+                  (user) => user.id === notification.requestedByAdminId,
+                ) ?? null
+              : null,
+          }))
+          .sort((first, second) => {
+            const createdOrder =
+              second.createdAt.getTime() - first.createdAt.getTime();
+            return createdOrder !== 0
+              ? createdOrder
+              : second.id.localeCompare(first.id);
+          });
+
+        return {
+          ...store.reservation,
+          payments,
+          emailNotifications,
+        };
       },
       async updateMany() {
         return { count: 1 };
@@ -1296,6 +1403,114 @@ function joinedPayloadContent(
     .join("\n");
 }
 
+const D6_GUEST_EMAIL_TYPES = [
+  EmailNotificationType.ADDITIONAL_CHARGE_PAYMENT_REQUIRED,
+  EmailNotificationType.ADDITIONAL_CHARGE_PAYMENT_APPROVED,
+  EmailNotificationType.ADDITIONAL_CHARGE_REFUND_PROCESSED,
+] as const;
+const D6_ADMIN_EMAIL_TYPES = [
+  EmailNotificationType.ADMIN_ADDITIONAL_CHARGE_PAYMENT_REQUIRED,
+  EmailNotificationType.ADMIN_ADDITIONAL_CHARGE_PAYMENT_APPROVED,
+  EmailNotificationType.ADMIN_ADDITIONAL_CHARGE_REFUND_PROCESSED,
+] as const;
+
+function orderD6EmailTypes(
+  observedTypes: readonly string[],
+  expectedTypes: readonly EmailNotificationType[],
+): string[] {
+  return expectedTypes.filter((type) => observedTypes.includes(type));
+}
+
+function seedD6EmailDeliveryReadModelNotifications(store: D6Store): void {
+  const refundId = "refund-final-d6-read-model";
+  const rows = [
+    {
+      id: "notification-d6-required-guest",
+      type: EmailNotificationType.ADDITIONAL_CHARGE_PAYMENT_REQUIRED,
+      recipient: "guest.final-d6@juantzun.dev",
+      refundId: null,
+      deduplicationPrefix: "additional-charge-payment-required",
+      createdAt: new Date("2026-09-17T12:00:00.000Z"),
+    },
+    {
+      id: "notification-d6-required-admin",
+      type: EmailNotificationType.ADMIN_ADDITIONAL_CHARGE_PAYMENT_REQUIRED,
+      recipient: "admin@juantzun.dev",
+      refundId: null,
+      deduplicationPrefix: "admin-additional-charge-payment-required",
+      createdAt: new Date("2026-09-17T12:00:01.000Z"),
+    },
+    {
+      id: "notification-d6-approved-guest",
+      type: EmailNotificationType.ADDITIONAL_CHARGE_PAYMENT_APPROVED,
+      recipient: "guest.final-d6@juantzun.dev",
+      refundId: null,
+      deduplicationPrefix: "additional-charge-payment-approved",
+      createdAt: new Date("2026-09-17T12:01:00.000Z"),
+    },
+    {
+      id: "notification-d6-approved-admin",
+      type: EmailNotificationType.ADMIN_ADDITIONAL_CHARGE_PAYMENT_APPROVED,
+      recipient: "admin@juantzun.dev",
+      refundId: null,
+      deduplicationPrefix: "admin-additional-charge-payment-approved",
+      createdAt: new Date("2026-09-17T12:01:01.000Z"),
+    },
+    {
+      id: "notification-d6-refund-guest",
+      type: EmailNotificationType.ADDITIONAL_CHARGE_REFUND_PROCESSED,
+      recipient: "guest.final-d6@juantzun.dev",
+      refundId,
+      deduplicationPrefix: "additional-charge-refund-processed",
+      createdAt: new Date("2026-09-17T12:02:00.000Z"),
+    },
+    {
+      id: "notification-d6-refund-admin",
+      type: EmailNotificationType.ADMIN_ADDITIONAL_CHARGE_REFUND_PROCESSED,
+      recipient: "admin@juantzun.dev",
+      refundId,
+      deduplicationPrefix: "admin-additional-charge-refund-processed",
+      createdAt: new Date("2026-09-17T12:02:01.000Z"),
+    },
+  ] satisfies Array<{
+    id: string;
+    type: EmailNotificationType;
+    recipient: string;
+    refundId: string | null;
+    deduplicationPrefix: string;
+    createdAt: Date;
+  }>;
+
+  rows.forEach((row) => {
+    store.notifications.push({
+      id: row.id,
+      reservationId: D6_RESERVATION_ID,
+      guestPaymentRequestId: D6_REQUEST_ID,
+      lifecycleRequestId: null,
+      refundId: row.refundId,
+      type: row.type,
+      recipient: row.recipient,
+      locale: "es",
+      deduplicationKey: `${row.deduplicationPrefix}/${D6_REQUEST_ID}/${row.recipient}`,
+      origin: EmailNotificationOrigin.AUTOMATIC,
+      parentNotificationId: null,
+      requestedByAdminId: null,
+      requestedAt: null,
+      status: EmailNotificationStatus.SENT,
+      attemptCount: 1,
+      lastAttemptAt: row.createdAt,
+      nextAttemptAt: null,
+      processingStartedAt: null,
+      providerMessageId: `msg-${row.id}`,
+      sentAt: row.createdAt,
+      errorCode: null,
+      errorMessage: null,
+      createdAt: row.createdAt,
+      updatedAt: row.createdAt,
+    });
+  });
+}
+
 test("D.6 behavior renders localized additional-charge payment emails without internal fields", async () => {
   const restoreEnv = preserveD6Env();
   try {
@@ -1541,6 +1756,117 @@ test("D.6 behavior renders ancillary admin, approval, and refund templates with 
   } finally {
     restoreEnv();
   }
+});
+
+test("D.6 behavior resolves Email Delivery ancillary labels and groups exactly", () => {
+  const notifications = [
+    ...D6_GUEST_EMAIL_TYPES.map((type, index) => ({
+      id: `guest-${index}`,
+      type,
+    })),
+    ...D6_ADMIN_EMAIL_TYPES.map((type, index) => ({
+      id: `admin-${index}`,
+      type,
+    })),
+  ];
+  const grouped = groupAdminReservationEmailNotifications(notifications);
+  const enLabels = enMessages.admin.reservationsPage.notifications.types;
+  const esLabels = esMessages.admin.reservationsPage.notifications.types;
+
+  assert.deepEqual(
+    grouped.guest.map((notification) => notification.type),
+    D6_GUEST_EMAIL_TYPES,
+  );
+  assert.deepEqual(
+    grouped.administration.map((notification) => notification.type),
+    D6_ADMIN_EMAIL_TYPES,
+  );
+  assert.equal(grouped.guest.length, 3);
+  assert.equal(grouped.administration.length, 3);
+  assert.equal(
+    getAdminReservationEmailNotificationTypeLabel(
+      enLabels,
+      EmailNotificationType.ADDITIONAL_CHARGE_PAYMENT_REQUIRED,
+    ),
+    "Payment required for additional charge",
+  );
+  assert.equal(
+    getAdminReservationEmailNotificationTypeLabel(
+      enLabels,
+      EmailNotificationType.ADMIN_ADDITIONAL_CHARGE_PAYMENT_REQUIRED,
+    ),
+    "Payment required for additional charge for administration",
+  );
+  assert.equal(
+    getAdminReservationEmailNotificationTypeLabel(
+      enLabels,
+      EmailNotificationType.ADDITIONAL_CHARGE_PAYMENT_APPROVED,
+    ),
+    "Payment received for additional charge",
+  );
+  assert.equal(
+    getAdminReservationEmailNotificationTypeLabel(
+      enLabels,
+      EmailNotificationType.ADMIN_ADDITIONAL_CHARGE_PAYMENT_APPROVED,
+    ),
+    "Payment received for additional charge for administration",
+  );
+  assert.equal(
+    getAdminReservationEmailNotificationTypeLabel(
+      enLabels,
+      EmailNotificationType.ADDITIONAL_CHARGE_REFUND_PROCESSED,
+    ),
+    "Refund processed for additional charge",
+  );
+  assert.equal(
+    getAdminReservationEmailNotificationTypeLabel(
+      enLabels,
+      EmailNotificationType.ADMIN_ADDITIONAL_CHARGE_REFUND_PROCESSED,
+    ),
+    "Refund processed for additional charge for administration",
+  );
+  assert.equal(
+    getAdminReservationEmailNotificationTypeLabel(
+      esLabels,
+      EmailNotificationType.ADDITIONAL_CHARGE_PAYMENT_REQUIRED,
+    ),
+    "Pago requerido por cargo adicional",
+  );
+  assert.equal(
+    getAdminReservationEmailNotificationTypeLabel(
+      esLabels,
+      EmailNotificationType.ADMIN_ADDITIONAL_CHARGE_PAYMENT_REQUIRED,
+    ),
+    "Pago requerido por cargo adicional para administraci\u00f3n",
+  );
+  assert.equal(
+    getAdminReservationEmailNotificationTypeLabel(
+      esLabels,
+      EmailNotificationType.ADDITIONAL_CHARGE_PAYMENT_APPROVED,
+    ),
+    "Pago recibido por cargo adicional",
+  );
+  assert.equal(
+    getAdminReservationEmailNotificationTypeLabel(
+      esLabels,
+      EmailNotificationType.ADMIN_ADDITIONAL_CHARGE_PAYMENT_APPROVED,
+    ),
+    "Pago recibido por cargo adicional para administraci\u00f3n",
+  );
+  assert.equal(
+    getAdminReservationEmailNotificationTypeLabel(
+      esLabels,
+      EmailNotificationType.ADDITIONAL_CHARGE_REFUND_PROCESSED,
+    ),
+    "Reembolso procesado por cargo adicional",
+  );
+  assert.equal(
+    getAdminReservationEmailNotificationTypeLabel(
+      esLabels,
+      EmailNotificationType.ADMIN_ADDITIONAL_CHARGE_REFUND_PROCESSED,
+    ),
+    "Reembolso procesado por cargo adicional para administraci\u00f3n",
+  );
 });
 
 test("D.6 behavior creates the automatic email intent with the guest payment request and preserves idempotency", async () => {
@@ -2524,6 +2850,92 @@ test("D.6 behavior rejects manual resend for terminal guest payment request stat
     } finally {
       restoreEnv();
     }
+  }
+});
+
+test("D.6 behavior exposes the Email Delivery read model with six distinct ancillary notification types", async () => {
+  const restoreEnv = preserveD6Env();
+  enableD6EmailEnv();
+  const store = d6Store();
+  seedD6PaymentRequest(store, {
+    status: GuestPaymentRequestStatus.PAID,
+  });
+  seedD6EmailDeliveryReadModelNotifications(store);
+  installD6Prisma(store);
+
+  try {
+    const detail = await getAdminReservationDetail(D6_RESERVATION_ID);
+
+    assert.ok(detail);
+    const notifications = detail.emailNotifications.filter(
+      (notification) =>
+        notification.guestPaymentRequestId === D6_REQUEST_ID,
+    );
+    const grouped = groupAdminReservationEmailNotifications(notifications);
+
+    assert.equal(notifications.length, 6);
+    assert.equal(grouped.guest.length, 3);
+    assert.equal(grouped.administration.length, 3);
+    assert.deepEqual(
+      orderD6EmailTypes(
+        grouped.guest.map((notification) => notification.type),
+        D6_GUEST_EMAIL_TYPES,
+      ),
+      D6_GUEST_EMAIL_TYPES,
+    );
+    assert.deepEqual(
+      orderD6EmailTypes(
+        grouped.administration.map((notification) => notification.type),
+        D6_ADMIN_EMAIL_TYPES,
+      ),
+      D6_ADMIN_EMAIL_TYPES,
+    );
+    assert.deepEqual(
+      store.notifications.map((notification) =>
+        notification.deduplicationKey.split("/")[0],
+      ),
+      [
+        "additional-charge-payment-required",
+        "admin-additional-charge-payment-required",
+        "additional-charge-payment-approved",
+        "admin-additional-charge-payment-approved",
+        "additional-charge-refund-processed",
+        "admin-additional-charge-refund-processed",
+      ],
+    );
+    assert.deepEqual(
+      orderD6EmailTypes(
+        notifications
+          .filter(
+            (notification) =>
+              notification.refundId === "refund-final-d6-read-model",
+          )
+          .map((notification) => notification.type),
+        [
+          EmailNotificationType.ADDITIONAL_CHARGE_REFUND_PROCESSED,
+          EmailNotificationType.ADMIN_ADDITIONAL_CHARGE_REFUND_PROCESSED,
+        ],
+      ),
+      [
+        EmailNotificationType.ADDITIONAL_CHARGE_REFUND_PROCESSED,
+        EmailNotificationType.ADMIN_ADDITIONAL_CHARGE_REFUND_PROCESSED,
+      ],
+    );
+    assert.equal(
+      notifications
+        .filter(
+          (notification) =>
+            notification.type !==
+              EmailNotificationType.ADDITIONAL_CHARGE_REFUND_PROCESSED &&
+            notification.type !==
+              EmailNotificationType.ADMIN_ADDITIONAL_CHARGE_REFUND_PROCESSED,
+        )
+        .every((notification) => notification.refundId === null),
+      true,
+    );
+    assertNoRawToken(detail);
+  } finally {
+    restoreEnv();
   }
 });
 
