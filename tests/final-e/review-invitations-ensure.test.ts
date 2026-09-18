@@ -21,6 +21,8 @@ const tokenMaterial: ReviewInvitationTokenMaterial = {
   tokenHash: hashReviewInvitationAccessToken(rawToken),
   encryptedToken: "encrypted-review-token-without-raw-value",
 };
+const winningRawToken = "0123456789abcdef".repeat(4);
+const winningTokenHash = hashReviewInvitationAccessToken(winningRawToken);
 const now = new Date("2026-09-18T19:00:00.000Z");
 const checkoutAtSnapshot = new Date("2026-09-18T17:00:00.000Z");
 const eligibleAt = new Date("2026-09-18T19:00:00.000Z");
@@ -58,12 +60,16 @@ function buildReservation(
 }
 
 function containsRawToken(value: unknown): boolean {
-  if (value === rawToken) {
+  return containsToken(value, rawToken);
+}
+
+function containsToken(value: unknown, token: string): boolean {
+  if (value === token) {
     return true;
   }
 
   if (typeof value === "string") {
-    return value.includes(rawToken);
+    return value.includes(token);
   }
 
   if (value instanceof Date || value === null || value === undefined) {
@@ -71,20 +77,68 @@ function containsRawToken(value: unknown): boolean {
   }
 
   if (Array.isArray(value)) {
-    return value.some((entry) => containsRawToken(entry));
+    return value.some((entry) => containsToken(entry, token));
   }
 
   if (typeof value === "object") {
-    return Object.values(value).some((entry) => containsRawToken(entry));
+    return Object.values(value).some((entry) => containsToken(entry, token));
   }
 
   return false;
 }
 
-function createEnsureTx(initialReservation: FakeReservation) {
+type FakeCreateManyData = Omit<
+  ReviewInvitationLifecycleRecord,
+  "id" | "updatedAt"
+>;
+
+type CreateEnsureTxOptions = Readonly<{
+  createRaceWinner?: ReviewInvitationLifecycleRecord;
+}>;
+
+function buildInvitationFromCreateManyData(
+  data: FakeCreateManyData,
+  id: string,
+): ReviewInvitationLifecycleRecord {
+  return {
+    id,
+    reservationId: data.reservationId,
+    status: data.status,
+    accessTokenHash: data.accessTokenHash,
+    accessTokenEncrypted: data.accessTokenEncrypted,
+    checkoutAtSnapshot: data.checkoutAtSnapshot,
+    eligibleAt: data.eligibleAt,
+    expiresAt: data.expiresAt,
+    consumedAt: data.consumedAt,
+    createdAt: data.createdAt,
+    updatedAt: data.createdAt,
+  };
+}
+
+function buildWinningInvitation(): ReviewInvitationLifecycleRecord {
+  return {
+    id: "review-invitation-winning-race",
+    reservationId: "reservation-review-ensure",
+    status: ReviewInvitationStatus.ACTIVE,
+    accessTokenHash: winningTokenHash,
+    accessTokenEncrypted: "encrypted-winning-review-token",
+    checkoutAtSnapshot,
+    eligibleAt,
+    expiresAt,
+    consumedAt: null,
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
+function createEnsureTx(
+  initialReservation: FakeReservation,
+  options: CreateEnsureTxOptions = {},
+) {
   let reservation = initialReservation;
   const createdInvitations: ReviewInvitationLifecycleRecord[] = [];
   const createWrites: unknown[] = [];
+  let createManyCalls = 0;
 
   const tx = {
     reservation: {
@@ -97,27 +151,31 @@ function createEnsureTx(initialReservation: FakeReservation) {
       },
     },
     reviewInvitation: {
-      async create(args: {
-        data: Omit<
-          ReviewInvitationLifecycleRecord,
-          "id" | "updatedAt"
-        >;
+      async createMany(args: {
+        data: FakeCreateManyData;
+        skipDuplicates: boolean;
       }) {
         createWrites.push(args.data);
+        createManyCalls += 1;
 
-        const invitation: ReviewInvitationLifecycleRecord = {
-          id: `review-invitation-${createdInvitations.length + 1}`,
-          reservationId: args.data.reservationId,
-          status: args.data.status,
-          accessTokenHash: args.data.accessTokenHash,
-          accessTokenEncrypted: args.data.accessTokenEncrypted,
-          checkoutAtSnapshot: args.data.checkoutAtSnapshot,
-          eligibleAt: args.data.eligibleAt,
-          expiresAt: args.data.expiresAt,
-          consumedAt: args.data.consumedAt,
-          createdAt: args.data.createdAt,
-          updatedAt: args.data.createdAt,
-        };
+        if (options.createRaceWinner && createManyCalls === 1) {
+          reservation = {
+            ...reservation,
+            reviewInvitation: options.createRaceWinner,
+          };
+          createdInvitations.push(options.createRaceWinner);
+
+          return { count: 0 };
+        }
+
+        if (reservation.reviewInvitation) {
+          return { count: 0 };
+        }
+
+        const invitation = buildInvitationFromCreateManyData(
+          args.data,
+          `review-invitation-${createdInvitations.length + 1}`,
+        );
 
         createdInvitations.push(invitation);
         reservation = {
@@ -125,7 +183,14 @@ function createEnsureTx(initialReservation: FakeReservation) {
           reviewInvitation: invitation,
         };
 
-        return invitation;
+        return { count: 1 };
+      },
+      async findUnique(args: { where: { reservationId: string } }) {
+        if (args.where.reservationId !== reservation.id) {
+          return null;
+        }
+
+        return reservation.reviewInvitation;
       },
     },
   };
@@ -137,6 +202,9 @@ function createEnsureTx(initialReservation: FakeReservation) {
     },
     createdInvitations,
     createWrites,
+    get createManyCalls() {
+      return createManyCalls;
+    },
   };
 }
 
@@ -209,6 +277,37 @@ test("E.3 ensure replay returns the same invitation without token rotation", asy
     );
     assert.equal(second.effectiveStatus, ReviewInvitationStatus.ACTIVE);
   }
+});
+
+test("E.3 ensure converges when another transaction wins the creation race", async () => {
+  const fake = createEnsureTx(buildReservation(), {
+    createRaceWinner: buildWinningInvitation(),
+  });
+  const result = await ensureReviewInvitationInTransaction(
+    fake.tx,
+    "reservation-review-ensure",
+    {
+      now,
+      tokenMaterialFactory: () => tokenMaterial,
+    },
+  );
+
+  assert.equal(result.outcome, "existing");
+  assert.equal(fake.createManyCalls, 1);
+  assert.equal(fake.createWrites.length, 1);
+  assert.equal(fake.createdInvitations.length, 1);
+
+  if (result.outcome !== "existing") {
+    throw new Error("Expected review invitation race convergence.");
+  }
+
+  assert.equal(result.invitation.id, "review-invitation-winning-race");
+  assert.equal(result.invitation.accessTokenHash, winningTokenHash);
+  assert.notEqual(result.invitation.accessTokenHash, tokenMaterial.tokenHash);
+  assert.equal(result.effectiveStatus, ReviewInvitationStatus.ACTIVE);
+  assert.equal("tokenMaterial" in result, false);
+  assert.equal(containsToken(result, rawToken), false);
+  assert.equal(containsToken(fake.createdInvitations, rawToken), false);
 });
 
 test("E.3 ensure does not create an invitation when a Review already exists", async () => {

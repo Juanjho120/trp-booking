@@ -113,6 +113,8 @@ const reviewInvitationSelect = {
   updatedAt: true,
 } satisfies Prisma.ReviewInvitationSelect;
 
+const REVIEW_INVITATION_CREATE_RETRY_LIMIT = 3;
+
 function mapNotEligibleOutcome(
   eligibility: Extract<
     ReviewInvitationSchedulerEligibilityResult,
@@ -158,6 +160,16 @@ export function getReviewInvitationEffectiveStatus(
   }
 
   return invitation.status;
+}
+
+async function findReviewInvitationByReservationId(
+  tx: Prisma.TransactionClient,
+  reservationId: string,
+): Promise<ReviewInvitationLifecycleRecord | null> {
+  return (await tx.reviewInvitation.findUnique({
+    where: { reservationId },
+    select: reviewInvitationSelect,
+  })) as ReviewInvitationLifecycleRecord | null;
 }
 
 export async function ensureReviewInvitationInTransaction(
@@ -230,29 +242,59 @@ export async function ensureReviewInvitationInTransaction(
     return mapNotEligibleOutcome(eligibility);
   }
 
-  const tokenMaterial = tokenMaterialFactory(reservation.id);
-  const expiresAt = addReviewInvitationLifetime(now);
-  const invitation = (await tx.reviewInvitation.create({
-    data: {
-      reservationId: reservation.id,
-      status: ReviewInvitationStatus.ACTIVE,
-      accessTokenHash: tokenMaterial.tokenHash,
-      accessTokenEncrypted: tokenMaterial.encryptedToken,
-      checkoutAtSnapshot: eligibility.checkoutAt,
-      eligibleAt: eligibility.eligibleAt,
-      expiresAt,
-      consumedAt: null,
-      createdAt: now,
-    },
-    select: reviewInvitationSelect,
-  })) as ReviewInvitationLifecycleRecord;
+  for (let attempt = 0; attempt < REVIEW_INVITATION_CREATE_RETRY_LIMIT; attempt += 1) {
+    const tokenMaterial = tokenMaterialFactory(reservation.id);
+    const expiresAt = addReviewInvitationLifetime(now);
+    const createResult = await tx.reviewInvitation.createMany({
+      data: {
+        reservationId: reservation.id,
+        status: ReviewInvitationStatus.ACTIVE,
+        accessTokenHash: tokenMaterial.tokenHash,
+        accessTokenEncrypted: tokenMaterial.encryptedToken,
+        checkoutAtSnapshot: eligibility.checkoutAt,
+        eligibleAt: eligibility.eligibleAt,
+        expiresAt,
+        consumedAt: null,
+        createdAt: now,
+      },
+      skipDuplicates: true,
+    });
 
-  return {
-    outcome: "created",
-    invitation,
-    tokenMaterial,
-    eligibility,
-  };
+    const persistedInvitation = await findReviewInvitationByReservationId(
+      tx,
+      reservation.id,
+    );
+
+    if (createResult.count === 1) {
+      if (!persistedInvitation) {
+        throw new Error("REVIEW_INVITATION_CREATE_NOT_FOUND");
+      }
+
+      if (persistedInvitation.accessTokenHash !== tokenMaterial.tokenHash) {
+        throw new Error("REVIEW_INVITATION_CREATE_MISMATCH");
+      }
+
+      return {
+        outcome: "created",
+        invitation: persistedInvitation,
+        tokenMaterial,
+        eligibility,
+      };
+    }
+
+    if (persistedInvitation) {
+      return {
+        outcome: "existing",
+        invitation: persistedInvitation,
+        effectiveStatus: getReviewInvitationEffectiveStatus(
+          persistedInvitation,
+          now,
+        ),
+      };
+    }
+  }
+
+  throw new Error("REVIEW_INVITATION_CREATE_CONFLICT");
 }
 
 export async function expireReviewInvitationIfOverdueInTransaction(

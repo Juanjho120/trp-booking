@@ -188,6 +188,17 @@ Review rows prevent new invitation creation. Raw token material is returned only
 invitation is created so the future E.4 transaction can compose an email intent without a second
 lookup; it is never persisted.
 
+The ensure primitive was hardened after independent review to converge safely when two concurrent
+transactions both observe no existing invitation. It now uses an insert-with-skip-duplicates pattern
+inside the caller-owned transaction and then resolves the persisted lifecycle by `reservationId`.
+This preserves sequential replay idempotency and makes a concurrent creation race return
+`outcome = existing` with the winning persisted invitation. Locally generated token material from
+the losing attempt is discarded and not returned, no second ReviewInvitation lifecycle is created,
+the persisted invitation token is not rotated, and raw Prisma uniqueness conflicts do not leak.
+If an insert is skipped because of the practically impossible `accessTokenHash` collision for a
+different Reservation, the helper retries with new token material and never treats that hash
+collision as an existing invitation for the requested Reservation.
+
 For a new invitation:
 
 ```text
@@ -300,6 +311,9 @@ existing Review skip
 token generation, validation, hash and crypto purpose
 ensure creation
 ensure replay/idempotency
+concurrent ensure creation-race convergence
+losing generated token material discarded
+no raw Prisma uniqueness conflict leak
 no raw token persisted in the fake captured write
 effective expiration
 expiration convergence
@@ -312,7 +326,7 @@ Executed validation:
 
 ```text
 npx tsx --tsconfig tests/final-e/tsconfig.json tests/final-e/run.ts
-PASS - Final-E targeted validation 17/17.
+PASS - Final-E targeted validation 18/18.
 
 npm run final-a:validate
 PASS - 44/44.
