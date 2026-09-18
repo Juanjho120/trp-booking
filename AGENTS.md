@@ -44,7 +44,7 @@ This file defines the working rules for TRP Booking.
 - Final-E.1 implementation base: `2c9802b07ebf60e8953f32226962669eaf01cfc2`.
 - Final-E.1 implementation record: `docs/186-final-e-1-review-invitation-strategy-eligibility-and-security-contract.md`.
 - Final-E.1 is not accepted until owner acceptance is explicitly recorded.
-- Final-E.2, Final-E.3, Final-E.4, Final-E.5, and Final-E.6 remain Not started.
+- Final-E.2, Final-E.3, Final-E.4, Final-E.5, Final-E.6, and Final-E.7 remain Not started.
 - Final-F, Final-G, and Final-H remain Not started.
 - Phase 13 remains Not started and must not be activated implicitly.
 
@@ -110,7 +110,7 @@ Rules:
 - Do not activate Production or Phase 13 work from a Final Improvement Track task.
 - A subphase may be declared completed only after implementation, required validation, documentation reconciliation, and owner acceptance are recorded.
 - If documentation and the accepted repository state disagree, stop advancement and reconcile the authoritative trackers before implementing the next subphase.
-- For the current handoff, Final-D.3 is accepted at `6a0d909fc325f4e8925677041be34c77c023c42b`; Final-D.4 is completed and accepted on 2026-09-14 at `7d996fd20db42b2560df11f7e00d7a5e9cc0d18c`; Final-D.5 is completed and accepted on 2026-09-17 at `06b3de23fbae23a77b58b432760abf12afd5a6c7`; Final-D.6 is completed and accepted on 2026-09-18 at `965045c697a9bfd0a3318db9396b15214a0cd066`; Final-D.7 and Final-D are completed and accepted on 2026-09-18 at `fd75663bb28be8a95b15c341eaa51f74e521241b`. Final-E is active at Final-E.1, whose docs-only implementation is complete with owner acceptance pending. Final-E.2 remains Not started until explicitly requested after E.1 acceptance.
+- For the current handoff, Final-D.3 is accepted at `6a0d909fc325f4e8925677041be34c77c023c42b`; Final-D.4 is completed and accepted on 2026-09-14 at `7d996fd20db42b2560df11f7e00d7a5e9cc0d18c`; Final-D.5 is completed and accepted on 2026-09-17 at `06b3de23fbae23a77b58b432760abf12afd5a6c7`; Final-D.6 is completed and accepted on 2026-09-18 at `965045c697a9bfd0a3318db9396b15214a0cd066`; Final-D.7 and Final-D are completed and accepted on 2026-09-18 at `fd75663bb28be8a95b15c341eaa51f74e521241b`. Final-E is active at Final-E.1, whose docs-only implementation is complete with owner acceptance pending. Final-E.2 through Final-E.7 remain Not started until explicitly requested after E.1 acceptance.
 
 ## Implementation Completion Gate
 
@@ -170,7 +170,7 @@ Final-D.7 introduced the consolidated Final-D regression gate. For any future Fi
 
 ## Final-D Accepted Boundaries and Final-E.1 Active Boundary
 
-Before continuing Final-E work, read the complete Final-D.1 contract, the accepted D.2/D.3/D.4/D.5/D.6/D.7 records, and the current Final-E.1 record. Do not reopen D.1-D.7 unless new evidence or an explicit owner instruction requires it. Final-E.2 remains Not started until explicitly requested after E.1 acceptance.
+Before continuing Final-E work, read the complete Final-D.1 contract, the accepted D.2/D.3/D.4/D.5/D.6/D.7 records, and the current Final-E.1 record. Do not reopen D.1-D.7 unless new evidence or an explicit owner instruction requires it. Final-E.2 through Final-E.7 remain Not started until explicitly requested after E.1 acceptance.
 
 At minimum, preserve these frozen boundaries:
 
@@ -189,7 +189,9 @@ At minimum, preserve these frozen boundaries:
 - The private guest page exposes only bounded guest-safe request context and must not grant access to admin reservation/payment/refund/lifecycle data.
 - Final-E.1 is docs-only and must not implement schema/runtime/email/cron/UI behavior beyond documentation.
 - Final-E.1 freezes one authentic review per eligible direct Reservation, checkout + 2 hours in America/Guatemala, a 7-day scheduler catch-up window, 30-day invitation expiry, REVIEW_INVITATION token crypto purpose, one-time private submission, moderation-before-publication, and zero Test Vercel cron registrations.
-- Final-E.2, Final-E.3, Final-E.4, Final-E.5, Final-E.6, Final-F, Final-G, Final-H, and Phase 13 must not begin automatically.
+- Final-E.3 is a dormant domain foundation only: no cron registration, no public route, no REVIEW_INVITATION EmailNotification rows, no email delivery, and no automatic operational invitation creation.
+- Final-E.4 is the first subphase allowed to activate scheduling and review-invitation email delivery, and it must add dispatcher support in the same changeset before any operational path can create REVIEW_INVITATION notification rows.
+- Final-E.2, Final-E.3, Final-E.4, Final-E.5, Final-E.6, Final-E.7, Final-F, Final-G, Final-H, and Phase 13 must not begin automatically.
 ```
 
 ## UI and Design System Rules

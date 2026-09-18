@@ -69,15 +69,18 @@ Final-E.2
 Review/invitation persistence foundation and migration
 
 Final-E.3
-Eligibility scheduler, invitation/token lifecycle and cron integration
+Eligibility and invitation/token lifecycle foundation
 
 Final-E.4
-Invitation email delivery and private guest review submission
+Review-invitation scheduling, cron integration and email delivery
 
 Final-E.5
-Admin moderation and public published-review presentation
+Private guest review submission
 
 Final-E.6
+Admin moderation and public published-review presentation
+
+Final-E.7
 Integrated regression and documentation closure
 ```
 
@@ -86,12 +89,27 @@ Rules:
 ```text
 - E.1 is docs-only.
 - E.2 introduces persistence only; it must not activate guest review submission.
-- E.3 creates/maintains eligible invitation lifecycle and cron/manual execution, but does not
-  implement public review submission.
-- E.4 completes the guest invitation email plus one-time private submission.
-- E.5 adds protected admin moderation and public published-review read surfaces.
-- E.6 owns the consolidated final-e:validate gate and package closure.
-- Do not create npm run final-e:validate before E.6.
+- E.2 may add REVIEW_INVITATION enum/relation support, but must not create ReviewInvitation rows
+  operationally and must not create REVIEW_INVITATION EmailNotification rows.
+- E.3 implements dormant domain foundation only: checkout/eligibleAt calculation, timezone handling,
+  eligibility evaluation, 7-day scheduler candidate policy, invitation expiration logic, token
+  generation/hash/encryption/decryption, lifecycle helpers, idempotent ensure primitives and
+  terminal convergence helpers.
+- E.3 must not register or activate cron runtime, expose a public route, create REVIEW_INVITATION
+  EmailNotification rows, deliver review email, or add any automatic operational caller that creates
+  invitations in normal runtime.
+- E.4 activates review-invitation scheduling and email together: cron registry/manual Test execution,
+  notification configuration, deduplication key, ES/EN email template, dispatcher support, retry
+  eligibility and private URL reconstruction from the encrypted token.
+- E.4 must add processor/dispatcher support before or in the same changeset where any operational
+  path can create REVIEW_INVITATION EmailNotification rows.
+- E.4 preserves transactional coherence: when the runtime operationally creates a new
+  ReviewInvitation, the matching REVIEW_INVITATION EmailNotification intent is created in the same
+  business transaction; provider delivery occurs after commit.
+- E.5 implements only private guest review submission.
+- E.6 adds protected admin moderation and public published-review presentation.
+- E.7 owns the consolidated final-e:validate gate and package closure.
+- Do not create npm run final-e:validate before E.7.
 ```
 
 ## Eligibility
@@ -224,7 +242,7 @@ one ReviewInvitation lifecycle per Reservation
 reservationId UNIQUE
 ```
 
-The scheduler must not create a new invitation every time it runs. Email retries reuse the same
+The E.4 scheduler must not create a new invitation every time it runs. Email retries reuse the same
 invitation.
 
 Frozen statuses:
@@ -343,6 +361,8 @@ This is the second database-level enforcement of one authentic review per Reserv
 Review records are durable business evidence and must not be hard-deleted as normal admin behavior.
 
 ## Guest Submission Contract
+
+Final-E.5 owns the private guest submission route and one-time token consumption.
 
 Guest input:
 
@@ -525,7 +545,7 @@ Prisma errors
 encrypted token/hash
 ```
 
-Public published reviews surface direction for E.5:
+Public published reviews surface direction for E.6:
 
 ```text
 /resenas
@@ -551,7 +571,34 @@ property slug if needed for navigation
 Do not expose contact data, Reservation ID, ReviewInvitation ID, admin moderation evidence or token
 material. Hidden/unpublished reviews must not appear publicly.
 
-## Email Integration
+## Email Integration and Activation Boundary
+
+The current email processor claims any due `EmailNotification` row. Therefore no committed
+intermediate Final-E state may create durable REVIEW_INVITATION rows before the processor/dispatcher
+can render and deliver them safely.
+
+Subphase boundary:
+
+```text
+E.2:
+- schema can know REVIEW_INVITATION
+- schema can add EmailNotification.reviewInvitationId
+- no operational ReviewInvitation creation
+- no operational REVIEW_INVITATION EmailNotification creation
+
+E.3:
+- domain/token/eligibility foundation only
+- no operational ReviewInvitation creation in normal runtime
+- no REVIEW_INVITATION EmailNotification rows
+- no email delivery
+- no cron registration or automatic scheduler runtime
+
+E.4:
+- adds complete REVIEW_INVITATION notification runtime support
+- adds renderer/dispatcher/processor support
+- activates scheduling/manual cron integration
+- operationally creates ReviewInvitation + REVIEW_INVITATION EmailNotification intent together
+```
 
 E.4 adds a dedicated notification type equivalent to:
 
@@ -567,12 +614,13 @@ existing retry/provider infrastructure
 localized template foundation
 ```
 
-Review invitation creation and email intent creation must be transactionally coherent:
+Starting in E.4, review invitation creation and email intent creation must be transactionally
+coherent:
 
 ```text
 ReviewInvitation created
 +
-EmailNotification intent created
+REVIEW_INVITATION EmailNotification intent created
 same business transaction
 ```
 
@@ -603,15 +651,22 @@ EmailNotification.reviewInvitationId
 The review invitation email remains Reservation-owned as well. Delivery/history must not depend on
 parsing deduplication keys.
 
+There must never be a committed operational path where a scheduler, route or service can create a
+REVIEW_INVITATION notification type that `processEmailNotifications()` does not support.
+
 ## Cron and Manual Test Boundary
 
-Final-E may add:
+Final-E may add schema/runtime support for:
 
 ```text
 CronJobKey.SCHEDULE_REVIEW_INVITATIONS
 slug: schedule-review-invitations
 schedule metadata: */30 * * * *
 ```
+
+E.2 may add the enum key to schema/types as persistence groundwork. E.3 may add dormant domain
+candidate and ensure primitives. E.4 is the first subphase allowed to register/activate the review
+scheduler in the cron registry/manual admin runtime.
 
 During the Final Improvement Track:
 
@@ -646,16 +701,20 @@ processedAt
 
 Do not include guest email, guest name, token or private URL in cron result JSON.
 
-## Scheduler Idempotency
+## E.4 Scheduler Idempotency and Repair
 
-Each run:
+Each E.4 scheduler/manual run:
 
 ```text
 read bounded eligible candidates
 -> ensureReviewInvitation()
 -> existing invitation => no duplicate
--> create invitation + email intent once
+-> find/create REVIEW_INVITATION email intent once
 ```
+
+If a valid ACTIVE invitation already exists but the matching email intent is missing because of a
+fixture or future recovery situation, E.4 must create the missing intent safely without rotating the
+token and without creating another invitation.
 
 Concurrency/idempotency protections:
 
@@ -689,7 +748,7 @@ review. There is no automatic reissue in the initial Final-E contract.
 
 ## Admin Moderation UX
 
-E.5 should add a protected route equivalent to:
+E.6 should add a protected route equivalent to:
 
 ```text
 /admin/reviews
@@ -806,11 +865,17 @@ ReviewInvitation.expiresAt > createdAt
 E.2 must preserve existing Reservation, Payment, Refund, EmailNotification and AdditionalCharge data
 without fabricated review history.
 
+E.2 must not create operational ReviewInvitation rows, REVIEW_INVITATION EmailNotification rows,
+review scheduler registrations, email rendering/delivery paths, public submission routes or admin
+moderation/public review surfaces. Adding the REVIEW_INVITATION enum, reviewInvitation relation and
+REVIEW_INVITATION crypto purpose is safe only as dormant persistence/token groundwork.
+
 ## Acceptance Matrix
 
-E.6 owns the consolidated Final-E regression gate. E.1 freezes the minimum matrix.
+E.7 owns the consolidated Final-E regression gate and package closure. E.1 freezes the minimum
+matrix and the subphase ownership below.
 
-### Eligibility / Timezone
+### E.3 — Eligibility / Timezone
 
 ```text
 [ ] confirmed direct reservation eligible only after checkout + 2h
@@ -823,7 +888,7 @@ E.6 owns the consolidated Final-E regression gate. E.1 freezes the minimum matri
 [ ] scheduler catch-up window is bounded to 7 days
 ```
 
-### Invitation
+### E.3 — Invitation Token and Lifecycle Primitives
 
 ```text
 [ ] one ReviewInvitation per Reservation
@@ -834,10 +899,28 @@ E.6 owns the consolidated Final-E regression gate. E.1 freezes the minimum matri
 [ ] REVIEW_INVITATION crypto purpose/AAD
 [ ] 30-day expiration
 [ ] ACTIVE / CONSUMED / EXPIRED / CANCELLED lifecycle
-[ ] idempotent scheduler and email retry
+[ ] dormant ensure helpers do not activate scheduler/email runtime
 ```
 
-### Submission
+### E.4 — Scheduling, Cron and Email Delivery
+
+```text
+[ ] cron registry integration
+[ ] manual Test execution
+[ ] vercel.json remains crons: []
+[ ] no Production scheduler activation
+[ ] safe cron result JSON
+[ ] ReviewInvitation + REVIEW_INVITATION EmailNotification created in the same business transaction
+[ ] no committed operational path can create REVIEW_INVITATION rows before dispatcher support exists
+[ ] existing ACTIVE invitation with missing email intent is repaired idempotently
+[ ] one review invitation email intent
+[ ] retry uses same token and URL
+[ ] provider failure does not invalidate invitation
+[ ] safe bilingual copy
+[ ] EmailNotification.reviewInvitationId relation
+```
+
+### E.5 — Private Guest Submission
 
 ```text
 [ ] rating integer 1..5
@@ -850,17 +933,7 @@ E.6 owns the consolidated Final-E regression gate. E.1 freezes the minimum matri
 [ ] raw Prisma errors do not leak
 ```
 
-### Email
-
-```text
-[ ] one review invitation email intent
-[ ] retry uses same token and URL
-[ ] provider failure does not invalidate invitation
-[ ] safe bilingual copy
-[ ] EmailNotification.reviewInvitationId relation
-```
-
-### Moderation / Public
+### E.6 — Moderation / Public Presentation
 
 ```text
 [ ] PENDING by default
@@ -872,19 +945,10 @@ E.6 owns the consolidated Final-E regression gate. E.1 freezes the minimum matri
 [ ] no PII/private token exposure
 ```
 
-### Scheduling
+### E.7 — Regression and Closure
 
 ```text
-[ ] cron registry integration
-[ ] manual Test execution
-[ ] vercel.json remains crons: []
-[ ] no Production scheduler activation
-[ ] safe cron result JSON
-```
-
-### Regression
-
-```text
+[ ] permanent npm run final-e:validate is introduced only in E.7
 [ ] Final-A remains green
 [ ] Final-B remains green
 [ ] Final-C remains green
@@ -928,6 +992,7 @@ Final-E.3 — Not started
 Final-E.4 — Not started
 Final-E.5 — Not started
 Final-E.6 — Not started
+Final-E.7 — Not started
 Final-F/G/H — Not started
 Phase 13 — Not started
 ```

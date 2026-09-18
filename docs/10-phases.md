@@ -112,6 +112,7 @@ Final-E.3 status: Not started
 Final-E.4 status: Not started
 Final-E.5 status: Not started
 Final-E.6 status: Not started
+Final-E.7 status: Not started
 Last completed package: Final-D — Additional charges and guest payment requests — Completed and accepted on 2026-09-18 at fd75663bb28be8a95b15c341eaa51f74e521241b
 Final-A.1 status: Completed and accepted on 2026-08-11
 Final-A.1 accepted head: 19531568752a44446d0802d6581262260b881aaf
@@ -196,7 +197,7 @@ Phase 12.9 closure: docs/158-phase-12.9-acceptance-closure.md
 Phase 12.10 status: Completed and accepted on 2026-08-11 — Phase 12 validation and closure
 Phase 12.10 validated repository head: ebe28579872cbc2414573ef852b15139a2501551
 Phase 12 closure: docs/159-phase-12.10-phase-12-validation-and-closure.md
-Current work: Final-E.1 Review/invitation strategy, eligibility and security contract — implementation completed as docs-only; owner acceptance pending. Final-E.2 remains Not started. Phase 13 remains blocked until Final-H closes and the complete Final Improvement Track is explicitly accepted
+Current work: Final-E.1 Review/invitation strategy, eligibility and security contract — implementation completed as docs-only; owner acceptance pending. Final-E.2 through Final-E.7 remain Not started. Phase 13 remains blocked until Final-H closes and the complete Final Improvement Track is explicitly accepted
 Next planned numbered phase: Phase 13 — Production Infrastructure, Deployment & Go-Live — Not started
 Pre-Phase-12 Improvement Track status: Completed and accepted — Packages A, B, C, E, and F accepted; Package D remains deferred outside the current gate
 Pre-Phase-12 Improvement Track registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
@@ -1299,10 +1300,11 @@ Final-D Additional charges and guest payment requests — Completed and accepted
 Final-E Reservation reviews and post-checkout invitation — In progress
   Final-E.1 Review/invitation strategy, eligibility and security contract — Implementation completed as docs-only; owner acceptance pending; record: docs/186-final-e-1-review-invitation-strategy-eligibility-and-security-contract.md
   Final-E.2 Review/invitation persistence foundation and migration — Not started
-  Final-E.3 Eligibility scheduler, invitation/token lifecycle and cron integration — Not started
-  Final-E.4 Invitation email delivery and private guest review submission — Not started
-  Final-E.5 Admin moderation and public published-review presentation — Not started
-  Final-E.6 Integrated regression and documentation closure — Not started
+  Final-E.3 Eligibility and invitation/token lifecycle foundation — Not started
+  Final-E.4 Review-invitation scheduling, cron integration and email delivery — Not started
+  Final-E.5 Private guest review submission — Not started
+  Final-E.6 Admin moderation and public published-review presentation — Not started
+  Final-E.7 Integrated regression and documentation closure — Not started
 Final-F Twilio WhatsApp communication and staff alerts — Not started
 Final-G Performance audit and optimization — Not started
 Final-H Integrated regression and final improvement-track closure — Not started

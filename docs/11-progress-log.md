@@ -103,6 +103,7 @@ Final-E.3 status: Not started
 Final-E.4 status: Not started
 Final-E.5 status: Not started
 Final-E.6 status: Not started
+Final-E.7 status: Not started
 Last completed package: Final-D — Additional charges and guest payment requests — Completed and accepted on 2026-09-18 at fd75663bb28be8a95b15c341eaa51f74e521241b
 Final-A.1 status: Completed and accepted on 2026-08-11
 Final-A.1 accepted head: 19531568752a44446d0802d6581262260b881aaf
@@ -275,10 +276,11 @@ Final-E status: In progress — Reservation reviews and post-checkout invitation
 Final-E.1 status: Implementation completed as docs-only; owner acceptance pending — Review/invitation strategy, eligibility and security contract
 Final-E.1 record: docs/186-final-e-1-review-invitation-strategy-eligibility-and-security-contract.md
 Final-E.2 status: Not started — Review/invitation persistence foundation and migration
-Final-E.3 status: Not started — Eligibility scheduler, invitation/token lifecycle and cron integration
-Final-E.4 status: Not started — Invitation email delivery and private guest review submission
-Final-E.5 status: Not started — Admin moderation and public published-review presentation
-Final-E.6 status: Not started — Integrated regression and documentation closure
+Final-E.3 status: Not started — Eligibility and invitation/token lifecycle foundation
+Final-E.4 status: Not started — Review-invitation scheduling, cron integration and email delivery
+Final-E.5 status: Not started — Private guest review submission
+Final-E.6 status: Not started — Admin moderation and public published-review presentation
+Final-E.7 status: Not started — Integrated regression and documentation closure
 Final-F status: Not started — Twilio WhatsApp communication and staff alerts
 Final-G status: Not started — Performance audit and optimization
 Final-H status: Not started — Integrated regression and final improvement-track closure
@@ -1138,10 +1140,11 @@ Final-D Additional charges and guest payment requests — Completed and accepted
 Final-E Reservation reviews and post-checkout invitation — In progress
   Final-E.1 Review/invitation strategy, eligibility and security contract — Implementation completed as docs-only; owner acceptance pending
   Final-E.2 Review/invitation persistence foundation and migration — Not started
-  Final-E.3 Eligibility scheduler, invitation/token lifecycle and cron integration — Not started
-  Final-E.4 Invitation email delivery and private guest review submission — Not started
-  Final-E.5 Admin moderation and public published-review presentation — Not started
-  Final-E.6 Integrated regression and documentation closure — Not started
+  Final-E.3 Eligibility and invitation/token lifecycle foundation — Not started
+  Final-E.4 Review-invitation scheduling, cron integration and email delivery — Not started
+  Final-E.5 Private guest review submission — Not started
+  Final-E.6 Admin moderation and public published-review presentation — Not started
+  Final-E.7 Integrated regression and documentation closure — Not started
 Final-F Twilio WhatsApp communication and staff alerts — Not started
 Final-G Performance audit and optimization — Not started
 Final-H Integrated regression and final improvement-track closure — Not started
@@ -1320,7 +1323,7 @@ Status: **Completed and accepted on 2026-09-18 at fd75663bb28be8a95b15c341eaa51f
 - Lint passed.
 - Build passed after network-enabled Google Fonts fetch; the sandbox-only first build attempt failed on font fetch.
 - Final-D is completed and accepted on 2026-09-18.
-- Final-E is In progress at Final-E.1; Final-E.2 through Final-E.6, Final-F/G/H and Phase 13 remain Not started.
+- Final-E is In progress at Final-E.1; Final-E.2 through Final-E.7, Final-F/G/H and Phase 13 remain Not started.
 - Record: docs/185-final-d-7-integrated-regression-and-documentation-closure.md.
 ```
 
@@ -1331,7 +1334,7 @@ Status: **Implementation completed as docs-only; owner acceptance pending**
 ```text
 - Implementation base head: 2c9802b07ebf60e8953f32226962669eaf01cfc2.
 - Created docs/186-final-e-1-review-invitation-strategy-eligibility-and-security-contract.md.
-- Froze the Final-E subphase split through E.6.
+- Corrected and froze the Final-E subphase split through E.7.
 - Froze eligibility around Reservation.checkOutDate + Property.checkOutTime in America/Guatemala.
 - Froze null/blank/invalid checkout time as fail closed with no invitation.
 - Froze scheduler catch-up to eligibleAt >= now - 7 days to prevent historical spam.
@@ -1340,8 +1343,10 @@ Status: **Implementation completed as docs-only; owner acceptance pending**
 - Froze 30-day invitation expiration, one-time atomic submission, safe display-name snapshot, PENDING/PUBLISHED/HIDDEN moderation and published-only public surface.
 - Froze reuse of EmailNotification retry/provider infrastructure with an explicit reviewInvitationId relation direction.
 - Froze optional schedule-review-invitations cron registry direction while keeping Test Vercel crons empty.
+- Froze E.3 as dormant domain/token/eligibility foundation with no operational scheduler, public route, email intent creation or delivery.
+- Froze E.4 as the first subphase that may activate scheduling and REVIEW_INVITATION email delivery, with dispatcher support and ReviewInvitation + EmailNotification transactional creation in the same changeset.
 - No Prisma migration, runtime code, API route, page, email template, cron registration, provider call or validation script was added.
-- Final-E.2 remains Not started until E.1 owner acceptance and explicit continuation.
+- Final-E.2 through Final-E.7 remain Not started until E.1 owner acceptance and explicit continuation.
 - Final-F/G/H and Phase 13 remain Not started.
 ```
 

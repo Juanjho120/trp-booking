@@ -729,10 +729,11 @@ Final-E.1 — Review/invitation strategy, eligibility and security contract — 
 Final-E.1 implementation base head: 2c9802b07ebf60e8953f32226962669eaf01cfc2
 Final-E.1 record: docs/186-final-e-1-review-invitation-strategy-eligibility-and-security-contract.md
 Final-E.2 — Review/invitation persistence foundation and migration — Not started
-Final-E.3 — Eligibility scheduler, invitation/token lifecycle and cron integration — Not started
-Final-E.4 — Invitation email delivery and private guest review submission — Not started
-Final-E.5 — Admin moderation and public published-review presentation — Not started
-Final-E.6 — Integrated regression and documentation closure — Not started
+Final-E.3 — Eligibility and invitation/token lifecycle foundation — Not started
+Final-E.4 — Review-invitation scheduling, cron integration and email delivery — Not started
+Final-E.5 — Private guest review submission — Not started
+Final-E.6 — Admin moderation and public published-review presentation — Not started
+Final-E.7 — Integrated regression and documentation closure — Not started
 Final-F/G/H: Not started
 Phase 13: Not started
 ```
@@ -747,10 +748,11 @@ after checkout.
 ```text
 Final-E.1 Review/invitation strategy, eligibility and security contract
 Final-E.2 Review/invitation persistence foundation and migration
-Final-E.3 Eligibility scheduler, invitation/token lifecycle and cron integration
-Final-E.4 Invitation email delivery and private guest review submission
-Final-E.5 Admin moderation and public published-review presentation
-Final-E.6 Integrated regression and documentation closure
+Final-E.3 Eligibility and invitation/token lifecycle foundation
+Final-E.4 Review-invitation scheduling, cron integration and email delivery
+Final-E.5 Private guest review submission
+Final-E.6 Admin moderation and public published-review presentation
+Final-E.7 Integrated regression and documentation closure
 ```
 
 Rules:
@@ -758,11 +760,16 @@ Rules:
 ```text
 - E.1 is docs-only.
 - E.2 persistence only; no guest flow activation.
-- E.3 creates/maintains eligible invitation lifecycle but does not implement public review submission.
-- E.4 completes invitation email + one-time private submission.
-- E.5 adds moderation + public published review read surface.
-- E.6 owns final-e:validate and package closure.
-- Do not create npm run final-e:validate before E.6.
+- E.2 may add REVIEW_INVITATION schema/enum/relation support, but must not create operational ReviewInvitation or REVIEW_INVITATION EmailNotification rows.
+- E.3 is dormant domain foundation only: checkout/eligibility calculation, 7-day candidate policy, expiration logic, token generation/hash/encryption/decryption, lifecycle helpers, idempotent ensure primitives and terminal convergence helpers.
+- E.3 must not register a cron, expose a public route, create REVIEW_INVITATION EmailNotification rows, deliver email, or install an automatic operational caller that creates invitations in normal runtime.
+- E.4 activates review-invitation scheduling and email delivery together, including cron registry integration, manual Test execution, REVIEW_INVITATION notification config, renderer/dispatcher support, retry eligibility and private URL reconstruction.
+- E.4 must add processor/dispatcher support before or in the same changeset where any operational path can create REVIEW_INVITATION notification rows.
+- E.4 preserves the transactional rule: a newly operationally created ReviewInvitation and its REVIEW_INVITATION EmailNotification intent are created in the same business transaction, and provider delivery occurs after commit.
+- E.5 implements only the private guest review submission route and one-time token consumption.
+- E.6 adds admin moderation and public published-review presentation.
+- E.7 owns final-e:validate and package closure.
+- Do not create npm run final-e:validate before E.7.
 ```
 
 ## Eligibility
@@ -1391,6 +1398,7 @@ Final-E.3 — Not started
 Final-E.4 — Not started
 Final-E.5 — Not started
 Final-E.6 — Not started
+Final-E.7 — Not started
 Final-C implementation base — e7ce19c49c5cfd45e1cc08796ee897a2dce0d1ed
 Final-C.1 accepted strategy head — 16d8b0411e573aaaa6b510ddb27a9b5d9c666478
 Final-C.1 record — docs/173-final-c-1-pricing-strategy-precedence-and-persistence-contract.md
@@ -1447,6 +1455,7 @@ Final-E.3 — Not started
 Final-E.4 — Not started
 Final-E.5 — Not started
 Final-E.6 — Not started
+Final-E.7 — Not started
 Final-F — Not started
 Final-G — Not started
 Final-H — Not started
