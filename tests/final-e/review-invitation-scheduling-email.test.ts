@@ -110,6 +110,23 @@ type E4Store = {
   nextNotification: number;
 };
 
+type MutableNotificationIntentData = Omit<
+  MutableNotification,
+  | "id"
+  | "lifecycleRequestId"
+  | "refundId"
+  | "guestPaymentRequestId"
+  | "attemptCount"
+  | "lastAttemptAt"
+  | "processingStartedAt"
+  | "providerMessageId"
+  | "sentAt"
+  | "errorCode"
+  | "errorMessage"
+  | "createdAt"
+  | "updatedAt"
+>;
+
 function cloneDate(value: Date): Date {
   return new Date(value.getTime());
 }
@@ -286,9 +303,38 @@ function makeP2034Error(): Prisma.PrismaClientKnownRequestError {
   );
 }
 
+function insertPendingNotificationIntent(
+  store: E4Store,
+  data: MutableNotificationIntentData,
+): MutableNotification {
+  const notification = buildNotification({
+    ...data,
+    id: `review-notification-e4-${store.nextNotification}`,
+    recipient: data.recipient,
+    status: EmailNotificationStatus.PENDING,
+    attemptCount: 0,
+    lastAttemptAt: null,
+    processingStartedAt: null,
+    providerMessageId: null,
+    sentAt: null,
+    errorCode: null,
+    errorMessage: null,
+    createdAt: E4_NOW,
+    updatedAt: E4_NOW,
+  });
+
+  store.nextNotification += 1;
+  store.notifications.push(notification);
+
+  return notification;
+}
+
 function makeAtomicClient(
   store: E4Store,
-  options: Readonly<{ failFirstCommitWithP2034?: boolean }> = {},
+  options: Readonly<{
+    failFirstCommitWithP2034?: boolean;
+    loseFirstNotificationIntentRace?: boolean;
+  }> = {},
 ): PrismaClient {
   let transactions = 0;
   const tx = {
@@ -310,47 +356,33 @@ function makeAtomicClient(
           ) ?? null
         );
       },
-      async create(args: {
-        data: Omit<
-          MutableNotification,
-          | "id"
-          | "lifecycleRequestId"
-          | "refundId"
-          | "guestPaymentRequestId"
-          | "attemptCount"
-          | "lastAttemptAt"
-          | "processingStartedAt"
-          | "providerMessageId"
-          | "sentAt"
-          | "errorCode"
-          | "errorMessage"
-          | "createdAt"
-          | "updatedAt"
-        >;
+      async createMany(args: {
+        data: MutableNotificationIntentData;
+        skipDuplicates?: boolean;
       }) {
         if (args.data.recipient === "fail-intent@example.com") {
           throw new Error("INTENT_CREATE_FAILED");
         }
 
-        const notification = buildNotification({
-          ...args.data,
-          id: `review-notification-e4-${store.nextNotification}`,
-          status: EmailNotificationStatus.PENDING,
-          attemptCount: 0,
-          lastAttemptAt: null,
-          processingStartedAt: null,
-          providerMessageId: null,
-          sentAt: null,
-          errorCode: null,
-          errorMessage: null,
-          createdAt: E4_NOW,
-          updatedAt: E4_NOW,
-        });
+        const existing = store.notifications.find(
+          (notification) =>
+            notification.deduplicationKey === args.data.deduplicationKey,
+        );
 
-        store.nextNotification += 1;
-        store.notifications.push(notification);
+        if (existing) {
+          return { count: 0 };
+        }
 
-        return notification;
+        insertPendingNotificationIntent(store, args.data);
+
+        if (options.loseFirstNotificationIntentRace) {
+          return { count: 0 };
+        }
+
+        return { count: 1 };
+      },
+      async create(args: { data: MutableNotificationIntentData }) {
+        return insertPendingNotificationIntent(store, args.data);
       },
     },
   };
@@ -452,30 +484,124 @@ function makeSchedulerClient(store: E4Store): PrismaClient {
         where: {
           checkOutDate: { gte: Date; lte: Date };
           reviewInvitation: null;
+          status?: { in: readonly ReservationStatus[] };
         };
+        take?: number;
       }) {
+        const allowedStatuses = new Set(args.where.status?.in ?? []);
+
         return store.reservations
           .filter(
             (reservation) =>
               !reservation.reviewInvitation &&
               !reservation.review &&
               reservation.confirmedAt !== null &&
+              (allowedStatuses.size === 0 ||
+                allowedStatuses.has(reservation.status)) &&
               reservation.checkOutDate >= args.where.checkOutDate.gte &&
               reservation.checkOutDate <= args.where.checkOutDate.lte,
           )
-          .sort((a, b) => a.checkOutDate.getTime() - b.checkOutDate.getTime())
+          .sort(
+            (a, b) =>
+              a.checkOutDate.getTime() - b.checkOutDate.getTime() ||
+              a.id.localeCompare(b.id),
+          )
+          .slice(0, args.take ?? store.reservations.length)
           .map((reservation) => ({ id: reservation.id }));
       },
     },
     reviewInvitation: {
-      async findMany() {
+      async findMany(
+        args: {
+          where?: {
+            status?: ReviewInvitationStatus;
+            expiresAt?: { gt?: Date };
+            emailNotifications?: {
+              none?: { type: EmailNotificationType };
+              some?: { type: EmailNotificationType };
+            };
+          };
+          select?: {
+            reservationId?: boolean;
+            reservation?: unknown;
+            emailNotifications?: {
+              where?: { type?: EmailNotificationType };
+            };
+          };
+          take?: number;
+        } = {},
+      ) {
+        const notificationType =
+          args.where?.emailNotifications?.none?.type ??
+          args.where?.emailNotifications?.some?.type;
+
         return store.invitations
           .filter(
             (invitation) =>
-              invitation.status === ReviewInvitationStatus.ACTIVE,
+              (!args.where?.status ||
+                invitation.status === args.where.status) &&
+              (!args.where?.expiresAt?.gt ||
+                invitation.expiresAt > args.where.expiresAt.gt),
           )
-          .sort((a, b) => a.expiresAt.getTime() - b.expiresAt.getTime())
-          .map((invitation) => ({ reservationId: invitation.reservationId }));
+          .filter((invitation) => {
+            if (!notificationType) {
+              return true;
+            }
+
+            const hasNotification = store.notifications.some(
+              (notification) =>
+                notification.reviewInvitationId === invitation.id &&
+                notification.type === notificationType,
+            );
+
+            if (args.where?.emailNotifications?.none) {
+              return !hasNotification;
+            }
+
+            if (args.where?.emailNotifications?.some) {
+              return hasNotification;
+            }
+
+            return true;
+          })
+          .sort(
+            (a, b) =>
+              a.expiresAt.getTime() - b.expiresAt.getTime() ||
+              a.id.localeCompare(b.id),
+          )
+          .slice(0, args.take ?? store.invitations.length)
+          .map((invitation) => {
+            const result: {
+              reservationId: string;
+              reservation?: MutableReservation | null;
+              emailNotifications?: { recipient: string }[];
+            } = { reservationId: invitation.reservationId };
+
+            if (args.select?.reservation) {
+              result.reservation =
+                store.reservations.find(
+                  (reservation) =>
+                    reservation.id === invitation.reservationId,
+                ) ?? null;
+            }
+
+            if (args.select?.emailNotifications) {
+              const selectedType =
+                args.select.emailNotifications.where?.type ?? notificationType;
+
+              result.emailNotifications = store.notifications
+                .filter(
+                  (notification) =>
+                    notification.reviewInvitationId === invitation.id &&
+                    (!selectedType || notification.type === selectedType),
+                )
+                .map((notification) => ({
+                  recipient: notification.recipient,
+                }));
+            }
+
+            return result;
+          });
       },
       async createMany(args: {
         data: Omit<MutableInvitation, "id" | "updatedAt">;
@@ -548,43 +674,24 @@ function makeSchedulerClient(store: E4Store): PrismaClient {
           ) ?? null
         );
       },
-      async create(args: {
-        data: Omit<
-          MutableNotification,
-          | "id"
-          | "lifecycleRequestId"
-          | "refundId"
-          | "guestPaymentRequestId"
-          | "attemptCount"
-          | "lastAttemptAt"
-          | "processingStartedAt"
-          | "providerMessageId"
-          | "sentAt"
-          | "errorCode"
-          | "errorMessage"
-          | "createdAt"
-          | "updatedAt"
-        >;
+      async createMany(args: {
+        data: MutableNotificationIntentData;
+        skipDuplicates?: boolean;
       }) {
-        const notification = buildNotification({
-          ...args.data,
-          id: `review-notification-e4-${store.nextNotification}`,
-          recipient: args.data.recipient,
-          status: EmailNotificationStatus.PENDING,
-          attemptCount: 0,
-          lastAttemptAt: null,
-          processingStartedAt: null,
-          providerMessageId: null,
-          sentAt: null,
-          errorCode: null,
-          errorMessage: null,
-          createdAt: E4_NOW,
-          updatedAt: E4_NOW,
-        });
+        const existing = store.notifications.find(
+          (notification) =>
+            notification.deduplicationKey === args.data.deduplicationKey,
+        );
 
-        store.nextNotification += 1;
-        store.notifications.push(notification);
-        return notification;
+        if (existing) {
+          return { count: 0 };
+        }
+
+        insertPendingNotificationIntent(store, args.data);
+        return { count: 1 };
+      },
+      async create(args: { data: MutableNotificationIntentData }) {
+        return insertPendingNotificationIntent(store, args.data);
       },
     },
   };
@@ -991,6 +1098,37 @@ test("E.4 sequential replay keeps one invitation and one email intent", async ()
   assert.equal(store.notifications.length, 1);
 });
 
+test("E.4 converges when another transaction wins the REVIEW_INVITATION email intent race", async () => {
+  const store = createStore();
+  const client = makeAtomicClient(store, {
+    loseFirstNotificationIntentRace: true,
+  });
+  let leakedP2002 = false;
+
+  const result = await ensureReviewInvitationAndNotificationIntentForReservation(
+    "reservation-e4-1",
+    {
+      now: E4_NOW,
+      prismaClient: client,
+      ensureReviewInvitation: makeEnsureWithStore(store),
+    },
+  ).catch((error: unknown) => {
+    leakedP2002 =
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002";
+    throw error;
+  });
+
+  assert.equal(leakedP2002, false);
+  assert.equal(result.outcome, "created");
+  assert.equal(result.notificationIntentCreated, false);
+  assert.equal(store.invitations.length, 1);
+  assert.equal(store.notifications.length, 1);
+  assert.equal(store.notifications[0].reservationId, "reservation-e4-1");
+  assert.equal(store.notifications[0].reviewInvitationId, result.invitationId);
+  assert.equal(store.notifications[0].recipient, "guest.e4@example.com");
+});
+
 test("E.4 repairs an existing ACTIVE invitation without rotating the winning token", async () => {
   const invitation = buildInvitation({
     accessTokenHash: "winning-review-token-hash",
@@ -1019,10 +1157,30 @@ test("E.4 repairs an existing ACTIVE invitation without rotating the winning tok
   assert.equal(store.notifications.length, 1);
 });
 
-test("E.4 scheduler creates recent invitations, repairs older ACTIVE ones, and does not reissue terminal rows", async () => {
-  const repairInvitation = buildInvitation({
-    id: "review-invitation-repair-old",
-    reservationId: "reservation-repair-old",
+test("E.4 scheduler prioritizes actionable repair candidates without spending the batch on terminal or already-covered invitations", async () => {
+  const missingIntentInvitation = buildInvitation({
+    id: "review-invitation-missing-intent",
+    reservationId: "reservation-missing-intent",
+    expiresAt: new Date("2026-10-18T19:00:00.000Z"),
+  });
+  const staleRecipientInvitation = buildInvitation({
+    id: "review-invitation-stale-recipient",
+    reservationId: "reservation-stale-recipient",
+    expiresAt: new Date("2026-10-18T19:00:00.000Z"),
+  });
+  const currentRecipientInvitation = buildInvitation({
+    id: "review-invitation-current-recipient",
+    reservationId: "reservation-current-recipient",
+    expiresAt: new Date("2026-10-18T19:00:00.000Z"),
+  });
+  const expiredActiveInvitation = buildInvitation({
+    id: "review-invitation-expired-active",
+    reservationId: "reservation-expired-active",
+    expiresAt: new Date("2026-09-18T18:59:59.999Z"),
+  });
+  const twentyDayMissingIntentInvitation = buildInvitation({
+    id: "review-invitation-twenty-day-missing",
+    reservationId: "reservation-twenty-day-missing",
     createdAt: new Date("2026-08-29T19:00:00.000Z"),
     expiresAt: new Date("2026-09-28T19:00:00.000Z"),
   });
@@ -1038,9 +1196,29 @@ test("E.4 scheduler creates recent invitations, repairs older ACTIVE ones, and d
       checkOutDate: new Date("2026-09-01T00:00:00.000Z"),
     }),
     buildReservation({
-      id: "reservation-repair-old",
-      guestEmail: "repair-old@example.com",
-      reviewInvitation: repairInvitation,
+      id: "reservation-missing-intent",
+      guestEmail: "missing-intent@example.com",
+      reviewInvitation: missingIntentInvitation,
+    }),
+    buildReservation({
+      id: "reservation-stale-recipient",
+      guestEmail: "current-stale@example.com",
+      reviewInvitation: staleRecipientInvitation,
+    }),
+    buildReservation({
+      id: "reservation-current-recipient",
+      guestEmail: "current-intent@example.com",
+      reviewInvitation: currentRecipientInvitation,
+    }),
+    buildReservation({
+      id: "reservation-expired-active",
+      guestEmail: "expired-active@example.com",
+      reviewInvitation: expiredActiveInvitation,
+    }),
+    buildReservation({
+      id: "reservation-twenty-day-missing",
+      guestEmail: "twenty-day-missing@example.com",
+      reviewInvitation: twentyDayMissingIntentInvitation,
     }),
     buildReservation({
       id: "reservation-terminal",
@@ -1048,22 +1226,89 @@ test("E.4 scheduler creates recent invitations, repairs older ACTIVE ones, and d
       reviewInvitation: terminalInvitation,
     }),
   ]);
+  store.nextNotification = 100;
+  store.notifications.push(
+    buildNotification({
+      id: "review-notification-current-recipient",
+      reservationId: "reservation-current-recipient",
+      reviewInvitationId: currentRecipientInvitation.id,
+      recipient: "current-intent@example.com",
+      deduplicationKey:
+        "review-invitation/review-invitation-current-recipient/current-intent@example.com",
+      status: EmailNotificationStatus.PENDING,
+      attemptCount: 0,
+      processingStartedAt: null,
+      lastAttemptAt: null,
+    }),
+    buildNotification({
+      id: "review-notification-stale-recipient",
+      reservationId: "reservation-stale-recipient",
+      reviewInvitationId: staleRecipientInvitation.id,
+      recipient: "old-stale@example.com",
+      deduplicationKey:
+        "review-invitation/review-invitation-stale-recipient/old-stale@example.com",
+      status: EmailNotificationStatus.PENDING,
+      attemptCount: 0,
+      processingStartedAt: null,
+      lastAttemptAt: null,
+    }),
+  );
+
   const client = makeSchedulerClient(store);
   const result = await scheduleReviewInvitations({
     now: E4_NOW,
     prismaClient: client,
   });
 
-  assert.equal(result.candidates, 2);
+  assert.equal(result.candidates, 4);
   assert.equal(result.created, 1);
-  assert.equal(result.existing, 1);
-  assert.equal(result.notificationIntentsCreated, 2);
+  assert.equal(result.existing, 3);
+  assert.equal(result.notificationIntentsCreated, 4);
+  assert.equal(result.notificationIntentsExisting, 0);
   assert.equal(result.failed, 0);
   assert.equal(
     store.invitations.some(
       (invitation) => invitation.reservationId === "reservation-too-old",
     ),
     false,
+  );
+  assert.equal(
+    store.notifications.some(
+      (notification) =>
+        notification.reviewInvitationId === expiredActiveInvitation.id,
+    ),
+    false,
+  );
+  assert.equal(
+    store.notifications.filter(
+      (notification) =>
+        notification.reviewInvitationId === currentRecipientInvitation.id,
+    ).length,
+    1,
+  );
+  assert.equal(
+    store.notifications.some(
+      (notification) =>
+        notification.reviewInvitationId === missingIntentInvitation.id &&
+        notification.recipient === "missing-intent@example.com",
+    ),
+    true,
+  );
+  assert.equal(
+    store.notifications.some(
+      (notification) =>
+        notification.reviewInvitationId === staleRecipientInvitation.id &&
+        notification.recipient === "current-stale@example.com",
+    ),
+    true,
+  );
+  assert.equal(
+    store.notifications.some(
+      (notification) =>
+        notification.reviewInvitationId === twentyDayMissingIntentInvitation.id &&
+        notification.recipient === "twenty-day-missing@example.com",
+    ),
+    true,
   );
   assert.equal(
     store.notifications.some(
@@ -1271,6 +1516,69 @@ test("E.4 delivery skips stale recipient notifications while keeping the invitat
     assert.equal(
       store.notifications[0].errorCode,
       "EMAIL_REVIEW_INVITATION_RECIPIENT_CHANGED",
+    );
+  } finally {
+    restoreEnv();
+  }
+});
+
+test("E.4 delivery skips relation-mismatched notifications without mutating unrelated invitations", async () => {
+  const restoreEnv = preserveE4Env();
+
+  try {
+    const unrelatedEncryptedToken = "encrypted-cross-reservation-token";
+    const unrelatedInvitation = buildInvitation({
+      id: "review-invitation-reservation-b",
+      reservationId: "reservation-b",
+      accessTokenHash: "cross-reservation-token-hash",
+      accessTokenEncrypted: unrelatedEncryptedToken,
+    });
+    const store = createStore([
+      buildReservation({
+        id: "reservation-a",
+        guestEmail: "guest-a@example.com",
+      }),
+      buildReservation({
+        id: "reservation-b",
+        guestEmail: "guest-b@example.com",
+        reviewInvitation: unrelatedInvitation,
+      }),
+    ]);
+    const notification = buildNotification({
+      id: "review-notification-relation-mismatch",
+      reservationId: "reservation-a",
+      reviewInvitationId: unrelatedInvitation.id,
+      recipient: "guest-a@example.com",
+      deduplicationKey:
+        "review-invitation/review-invitation-reservation-b/guest-a@example.com",
+    });
+    const provider = createProvider();
+
+    store.notifications.push(notification);
+    installDeliveryPrisma(store);
+
+    const result = await deliverClaimedReviewInvitationEmailNotification({
+      claim: {
+        notificationId: notification.id,
+        processingStartedAt: E4_NOW,
+      },
+      provider,
+      publicBaseUrl: PUBLIC_BASE_URL,
+      brandLogoUrl: BRAND_LOGO_URL,
+      now: () => E4_NOW,
+    });
+
+    assert.equal(result.outcome, "skipped");
+    assert.equal(provider.sent.length, 0);
+    assert.equal(store.notifications[0].status, EmailNotificationStatus.SKIPPED);
+    assert.equal(
+      store.notifications[0].errorCode,
+      "EMAIL_REVIEW_INVITATION_RELATION_MISMATCH",
+    );
+    assert.equal(store.invitations[0].status, ReviewInvitationStatus.ACTIVE);
+    assert.equal(
+      store.invitations[0].accessTokenEncrypted,
+      unrelatedEncryptedToken,
     );
   } finally {
     restoreEnv();

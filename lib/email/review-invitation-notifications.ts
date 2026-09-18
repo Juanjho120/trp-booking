@@ -58,6 +58,7 @@ type ReviewInvitationDeliveryErrorCode =
   | EmailNotificationDeliveryErrorCode
   | "EMAIL_REVIEW_INVITATION_EXPIRED"
   | "EMAIL_REVIEW_INVITATION_SUPERSEDED"
+  | "EMAIL_REVIEW_INVITATION_RELATION_MISMATCH"
   | "EMAIL_REVIEW_INVITATION_RECIPIENT_CHANGED"
   | "EMAIL_REVIEW_INVITATION_TOKEN_UNAVAILABLE";
 
@@ -89,6 +90,8 @@ const SAFE_REVIEW_INVITATION_DELIVERY_ERROR_MESSAGES = {
     "The review invitation expired before delivery.",
   EMAIL_REVIEW_INVITATION_SUPERSEDED:
     "The review invitation is no longer deliverable.",
+  EMAIL_REVIEW_INVITATION_RELATION_MISMATCH:
+    "The review invitation notification relation is inconsistent.",
   EMAIL_REVIEW_INVITATION_RECIPIENT_CHANGED:
     "The review invitation recipient changed before delivery.",
   EMAIL_REVIEW_INVITATION_TOKEN_UNAVAILABLE:
@@ -102,6 +105,7 @@ const SAFE_REVIEW_INVITATION_DELIVERY_ERROR_MESSAGES = {
 const terminalSkipCodes = new Set<ReviewInvitationDeliveryErrorCode>([
   "EMAIL_REVIEW_INVITATION_EXPIRED",
   "EMAIL_REVIEW_INVITATION_SUPERSEDED",
+  "EMAIL_REVIEW_INVITATION_RELATION_MISMATCH",
   "EMAIL_REVIEW_INVITATION_RECIPIENT_CHANGED",
   "EMAIL_REVIEW_INVITATION_TOKEN_UNAVAILABLE",
   "EMAIL_NOTIFICATION_UNSUPPORTED_TYPE",
@@ -388,7 +392,23 @@ export async function ensureReviewInvitationNotificationIntent(
     input.reviewInvitationId,
     recipient,
   );
-  const existing = await transaction.emailNotification.findUnique({
+  const data = {
+    reservationId: input.reservationId,
+    reviewInvitationId: input.reviewInvitationId,
+    type: EmailNotificationType.REVIEW_INVITATION,
+    recipient,
+    locale: input.locale,
+    deduplicationKey,
+    origin: EmailNotificationOrigin.AUTOMATIC,
+    status: EmailNotificationStatus.PENDING,
+    scheduledFor: input.scheduledFor,
+    nextAttemptAt: input.nextAttemptAt,
+  };
+  const creation = await transaction.emailNotification.createMany({
+    data,
+    skipDuplicates: true,
+  });
+  const notification = await transaction.emailNotification.findUnique({
     where: { deduplicationKey },
     select: {
       id: true,
@@ -401,53 +421,28 @@ export async function ensureReviewInvitationNotificationIntent(
     },
   });
 
-  if (existing) {
-    if (
-      existing.reservationId !== input.reservationId ||
-      existing.reviewInvitationId !== input.reviewInvitationId ||
-      existing.type !== EmailNotificationType.REVIEW_INVITATION ||
-      existing.recipient !== recipient ||
-      existing.locale !== input.locale
-    ) {
-      throw new TypeError("Review invitation notification deduplication conflict.");
-    }
-
-    return {
-      id: existing.id,
-      recipient: existing.recipient,
-      locale: normalizeLocale(existing.locale),
-      status: existing.status,
-      created: false,
-    };
+  if (!notification) {
+    throw new TypeError(
+      "Review invitation notification intent was not persisted.",
+    );
   }
 
-  const notification = await transaction.emailNotification.create({
-    data: {
-      reservationId: input.reservationId,
-      reviewInvitationId: input.reviewInvitationId,
-      type: EmailNotificationType.REVIEW_INVITATION,
-      recipient,
-      locale: input.locale,
-      deduplicationKey,
-      origin: EmailNotificationOrigin.AUTOMATIC,
-      status: EmailNotificationStatus.PENDING,
-      scheduledFor: input.scheduledFor,
-      nextAttemptAt: input.nextAttemptAt,
-    },
-    select: {
-      id: true,
-      recipient: true,
-      locale: true,
-      status: true,
-    },
-  });
+  if (
+    notification.reservationId !== input.reservationId ||
+    notification.reviewInvitationId !== input.reviewInvitationId ||
+    notification.type !== EmailNotificationType.REVIEW_INVITATION ||
+    notification.recipient !== recipient ||
+    notification.locale !== input.locale
+  ) {
+    throw new TypeError("Review invitation notification deduplication conflict.");
+  }
 
   return {
     id: notification.id,
     recipient: notification.recipient,
     locale: normalizeLocale(notification.locale),
     status: notification.status,
-    created: true,
+    created: creation.count === 1,
   };
 }
 
@@ -698,25 +693,93 @@ async function findReviewInvitationSchedulerCandidateIds(
     take: REVIEW_INVITATION_SCHEDULING_MAX_CANDIDATES,
     select: { id: true },
   });
-  const repairCandidates = await prismaClient.reviewInvitation.findMany({
-    where: {
-      status: ReviewInvitationStatus.ACTIVE,
-    },
-    orderBy: [{ expiresAt: "asc" }, { id: "asc" }],
-    take: REVIEW_INVITATION_SCHEDULING_MAX_CANDIDATES,
-    select: { reservationId: true },
-  });
-  const candidateIds = new Set<string>();
+  const missingIntentRepairCandidates =
+    await prismaClient.reviewInvitation.findMany({
+      where: {
+        status: ReviewInvitationStatus.ACTIVE,
+        expiresAt: { gt: now },
+        emailNotifications: {
+          none: { type: EmailNotificationType.REVIEW_INVITATION },
+        },
+      },
+      orderBy: [{ expiresAt: "asc" }, { id: "asc" }],
+      take: REVIEW_INVITATION_SCHEDULING_MAX_CANDIDATES,
+      select: { reservationId: true },
+    });
+  const currentRecipientRepairCandidates =
+    await prismaClient.reviewInvitation.findMany({
+      where: {
+        status: ReviewInvitationStatus.ACTIVE,
+        expiresAt: { gt: now },
+        emailNotifications: {
+          some: { type: EmailNotificationType.REVIEW_INVITATION },
+        },
+      },
+      orderBy: [{ expiresAt: "asc" }, { id: "asc" }],
+      take: REVIEW_INVITATION_SCHEDULING_MAX_CANDIDATES,
+      select: {
+        reservationId: true,
+        reservation: {
+          select: { guestEmail: true },
+        },
+        emailNotifications: {
+          where: { type: EmailNotificationType.REVIEW_INVITATION },
+          select: { recipient: true },
+        },
+      },
+    });
+  const candidateIds: string[] = [];
+  const seenCandidateIds = new Set<string>();
+  const addCandidateId = (reservationId: string): void => {
+    if (
+      seenCandidateIds.has(reservationId) ||
+      candidateIds.length >= REVIEW_INVITATION_SCHEDULING_MAX_CANDIDATES
+    ) {
+      return;
+    }
+
+    seenCandidateIds.add(reservationId);
+    candidateIds.push(reservationId);
+  };
 
   for (const candidate of newInvitationCandidates) {
-    candidateIds.add(candidate.id);
+    addCandidateId(candidate.id);
   }
 
-  for (const candidate of repairCandidates) {
-    candidateIds.add(candidate.reservationId);
+  for (const candidate of missingIntentRepairCandidates) {
+    addCandidateId(candidate.reservationId);
   }
 
-  return [...candidateIds].slice(0, REVIEW_INVITATION_SCHEDULING_MAX_CANDIDATES);
+  for (const candidate of currentRecipientRepairCandidates) {
+    if (needsCurrentRecipientIntentRepair(candidate)) {
+      addCandidateId(candidate.reservationId);
+    }
+  }
+
+  return candidateIds;
+}
+
+function needsCurrentRecipientIntentRepair(
+  candidate: Readonly<{
+    reservation: Readonly<{ guestEmail: string }>;
+    emailNotifications: readonly Readonly<{ recipient: string }>[];
+  }>,
+): boolean {
+  let currentRecipient: string;
+
+  try {
+    currentRecipient = normalizeRecipient(candidate.reservation.guestEmail);
+  } catch {
+    return false;
+  }
+
+  return !candidate.emailNotifications.some((notification) => {
+    try {
+      return normalizeRecipient(notification.recipient) === currentRecipient;
+    } catch {
+      return false;
+    }
+  });
 }
 
 export async function scheduleReviewInvitations(
@@ -798,11 +861,11 @@ async function convergeDeliveryTerminalState(
   now: Date,
   errorCode: ReviewInvitationDeliveryErrorCode,
 ): Promise<void> {
-  const invitationId = notification.reviewInvitation?.id;
-
-  if (!invitationId) {
+  if (!isCoherentReviewInvitationNotification(notification)) {
     return;
   }
+
+  const invitationId = notification.reviewInvitation.id;
 
   if (errorCode === "EMAIL_REVIEW_INVITATION_EXPIRED") {
     await prisma.$transaction((transaction) =>
@@ -822,21 +885,29 @@ async function convergeDeliveryTerminalState(
   }
 }
 
+function isCoherentReviewInvitationNotification(
+  notification: ClaimedReviewInvitationNotification,
+): notification is ClaimedReviewInvitationNotification & {
+  reviewInvitation: ReviewInvitationLifecycleRecord;
+} {
+  return (
+    notification.type === EmailNotificationType.REVIEW_INVITATION &&
+    !!notification.reviewInvitation &&
+    !!notification.reviewInvitationId &&
+    notification.reviewInvitationId === notification.reviewInvitation.id &&
+    notification.reviewInvitation.reservationId === notification.reservationId &&
+    notification.reservation.id === notification.reservationId
+  );
+}
+
 function assertClaimedNotificationShape(
   notification: ClaimedReviewInvitationNotification,
 ): asserts notification is ClaimedReviewInvitationNotification & {
   reviewInvitation: ReviewInvitationLifecycleRecord;
 } {
-  if (
-    notification.type !== EmailNotificationType.REVIEW_INVITATION ||
-    !notification.reviewInvitation ||
-    !notification.reviewInvitationId ||
-    notification.reviewInvitationId !== notification.reviewInvitation.id ||
-    notification.reviewInvitation.reservationId !== notification.reservationId ||
-    notification.reservation.id !== notification.reservationId
-  ) {
+  if (!isCoherentReviewInvitationNotification(notification)) {
     throw new ReviewInvitationEmailDeliveryError(
-      "EMAIL_REVIEW_INVITATION_SUPERSEDED",
+      "EMAIL_REVIEW_INVITATION_RELATION_MISMATCH",
       false,
     );
   }

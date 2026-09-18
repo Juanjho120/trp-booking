@@ -84,6 +84,18 @@ with a missing REVIEW_INVITATION email intent are repaired idempotently, includi
 than the seven-day automatic creation catch-up window but still inside their own thirty-day
 lifetime.
 
+The REVIEW_INVITATION EmailNotification intent uses a race-safe convergence pattern:
+
+```text
+createMany(skipDuplicates: true)
+then findUnique(deduplicationKey)
+then validate reservationId, reviewInvitationId, type, recipient and locale
+```
+
+If another caller-owned transaction wins the same intent, E.4 reuses the persisted row and reports
+the intent as existing instead of leaking a unique-constraint failure. A conflicting persisted row
+is rejected as an internal deduplication conflict and is not silently accepted.
+
 Terminal invitations are not reissued.
 
 ## Candidate and Repair Boundary
@@ -91,6 +103,18 @@ Terminal invitations are not reissued.
 New automatic invitation creation remains bounded to recent checkout candidates so activation does
 not spam historical stays. Existing ACTIVE invitation repair is not limited by that catch-up window;
 it is bounded by the active invitation lifecycle and the scheduler batch cap.
+
+Independent-review hardening narrowed repair discovery so non-actionable rows do not spend the
+operational batch:
+
+```text
+ACTIVE repair candidates must be unexpired (expiresAt > now)
+ACTIVE expired invitations are not selected as email-intent repair candidates
+ACTIVE unexpired invitations with a current-recipient REVIEW_INVITATION intent are not selected
+ACTIVE unexpired invitations with no REVIEW_INVITATION intent are prioritized
+ACTIVE unexpired invitations with only stale-recipient REVIEW_INVITATION intent are selected
+the final scheduler work set remains capped at 500 Reservation candidates per run
+```
 
 The cron result JSON is safe and contains only counts/timestamps:
 
@@ -129,6 +153,14 @@ decrypted token hash matches accessTokenHash
 Terminal delivery behavior:
 
 ```text
+relation/data-integrity mismatch
+  -> SKIPPED EMAIL_REVIEW_INVITATION_RELATION_MISMATCH
+  -> ReviewInvitation is not mutated
+  -> no CANCELLED
+  -> no EXPIRED
+  -> encrypted token remains unchanged
+  -> no provider call
+
 overdue ACTIVE invitation
   -> converge EXPIRED
   -> clear encrypted token
@@ -153,6 +185,10 @@ missing/corrupt encrypted token
 
 Retryable provider failure leaves the ReviewInvitation ACTIVE, schedules the existing bounded email
 retry and reuses the same token/URL on retry.
+
+`convergeDeliveryTerminalState()` mutates a ReviewInvitation only after the
+EmailNotification/ReviewInvitation/Reservation relation has already been validated as coherent.
+A corrupt notification cannot cancel, expire or clear token material from an unrelated invitation.
 
 ## Email Privacy Boundary
 
@@ -209,6 +245,21 @@ is part of `cronJobSlugs` and the registry.
 
 No Production scheduler registration is introduced in E.4.
 
+## Shared-Test Staging Boundary
+
+No real shared-Test guest review invitation email was sent during E.4 validation.
+
+Until Final-E.5 is deployed and accepted, do not manually execute this shared-Test sequence against
+real guest recipients:
+
+```text
+SCHEDULE_REVIEW_INVITATIONS
++
+PROCESS_EMAIL_NOTIFICATIONS
+```
+
+Fake-provider and local-safe validation remain allowed.
+
 ## Explicitly Not Implemented
 
 Final-E.4 does not include:
@@ -249,9 +300,13 @@ ReviewInvitation + REVIEW_INVITATION intent atomic creation
 email-intent failure rollback
 P2034 whole-transaction retry
 sequential replay idempotency
+concurrent email-intent convergence without P2002 leakage
 existing ACTIVE invitation repair without token rotation
 scheduler recent-candidate creation
 older ACTIVE invitation repair beyond the seven-day creation window
+expired ACTIVE invitation exclusion from email-intent repair discovery
+already-covered current-recipient invitation exclusion from repair discovery
+missing-intent and stale-recipient repair prioritization
 terminal invitation non-reissue
 ES/EN email template output and private URL
 delivery success and SENT transition
@@ -260,6 +315,7 @@ retry using the same token/URL
 expired invitation EXPIRED convergence and SKIPPED notification
 business-ineligible invitation CANCELLED convergence and SKIPPED notification
 recipient-change SKIPPED behavior with ACTIVE invitation preserved
+relation-integrity mismatch SKIPPED behavior without mutating unrelated invitations
 missing/corrupt encrypted token safe SKIPPED behavior
 processEmailNotifications REVIEW_INVITATION routing
 cron registry, scheduled route, vercel.json empty crons, missing final-e:validate, and no E.5/E.6 routes
@@ -271,7 +327,7 @@ Executed validation for this E.4 implementation:
 
 ```text
 npx tsx --tsconfig tests/final-e/tsconfig.json tests/final-e/run.ts
-PASS - Final-E targeted validation 33/33.
+PASS - Final-E targeted validation 35/35.
 
 npm run final-a:validate
 PASS - 44/44.
