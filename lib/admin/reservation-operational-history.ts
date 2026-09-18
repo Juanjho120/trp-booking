@@ -142,6 +142,25 @@ const refundHistorySelect = {
       email: true,
     },
   },
+  payment: {
+    select: {
+      guestPaymentRequestId: true,
+    },
+  },
+  additionalChargeAllocations: {
+    select: {
+      additionalChargeId: true,
+      allocatedAmount: true,
+      additionalCharge: {
+        select: {
+          category: true,
+          description: true,
+          status: true,
+        },
+      },
+    },
+    orderBy: { createdAt: "asc" as const },
+  },
 } satisfies Prisma.RefundSelect;
 
 type RefundHistoryRecord = Prisma.RefundGetPayload<{
@@ -280,6 +299,7 @@ function createEvent(
     originalCheckOutDate?: Date | null;
     requestedCheckInDate?: Date | null;
     requestedCheckOutDate?: Date | null;
+    additionalChargeAllocations?: AdminReservationOperationalHistoryEvent["additionalChargeAllocations"];
   }>,
 ): AdminReservationOperationalHistoryEvent {
   return {
@@ -322,6 +342,7 @@ function createEvent(
     requestedCheckOutDate: input.requestedCheckOutDate
       ? dateOnlyFromDate(input.requestedCheckOutDate)
       : null,
+    additionalChargeAllocations: input.additionalChargeAllocations ?? [],
   };
 }
 
@@ -648,7 +669,25 @@ function refundRelations(
   return [
     ...relation("PAYMENT", refund.paymentId),
     ...relation("LIFECYCLE_REQUEST", refund.lifecycleRequestId),
+    ...relation("GUEST_PAYMENT_REQUEST", refund.payment.guestPaymentRequestId),
+    ...refund.additionalChargeAllocations.map((allocation) => ({
+      kind: "ADDITIONAL_CHARGE" as const,
+      id: allocation.additionalChargeId,
+    })),
   ];
+}
+
+function refundAdditionalChargeAllocations(
+  refund: RefundHistoryRecord,
+): AdminReservationOperationalHistoryEvent["additionalChargeAllocations"] {
+  return refund.additionalChargeAllocations.map((allocation) => ({
+    additionalChargeId: allocation.additionalChargeId,
+    category: allocation.additionalCharge.category,
+    description: allocation.additionalCharge.description,
+    allocatedAmount: allocation.allocatedAmount.toFixed(2),
+    currency: refund.currency,
+    resultingStatus: allocation.additionalCharge.status,
+  }));
 }
 
 function refundBase(refund: RefundHistoryRecord) {
@@ -661,6 +700,7 @@ function refundBase(refund: RefundHistoryRecord) {
     refundAuthorizationType: refund.authorizationType,
     refundOperationKey: refund.refundOperationKey,
     providerReference: refund.providerRefundId,
+    additionalChargeAllocations: refundAdditionalChargeAllocations(refund),
   };
 }
 

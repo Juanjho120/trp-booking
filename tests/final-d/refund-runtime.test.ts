@@ -2,6 +2,9 @@ import assert from "node:assert/strict";
 
 import {
   AdditionalChargeStatus,
+  EmailNotificationOrigin,
+  EmailNotificationStatus,
+  EmailNotificationType,
   GuestPaymentRequestStatus,
   PaymentPurpose,
   PaymentStatus,
@@ -124,6 +127,19 @@ type D5AuditLog = {
   metadata: Prisma.InputJsonValue | null;
 };
 
+type D5EmailNotification = {
+  id: string;
+  reservationId: string;
+  refundId: string | null;
+  guestPaymentRequestId: string | null;
+  type: EmailNotificationType;
+  recipient: string;
+  locale: string;
+  deduplicationKey: string;
+  origin: EmailNotificationOrigin;
+  status: EmailNotificationStatus;
+};
+
 type D5State = {
   reservations: D5Reservation[];
   charges: D5Charge[];
@@ -135,6 +151,7 @@ type D5State = {
   users: D5User[];
   auditLogs: D5AuditLog[];
   emailNotificationIds: string[];
+  emailNotifications: D5EmailNotification[];
   nextRefundSequence: number;
   nextAllocationSequence: number;
   inTransaction: boolean;
@@ -201,6 +218,9 @@ function cloneState(state: D5State): D5State {
     users: state.users.map((user) => ({ ...user })),
     auditLogs: cloneJson(state.auditLogs),
     emailNotificationIds: [...state.emailNotificationIds],
+    emailNotifications: state.emailNotifications.map((notification) => ({
+      ...notification,
+    })),
     nextRefundSequence: state.nextRefundSequence,
     nextAllocationSequence: state.nextAllocationSequence,
     inTransaction: state.inTransaction,
@@ -285,6 +305,7 @@ function baseD5State(
     users: [],
     auditLogs: [],
     emailNotificationIds: [],
+    emailNotifications: [],
     nextRefundSequence: 1,
     nextAllocationSequence: 1,
     inTransaction: false,
@@ -765,6 +786,40 @@ function installD5Prisma(state: D5State): D5Store {
         return store.current.auditLogs.at(-1) ?? null;
       },
     },
+    emailNotification: {
+      async findUnique(args: { where: Record<string, unknown> }) {
+        return (
+          store.current.emailNotifications.find(
+            (notification) =>
+              (maybeString(args.where.id) &&
+                notification.id === args.where.id) ||
+              (maybeString(args.where.deduplicationKey) &&
+                notification.deduplicationKey ===
+                  args.where.deduplicationKey),
+          ) ?? null
+        );
+      },
+      async create(args: { data: Record<string, unknown> }) {
+        const notification: D5EmailNotification = {
+          id: `email-notification-${store.current.emailNotifications.length + 1}`,
+          reservationId: String(args.data.reservationId),
+          refundId: maybeString(args.data.refundId) ?? null,
+          guestPaymentRequestId:
+            maybeString(args.data.guestPaymentRequestId) ?? null,
+          type: args.data.type as EmailNotificationType,
+          recipient: String(args.data.recipient),
+          locale: String(args.data.locale),
+          deduplicationKey: String(args.data.deduplicationKey),
+          origin: args.data.origin as EmailNotificationOrigin,
+          status: args.data.status as EmailNotificationStatus,
+        };
+
+        store.current.emailNotifications.push(notification);
+        store.current.emailNotificationIds.push(notification.id);
+
+        return notification;
+      },
+    },
   };
 
   Object.assign(prisma as unknown as object, client);
@@ -787,6 +842,8 @@ function ensureD5Env(): void {
   process.env.TILOPAY_API_KEY = "final-d5-api-key";
   process.env.TILOPAY_API_USER = "final-d5-api-user";
   process.env.TILOPAY_API_PASSWORD = "final-d5-api-password";
+  process.env.EMAIL_ADMIN_RECIPIENTS = "admin.final-d5@juantzun.dev";
+  process.env.EMAIL_ADMIN_LOCALE = "es";
 }
 
 function refundInput(
@@ -1123,6 +1180,13 @@ test("D.5 runtime reconciliation updates ancillary payment and charge state with
   assert.equal(partialResult.paymentStatus, PaymentStatus.PARTIALLY_REFUNDED);
   assert.equal(store.current.payments[0]?.status, PaymentStatus.PARTIALLY_REFUNDED);
   assert.equal(store.current.charges[0]?.status, AdditionalChargeStatus.PARTIALLY_REFUNDED);
+  assert.deepEqual(
+    store.current.emailNotifications.map((notification) => notification.type),
+    [
+      EmailNotificationType.ADDITIONAL_CHARGE_REFUND_PROCESSED,
+      EmailNotificationType.ADMIN_ADDITIONAL_CHARGE_REFUND_PROCESSED,
+    ],
+  );
 
   const full = await createAdminRefundAuthorization(
     refundInput(store, {
@@ -1172,7 +1236,23 @@ test("D.5 runtime reconciliation updates ancillary payment and charge state with
   assert.equal(replay.alreadyProcessed, true);
   assert.equal(store.current.payments[0]?.status, PaymentStatus.REFUNDED);
   assert.equal(store.current.charges[0]?.status, AdditionalChargeStatus.REFUNDED);
-  assert.equal(store.current.emailNotificationIds.length, 0);
+  assert.equal(store.current.emailNotificationIds.length, 4);
+  assert.equal(
+    store.current.emailNotifications.filter(
+      (notification) =>
+        notification.type ===
+        EmailNotificationType.ADDITIONAL_CHARGE_REFUND_PROCESSED,
+    ).length,
+    2,
+  );
+  assert.equal(
+    store.current.emailNotifications.filter(
+      (notification) =>
+        notification.type ===
+        EmailNotificationType.ADMIN_ADDITIONAL_CHARGE_REFUND_PROCESSED,
+    ).length,
+    2,
+  );
   assert.equal(store.current.reservations[0]?.status, ReservationStatus.CONFIRMED);
   assert.equal(store.current.reservations[0]?.total.toFixed(2), "390.00");
 });
@@ -1257,5 +1337,5 @@ test("D.5 runtime reconciliation handles multi-charge and failed outcomes indepe
   assert.equal(store.current.refunds[1]?.status, RefundStatus.FAILED);
   assert.equal(store.current.charges[1]?.status, AdditionalChargeStatus.PARTIALLY_REFUNDED);
   assert.equal(store.current.payments[0]?.status, PaymentStatus.PARTIALLY_REFUNDED);
-  assert.equal(store.current.emailNotificationIds.length, 0);
+  assert.equal(store.current.emailNotificationIds.length, 2);
 });

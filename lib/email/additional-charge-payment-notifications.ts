@@ -1,29 +1,46 @@
 import {
   AdditionalChargeStatus,
-  EmailNotificationOrigin,
   EmailNotificationStatus,
   EmailNotificationType,
   GuestPaymentRequestStatus,
   PaymentPurpose,
   PaymentStatus,
   Prisma,
+  RefundAuthorizationType,
+  RefundStatus,
   ReservationStatus,
 } from "@prisma/client";
-import { z } from "zod";
 
 import {
+  buildAdditionalChargeAdminPaymentApprovedEmail,
+  buildAdditionalChargeAdminPaymentRequiredEmail,
+  buildAdditionalChargeAdminRefundProcessedEmail,
+  buildAdditionalChargePaymentApprovedEmail,
   buildAdditionalChargePaymentRequiredEmail,
+  buildAdditionalChargeRefundProcessedEmail,
   EmailTemplateDataError,
 } from "@/emails";
 import { prisma } from "@/lib/db/prisma";
 import { getEmailEnv } from "@/lib/env/server";
+import {
+  additionalChargeNotificationTypeValues,
+  buildAdditionalChargePaymentRequiredNotificationKey,
+  createAdditionalChargePaymentRequiredNotificationIntent,
+} from "@/lib/email/additional-charge-notification-intents";
 import { buildGuestPaymentRequestPaymentPath } from "@/lib/payments/guest-payment-request-link";
 import {
   decryptGuestPaymentRequestAccessToken,
   hashGuestPaymentRequestAccessToken,
 } from "@/lib/payments/guest-payment-request-token";
-import type { AdditionalChargePaymentRequiredEmailTemplateInput } from "@/types/additional-charge-email-template";
 import type { AdditionalChargeCategory } from "@/types/additional-charge";
+import type {
+  AdditionalChargeAdminPaymentApprovedEmailTemplateInput,
+  AdditionalChargeAdminPaymentRequiredEmailTemplateInput,
+  AdditionalChargeAdminRefundProcessedEmailTemplateInput,
+  AdditionalChargePaymentApprovedEmailTemplateInput,
+  AdditionalChargePaymentRequiredEmailTemplateInput,
+  AdditionalChargeRefundProcessedEmailTemplateInput,
+} from "@/types/additional-charge-email-template";
 import type { EmailProvider } from "@/types/email-provider";
 import type {
   ClaimedEmailNotificationDeliveryOutcome,
@@ -31,6 +48,7 @@ import type {
   EmailNotificationDeliveryErrorCode,
   ImmediateEmailDeliverySummary,
 } from "@/types/email-notification";
+import type { TransactionalEmailContent } from "@/types/email-template";
 
 import { EmailProviderError } from "./provider";
 import { createResendEmailProvider } from "./resend-provider";
@@ -39,16 +57,9 @@ import {
   EMAIL_NOTIFICATION_MAX_ATTEMPTS,
 } from "./retry-policy";
 
-const notificationTypeValues = [
-  EmailNotificationType.ADDITIONAL_CHARGE_PAYMENT_REQUIRED,
-] as const;
+const notificationTypeValues = additionalChargeNotificationTypeValues;
 const TRP_CURRENCY = "USD";
-const recipientSchema = z
-  .string()
-  .trim()
-  .email()
-  .max(160)
-  .transform((value) => value.toLowerCase());
+const completedRefundStatuses = [RefundStatus.APPROVED, RefundStatus.MANUAL] as const;
 
 type DeliveryErrorCode =
   | EmailNotificationDeliveryErrorCode
@@ -79,7 +90,7 @@ const SAFE_ERROR_MESSAGES = {
   EMAIL_ARRIVAL_INSTRUCTIONS_DISABLED:
     "Arrival instructions are no longer enabled for this accommodation.",
   EMAIL_ADDITIONAL_CHARGE_PAYMENT_SUPERSEDED:
-    "The additional-charge payment request is no longer payable.",
+    "The additional-charge payment evidence is no longer deliverable.",
   EMAIL_NOTIFICATION_UNEXPECTED_ERROR:
     "The email notification could not be delivered.",
 } as const satisfies Readonly<Record<DeliveryErrorCode, string>>;
@@ -140,6 +151,7 @@ const claimedSelect = {
   id: true,
   reservationId: true,
   guestPaymentRequestId: true,
+  refundId: true,
   type: true,
   recipient: true,
   locale: true,
@@ -155,6 +167,14 @@ const claimedSelect = {
       accessTokenHash: true,
       accessTokenEncrypted: true,
       expiresAt: true,
+      paidAt: true,
+      createdAt: true,
+      createdByAdmin: {
+        select: {
+          name: true,
+          email: true,
+        },
+      },
       reservation: {
         select: {
           id: true,
@@ -194,11 +214,73 @@ const claimedSelect = {
       },
       payment: {
         select: {
+          id: true,
           purpose: true,
           status: true,
           amount: true,
           currency: true,
+          providerReference: true,
+          paidAt: true,
         },
+      },
+    },
+  },
+  refund: {
+    select: {
+      id: true,
+      paymentId: true,
+      authorizationType: true,
+      status: true,
+      amount: true,
+      currency: true,
+      processingMode: true,
+      providerRefundId: true,
+      reason: true,
+      approvedAt: true,
+      requestedByAdmin: {
+        select: {
+          name: true,
+          email: true,
+        },
+      },
+      payment: {
+        select: {
+          id: true,
+          purpose: true,
+          status: true,
+          amount: true,
+          currency: true,
+          guestPaymentRequestId: true,
+          reservationId: true,
+        },
+      },
+      additionalChargeAllocations: {
+        select: {
+          additionalChargeId: true,
+          allocatedAmount: true,
+          additionalCharge: {
+            select: {
+              id: true,
+              category: true,
+              description: true,
+              amount: true,
+              currency: true,
+              status: true,
+              refundAllocations: {
+                where: {
+                  refund: {
+                    authorizationType: RefundAuthorizationType.ADDITIONAL_CHARGE,
+                    status: { in: [...completedRefundStatuses] },
+                  },
+                },
+                select: {
+                  allocatedAmount: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: { createdAt: "asc" as const },
       },
     },
   },
@@ -218,85 +300,6 @@ export function isAdditionalChargePaymentNotificationType(
 
 function normalizeLocale(value: string): "es" | "en" {
   return value === "en" ? "en" : "es";
-}
-
-function normalizeRecipient(value: string): string {
-  const parsed = recipientSchema.safeParse(value);
-  if (!parsed.success) {
-    throw new AdditionalChargePaymentEmailDeliveryError(
-      "EMAIL_NOTIFICATION_DATA_INCOMPLETE",
-      false,
-    );
-  }
-  return parsed.data;
-}
-
-export function buildAdditionalChargePaymentRequiredNotificationKey(
-  requestId: string,
-  recipient: string,
-): string {
-  return `additional-charge-payment-required/${requestId.trim()}/${normalizeRecipient(
-    recipient,
-  )}`;
-}
-
-export async function createAdditionalChargePaymentRequiredNotificationIntent(
-  transaction: Prisma.TransactionClient,
-  input: Readonly<{
-    reservationId: string;
-    guestPaymentRequestId: string;
-    recipient: string;
-    locale: "es" | "en";
-  }>,
-): Promise<Readonly<{ id: string; created: boolean }>> {
-  const recipient = normalizeRecipient(input.recipient);
-  const deduplicationKey = buildAdditionalChargePaymentRequiredNotificationKey(
-    input.guestPaymentRequestId,
-    recipient,
-  );
-  const existing = await transaction.emailNotification.findUnique({
-    where: { deduplicationKey },
-    select: {
-      id: true,
-      reservationId: true,
-      guestPaymentRequestId: true,
-      type: true,
-      recipient: true,
-      locale: true,
-    },
-  });
-
-  if (existing) {
-    if (
-      existing.reservationId !== input.reservationId ||
-      existing.guestPaymentRequestId !== input.guestPaymentRequestId ||
-      existing.type !== EmailNotificationType.ADDITIONAL_CHARGE_PAYMENT_REQUIRED ||
-      existing.recipient !== recipient ||
-      existing.locale !== input.locale
-    ) {
-      throw new TypeError(
-        "Additional-charge notification deduplication conflict.",
-      );
-    }
-
-    return { id: existing.id, created: false };
-  }
-
-  const notification = await transaction.emailNotification.create({
-    data: {
-      reservationId: input.reservationId,
-      guestPaymentRequestId: input.guestPaymentRequestId,
-      type: EmailNotificationType.ADDITIONAL_CHARGE_PAYMENT_REQUIRED,
-      recipient,
-      locale: input.locale,
-      deduplicationKey,
-      origin: EmailNotificationOrigin.AUTOMATIC,
-      status: EmailNotificationStatus.PENDING,
-    },
-    select: { id: true },
-  });
-
-  return { id: notification.id, created: true };
 }
 
 function assertRequestIntegrity(
@@ -491,15 +494,33 @@ function buildPaymentUrl(rawToken: string, publicBaseUrl: string): string {
   ).toString();
 }
 
-async function buildContent(
+function reservationInput(request: NonNullable<ClaimedNotification["guestPaymentRequest"]>) {
+  return {
+    id: request.reservation.id,
+    guestName: request.reservation.guestName,
+    guestEmail: request.reservation.guestEmail,
+    preferredLocale: normalizeLocale(request.reservation.preferredLocale),
+    propertyNameEs: request.reservation.property.nameEs,
+    propertyNameEn: request.reservation.property.nameEn,
+    currency: request.reservation.currency,
+  } as const;
+}
+
+function requestItems(
+  request: NonNullable<ClaimedNotification["guestPaymentRequest"]>,
+) {
+  return request.items.map((item) => ({
+    category: item.categorySnapshot as AdditionalChargeCategory,
+    description: item.descriptionSnapshot,
+    amount: item.amountSnapshot.toFixed(2),
+    currency: item.currencySnapshot,
+    status: item.additionalCharge.status,
+  }));
+}
+
+function assertNotificationRequest(
   notification: ClaimedNotification,
-  publicBaseUrl: string,
-  brandLogoUrl: string,
-  now: Date,
-): Promise<Readonly<{
-  content: Awaited<ReturnType<typeof buildAdditionalChargePaymentRequiredEmail>>;
-  locale: "es" | "en";
-}>> {
+) {
   const request = notification.guestPaymentRequest;
 
   if (
@@ -514,6 +535,17 @@ async function buildContent(
     );
   }
 
+  return request;
+}
+
+async function buildPendingGuestContent(
+  notification: ClaimedNotification,
+  publicBaseUrl: string,
+  brandLogoUrl: string,
+  now: Date,
+): Promise<TransactionalEmailContent> {
+  const request = assertNotificationRequest(notification);
+
   await expireOverdueRequest(request, now);
   const rawToken = validateAdditionalChargePaymentRequestEmailEligibility(
     request,
@@ -524,34 +556,331 @@ async function buildContent(
     locale,
     publicBaseUrl,
     brandLogoUrl,
-    reservation: {
-      id: request.reservation.id,
-      guestName: request.reservation.guestName,
-      guestEmail: request.reservation.guestEmail,
-      preferredLocale: normalizeLocale(request.reservation.preferredLocale),
-      propertyNameEs: request.reservation.property.nameEs,
-      propertyNameEn: request.reservation.property.nameEn,
-      currency: request.reservation.currency,
-    },
+    reservation: reservationInput(request),
     paymentRequest: {
       id: request.id,
       totalAmount: request.totalAmount.toFixed(2),
       currency: request.currency,
       expiresAt: request.expiresAt.toISOString(),
       paymentUrl: buildPaymentUrl(rawToken, publicBaseUrl),
-      items: request.items.map((item) => ({
-        category: item.categorySnapshot as AdditionalChargeCategory,
-        description: item.descriptionSnapshot,
-        amount: item.amountSnapshot.toFixed(2),
-        currency: item.currencySnapshot,
-      })),
+      items: requestItems(request),
     },
   };
 
-  return {
-    content: await buildAdditionalChargePaymentRequiredEmail(input),
+  return buildAdditionalChargePaymentRequiredEmail(input);
+}
+
+async function buildPendingAdminContent(
+  notification: ClaimedNotification,
+  publicBaseUrl: string,
+  brandLogoUrl: string,
+): Promise<TransactionalEmailContent> {
+  const request = assertNotificationRequest(notification);
+  const locale = normalizeLocale(notification.locale);
+  const input: AdditionalChargeAdminPaymentRequiredEmailTemplateInput = {
     locale,
+    publicBaseUrl,
+    brandLogoUrl,
+    reservation: {
+      ...reservationInput(request),
+      preferredLocale: locale,
+    },
+    paymentRequest: {
+      id: request.id,
+      totalAmount: request.totalAmount.toFixed(2),
+      currency: request.currency,
+      createdAt: request.createdAt.toISOString(),
+      expiresAt: request.expiresAt.toISOString(),
+      status: request.status,
+      createdByAdminName: request.createdByAdmin.name,
+      createdByAdminEmail: request.createdByAdmin.email,
+      intendedGuestRecipient: request.reservation.guestEmail,
+      items: requestItems(request),
+    },
   };
+
+  return buildAdditionalChargeAdminPaymentRequiredEmail(input);
+}
+
+async function buildPaymentApprovedGuestContent(
+  notification: ClaimedNotification,
+  publicBaseUrl: string,
+  brandLogoUrl: string,
+): Promise<TransactionalEmailContent> {
+  const request = assertNotificationRequest(notification);
+  const payment = request.payment;
+
+  if (
+    request.status !== GuestPaymentRequestStatus.PAID ||
+    !request.paidAt ||
+    !payment ||
+    payment.purpose !== PaymentPurpose.ADDITIONAL_CHARGE ||
+    payment.currency !== request.currency ||
+    payment.amount.comparedTo(request.totalAmount) !== 0
+  ) {
+    throw new AdditionalChargePaymentEmailDeliveryError(
+      "EMAIL_ADDITIONAL_CHARGE_PAYMENT_SUPERSEDED",
+      false,
+    );
+  }
+
+  const locale = normalizeLocale(notification.locale);
+  const input: AdditionalChargePaymentApprovedEmailTemplateInput = {
+    locale,
+    publicBaseUrl,
+    brandLogoUrl,
+    reservation: reservationInput(request),
+    payment: {
+      paidAt: (payment.paidAt ?? request.paidAt).toISOString(),
+      totalAmount: request.totalAmount.toFixed(2),
+      currency: request.currency,
+      items: requestItems(request),
+    },
+  };
+
+  return buildAdditionalChargePaymentApprovedEmail(input);
+}
+
+async function buildPaymentApprovedAdminContent(
+  notification: ClaimedNotification,
+  publicBaseUrl: string,
+  brandLogoUrl: string,
+): Promise<TransactionalEmailContent> {
+  const request = assertNotificationRequest(notification);
+  const payment = request.payment;
+
+  if (
+    request.status !== GuestPaymentRequestStatus.PAID ||
+    !request.paidAt ||
+    !payment ||
+    payment.purpose !== PaymentPurpose.ADDITIONAL_CHARGE ||
+    payment.currency !== request.currency ||
+    payment.amount.comparedTo(request.totalAmount) !== 0
+  ) {
+    throw new AdditionalChargePaymentEmailDeliveryError(
+      "EMAIL_ADDITIONAL_CHARGE_PAYMENT_SUPERSEDED",
+      false,
+    );
+  }
+
+  const locale = normalizeLocale(notification.locale);
+  const input: AdditionalChargeAdminPaymentApprovedEmailTemplateInput = {
+    locale,
+    publicBaseUrl,
+    brandLogoUrl,
+    reservation: {
+      ...reservationInput(request),
+      preferredLocale: locale,
+    },
+    paymentRequest: {
+      id: request.id,
+      status: request.status,
+    },
+    payment: {
+      id: payment.id,
+      providerReference: payment.providerReference,
+      paidAt: (payment.paidAt ?? request.paidAt).toISOString(),
+      status: payment.status,
+      totalAmount: request.totalAmount.toFixed(2),
+      currency: request.currency,
+      items: requestItems(request),
+    },
+  };
+
+  return buildAdditionalChargeAdminPaymentApprovedEmail(input);
+}
+
+function refundAllocations(refund: NonNullable<ClaimedNotification["refund"]>) {
+  return refund.additionalChargeAllocations.map((allocation) => {
+    const approvedTotal = allocation.additionalCharge.refundAllocations.reduce(
+      (total, approvedAllocation) =>
+        total.add(approvedAllocation.allocatedAmount),
+      new Prisma.Decimal(0),
+    );
+    const remaining = allocation.additionalCharge.amount.sub(approvedTotal);
+
+    return {
+      additionalChargeId: allocation.additionalChargeId,
+      category: allocation.additionalCharge.category,
+      description: allocation.additionalCharge.description,
+      originalAmount: allocation.additionalCharge.amount.toFixed(2),
+      allocatedAmount: allocation.allocatedAmount.toFixed(2),
+      cumulativeRefundedAmount: approvedTotal.toFixed(2),
+      remainingAmount: remaining.greaterThan(0) ? remaining.toFixed(2) : "0.00",
+      currency: allocation.additionalCharge.currency,
+      resultingStatus: allocation.additionalCharge.status,
+    };
+  });
+}
+
+function assertRefundNotification(
+  notification: ClaimedNotification,
+) {
+  const request = assertNotificationRequest(notification);
+  const refund = notification.refund;
+
+  if (
+    !refund ||
+    !notification.refundId ||
+    notification.refundId !== refund.id ||
+    refund.authorizationType !== RefundAuthorizationType.ADDITIONAL_CHARGE ||
+    refund.status !== RefundStatus.APPROVED ||
+    !refund.approvedAt ||
+    refund.currency !== request.currency ||
+    refund.payment.purpose !== PaymentPurpose.ADDITIONAL_CHARGE ||
+    refund.payment.guestPaymentRequestId !== request.id ||
+    refund.payment.reservationId !== request.reservationId ||
+    refund.additionalChargeAllocations.length === 0
+  ) {
+    throw new AdditionalChargePaymentEmailDeliveryError(
+      "EMAIL_ADDITIONAL_CHARGE_PAYMENT_SUPERSEDED",
+      false,
+    );
+  }
+
+  return { request, refund };
+}
+
+async function buildRefundProcessedGuestContent(
+  notification: ClaimedNotification,
+  publicBaseUrl: string,
+  brandLogoUrl: string,
+): Promise<TransactionalEmailContent> {
+  const { request, refund } = assertRefundNotification(notification);
+  const locale = normalizeLocale(notification.locale);
+  const input: AdditionalChargeRefundProcessedEmailTemplateInput = {
+    locale,
+    publicBaseUrl,
+    brandLogoUrl,
+    reservation: reservationInput(request),
+    refund: {
+      id: refund.id,
+      totalAmount: refund.amount.toFixed(2),
+      currency: refund.currency,
+      approvedAt: refund.approvedAt!.toISOString(),
+      allocations: refundAllocations(refund),
+    },
+  };
+
+  return buildAdditionalChargeRefundProcessedEmail(input);
+}
+
+async function buildRefundProcessedAdminContent(
+  notification: ClaimedNotification,
+  publicBaseUrl: string,
+  brandLogoUrl: string,
+): Promise<TransactionalEmailContent> {
+  const { request, refund } = assertRefundNotification(notification);
+  const locale = normalizeLocale(notification.locale);
+  const input: AdditionalChargeAdminRefundProcessedEmailTemplateInput = {
+    locale,
+    publicBaseUrl,
+    brandLogoUrl,
+    reservation: {
+      ...reservationInput(request),
+      preferredLocale: locale,
+    },
+    guestPaymentRequestId: request.id,
+    refund: {
+      id: refund.id,
+      paymentId: refund.paymentId,
+      paymentStatus: refund.payment.status,
+      processingMode: refund.processingMode,
+      providerRefundId: refund.providerRefundId,
+      reason: refund.reason,
+      requestedByAdminName: refund.requestedByAdmin?.name ?? null,
+      requestedByAdminEmail: refund.requestedByAdmin?.email ?? null,
+      totalAmount: refund.amount.toFixed(2),
+      currency: refund.currency,
+      approvedAt: refund.approvedAt!.toISOString(),
+      allocations: refundAllocations(refund),
+    },
+  };
+
+  return buildAdditionalChargeAdminRefundProcessedEmail(input);
+}
+
+async function buildContent(
+  notification: ClaimedNotification,
+  publicBaseUrl: string,
+  brandLogoUrl: string,
+  now: Date,
+): Promise<Readonly<{
+  content: TransactionalEmailContent;
+  locale: "es" | "en";
+  audience: "guest" | "admin";
+}>> {
+  const type = notification.type;
+  const locale = normalizeLocale(notification.locale);
+
+  switch (type) {
+    case EmailNotificationType.ADDITIONAL_CHARGE_PAYMENT_REQUIRED:
+      return {
+        content: await buildPendingGuestContent(
+          notification,
+          publicBaseUrl,
+          brandLogoUrl,
+          now,
+        ),
+        locale,
+        audience: "guest",
+      };
+    case EmailNotificationType.ADMIN_ADDITIONAL_CHARGE_PAYMENT_REQUIRED:
+      return {
+        content: await buildPendingAdminContent(
+          notification,
+          publicBaseUrl,
+          brandLogoUrl,
+        ),
+        locale,
+        audience: "admin",
+      };
+    case EmailNotificationType.ADDITIONAL_CHARGE_PAYMENT_APPROVED:
+      return {
+        content: await buildPaymentApprovedGuestContent(
+          notification,
+          publicBaseUrl,
+          brandLogoUrl,
+        ),
+        locale,
+        audience: "guest",
+      };
+    case EmailNotificationType.ADMIN_ADDITIONAL_CHARGE_PAYMENT_APPROVED:
+      return {
+        content: await buildPaymentApprovedAdminContent(
+          notification,
+          publicBaseUrl,
+          brandLogoUrl,
+        ),
+        locale,
+        audience: "admin",
+      };
+    case EmailNotificationType.ADDITIONAL_CHARGE_REFUND_PROCESSED:
+      return {
+        content: await buildRefundProcessedGuestContent(
+          notification,
+          publicBaseUrl,
+          brandLogoUrl,
+        ),
+        locale,
+        audience: "guest",
+      };
+    case EmailNotificationType.ADMIN_ADDITIONAL_CHARGE_REFUND_PROCESSED:
+      return {
+        content: await buildRefundProcessedAdminContent(
+          notification,
+          publicBaseUrl,
+          brandLogoUrl,
+        ),
+        locale,
+        audience: "admin",
+      };
+    default:
+      throw new AdditionalChargePaymentEmailDeliveryError(
+        "EMAIL_NOTIFICATION_UNSUPPORTED_TYPE",
+        false,
+      );
+  }
 }
 
 function normalizeError(error: unknown): AdditionalChargePaymentEmailDeliveryError {
@@ -671,7 +1000,7 @@ export async function deliverClaimedAdditionalChargePaymentEmailNotification(
   if (!notification) return { outcome: "skipped", retryScheduled: false };
 
   try {
-    const { content, locale } = await buildContent(
+    const { content, locale, audience } = await buildContent(
       notification,
       input.publicBaseUrl,
       input.brandLogoUrl,
@@ -679,7 +1008,7 @@ export async function deliverClaimedAdditionalChargePaymentEmailNotification(
     );
     const sent = await input.provider.send({
       intendedRecipient: notification.recipient,
-      audience: "guest",
+      audience,
       locale,
       subject: content.subject,
       html: content.html,
@@ -791,4 +1120,8 @@ export async function deliverAdditionalChargePaymentNotificationsBestEffort(
   };
 }
 
+export {
+  buildAdditionalChargePaymentRequiredNotificationKey,
+  createAdditionalChargePaymentRequiredNotificationIntent,
+};
 export const additionalChargePaymentNotificationTypes = notificationTypeValues;

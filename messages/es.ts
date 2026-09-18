@@ -1603,6 +1603,16 @@ export const esMessages = {
             "Pago requerido para extensión",
           ADDITIONAL_CHARGE_PAYMENT_REQUIRED:
             "Pago requerido por cargo adicional",
+          ADMIN_ADDITIONAL_CHARGE_PAYMENT_REQUIRED:
+            "Pago requerido por cargo adicional para administración",
+          ADDITIONAL_CHARGE_PAYMENT_APPROVED:
+            "Pago recibido por cargo adicional",
+          ADMIN_ADDITIONAL_CHARGE_PAYMENT_APPROVED:
+            "Pago recibido por cargo adicional para administración",
+          ADDITIONAL_CHARGE_REFUND_PROCESSED:
+            "Reembolso procesado por cargo adicional",
+          ADMIN_ADDITIONAL_CHARGE_REFUND_PROCESSED:
+            "Reembolso procesado por cargo adicional para administración",
           ADMIN_DATE_CHANGE_PAYMENT_LINK_DELIVERY_STATUS:
             "Resultado del correo de pago para cambio de fechas",
           ADMIN_STAY_EXTENSION_PAYMENT_LINK_DELIVERY_STATUS:
@@ -1702,6 +1712,11 @@ export const esMessages = {
           providerReference: "Referencia segura del proveedor",
           originalDates: "Fechas originales",
           requestedDates: "Fechas solicitadas",
+          allocations: "Asignaciones de cargos adicionales",
+          allocationCategory: "Categoría",
+          allocationDescription: "Descripción",
+          allocationAmount: "Monto asignado",
+          allocationStatus: "Estado resultante",
         },
         actor: {
           system: "Sistema",
@@ -1720,6 +1735,7 @@ export const esMessages = {
           PAYMENT: "Pago relacionado",
           REFUND: "Reembolso relacionado",
           GUEST_PAYMENT_REQUEST: "Solicitud de pago adicional",
+          ADDITIONAL_CHARGE: "Cargo adicional relacionado",
           PARENT_NOTIFICATION: "Notificación original",
           SOURCE_NOTIFICATION: "Notificación fuente",
         },
@@ -1759,6 +1775,14 @@ export const esMessages = {
           EXTRAORDINARY: "Extraordinario",
           LIFECYCLE_ADJUSTMENT: "Ajuste de estadía",
           ADDITIONAL_CHARGE: "Cargo adicional",
+        },
+        additionalChargeCategories: {
+          CLEANING: "Limpieza adicional",
+          DAMAGE: "Daños",
+          TRANSPORT: "Transporte",
+          LATE_CHECKOUT: "Salida tardía",
+          EXTRA_SERVICE: "Servicio adicional",
+          OTHER: "Otro",
         },
         events: {
           RESERVATION_CREATED: {
@@ -3365,6 +3389,112 @@ export const esMessages = {
         EXTRA_SERVICE: "Servicio adicional",
         OTHER: "Otro",
       },
+    },
+    adminAdditionalChargePaymentRequired: {
+      subjectPrefix: "Pago pendiente por cargo adicional",
+      preview: "Se creó una solicitud de pago por cargos adicionales",
+      eyebrow: "Solicitud de pago adicional",
+      title: "Se creó una solicitud de pago pendiente",
+      introduction:
+        "Una solicitud de pago por cargos adicionales quedó lista para el huésped.",
+      summaryTitle: "Resumen operativo",
+      itemsTitle: "Cargos incluidos",
+      requestLabel: "Solicitud de pago",
+      statusLabel: "Estado de la solicitud",
+      createdAtLabel: "Creada",
+      expiresAtLabel: "Vence",
+      intendedRecipientLabel: "Destinatario previsto",
+      createdByLabel: "Creada por",
+      totalLabel: "Total solicitado",
+      actionLabel: "Abrir reservación en admin",
+      actionFallback: "Si el botón no funciona, abre este enlace:",
+      footer:
+        "Notificación administrativa de Tu Refugio Perfecto. Este correo no incluye token privado, datos de tarjeta, notas internas ni respuestas sin procesar del proveedor.",
+    },
+    additionalChargePaymentApproved: {
+      subjectPrefix: "Pago recibido por cargo adicional",
+      preview: "Recibimos el pago de tus cargos adicionales",
+      eyebrow: "Pago recibido",
+      title: "Pago de cargos adicionales recibido",
+      introduction:
+        "Gracias. Recibimos correctamente el pago de los cargos adicionales detallados abajo.",
+      summaryTitle: "Resumen del pago",
+      itemsTitle: "Cargos pagados",
+      paidAtLabel: "Pagado",
+      totalLabel: "Total pagado",
+      supportDescription:
+        "Si tienes alguna pregunta, responde a este correo o escríbenos a",
+    },
+    adminAdditionalChargePaymentApproved: {
+      subjectPrefix: "Pago recibido por cargo adicional",
+      preview: "Un pago de cargos adicionales fue aprobado",
+      eyebrow: "Pago adicional aprobado",
+      title: "Pago de cargos adicionales aprobado",
+      introduction:
+        "El proveedor aprobó el pago y el servidor aplicó la transición financiera aislada de Additional Charges.",
+      summaryTitle: "Resumen operativo",
+      itemsTitle: "Cargos pagados",
+      requestLabel: "Solicitud de pago",
+      requestStatusLabel: "Estado de solicitud",
+      paymentLabel: "Pago",
+      paymentStatusLabel: "Estado del pago",
+      providerReferenceLabel: "Referencia segura del proveedor",
+      paidAtLabel: "Pagado",
+      totalLabel: "Total pagado",
+      chargeStatusLabel: "Estado del cargo",
+      actionLabel: "Abrir reservación en admin",
+      actionFallback: "Si el botón no funciona, abre este enlace:",
+      footer:
+        "Notificación administrativa de Tu Refugio Perfecto. Este correo no incluye token privado, datos de tarjeta ni respuestas sin procesar del proveedor.",
+    },
+    additionalChargeRefundProcessed: {
+      subjectPrefix: "Reembolso procesado por cargo adicional",
+      preview: "Procesamos un reembolso de cargos adicionales",
+      eyebrow: "Reembolso procesado",
+      title: "Reembolso de cargos adicionales procesado",
+      introduction:
+        "Procesamos un reembolso relacionado con cargos adicionales de tu reserva.",
+      summaryTitle: "Resumen del reembolso",
+      allocationsTitle: "Cargos reembolsados",
+      refundLabel: "Reembolso",
+      approvedAtLabel: "Procesado",
+      totalLabel: "Total reembolsado",
+      originalAmountLabel: "Cargo original",
+      refundedAmountLabel: "Reembolso en esta operación",
+      remainingAmountLabel: "Saldo restante",
+      resultingStatusLabel: "Estado resultante",
+      supportDescription:
+        "Si tienes alguna pregunta, responde a este correo o escríbenos a",
+    },
+    adminAdditionalChargeRefundProcessed: {
+      subjectPrefix: "Reembolso procesado por cargo adicional",
+      preview: "Un reembolso de cargos adicionales fue reconciliado",
+      eyebrow: "Reembolso adicional reconciliado",
+      title: "Reembolso de cargos adicionales procesado",
+      introduction:
+        "La reconciliación aprobó un reembolso de cargos adicionales y actualizó los saldos financieros aislados.",
+      summaryTitle: "Resumen operativo",
+      allocationsTitle: "Asignaciones aplicadas",
+      refundLabel: "Reembolso",
+      requestLabel: "Solicitud de pago adicional",
+      paymentLabel: "Pago",
+      paymentStatusLabel: "Estado del pago",
+      processingModeLabel: "Modo de procesamiento",
+      providerReferenceLabel: "Referencia segura del proveedor",
+      reasonLabel: "Razón",
+      requestedByLabel: "Solicitado por",
+      approvedAtLabel: "Reconciliado",
+      totalLabel: "Total reembolsado",
+      chargeLabel: "Cargo adicional",
+      originalAmountLabel: "Cargo original",
+      refundedAmountLabel: "Reembolso en esta operación",
+      cumulativeRefundedLabel: "Reembolsado acumulado",
+      remainingAmountLabel: "Saldo restante",
+      resultingStatusLabel: "Estado resultante",
+      actionLabel: "Abrir reservación en admin",
+      actionFallback: "Si el botón no funciona, abre este enlace:",
+      footer:
+        "Notificación administrativa de Tu Refugio Perfecto. Este correo no incluye datos de tarjeta ni payloads sin procesar del proveedor.",
     },
     adminNewReservation: {
       subjectPrefix: "Nueva reserva confirmada",

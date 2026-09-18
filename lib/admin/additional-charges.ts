@@ -14,9 +14,11 @@ import {
 import { prisma } from "@/lib/db/prisma";
 import { getTilopayEnv } from "@/lib/env/server";
 import {
-  createAdditionalChargePaymentRequiredNotificationIntent,
+  createAdditionalChargePaymentRequestNotificationIntents,
+} from "@/lib/email/additional-charge-notification-intents";
+import {
   deliverAdditionalChargePaymentNotificationsBestEffort,
-} from "@/lib/email";
+} from "@/lib/email/additional-charge-payment-notifications";
 import { createGuestPaymentRequestTokenMaterial } from "@/lib/payments/guest-payment-request-token";
 import type { AdminActor } from "@/types/admin";
 import type {
@@ -1016,7 +1018,7 @@ export async function createAdminGuestPaymentRequest(
 
           return {
             paymentRequest: toPaymentRequestSummary(existingRequest, now),
-            notificationId: null,
+            notificationIds: [],
           };
         }
 
@@ -1160,29 +1162,41 @@ export async function createAdminGuestPaymentRequest(
           },
         });
 
-        const notification =
-          await createAdditionalChargePaymentRequiredNotificationIntent(
+        const notifications =
+          await createAdditionalChargePaymentRequestNotificationIntents(
             transaction,
             {
               reservationId,
               guestPaymentRequestId: request.id,
-              recipient: reservation.guestEmail,
-              locale: reservation.preferredLocale === "en" ? "en" : "es",
+              guestEmail: reservation.guestEmail,
+              preferredLocale: reservation.preferredLocale,
             },
           );
+        const createdNotificationIds = notifications
+          .filter((notification) => notification.created)
+          .map((notification) => notification.id);
 
         await transaction.adminAuditLog.create({
           data: {
             userId: adminActor.id,
             action: "ADDITIONAL_CHARGE_PAYMENT_EMAIL_QUEUED",
             entityType: "EmailNotification",
-            entityId: notification.id,
+            entityId: createdNotificationIds[0] ?? notifications[0]?.id ?? null,
             metadata: {
               actorEmail: adminActor.email,
               reservationId,
               guestPaymentRequestId: request.id,
-              notificationType:
+              notificationTypes: notifications.map(
+                (notification) => notification.type,
+              ),
+              notificationIds: notifications.map(
+                (notification) => notification.id,
+              ),
+              createdNotificationIds,
+              guestNotificationType:
                 EmailNotificationType.ADDITIONAL_CHARGE_PAYMENT_REQUIRED,
+              adminNotificationType:
+                EmailNotificationType.ADMIN_ADDITIONAL_CHARGE_PAYMENT_REQUIRED,
               intendedRecipient: reservation.guestEmail.toLowerCase(),
               locale: reservation.preferredLocale === "en" ? "en" : "es",
               requestStatus: request.status,
@@ -1194,15 +1208,15 @@ export async function createAdminGuestPaymentRequest(
 
         return {
           paymentRequest: toPaymentRequestSummary(request, now),
-          notificationId: notification.created ? notification.id : null,
+          notificationIds: createdNotificationIds,
         };
       },
     );
 
-    if (result.notificationId) {
-      await deliverAdditionalChargePaymentNotificationsBestEffort([
-        result.notificationId,
-      ]);
+    if (result.notificationIds.length > 0) {
+      await deliverAdditionalChargePaymentNotificationsBestEffort(
+        result.notificationIds,
+      );
 
       const refreshed = await prisma.guestPaymentRequest.findUnique({
         where: { id: result.paymentRequest.id },

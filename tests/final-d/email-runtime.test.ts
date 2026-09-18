@@ -9,11 +9,19 @@ import {
   PaymentPurpose,
   PaymentStatus,
   Prisma,
+  RefundStatus,
   ReservationStatus,
   UserRole,
 } from "@prisma/client";
 
-import { buildAdditionalChargePaymentRequiredEmail } from "@/emails";
+import {
+  buildAdditionalChargeAdminPaymentApprovedEmail,
+  buildAdditionalChargeAdminPaymentRequiredEmail,
+  buildAdditionalChargeAdminRefundProcessedEmail,
+  buildAdditionalChargePaymentApprovedEmail,
+  buildAdditionalChargePaymentRequiredEmail,
+  buildAdditionalChargeRefundProcessedEmail,
+} from "@/emails";
 import { prisma } from "@/lib/db/prisma";
 import {
   deliverClaimedAdditionalChargePaymentEmailNotification,
@@ -975,6 +983,155 @@ test("D.6 behavior renders localized additional-charge payment emails without in
   }
 });
 
+test("D.6 behavior renders ancillary admin, approval, and refund templates with safe ES/EN content", async () => {
+  const restoreEnv = preserveD6Env();
+  try {
+    for (const locale of ["es", "en"] as const) {
+      const reservation = {
+        id: D6_RESERVATION_ID,
+        guestName: "Final D6 Guest",
+        guestEmail: "guest.final-d6@juantzun.dev",
+        preferredLocale: locale,
+        propertyNameEs: "Bungalow Lago",
+        propertyNameEn: "Lake Bungalow",
+        currency: "USD",
+      };
+      const common = {
+        locale,
+        publicBaseUrl: "https://trp-booking.juantzun.dev",
+        brandLogoUrl: "https://trp-booking.juantzun.dev/logo-email.png",
+        reservation,
+      };
+      const items = [
+        {
+          category: "TRANSPORT" as const,
+          description: "Airport pickup",
+          amount: "12.50",
+          currency: "USD",
+          status: "PAID",
+        },
+        {
+          category: "CLEANING" as const,
+          description: "Extra cleaning",
+          amount: "17.50",
+          currency: "USD",
+          status: "PAID",
+        },
+      ];
+      const allocations = [
+        {
+          additionalChargeId: "charge-d6-1",
+          category: "TRANSPORT" as const,
+          description: "Airport pickup",
+          originalAmount: "12.50",
+          allocatedAmount: "7.50",
+          cumulativeRefundedAmount: "7.50",
+          remainingAmount: "5.00",
+          currency: "USD",
+          resultingStatus: "PARTIALLY_REFUNDED",
+        },
+      ];
+
+      const adminPending =
+        await buildAdditionalChargeAdminPaymentRequiredEmail({
+          ...common,
+          paymentRequest: {
+            id: D6_REQUEST_ID,
+            totalAmount: "30.00",
+            currency: "USD",
+            createdAt: "2026-09-17T12:00:00.000Z",
+            expiresAt: "2026-09-24T12:00:00.000Z",
+            status: "PENDING",
+            createdByAdminName: "Admin Final D6",
+            createdByAdminEmail: "admin@juantzun.dev",
+            intendedGuestRecipient: "guest.final-d6@juantzun.dev",
+            items,
+          },
+        });
+      const guestApproved =
+        await buildAdditionalChargePaymentApprovedEmail({
+          ...common,
+          payment: {
+            paidAt: "2026-09-17T13:00:00.000Z",
+            totalAmount: "30.00",
+            currency: "USD",
+            items,
+          },
+        });
+      const adminApproved =
+        await buildAdditionalChargeAdminPaymentApprovedEmail({
+          ...common,
+          paymentRequest: {
+            id: D6_REQUEST_ID,
+            status: "PAID",
+          },
+          payment: {
+            id: "payment-final-d6",
+            providerReference: "TRP-D6-SAFE",
+            paidAt: "2026-09-17T13:00:00.000Z",
+            status: "APPROVED",
+            totalAmount: "30.00",
+            currency: "USD",
+            items,
+          },
+        });
+      const guestRefund =
+        await buildAdditionalChargeRefundProcessedEmail({
+          ...common,
+          refund: {
+            id: "refund-final-d6",
+            totalAmount: "7.50",
+            currency: "USD",
+            approvedAt: "2026-09-17T14:00:00.000Z",
+            allocations,
+          },
+        });
+      const adminRefund =
+        await buildAdditionalChargeAdminRefundProcessedEmail({
+          ...common,
+          guestPaymentRequestId: D6_REQUEST_ID,
+          refund: {
+            id: "refund-final-d6",
+            paymentId: "payment-final-d6",
+            paymentStatus: "PARTIALLY_REFUNDED",
+            processingMode: "TILOPAY_PORTAL_FALLBACK",
+            providerRefundId: "refund-provider-safe",
+            reason: "Ancillary refund evidence",
+            requestedByAdminName: "Admin Final D6",
+            requestedByAdminEmail: "admin@juantzun.dev",
+            totalAmount: "7.50",
+            currency: "USD",
+            approvedAt: "2026-09-17T14:00:00.000Z",
+            allocations,
+          },
+        });
+      const rendered = [
+        adminPending,
+        guestApproved,
+        adminApproved,
+        guestRefund,
+        adminRefund,
+      ];
+      const allText = rendered.map((email) => email.text).join("\n");
+
+      assert.match(allText, /Airport pickup/);
+      assert.match(allText, /Extra cleaning/);
+      assert.match(allText, /30\.00|30,00/);
+      assert.match(allText, /7\.50|7,50/);
+      assert.match(adminApproved.text, /TRP-D6-SAFE/);
+      assert.match(adminRefund.text, /refund-provider-safe/);
+      assert.equal(allText.includes(D6_TOKEN), false);
+      assert.equal(allText.includes("/reservas/cargos/"), false);
+      assert.doesNotMatch(
+        allText,
+        /driver-internal-note|4111|rawPayload|provider raw/i,
+      );
+    }
+  } finally {
+    restoreEnv();
+  }
+});
+
 test("D.6 behavior creates the automatic email intent with the guest payment request and preserves idempotency", async () => {
   const restoreEnv = preserveD6Env();
   const store = d6Store();
@@ -1008,15 +1165,21 @@ test("D.6 behavior creates the automatic email intent with the guest payment req
     assert.equal(first.id, D6_REQUEST_ID);
     assert.equal(replay.id, D6_REQUEST_ID);
     assert.equal(store.requests.length, 1);
-    assert.equal(store.notifications.length, 1);
+    assert.equal(store.notifications.length, 2);
     assert.equal(store.requests[0]?.accessTokenHash, requestHash);
-    assert.equal(
-      store.notifications[0]?.type,
-      EmailNotificationType.ADDITIONAL_CHARGE_PAYMENT_REQUIRED,
+    assert.deepEqual(
+      store.notifications.map((notification) => notification.type),
+      [
+        EmailNotificationType.ADDITIONAL_CHARGE_PAYMENT_REQUIRED,
+        EmailNotificationType.ADMIN_ADDITIONAL_CHARGE_PAYMENT_REQUIRED,
+      ],
     );
     assert.equal(store.notifications[0]?.guestPaymentRequestId, D6_REQUEST_ID);
+    assert.equal(store.notifications[1]?.guestPaymentRequestId, D6_REQUEST_ID);
     assert.equal(store.notifications[0]?.status, EmailNotificationStatus.PENDING);
+    assert.equal(store.notifications[1]?.status, EmailNotificationStatus.PENDING);
     assert.equal(store.notifications[0]?.origin, EmailNotificationOrigin.AUTOMATIC);
+    assert.equal(store.notifications[1]?.origin, EmailNotificationOrigin.AUTOMATIC);
     assertNoRawToken(store);
   } finally {
     restoreEnv();
@@ -1550,6 +1713,109 @@ test("D.6 behavior exposes additional-charge email history with safe guest-payme
     assert.ok(paymentEvent);
     assertNoRawToken(history);
     assert.equal(JSON.stringify(history).includes("/reservas/cargos/"), false);
+  } finally {
+    restoreEnv();
+  }
+});
+
+test("D.6 behavior exposes ancillary refund history with charge relations and allocation details", async () => {
+  const restoreEnv = preserveD6Env();
+  const store = d6Store();
+  installD6Prisma(store);
+  store.requests.push({
+    id: D6_REQUEST_ID,
+    reservationId: D6_RESERVATION_ID,
+    status: GuestPaymentRequestStatus.PAID,
+    totalAmount: money("30.00"),
+    currency: "USD",
+    accessTokenHash: hashGuestPaymentRequestAccessToken(D6_TOKEN),
+    accessTokenEncrypted: "encrypted-only",
+    expiresAt: new Date("2026-09-24T12:00:00.000Z"),
+    createdByAdminId: "admin-final-d6",
+    clientRequestId: "client-d6-refund-history",
+    paidAt: new Date("2026-09-17T13:00:00.000Z"),
+    cancelledAt: null,
+    createdAt: D6_BASE_NOW,
+    updatedAt: D6_BASE_NOW,
+  });
+  store.charges[0]!.status = AdditionalChargeStatus.PARTIALLY_REFUNDED;
+  const client = prisma as unknown as {
+    refund: { findMany: () => Promise<unknown[]> };
+    payment: { findMany: () => Promise<unknown[]> };
+  };
+  client.payment.findMany = async () => [];
+  client.refund.findMany = async () => [
+    {
+      id: "refund-d6-history",
+      paymentId: "payment-d6-history",
+      lifecycleRequestId: null,
+      authorizationType: "ADDITIONAL_CHARGE",
+      refundOperationKey: null,
+      status: RefundStatus.APPROVED,
+      amount: money("7.50"),
+      currency: "USD",
+      processingMode: "TILOPAY_PORTAL_FALLBACK",
+      providerRefundId: "safe-refund-reference",
+      processingStartedAt: null,
+      approvedAt: new Date("2026-09-17T14:00:00.000Z"),
+      failedAt: null,
+      failureCode: null,
+      createdAt: new Date("2026-09-17T13:30:00.000Z"),
+      updatedAt: new Date("2026-09-17T14:00:00.000Z"),
+      requestedByAdmin: {
+        name: "Admin Final D6",
+        email: "admin@juantzun.dev",
+      },
+      payment: {
+        guestPaymentRequestId: D6_REQUEST_ID,
+      },
+      additionalChargeAllocations: [
+        {
+          additionalChargeId: "charge-d6-1",
+          allocatedAmount: money("7.50"),
+          additionalCharge: {
+            category: "TRANSPORT",
+            description: "Airport pickup",
+            status: AdditionalChargeStatus.PARTIALLY_REFUNDED,
+          },
+        },
+      ],
+    },
+  ];
+
+  try {
+    const history = await getAdminReservationOperationalHistory(D6_RESERVATION_ID);
+    const refundApproved = history.find(
+      (event) => event.eventType === "REFUND_APPROVED",
+    );
+
+    assert.ok(refundApproved);
+    assert.equal(refundApproved.amount, "7.50");
+    assert.ok(
+      refundApproved.relations.some(
+        (relation) =>
+          relation.kind === "GUEST_PAYMENT_REQUEST" &&
+          relation.id === D6_REQUEST_ID,
+      ),
+    );
+    assert.ok(
+      refundApproved.relations.some(
+        (relation) =>
+          relation.kind === "ADDITIONAL_CHARGE" &&
+          relation.id === "charge-d6-1",
+      ),
+    );
+    assert.deepEqual(refundApproved.additionalChargeAllocations, [
+      {
+        additionalChargeId: "charge-d6-1",
+        category: "TRANSPORT",
+        description: "Airport pickup",
+        allocatedAmount: "7.50",
+        currency: "USD",
+        resultingStatus: AdditionalChargeStatus.PARTIALLY_REFUNDED,
+      },
+    ]);
+    assertNoRawToken(history);
   } finally {
     restoreEnv();
   }

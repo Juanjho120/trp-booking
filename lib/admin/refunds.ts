@@ -31,6 +31,12 @@ import {
   createRefundNotificationIntents,
   deliverLifecycleNotificationsBestEffort,
 } from "@/lib/email";
+import {
+  createAdditionalChargeRefundProcessedNotificationIntents,
+} from "@/lib/email/additional-charge-notification-intents";
+import {
+  deliverAdditionalChargePaymentNotificationsBestEffort,
+} from "@/lib/email/additional-charge-payment-notifications";
 import { getTilopayEnv } from "@/lib/env/server";
 import {
   classifyTilopayConsultCandidate,
@@ -238,7 +244,8 @@ type RefundForAction = Prisma.RefundGetPayload<{
 
 type RefundReconciliationTransactionResult = Readonly<{
   reconciliationResult: AdminRefundReconciliationResult;
-  notificationIds: readonly string[];
+  lifecycleNotificationIds: readonly string[];
+  ancillaryNotificationIds: readonly string[];
 }>;
 
 export class AdminRefundError extends Error {
@@ -2551,7 +2558,8 @@ export async function reconcileAdminRefund(
             cumulativeApprovedAmount: cumulativeApprovedAmount.toFixed(2),
             alreadyProcessed: true,
           },
-          notificationIds: [],
+          lifecycleNotificationIds: [],
+          ancillaryNotificationIds: [],
         };
       }
 
@@ -2571,7 +2579,8 @@ export async function reconcileAdminRefund(
             cumulativeApprovedAmount: cumulativeApprovedAmount.toFixed(2),
             alreadyProcessed: true,
           },
-          notificationIds: [],
+          lifecycleNotificationIds: [],
+          ancillaryNotificationIds: [],
         };
       }
 
@@ -2772,6 +2781,21 @@ export async function reconcileAdminRefund(
               preferredLocale: refund.payment.reservation.preferredLocale,
             })
           : [];
+      const ancillaryNotificationIntents =
+        input.outcome === "APPROVED" &&
+        refund.authorizationType === RefundAuthorizationType.ADDITIONAL_CHARGE &&
+        refund.payment.guestPaymentRequestId
+          ? await createAdditionalChargeRefundProcessedNotificationIntents(
+              transaction,
+              {
+                reservationId: refund.payment.reservationId,
+                guestPaymentRequestId: refund.payment.guestPaymentRequestId,
+                refundId: refund.id,
+                guestEmail: refund.payment.reservation.guestEmail,
+                preferredLocale: refund.payment.reservation.preferredLocale,
+              },
+            )
+          : [];
 
       await transaction.adminAuditLog.create({
         data: {
@@ -2809,6 +2833,14 @@ export async function reconcileAdminRefund(
             lifecycleNotificationIds: lifecycleNotificationIntents.map(
               ({ id }) => id,
             ),
+            ancillaryNotificationCreated:
+              input.outcome === "APPROVED" &&
+              refund.authorizationType ===
+                RefundAuthorizationType.ADDITIONAL_CHARGE,
+            ancillaryNotificationCount: ancillaryNotificationIntents.length,
+            ancillaryNotificationIds: ancillaryNotificationIntents.map(
+              ({ id }) => id,
+            ),
           },
         },
       });
@@ -2820,14 +2852,22 @@ export async function reconcileAdminRefund(
           cumulativeApprovedAmount: cumulativeApprovedAmount.toFixed(2),
           alreadyProcessed: false,
         },
-        notificationIds: lifecycleNotificationIntents.map(({ id }) => id),
+        lifecycleNotificationIds: lifecycleNotificationIntents.map(
+          ({ id }) => id,
+        ),
+        ancillaryNotificationIds: ancillaryNotificationIntents
+          .filter((notification) => notification.created)
+          .map(({ id }) => id),
       };
     },
     { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
   );
 
   await deliverLifecycleNotificationsBestEffort(
-    transactionResult.notificationIds,
+    transactionResult.lifecycleNotificationIds,
+  );
+  await deliverAdditionalChargePaymentNotificationsBestEffort(
+    transactionResult.ancillaryNotificationIds,
   );
 
   return transactionResult.reconciliationResult;

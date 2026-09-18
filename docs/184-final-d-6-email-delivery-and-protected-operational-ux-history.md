@@ -8,6 +8,7 @@ Package: Final-D — Additional charges and guest payment requests
 Subphase: Final-D.6 — Email delivery and protected operational UX/history
 Status: Implementation completed and validation executed; owner acceptance pending
 Implementation base head: 1f3f30f63c0198afa219df9feea4f415cbc1ccd2
+Latest continuation base head: c9baf3839de6bede20d74d614559cf7380b15039
 Previous accepted subphase: Final-D.5 — Completed and accepted on 2026-09-17 at 06b3de23fbae23a77b58b432760abf12afd5a6c7
 Next subphase: Final-D.7 — Integrated regression and documentation closure — Not started
 Phase 13: Not started
@@ -16,16 +17,23 @@ Phase 13: Not started
 
 Final-D.6 implements the email delivery and protected operational UX/history layer reserved by the accepted Final-D.1 contract and the accepted D.2/D.3/D.4/D.5 implementation records.
 
-- Added a dedicated `ADDITIONAL_CHARGE_PAYMENT_REQUIRED` email renderer sourced from the authoritative GuestPaymentRequest, immutable request items, Reservation and Property.
-- Created the automatic EmailNotification intent in the same Serializable transaction as `createAdminGuestPaymentRequest()`, with `origin = AUTOMATIC`, `status = PENDING`, `guestPaymentRequestId`, reservation relation, guest recipient, locale and permanent deduplication key.
+- Added dedicated guest/admin Additional Charges email renderers sourced from the authoritative GuestPaymentRequest, immutable request items, Reservation, Property, Payment, Refund and AdditionalChargeRefundAllocation evidence.
+- Created the automatic pending-payment EmailNotification intents in the same Serializable transaction as `createAdminGuestPaymentRequest()`, with `origin = AUTOMATIC`, `status = PENDING`, `guestPaymentRequestId`, reservation relation, guest/admin recipients, locales and permanent deduplication keys.
+- Added `ADMIN_ADDITIONAL_CHARGE_PAYMENT_REQUIRED`, `ADDITIONAL_CHARGE_PAYMENT_APPROVED`, `ADMIN_ADDITIONAL_CHARGE_PAYMENT_APPROVED`, `ADDITIONAL_CHARGE_REFUND_PROCESSED` and `ADMIN_ADDITIONAL_CHARGE_REFUND_PROCESSED` as dedicated ancillary EmailNotification types.
+- Added migration `20260917183000_final_d_6_additional_charge_email_notification_types` to extend only the PostgreSQL `email_notification_type` enum with those five values.
+- Added a neutral `lib/email/additional-charge-notification-intents.ts` module so request creation, payment approval and refund reconciliation can create notification intents transactionally without importing email render/delivery from payment runtime.
+- Added guest/admin payment-approved intents when `markGuestPaymentRequestPaidFromApprovedPayment()` first transitions Payment APPROVED, GuestPaymentRequest PAID and AdditionalCharges PAID; replay of an already PAID request creates no duplicate notification or audit.
+- Added guest/admin ancillary refund-processed intents when `reconcileAdminRefund()` completes an `APPROVED` `RefundAuthorizationType.ADDITIONAL_CHARGE` reconciliation, using `AdditionalChargeRefundAllocation` as allocation evidence; failed reconciliation and provider-pending execution do not generate success emails.
 - Kept provider delivery best-effort and strictly after commit, so provider/template failures do not roll back request creation or mutate charge/payment financial state.
 - Preserved idempotent replay of the same admin `clientRequestId`: the existing request is returned, no new token is generated, and no duplicate notification is created.
 - Reused the existing `processEmailNotifications`/retry/provider infrastructure instead of adding a new worker, cron route, provider client or endpoint.
 - Added manual resend support through the existing generic `/api/admin/email-notifications/[notificationId]/resend` endpoint while preserving the same request/token, parent/child notification relation, recipient and locale.
 - Corrected manual resend eligibility so overdue PENDING GuestPaymentRequest records are converged to EXPIRED before the rejecting resend transaction, preventing rollback from leaving stale payable-request state.
 - Corrected the D.6 ancillary email import graph so the Tilopay SDK-session payment runtime no longer depends on the admin additional-charge module or the email barrel during route module initialization.
+- Corrected Reservation Email Delivery read model so `ADDITIONAL_CHARGE_PAYMENT_REQUIRED` is no longer filtered out; ancillary guest types appear under Guests and `ADMIN_` ancillary types under Administration.
 - Added protected Additional Charges tab notification visibility and resend UX with safe status/origin/recipient/locale/attempt/timestamp/error-code fields only.
 - Extended operational history with safe GuestPaymentRequest relations for automatic intent, delivery attempts/results and manual resend activity.
+- Enriched ancillary refund operational history with safe `GUEST_PAYMENT_REQUEST` and `ADDITIONAL_CHARGE` relations plus allocation summaries showing category, description, allocated amount and resulting charge status.
 
 ## Security and Boundary Notes
 
@@ -36,6 +44,7 @@ Final-D.6 implements the email delivery and protected operational UX/history lay
 - Overdue PENDING requests are converged to EXPIRED before the notification is skipped.
 - Manual resend of an overdue PENDING additional-charge payment notification is rejected without creating a manual child notification or provider call, while the GuestPaymentRequest EXPIRED state is persisted outside the rejecting transaction.
 - PAID, CANCELLED, EXPIRED, overdue or integrity-invalid requests are not sent.
+- Payment-approved and refund-processed ancillary emails do not include raw tokens, private payment URLs, card data, provider raw payloads or internal AdditionalCharge notes.
 - Additional-charge email delivery remains financially isolated from Reservation.total, accepted stay pricing evidence, stay refund balances, lifecycle completion and reservation confirmation.
 
 ## Hosted Test SDK-Session Blocker Follow-Up
@@ -101,23 +110,54 @@ tests/final-d suite — Passed: 52/52.
 
 Direct reproduction against the real GuestPaymentRequest was authorized and attempted without printing the raw token, URL, ciphertext or credentials. The local process reached the request lookup but could not decrypt the Hosted Test token with the locally loaded encryption key (`EXTERNAL_CALENDAR_SECRET_DECRYPTION_FAILED`), so it stopped before `prepareGuestPaymentRequestPayment()`, before `/loginSdk`, and before creating or reusing a Payment. No real payment was executed.
 
+## Hosted Test Follow-Up After Import-Cycle Fix
+
+After `c9baf3839de6bede20d74d614559cf7380b15039`, the owner reran Hosted Test and confirmed:
+
+```text
+- the initial Additional Charges email arrives;
+- the private link works;
+- Prepare secure payment works again;
+- the Tilopay form loads;
+- the Additional Charges payment completes correctly.
+```
+
+The same owner validation found Final-D.6 incomplete because:
+
+```text
+- Email Delivery hid the existing guest ADDITIONAL_CHARGE_PAYMENT_REQUIRED notification from the Guests group;
+- GuestPaymentRequest creation did not create an administrative pending-payment email;
+- Additional Charges payment approval did not create guest/admin success emails;
+- Additional Charges refund reconciliation did not create guest/admin refund-processed emails;
+- generic refund operational history did not expose enough GuestPaymentRequest, AdditionalCharge or allocation context for ancillary refunds.
+```
+
+This continuation addresses those gaps without starting Final-D.7 and without changing the accepted D.4/D.5 financial architecture.
+
 ## Validation Executed
 
 ```text
-tests/final-d suite — Passed: 52/52, including manual-resend overdue expiry persistence, terminal-state resend rejection, cancelled-reservation resend reuse, transaction rollback coverage for automatic notification creation failure, import-cycle prevention, and SDK-session route coverage for a D.6-created two-item request with automatic EmailNotification
-npm run final-a:validate — Passed: 44/44 after rerun with temporary os.userInfo preload; first sandbox attempt hit the known Windows tsx uv_os_get_passwd ENOMEM issue
-npm run final-b:validate — Passed: 38/38 with temporary os.userInfo preload
-npm run final-c:validate — Passed: 41/41 with temporary os.userInfo preload
-Final-D.6 rollback-only DB validation — Passed against the configured Local/Test Supabase datasource; transaction forced rollback after verifying GuestPaymentRequest email relation, automatic deduplication convergence and manual child relation
+npx tsx --tsconfig tests/final-d/tsconfig.json tests/final-d/run.ts — Passed: 55/55, including pending guest/admin intent pair, payment-approved guest/admin intents, ancillary refund guest/admin intents, template safety coverage, Email Delivery read-model guard, ancillary refund operational-history allocations, manual-resend overdue expiry persistence, terminal-state resend rejection, cancelled-reservation resend reuse, transaction rollback coverage for automatic notification creation failure, import-cycle prevention, and SDK-session route coverage for a D.6-created two-item request with automatic EmailNotification. Sandbox attempts hit the known Windows tsx `uv_os_get_passwd` ENOMEM issue before test startup; reruns outside the sandbox passed.
+npm run final-a:validate — Passed: 44/44 after rerun outside the sandbox; first sandbox attempt hit the known Windows tsx `uv_os_get_passwd` ENOMEM issue
+npm run final-b:validate — Passed: 38/38 outside the sandbox
+npm run final-c:validate — Passed: 41/41 outside the sandbox
+Final-D.6 Local/Test DB validation — Passed against the configured Local/Test Supabase datasource: enum migration applied; `email_notification_type` contains the five new ancillary values; `email_notifications` retains nullable `guest_payment_request_id`, `refund_id` and `lifecycle_request_id`; FK relations for reservation/refund/GuestPaymentRequest remain present; `deduplication_key` remains unique
 npm run db:generate — Passed
 npm run db:validate — Passed
+npm run db:migrate:deploy — Initial sandbox attempt failed with a schema-engine/network error; rerun with network access passed and applied `20260917183000_final_d_6_additional_charge_email_notification_types`
 npm run db:migrate:status — Initial sandbox attempt failed with a schema-engine/network error; rerun with network access passed and reported the database schema up to date
 npm run lint — Passed
 npm run build — Initial sandbox attempt failed because Next could not fetch Google Fonts; rerun with network access passed
-git diff --check — Passed
+git diff --check — Passed; only CRLF conversion warnings were reported
 ```
 
-No schema migration was introduced for D.6.
+Schema migration introduced for D.6:
+
+```text
+20260917183000_final_d_6_additional_charge_email_notification_types
+```
+
+The migration adds only enum values to `email_notification_type`; it adds no tables, columns or constraints.
 
 ## Not Implemented
 

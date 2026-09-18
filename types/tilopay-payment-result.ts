@@ -45,6 +45,7 @@ export type ProcessedTilopayPaymentResult = Readonly<{
   reservationStatus: ReservationConfirmationStatus;
   reservationConfirmed: boolean;
   paymentIssue?: TilopayRetryPaymentIssue | null;
+  ancillaryNotificationIds?: readonly string[];
   redirectTarget: TilopayRedirectTarget;
   phaseBoundary:
     | "PAYMENT_VALIDATED_RESERVATION_CONFIRMED"

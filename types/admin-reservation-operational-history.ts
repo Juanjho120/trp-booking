@@ -85,6 +85,7 @@ export const adminReservationOperationalHistoryRelationKinds = [
   "PAYMENT",
   "REFUND",
   "GUEST_PAYMENT_REQUEST",
+  "ADDITIONAL_CHARGE",
   "PARENT_NOTIFICATION",
   "SOURCE_NOTIFICATION",
 ] as const;
@@ -106,6 +107,15 @@ export type AdminReservationOperationalHistoryReference = Readonly<{
 export type AdminReservationOperationalHistoryRelation = Readonly<{
   kind: AdminReservationOperationalHistoryRelationKind;
   id: string;
+}>;
+
+export type AdminReservationOperationalHistoryAllocation = Readonly<{
+  additionalChargeId: string;
+  category: string;
+  description: string;
+  allocatedAmount: string;
+  currency: string;
+  resultingStatus: string | null;
 }>;
 
 export type AdminReservationOperationalHistoryEvent = Readonly<{
@@ -137,4 +147,5 @@ export type AdminReservationOperationalHistoryEvent = Readonly<{
   originalCheckOutDate: string | null;
   requestedCheckInDate: string | null;
   requestedCheckOutDate: string | null;
+  additionalChargeAllocations: readonly AdminReservationOperationalHistoryAllocation[];
 }>;

@@ -357,6 +357,53 @@ export function AdminReservationOperationalHistorySection({
                         />
                       ))}
                     </dl>
+                    {event.additionalChargeAllocations.length > 0 ? (
+                      <div className="mt-4 rounded-xl border border-border/70 bg-background p-3">
+                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                          {copy.labels.allocations}
+                        </p>
+                        <div className="mt-3 grid gap-3">
+                          {event.additionalChargeAllocations.map(
+                            (allocation) => (
+                              <div
+                                className="rounded-lg border border-border/60 p-3"
+                                key={`${event.id}/${allocation.additionalChargeId}`}
+                              >
+                                <dl className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                                  <HistoryDetail
+                                    label={copy.labels.allocationCategory}
+                                    value={
+                                      copy.additionalChargeCategories[
+                                        allocation.category as keyof typeof copy.additionalChargeCategories
+                                      ] ?? allocation.category
+                                    }
+                                  />
+                                  <HistoryDetail
+                                    label={copy.labels.allocationDescription}
+                                    value={allocation.description}
+                                  />
+                                  <HistoryDetail
+                                    label={copy.labels.allocationAmount}
+                                    value={formatMoney(
+                                      allocation.allocatedAmount,
+                                      allocation.currency,
+                                    )}
+                                  />
+                                  {allocation.resultingStatus ? (
+                                    <HistoryDetail
+                                      label={copy.labels.allocationStatus}
+                                      value={statusLabel(
+                                        allocation.resultingStatus,
+                                      )}
+                                    />
+                                  ) : null}
+                                </dl>
+                              </div>
+                            ),
+                          )}
+                        </div>
+                      </div>
+                    ) : null}
                   </AccordionContent>
                 </AccordionItem>
               );

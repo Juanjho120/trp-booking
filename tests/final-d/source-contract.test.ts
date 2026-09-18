@@ -174,6 +174,15 @@ test("D.6 ancillary email link building does not reintroduce the payment-admin-e
     paymentService.includes("getAdminGuestPaymentRequestPaymentLink"),
     false,
   );
+  assert.match(
+    paymentService,
+    /@\/lib\/email\/additional-charge-notification-intents/,
+  );
+  assert.equal(
+    paymentService.includes("additional-charge-payment-notifications"),
+    false,
+  );
+  assert.equal(paymentService.includes("@/emails"), false);
   assert.equal(
     emailDelivery.includes("@/lib/payments/guest-payment-request-payment"),
     false,
@@ -181,6 +190,25 @@ test("D.6 ancillary email link building does not reintroduce the payment-admin-e
   assert.match(emailDelivery, /@\/lib\/payments\/guest-payment-request-link/);
   assert.match(linkHelper, /buildGuestPaymentRequestPaymentPath/);
   assert.match(linkHelper, /isGuestPaymentRequestAccessToken/);
+});
+
+test("D.6 reservation email delivery read model includes ancillary notification types", () => {
+  const detail = source("lib/admin/reservation-detail.ts");
+  const messagesEs = source("messages/es.ts");
+  const messagesEn = source("messages/en.ts");
+
+  assert.equal(
+    /emailNotifications:\s*\{[\s\S]*type:\s*\{[\s\S]*not:\s*EmailNotificationType\.ADDITIONAL_CHARGE_PAYMENT_REQUIRED/.test(
+      detail,
+    ),
+    false,
+  );
+  assert.match(messagesEs, /ADMIN_ADDITIONAL_CHARGE_PAYMENT_REQUIRED/);
+  assert.match(messagesEs, /ADDITIONAL_CHARGE_PAYMENT_APPROVED/);
+  assert.match(messagesEs, /ADMIN_ADDITIONAL_CHARGE_REFUND_PROCESSED/);
+  assert.match(messagesEn, /ADMIN_ADDITIONAL_CHARGE_PAYMENT_REQUIRED/);
+  assert.match(messagesEn, /ADDITIONAL_CHARGE_PAYMENT_APPROVED/);
+  assert.match(messagesEn, /ADMIN_ADDITIONAL_CHARGE_REFUND_PROCESSED/);
 });
 
 test("D.4 public page uses centralized copy and stays within the private charge payment scope", () => {

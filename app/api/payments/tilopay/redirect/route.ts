@@ -10,6 +10,9 @@ import {
   processTilopayPaymentRedirect,
   TilopayPaymentResultError,
 } from "@/lib/payments/tilopay-payment-result";
+import {
+  deliverAdditionalChargePaymentNotificationsBestEffort,
+} from "@/lib/email/additional-charge-payment-notifications";
 import type { ProcessedTilopayPaymentResult } from "@/types/tilopay-payment-result";
 import type { PaymentSubmissionAttemptStatus } from "@/types/payment-submission-attempt";
 
@@ -259,6 +262,11 @@ export async function GET(request: Request) {
   try {
     const result = await processTilopayPaymentRedirect(request.url);
     await recordSuccessfulResult(result);
+    if (result.ancillaryNotificationIds?.length) {
+      await deliverAdditionalChargePaymentNotificationsBestEffort(
+        result.ancillaryNotificationIds,
+      );
+    }
     const targetUrl = await resolveResultTargetUrl(request.url, env, result);
     return NextResponse.redirect(buildResultRedirectUrl(targetUrl, result));
   } catch (error) {

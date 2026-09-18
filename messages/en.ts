@@ -1601,6 +1601,16 @@ export const enMessages = {
             "Payment required for stay extension",
           ADDITIONAL_CHARGE_PAYMENT_REQUIRED:
             "Payment required for additional charge",
+          ADMIN_ADDITIONAL_CHARGE_PAYMENT_REQUIRED:
+            "Payment required for additional charge for administration",
+          ADDITIONAL_CHARGE_PAYMENT_APPROVED:
+            "Payment received for additional charge",
+          ADMIN_ADDITIONAL_CHARGE_PAYMENT_APPROVED:
+            "Payment received for additional charge for administration",
+          ADDITIONAL_CHARGE_REFUND_PROCESSED:
+            "Refund processed for additional charge",
+          ADMIN_ADDITIONAL_CHARGE_REFUND_PROCESSED:
+            "Refund processed for additional charge for administration",
           ADMIN_DATE_CHANGE_PAYMENT_LINK_DELIVERY_STATUS:
             "Date-change payment email delivery result",
           ADMIN_STAY_EXTENSION_PAYMENT_LINK_DELIVERY_STATUS:
@@ -1700,6 +1710,11 @@ export const enMessages = {
           providerReference: "Safe provider reference",
           originalDates: "Original dates",
           requestedDates: "Requested dates",
+          allocations: "Additional-charge allocations",
+          allocationCategory: "Category",
+          allocationDescription: "Description",
+          allocationAmount: "Allocated amount",
+          allocationStatus: "Resulting status",
         },
         actor: {
           system: "System",
@@ -1718,6 +1733,7 @@ export const enMessages = {
           PAYMENT: "Related payment",
           REFUND: "Related refund",
           GUEST_PAYMENT_REQUEST: "Additional-charge payment request",
+          ADDITIONAL_CHARGE: "Related additional charge",
           PARENT_NOTIFICATION: "Original notification",
           SOURCE_NOTIFICATION: "Source notification",
         },
@@ -1757,6 +1773,14 @@ export const enMessages = {
           EXTRAORDINARY: "Extraordinary",
           LIFECYCLE_ADJUSTMENT: "Stay adjustment",
           ADDITIONAL_CHARGE: "Additional charge",
+        },
+        additionalChargeCategories: {
+          CLEANING: "Additional cleaning",
+          DAMAGE: "Damage",
+          TRANSPORT: "Transport",
+          LATE_CHECKOUT: "Late checkout",
+          EXTRA_SERVICE: "Extra service",
+          OTHER: "Other",
         },
         events: {
           RESERVATION_CREATED: {
@@ -3363,6 +3387,112 @@ export const enMessages = {
         EXTRA_SERVICE: "Extra service",
         OTHER: "Other",
       },
+    },
+    adminAdditionalChargePaymentRequired: {
+      subjectPrefix: "Payment pending for additional charge",
+      preview: "An additional-charge payment request was created",
+      eyebrow: "Additional-charge payment request",
+      title: "A pending payment request was created",
+      introduction:
+        "An additional-charge payment request is ready for the guest.",
+      summaryTitle: "Operational summary",
+      itemsTitle: "Included charges",
+      requestLabel: "Payment request",
+      statusLabel: "Request status",
+      createdAtLabel: "Created",
+      expiresAtLabel: "Expires",
+      intendedRecipientLabel: "Intended recipient",
+      createdByLabel: "Created by",
+      totalLabel: "Total requested",
+      actionLabel: "Open reservation in admin",
+      actionFallback: "If the button does not work, open this link:",
+      footer:
+        "Administrative notification from Tu Refugio Perfecto. This email does not include the private token, card data, internal notes, or raw provider responses.",
+    },
+    additionalChargePaymentApproved: {
+      subjectPrefix: "Payment received for additional charge",
+      preview: "We received payment for your additional charges",
+      eyebrow: "Payment received",
+      title: "Additional-charge payment received",
+      introduction:
+        "Thank you. We received payment for the additional charges listed below.",
+      summaryTitle: "Payment summary",
+      itemsTitle: "Paid charges",
+      paidAtLabel: "Paid",
+      totalLabel: "Total paid",
+      supportDescription:
+        "For assistance, reply to this email or contact us at",
+    },
+    adminAdditionalChargePaymentApproved: {
+      subjectPrefix: "Payment received for additional charge",
+      preview: "An additional-charge payment was approved",
+      eyebrow: "Additional-charge payment approved",
+      title: "Additional-charge payment approved",
+      introduction:
+        "The provider approved the payment and the server applied the isolated Additional Charges financial transition.",
+      summaryTitle: "Operational summary",
+      itemsTitle: "Paid charges",
+      requestLabel: "Payment request",
+      requestStatusLabel: "Request status",
+      paymentLabel: "Payment",
+      paymentStatusLabel: "Payment status",
+      providerReferenceLabel: "Safe provider reference",
+      paidAtLabel: "Paid",
+      totalLabel: "Total paid",
+      chargeStatusLabel: "Charge status",
+      actionLabel: "Open reservation in admin",
+      actionFallback: "If the button does not work, open this link:",
+      footer:
+        "Administrative notification from Tu Refugio Perfecto. This email does not include the private token, card data, or raw provider responses.",
+    },
+    additionalChargeRefundProcessed: {
+      subjectPrefix: "Refund processed for additional charge",
+      preview: "We processed an additional-charge refund",
+      eyebrow: "Refund processed",
+      title: "Additional-charge refund processed",
+      introduction:
+        "We processed a refund related to additional charges on your reservation.",
+      summaryTitle: "Refund summary",
+      allocationsTitle: "Refunded charges",
+      refundLabel: "Refund",
+      approvedAtLabel: "Processed",
+      totalLabel: "Total refunded",
+      originalAmountLabel: "Original charge",
+      refundedAmountLabel: "Refund in this operation",
+      remainingAmountLabel: "Remaining balance",
+      resultingStatusLabel: "Resulting status",
+      supportDescription:
+        "For assistance, reply to this email or contact us at",
+    },
+    adminAdditionalChargeRefundProcessed: {
+      subjectPrefix: "Refund processed for additional charge",
+      preview: "An additional-charge refund was reconciled",
+      eyebrow: "Additional-charge refund reconciled",
+      title: "Additional-charge refund processed",
+      introduction:
+        "The reconciliation approved an additional-charge refund and updated the isolated financial balances.",
+      summaryTitle: "Operational summary",
+      allocationsTitle: "Applied allocations",
+      refundLabel: "Refund",
+      requestLabel: "Additional-charge payment request",
+      paymentLabel: "Payment",
+      paymentStatusLabel: "Payment status",
+      processingModeLabel: "Processing mode",
+      providerReferenceLabel: "Safe provider reference",
+      reasonLabel: "Reason",
+      requestedByLabel: "Requested by",
+      approvedAtLabel: "Reconciled",
+      totalLabel: "Total refunded",
+      chargeLabel: "Additional charge",
+      originalAmountLabel: "Original charge",
+      refundedAmountLabel: "Refund in this operation",
+      cumulativeRefundedLabel: "Cumulative refunded",
+      remainingAmountLabel: "Remaining balance",
+      resultingStatusLabel: "Resulting status",
+      actionLabel: "Open reservation in admin",
+      actionFallback: "If the button does not work, open this link:",
+      footer:
+        "Administrative notification from Tu Refugio Perfecto. This email does not include card data or raw provider payloads.",
     },
     adminNewReservation: {
       subjectPrefix: "New confirmed reservation",

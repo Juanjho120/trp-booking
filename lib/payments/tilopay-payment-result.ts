@@ -390,6 +390,7 @@ async function mapExistingResult(
         reservationConfirmed:
           requestPayment.reservationStatus === ReservationStatus.CONFIRMED,
         paymentIssue: null,
+        ancillaryNotificationIds: requestPayment.notificationIds,
         redirectTarget: "success",
         phaseBoundary: "ADDITIONAL_CHARGE_PAYMENT_REQUEST_PAID",
       };
@@ -425,6 +426,7 @@ async function markApprovedAdditionalChargePayment(input: Readonly<{
 }>): Promise<Readonly<{
   reservationStatus: ProcessedTilopayPaymentResult["reservationStatus"];
   reservationConfirmed: boolean;
+  notificationIds: readonly string[];
 }>> {
   try {
     const applied = await markGuestPaymentRequestPaidFromApprovedPayment({
@@ -451,6 +453,7 @@ async function markApprovedAdditionalChargePayment(input: Readonly<{
       reservationStatus: applied.reservationStatus,
       reservationConfirmed:
         applied.reservationStatus === ReservationStatus.CONFIRMED,
+      notificationIds: applied.notificationIds,
     };
   } catch (error) {
     if (error instanceof GuestPaymentRequestPaymentError) {
@@ -708,6 +711,7 @@ export async function processTilopayPaymentRedirect(
       reservationStatus: application.reservationStatus,
       reservationConfirmed: application.reservationConfirmed,
       paymentIssue: null,
+      ancillaryNotificationIds: application.notificationIds,
       redirectTarget: "success",
       phaseBoundary: "ADDITIONAL_CHARGE_PAYMENT_REQUEST_PAID",
     };

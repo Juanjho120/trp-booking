@@ -10,6 +10,9 @@ import {
 
 import { dateOnlyFromDate } from "@/lib/availability/rules";
 import { prisma } from "@/lib/db/prisma";
+import {
+  createAdditionalChargePaymentApprovedNotificationIntents,
+} from "@/lib/email/additional-charge-notification-intents";
 import { buildGuestPaymentRequestPaymentPath } from "@/lib/payments/guest-payment-request-link";
 import {
   decryptGuestPaymentRequestAccessToken,
@@ -93,6 +96,7 @@ export type ApprovedGuestPaymentRequestPaymentResult = Readonly<{
   reservationStatus: ReservationStatus;
   paidAt: string;
   alreadyPaid: boolean;
+  notificationIds: readonly string[];
 }>;
 
 const paymentRequestPaymentSelect = {
@@ -702,6 +706,8 @@ export async function markGuestPaymentRequestPaidFromApprovedPayment(
         reservation: {
           select: {
             status: true,
+            guestEmail: true,
+            preferredLocale: true,
           },
         },
         guestPaymentRequest: {
@@ -786,6 +792,7 @@ export async function markGuestPaymentRequestPaidFromApprovedPayment(
         reservationStatus: payment.reservation.status,
         paidAt: request.paidAt.toISOString(),
         alreadyPaid: true,
+        notificationIds: [],
       };
     }
 
@@ -885,12 +892,26 @@ export async function markGuestPaymentRequestPaidFromApprovedPayment(
       },
     });
 
+    const notificationIntents =
+      await createAdditionalChargePaymentApprovedNotificationIntents(
+        transaction,
+        {
+          reservationId: request.reservationId,
+          guestPaymentRequestId: request.id,
+          guestEmail: payment.reservation.guestEmail,
+          preferredLocale: payment.reservation.preferredLocale,
+        },
+      );
+
     return {
       requestId: request.id,
       reservationId: request.reservationId,
       reservationStatus: payment.reservation.status,
       paidAt: (payment.paidAt ?? now).toISOString(),
       alreadyPaid: false,
+      notificationIds: notificationIntents
+        .filter((notification) => notification.created)
+        .map((notification) => notification.id),
     };
   });
 }

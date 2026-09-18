@@ -171,9 +171,11 @@ type MockEmailNotification = {
   id: string;
   reservationId: string;
   guestPaymentRequestId: string;
+  refundId: string | null;
   type: EmailNotificationType;
   recipient: string;
   locale: "es" | "en";
+  deduplicationKey: string;
   origin: EmailNotificationOrigin;
   status: EmailNotificationStatus;
   attemptCount: number;
@@ -233,6 +235,10 @@ type MockPrismaShape = {
     }) => Promise<{ count: number }>;
   };
   adminAuditLog: {
+    create: (args: { data: Record<string, unknown> }) => Promise<unknown>;
+  };
+  emailNotification: {
+    findUnique: (args: { where: Record<string, unknown> }) => Promise<unknown>;
     create: (args: { data: Record<string, unknown> }) => Promise<unknown>;
   };
   paymentSubmissionAttempt: {
@@ -481,9 +487,12 @@ function baseState(
             id: "email-notification-final-d6",
             reservationId: "reservation-final-d4",
             guestPaymentRequestId: "request-final-d4",
+            refundId: null,
             type: EmailNotificationType.ADDITIONAL_CHARGE_PAYMENT_REQUIRED,
             recipient: TEST_GUEST_EMAIL,
             locale: "es",
+            deduplicationKey:
+              "additional-charge-payment-required/request-final-d4/guest.final-d4.behavior@juantzun.dev",
             origin: EmailNotificationOrigin.AUTOMATIC,
             status: EmailNotificationStatus.SENT,
             attemptCount: 1,
@@ -912,6 +921,56 @@ function createMockPrisma(store: MockStore): MockPrismaShape {
         });
 
         return store.current.auditLogs.at(-1) ?? null;
+      },
+    },
+    emailNotification: {
+      async findUnique(args: { where: Record<string, unknown> }): Promise<unknown> {
+        const notification = store.current.emailNotifications.find(
+          (candidate) =>
+            (maybeString(args.where.id) && candidate.id === args.where.id) ||
+            (maybeString(args.where.deduplicationKey) &&
+              candidate.deduplicationKey === args.where.deduplicationKey),
+        );
+
+        return notification
+          ? {
+              id: notification.id,
+              reservationId: notification.reservationId,
+              guestPaymentRequestId: notification.guestPaymentRequestId,
+              refundId: notification.refundId,
+              type: notification.type,
+              recipient: notification.recipient,
+              locale: notification.locale,
+              status: notification.status,
+            }
+          : null;
+      },
+      async create(args: { data: Record<string, unknown> }): Promise<unknown> {
+        const notification: MockEmailNotification = {
+          id: `email-notification-${store.current.emailNotifications.length + 1}`,
+          reservationId: String(args.data.reservationId),
+          guestPaymentRequestId: String(args.data.guestPaymentRequestId),
+          refundId: maybeString(args.data.refundId) ?? null,
+          type: args.data.type as EmailNotificationType,
+          recipient: String(args.data.recipient),
+          locale: args.data.locale === "en" ? "en" : "es",
+          deduplicationKey: String(args.data.deduplicationKey),
+          origin: args.data.origin as EmailNotificationOrigin,
+          status: args.data.status as EmailNotificationStatus,
+          attemptCount: 0,
+          createdAt: BASE_NOW,
+          updatedAt: BASE_NOW,
+        };
+
+        store.current.emailNotifications.push(notification);
+
+        return {
+          id: notification.id,
+          type: notification.type,
+          recipient: notification.recipient,
+          locale: notification.locale,
+          status: notification.status,
+        };
       },
     },
     paymentSubmissionAttempt: {
@@ -1865,6 +1924,7 @@ test("D.4 behavior applies approved provider evidence without mutating stay or l
     const replay = await result.processTilopayPaymentRedirect(
       tilopayRedirectUrl(providerInput),
     );
+    const emailCountAfterReplay = store.current.emailNotifications.length;
     const reservation = store.current.reservations[0];
     const payment = store.current.payments[0];
     const request = store.current.guestPaymentRequests[0];
@@ -1889,6 +1949,14 @@ test("D.4 behavior applies approved provider evidence without mutating stay or l
     assert.deepEqual(store.current.lifecycleRequests, beforeLifecycleRequests);
     assert.deepEqual(store.current.lifecycleHolds, beforeLifecycleHolds);
     assert.equal(store.current.auditLogs.length, auditCountAfterFirstApproval);
+    assert.equal(emailCountAfterReplay, 2);
+    assert.deepEqual(
+      store.current.emailNotifications.map((notification) => notification.type),
+      [
+        EmailNotificationType.ADDITIONAL_CHARGE_PAYMENT_APPROVED,
+        EmailNotificationType.ADMIN_ADDITIONAL_CHARGE_PAYMENT_APPROVED,
+      ],
+    );
     assertNoRawTokenStored(store.current);
   } finally {
     restoreFetch();
