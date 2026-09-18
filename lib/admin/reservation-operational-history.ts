@@ -1,5 +1,4 @@
 import {
-  AdditionalChargeStatus,
   EmailNotificationOrigin,
   EmailNotificationStatus,
   PaymentPurpose,
@@ -13,6 +12,7 @@ import {
 
 import { dateOnlyFromDate } from "@/lib/availability/rules";
 import { prisma } from "@/lib/db/prisma";
+import { deriveAdditionalChargeRefundStateAtTarget } from "@/lib/reservations/additional-charge-refund-state";
 import type {
   AdminReservationOperationalHistoryActor,
   AdminReservationOperationalHistoryEvent,
@@ -703,84 +703,24 @@ function refundAdditionalChargeAllocations(
   refund: RefundHistoryRecord,
   includeResultingStatus: boolean,
 ): AdminReservationOperationalHistoryEvent["additionalChargeAllocations"] {
-  return refund.additionalChargeAllocations.map((allocation) => ({
-    additionalChargeId: allocation.additionalChargeId,
-    category: allocation.additionalCharge.category,
-    description: allocation.additionalCharge.description,
-    allocatedAmount: allocation.allocatedAmount.toFixed(2),
-    currency: refund.currency,
-    resultingStatus: includeResultingStatus
-      ? resultingAdditionalChargeStatusAtRefund(refund, allocation)
-      : null,
-  }));
-}
+  return refund.additionalChargeAllocations.map((allocation) => {
+    const refundState = includeResultingStatus
+      ? deriveAdditionalChargeRefundStateAtTarget({
+          originalAmount: allocation.additionalCharge.amount,
+          allocations: allocation.additionalCharge.refundAllocations,
+          targetRefund: refund,
+        })
+      : null;
 
-function decimalCents(value: Prisma.Decimal): number {
-  return value.mul(100).toDecimalPlaces(0).toNumber();
-}
-
-function refundEffectiveApprovedAt(
-  refund: Readonly<{
-    approvedAt: Date | null;
-    updatedAt: Date;
-    createdAt: Date;
-  }>,
-): Date {
-  return refund.approvedAt ?? refund.updatedAt ?? refund.createdAt;
-}
-
-function isCompletedAncillaryRefundStatus(status: RefundStatus): boolean {
-  return status === RefundStatus.APPROVED || status === RefundStatus.MANUAL;
-}
-
-function isRefundAllocationEffectiveThrough(
-  candidate: Readonly<{
-    refund: Readonly<{
-      id: string;
-      status: RefundStatus;
-      approvedAt: Date | null;
-      updatedAt: Date;
-      createdAt: Date;
-    }>;
-  }>,
-  targetRefund: RefundHistoryRecord,
-): boolean {
-  if (!isCompletedAncillaryRefundStatus(candidate.refund.status)) {
-    return false;
-  }
-
-  const candidateAt = refundEffectiveApprovedAt(candidate.refund);
-  const targetAt = refundEffectiveApprovedAt(targetRefund);
-  const timestampOrder = candidateAt.getTime() - targetAt.getTime();
-
-  if (timestampOrder !== 0) {
-    return timestampOrder < 0;
-  }
-
-  return candidate.refund.id <= targetRefund.id;
-}
-
-function resultingAdditionalChargeStatusAtRefund(
-  refund: RefundHistoryRecord,
-  allocation: RefundHistoryRecord["additionalChargeAllocations"][number],
-): AdditionalChargeStatus {
-  const originalCents = decimalCents(allocation.additionalCharge.amount);
-  const refundedCents = allocation.additionalCharge.refundAllocations
-    .filter((candidate) =>
-      isRefundAllocationEffectiveThrough(candidate, refund),
-    )
-    .reduce(
-      (total, candidate) => total + decimalCents(candidate.allocatedAmount),
-      0,
-    );
-
-  if (refundedCents <= 0) {
-    return AdditionalChargeStatus.PAID;
-  }
-
-  return refundedCents >= originalCents
-    ? AdditionalChargeStatus.REFUNDED
-    : AdditionalChargeStatus.PARTIALLY_REFUNDED;
+    return {
+      additionalChargeId: allocation.additionalChargeId,
+      category: allocation.additionalCharge.category,
+      description: allocation.additionalCharge.description,
+      allocatedAmount: allocation.allocatedAmount.toFixed(2),
+      currency: refund.currency,
+      resultingStatus: refundState?.resultingStatus ?? null,
+    };
+  });
 }
 
 function refundBase(

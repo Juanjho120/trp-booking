@@ -32,6 +32,7 @@ import {
   decryptGuestPaymentRequestAccessToken,
   hashGuestPaymentRequestAccessToken,
 } from "@/lib/payments/guest-payment-request-token";
+import { deriveAdditionalChargeRefundStateAtTarget } from "@/lib/reservations/additional-charge-refund-state";
 import type { AdditionalChargeCategory } from "@/types/additional-charge";
 import type {
   AdditionalChargeAdminPaymentApprovedEmailTemplateInput,
@@ -237,6 +238,8 @@ const claimedSelect = {
       providerRefundId: true,
       reason: true,
       approvedAt: true,
+      createdAt: true,
+      updatedAt: true,
       requestedByAdmin: {
         select: {
           name: true,
@@ -275,6 +278,15 @@ const claimedSelect = {
                 },
                 select: {
                   allocatedAmount: true,
+                  refund: {
+                    select: {
+                      id: true,
+                      status: true,
+                      approvedAt: true,
+                      createdAt: true,
+                      updatedAt: true,
+                    },
+                  },
                 },
               },
             },
@@ -515,13 +527,17 @@ function reservationInput(request: NonNullable<ClaimedNotification["guestPayment
 
 function requestItems(
   request: NonNullable<ClaimedNotification["guestPaymentRequest"]>,
+  options: Readonly<{ status?: AdditionalChargeStatus | null }> = {},
 ) {
   return request.items.map((item) => ({
     category: item.categorySnapshot as AdditionalChargeCategory,
     description: item.descriptionSnapshot,
     amount: item.amountSnapshot.toFixed(2),
     currency: item.currencySnapshot,
-    status: item.additionalCharge.status,
+    status:
+      options.status === undefined
+        ? item.additionalCharge.status
+        : options.status,
   }));
 }
 
@@ -645,7 +661,7 @@ async function buildPaymentApprovedGuestContent(
       paidAt: (payment.paidAt ?? request.paidAt).toISOString(),
       totalAmount: request.totalAmount.toFixed(2),
       currency: request.currency,
-      items: requestItems(request),
+      items: requestItems(request, { status: AdditionalChargeStatus.PAID }),
     },
   };
 
@@ -691,10 +707,10 @@ async function buildPaymentApprovedAdminContent(
       id: payment.id,
       providerReference: payment.providerReference,
       paidAt: (payment.paidAt ?? request.paidAt).toISOString(),
-      status: payment.status,
+      status: PaymentStatus.APPROVED,
       totalAmount: request.totalAmount.toFixed(2),
       currency: request.currency,
-      items: requestItems(request),
+      items: requestItems(request, { status: AdditionalChargeStatus.PAID }),
     },
   };
 
@@ -703,12 +719,11 @@ async function buildPaymentApprovedAdminContent(
 
 function refundAllocations(refund: NonNullable<ClaimedNotification["refund"]>) {
   return refund.additionalChargeAllocations.map((allocation) => {
-    const approvedTotal = allocation.additionalCharge.refundAllocations.reduce(
-      (total, approvedAllocation) =>
-        total.add(approvedAllocation.allocatedAmount),
-      new Prisma.Decimal(0),
-    );
-    const remaining = allocation.additionalCharge.amount.sub(approvedTotal);
+    const refundState = deriveAdditionalChargeRefundStateAtTarget({
+      originalAmount: allocation.additionalCharge.amount,
+      allocations: allocation.additionalCharge.refundAllocations,
+      targetRefund: refund,
+    });
 
     return {
       additionalChargeId: allocation.additionalChargeId,
@@ -716,10 +731,11 @@ function refundAllocations(refund: NonNullable<ClaimedNotification["refund"]>) {
       description: allocation.additionalCharge.description,
       originalAmount: allocation.additionalCharge.amount.toFixed(2),
       allocatedAmount: allocation.allocatedAmount.toFixed(2),
-      cumulativeRefundedAmount: approvedTotal.toFixed(2),
-      remainingAmount: remaining.greaterThan(0) ? remaining.toFixed(2) : "0.00",
+      cumulativeRefundedAmount:
+        refundState.cumulativeRefundedAmount.toFixed(2),
+      remainingAmount: refundState.remainingAmount.toFixed(2),
       currency: allocation.additionalCharge.currency,
-      resultingStatus: allocation.additionalCharge.status,
+      resultingStatus: refundState.resultingStatus,
     };
   });
 }

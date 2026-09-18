@@ -9,6 +9,7 @@ import {
   PaymentPurpose,
   PaymentStatus,
   Prisma,
+  RefundAuthorizationType,
   RefundStatus,
   ReservationStatus,
   UserRole,
@@ -82,6 +83,66 @@ type D6Notification = {
   updatedAt: Date;
 };
 
+type D6Payment = {
+  id: string;
+  guestPaymentRequestId: string | null;
+  purpose: PaymentPurpose;
+  status: PaymentStatus;
+  amount: Prisma.Decimal;
+  currency: string;
+  providerReference: string | null;
+  paidAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+type D6Refund = {
+  id: string;
+  paymentId: string;
+  authorizationType: RefundAuthorizationType;
+  status: RefundStatus;
+  amount: Prisma.Decimal;
+  currency: string;
+  processingMode: string;
+  providerRefundId: string | null;
+  reason: string | null;
+  approvedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+  requestedByAdmin: { name: string | null; email: string } | null;
+  payment: {
+    id: string;
+    purpose: PaymentPurpose;
+    status: PaymentStatus;
+    amount: Prisma.Decimal;
+    currency: string;
+    guestPaymentRequestId: string | null;
+    reservationId: string;
+  };
+  additionalChargeAllocations: Array<{
+    additionalChargeId: string;
+    allocatedAmount: Prisma.Decimal;
+    additionalCharge: {
+      id: string;
+      category: "TRANSPORT" | "CLEANING";
+      description: string;
+      amount: Prisma.Decimal;
+      currency: string;
+      status: AdditionalChargeStatus;
+      refundAllocations: Array<{
+        allocatedAmount: Prisma.Decimal;
+        refund: {
+          id: string;
+          status: RefundStatus;
+          approvedAt: Date | null;
+          createdAt: Date;
+          updatedAt: Date;
+        };
+      }>;
+    };
+  }>;
+};
+
 type D6Store = {
   users: D6User[];
   reservation: {
@@ -139,6 +200,8 @@ type D6Store = {
     currencySnapshot: string;
     createdAt: Date;
   }>;
+  payments: D6Payment[];
+  refunds: D6Refund[];
   notifications: D6Notification[];
   auditLogs: Array<{ action: string; metadata: unknown }>;
   failAutomaticNotificationCreate: boolean;
@@ -154,6 +217,61 @@ function cloneDate(value: Date | null): Date | null {
 
 function cloneJson<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
+}
+
+function cloneD6Payment(payment: D6Payment): D6Payment {
+  return {
+    ...payment,
+    amount: money(payment.amount.toFixed(2)),
+    paidAt: cloneDate(payment.paidAt),
+    createdAt: new Date(payment.createdAt.getTime()),
+    updatedAt: new Date(payment.updatedAt.getTime()),
+  };
+}
+
+function cloneD6Refund(refund: D6Refund): D6Refund {
+  return {
+    ...refund,
+    amount: money(refund.amount.toFixed(2)),
+    approvedAt: cloneDate(refund.approvedAt),
+    createdAt: new Date(refund.createdAt.getTime()),
+    updatedAt: new Date(refund.updatedAt.getTime()),
+    requestedByAdmin: refund.requestedByAdmin
+      ? { ...refund.requestedByAdmin }
+      : null,
+    payment: {
+      ...refund.payment,
+      amount: money(refund.payment.amount.toFixed(2)),
+    },
+    additionalChargeAllocations: refund.additionalChargeAllocations.map(
+      (allocation) => ({
+        ...allocation,
+        allocatedAmount: money(allocation.allocatedAmount.toFixed(2)),
+        additionalCharge: {
+          ...allocation.additionalCharge,
+          amount: money(allocation.additionalCharge.amount.toFixed(2)),
+          refundAllocations:
+            allocation.additionalCharge.refundAllocations.map(
+              (refundAllocation) => ({
+                allocatedAmount: money(
+                  refundAllocation.allocatedAmount.toFixed(2),
+                ),
+                refund: {
+                  ...refundAllocation.refund,
+                  approvedAt: cloneDate(refundAllocation.refund.approvedAt),
+                  createdAt: new Date(
+                    refundAllocation.refund.createdAt.getTime(),
+                  ),
+                  updatedAt: new Date(
+                    refundAllocation.refund.updatedAt.getTime(),
+                  ),
+                },
+              }),
+            ),
+        },
+      }),
+    ),
+  };
 }
 
 function cloneD6Store(store: D6Store): D6Store {
@@ -191,6 +309,8 @@ function cloneD6Store(store: D6Store): D6Store {
       amountSnapshot: money(item.amountSnapshot.toFixed(2)),
       createdAt: new Date(item.createdAt.getTime()),
     })),
+    payments: store.payments.map(cloneD6Payment),
+    refunds: store.refunds.map(cloneD6Refund),
     notifications: store.notifications.map((notification) => ({
       ...notification,
       requestedAt: cloneDate(notification.requestedAt),
@@ -212,6 +332,8 @@ function restoreD6Store(target: D6Store, snapshot: D6Store): void {
   target.charges = snapshot.charges;
   target.requests = snapshot.requests;
   target.requestItems = snapshot.requestItems;
+  target.payments = snapshot.payments;
+  target.refunds = snapshot.refunds;
   target.notifications = snapshot.notifications;
   target.auditLogs = snapshot.auditLogs;
   target.failAutomaticNotificationCreate =
@@ -383,14 +505,20 @@ function d6Store(): D6Store {
     ],
     requests: [],
     requestItems: [],
+    payments: [],
+    refunds: [],
     notifications: [],
     auditLogs: [],
     failAutomaticNotificationCreate: false,
   };
 }
 
-function paymentForRequest() {
-  return null;
+function paymentForRequest(store: D6Store, requestId: string) {
+  return (
+    store.payments.find(
+      (payment) => payment.guestPaymentRequestId === requestId,
+    ) ?? null
+  );
 }
 
 function requestItemsFor(store: D6Store, requestId: string) {
@@ -429,7 +557,7 @@ function enrichRequest(store: D6Store, request: D6Store["requests"][number]) {
       property: store.reservation.property,
     },
     items: requestItemsFor(store, request.id),
-    payment: paymentForRequest(),
+    payment: paymentForRequest(store, request.id),
     emailNotifications: store.notifications
       .filter((notification) => notification.guestPaymentRequestId === request.id)
       .map((notification) => ({
@@ -448,6 +576,9 @@ function notificationWithRelations(store: D6Store, notification: D6Notification)
   const request = notification.guestPaymentRequestId
     ? store.requests.find((candidate) => candidate.id === notification.guestPaymentRequestId)
     : null;
+  const refund = notification.refundId
+    ? store.refunds.find((candidate) => candidate.id === notification.refundId)
+    : null;
   const requestedByAdmin = notification.requestedByAdminId
     ? store.users.find((user) => user.id === notification.requestedByAdminId) ?? null
     : null;
@@ -459,6 +590,7 @@ function notificationWithRelations(store: D6Store, notification: D6Notification)
       .map((child) => ({ id: child.id })),
     requestedByAdmin,
     guestPaymentRequest: request ? enrichRequest(store, request) : null,
+    refund: refund ?? null,
     reservation: {
       status: store.reservation.status,
       confirmedAt: store.reservation.confirmedAt,
@@ -879,12 +1011,12 @@ function installD6Prisma(store: D6Store): void {
     },
     payment: {
       async findMany() {
-        return [];
+        return store.payments;
       },
     },
     refund: {
       async findMany() {
-        return [];
+        return store.refunds;
       },
     },
     reservationLifecycleRequest: {
@@ -1027,6 +1159,44 @@ function seedD6AdminPendingRetryNotification(store: D6Store): void {
   });
 }
 
+function seedD6RetryNotification(
+  store: D6Store,
+  input: Readonly<{
+    id: string;
+    type: EmailNotificationType;
+    recipient: string;
+    deduplicationKey: string;
+    refundId?: string | null;
+  }>,
+): void {
+  store.notifications.push({
+    id: input.id,
+    reservationId: D6_RESERVATION_ID,
+    guestPaymentRequestId: D6_REQUEST_ID,
+    lifecycleRequestId: null,
+    refundId: input.refundId ?? null,
+    type: input.type,
+    recipient: input.recipient,
+    locale: "es",
+    deduplicationKey: input.deduplicationKey,
+    origin: EmailNotificationOrigin.AUTOMATIC,
+    parentNotificationId: null,
+    requestedByAdminId: null,
+    requestedAt: null,
+    status: EmailNotificationStatus.FAILED,
+    attemptCount: 1,
+    lastAttemptAt: new Date("2026-09-17T11:00:00.000Z"),
+    nextAttemptAt: new Date("2026-09-17T11:05:00.000Z"),
+    processingStartedAt: null,
+    providerMessageId: null,
+    sentAt: null,
+    errorCode: "EMAIL_PROVIDER_TEMPORARY_FAILURE",
+    errorMessage: "The email provider is temporarily unavailable.",
+    createdAt: new Date("2026-09-17T10:00:00.000Z"),
+    updatedAt: new Date("2026-09-17T11:00:00.000Z"),
+  });
+}
+
 function d6ManualResendInput(
   requestId: string,
   expectedUpdatedAt = D6_BASE_NOW.toISOString(),
@@ -1074,13 +1244,16 @@ async function withFetchCallCounter(
 async function processD6EmailRetryWithProviderCounter(): Promise<
   Readonly<{
     providerCalls: number;
+    payloads: Array<Parameters<EmailProvider["send"]>[0]>;
     summary: Awaited<ReturnType<typeof processEmailNotifications>>;
   }>
 > {
   let providerCalls = 0;
+  const payloads: Array<Parameters<EmailProvider["send"]>[0]> = [];
   const provider: EmailProvider = {
-    async send() {
+    async send(payload) {
       providerCalls += 1;
+      payloads.push(payload);
       return {
         provider: "resend",
         providerMessageId: "msg-d6-retry",
@@ -1095,7 +1268,15 @@ async function processD6EmailRetryWithProviderCounter(): Promise<
     now: () => D6_BASE_NOW,
   });
 
-  return { providerCalls, summary };
+  return { payloads, providerCalls, summary };
+}
+
+function joinedPayloadContent(
+  payloads: readonly Parameters<EmailProvider["send"]>[0][],
+): string {
+  return payloads
+    .map((payload) => `${payload.subject}\n${payload.text}\n${payload.html}`)
+    .join("\n");
 }
 
 test("D.6 behavior renders localized additional-charge payment emails without internal fields", async () => {
@@ -1701,6 +1882,256 @@ test("D.6 behavior expires and skips overdue stale admin pending retries", async
       "EMAIL_ADDITIONAL_CHARGE_PAYMENT_SUPERSEDED",
     );
     assertNoRawToken(store);
+  } finally {
+    restoreEnv();
+  }
+});
+
+test("D.6 behavior renders delayed ancillary refund retries as of the target refund", async () => {
+  const restoreEnv = preserveD6Env();
+  enableD6EmailEnv();
+  const store = d6Store();
+  seedD6PaymentRequest(store, {
+    status: GuestPaymentRequestStatus.PAID,
+    withItems: false,
+  });
+  const paidAt = new Date("2026-09-17T13:00:00.000Z");
+  const refundAApprovedAt = new Date("2026-09-17T14:00:00.000Z");
+  const refundBApprovedAt = new Date("2026-09-17T15:00:00.000Z");
+  const request = store.requests[0]!;
+  request.totalAmount = money("100.00");
+  request.paidAt = paidAt;
+  store.charges[0]!.amount = money("100.00");
+  store.charges[0]!.status = AdditionalChargeStatus.REFUNDED;
+  store.requestItems.push({
+    id: "item-d6-refund-email",
+    paymentRequestId: D6_REQUEST_ID,
+    additionalChargeId: "charge-d6-1",
+    categorySnapshot: "TRANSPORT",
+    descriptionSnapshot: "Airport pickup",
+    amountSnapshot: money("100.00"),
+    currencySnapshot: "USD",
+    createdAt: D6_BASE_NOW,
+  });
+  store.payments.push({
+    id: "payment-d6-refund-email",
+    guestPaymentRequestId: D6_REQUEST_ID,
+    purpose: PaymentPurpose.ADDITIONAL_CHARGE,
+    status: PaymentStatus.REFUNDED,
+    amount: money("100.00"),
+    currency: "USD",
+    providerReference: "TRP-D6-REFUND",
+    paidAt,
+    createdAt: paidAt,
+    updatedAt: refundBApprovedAt,
+  });
+  const refundTimelineA = {
+    id: "refund-d6-email-a",
+    status: RefundStatus.APPROVED,
+    approvedAt: refundAApprovedAt,
+    createdAt: new Date("2026-09-17T13:30:00.000Z"),
+    updatedAt: refundAApprovedAt,
+  };
+  const refundTimelineB = {
+    id: "refund-d6-email-b",
+    status: RefundStatus.APPROVED,
+    approvedAt: refundBApprovedAt,
+    createdAt: new Date("2026-09-17T14:30:00.000Z"),
+    updatedAt: refundBApprovedAt,
+  };
+  const allocationCharge = {
+    id: "charge-d6-1",
+    category: "TRANSPORT" as const,
+    description: "Airport pickup",
+    amount: money("100.00"),
+    currency: "USD",
+    status: AdditionalChargeStatus.REFUNDED,
+    refundAllocations: [
+      {
+        allocatedAmount: money("30.00"),
+        refund: refundTimelineA,
+      },
+      {
+        allocatedAmount: money("70.00"),
+        refund: refundTimelineB,
+      },
+    ],
+  };
+  store.refunds.push({
+    id: "refund-d6-email-a",
+    paymentId: "payment-d6-refund-email",
+    authorizationType: RefundAuthorizationType.ADDITIONAL_CHARGE,
+    status: RefundStatus.APPROVED,
+    amount: money("30.00"),
+    currency: "USD",
+    processingMode: "TILOPAY_PORTAL_FALLBACK",
+    providerRefundId: "safe-refund-a",
+    reason: "First ancillary refund",
+    approvedAt: refundAApprovedAt,
+    createdAt: new Date("2026-09-17T13:30:00.000Z"),
+    updatedAt: refundAApprovedAt,
+    requestedByAdmin: {
+      name: "Admin Final D6",
+      email: "admin@juantzun.dev",
+    },
+    payment: {
+      id: "payment-d6-refund-email",
+      purpose: PaymentPurpose.ADDITIONAL_CHARGE,
+      status: PaymentStatus.REFUNDED,
+      amount: money("100.00"),
+      currency: "USD",
+      guestPaymentRequestId: D6_REQUEST_ID,
+      reservationId: D6_RESERVATION_ID,
+    },
+    additionalChargeAllocations: [
+      {
+        additionalChargeId: "charge-d6-1",
+        allocatedAmount: money("30.00"),
+        additionalCharge: allocationCharge,
+      },
+    ],
+  });
+  seedD6RetryNotification(store, {
+    id: "notification-d6-refund-guest-retry",
+    type: EmailNotificationType.ADDITIONAL_CHARGE_REFUND_PROCESSED,
+    recipient: "guest.final-d6@juantzun.dev",
+    deduplicationKey:
+      "additional-charge-refund-processed/refund-d6-email-a/guest.final-d6@juantzun.dev",
+    refundId: "refund-d6-email-a",
+  });
+  seedD6RetryNotification(store, {
+    id: "notification-d6-refund-admin-retry",
+    type: EmailNotificationType.ADMIN_ADDITIONAL_CHARGE_REFUND_PROCESSED,
+    recipient: "admin@juantzun.dev",
+    deduplicationKey:
+      "admin-additional-charge-refund-processed/refund-d6-email-a/admin@juantzun.dev",
+    refundId: "refund-d6-email-a",
+  });
+  installD6Prisma(store);
+
+  try {
+    const { payloads, providerCalls, summary } =
+      await processD6EmailRetryWithProviderCounter();
+    const guestPayload = payloads.find(
+      (payload) => payload.audience === "guest",
+    );
+    const adminPayload = payloads.find(
+      (payload) => payload.audience === "admin",
+    );
+
+    assert.equal(summary.candidates, 2);
+    assert.equal(summary.claimed, 2);
+    assert.equal(summary.attempted, 2);
+    assert.equal(summary.sent, 2);
+    assert.equal(providerCalls, 2);
+    assert.ok(guestPayload);
+    assert.ok(adminPayload);
+    assert.equal(guestPayload.intendedRecipient, "guest.final-d6@juantzun.dev");
+    assert.equal(adminPayload.intendedRecipient, "admin@juantzun.dev");
+    assert.match(guestPayload.text, /Total reembolsado:\s*[^\n]*30[.,]00/);
+    assert.match(adminPayload.text, /Total reembolsado:\s*[^\n]*30[.,]00/);
+    assert.match(
+      adminPayload.text,
+      /Reembolsado acumulado:\s*[^\n]*30[.,]00/,
+    );
+    assert.match(guestPayload.text, /Saldo restante:\s*[^\n]*70[.,]00/);
+    assert.match(adminPayload.text, /Saldo restante:\s*[^\n]*70[.,]00/);
+    assert.match(
+      guestPayload.text,
+      /Estado resultante:\s*PARTIALLY_REFUNDED/,
+    );
+    assert.match(
+      adminPayload.text,
+      /Estado resultante:\s*PARTIALLY_REFUNDED/,
+    );
+    assert.doesNotMatch(
+      joinedPayloadContent(payloads),
+      /Estado resultante:\s*REFUNDED/,
+    );
+    assert.doesNotMatch(
+      adminPayload.text,
+      /Reembolsado acumulado:\s*[^\n]*100[.,]00/,
+    );
+    assertNoRawToken(payloads);
+  } finally {
+    restoreEnv();
+  }
+});
+
+test("D.6 behavior keeps delayed payment-approved retries on the original paid event", async () => {
+  const restoreEnv = preserveD6Env();
+  enableD6EmailEnv();
+  const store = d6Store();
+  seedD6PaymentRequest(store, {
+    status: GuestPaymentRequestStatus.PAID,
+  });
+  const paidAt = new Date("2026-09-17T13:00:00.000Z");
+  store.requests[0]!.paidAt = paidAt;
+  store.charges[0]!.status = AdditionalChargeStatus.PARTIALLY_REFUNDED;
+  store.charges[1]!.status = AdditionalChargeStatus.REFUNDED;
+  store.payments.push({
+    id: "payment-d6-approved-email",
+    guestPaymentRequestId: D6_REQUEST_ID,
+    purpose: PaymentPurpose.ADDITIONAL_CHARGE,
+    status: PaymentStatus.REFUNDED,
+    amount: money("30.00"),
+    currency: "USD",
+    providerReference: "TRP-D6-APPROVED",
+    paidAt,
+    createdAt: paidAt,
+    updatedAt: new Date("2026-09-17T15:00:00.000Z"),
+  });
+  seedD6RetryNotification(store, {
+    id: "notification-d6-approved-guest-retry",
+    type: EmailNotificationType.ADDITIONAL_CHARGE_PAYMENT_APPROVED,
+    recipient: "guest.final-d6@juantzun.dev",
+    deduplicationKey:
+      "additional-charge-payment-approved/request-final-d6/guest.final-d6@juantzun.dev",
+  });
+  seedD6RetryNotification(store, {
+    id: "notification-d6-approved-admin-retry",
+    type: EmailNotificationType.ADMIN_ADDITIONAL_CHARGE_PAYMENT_APPROVED,
+    recipient: "admin@juantzun.dev",
+    deduplicationKey:
+      "admin-additional-charge-payment-approved/request-final-d6/admin@juantzun.dev",
+  });
+  installD6Prisma(store);
+
+  try {
+    const { payloads, providerCalls, summary } =
+      await processD6EmailRetryWithProviderCounter();
+    const guestPayload = payloads.find(
+      (payload) => payload.audience === "guest",
+    );
+    const adminPayload = payloads.find(
+      (payload) => payload.audience === "admin",
+    );
+    const allPayloadContent = joinedPayloadContent(payloads);
+
+    assert.equal(summary.candidates, 2);
+    assert.equal(summary.claimed, 2);
+    assert.equal(summary.attempted, 2);
+    assert.equal(summary.sent, 2);
+    assert.equal(providerCalls, 2);
+    assert.ok(guestPayload);
+    assert.ok(adminPayload);
+    assert.match(adminPayload.text, /Estado del pago:\s*APPROVED/);
+    assert.match(guestPayload.text, /\(PAID\)/);
+    assert.match(adminPayload.text, /\(PAID\)/);
+    assert.doesNotMatch(
+      allPayloadContent,
+      /Estado del cargo:\s*(?:REFUNDED|PARTIALLY_REFUNDED)/,
+    );
+    assert.doesNotMatch(
+      allPayloadContent,
+      /\((?:REFUNDED|PARTIALLY_REFUNDED)\)/,
+    );
+    assert.doesNotMatch(
+      allPayloadContent,
+      /Estado del pago:\s*(?:REFUNDED|PARTIALLY_REFUNDED)/,
+    );
+    assert.doesNotMatch(guestPayload.text, /REFUNDED|PARTIALLY_REFUNDED/);
+    assertNoRawToken(payloads);
   } finally {
     restoreEnv();
   }

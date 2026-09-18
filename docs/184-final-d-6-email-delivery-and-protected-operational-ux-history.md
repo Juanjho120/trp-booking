@@ -161,10 +161,32 @@ Fix applied in this continuation:
 
 No migration was introduced for this follow-up.
 
+## Independent Review Follow-Up After Delayed Retry Stability
+
+After `b623bcc426b97e63ea5d602699a4b361efc6b83b`, the independent review confirmed the stale admin pending retry suppression, overdue PENDING-to-EXPIRED convergence, no-provider-call behavior, historically stable ancillary refund Operational History statuses and Final-D 59/59 validation were correct.
+
+The same review identified one remaining delayed-email retry drift:
+
+```text
+- Ancillary refund-processed email retries still derived cumulative refunded amount, remaining amount and resulting charge status from current completed refunds/current AdditionalCharge.status, so retrying Refund A after Refund B could describe the later full-refund state.
+- Additional-charge payment-approved email retries could describe live post-refund charge/payment state instead of the original paid event.
+```
+
+Fix applied in this continuation:
+
+```text
+- Extracted a neutral chronological ancillary refund-state helper under lib/reservations so Operational History and email rendering share one approved/manual refund timeline algorithm without introducing email/admin/payment import cycles.
+- Ancillary refund-processed guest/admin emails now derive cumulative refunded amount, remaining amount and resulting AdditionalCharge status as of the target refund, using approvedAt when present, temporal fallback for manual/completed refunds and stable refund id tie-breaking.
+- Additional-charge payment-approved guest/admin emails now render the original paid event: guest/admin items render PAID, and the admin payment status displays the approved payment event rather than later refund status.
+- Added delayed retry coverage proving Refund A 30.00 still renders cumulative 30.00, remaining 70.00 and PARTIALLY_REFUNDED after Refund B 70.00 completed, and proving payment-approved retries stay on the paid event after later refunds.
+```
+
+No migration was introduced for this follow-up.
+
 ## Validation Executed
 
 ```text
-npx tsx --tsconfig tests/final-d/tsconfig.json tests/final-d/run.ts — Passed: 59/59, including pending guest/admin intent pair, payment-approved guest/admin intents, ancillary refund guest/admin intents, stale admin pending retry suppression after PAID/CANCELLED/overdue requests, historically stable ancillary refund allocation statuses, template safety coverage, Email Delivery read-model guard, ancillary refund operational-history allocations, manual-resend overdue expiry persistence, terminal-state resend rejection, cancelled-reservation resend reuse, transaction rollback coverage for automatic notification creation failure, import-cycle prevention, and SDK-session route coverage for a D.6-created two-item request with automatic EmailNotification. Sandbox attempts hit the known Windows tsx `uv_os_get_passwd` ENOMEM issue before test startup; reruns outside the sandbox passed.
+npx tsx --tsconfig tests/final-d/tsconfig.json tests/final-d/run.ts — Passed: 61/61, including pending guest/admin intent pair, payment-approved guest/admin intents, ancillary refund guest/admin intents, stale admin pending retry suppression after PAID/CANCELLED/overdue requests, historically stable ancillary refund allocation statuses, delayed ancillary refund retry as-of-target-refund rendering, delayed payment-approved retry paid-event rendering, template safety coverage, Email Delivery read-model guard, ancillary refund operational-history allocations, manual-resend overdue expiry persistence, terminal-state resend rejection, cancelled-reservation resend reuse, transaction rollback coverage for automatic notification creation failure, import-cycle prevention, and SDK-session route coverage for a D.6-created two-item request with automatic EmailNotification. Sandbox attempts hit the known Windows tsx `uv_os_get_passwd` ENOMEM issue before test startup; reruns outside the sandbox passed.
 npm run final-a:validate — Passed: 44/44 after rerun outside the sandbox; first sandbox attempt hit the known Windows tsx `uv_os_get_passwd` ENOMEM issue
 npm run final-b:validate — Passed: 38/38 outside the sandbox
 npm run final-c:validate — Passed: 41/41 outside the sandbox
