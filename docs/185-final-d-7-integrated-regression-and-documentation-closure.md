@@ -59,7 +59,7 @@ and added three integrated closure checks for real D.1 matrix gaps:
 
 ```text
 - charge-domain eligibility, validation, edit/cancel boundaries and safe audit evidence;
-- payment-request grouping snapshots, idempotency, active-request fencing, cross-reservation rejection and re-request after cancellation;
+- payment-request grouping snapshots, idempotency, active-request fencing, cross-reservation rejection and re-request after cancellation or expiry;
 - permanent command/source boundary coverage for categories/localization, financial isolation and UI/security constraints.
 ```
 
@@ -108,7 +108,7 @@ Grouping / request:
 - cross-Reservation grouping rejected: D.7 integrated grouping behavior.
 - same charge cannot enter two active requests: D.7 integrated active-request fencing behavior.
 - request item snapshot remains immutable: D.7 integrated snapshot behavior.
-- expired/cancelled request permits valid PENDING charge re-request: D.7 integrated re-request behavior.
+- expired/cancelled request permits valid PENDING charge re-request: D.7 integrated CANCELLED/EXPIRED re-request behavior.
 - request replay/idempotency does not duplicate rows: D.7 integrated grouping behavior and D.6 idempotency behavior.
 - request token is not persisted/logged in plaintext: D.3 accepted token creation, D.4 raw-token sanitization behavior and D.7 audit/source coverage.
 - invalid/expired/cancelled/paid token cannot start a new checkout: D.4 behavior tests.
@@ -202,6 +202,7 @@ Final-D.6 Hosted Test accepted on 2026-09-18:
 npm run final-d:validate
 Initial sandbox run failed before startup with the known Windows/Node tsx uv_os_get_passwd ENOMEM issue.
 Rerun with the existing temporary NODE_OPTIONS preload outside the repository: Passed 66/66.
+Latest D.7 re-request correction rerun with the same temporary NODE_OPTIONS preload: Passed 66/66, including both CANCELLED and EXPIRED request re-request paths.
 
 npm run final-a:validate
 Rerun with the same temporary NODE_OPTIONS preload: Passed 44/44.

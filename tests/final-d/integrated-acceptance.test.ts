@@ -972,10 +972,9 @@ test("D.7 integrated payment-request grouping preserves snapshots, idempotency, 
     assert.ok(store.current.requests[0]?.accessTokenEncrypted);
     assert.equal("accessToken" in store.current.requests[0]!, false);
 
-    store.current.charges.find((charge) => charge.id === chargeA.id)!.description =
-      "Mutated live description";
-    store.current.charges.find((charge) => charge.id === chargeA.id)!.amount =
-      money("99.99");
+    const liveChargeA = store.current.charges.find((charge) => charge.id === chargeA.id)!;
+    liveChargeA.description = "Mutated live description";
+    liveChargeA.amount = money("99.99");
 
     assert.deepEqual(
       request.items.map((item) => [item.description, item.amount]),
@@ -985,6 +984,10 @@ test("D.7 integrated payment-request grouping preserves snapshots, idempotency, 
       ],
       "request item snapshots must not follow later charge mutation",
     );
+
+    liveChargeA.description = "Airport pickup";
+    liveChargeA.amount = money("12.50");
+
     await assertAdminError(
       () =>
         updateAdminAdditionalCharge(
@@ -1041,7 +1044,54 @@ test("D.7 integrated payment-request grouping preserves snapshots, idempotency, 
     );
 
     assert.notEqual(rerequest.id, request.id);
-    assert.equal(rerequest.totalAmount, "117.49");
+    assert.equal(rerequest.totalAmount, "30.00");
+    assert.deepEqual(
+      rerequest.items.map((item) => [item.description, item.amount]),
+      [
+        ["Airport pickup", "12.50"],
+        ["Extra cleaning", "17.50"],
+      ],
+    );
+
+    const liveRequestTwo = store.current.requests.find(
+      (candidate) => candidate.id === rerequest.id,
+    )!;
+    liveRequestTwo.status = GuestPaymentRequestStatus.EXPIRED;
+    liveRequestTwo.expiresAt = new Date(D7_NOW.getTime() - 1_000);
+
+    const expiredRerequest = await createAdminGuestPaymentRequest(
+      {
+        reservationId: "reservation-confirmed-d7",
+        clientRequestId: "final-d7-request-3",
+        charges: [
+          { chargeId: chargeA.id, expectedUpdatedAt: chargeA.updatedAt },
+          { chargeId: chargeB.id, expectedUpdatedAt: chargeB.updatedAt },
+        ],
+      },
+      D7_ACTOR,
+    );
+
+    assert.notEqual(expiredRerequest.id, rerequest.id);
+    assert.notEqual(expiredRerequest.id, request.id);
+    assert.equal(expiredRerequest.totalAmount, "30.00");
+    assert.deepEqual(
+      expiredRerequest.items.map((item) => [item.description, item.amount]),
+      [
+        ["Airport pickup", "12.50"],
+        ["Extra cleaning", "17.50"],
+      ],
+    );
+    assert.equal(store.current.requests.length, 3);
+    assert.equal(
+      new Set(store.current.requests.map((historicalRequest) => historicalRequest.id)).size,
+      3,
+    );
+    assert.equal(
+      new Set(
+        store.current.requests.map((historicalRequest) => historicalRequest.accessTokenHash),
+      ).size,
+      3,
+    );
     assert.deepEqual(
       store.current.charges
         .filter((charge) => [chargeA.id, chargeB.id].includes(charge.id))
@@ -1055,6 +1105,19 @@ test("D.7 integrated payment-request grouping preserves snapshots, idempotency, 
         EmailNotificationType.ADMIN_ADDITIONAL_CHARGE_PAYMENT_REQUIRED,
         EmailNotificationType.ADDITIONAL_CHARGE_PAYMENT_REQUIRED,
         EmailNotificationType.ADMIN_ADDITIONAL_CHARGE_PAYMENT_REQUIRED,
+        EmailNotificationType.ADDITIONAL_CHARGE_PAYMENT_REQUIRED,
+        EmailNotificationType.ADMIN_ADDITIONAL_CHARGE_PAYMENT_REQUIRED,
+      ],
+    );
+    assert.deepEqual(
+      store.current.notifications.map((notification) => notification.guestPaymentRequestId),
+      [
+        request.id,
+        request.id,
+        rerequest.id,
+        rerequest.id,
+        expiredRerequest.id,
+        expiredRerequest.id,
       ],
     );
     assert.equal(
