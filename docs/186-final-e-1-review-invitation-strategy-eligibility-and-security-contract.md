@@ -1049,7 +1049,7 @@ Final-E — In progress
 Final-E.1 — Review/invitation strategy, eligibility and security contract — Completed and accepted on 2026-09-18
 Final-E.1 accepted strategy head — e83ad8443bd533715058e701769b10c2d5505436
 Final-E.2 — Review/invitation persistence foundation and migration — Completed and accepted on 2026-09-18 at f77938c5606ed636b697dc1af41c111a22ba1593
-Final-E.3 — Eligibility and invitation/token lifecycle foundation — Implementation completed and validation executed; owner acceptance pending
+Final-E.3 — Eligibility and invitation/token lifecycle foundation — Completed and accepted on 2026-09-18 at c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030
 Final-E.4 — Next / Not started
 Final-E.5 — Not started
 Final-E.6 — Not started
@@ -1058,6 +1058,6 @@ Final-F/G/H — Not started
 Phase 13 — Not started
 ```
 
-Final-E.2 is completed and accepted. Final-E.3 implementation is completed and validation executed
-with owner acceptance pending. Final-E.4 through Final-E.7, Final-F/G/H and Phase 13 remain Not
-started.
+Final-E.2 is completed and accepted. Final-E.3 is completed and accepted on 2026-09-18 at
+c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030. Final-E.4 through Final-E.7, Final-F/G/H and Phase 13
+remain Not started.

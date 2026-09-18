@@ -7,14 +7,15 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-E - Reservation reviews and post-checkout invitation
 Subphase: Final-E.3 - Eligibility and invitation/token lifecycle foundation
-Status: Implementation completed and validation executed; owner acceptance pending
+Status: Completed and accepted on 2026-09-18
 Implementation date: 2026-09-18
 Implementation base head: 6cc737c1e846563069b5f71cbd60b34064ffc160
+Accepted implementation head: c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030
 Accepted Final-E.1 strategy head: e83ad8443bd533715058e701769b10c2d5505436
 Accepted Final-E.2 implementation head: f77938c5606ed636b697dc1af41c111a22ba1593
 Authoritative contract: docs/186-final-e-1-review-invitation-strategy-eligibility-and-security-contract.md
 Accepted persistence record: docs/187-final-e-2-review-invitation-persistence-foundation-and-migration.md
-Migration count entering E.3: 21
+Migration count: 21
 Next subphase: Final-E.4 - Review-invitation scheduling, cron integration and email delivery - Not started
 Final-E.5 through Final-E.7: Not started
 Final-F/G/H: Not started
@@ -34,6 +35,100 @@ lib/reviews/review-invitation-token.ts
 lib/reviews/review-invitation-eligibility.ts
 lib/reviews/review-invitations.ts
 lib/reviews/index.ts
+```
+
+## Owner Acceptance
+
+The owner explicitly accepted Final-E.3 on 2026-09-18 after reviewing the eligibility, token,
+lifecycle and transaction-scoped ensure foundation, including the final concurrency hardening for
+`ensureReviewInvitationInTransaction()`.
+
+Accepted implementation head:
+
+```text
+c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030
+```
+
+The owner also confirmed directly on 2026-09-18 that the corresponding Vercel deployment was
+successfully deployed.
+
+## Accepted E.3 Contract
+
+Final-E.3 accepts the dormant domain foundation below:
+
+```text
+checkoutAt =
+Reservation.checkOutDate
++
+Property.checkOutTime
+in America/Guatemala
+
+eligibleAt =
+checkoutAt + 2 hours
+
+invalid/null/blank checkOutTime
+=> fail closed
+
+business eligibility
+!=
+scheduler eligibility
+
+scheduler catch-up:
+7 days inclusive
+
+ReviewInvitation lifetime:
+30 days from creation
+```
+
+Accepted status eligibility:
+
+```text
+PENDING_PAYMENT
+EXPIRED
+BLOCKED
+=> ineligible
+
+confirmedAt == null
+=> ineligible
+
+CONFIRMED
+=> may be eligible
+
+REFUNDED / PARTIALLY_REFUNDED
+=> historical compatibility only
+=> may be eligible only if all temporal/business checks pass
+
+CANCELLED + cancelledAt null
+=> fail closed
+
+cancelledAt < checkoutAt
+=> ineligible
+
+cancelledAt >= checkoutAt
+=> may remain eligible
+```
+
+Cancellation evidence for `cancelledAt < checkoutAt` applies independently from Reservation status.
+
+Accepted token contract:
+
+```text
+256-bit random raw token
+64 lowercase hex chars
+
+SHA-256 persisted hash
+64 lowercase hex chars
+
+AES-256-GCM encrypted recoverable copy
+
+purpose:
+REVIEW_INVITATION
+
+AAD bound to Reservation ID
+
+raw token:
+never persisted
+never logged
 ```
 
 ## Checkout and Timezone Implementation
@@ -164,10 +259,10 @@ not open or commit its own Prisma transaction. This preserves E.4's future abili
 ```text
 ReviewInvitation
 +
-REVIEW_INVITATION EmailNotification
+REVIEW_INVITATION EmailNotification intent
 ```
 
-in the same Serializable business transaction.
+inside the same caller-owned Serializable business transaction.
 
 The primitive reads only the minimum Reservation, Property, existing Review and existing
 ReviewInvitation data needed for eligibility and idempotency.
@@ -188,6 +283,20 @@ Review rows prevent new invitation creation. Raw token material is returned only
 invitation is created so the future E.4 transaction can compose an email intent without a second
 lookup; it is never persisted.
 
+Accepted sequential idempotency:
+
+```text
+first ensure:
+created
+
+second ensure same Reservation:
+existing
+
+same persisted invitation
+no token rotation
+no second lifecycle
+```
+
 The ensure primitive was hardened after independent review to converge safely when two concurrent
 transactions both observe no existing invitation. It now uses an insert-with-skip-duplicates pattern
 inside the caller-owned transaction and then resolves the persisted lifecycle by `reservationId`.
@@ -198,6 +307,32 @@ the persisted invitation token is not rotated, and raw Prisma uniqueness conflic
 If an insert is skipped because of the practically impossible `accessTokenHash` collision for a
 different Reservation, the helper retries with new token material and never treats that hash
 collision as an existing invitation for the requested Reservation.
+
+Accepted concurrent race guarantee:
+
+```text
+two transactions may both initially observe:
+reviewInvitation = null
+
+pattern:
+insert with skipDuplicates
++
+read persisted invitation by reservationId
+
+winning transaction:
+created
+
+losing transaction:
+existing
+
+one persisted ReviewInvitation lifecycle
+```
+
+The token material generated by the losing transaction is discarded, is not returned, is not
+persisted and does not rotate the winning invitation token. An `accessTokenHash` collision for
+another Reservation must not be interpreted as an existing invitation for the requested Reservation;
+the helper performs a bounded retry with new token material. Raw Prisma uniqueness conflicts do not
+leak.
 
 For a new invitation:
 
@@ -254,7 +389,19 @@ CONSUMED <=> consumedAt IS NOT NULL
 ```
 
 E.3 intentionally does not expose an `ACTIVE -> CONSUMED` mutation. Review creation plus invitation
-consumption remains E.5's future atomic transaction.
+consumption remains E.5's future atomic transaction:
+
+```text
+Review insert
++
+ReviewInvitation CONSUMED
++
+consumedAt
++
+encrypted token cleanup
+```
+
+Terminal invitations are not rewritten by the E.3 expiration or cancellation primitives.
 
 ## Dormant Activation Boundary
 
@@ -263,7 +410,7 @@ Final-E.3 does not implement or activate:
 ```text
 SCHEDULE_REVIEW_INVITATIONS cron registry entry
 /api/cron/schedule-review-invitations
-automatic scheduler caller
+automatic scheduler
 REVIEW_INVITATION EmailNotification row creation
 review email renderer
 review email dispatcher
@@ -320,9 +467,10 @@ expiration convergence
 cancellation primitive
 ```
 
-## Validation
+## Accepted Validation Evidence
 
-Executed validation:
+Accepted validation evidence for implementation head
+`c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030`:
 
 ```text
 npx tsx --tsconfig tests/final-e/tsconfig.json tests/final-e/run.ts
@@ -357,6 +505,9 @@ PASS - network-enabled run completed successfully after the sandbox-only first b
 
 git diff --check
 PASS.
+
+Vercel deployment
+PASS - Owner verified deployment successfully on 2026-09-18.
 ```
 
 Sandbox-only validation caveats:
@@ -367,6 +518,20 @@ Sandbox-only validation caveats:
 - The first sandbox build attempt failed only on Google Fonts fetch; the outside-sandbox rerun passed.
 ```
 
+## Final-E.4 Handoff Warning
+
+Final-E.4 owns the caller-level Serializable transaction for:
+
+```text
+ReviewInvitation
++
+REVIEW_INVITATION EmailNotification intent
+```
+
+E.4 must apply bounded retry for Prisma serialization conflicts such as `P2034` around the complete
+business transaction. E.4 must not add an inner transaction inside the E.3
+`ensureReviewInvitationInTransaction()` primitive.
+
 ## Current Decision
 
 ```text
@@ -374,7 +539,7 @@ Final-D — Completed and accepted on 2026-09-18 at fd75663bb28be8a95b15c341eaa5
 Final-E — In progress
 Final-E.1 — Completed and accepted on 2026-09-18 at e83ad8443bd533715058e701769b10c2d5505436
 Final-E.2 — Completed and accepted on 2026-09-18 at f77938c5606ed636b697dc1af41c111a22ba1593
-Final-E.3 — Implementation completed and validation executed; owner acceptance pending
+Final-E.3 — Completed and accepted on 2026-09-18 at c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030
 Final-E.4 — Next / Not started
 Final-E.5 — Not started
 Final-E.6 — Not started
