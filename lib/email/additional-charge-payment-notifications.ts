@@ -361,10 +361,10 @@ function assertRequestIntegrity(
   }
 }
 
-export function validateAdditionalChargePaymentRequestEmailEligibility(
+function assertAdditionalChargePendingRequestDeliverable(
   request: AdditionalChargePaymentRequestEmailEligibilityRecord,
   now: Date,
-): string {
+): void {
   if (
     request.reservation.id !== request.reservationId ||
     !request.reservation.confirmedAt ||
@@ -380,6 +380,13 @@ export function validateAdditionalChargePaymentRequestEmailEligibility(
   }
 
   assertRequestIntegrity(request);
+}
+
+export function validateAdditionalChargePaymentRequestEmailEligibility(
+  request: AdditionalChargePaymentRequestEmailEligibilityRecord,
+  now: Date,
+): string {
+  assertAdditionalChargePendingRequestDeliverable(request, now);
 
   let rawToken: string;
 
@@ -574,8 +581,12 @@ async function buildPendingAdminContent(
   notification: ClaimedNotification,
   publicBaseUrl: string,
   brandLogoUrl: string,
+  now: Date,
 ): Promise<TransactionalEmailContent> {
   const request = assertNotificationRequest(notification);
+  await expireOverdueRequest(request, now);
+  assertAdditionalChargePendingRequestDeliverable(request, now);
+
   const locale = normalizeLocale(notification.locale);
   const input: AdditionalChargeAdminPaymentRequiredEmailTemplateInput = {
     locale,
@@ -831,6 +842,7 @@ async function buildContent(
           notification,
           publicBaseUrl,
           brandLogoUrl,
+          now,
         ),
         locale,
         audience: "admin",

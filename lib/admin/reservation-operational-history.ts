@@ -1,9 +1,11 @@
 import {
+  AdditionalChargeStatus,
   EmailNotificationOrigin,
   EmailNotificationStatus,
   PaymentPurpose,
   PaymentStatus,
   Prisma,
+  RefundAuthorizationType,
   RefundStatus,
   ReservationLifecycleRequestStatus,
   ReservationLifecycleRequestType,
@@ -153,9 +155,29 @@ const refundHistorySelect = {
       allocatedAmount: true,
       additionalCharge: {
         select: {
+          amount: true,
           category: true,
           description: true,
-          status: true,
+          refundAllocations: {
+            where: {
+              refund: {
+                authorizationType: RefundAuthorizationType.ADDITIONAL_CHARGE,
+                status: { in: [RefundStatus.APPROVED, RefundStatus.MANUAL] },
+              },
+            },
+            select: {
+              allocatedAmount: true,
+              refund: {
+                select: {
+                  id: true,
+                  status: true,
+                  approvedAt: true,
+                  createdAt: true,
+                  updatedAt: true,
+                },
+              },
+            },
+          },
         },
       },
     },
@@ -679,6 +701,7 @@ function refundRelations(
 
 function refundAdditionalChargeAllocations(
   refund: RefundHistoryRecord,
+  includeResultingStatus: boolean,
 ): AdminReservationOperationalHistoryEvent["additionalChargeAllocations"] {
   return refund.additionalChargeAllocations.map((allocation) => ({
     additionalChargeId: allocation.additionalChargeId,
@@ -686,11 +709,84 @@ function refundAdditionalChargeAllocations(
     description: allocation.additionalCharge.description,
     allocatedAmount: allocation.allocatedAmount.toFixed(2),
     currency: refund.currency,
-    resultingStatus: allocation.additionalCharge.status,
+    resultingStatus: includeResultingStatus
+      ? resultingAdditionalChargeStatusAtRefund(refund, allocation)
+      : null,
   }));
 }
 
-function refundBase(refund: RefundHistoryRecord) {
+function decimalCents(value: Prisma.Decimal): number {
+  return value.mul(100).toDecimalPlaces(0).toNumber();
+}
+
+function refundEffectiveApprovedAt(
+  refund: Readonly<{
+    approvedAt: Date | null;
+    updatedAt: Date;
+    createdAt: Date;
+  }>,
+): Date {
+  return refund.approvedAt ?? refund.updatedAt ?? refund.createdAt;
+}
+
+function isCompletedAncillaryRefundStatus(status: RefundStatus): boolean {
+  return status === RefundStatus.APPROVED || status === RefundStatus.MANUAL;
+}
+
+function isRefundAllocationEffectiveThrough(
+  candidate: Readonly<{
+    refund: Readonly<{
+      id: string;
+      status: RefundStatus;
+      approvedAt: Date | null;
+      updatedAt: Date;
+      createdAt: Date;
+    }>;
+  }>,
+  targetRefund: RefundHistoryRecord,
+): boolean {
+  if (!isCompletedAncillaryRefundStatus(candidate.refund.status)) {
+    return false;
+  }
+
+  const candidateAt = refundEffectiveApprovedAt(candidate.refund);
+  const targetAt = refundEffectiveApprovedAt(targetRefund);
+  const timestampOrder = candidateAt.getTime() - targetAt.getTime();
+
+  if (timestampOrder !== 0) {
+    return timestampOrder < 0;
+  }
+
+  return candidate.refund.id <= targetRefund.id;
+}
+
+function resultingAdditionalChargeStatusAtRefund(
+  refund: RefundHistoryRecord,
+  allocation: RefundHistoryRecord["additionalChargeAllocations"][number],
+): AdditionalChargeStatus {
+  const originalCents = decimalCents(allocation.additionalCharge.amount);
+  const refundedCents = allocation.additionalCharge.refundAllocations
+    .filter((candidate) =>
+      isRefundAllocationEffectiveThrough(candidate, refund),
+    )
+    .reduce(
+      (total, candidate) => total + decimalCents(candidate.allocatedAmount),
+      0,
+    );
+
+  if (refundedCents <= 0) {
+    return AdditionalChargeStatus.PAID;
+  }
+
+  return refundedCents >= originalCents
+    ? AdditionalChargeStatus.REFUNDED
+    : AdditionalChargeStatus.PARTIALLY_REFUNDED;
+}
+
+function refundBase(
+  refund: RefundHistoryRecord,
+  input: Readonly<{ includeResultingStatus: boolean }>,
+) {
   return {
     category: "REFUND" as const,
     reference: reference("REFUND", refund.id),
@@ -700,17 +796,19 @@ function refundBase(refund: RefundHistoryRecord) {
     refundAuthorizationType: refund.authorizationType,
     refundOperationKey: refund.refundOperationKey,
     providerReference: refund.providerRefundId,
-    additionalChargeAllocations: refundAdditionalChargeAllocations(refund),
+    additionalChargeAllocations: refundAdditionalChargeAllocations(
+      refund,
+      input.includeResultingStatus,
+    ),
   };
 }
 
 function buildRefundEvents(
   refund: RefundHistoryRecord,
 ): AdminReservationOperationalHistoryEvent[] {
-  const base = refundBase(refund);
   const events: AdminReservationOperationalHistoryEvent[] = [
     createEvent({
-      ...base,
+      ...refundBase(refund, { includeResultingStatus: false }),
       id: `refund/${refund.id}/authorized`,
       eventType: "REFUND_AUTHORIZED",
       occurredAt: refund.createdAt,
@@ -726,7 +824,7 @@ function buildRefundEvents(
   ) {
     events.push(
       createEvent({
-        ...base,
+        ...refundBase(refund, { includeResultingStatus: true }),
         id: `refund/${refund.id}/approved`,
         eventType: "REFUND_APPROVED",
         occurredAt: refund.approvedAt ?? refund.updatedAt,
@@ -738,7 +836,7 @@ function buildRefundEvents(
   if (refund.status === RefundStatus.FAILED && refund.failedAt) {
     events.push(
       createEvent({
-        ...base,
+        ...refundBase(refund, { includeResultingStatus: false }),
         id: `refund/${refund.id}/failed`,
         eventType: "REFUND_FAILED",
         occurredAt: refund.failedAt,
@@ -769,7 +867,10 @@ function buildRefundAuditEvent(
   }
 
   return createEvent({
-    ...refundBase(refund),
+    ...refundBase(refund, {
+      includeResultingStatus:
+        audit.action === "REFUND_RECONCILED_APPROVED",
+    }),
     id: `refund-audit/${audit.id}`,
     category: "RECOVERY",
     eventType: audit.action,

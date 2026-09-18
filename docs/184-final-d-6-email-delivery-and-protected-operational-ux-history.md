@@ -9,6 +9,7 @@ Subphase: Final-D.6 — Email delivery and protected operational UX/history
 Status: Implementation completed and validation executed; owner acceptance pending
 Implementation base head: 1f3f30f63c0198afa219df9feea4f415cbc1ccd2
 Latest continuation base head: c9baf3839de6bede20d74d614559cf7380b15039
+Latest review continuation base head: 14475269e52b913b4264f3053174318e0768a843
 Previous accepted subphase: Final-D.5 — Completed and accepted on 2026-09-17 at 06b3de23fbae23a77b58b432760abf12afd5a6c7
 Next subphase: Final-D.7 — Integrated regression and documentation closure — Not started
 Phase 13: Not started
@@ -31,9 +32,11 @@ Final-D.6 implements the email delivery and protected operational UX/history lay
 - Corrected manual resend eligibility so overdue PENDING GuestPaymentRequest records are converged to EXPIRED before the rejecting resend transaction, preventing rollback from leaving stale payable-request state.
 - Corrected the D.6 ancillary email import graph so the Tilopay SDK-session payment runtime no longer depends on the admin additional-charge module or the email barrel during route module initialization.
 - Corrected Reservation Email Delivery read model so `ADDITIONAL_CHARGE_PAYMENT_REQUIRED` is no longer filtered out; ancillary guest types appear under Guests and `ADMIN_` ancillary types under Administration.
+- Corrected stale admin pending-payment retry behavior so guest/admin pending notifications share the same payable-request eligibility, overdue convergence, request/item/payment/charge integrity checks and terminal-state suppression before provider delivery.
 - Added protected Additional Charges tab notification visibility and resend UX with safe status/origin/recipient/locale/attempt/timestamp/error-code fields only.
 - Extended operational history with safe GuestPaymentRequest relations for automatic intent, delivery attempts/results and manual resend activity.
 - Enriched ancillary refund operational history with safe `GUEST_PAYMENT_REQUEST` and `ADDITIONAL_CHARGE` relations plus allocation summaries showing category, description, allocated amount and resulting charge status.
+- Corrected ancillary refund operational-history allocation status so approved refund events derive the resulting charge state from chronological `AdditionalChargeRefundAllocation` evidence instead of the live current `AdditionalCharge.status`.
 
 ## Security and Boundary Notes
 
@@ -44,6 +47,7 @@ Final-D.6 implements the email delivery and protected operational UX/history lay
 - Overdue PENDING requests are converged to EXPIRED before the notification is skipped.
 - Manual resend of an overdue PENDING additional-charge payment notification is rejected without creating a manual child notification or provider call, while the GuestPaymentRequest EXPIRED state is persisted outside the rejecting transaction.
 - PAID, CANCELLED, EXPIRED, overdue or integrity-invalid requests are not sent.
+- Stale `ADMIN_ADDITIONAL_CHARGE_PAYMENT_REQUIRED` retries after PAID, CANCELLED, EXPIRED or overdue PENDING requests are marked SKIPPED without a provider call.
 - Payment-approved and refund-processed ancillary emails do not include raw tokens, private payment URLs, card data, provider raw payloads or internal AdditionalCharge notes.
 - Additional-charge email delivery remains financially isolated from Reservation.total, accepted stay pricing evidence, stay refund balances, lifecycle completion and reservation confirmation.
 
@@ -134,10 +138,33 @@ The same owner validation found Final-D.6 incomplete because:
 
 This continuation addresses those gaps without starting Final-D.7 and without changing the accepted D.4/D.5 financial architecture.
 
+## Independent Review Follow-Up After Ancillary Email Matrix
+
+After `14475269e52b913b4264f3053174318e0768a843`, the independent review confirmed the six-message ancillary email matrix, migration, transactional intents, post-commit delivery, Email Delivery grouping, Operational History relations/allocations, import-cycle isolation, SDK-session regression and Final-D 55/55 validation were correct.
+
+The same review identified two final consistency gaps:
+
+```text
+- ADMIN_ADDITIONAL_CHARGE_PAYMENT_REQUIRED retries could still render after the GuestPaymentRequest was no longer payable.
+- Ancillary refund Operational History used the live AdditionalCharge.status for historical refund events, so an earlier partial refund could appear as REFUNDED after a later full refund.
+```
+
+Fix applied in this continuation:
+
+```text
+- Guest and admin payment-pending emails now share the same pending-request deliverability assertion before rendering.
+- Overdue PENDING requests are converged to EXPIRED before both guest and admin pending delivery attempts are skipped.
+- PAID, CANCELLED and EXPIRED pending-payment notifications are skipped without provider calls.
+- Approved ancillary refund history derives resulting charge status from chronological approved/manual AdditionalChargeRefundAllocation evidence, with timestamp plus stable id tie-breaking.
+- Non-final ancillary refund events such as authorization, provider execution/consult and failed states keep allocation context but do not display a fake resulting status from the future/live charge state.
+```
+
+No migration was introduced for this follow-up.
+
 ## Validation Executed
 
 ```text
-npx tsx --tsconfig tests/final-d/tsconfig.json tests/final-d/run.ts — Passed: 55/55, including pending guest/admin intent pair, payment-approved guest/admin intents, ancillary refund guest/admin intents, template safety coverage, Email Delivery read-model guard, ancillary refund operational-history allocations, manual-resend overdue expiry persistence, terminal-state resend rejection, cancelled-reservation resend reuse, transaction rollback coverage for automatic notification creation failure, import-cycle prevention, and SDK-session route coverage for a D.6-created two-item request with automatic EmailNotification. Sandbox attempts hit the known Windows tsx `uv_os_get_passwd` ENOMEM issue before test startup; reruns outside the sandbox passed.
+npx tsx --tsconfig tests/final-d/tsconfig.json tests/final-d/run.ts — Passed: 59/59, including pending guest/admin intent pair, payment-approved guest/admin intents, ancillary refund guest/admin intents, stale admin pending retry suppression after PAID/CANCELLED/overdue requests, historically stable ancillary refund allocation statuses, template safety coverage, Email Delivery read-model guard, ancillary refund operational-history allocations, manual-resend overdue expiry persistence, terminal-state resend rejection, cancelled-reservation resend reuse, transaction rollback coverage for automatic notification creation failure, import-cycle prevention, and SDK-session route coverage for a D.6-created two-item request with automatic EmailNotification. Sandbox attempts hit the known Windows tsx `uv_os_get_passwd` ENOMEM issue before test startup; reruns outside the sandbox passed.
 npm run final-a:validate — Passed: 44/44 after rerun outside the sandbox; first sandbox attempt hit the known Windows tsx `uv_os_get_passwd` ENOMEM issue
 npm run final-b:validate — Passed: 38/38 outside the sandbox
 npm run final-c:validate — Passed: 41/41 outside the sandbox

@@ -26,6 +26,7 @@ import { prisma } from "@/lib/db/prisma";
 import {
   deliverClaimedAdditionalChargePaymentEmailNotification,
 } from "@/lib/email/additional-charge-payment-notifications";
+import { processEmailNotifications } from "@/lib/email";
 import { createAdminGuestPaymentRequest } from "@/lib/admin/additional-charges";
 import {
   AdminEmailNotificationResendError,
@@ -465,6 +466,131 @@ function notificationWithRelations(store: D6Store, notification: D6Notification)
   };
 }
 
+type D6EmailNotificationWhere = Readonly<{
+  id?: string;
+  reservationId?: string;
+  type?:
+    | EmailNotificationType
+    | Readonly<{ in?: readonly EmailNotificationType[] }>;
+  status?: EmailNotificationStatus;
+  updatedAt?: Date;
+  processingStartedAt?:
+    | Date
+    | null
+    | Readonly<{ lte?: Date }>;
+  attemptCount?: Readonly<{ lt?: number; gte?: number }>;
+  errorCode?:
+    | string
+    | null
+    | Readonly<{ in?: readonly string[] }>;
+  nextAttemptAt?: null | Readonly<{ lte?: Date }>;
+  manualResends?: Readonly<{ none?: object }>;
+  deliveryStatusNotifications?: Readonly<{ none?: object }>;
+  OR?: readonly D6EmailNotificationWhere[];
+}>;
+
+function matchesOptionalDate(
+  actual: Date | null,
+  expected: Date | null | Readonly<{ lte?: Date }>,
+): boolean {
+  if (expected === null) return actual === null;
+  if (expected instanceof Date) {
+    return actual?.getTime() === expected.getTime();
+  }
+  if (expected.lte) {
+    return actual !== null && actual <= expected.lte;
+  }
+  return true;
+}
+
+function matchesEmailNotificationWhere(
+  store: D6Store,
+  notification: D6Notification,
+  where: D6EmailNotificationWhere = {},
+): boolean {
+  if (where.id && notification.id !== where.id) return false;
+  if (where.reservationId && notification.reservationId !== where.reservationId) {
+    return false;
+  }
+  if (where.status && notification.status !== where.status) return false;
+  if (
+    where.updatedAt &&
+    notification.updatedAt.getTime() !== where.updatedAt.getTime()
+  ) {
+    return false;
+  }
+  if (
+    where.processingStartedAt !== undefined &&
+    !matchesOptionalDate(
+      notification.processingStartedAt,
+      where.processingStartedAt,
+    )
+  ) {
+    return false;
+  }
+  if (
+    where.nextAttemptAt !== undefined &&
+    !matchesOptionalDate(notification.nextAttemptAt, where.nextAttemptAt)
+  ) {
+    return false;
+  }
+  if (
+    typeof where.type === "string" &&
+    notification.type !== where.type
+  ) {
+    return false;
+  }
+  if (
+    typeof where.type === "object" &&
+    where.type.in &&
+    !where.type.in.includes(notification.type)
+  ) {
+    return false;
+  }
+  if (
+    where.attemptCount?.lt !== undefined &&
+    notification.attemptCount >= where.attemptCount.lt
+  ) {
+    return false;
+  }
+  if (
+    where.attemptCount?.gte !== undefined &&
+    notification.attemptCount < where.attemptCount.gte
+  ) {
+    return false;
+  }
+  if (
+    typeof where.errorCode === "string" &&
+    notification.errorCode !== where.errorCode
+  ) {
+    return false;
+  }
+  if (where.errorCode === null && notification.errorCode !== null) {
+    return false;
+  }
+  if (
+    typeof where.errorCode === "object" &&
+    where.errorCode?.in &&
+    (!notification.errorCode ||
+      !where.errorCode.in.includes(notification.errorCode))
+  ) {
+    return false;
+  }
+  if (where.manualResends?.none) {
+    const hasManualChild = store.notifications.some(
+      (candidate) => candidate.parentNotificationId === notification.id,
+    );
+    if (hasManualChild) return false;
+  }
+  if (where.OR && !where.OR.some((branch) =>
+    matchesEmailNotificationWhere(store, notification, branch),
+  )) {
+    return false;
+  }
+
+  return true;
+}
+
 function installD6Prisma(store: D6Store): void {
   const client = {
     async $transaction<T>(operation: (transaction: typeof client) => Promise<T>): Promise<T> {
@@ -619,40 +745,45 @@ function installD6Prisma(store: D6Store): void {
           : store.notifications.find((candidate) => candidate.id === args.where.id);
         return notification ? notificationWithRelations(store, notification) : null;
       },
-      async findFirst(args: { where: { id?: string; reservationId?: string } }) {
-        const notification = store.notifications.find(
-          (candidate) =>
-            (!args.where.id || candidate.id === args.where.id) &&
-            (!args.where.reservationId ||
-              candidate.reservationId === args.where.reservationId),
+      async findFirst(args: { where: D6EmailNotificationWhere }) {
+        const notification = store.notifications.find((candidate) =>
+          matchesEmailNotificationWhere(store, candidate, args.where),
         );
         return notification ? notificationWithRelations(store, notification) : null;
       },
-      async findMany(args: { where?: { reservationId?: string } }) {
-        return store.notifications
-          .filter(
-            (notification) =>
-              !args.where?.reservationId ||
-              notification.reservationId === args.where.reservationId,
+      async findMany(args: {
+        where?: D6EmailNotificationWhere;
+        take?: number;
+      }) {
+        const notifications = store.notifications
+          .filter((notification) =>
+            matchesEmailNotificationWhere(store, notification, args.where),
           )
+          .sort((first, second) => {
+            const firstAttemptAt =
+              first.nextAttemptAt?.getTime() ?? Number.NEGATIVE_INFINITY;
+            const secondAttemptAt =
+              second.nextAttemptAt?.getTime() ?? Number.NEGATIVE_INFINITY;
+            if (firstAttemptAt !== secondAttemptAt) {
+              return firstAttemptAt - secondAttemptAt;
+            }
+            const createdOrder =
+              first.createdAt.getTime() - second.createdAt.getTime();
+            return createdOrder !== 0
+              ? createdOrder
+              : first.id.localeCompare(second.id);
+          })
+          .slice(0, args.take ?? Number.POSITIVE_INFINITY)
           .map((notification) => notificationWithRelations(store, notification));
+        return notifications;
       },
-      async updateMany(args: { where: { id?: string; status?: EmailNotificationStatus; updatedAt?: Date; processingStartedAt?: Date }; data: Record<string, unknown> }) {
+      async updateMany(args: {
+        where: D6EmailNotificationWhere;
+        data: Record<string, unknown>;
+      }) {
         let count = 0;
         for (const notification of store.notifications) {
-          if (args.where.id && notification.id !== args.where.id) continue;
-          if (args.where.status && notification.status !== args.where.status) continue;
-          if (
-            args.where.updatedAt &&
-            notification.updatedAt.getTime() !== args.where.updatedAt.getTime()
-          ) {
-            continue;
-          }
-          if (
-            args.where.processingStartedAt &&
-            notification.processingStartedAt?.getTime() !==
-              args.where.processingStartedAt.getTime()
-          ) {
+          if (!matchesEmailNotificationWhere(store, notification, args.where)) {
             continue;
           }
           if (args.data.status) {
@@ -866,6 +997,36 @@ function seedD6SourceNotification(
   });
 }
 
+function seedD6AdminPendingRetryNotification(store: D6Store): void {
+  store.notifications.push({
+    id: D6_NOTIFICATION_ID,
+    reservationId: D6_RESERVATION_ID,
+    guestPaymentRequestId: D6_REQUEST_ID,
+    lifecycleRequestId: null,
+    refundId: null,
+    type: EmailNotificationType.ADMIN_ADDITIONAL_CHARGE_PAYMENT_REQUIRED,
+    recipient: "admin@juantzun.dev",
+    locale: "es",
+    deduplicationKey:
+      `admin-additional-charge-payment-required/${D6_REQUEST_ID}/admin@juantzun.dev`,
+    origin: EmailNotificationOrigin.AUTOMATIC,
+    parentNotificationId: null,
+    requestedByAdminId: null,
+    requestedAt: null,
+    status: EmailNotificationStatus.FAILED,
+    attemptCount: 1,
+    lastAttemptAt: new Date("2026-09-17T11:00:00.000Z"),
+    nextAttemptAt: new Date("2026-09-17T11:05:00.000Z"),
+    processingStartedAt: null,
+    providerMessageId: null,
+    sentAt: null,
+    errorCode: "EMAIL_PROVIDER_TEMPORARY_FAILURE",
+    errorMessage: "The email provider is temporarily unavailable.",
+    createdAt: new Date("2026-09-17T10:00:00.000Z"),
+    updatedAt: new Date("2026-09-17T11:00:00.000Z"),
+  });
+}
+
 function d6ManualResendInput(
   requestId: string,
   expectedUpdatedAt = D6_BASE_NOW.toISOString(),
@@ -908,6 +1069,33 @@ async function withFetchCallCounter(
   } finally {
     globalThis.fetch = originalFetch;
   }
+}
+
+async function processD6EmailRetryWithProviderCounter(): Promise<
+  Readonly<{
+    providerCalls: number;
+    summary: Awaited<ReturnType<typeof processEmailNotifications>>;
+  }>
+> {
+  let providerCalls = 0;
+  const provider: EmailProvider = {
+    async send() {
+      providerCalls += 1;
+      return {
+        provider: "resend",
+        providerMessageId: "msg-d6-retry",
+        deliveryMode: "test",
+        deliveredRecipient: "deliveries@juantzun.dev",
+      };
+    },
+  };
+  const summary = await processEmailNotifications({
+    source: process.env,
+    provider,
+    now: () => D6_BASE_NOW,
+  });
+
+  return { providerCalls, summary };
 }
 
 test("D.6 behavior renders localized additional-charge payment emails without internal fields", async () => {
@@ -1412,6 +1600,112 @@ test("D.6 behavior skips terminal or expired additional-charge payment emails an
   }
 });
 
+test("D.6 behavior skips stale admin pending retry after the guest payment request is paid", async () => {
+  const restoreEnv = preserveD6Env();
+  enableD6EmailEnv();
+  const store = d6Store();
+  seedD6PaymentRequest(store, {
+    status: GuestPaymentRequestStatus.PAID,
+  });
+  store.requests[0]!.paidAt = new Date("2026-09-17T11:30:00.000Z");
+  store.charges.forEach((charge) => {
+    charge.status = AdditionalChargeStatus.PAID;
+  });
+  seedD6AdminPendingRetryNotification(store);
+  installD6Prisma(store);
+
+  try {
+    const { providerCalls, summary } =
+      await processD6EmailRetryWithProviderCounter();
+
+    assert.equal(summary.candidates, 1);
+    assert.equal(summary.claimed, 1);
+    assert.equal(summary.attempted, 1);
+    assert.equal(summary.skipped, 1);
+    assert.equal(summary.sent, 0);
+    assert.equal(providerCalls, 0);
+    assert.equal(store.requests[0]?.status, GuestPaymentRequestStatus.PAID);
+    assert.equal(store.notifications[0]?.status, EmailNotificationStatus.SKIPPED);
+    assert.equal(
+      store.notifications[0]?.errorCode,
+      "EMAIL_ADDITIONAL_CHARGE_PAYMENT_SUPERSEDED",
+    );
+    assertNoRawToken(store);
+  } finally {
+    restoreEnv();
+  }
+});
+
+test("D.6 behavior skips stale admin pending retry after the guest payment request is cancelled", async () => {
+  const restoreEnv = preserveD6Env();
+  enableD6EmailEnv();
+  const store = d6Store();
+  seedD6PaymentRequest(store, {
+    status: GuestPaymentRequestStatus.CANCELLED,
+  });
+  seedD6AdminPendingRetryNotification(store);
+  installD6Prisma(store);
+
+  try {
+    const { providerCalls, summary } =
+      await processD6EmailRetryWithProviderCounter();
+
+    assert.equal(summary.candidates, 1);
+    assert.equal(summary.claimed, 1);
+    assert.equal(summary.attempted, 1);
+    assert.equal(summary.skipped, 1);
+    assert.equal(summary.sent, 0);
+    assert.equal(providerCalls, 0);
+    assert.equal(
+      store.requests[0]?.status,
+      GuestPaymentRequestStatus.CANCELLED,
+    );
+    assert.equal(store.notifications[0]?.status, EmailNotificationStatus.SKIPPED);
+    assert.equal(
+      store.notifications[0]?.errorCode,
+      "EMAIL_ADDITIONAL_CHARGE_PAYMENT_SUPERSEDED",
+    );
+    assertNoRawToken(store);
+  } finally {
+    restoreEnv();
+  }
+});
+
+test("D.6 behavior expires and skips overdue stale admin pending retries", async () => {
+  const restoreEnv = preserveD6Env();
+  enableD6EmailEnv();
+  const store = d6Store();
+  seedD6PaymentRequest(store, {
+    expiresAt: new Date("2026-09-17T11:59:59.000Z"),
+  });
+  seedD6AdminPendingRetryNotification(store);
+  installD6Prisma(store);
+
+  try {
+    const { providerCalls, summary } =
+      await processD6EmailRetryWithProviderCounter();
+
+    assert.equal(summary.candidates, 1);
+    assert.equal(summary.claimed, 1);
+    assert.equal(summary.attempted, 1);
+    assert.equal(summary.skipped, 1);
+    assert.equal(summary.sent, 0);
+    assert.equal(providerCalls, 0);
+    assert.equal(
+      store.requests[0]?.status,
+      GuestPaymentRequestStatus.EXPIRED,
+    );
+    assert.equal(store.notifications[0]?.status, EmailNotificationStatus.SKIPPED);
+    assert.equal(
+      store.notifications[0]?.errorCode,
+      "EMAIL_ADDITIONAL_CHARGE_PAYMENT_SUPERSEDED",
+    );
+    assertNoRawToken(store);
+  } finally {
+    restoreEnv();
+  }
+});
+
 test("D.6 behavior creates idempotent manual resends tied to the same guest payment request", async () => {
   const restoreEnv = preserveD6Env();
   const store = d6Store();
@@ -1774,9 +2068,21 @@ test("D.6 behavior exposes ancillary refund history with charge relations and al
           additionalChargeId: "charge-d6-1",
           allocatedAmount: money("7.50"),
           additionalCharge: {
+            amount: money("12.50"),
             category: "TRANSPORT",
             description: "Airport pickup",
-            status: AdditionalChargeStatus.PARTIALLY_REFUNDED,
+            refundAllocations: [
+              {
+                allocatedAmount: money("7.50"),
+                refund: {
+                  id: "refund-d6-history",
+                  status: RefundStatus.APPROVED,
+                  approvedAt: new Date("2026-09-17T14:00:00.000Z"),
+                  createdAt: new Date("2026-09-17T13:30:00.000Z"),
+                  updatedAt: new Date("2026-09-17T14:00:00.000Z"),
+                },
+              },
+            ],
           },
         },
       ],
@@ -1813,6 +2119,212 @@ test("D.6 behavior exposes ancillary refund history with charge relations and al
         allocatedAmount: "7.50",
         currency: "USD",
         resultingStatus: AdditionalChargeStatus.PARTIALLY_REFUNDED,
+      },
+    ]);
+    assertNoRawToken(history);
+  } finally {
+    restoreEnv();
+  }
+});
+
+test("D.6 behavior keeps ancillary refund allocation statuses historically stable", async () => {
+  const restoreEnv = preserveD6Env();
+  const store = d6Store();
+  installD6Prisma(store);
+  store.requests.push({
+    id: D6_REQUEST_ID,
+    reservationId: D6_RESERVATION_ID,
+    status: GuestPaymentRequestStatus.PAID,
+    totalAmount: money("100.00"),
+    currency: "USD",
+    accessTokenHash: hashGuestPaymentRequestAccessToken(D6_TOKEN),
+    accessTokenEncrypted: "encrypted-only",
+    expiresAt: new Date("2026-09-24T12:00:00.000Z"),
+    createdByAdminId: "admin-final-d6",
+    clientRequestId: "client-d6-refund-history-stability",
+    paidAt: new Date("2026-09-17T13:00:00.000Z"),
+    cancelledAt: null,
+    createdAt: D6_BASE_NOW,
+    updatedAt: D6_BASE_NOW,
+  });
+  store.charges[0]!.amount = money("100.00");
+  store.charges[0]!.status = AdditionalChargeStatus.REFUNDED;
+  const completedAllocations = [
+    {
+      allocatedAmount: money("30.00"),
+      refund: {
+        id: "refund-d6-history-a",
+        status: RefundStatus.APPROVED,
+        approvedAt: new Date("2026-09-17T14:00:00.000Z"),
+        createdAt: new Date("2026-09-17T13:30:00.000Z"),
+        updatedAt: new Date("2026-09-17T14:00:00.000Z"),
+      },
+    },
+    {
+      allocatedAmount: money("70.00"),
+      refund: {
+        id: "refund-d6-history-b",
+        status: RefundStatus.APPROVED,
+        approvedAt: new Date("2026-09-17T15:00:00.000Z"),
+        createdAt: new Date("2026-09-17T14:30:00.000Z"),
+        updatedAt: new Date("2026-09-17T15:00:00.000Z"),
+      },
+    },
+  ];
+  const allocationCharge = {
+    amount: money("100.00"),
+    category: "TRANSPORT",
+    description: "Airport pickup",
+    refundAllocations: completedAllocations,
+  };
+  const client = prisma as unknown as {
+    refund: { findMany: () => Promise<unknown[]> };
+    payment: { findMany: () => Promise<unknown[]> };
+  };
+  client.payment.findMany = async () => [];
+  client.refund.findMany = async () => [
+    {
+      id: "refund-d6-history-a",
+      paymentId: "payment-d6-history",
+      lifecycleRequestId: null,
+      authorizationType: "ADDITIONAL_CHARGE",
+      refundOperationKey: null,
+      status: RefundStatus.APPROVED,
+      amount: money("30.00"),
+      currency: "USD",
+      processingMode: "TILOPAY_PORTAL_FALLBACK",
+      providerRefundId: "safe-refund-a",
+      processingStartedAt: null,
+      approvedAt: new Date("2026-09-17T14:00:00.000Z"),
+      failedAt: null,
+      failureCode: null,
+      createdAt: new Date("2026-09-17T13:30:00.000Z"),
+      updatedAt: new Date("2026-09-17T14:00:00.000Z"),
+      requestedByAdmin: {
+        name: "Admin Final D6",
+        email: "admin@juantzun.dev",
+      },
+      payment: {
+        guestPaymentRequestId: D6_REQUEST_ID,
+      },
+      additionalChargeAllocations: [
+        {
+          additionalChargeId: "charge-d6-1",
+          allocatedAmount: money("30.00"),
+          additionalCharge: allocationCharge,
+        },
+      ],
+    },
+    {
+      id: "refund-d6-history-b",
+      paymentId: "payment-d6-history",
+      lifecycleRequestId: null,
+      authorizationType: "ADDITIONAL_CHARGE",
+      refundOperationKey: null,
+      status: RefundStatus.APPROVED,
+      amount: money("70.00"),
+      currency: "USD",
+      processingMode: "TILOPAY_PORTAL_FALLBACK",
+      providerRefundId: "safe-refund-b",
+      processingStartedAt: null,
+      approvedAt: new Date("2026-09-17T15:00:00.000Z"),
+      failedAt: null,
+      failureCode: null,
+      createdAt: new Date("2026-09-17T14:30:00.000Z"),
+      updatedAt: new Date("2026-09-17T15:00:00.000Z"),
+      requestedByAdmin: {
+        name: "Admin Final D6",
+        email: "admin@juantzun.dev",
+      },
+      payment: {
+        guestPaymentRequestId: D6_REQUEST_ID,
+      },
+      additionalChargeAllocations: [
+        {
+          additionalChargeId: "charge-d6-1",
+          allocatedAmount: money("70.00"),
+          additionalCharge: allocationCharge,
+        },
+      ],
+    },
+    {
+      id: "refund-d6-history-authorized",
+      paymentId: "payment-d6-history",
+      lifecycleRequestId: null,
+      authorizationType: "ADDITIONAL_CHARGE",
+      refundOperationKey: null,
+      status: RefundStatus.PENDING,
+      amount: money("10.00"),
+      currency: "USD",
+      processingMode: "TILOPAY_PORTAL_FALLBACK",
+      providerRefundId: null,
+      processingStartedAt: null,
+      approvedAt: null,
+      failedAt: null,
+      failureCode: null,
+      createdAt: new Date("2026-09-17T15:30:00.000Z"),
+      updatedAt: new Date("2026-09-17T15:30:00.000Z"),
+      requestedByAdmin: {
+        name: "Admin Final D6",
+        email: "admin@juantzun.dev",
+      },
+      payment: {
+        guestPaymentRequestId: D6_REQUEST_ID,
+      },
+      additionalChargeAllocations: [
+        {
+          additionalChargeId: "charge-d6-1",
+          allocatedAmount: money("10.00"),
+          additionalCharge: allocationCharge,
+        },
+      ],
+    },
+  ];
+
+  try {
+    const history = await getAdminReservationOperationalHistory(D6_RESERVATION_ID);
+    const refundA = history.find(
+      (event) => event.id === "refund/refund-d6-history-a/approved",
+    );
+    const refundB = history.find(
+      (event) => event.id === "refund/refund-d6-history-b/approved",
+    );
+    const authorized = history.find(
+      (event) =>
+        event.id === "refund/refund-d6-history-authorized/authorized",
+    );
+
+    assert.ok(refundA);
+    assert.ok(refundB);
+    assert.ok(authorized);
+    assert.deepEqual(refundA.additionalChargeAllocations, [
+      {
+        additionalChargeId: "charge-d6-1",
+        category: "TRANSPORT",
+        description: "Airport pickup",
+        allocatedAmount: "30.00",
+        currency: "USD",
+        resultingStatus: AdditionalChargeStatus.PARTIALLY_REFUNDED,
+      },
+    ]);
+    assert.deepEqual(refundB.additionalChargeAllocations, [
+      {
+        additionalChargeId: "charge-d6-1",
+        category: "TRANSPORT",
+        description: "Airport pickup",
+        allocatedAmount: "70.00",
+        currency: "USD",
+        resultingStatus: AdditionalChargeStatus.REFUNDED,
+      },
+    ]);
+    assert.deepEqual(authorized.additionalChargeAllocations, [
+      {
+        additionalChargeId: "charge-d6-1",
+        category: "TRANSPORT",
+        description: "Airport pickup",
+        allocatedAmount: "10.00",
+        currency: "USD",
+        resultingStatus: null,
       },
     ]);
     assertNoRawToken(history);
