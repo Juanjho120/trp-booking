@@ -27,7 +27,8 @@ This file defines the working rules for TRP Booking.
 - Final-D.7 is completed and accepted on 2026-09-18 at `fd75663bb28be8a95b15c341eaa51f74e521241b`.
 - Final-D accepted feature head: `fd75663bb28be8a95b15c341eaa51f74e521241b`.
 - Permanent Final-D regression gate: `npm run final-d:validate` — 66/66 accepted.
-- Current/next package: Final-E — Reservation reviews and post-checkout invitation — Not started until explicitly requested.
+- Current package: Final-E — Reservation reviews and post-checkout invitation — In progress.
+- Current subphase: Final-E.1 — Review/invitation strategy, eligibility and security contract — Implementation completed as docs-only; owner acceptance pending.
 - Final-D.4 implementation base: `6a0d909fc325f4e8925677041be34c77c023c42b`.
 - Final-D.4 accepted implementation head: `7d996fd20db42b2560df11f7e00d7a5e9cc0d18c`.
 - Final-D.4 implementation record: `docs/182-final-d-4-private-guest-payment-link-and-tilopay-collection.md`.
@@ -40,7 +41,11 @@ This file defines the working rules for TRP Booking.
 - Final-D.7 implementation base: `0a511f4b87c3d8556593f9d48909a71d7bfab14c`.
 - Final-D.7 accepted implementation/validation head: `fd75663bb28be8a95b15c341eaa51f74e521241b`.
 - Final-D.7 implementation/acceptance record: `docs/185-final-d-7-integrated-regression-and-documentation-closure.md`.
-- Final-E, Final-F, Final-G, and Final-H remain Not started.
+- Final-E.1 implementation base: `2c9802b07ebf60e8953f32226962669eaf01cfc2`.
+- Final-E.1 implementation record: `docs/186-final-e-1-review-invitation-strategy-eligibility-and-security-contract.md`.
+- Final-E.1 is not accepted until owner acceptance is explicitly recorded.
+- Final-E.2, Final-E.3, Final-E.4, Final-E.5, and Final-E.6 remain Not started.
+- Final-F, Final-G, and Final-H remain Not started.
 - Phase 13 remains Not started and must not be activated implicitly.
 
 ## Environment Isolation
@@ -105,7 +110,7 @@ Rules:
 - Do not activate Production or Phase 13 work from a Final Improvement Track task.
 - A subphase may be declared completed only after implementation, required validation, documentation reconciliation, and owner acceptance are recorded.
 - If documentation and the accepted repository state disagree, stop advancement and reconcile the authoritative trackers before implementing the next subphase.
-- For the current handoff, Final-D.3 is accepted at `6a0d909fc325f4e8925677041be34c77c023c42b`; Final-D.4 is completed and accepted on 2026-09-14 at `7d996fd20db42b2560df11f7e00d7a5e9cc0d18c`; Final-D.5 is completed and accepted on 2026-09-17 at `06b3de23fbae23a77b58b432760abf12afd5a6c7`; Final-D.6 is completed and accepted on 2026-09-18 at `965045c697a9bfd0a3318db9396b15214a0cd066`; Final-D.7 and Final-D are completed and accepted on 2026-09-18 at `fd75663bb28be8a95b15c341eaa51f74e521241b`. Final-E remains Not started until explicitly requested.
+- For the current handoff, Final-D.3 is accepted at `6a0d909fc325f4e8925677041be34c77c023c42b`; Final-D.4 is completed and accepted on 2026-09-14 at `7d996fd20db42b2560df11f7e00d7a5e9cc0d18c`; Final-D.5 is completed and accepted on 2026-09-17 at `06b3de23fbae23a77b58b432760abf12afd5a6c7`; Final-D.6 is completed and accepted on 2026-09-18 at `965045c697a9bfd0a3318db9396b15214a0cd066`; Final-D.7 and Final-D are completed and accepted on 2026-09-18 at `fd75663bb28be8a95b15c341eaa51f74e521241b`. Final-E is active at Final-E.1, whose docs-only implementation is complete with owner acceptance pending. Final-E.2 remains Not started until explicitly requested after E.1 acceptance.
 
 ## Implementation Completion Gate
 
@@ -158,13 +163,14 @@ Final-D.7 introduced the consolidated Final-D regression gate. For any future Fi
 - `docs/183-final-d-5-additional-charge-refunds-and-financial-summary-integration.md` is the Final-D.5 implementation/acceptance record.
 - `docs/184-final-d-6-email-delivery-and-protected-operational-ux-history.md` is the Final-D.6 implementation and acceptance record.
 - `docs/185-final-d-7-integrated-regression-and-documentation-closure.md` is the Final-D.7 implementation/acceptance record and Final-D package closure record.
+- `docs/186-final-e-1-review-invitation-strategy-eligibility-and-security-contract.md` is the Final-E.1 implementation record while owner acceptance is pending.
 - Any completed phase or subphase must be reflected in the progress tracker before moving to a new major phase or subphase.
 - When migrating to a new conversation or agent, use `AGENTS.md`, `README.md`, `docs/10-phases.md`, and `docs/11-progress-log.md` as the minimum continuity context. While the Final Improvement Track is active, also review `docs/160-post-phase-12-pre-phase-13-final-improvement-track.md` and the active package's authoritative records.
 - Historical Phase 12 deployment work remains grounded by `docs/89-test-and-production-environment-strategy.md`, `docs/136-phase-12.1-test-deployment-and-environment-strategy.md`, and the Phase 12 closure records.
 
-## Final-D Accepted Boundaries Through D.7 Acceptance
+## Final-D Accepted Boundaries and Final-E.1 Active Boundary
 
-Before implementing Final-E work, read the complete Final-D.1 contract and the accepted D.2/D.3/D.4/D.5/D.6/D.7 records. Do not reopen D.1-D.7 unless new evidence or an explicit owner instruction requires it. Final-E remains Not started until explicitly requested.
+Before continuing Final-E work, read the complete Final-D.1 contract, the accepted D.2/D.3/D.4/D.5/D.6/D.7 records, and the current Final-E.1 record. Do not reopen D.1-D.7 unless new evidence or an explicit owner instruction requires it. Final-E.2 remains Not started until explicitly requested after E.1 acceptance.
 
 At minimum, preserve these frozen boundaries:
 
@@ -181,7 +187,9 @@ At minimum, preserve these frozen boundaries:
 - Rejected/failed payment attempts keep the still-valid request and charges PENDING and remain auditable.
 - Provider callback/retry behavior must remain idempotent.
 - The private guest page exposes only bounded guest-safe request context and must not grant access to admin reservation/payment/refund/lifecycle data.
-- Final-D.7 must not implement Final-E, Final-F, Final-G, Final-H, or Phase 13 work.
+- Final-E.1 is docs-only and must not implement schema/runtime/email/cron/UI behavior beyond documentation.
+- Final-E.1 freezes one authentic review per eligible direct Reservation, checkout + 2 hours in America/Guatemala, a 7-day scheduler catch-up window, 30-day invitation expiry, REVIEW_INVITATION token crypto purpose, one-time private submission, moderation-before-publication, and zero Test Vercel cron registrations.
+- Final-E.2, Final-E.3, Final-E.4, Final-E.5, Final-E.6, Final-F, Final-G, Final-H, and Phase 13 must not begin automatically.
 ```
 
 ## UI and Design System Rules

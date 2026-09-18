@@ -5,7 +5,7 @@
 ```text
 Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
-Status: Active — Final-A, Final-B, Final-C and Final-D completed and accepted; Final-E is Next / Not started
+Status: Active — Final-A, Final-B, Final-C and Final-D completed and accepted; Final-E is In progress at Final-E.1
 Registration date: 2026-08-11
 Registration base head: dac105088d2c46be05a900abed3dfe83e608e964
 Previous gate: Phase 12 — Completed and accepted
@@ -589,7 +589,7 @@ Package: Final-D — Completed and accepted on 2026-09-18
 Implementation base head: 0839b2935fdc2349d23de6ce6b38177504e514c6
 Accepted feature head: fd75663bb28be8a95b15c341eaa51f74e521241b
 Permanent regression: npm run final-d:validate — 66/66 PASS
-Following package: Final-E — Reservation reviews and post-checkout invitation — Next / Not started
+Following package: Final-E — Reservation reviews and post-checkout invitation — In progress at Final-E.1; docs-only implementation completed with owner acceptance pending
 Final-D.1 status: Completed and accepted on 2026-08-31
 Final-D.1 accepted strategy head: 3dc4fa7d81d65244a94e7e43726e2f12591e578f
 Final-D.1 record: docs/179-final-d-1-additional-charge-payment-request-strategy-and-financial-isolation-contract.md
@@ -721,10 +721,49 @@ Refundability of an additional charge depends on that charge's own business stat
 
 # Final-E — Reservation Reviews and Post-Checkout Invitation
 
+## Current Final-E Status
+
+```text
+Package: Final-E — In progress
+Final-E.1 — Review/invitation strategy, eligibility and security contract — Implementation completed as docs-only; owner acceptance pending
+Final-E.1 implementation base head: 2c9802b07ebf60e8953f32226962669eaf01cfc2
+Final-E.1 record: docs/186-final-e-1-review-invitation-strategy-eligibility-and-security-contract.md
+Final-E.2 — Review/invitation persistence foundation and migration — Not started
+Final-E.3 — Eligibility scheduler, invitation/token lifecycle and cron integration — Not started
+Final-E.4 — Invitation email delivery and private guest review submission — Not started
+Final-E.5 — Admin moderation and public published-review presentation — Not started
+Final-E.6 — Integrated regression and documentation closure — Not started
+Final-F/G/H: Not started
+Phase 13: Not started
+```
+
 ## Goal
 
 Allow one authentic guest review per eligible direct Reservation through a secure one-time link sent
 after checkout.
+
+## Frozen Final-E Subphase Split
+
+```text
+Final-E.1 Review/invitation strategy, eligibility and security contract
+Final-E.2 Review/invitation persistence foundation and migration
+Final-E.3 Eligibility scheduler, invitation/token lifecycle and cron integration
+Final-E.4 Invitation email delivery and private guest review submission
+Final-E.5 Admin moderation and public published-review presentation
+Final-E.6 Integrated regression and documentation closure
+```
+
+Rules:
+
+```text
+- E.1 is docs-only.
+- E.2 persistence only; no guest flow activation.
+- E.3 creates/maintains eligible invitation lifecycle but does not implement public review submission.
+- E.4 completes invitation email + one-time private submission.
+- E.5 adds moderation + public published review read surface.
+- E.6 owns final-e:validate and package closure.
+- Do not create npm run final-e:validate before E.6.
+```
 
 ## Eligibility
 
@@ -740,7 +779,35 @@ invitation is eligible 2 hours after the property's configured checkout time
 timezone = America/Guatemala
 ```
 
-Exact treatment of unusual lifecycle cases must be validated during Final-E implementation.
+Final-E.1 freezes the implementable eligibility contract:
+
+```text
+checkoutAt = Reservation.checkOutDate + Property.checkOutTime in America/Guatemala
+eligibleAt = checkoutAt + 2 hours
+
+null/blank/invalid Property.checkOutTime
+=> fail closed
+=> no invitation is created
+
+cancelledAt == null
+=> eligible subject to all other rules
+
+cancelledAt < checkoutAt
+=> ineligible
+
+cancelledAt >= checkoutAt
+=> may remain eligible as an unusual lifecycle compatibility case because checkout had already
+   been reached
+```
+
+The scheduler catch-up policy is prospective and bounded:
+
+```text
+eligibleAt <= now
+eligibleAt >= now - 7 days
+```
+
+No unbounded historical backfill is part of the initial Final-E contract.
 
 ## Review access
 
@@ -754,6 +821,27 @@ token hash persisted in database
 private review URL contains raw token
 one review per Reservation enforced by database uniqueness
 ```
+
+Email retries require a recoverable encrypted token copy:
+
+```text
+raw token:
+- 256-bit random
+- only in the intended private URL / immediate server handling
+- never persisted plaintext
+- never logged
+
+token hash:
+- SHA-256
+- persisted for lookup
+
+encrypted token:
+- AES-256-GCM envelope
+- persisted only to reproduce the same still-valid URL for email retry
+- purpose/AAD = REVIEW_INVITATION
+```
+
+Do not reuse the `GUEST_PAYMENT_REQUEST` crypto purpose.
 
 The public endpoint resolves the token safely to the Reservation/Review invitation.
 
@@ -777,6 +865,10 @@ Recommended invitation expiration:
 30 days after invitation
 ```
 
+Expiration is 30 days from ReviewInvitation creation, not from Reservation creation, confirmation,
+check-in or checkout. Overdue ACTIVE invitations may converge to EXPIRED at read/action boundary; no
+expiry-only cron is required.
+
 ## Review content
 
 Initial public review data:
@@ -791,6 +883,16 @@ property
 
 Do not expose guest email, phone, provider data, or reservation financial data.
 
+Guest display name is a persisted safe snapshot derived at submission:
+
+```text
+one token name: Juan -> Juan
+multiple tokens: Juan Jose Tzun -> Juan T.
+```
+
+Normalize whitespace and use first token plus first grapheme/letter of the final token. Do not
+publish the full Reservation.guestName automatically.
+
 ## Admin moderation
 
 Allow:
@@ -802,6 +904,16 @@ read original review
 ```
 
 Do not allow admins to rewrite the guest's rating or comment as if it were the guest's own text.
+
+Moderation statuses are:
+
+```text
+PENDING
+PUBLISHED
+HIDDEN
+```
+
+Initial Review submission is PENDING. Only PUBLISHED reviews may be exposed publicly.
 
 ## Scheduling boundary
 
@@ -816,6 +928,13 @@ The review job can be executed manually in Test through the accepted cron/admin 
 
 Final-H must update the Phase 13 scheduler carry-forward so Production activation includes every
 accepted job that exists after this track, rather than relying on the previous four-job count.
+
+The complete E.1 strategy, migration direction, email relation contract, cron/manual execution
+contract, security/privacy boundary, non-goals and acceptance matrix are frozen in:
+
+```text
+docs/186-final-e-1-review-invitation-strategy-eligibility-and-security-contract.md
+```
 
 ---
 
@@ -1234,8 +1353,8 @@ Phase 13 still owns:
 ```text
 Phase 12 — Completed and accepted
 Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
-Current package — Final-E Reservation reviews and post-checkout invitation — Next / Not started
-Current subphase — none active
+Current package — Final-E Reservation reviews and post-checkout invitation — In progress
+Current subphase — Final-E.1 Review/invitation strategy, eligibility and security contract — Implementation completed as docs-only; owner acceptance pending
 Final-D implementation base — 0839b2935fdc2349d23de6ce6b38177504e514c6
 Final-D.1 status — Completed and accepted on 2026-08-31 at 3dc4fa7d81d65244a94e7e43726e2f12591e578f
 Final-D.1 record — docs/179-final-d-1-additional-charge-payment-request-strategy-and-financial-isolation-contract.md
@@ -1264,6 +1383,14 @@ Final-D.7 record — docs/185-final-d-7-integrated-regression-and-documentation-
 Final-D status — Completed and accepted on 2026-09-18 at fd75663bb28be8a95b15c341eaa51f74e521241b
 Final-D accepted feature head — fd75663bb28be8a95b15c341eaa51f74e521241b
 Final-D permanent regression — npm run final-d:validate — 66/66 PASS
+Final-E.1 implementation base — 2c9802b07ebf60e8953f32226962669eaf01cfc2
+Final-E.1 status — Implementation completed as docs-only; owner acceptance pending
+Final-E.1 record — docs/186-final-e-1-review-invitation-strategy-eligibility-and-security-contract.md
+Final-E.2 — Not started
+Final-E.3 — Not started
+Final-E.4 — Not started
+Final-E.5 — Not started
+Final-E.6 — Not started
 Final-C implementation base — e7ce19c49c5cfd45e1cc08796ee897a2dce0d1ed
 Final-C.1 accepted strategy head — 16d8b0411e573aaaa6b510ddb27a9b5d9c666478
 Final-C.1 record — docs/173-final-c-1-pricing-strategy-precedence-and-persistence-contract.md
@@ -1313,7 +1440,13 @@ Final-D.5 — Completed and accepted on 2026-09-17 at 06b3de23fbae23a77b58b43276
 Final-D.6 — Completed and accepted on 2026-09-18 at 965045c697a9bfd0a3318db9396b15214a0cd066 — Email delivery and protected operational UX/history; record docs/184-final-d-6-email-delivery-and-protected-operational-ux-history.md
 Final-D.7 — Completed and accepted on 2026-09-18 at fd75663bb28be8a95b15c341eaa51f74e521241b — Integrated regression and documentation closure; record docs/185-final-d-7-integrated-regression-and-documentation-closure.md
 Final-D permanent regression — npm run final-d:validate — 66/66 PASS
-Final-E — Next / Not started
+Final-E — In progress
+Final-E.1 — Implementation completed as docs-only; owner acceptance pending
+Final-E.2 — Not started
+Final-E.3 — Not started
+Final-E.4 — Not started
+Final-E.5 — Not started
+Final-E.6 — Not started
 Final-F — Not started
 Final-G — Not started
 Final-H — Not started
