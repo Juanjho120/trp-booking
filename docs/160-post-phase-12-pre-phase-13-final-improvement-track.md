@@ -5,7 +5,7 @@
 ```text
 Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
-Status: Active — Final-A, Final-B and Final-C completed and accepted; Final-D is in progress with Final-D.6 completed and accepted; Final-D.7 Next / Not started
+Status: Active — Final-A, Final-B and Final-C completed and accepted; Final-D is in progress with Final-D.7 implemented and validated, owner acceptance pending
 Registration date: 2026-08-11
 Registration base head: dac105088d2c46be05a900abed3dfe83e608e964
 Previous gate: Phase 12 — Completed and accepted
@@ -460,7 +460,7 @@ Final-C.6 accepted feature head: dca50f51abe1836d3b678b762693219143b12099
 Final-C.6 record: docs/178-final-c-6-integrated-regression-and-documentation-closure.md
 Final-C status: Completed and accepted on 2026-08-28
 Final-C accepted feature head: dca50f51abe1836d3b678b762693219143b12099
-Following package: Final-D — Additional charges and guest payment requests — In progress with Final-D.6 completed and accepted; Final-D.7 Next / Not started
+Following package: Final-D — Additional charges and guest payment requests — In progress with Final-D.7 implemented and validated, owner acceptance pending
 Phase 13: Not started
 ```
 
@@ -587,7 +587,7 @@ docs/174-final-c-2-pricing-persistence-foundation-and-migration.md
 ```text
 Package: Final-D — In progress
 Implementation base head: 0839b2935fdc2349d23de6ce6b38177504e514c6
-Current/next subphase: Final-D.7 — Integrated regression and documentation closure — Not started
+Current subphase: Final-D.7 — Integrated regression and documentation closure — Implementation completed and validation executed; owner acceptance pending
 Final-D.1 status: Completed and accepted on 2026-08-31
 Final-D.1 accepted strategy head: 3dc4fa7d81d65244a94e7e43726e2f12591e578f
 Final-D.1 record: docs/179-final-d-1-additional-charge-payment-request-strategy-and-financial-isolation-contract.md
@@ -611,7 +611,9 @@ Final-D.6 implementation base head: 1f3f30f63c0198afa219df9feea4f415cbc1ccd2
 Final-D.6 status: Completed and accepted on 2026-09-18 at 965045c697a9bfd0a3318db9396b15214a0cd066 — Email delivery and protected operational UX/history
 Final-D.6 accepted implementation head: 965045c697a9bfd0a3318db9396b15214a0cd066
 Final-D.6 record: docs/184-final-d-6-email-delivery-and-protected-operational-ux-history.md
-Final-D.7 status: Next / Not started — Integrated regression and documentation closure
+Final-D.7 implementation base head: 0a511f4b87c3d8556593f9d48909a71d7bfab14c
+Final-D.7 status: Implementation completed and validation executed; owner acceptance pending — Integrated regression and documentation closure
+Final-D.7 record: docs/185-final-d-7-integrated-regression-and-documentation-closure.md
 Phase 13: Not started
 ```
 
@@ -1230,7 +1232,7 @@ Phase 13 still owns:
 Phase 12 — Completed and accepted
 Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
 Current package — Final-D additional charges and guest payment requests — In progress
-Current/next subphase — Final-D.7 Integrated regression and documentation closure — Not started
+Current subphase — Final-D.7 Integrated regression and documentation closure — Implementation completed and validation executed; owner acceptance pending
 Final-D implementation base — 0839b2935fdc2349d23de6ce6b38177504e514c6
 Final-D.1 status — Completed and accepted on 2026-08-31 at 3dc4fa7d81d65244a94e7e43726e2f12591e578f
 Final-D.1 record — docs/179-final-d-1-additional-charge-payment-request-strategy-and-financial-isolation-contract.md
@@ -1252,7 +1254,9 @@ Final-D.6 implementation base — 1f3f30f63c0198afa219df9feea4f415cbc1ccd2
 Final-D.6 status — Completed and accepted on 2026-09-18 at 965045c697a9bfd0a3318db9396b15214a0cd066 — Email delivery and protected operational UX/history
 Final-D.6 accepted implementation head — 965045c697a9bfd0a3318db9396b15214a0cd066
 Final-D.6 record — docs/184-final-d-6-email-delivery-and-protected-operational-ux-history.md
-Final-D.7 status — Next / Not started — Integrated regression and documentation closure
+Final-D.7 implementation base — 0a511f4b87c3d8556593f9d48909a71d7bfab14c
+Final-D.7 status — Implementation completed and validation executed; owner acceptance pending — Integrated regression and documentation closure
+Final-D.7 record — docs/185-final-d-7-integrated-regression-and-documentation-closure.md
 Final-C implementation base — e7ce19c49c5cfd45e1cc08796ee897a2dce0d1ed
 Final-C.1 accepted strategy head — 16d8b0411e573aaaa6b510ddb27a9b5d9c666478
 Final-C.1 record — docs/173-final-c-1-pricing-strategy-precedence-and-persistence-contract.md
@@ -1300,7 +1304,7 @@ Final-D.3 — Completed and accepted on 2026-08-31 at 6a0d909fc325f4e8925677041b
 Final-D.4 — Completed and accepted on 2026-09-14 at 7d996fd20db42b2560df11f7e00d7a5e9cc0d18c — Private guest payment link and Tilopay collection; implementation base 6a0d909fc325f4e8925677041be34c77c023c42b; record docs/182-final-d-4-private-guest-payment-link-and-tilopay-collection.md
 Final-D.5 — Completed and accepted on 2026-09-17 at 06b3de23fbae23a77b58b432760abf12afd5a6c7 — Additional-charge refunds and financial-summary integration; implementation base 63f55e22d03270bce0d27be2197373e3ce3e5de8; record docs/183-final-d-5-additional-charge-refunds-and-financial-summary-integration.md
 Final-D.6 — Completed and accepted on 2026-09-18 at 965045c697a9bfd0a3318db9396b15214a0cd066 — Email delivery and protected operational UX/history; record docs/184-final-d-6-email-delivery-and-protected-operational-ux-history.md
-Final-D.7 — Next / Not started — Integrated regression and documentation closure
+Final-D.7 — Implementation completed and validation executed; owner acceptance pending — Integrated regression and documentation closure; record docs/185-final-d-7-integrated-regression-and-documentation-closure.md
 Final-E — Not started
 Final-F — Not started
 Final-G — Not started

@@ -15,7 +15,7 @@ Accepted strategy head: 3dc4fa7d81d65244a94e7e43726e2f12591e578f
 Previous package: Final-C — Completed and accepted on 2026-08-28
 Final-C accepted feature head: dca50f51abe1836d3b678b762693219143b12099
 Authoritative track plan: docs/160-post-phase-12-pre-phase-13-final-improvement-track.md
-Following progress: Final-D.2 — Completed and accepted on 2026-08-31 at 74ac3011eb22277a896d81c92897f1bee6a4d51b; Final-D.3 — Completed and accepted on 2026-08-31 at 6a0d909fc325f4e8925677041be34c77c023c42b; Final-D.4 — Completed and accepted on 2026-09-14 at 7d996fd20db42b2560df11f7e00d7a5e9cc0d18c; initial implementation commit d2ad7687b8519a4fd0c083f72ca2bfec7f90ce83; Final-D.5 — Completed and accepted on 2026-09-17 at 06b3de23fbae23a77b58b432760abf12afd5a6c7; Final-D.6 — Completed and accepted on 2026-09-18 at 965045c697a9bfd0a3318db9396b15214a0cd066
+Following progress: Final-D.2 — Completed and accepted on 2026-08-31 at 74ac3011eb22277a896d81c92897f1bee6a4d51b; Final-D.3 — Completed and accepted on 2026-08-31 at 6a0d909fc325f4e8925677041be34c77c023c42b; Final-D.4 — Completed and accepted on 2026-09-14 at 7d996fd20db42b2560df11f7e00d7a5e9cc0d18c; initial implementation commit d2ad7687b8519a4fd0c083f72ca2bfec7f90ce83; Final-D.5 — Completed and accepted on 2026-09-17 at 06b3de23fbae23a77b58b432760abf12afd5a6c7; Final-D.6 — Completed and accepted on 2026-09-18 at 965045c697a9bfd0a3318db9396b15214a0cd066; Final-D.7 — Implementation completed and validation executed, owner acceptance pending
 Phase 13: Not started
 ```
 
@@ -951,7 +951,8 @@ Final-D.5 — Completed and accepted on 2026-09-17 at 06b3de23fbae23a77b58b43276
 Final-D.5 record — docs/183-final-d-5-additional-charge-refunds-and-financial-summary-integration.md
 Final-D.6 — Completed and accepted on 2026-09-18 at 965045c697a9bfd0a3318db9396b15214a0cd066 — Email delivery and protected operational UX/history
 Final-D.6 record — docs/184-final-d-6-email-delivery-and-protected-operational-ux-history.md
-Final-D.7 — Next / Not started
+Final-D.7 — Implementation completed and validation executed; owner acceptance pending — Integrated regression and documentation closure
+Final-D.7 record — docs/185-final-d-7-integrated-regression-and-documentation-closure.md
 Final-E — Not started
 Phase 13 — Not started
 ```

@@ -2,6 +2,7 @@ import "./source-contract.test";
 import "./behavior.test";
 import "./refund-runtime.test";
 import "./email-runtime.test";
+import "./integrated-acceptance.test";
 
 import { runFinalDTests } from "./harness";
 

@@ -14,7 +14,7 @@ Latest delayed-retry/human-label hardening base head: f19902aa3908a2e691eed8889d
 Latest Email Delivery presentation follow-up base head: 43100468f0c2932594266f7af47d392f573913e5
 Accepted implementation head: 965045c697a9bfd0a3318db9396b15214a0cd066
 Previous accepted subphase: Final-D.5 — Completed and accepted on 2026-09-17 at 06b3de23fbae23a77b58b432760abf12afd5a6c7
-Next subphase: Final-D.7 — Integrated regression and documentation closure — Not started
+Following subphase: Final-D.7 — Integrated regression and documentation closure — Implementation completed and validation executed; owner acceptance pending
 Phase 13: Not started
 
 ## Scope Implemented
@@ -388,7 +388,7 @@ Final-D.3 — Completed and accepted
 Final-D.4 — Completed and accepted
 Final-D.5 — Completed and accepted
 Final-D.6 — Completed and accepted on 2026-09-18 at 965045c697a9bfd0a3318db9396b15214a0cd066
-Final-D.7 — Next / Not started
+Final-D.7 — Implementation completed and validation executed; owner acceptance pending
 Phase 13 — Not started
 
-Final-D.7 must not begin automatically.
+Final-D.7 has since been implemented and validated through the permanent regression/documentation closure gate. Owner acceptance remains pending; Final-E must not begin automatically.
