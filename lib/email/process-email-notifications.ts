@@ -26,6 +26,10 @@ import {
 import { deliverClaimedLifecycleEmailNotification } from "./lifecycle-notifications";
 import { isLifecycleNotificationType } from "./lifecycle-notification-contract";
 import { deliverClaimedEmailNotification } from "./reservation-confirmation-notifications";
+import {
+  deliverClaimedReviewInvitationEmailNotification,
+  isReviewInvitationNotificationType,
+} from "./review-invitation-notifications";
 import { createResendEmailProvider } from "./resend-provider";
 import {
   EMAIL_NOTIFICATION_MAX_ATTEMPTS,
@@ -327,6 +331,14 @@ export async function processEmailNotifications(
               brandLogoUrl: emailEnv.brandLogoUrl,
               now,
             })
+          : isReviewInvitationNotificationType(candidate.type)
+            ? await deliverClaimedReviewInvitationEmailNotification({
+                claim: retryClaim.claim,
+                provider,
+                publicBaseUrl: emailEnv.publicBaseUrl,
+                brandLogoUrl: emailEnv.brandLogoUrl,
+                now,
+              })
           : await deliverClaimedEmailNotification({
               claim: retryClaim.claim,
               provider,

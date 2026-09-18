@@ -1594,6 +1594,7 @@ export const enMessages = {
           REFUND_PROCESSED: "Refund processed",
           ADMIN_REFUND_PROCESSED: "Refund processed for administration",
           ARRIVAL_INSTRUCTIONS: "Arrival instructions",
+          REVIEW_INVITATION: "Review invitation",
           ADMIN_NEW_RESERVATION: "New reservation for administration",
           DATE_CHANGE_PAYMENT_REQUIRED:
             "Payment required for date change",
@@ -2110,6 +2111,11 @@ export const enMessages = {
           description:
             "Creates or preserves arrival-instruction notifications for eligible upcoming stays.",
         },
+        SCHEDULE_REVIEW_INVITATIONS: {
+          title: "Schedule review invitations",
+          description:
+            "Creates or repairs review invitations for eligible direct stays after checkout.",
+        },
       },
       labels: {
         schedule: "Schedule",
@@ -2180,6 +2186,10 @@ export const enMessages = {
           "One or more arrival-instruction notifications could not be scheduled.",
         ARRIVAL_INSTRUCTION_SCHEDULING_UNEXPECTED_ERROR:
           "Arrival-instruction scheduling could not be completed.",
+        REVIEW_INVITATION_SCHEDULING_PARTIAL_SUCCESS:
+          "One or more review invitations could not be scheduled.",
+        REVIEW_INVITATION_SCHEDULING_UNEXPECTED_ERROR:
+          "Review-invitation scheduling could not be completed.",
       },
       pagination: {
         page: "Page",
@@ -3312,6 +3322,25 @@ export const enMessages = {
       supportDescription:
         "For questions before arrival, reply to this email or contact us at",
       closing: "We look forward to welcoming you in Panajachel. Safe travels.",
+    },
+    reviewInvitation: {
+      subjectPrefix: "Tell us about your stay",
+      preview: "Share your experience at",
+      eyebrow: "Thank you for staying with us",
+      title: "How was your stay?",
+      greetingPrefix: "Hello",
+      introduction:
+        "Your direct stay has ended. If you would like, you can share your experience through this private one-time link.",
+      summaryTitle: "Review invitation",
+      checkoutLabel: "Recorded checkout",
+      expiresAtLabel: "Link available until",
+      actionLabel: "Share my experience",
+      actionFallback: "If the button does not work, open this link:",
+      securityNote:
+        "This link is private, expires after 30 days, and can submit only one review. Reviews are moderated before publication.",
+      supportDescription:
+        "For assistance, reply to this email or contact us at",
+      closing: "Thank you for choosing Tu Refugio Perfecto.",
     },
     lifecycleAdjustmentPayment: {
       guest: {

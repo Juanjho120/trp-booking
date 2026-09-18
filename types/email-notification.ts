@@ -119,6 +119,18 @@ export type ArrivalInstructionsSchedulingSummary = Readonly<{
   failed: number;
 }>;
 
+export type ReviewInvitationSchedulingSummary = Readonly<{
+  processedAt: string;
+  catchUpWindowDays: number;
+  candidates: number;
+  created: number;
+  existing: number;
+  skipped: number;
+  failed: number;
+  notificationIntentsCreated: number;
+  notificationIntentsExisting: number;
+}>;
+
 export type EmailNotificationProcessingSummary = Readonly<{
   deliveryMode: EmailDeliveryMode;
   processedAt: string;

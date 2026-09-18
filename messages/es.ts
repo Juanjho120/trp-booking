@@ -1596,6 +1596,7 @@ export const esMessages = {
           ADMIN_REFUND_PROCESSED:
             "Reembolso procesado para administración",
           ARRIVAL_INSTRUCTIONS: "Instrucciones de llegada",
+          REVIEW_INVITATION: "Invitación para reseña",
           ADMIN_NEW_RESERVATION: "Nueva reserva para administración",
           DATE_CHANGE_PAYMENT_REQUIRED:
             "Pago requerido para cambio de fechas",
@@ -2112,6 +2113,11 @@ export const esMessages = {
           description:
             "Crea o conserva notificaciones de llegada para estadías próximas elegibles.",
         },
+        SCHEDULE_REVIEW_INVITATIONS: {
+          title: "Programar invitaciones de reseña",
+          description:
+            "Crea o repara invitaciones de reseña para estadías directas elegibles después del checkout.",
+        },
       },
       labels: {
         schedule: "Programación",
@@ -2182,6 +2188,10 @@ export const esMessages = {
           "Una o más notificaciones de instrucciones de llegada no pudieron programarse.",
         ARRIVAL_INSTRUCTION_SCHEDULING_UNEXPECTED_ERROR:
           "No se pudo completar la programación de instrucciones de llegada.",
+        REVIEW_INVITATION_SCHEDULING_PARTIAL_SUCCESS:
+          "Una o más invitaciones de reseña no pudieron programarse.",
+        REVIEW_INVITATION_SCHEDULING_UNEXPECTED_ERROR:
+          "No se pudo completar la programación de invitaciones de reseña.",
       },
       pagination: {
         page: "Página",
@@ -3314,6 +3324,25 @@ export const esMessages = {
       supportDescription:
         "Si tienes dudas antes de llegar, responde a este correo o escríbenos a",
       closing: "Te esperamos en Panajachel. Que tengas un buen viaje.",
+    },
+    reviewInvitation: {
+      subjectPrefix: "Cuéntanos sobre tu estadía",
+      preview: "Comparte tu experiencia en",
+      eyebrow: "Gracias por hospedarte con nosotros",
+      title: "¿Cómo estuvo tu estadía?",
+      greetingPrefix: "Hola",
+      introduction:
+        "Tu estadía directa ya finalizó. Si quieres, puedes compartir tu experiencia mediante este enlace privado de un solo uso.",
+      summaryTitle: "Invitación de reseña",
+      checkoutLabel: "Salida registrada",
+      expiresAtLabel: "Enlace disponible hasta",
+      actionLabel: "Compartir mi experiencia",
+      actionFallback: "Si el botón no funciona, abre este enlace:",
+      securityNote:
+        "Este enlace es privado, vence a los 30 días y solo permite enviar una reseña. Las reseñas se revisan antes de publicarse.",
+      supportDescription:
+        "Si necesitas ayuda, responde a este correo o escríbenos a",
+      closing: "Gracias por elegir Tu Refugio Perfecto.",
     },
     lifecycleAdjustmentPayment: {
       guest: {

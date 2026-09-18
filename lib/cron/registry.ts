@@ -4,6 +4,7 @@ import { syncConfiguredAirbnbIcalImports } from "@/lib/airbnb-ical/scheduled-syn
 import {
   processEmailNotifications,
   scheduleArrivalInstructionsNotifications,
+  scheduleReviewInvitations,
 } from "@/lib/email";
 import { expirePendingReservationHolds } from "@/lib/reservations/expiration";
 import { expireDueLifecycleAdjustmentHolds } from "@/lib/reservations/lifecycle-adjustment-holds";
@@ -158,6 +159,30 @@ const definitions: readonly CronJobDefinition[] = [
         errorMessage:
           result.failed > 0
             ? "One or more arrival-instruction notifications could not be scheduled."
+            : null,
+      };
+    },
+  },
+  {
+    key: "SCHEDULE_REVIEW_INVITATIONS",
+    slug: "schedule-review-invitations",
+    schedule: "*/30 * * * *",
+    safeUnexpectedErrorCode: "REVIEW_INVITATION_SCHEDULING_UNEXPECTED_ERROR",
+    safeUnexpectedErrorMessage:
+      "Review-invitation scheduling could not be completed.",
+    async execute() {
+      const result = await scheduleReviewInvitations();
+
+      return {
+        status: result.failed > 0 ? "PARTIAL_SUCCESS" : "SUCCESS",
+        result,
+        errorCode:
+          result.failed > 0
+            ? "REVIEW_INVITATION_SCHEDULING_PARTIAL_SUCCESS"
+            : null,
+        errorMessage:
+          result.failed > 0
+            ? "One or more review invitations could not be scheduled."
             : null,
       };
     },

@@ -16,9 +16,11 @@ Authoritative contract: docs/186-final-e-1-review-invitation-strategy-eligibilit
 Foundation migration: 20260918173000_final_e_2_review_invitation_persistence_foundation
 Corrective migration: 20260918183000_final_e_2_expand_review_guest_display_name
 Migration count: 21
-Next subphase: Final-E.4 - Review-invitation scheduling, cron integration and email delivery - Not started
+Current subphase: Final-E.4 - Review-invitation scheduling, cron integration and email delivery - Implementation completed and validation executed; owner acceptance pending
+Next subphase: Final-E.5 - Private guest review submission - Not started
 Final-E.3: Completed and accepted on 2026-09-18 at c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030
-Final-E.4 through Final-E.7: Not started
+Final-E.4: Implementation completed and validation executed; owner acceptance pending
+Final-E.5 through Final-E.7: Not started
 Final-F/G/H: Not started
 Phase 13: Not started
 ```
@@ -289,8 +291,9 @@ admin moderation: NONE
 public review listing: NONE
 npm run final-e:validate: NOT CREATED
 Final-E.3 is completed and accepted on 2026-09-18 at c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030.
-Final-E.4 is Next / Not started.
-Final-E.5 through Final-E.7 remain Not started.
+Final-E.4 implementation is completed with validation executed and owner acceptance pending.
+Final-E.5 is Next / Not started.
+Final-E.6 and Final-E.7 remain Not started.
 Final-F/G/H remain Not started.
 Phase 13 remains Not started.
 ```

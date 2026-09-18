@@ -29,6 +29,14 @@ export { processEmailNotifications } from "./process-email-notifications";
 export { EmailProviderError } from "./provider";
 export { createResendEmailProvider } from "./resend-provider";
 export {
+  buildReviewInvitationReviewPath,
+  deliverClaimedReviewInvitationEmailNotification,
+  ensureReviewInvitationAndNotificationIntentForReservation,
+  ensureReviewInvitationNotificationIntent,
+  isReviewInvitationNotificationType,
+  scheduleReviewInvitations,
+} from "./review-invitation-notifications";
+export {
   createReservationConfirmationNotificationIntents,
   deliverClaimedEmailNotification,
   deliverPendingEmailNotificationsBestEffort,

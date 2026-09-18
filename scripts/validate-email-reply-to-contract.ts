@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { Buffer } from "node:buffer";
 
 import {
   formatEnvValidationError,
@@ -26,6 +27,7 @@ function createBaseEnv(overrides: EnvOverrides = {}): NodeJS.ProcessEnv {
     AUTH_GOOGLE_ID: "f3-google-client-id",
     AUTH_GOOGLE_SECRET: "f3-google-client-secret",
     AUTH_ALLOWED_ADMIN_EMAILS: "admin@juantzun.dev",
+    EXTERNAL_CALENDAR_ENCRYPTION_KEY: Buffer.alloc(32, 3).toString("base64"),
     CLOUDINARY_CLOUD_NAME: "trpf3",
     CLOUDINARY_API_KEY: "abc12345",
     CLOUDINARY_API_SECRET: "f3-cloudinary-secret",
