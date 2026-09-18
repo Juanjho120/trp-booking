@@ -6,12 +6,13 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-D — Additional charges and guest payment requests
 Subphase: Final-D.6 — Email delivery and protected operational UX/history
-Status: Implementation completed and validation executed; owner acceptance pending
+Status: Completed and accepted on 2026-09-18
 Implementation base head: 1f3f30f63c0198afa219df9feea4f415cbc1ccd2
 Latest continuation base head: c9baf3839de6bede20d74d614559cf7380b15039
 Latest review continuation base head: 14475269e52b913b4264f3053174318e0768a843
 Latest delayed-retry/human-label hardening base head: f19902aa3908a2e691eed8889ddb77f6a5c0f1d3
 Latest Email Delivery presentation follow-up base head: 43100468f0c2932594266f7af47d392f573913e5
+Accepted implementation head: 965045c697a9bfd0a3318db9396b15214a0cd066
 Previous accepted subphase: Final-D.5 — Completed and accepted on 2026-09-17 at 06b3de23fbae23a77b58b432760abf12afd5a6c7
 Next subphase: Final-D.7 — Integrated regression and documentation closure — Not started
 Phase 13: Not started
@@ -314,7 +315,59 @@ npm run db:migrate:status — Initial sandbox attempt failed with a schema-engin
 npm run lint — Passed
 npm run build — Initial sandbox attempt failed because Next could not fetch Google Fonts; rerun outside the sandbox passed and reported only the existing slow-filesystem warning
 git diff --check — Passed; only CRLF conversion warnings were reported
+Vercel deployment for accepted head — SUCCESS
 ```
+
+## Owner Hosted Test Acceptance
+
+Final-D.6 was completed and accepted by the owner on 2026-09-18 at accepted implementation head `965045c697a9bfd0a3318db9396b15214a0cd066`.
+
+The owner executed the final Hosted Test flow and approved the observed behavior:
+
+```text
+AdditionalCharge created
+-> GuestPaymentRequest created
+-> guest payment-required email received
+-> admin payment-required email received
+-> guest opens private payment link
+-> Prepare secure payment works
+-> Tilopay Sandbox checkout works
+-> ancillary Payment APPROVED
+-> guest payment-approved email received
+-> admin payment-approved email received
+-> partial AdditionalCharge refund authorized/executed/reconciled
+-> guest refund-processed email received
+-> admin refund-processed email received
+```
+
+The final Email Delivery presentation was also reviewed on the same Reservation and accepted:
+
+```text
+Email Delivery -> Guests:
+- Payment required for additional charge
+- Payment received for additional charge
+- Refund processed for additional charge
+
+Email Delivery -> Administration:
+- Payment required for additional charge for administration
+- Payment received for additional charge for administration
+- Refund processed for additional charge for administration
+```
+
+Acceptance evidence recorded:
+
+```text
+- The six real EmailNotification rows preserved distinct types.
+- Guest/Admin grouping is 3/3.
+- Payment/refund emails use human localized labels.
+- Partial refund evidence remains historically correct.
+- Reservation operational history includes ancillary refund, payment and email evidence.
+- No raw GuestPaymentRequest token is exposed.
+- Ancillary financial isolation remains intact.
+- The final Vercel deployment for the accepted head completed with SUCCESS.
+```
+
+The final Email Delivery follow-up left persistence intact: DB evidence already had the six correct `EmailNotification.type` values, and the accepted implementation added read-model/grouping/type-label regressions so the protected UI preserves those distinct types, safe relation context and labels.
 
 ## Not Implemented
 
@@ -334,8 +387,8 @@ Final-D.2 — Completed and accepted
 Final-D.3 — Completed and accepted
 Final-D.4 — Completed and accepted
 Final-D.5 — Completed and accepted
-Final-D.6 — Implementation completed and validation executed; owner acceptance pending
+Final-D.6 — Completed and accepted on 2026-09-18 at 965045c697a9bfd0a3318db9396b15214a0cd066
 Final-D.7 — Next / Not started
 Phase 13 — Not started
 
-Final-D.6 must not be marked accepted until explicit owner acceptance is recorded. Final-D.7 must not begin automatically.
+Final-D.7 must not begin automatically.

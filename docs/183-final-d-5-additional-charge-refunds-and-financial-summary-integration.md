@@ -12,7 +12,7 @@ Acceptance date: 2026-09-17
 Implementation base head: 63f55e22d03270bce0d27be2197373e3ce3e5de8
 Accepted implementation head: 06b3de23fbae23a77b58b432760abf12afd5a6c7
 Previous accepted subphase: Final-D.4 — Completed and accepted on 2026-09-14 at 7d996fd20db42b2560df11f7e00d7a5e9cc0d18c
-Current subphase: Final-D.6 — Email delivery and protected operational UX/history — Implementation completed and validation executed; owner acceptance pending
+Current/next subphase: Final-D.7 — Integrated regression and documentation closure — Not started
 Phase 13: Not started
 ```
 
@@ -149,10 +149,10 @@ Final-D.2 — Completed and accepted
 Final-D.3 — Completed and accepted
 Final-D.4 — Completed and accepted on 2026-09-14 at 7d996fd20db42b2560df11f7e00d7a5e9cc0d18c
 Final-D.5 — Completed and accepted on 2026-09-17 at 06b3de23fbae23a77b58b432760abf12afd5a6c7
-Final-D.6 — Implementation completed and validation executed; owner acceptance pending
+Final-D.6 — Completed and accepted on 2026-09-18 at 965045c697a9bfd0a3318db9396b15214a0cd066
 Final-D.6 record — docs/184-final-d-6-email-delivery-and-protected-operational-ux-history.md
-Final-D.7 — Not started
+Final-D.7 — Next / Not started
 Phase 13 — Not started
 ```
 
-Final-D.6 implementation is completed with validation executed; owner acceptance remains pending. Final-D.7 is the next subphase but remains Not started until explicitly requested.
+Final-D.6 has been completed and accepted on 2026-09-18 at `965045c697a9bfd0a3318db9396b15214a0cd066`. Final-D.7 is the next subphase but remains Not started until explicitly requested.
