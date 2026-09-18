@@ -17,14 +17,17 @@ This file defines the working rules for TRP Booking.
 - Phase 12 is completed and accepted.
 - The Post-Phase-12 / Pre-Phase-13 Final Improvement Track is active.
 - Final-A, Final-B, and Final-C are completed and accepted.
-- Final-D is active.
+- Final-D is completed and accepted on 2026-09-18.
 - Final-D.1 is completed and accepted.
 - Final-D.2 is completed and accepted.
 - Final-D.3 is completed and accepted on 2026-08-31 at `6a0d909fc325f4e8925677041be34c77c023c42b`.
 - Final-D.4 is completed and accepted on 2026-09-14 at `7d996fd20db42b2560df11f7e00d7a5e9cc0d18c`.
 - Final-D.5 is completed and accepted on 2026-09-17 at `06b3de23fbae23a77b58b432760abf12afd5a6c7`.
 - Final-D.6 is completed and accepted on 2026-09-18 at `965045c697a9bfd0a3318db9396b15214a0cd066`.
-- Current subphase: Final-D.7 — Integrated regression and documentation closure — Implementation completed and validation executed; owner acceptance pending.
+- Final-D.7 is completed and accepted on 2026-09-18 at `fd75663bb28be8a95b15c341eaa51f74e521241b`.
+- Final-D accepted feature head: `fd75663bb28be8a95b15c341eaa51f74e521241b`.
+- Permanent Final-D regression gate: `npm run final-d:validate` — 66/66 accepted.
+- Current/next package: Final-E — Reservation reviews and post-checkout invitation — Not started until explicitly requested.
 - Final-D.4 implementation base: `6a0d909fc325f4e8925677041be34c77c023c42b`.
 - Final-D.4 accepted implementation head: `7d996fd20db42b2560df11f7e00d7a5e9cc0d18c`.
 - Final-D.4 implementation record: `docs/182-final-d-4-private-guest-payment-link-and-tilopay-collection.md`.
@@ -35,8 +38,8 @@ This file defines the working rules for TRP Booking.
 - Final-D.6 accepted implementation head: `965045c697a9bfd0a3318db9396b15214a0cd066`.
 - Final-D.6 implementation and acceptance record: `docs/184-final-d-6-email-delivery-and-protected-operational-ux-history.md`.
 - Final-D.7 implementation base: `0a511f4b87c3d8556593f9d48909a71d7bfab14c`.
-- Final-D.7 implementation/validation record: `docs/185-final-d-7-integrated-regression-and-documentation-closure.md`.
-- Final-D.7 is not accepted until owner acceptance is explicitly recorded.
+- Final-D.7 accepted implementation/validation head: `fd75663bb28be8a95b15c341eaa51f74e521241b`.
+- Final-D.7 implementation/acceptance record: `docs/185-final-d-7-integrated-regression-and-documentation-closure.md`.
 - Final-E, Final-F, Final-G, and Final-H remain Not started.
 - Phase 13 remains Not started and must not be activated implicitly.
 
@@ -102,7 +105,7 @@ Rules:
 - Do not activate Production or Phase 13 work from a Final Improvement Track task.
 - A subphase may be declared completed only after implementation, required validation, documentation reconciliation, and owner acceptance are recorded.
 - If documentation and the accepted repository state disagree, stop advancement and reconcile the authoritative trackers before implementing the next subphase.
-- For the current handoff, Final-D.3 is accepted at `6a0d909fc325f4e8925677041be34c77c023c42b`; Final-D.4 is completed and accepted on 2026-09-14 at `7d996fd20db42b2560df11f7e00d7a5e9cc0d18c`; Final-D.5 is completed and accepted on 2026-09-17 at `06b3de23fbae23a77b58b432760abf12afd5a6c7`; Final-D.6 is completed and accepted on 2026-09-18 at `965045c697a9bfd0a3318db9396b15214a0cd066`; Final-D.7 implementation is completed with owner acceptance pending.
+- For the current handoff, Final-D.3 is accepted at `6a0d909fc325f4e8925677041be34c77c023c42b`; Final-D.4 is completed and accepted on 2026-09-14 at `7d996fd20db42b2560df11f7e00d7a5e9cc0d18c`; Final-D.5 is completed and accepted on 2026-09-17 at `06b3de23fbae23a77b58b432760abf12afd5a6c7`; Final-D.6 is completed and accepted on 2026-09-18 at `965045c697a9bfd0a3318db9396b15214a0cd066`; Final-D.7 and Final-D are completed and accepted on 2026-09-18 at `fd75663bb28be8a95b15c341eaa51f74e521241b`. Final-E remains Not started until explicitly requested.
 
 ## Implementation Completion Gate
 
@@ -154,14 +157,14 @@ Final-D.7 introduced the consolidated Final-D regression gate. For any future Fi
 - `docs/182-final-d-4-private-guest-payment-link-and-tilopay-collection.md` is the Final-D.4 implementation/acceptance record.
 - `docs/183-final-d-5-additional-charge-refunds-and-financial-summary-integration.md` is the Final-D.5 implementation/acceptance record.
 - `docs/184-final-d-6-email-delivery-and-protected-operational-ux-history.md` is the Final-D.6 implementation and acceptance record.
-- `docs/185-final-d-7-integrated-regression-and-documentation-closure.md` is the Final-D.7 implementation/validation record while owner acceptance is pending.
+- `docs/185-final-d-7-integrated-regression-and-documentation-closure.md` is the Final-D.7 implementation/acceptance record and Final-D package closure record.
 - Any completed phase or subphase must be reflected in the progress tracker before moving to a new major phase or subphase.
 - When migrating to a new conversation or agent, use `AGENTS.md`, `README.md`, `docs/10-phases.md`, and `docs/11-progress-log.md` as the minimum continuity context. While the Final Improvement Track is active, also review `docs/160-post-phase-12-pre-phase-13-final-improvement-track.md` and the active package's authoritative records.
 - Historical Phase 12 deployment work remains grounded by `docs/89-test-and-production-environment-strategy.md`, `docs/136-phase-12.1-test-deployment-and-environment-strategy.md`, and the Phase 12 closure records.
 
-## Final-D Accepted Boundaries Through D.7 Implementation
+## Final-D Accepted Boundaries Through D.7 Acceptance
 
-Before implementing future Final-D acceptance closure or Final-E work, read the complete Final-D.1 contract, the accepted D.2/D.3/D.4/D.5/D.6 records, and the current D.7 implementation/validation record. Final-E remains Not started until explicitly requested and D.7 owner acceptance is reconciled.
+Before implementing Final-E work, read the complete Final-D.1 contract and the accepted D.2/D.3/D.4/D.5/D.6/D.7 records. Do not reopen D.1-D.7 unless new evidence or an explicit owner instruction requires it. Final-E remains Not started until explicitly requested.
 
 At minimum, preserve these frozen boundaries:
 

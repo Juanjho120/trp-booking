@@ -7,11 +7,14 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-D — Additional charges and guest payment requests
 Subphase: Final-D.7 — Integrated regression and documentation closure
-Status: Implementation completed and validation executed; owner acceptance pending
+Status: Completed and accepted on 2026-09-18
 Implementation base head: 0a511f4b87c3d8556593f9d48909a71d7bfab14c
+Accepted implementation/validation head: fd75663bb28be8a95b15c341eaa51f74e521241b
+Final-D accepted feature head: fd75663bb28be8a95b15c341eaa51f74e521241b
 Previous accepted subphase: Final-D.6 — Completed and accepted on 2026-09-18 at 965045c697a9bfd0a3318db9396b15214a0cd066
-Final-D owner acceptance: Pending
-Final-E/F/G/H: Not started
+Final-D owner acceptance: Completed on 2026-09-18
+Final-E: Next / Not started
+Final-F/G/H: Not started
 Phase 13: Not started
 ```
 
@@ -234,13 +237,60 @@ git diff --check
 Passed after documentation reconciliation.
 ```
 
+## Owner Acceptance and Final-D Closure
+
+The owner reviewed the final D.7 result after the permanent regression-gate correction and gave
+explicit acceptance for both Final-D.7 and the complete Final-D package on 2026-09-18.
+
+Accepted heads:
+
+```text
+Final-D.7 accepted implementation/validation head:
+fd75663bb28be8a95b15c341eaa51f74e521241b
+
+Final-D accepted feature head:
+fd75663bb28be8a95b15c341eaa51f74e521241b
+```
+
+Final accepted validation evidence from the accepted head:
+
+```text
+npm run final-d:validate — 66/66 PASS
+npm run final-a:validate — 44/44 PASS
+npm run final-b:validate — 38/38 PASS
+npm run final-c:validate — 41/41 PASS
+
+db:generate — PASS
+db:validate — PASS
+db:migrate:status — PASS
+Local/Test Supabase — 19 migrations, schema up to date
+
+lint — PASS
+build — PASS
+git diff --check — PASS
+
+Vercel deployment for fd75663bb28be8a95b15c341eaa51f74e521241b — SUCCESS
+```
+
+Final permanent-gate correction accepted:
+
+```text
+- snapshot immutability test no longer carries an impossible mutated live charge into later business assertions;
+- CANCELLED GuestPaymentRequest -> valid PENDING charges may be re-requested;
+- EXPIRED GuestPaymentRequest -> valid PENDING charges may be re-requested;
+- re-request total remains the original immutable charge evidence;
+- separate request/token identities remain preserved;
+- permanent Final-D gate remains 66/66.
+```
+
+D.7 did not execute a new Hosted Test flow. The real provider/runtime acceptance consolidated by
+this closure remains the accepted owner evidence from D.4, D.5 and D.6.
+
 ## Scope Boundary
 
 Final-D.7 did not implement:
 
 ```text
-- owner acceptance for Final-D.7;
-- Final-D package acceptance;
 - Final-E reservation reviews or post-checkout invitations;
 - Final-F WhatsApp communication or staff alerts;
 - Final-G performance work;
@@ -259,14 +309,15 @@ Final-D.3 — Completed and accepted
 Final-D.4 — Completed and accepted
 Final-D.5 — Completed and accepted
 Final-D.6 — Completed and accepted on 2026-09-18 at 965045c697a9bfd0a3318db9396b15214a0cd066
-Final-D.7 — Implementation completed and validation executed; owner acceptance pending
-Final-D — In progress until D.7 owner acceptance is explicitly recorded
-Final-E — Not started
+Final-D.7 — Completed and accepted on 2026-09-18
+Final-D — Completed and accepted on 2026-09-18
+Accepted feature head — fd75663bb28be8a95b15c341eaa51f74e521241b
+Permanent Final-D regression — npm run final-d:validate, 66/66 PASS
+Final-E — Reservation reviews and post-checkout invitation — Next / Not started
 Final-F — Not started
 Final-G — Not started
 Final-H — Not started
 Phase 13 — Not started
 ```
 
-Final-D must not be marked completed and accepted until D.7 owner acceptance is explicitly recorded.
 Final-E must not begin automatically.

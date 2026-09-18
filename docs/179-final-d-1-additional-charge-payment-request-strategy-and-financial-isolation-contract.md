@@ -15,7 +15,7 @@ Accepted strategy head: 3dc4fa7d81d65244a94e7e43726e2f12591e578f
 Previous package: Final-C — Completed and accepted on 2026-08-28
 Final-C accepted feature head: dca50f51abe1836d3b678b762693219143b12099
 Authoritative track plan: docs/160-post-phase-12-pre-phase-13-final-improvement-track.md
-Following progress: Final-D.2 — Completed and accepted on 2026-08-31 at 74ac3011eb22277a896d81c92897f1bee6a4d51b; Final-D.3 — Completed and accepted on 2026-08-31 at 6a0d909fc325f4e8925677041be34c77c023c42b; Final-D.4 — Completed and accepted on 2026-09-14 at 7d996fd20db42b2560df11f7e00d7a5e9cc0d18c; initial implementation commit d2ad7687b8519a4fd0c083f72ca2bfec7f90ce83; Final-D.5 — Completed and accepted on 2026-09-17 at 06b3de23fbae23a77b58b432760abf12afd5a6c7; Final-D.6 — Completed and accepted on 2026-09-18 at 965045c697a9bfd0a3318db9396b15214a0cd066; Final-D.7 — Implementation completed and validation executed, owner acceptance pending
+Following progress: Final-D.2 — Completed and accepted on 2026-08-31 at 74ac3011eb22277a896d81c92897f1bee6a4d51b; Final-D.3 — Completed and accepted on 2026-08-31 at 6a0d909fc325f4e8925677041be34c77c023c42b; Final-D.4 — Completed and accepted on 2026-09-14 at 7d996fd20db42b2560df11f7e00d7a5e9cc0d18c; initial implementation commit d2ad7687b8519a4fd0c083f72ca2bfec7f90ce83; Final-D.5 — Completed and accepted on 2026-09-17 at 06b3de23fbae23a77b58b432760abf12afd5a6c7; Final-D.6 — Completed and accepted on 2026-09-18 at 965045c697a9bfd0a3318db9396b15214a0cd066; Final-D.7 and Final-D — Completed and accepted on 2026-09-18 at fd75663bb28be8a95b15c341eaa51f74e521241b
 Phase 13: Not started
 ```
 
@@ -940,7 +940,7 @@ Final-D.7 owns one consolidated gate. Minimum coverage:
 # 21. Current Decision
 
 ```text
-Final-D — In progress
+Final-D — Completed and accepted on 2026-09-18 at fd75663bb28be8a95b15c341eaa51f74e521241b
 Final-D.1 — Completed and accepted on 2026-08-31
 Final-D.1 accepted strategy head — 3dc4fa7d81d65244a94e7e43726e2f12591e578f
 Implementation base — 0839b2935fdc2349d23de6ce6b38177504e514c6
@@ -951,10 +951,11 @@ Final-D.5 — Completed and accepted on 2026-09-17 at 06b3de23fbae23a77b58b43276
 Final-D.5 record — docs/183-final-d-5-additional-charge-refunds-and-financial-summary-integration.md
 Final-D.6 — Completed and accepted on 2026-09-18 at 965045c697a9bfd0a3318db9396b15214a0cd066 — Email delivery and protected operational UX/history
 Final-D.6 record — docs/184-final-d-6-email-delivery-and-protected-operational-ux-history.md
-Final-D.7 — Implementation completed and validation executed; owner acceptance pending — Integrated regression and documentation closure
+Final-D.7 — Completed and accepted on 2026-09-18 at fd75663bb28be8a95b15c341eaa51f74e521241b — Integrated regression and documentation closure
 Final-D.7 record — docs/185-final-d-7-integrated-regression-and-documentation-closure.md
-Final-E — Not started
+Final-D accepted feature head — fd75663bb28be8a95b15c341eaa51f74e521241b
+Final-E — Next / Not started
 Phase 13 — Not started
 ```
 
-D.1, D.2, D.3, D.4, D.5 and D.6 are completed and accepted, with D.6 accepted on 2026-09-18 at 965045c697a9bfd0a3318db9396b15214a0cd066 after email delivery, protected operational UX/history and the final Hosted Test acceptance were validated. D.7 remains Next / Not started.
+D.1, D.2, D.3, D.4, D.5 and D.6 are completed and accepted, with D.6 accepted on 2026-09-18 at 965045c697a9bfd0a3318db9396b15214a0cd066 after email delivery, protected operational UX/history and the final Hosted Test acceptance were validated. D.7 and Final-D have since been completed and accepted on 2026-09-18 at `fd75663bb28be8a95b15c341eaa51f74e521241b`.

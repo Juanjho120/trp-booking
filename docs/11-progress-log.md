@@ -8,8 +8,8 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 Current phase state: Phase 12 — Test Deployment & External Integration Validation — Completed and accepted on 2026-08-11
 Current numbered phase: none active
 Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
-Current package: Final-D — Additional charges and guest payment requests — In progress
-Current subphase: Final-D.7 — Integrated regression and documentation closure — Implementation completed and validation executed; owner acceptance pending
+Current package: Final-E — Reservation reviews and post-checkout invitation — Next / Not started
+Current subphase: none active
 Final-C implementation base head: e7ce19c49c5cfd45e1cc08796ee897a2dce0d1ed
 Final-C.1 status: Completed and accepted on 2026-08-25
 Final-C.1 accepted strategy head: 16d8b0411e573aaaa6b510ddb27a9b5d9c666478
@@ -89,9 +89,13 @@ Final-D.6 status: Completed and accepted on 2026-09-18 at 965045c697a9bfd0a3318d
 Final-D.6 accepted implementation head: 965045c697a9bfd0a3318db9396b15214a0cd066
 Final-D.6 record: docs/184-final-d-6-email-delivery-and-protected-operational-ux-history.md
 Final-D.7 implementation base head: 0a511f4b87c3d8556593f9d48909a71d7bfab14c
-Final-D.7 status: Implementation completed and validation executed; owner acceptance pending — Integrated regression and documentation closure
+Final-D.7 status: Completed and accepted on 2026-09-18 at fd75663bb28be8a95b15c341eaa51f74e521241b — Integrated regression and documentation closure
+Final-D.7 accepted implementation/validation head: fd75663bb28be8a95b15c341eaa51f74e521241b
 Final-D.7 record: docs/185-final-d-7-integrated-regression-and-documentation-closure.md
-Last completed package: Final-C — Pricing rules: seasonal and length-of-stay — Completed and accepted on 2026-08-28 at dca50f51abe1836d3b678b762693219143b12099
+Final-D status: Completed and accepted on 2026-09-18 at fd75663bb28be8a95b15c341eaa51f74e521241b
+Final-D accepted feature head: fd75663bb28be8a95b15c341eaa51f74e521241b
+Final-D permanent regression: npm run final-d:validate — 66/66 PASS
+Last completed package: Final-D — Additional charges and guest payment requests — Completed and accepted on 2026-09-18 at fd75663bb28be8a95b15c341eaa51f74e521241b
 Final-A.1 status: Completed and accepted on 2026-08-11
 Final-A.1 accepted head: 19531568752a44446d0802d6581262260b881aaf
 Final-A.2 status: Completed and accepted on 2026-08-11
@@ -117,8 +121,9 @@ Final-A.5 record: docs/165-final-a-5-admin-refund-ux-notification-and-operationa
 Final-A.6 record: docs/166-final-a-6-integrated-acceptance-and-documentation-closure.md
 Phase 13 status: Not started
 Last updated: 2026-09-18
-Last completed subphase: Final-D.6 Email delivery and protected operational UX/history — completed and accepted on 2026-09-18 at 965045c697a9bfd0a3318db9396b15214a0cd066
-Current: Final-D.7 Integrated regression and documentation closure — Implementation completed and validation executed; owner acceptance pending
+Last completed package: Final-D — Additional charges and guest payment requests — Completed and accepted on 2026-09-18 at fd75663bb28be8a95b15c341eaa51f74e521241b
+Last completed subphase: Final-D.7 Integrated regression and documentation closure — completed and accepted on 2026-09-18 at fd75663bb28be8a95b15c341eaa51f74e521241b
+Current: Final-E Reservation reviews and post-checkout invitation — Next / Not started
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 11.6.5 acceptance: All 15 protected-history, ordering, relation, retry, ES/EN, responsive, security, and integrated criteria passed on 2026-08-05
 11.6.5 implementation and acceptance document: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md
@@ -185,7 +190,7 @@ Phase 12.9 acceptance closure: docs/158-phase-12.9-acceptance-closure.md
 Phase 12.10 status: Completed and accepted on 2026-08-11 — Phase 12 validation and closure
 Phase 12.10 validated repository head: ebe28579872cbc2414573ef852b15139a2501551
 Phase 12 closure record: docs/159-phase-12.10-phase-12-validation-and-closure.md
-Post-Phase-12 / Pre-Phase-13 Final Improvement Track: Active — Final-A, Final-B and Final-C completed and accepted; Final-D is in progress with Final-D.7 implemented and validated, owner acceptance pending
+Post-Phase-12 / Pre-Phase-13 Final Improvement Track: Active — Final-A, Final-B, Final-C and Final-D completed and accepted; Final-E is Next / Not started
 Final-A status: Completed and accepted on 2026-08-12 at 66afbeacd6ee7d669cb4bc251c8416160fae3f49 — Reservation financial correctness and effective stay value
 Final-A.1 status: Completed and accepted on 2026-08-11 at 19531568752a44446d0802d6581262260b881aaf — Financial source-of-truth and refund-allocation contract
 Final-A.2 status: Completed and accepted on 2026-08-11 at 9f4e04068726451ca87614dd99b1f10656510825 — Central financial summary and cancellation-policy correction
@@ -227,7 +232,7 @@ Final-C.5 implementation base head: 0a57b9772da55a78e8d445dc06ea2b738b412f11
 Final-C.5 status: Completed and accepted on 2026-08-27 at 4fd36fd25484adda7d24a7df4da3c1738835474c
 Final-C.5 record: docs/177-final-c-5-date-change-stay-extension-pricing-integration.md
 Final-C.6 status: Completed and accepted on 2026-08-28 at accepted feature head dca50f51abe1836d3b678b762693219143b12099 — Integrated regression and documentation closure; closure-gate commit 1391b69a6bb591cc7d4e8a68b577ea8bda4fb8fe; implementation base 4fd36fd25484adda7d24a7df4da3c1738835474c; record: docs/178-final-c-6-integrated-regression-and-documentation-closure.md
-Final-D status: In progress — Additional charges and guest payment requests; Final-D.7 implementation completed and validation executed, owner acceptance pending
+Final-D status: Completed and accepted on 2026-09-18 at fd75663bb28be8a95b15c341eaa51f74e521241b — Additional charges and guest payment requests
 Final-D.1 implementation base head: 0839b2935fdc2349d23de6ce6b38177504e514c6
 Final-D.1 status: Completed and accepted on 2026-08-31
 Final-D.1 accepted strategy head: 3dc4fa7d81d65244a94e7e43726e2f12591e578f
@@ -253,9 +258,12 @@ Final-D.6 status: Completed and accepted on 2026-09-18 at 965045c697a9bfd0a3318d
 Final-D.6 accepted implementation head: 965045c697a9bfd0a3318db9396b15214a0cd066
 Final-D.6 record: docs/184-final-d-6-email-delivery-and-protected-operational-ux-history.md
 Final-D.7 implementation base head: 0a511f4b87c3d8556593f9d48909a71d7bfab14c
-Final-D.7 status: Implementation completed and validation executed; owner acceptance pending — Integrated regression and documentation closure
+Final-D.7 status: Completed and accepted on 2026-09-18 at fd75663bb28be8a95b15c341eaa51f74e521241b — Integrated regression and documentation closure
+Final-D.7 accepted implementation/validation head: fd75663bb28be8a95b15c341eaa51f74e521241b
 Final-D.7 record: docs/185-final-d-7-integrated-regression-and-documentation-closure.md
-Final-E status: Not started — Reservation reviews and post-checkout invitation
+Final-D accepted feature head: fd75663bb28be8a95b15c341eaa51f74e521241b
+Final-D permanent regression: npm run final-d:validate — 66/66 PASS
+Final-E status: Next / Not started — Reservation reviews and post-checkout invitation
 Final-F status: Not started — Twilio WhatsApp communication and staff alerts
 Final-G status: Not started — Performance audit and optimization
 Final-H status: Not started — Integrated regression and final improvement-track closure
@@ -1251,7 +1259,7 @@ Status: **Completed and accepted on 2026-09-17 at 06b3de23fbae23a77b58b432760abf
 - At D.5 closure, D.6 email delivery/resend/history remained outside the D.5 scope; D.7 consolidated closure was not started.
 - Validation executed locally: Final-D targeted 40/40, Final-A 44/44, Final-B 38/38, Final-C 41/41, rollback-only Local/Test DB validation, Prisma generate/validate/migrate status, lint, build and git diff --check.
 - Hosted Test owner acceptance completed on 2026-09-17: the Additional Charges tab displayed the refund workflow, ancillary refund authorization, Tilopay Sandbox execution, Consult, Reconcile, partial refund, full refund, AdditionalCharge and Payment transitions to PARTIALLY_REFUNDED then REFUNDED, correct remaining refundable balance ending at 0, no flow errors, and correct separation from the stay refund workflow.
-- Final-D.6 has since been completed and accepted on 2026-09-18 at `965045c697a9bfd0a3318db9396b15214a0cd066`; Final-D.7 implementation is completed and validation executed, with owner acceptance pending.
+- Final-D.6 has since been completed and accepted on 2026-09-18 at `965045c697a9bfd0a3318db9396b15214a0cd066`; Final-D.7 and Final-D have since been completed and accepted on 2026-09-18 at `fd75663bb28be8a95b15c341eaa51f74e521241b`.
 - Record: docs/183-final-d-5-additional-charge-refunds-and-financial-summary-integration.md.
 ```
 
@@ -1271,16 +1279,18 @@ Status: **Completed and accepted on 2026-09-18 at 965045c697a9bfd0a3318db9396b15
 - D.7 consolidated closure, Final-E/F/G/H, Phase 13 and Production work were not started.
 - Accepted validation evidence: Final-D targeted/integrated 63/63, Final-A 44/44, Final-B 38/38, Final-C 41/41, db:generate, db:validate, db:migrate:status with Local/Test Supabase 19 migrations up to date, lint, build, git diff --check, and Vercel deployment SUCCESS for the accepted head.
 - Owner Hosted Test acceptance completed on 2026-09-18 after the full ancillary charge email/payment/refund flow and corrected Email Delivery 3/3 guest/admin presentation passed.
-- Final-D.7 implementation has since completed the permanent 66/66 `npm run final-d:validate` gate and documentation closure preparation; owner acceptance remains pending.
+- Final-D.7 and Final-D have since completed owner acceptance on 2026-09-18 at `fd75663bb28be8a95b15c341eaa51f74e521241b`; the permanent `npm run final-d:validate` gate is accepted at 66/66.
 - Record: docs/184-final-d-6-email-delivery-and-protected-operational-ux-history.md.
 ```
 
 ### Final-D.7 — Integrated regression and documentation closure
 
-Status: **Implementation completed and validation executed; owner acceptance pending**
+Status: **Completed and accepted on 2026-09-18 at fd75663bb28be8a95b15c341eaa51f74e521241b**
 
 ```text
 - Implementation base head: 0a511f4b87c3d8556593f9d48909a71d7bfab14c.
+- Accepted implementation/validation head: fd75663bb28be8a95b15c341eaa51f74e521241b.
+- Final-D accepted feature head: fd75663bb28be8a95b15c341eaa51f74e521241b.
 - Added the permanent package script `npm run final-d:validate`.
 - Added D.7 integrated acceptance coverage for D.3 charge-domain and grouping/request invariants that were not directly covered by the prior D.4-D.6-focused suite.
 - Final-D validation now passes 66/66 deterministic, non-destructive tests.
@@ -1288,8 +1298,8 @@ Status: **Implementation completed and validation executed; owner acceptance pen
 - Prisma generate/validate passed; Local/Test migration status reports 19 migrations and database schema up to date after network-enabled status check.
 - Lint passed.
 - Build passed after network-enabled Google Fonts fetch; the sandbox-only first build attempt failed on font fetch.
-- Final-D remains in progress until owner acceptance is explicitly recorded.
-- Final-E/F/G/H and Phase 13 remain Not started.
+- Final-D is completed and accepted on 2026-09-18.
+- Final-E is Next / Not started; Final-F/G/H and Phase 13 remain Not started.
 - Record: docs/185-final-d-7-integrated-regression-and-documentation-closure.md.
 ```
 

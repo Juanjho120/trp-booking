@@ -21,7 +21,7 @@ The stable test domain is:
 trp-booking.juantzun.dev
 ```
 
-As of 2026-09-18, Phase 12 — Test Deployment & External Integration Validation — is completed and accepted. The stable HTTPS Test deployment at `trp-booking.juantzun.dev` remains `TRP_ENVIRONMENT=test` on the developer-owned stack with zero Vercel scheduler registrations. The Post-Phase-12 / Pre-Phase-13 Final Improvement Track is active: Final-A — reservation financial correctness and effective stay value — is completed and accepted, including its 44/44 integrated regression gate; Final-B — admin external-calendar integrations — is completed and accepted at `1fe06de8c55ab1563999b2db1d210bfc9a82c613`, including its permanent 38/38 regression gate and controlled three-property Hosted Test acceptance; Final-C — pricing rules: seasonal and length-of-stay — is completed and accepted on 2026-08-28 at accepted feature head `dca50f51abe1836d3b678b762693219143b12099`, including its permanent 41/41 Final-C regression gate, three-property pricing isolation, public/pending-reservation pricing integration, DATE_CHANGE/STAY_EXTENSION integration, accepted pricing evidence, and final admin/public/email pricing UX refinements. Final-D — additional charges and guest payment requests — is in progress with Final-D.1 completed and accepted at `3dc4fa7d81d65244a94e7e43726e2f12591e578f`, Final-D.2 completed and accepted at `74ac3011eb22277a896d81c92897f1bee6a4d51b`, Final-D.3 completed and accepted on 2026-08-31 at `6a0d909fc325f4e8925677041be34c77c023c42b`, Final-D.4 — Private guest payment link and Tilopay collection — completed and accepted on 2026-09-14 at `7d996fd20db42b2560df11f7e00d7a5e9cc0d18c`, Final-D.5 — Additional-charge refunds and financial-summary integration — completed and accepted on 2026-09-17 at `06b3de23fbae23a77b58b432760abf12afd5a6c7`, Final-D.6 — Email delivery and protected operational UX/history — completed and accepted on 2026-09-18 at `965045c697a9bfd0a3318db9396b15214a0cd066`, and Final-D.7 — Integrated regression and documentation closure — implementation completed with validation executed; owner acceptance remains pending. Final-E through Final-H remain Not started. Phase 13 — Production Infrastructure, Deployment & Go-Live — remains Not started until Final-H closes and the owner explicitly accepts the complete improvement track.
+As of 2026-09-18, Phase 12 — Test Deployment & External Integration Validation — is completed and accepted. The stable HTTPS Test deployment at `trp-booking.juantzun.dev` remains `TRP_ENVIRONMENT=test` on the developer-owned stack with zero Vercel scheduler registrations. The Post-Phase-12 / Pre-Phase-13 Final Improvement Track is active: Final-A — reservation financial correctness and effective stay value — is completed and accepted, including its 44/44 integrated regression gate; Final-B — admin external-calendar integrations — is completed and accepted at `1fe06de8c55ab1563999b2db1d210bfc9a82c613`, including its permanent 38/38 regression gate and controlled three-property Hosted Test acceptance; Final-C — pricing rules: seasonal and length-of-stay — is completed and accepted on 2026-08-28 at accepted feature head `dca50f51abe1836d3b678b762693219143b12099`, including its permanent 41/41 Final-C regression gate, three-property pricing isolation, public/pending-reservation pricing integration, DATE_CHANGE/STAY_EXTENSION integration, accepted pricing evidence, and final admin/public/email pricing UX refinements. Final-D — additional charges and guest payment requests — is completed and accepted on 2026-09-18 at accepted feature head `fd75663bb28be8a95b15c341eaa51f74e521241b`, including the permanent `npm run final-d:validate` regression gate accepted at 66/66. Final-E — Reservation reviews and post-checkout invitation — is Next / Not started; Final-F through Final-H remain Not started. Phase 13 — Production Infrastructure, Deployment & Go-Live — remains Not started until Final-H closes and the owner explicitly accepts the complete improvement track.
 
 ## Environment Strategy
 
@@ -498,8 +498,8 @@ docs/185-final-d-7-integrated-regression-and-documentation-closure.md
 Current phase state: Phase 12 — Test Deployment & External Integration Validation — Completed and accepted on 2026-08-11
 Current numbered phase: none active
 Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
-Current package: Final-D — Additional charges and guest payment requests — In progress
-Current subphase: Final-D.7 — Integrated regression and documentation closure — Implementation completed and validation executed; owner acceptance pending
+Current package: Final-E — Reservation reviews and post-checkout invitation — Next / Not started
+Current subphase: none active
 Final-C implementation base head: e7ce19c49c5cfd45e1cc08796ee897a2dce0d1ed
 Final-C.1 status: Completed and accepted on 2026-08-25
 Final-C.1 accepted strategy head: 16d8b0411e573aaaa6b510ddb27a9b5d9c666478
@@ -579,10 +579,14 @@ Final-D.6 status: Completed and accepted on 2026-09-18 at 965045c697a9bfd0a3318d
 Final-D.6 accepted implementation head: 965045c697a9bfd0a3318db9396b15214a0cd066
 Final-D.6 record: docs/184-final-d-6-email-delivery-and-protected-operational-ux-history.md
 Final-D.7 implementation base head: 0a511f4b87c3d8556593f9d48909a71d7bfab14c
-Final-D.7 status: Implementation completed and validation executed; owner acceptance pending — Integrated regression and documentation closure
+Final-D.7 status: Completed and accepted on 2026-09-18 at fd75663bb28be8a95b15c341eaa51f74e521241b — Integrated regression and documentation closure
+Final-D.7 accepted implementation/validation head: fd75663bb28be8a95b15c341eaa51f74e521241b
 Final-D.7 record: docs/185-final-d-7-integrated-regression-and-documentation-closure.md
-Last completed package: Final-C — Pricing rules: seasonal and length-of-stay — Completed and accepted on 2026-08-28 at dca50f51abe1836d3b678b762693219143b12099
-Last accepted subphase: Final-D.6 Email delivery and protected operational UX/history — completed and accepted on 2026-09-18 at 965045c697a9bfd0a3318db9396b15214a0cd066
+Final-D status: Completed and accepted on 2026-09-18 at fd75663bb28be8a95b15c341eaa51f74e521241b
+Final-D accepted feature head: fd75663bb28be8a95b15c341eaa51f74e521241b
+Final-D permanent regression: npm run final-d:validate — 66/66 PASS
+Last completed package: Final-D — Additional charges and guest payment requests — Completed and accepted on 2026-09-18 at fd75663bb28be8a95b15c341eaa51f74e521241b
+Last accepted subphase: Final-D.7 Integrated regression and documentation closure — completed and accepted on 2026-09-18 at fd75663bb28be8a95b15c341eaa51f74e521241b
 Final-A.1 status: Completed and accepted on 2026-08-11
 Final-A.1 accepted head: 19531568752a44446d0802d6581262260b881aaf
 Final-A.2 status: Completed and accepted on 2026-08-11
