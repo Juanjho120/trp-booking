@@ -7,19 +7,56 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-F — Twilio WhatsApp communication and staff alerts
 Subphase: Final-F.1 — Twilio/WhatsApp + staff-alert strategy, onboarding, templates and security contract
-Status: Implementation completed; owner acceptance pending
+Status: Completed and accepted on 2026-09-21
 Implementation base head: c6dbe2309f0cd373701fc9444f7f15879692f423
+Accepted implementation head: d5db6a2605a03e75db7c16238a43cd5f79dde6d8
 Document date: 2026-09-21
 Runtime/schema/dependency changes: none
-Next subphase: Final-F.2 — Twilio Sandbox provider foundation, webhook signature validation and Test onboarding — Not started
+Next subphase: Final-F.2 — Twilio Sandbox provider foundation, webhook signature validation and Test onboarding — Next / Not started
 Final-G: Not started
 Final-H: Not started
 Phase 13: Not started
 ```
 
-Final-F.1 is documentation-only. This document becomes the authoritative Final-F strategy contract
-after owner acceptance. It starts Final-F at the strategy level only and does not implement Twilio,
-Zoho, schema, routes, UI, cron, secrets, or provider calls.
+Final-F.1 is documentation-only. This document is the authoritative Final-F strategy contract after
+explicit owner acceptance on 2026-09-21. It starts Final-F at the strategy level only and does not
+implement Twilio, Zoho, schema, routes, UI, cron, secrets, or provider calls.
+
+## Owner Acceptance
+
+The owner explicitly accepted Final-F.1 on 2026-09-21.
+
+Accepted implementation head:
+
+```text
+d5db6a2605a03e75db7c16238a43cd5f79dde6d8
+```
+
+The owner accepted this F.1 contract as the authoritative strategy boundary for future Final-F
+subphases, including:
+
+```text
+- Sandbox/Test first strategy.
+- Future use of a new phone number purchased through Twilio for Production.
+- Separation between guest WhatsApp communication and staff alerts.
+- /admin/whatsapp as the future canonical protected route.
+- The seven mandatory staff-alert classes.
+- E.164, explicit opt-in, and per-event preferences for staff recipients.
+- Official X-Twilio-Signature validation using the server-side Twilio SDK helper.
+- Durable intents and provider delivery after commit.
+- WhatsApp 24-hour customer-service window enforcement.
+- Content Templates for outbound guest communication outside the 24-hour window.
+- Zoho remaining the mailbox owner.
+- Persistence only of inbound-email metadata needed for alerting.
+- The messageId/idempotency discovery gate for Final-F.7.
+- Provider-error isolation from business state.
+- Privacy and logging limits.
+- Local/Test versus Production/Phase 13 separation.
+- Final-F.2 through Final-F.8 remaining pending and not started.
+```
+
+Final-F as a package remains active. Final-F.2 is the next subphase and remains Not started until
+explicitly requested. Final-G, Final-H, and Phase 13 remain Not started.
 
 ## Goal
 
