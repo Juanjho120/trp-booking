@@ -291,6 +291,64 @@ export const esMessages = {
         "Subfase 8.4 crea una reserva pendiente por 15 minutos. Todavía no confirma pago, no envía correos y no crea bloques manuales de calendario.",
     },
   },
+  reviews: {
+    submission: {
+      title: "Comparte tu experiencia",
+      description:
+        "Este enlace privado te permite enviar una reseña de tu estadía directa.",
+      formTitle: "Tu reseña",
+      formDescription:
+        "La reseña quedará pendiente de moderación antes de aparecer públicamente.",
+      propertyLabel: "Alojamiento",
+      expiresAtLabel: "Enlace disponible hasta",
+      ratingLabel: "Calificación",
+      ratingDescription: "Selecciona una calificación de 1 a 5.",
+      ratingOptions: {
+        1: "1 estrella",
+        2: "2 estrellas",
+        3: "3 estrellas",
+        4: "4 estrellas",
+        5: "5 estrellas",
+      },
+      commentLabel: "Comentario",
+      commentPlaceholder: "Cuéntanos cómo fue tu estadía.",
+      commentHelper:
+        "Texto simple, sin formato enriquecido. No incluyas información privada.",
+      characterCount: "{count}/{max} caracteres",
+      submit: "Enviar reseña",
+      submitting: "Enviando...",
+      securityNote:
+        "Este enlace es privado, de un solo uso y no muestra datos administrativos de la reservación.",
+      successTitle: "Recibimos tu reseña",
+      successDescription:
+        "Gracias por compartir tu experiencia. La reseña quedó pendiente de moderación.",
+      alreadySubmittedTitle: "Tu reseña ya fue enviada",
+      alreadySubmittedDescription:
+        "Este enlace ya fue utilizado y no permite editar ni enviar otra reseña.",
+      expiredTitle: "Este enlace de reseña ya expiró",
+      expiredDescription:
+        "El tiempo para usar este enlace privado terminó.",
+      unavailableTitle: "Este enlace ya no está disponible",
+      unavailableDescription:
+        "No pudimos habilitar la reseña desde este enlace.",
+      invalidTitle: "No pudimos validar este enlace de reseña",
+      invalidDescription:
+        "Revisa el enlace o contacta al alojamiento si necesitas ayuda.",
+      backToAccommodations: "Volver a alojamientos",
+      errors: {
+        INVALID_REVIEW_INVITATION:
+          "No pudimos validar este enlace de reseña.",
+        INVALID_REVIEW_SUBMISSION:
+          "Selecciona una calificación y escribe un comentario válido.",
+        REVIEW_INVITATION_EXPIRED:
+          "Este enlace de reseña ya expiró.",
+        REVIEW_INVITATION_UNAVAILABLE:
+          "Este enlace ya no está disponible.",
+        REVIEW_SUBMISSION_UNEXPECTED_ERROR:
+          "No pudimos enviar la reseña. Inténtalo de nuevo.",
+      },
+    },
+  },
   payments: {
     tilopaySdk: {
       title: "Pago seguro con Tilopay",

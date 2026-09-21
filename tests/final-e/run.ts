@@ -3,6 +3,7 @@ import "./review-invitation-time-eligibility.test";
 import "./review-invitation-token-lifecycle.test";
 import "./review-invitations-ensure.test";
 import "./review-invitation-scheduling-email.test";
+import "./review-submission.test";
 
 import { runFinalETests } from "./harness";
 

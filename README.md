@@ -21,7 +21,7 @@ The stable test domain is:
 trp-booking.juantzun.dev
 ```
 
-As of 2026-09-18, Phase 12 — Test Deployment & External Integration Validation — is completed and accepted. The stable HTTPS Test deployment at `trp-booking.juantzun.dev` remains `TRP_ENVIRONMENT=test` on the developer-owned stack with zero Vercel scheduler registrations. The Post-Phase-12 / Pre-Phase-13 Final Improvement Track is active: Final-A — reservation financial correctness and effective stay value — is completed and accepted, including its 44/44 integrated regression gate; Final-B — admin external-calendar integrations — is completed and accepted at `1fe06de8c55ab1563999b2db1d210bfc9a82c613`, including its permanent 38/38 regression gate and controlled three-property Hosted Test acceptance; Final-C — pricing rules: seasonal and length-of-stay — is completed and accepted on 2026-08-28 at accepted feature head `dca50f51abe1836d3b678b762693219143b12099`, including its permanent 41/41 Final-C regression gate, three-property pricing isolation, public/pending-reservation pricing integration, DATE_CHANGE/STAY_EXTENSION integration, accepted pricing evidence, and final admin/public/email pricing UX refinements. Final-D — additional charges and guest payment requests — is completed and accepted on 2026-09-18 at accepted feature head `fd75663bb28be8a95b15c341eaa51f74e521241b`, including the permanent `npm run final-d:validate` regression gate accepted at 66/66. Final-E — Reservation reviews and post-checkout invitation — is In progress: Final-E.1 is completed and accepted on 2026-09-18 at `e83ad8443bd533715058e701769b10c2d5505436`, Final-E.2 is completed and accepted on 2026-09-18 at `f77938c5606ed636b697dc1af41c111a22ba1593`, Final-E.3 is completed and accepted on 2026-09-18 at `c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030`, Final-E.4 is completed and accepted on 2026-09-18 at `e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1`, Final-E.5 is Next / Not started, and Final-E.6 through Final-E.7 remain Not started. Final-F through Final-H remain Not started. Phase 13 — Production Infrastructure, Deployment & Go-Live — remains Not started until Final-H closes and the owner explicitly accepts the complete improvement track.
+As of 2026-09-18, Phase 12 — Test Deployment & External Integration Validation — is completed and accepted. The stable HTTPS Test deployment at `trp-booking.juantzun.dev` remains `TRP_ENVIRONMENT=test` on the developer-owned stack with zero Vercel scheduler registrations. The Post-Phase-12 / Pre-Phase-13 Final Improvement Track is active: Final-A — reservation financial correctness and effective stay value — is completed and accepted, including its 44/44 integrated regression gate; Final-B — admin external-calendar integrations — is completed and accepted at `1fe06de8c55ab1563999b2db1d210bfc9a82c613`, including its permanent 38/38 regression gate and controlled three-property Hosted Test acceptance; Final-C — pricing rules: seasonal and length-of-stay — is completed and accepted on 2026-08-28 at accepted feature head `dca50f51abe1836d3b678b762693219143b12099`, including its permanent 41/41 Final-C regression gate, three-property pricing isolation, public/pending-reservation pricing integration, DATE_CHANGE/STAY_EXTENSION integration, accepted pricing evidence, and final admin/public/email pricing UX refinements. Final-D — additional charges and guest payment requests — is completed and accepted on 2026-09-18 at accepted feature head `fd75663bb28be8a95b15c341eaa51f74e521241b`, including the permanent `npm run final-d:validate` regression gate accepted at 66/66. Final-E — Reservation reviews and post-checkout invitation — is In progress: Final-E.1 is completed and accepted on 2026-09-18 at `e83ad8443bd533715058e701769b10c2d5505436`, Final-E.2 is completed and accepted on 2026-09-18 at `f77938c5606ed636b697dc1af41c111a22ba1593`, Final-E.3 is completed and accepted on 2026-09-18 at `c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030`, Final-E.4 is completed and accepted on 2026-09-18 at `e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1`, Final-E.5 implementation is completed and validation executed with owner acceptance pending, and Final-E.6 through Final-E.7 remain Not started. Final-F through Final-H remain Not started. Phase 13 — Production Infrastructure, Deployment & Go-Live — remains Not started until Final-H closes and the owner explicitly accepts the complete improvement track.
 
 ## Environment Strategy
 
@@ -503,7 +503,7 @@ Current phase state: Phase 12 — Test Deployment & External Integration Validat
 Current numbered phase: none active
 Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
 Current package: Final-E — Reservation reviews and post-checkout invitation — In progress
-Current/next subphase: Final-E.5 — Private guest review submission — Next / Not started
+Current/next subphase: Final-E.5 — Private guest review submission — Implementation completed and validation executed; owner acceptance pending
 Final-C implementation base head: e7ce19c49c5cfd45e1cc08796ee897a2dce0d1ed
 Final-C.1 status: Completed and accepted on 2026-08-25
 Final-C.1 accepted strategy head: 16d8b0411e573aaaa6b510ddb27a9b5d9c666478
@@ -605,12 +605,14 @@ Final-E.4 implementation base head: 19199e6382b4daa7651417c37c1958ad59300373
 Final-E.4 status: Completed and accepted on 2026-09-18 at e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1 — Review-invitation scheduling, cron integration and email delivery
 Final-E.4 accepted implementation head: e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1
 Final-E.4 record: docs/189-final-e-4-review-invitation-scheduling-cron-and-email-delivery.md
-Final-E.5 status: Next / Not started
+Final-E.5 implementation base head: 2baddeb520c01cd860a73f84a22bd4ec5d0a148c
+Final-E.5 status: Implementation completed and validation executed; owner acceptance pending — Private guest review submission
+Final-E.5 record: docs/190-final-e-5-private-guest-review-submission.md
 Final-E.6 status: Not started
 Final-E.7 status: Not started
 Last completed package: Final-D — Additional charges and guest payment requests — Completed and accepted on 2026-09-18 at fd75663bb28be8a95b15c341eaa51f74e521241b
 Last accepted subphase: Final-E.4 Review-invitation scheduling, cron integration and email delivery — completed and accepted on 2026-09-18 at e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1
-Current/next subphase: Final-E.5 Private guest review submission — Next / Not started
+Current/next subphase: Final-E.5 Private guest review submission — Implementation completed and validation executed; owner acceptance pending
 Final-A.1 status: Completed and accepted on 2026-08-11
 Final-A.1 accepted head: 19531568752a44446d0802d6581262260b881aaf
 Final-A.2 status: Completed and accepted on 2026-08-11

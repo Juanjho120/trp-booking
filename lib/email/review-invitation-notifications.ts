@@ -22,6 +22,7 @@ import {
   cancelReviewInvitationInTransaction,
   decryptReviewInvitationAccessToken,
   ensureReviewInvitationInTransaction,
+  evaluatePersistedReviewInvitationBusinessEligibility,
   expireReviewInvitationIfOverdueInTransaction,
   getReviewInvitationEffectiveStatus,
   hashReviewInvitationAccessToken,
@@ -147,21 +148,6 @@ type CurrentReservationState = Readonly<{
   }>;
 }>;
 
-type ExistingInvitationEligibility =
-  | Readonly<{ eligible: true }>
-  | Readonly<{
-      eligible: false;
-      reason:
-        | "RESERVATION_NOT_FOUND"
-        | "RESERVATION_STATUS_NOT_ELIGIBLE"
-        | "RESERVATION_NOT_CONFIRMED"
-        | "NOT_YET_ELIGIBLE"
-        | "CANCELLED_AT_MISSING"
-        | "CANCELLED_BEFORE_CHECKOUT"
-        | "REVIEW_ALREADY_EXISTS";
-      cancelActiveInvitation: boolean;
-    }>;
-
 const claimedReviewInvitationSelect = {
   id: true,
   reservationId: true,
@@ -248,98 +234,6 @@ function normalizeRecipient(value: string): string {
 
 function normalizeLocale(value: string): "es" | "en" {
   return value === "en" ? "en" : "es";
-}
-
-function isAbsolutelyRejectedStatus(status: ReservationStatus): boolean {
-  return (
-    status === ReservationStatus.PENDING_PAYMENT ||
-    status === ReservationStatus.EXPIRED ||
-    status === ReservationStatus.BLOCKED
-  );
-}
-
-function evaluateExistingInvitationEligibility(
-  reservation: CurrentReservationState | null,
-  invitation: Pick<
-    ReviewInvitationLifecycleRecord,
-    "checkoutAtSnapshot" | "eligibleAt"
-  >,
-  now: Date,
-): ExistingInvitationEligibility {
-  if (!reservation) {
-    return {
-      eligible: false,
-      reason: "RESERVATION_NOT_FOUND",
-      cancelActiveInvitation: true,
-    };
-  }
-
-  if (isAbsolutelyRejectedStatus(reservation.status)) {
-    return {
-      eligible: false,
-      reason: "RESERVATION_STATUS_NOT_ELIGIBLE",
-      cancelActiveInvitation: true,
-    };
-  }
-
-  if (!reservation.confirmedAt) {
-    return {
-      eligible: false,
-      reason: "RESERVATION_NOT_CONFIRMED",
-      cancelActiveInvitation: true,
-    };
-  }
-
-  if (reservation.status === ReservationStatus.CANCELLED) {
-    if (!reservation.cancelledAt) {
-      return {
-        eligible: false,
-        reason: "CANCELLED_AT_MISSING",
-        cancelActiveInvitation: true,
-      };
-    }
-
-    if (
-      reservation.cancelledAt.getTime() <
-      invitation.checkoutAtSnapshot.getTime()
-    ) {
-      return {
-        eligible: false,
-        reason: "CANCELLED_BEFORE_CHECKOUT",
-        cancelActiveInvitation: true,
-      };
-    }
-  }
-
-  if (
-    reservation.status !== ReservationStatus.CANCELLED &&
-    reservation.cancelledAt &&
-    reservation.cancelledAt.getTime() < invitation.checkoutAtSnapshot.getTime()
-  ) {
-    return {
-      eligible: false,
-      reason: "CANCELLED_BEFORE_CHECKOUT",
-      cancelActiveInvitation: true,
-    };
-  }
-
-  if (reservation.review) {
-    return {
-      eligible: false,
-      reason: "REVIEW_ALREADY_EXISTS",
-      cancelActiveInvitation: true,
-    };
-  }
-
-  if (now.getTime() < invitation.eligibleAt.getTime()) {
-    return {
-      eligible: false,
-      reason: "NOT_YET_ELIGIBLE",
-      cancelActiveInvitation: false,
-    };
-  }
-
-  return { eligible: true };
 }
 
 function buildReviewInvitationNotificationKey(
@@ -554,9 +448,18 @@ async function ensureReviewInvitationAndNotificationIntentOnce(
     transaction,
     invitation.reservationId,
   );
-  const eligibility = evaluateExistingInvitationEligibility(
-    reservation,
-    invitation,
+  const eligibility = evaluatePersistedReviewInvitationBusinessEligibility(
+    {
+      reservation: reservation
+        ? {
+            status: reservation.status,
+            confirmedAt: reservation.confirmedAt,
+            cancelledAt: reservation.cancelledAt,
+            hasReview: reservation.review !== null,
+          }
+        : null,
+      invitation,
+    },
     options.now,
   );
 
@@ -967,9 +870,16 @@ function assertDeliveryEligibility(
     );
   }
 
-  const eligibility = evaluateExistingInvitationEligibility(
-    notification.reservation,
-    invitation,
+  const eligibility = evaluatePersistedReviewInvitationBusinessEligibility(
+    {
+      reservation: {
+        status: notification.reservation.status,
+        confirmedAt: notification.reservation.confirmedAt,
+        cancelledAt: notification.reservation.cancelledAt,
+        hasReview: notification.reservation.review !== null,
+      },
+      invitation,
+    },
     now,
   );
 

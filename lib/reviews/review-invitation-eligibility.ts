@@ -19,6 +19,15 @@ export type ReviewInvitationSchedulerEligibilityFailureReason =
   | ReviewInvitationEligibilityFailureReason
   | "OUTSIDE_CATCH_UP_WINDOW";
 
+export type PersistedReviewInvitationEligibilityFailureReason =
+  | "RESERVATION_NOT_FOUND"
+  | "RESERVATION_STATUS_NOT_ELIGIBLE"
+  | "RESERVATION_NOT_CONFIRMED"
+  | "NOT_YET_ELIGIBLE"
+  | "CANCELLED_AT_MISSING"
+  | "CANCELLED_BEFORE_CHECKOUT"
+  | "REVIEW_ALREADY_EXISTS";
+
 export type ReviewInvitationLifecycleCompatibility =
   | "CONFIRMED"
   | "HISTORICAL_REFUND_COMPATIBLE"
@@ -61,6 +70,31 @@ export type ReviewInvitationSchedulerEligibilityResult =
       checkoutAt?: Date;
       eligibleAt?: Date;
       catchUpStart?: Date;
+    }>;
+
+export type PersistedReviewInvitationBusinessEligibilityInput = Readonly<{
+  reservation:
+    | Readonly<{
+        status: ReservationStatus;
+        confirmedAt: Date | null;
+        cancelledAt: Date | null;
+        hasReview: boolean;
+      }>
+    | null;
+  invitation: Readonly<{
+    checkoutAtSnapshot: Date;
+    eligibleAt: Date;
+  }>;
+}>;
+
+export type PersistedReviewInvitationBusinessEligibilityResult =
+  | Readonly<{
+      eligible: true;
+    }>
+  | Readonly<{
+      eligible: false;
+      reason: PersistedReviewInvitationEligibilityFailureReason;
+      cancelActiveInvitation: boolean;
     }>;
 
 function isAbsolutelyRejectedStatus(status: ReservationStatus): boolean {
@@ -129,6 +163,89 @@ function resolveLifecycleCompatibility(
     eligibleAt: new Date(0),
     compatibility: "CONFIRMED",
   };
+}
+
+export function evaluatePersistedReviewInvitationBusinessEligibility(
+  input: PersistedReviewInvitationBusinessEligibilityInput,
+  now: Date,
+): PersistedReviewInvitationBusinessEligibilityResult {
+  const { reservation, invitation } = input;
+
+  if (!reservation) {
+    return {
+      eligible: false,
+      reason: "RESERVATION_NOT_FOUND",
+      cancelActiveInvitation: true,
+    };
+  }
+
+  if (isAbsolutelyRejectedStatus(reservation.status)) {
+    return {
+      eligible: false,
+      reason: "RESERVATION_STATUS_NOT_ELIGIBLE",
+      cancelActiveInvitation: true,
+    };
+  }
+
+  if (!reservation.confirmedAt) {
+    return {
+      eligible: false,
+      reason: "RESERVATION_NOT_CONFIRMED",
+      cancelActiveInvitation: true,
+    };
+  }
+
+  if (reservation.status === ReservationStatus.CANCELLED) {
+    if (!reservation.cancelledAt) {
+      return {
+        eligible: false,
+        reason: "CANCELLED_AT_MISSING",
+        cancelActiveInvitation: true,
+      };
+    }
+
+    if (
+      reservation.cancelledAt.getTime() <
+      invitation.checkoutAtSnapshot.getTime()
+    ) {
+      return {
+        eligible: false,
+        reason: "CANCELLED_BEFORE_CHECKOUT",
+        cancelActiveInvitation: true,
+      };
+    }
+  }
+
+  if (
+    reservation.status !== ReservationStatus.CANCELLED &&
+    reservation.cancelledAt &&
+    reservation.cancelledAt.getTime() <
+      invitation.checkoutAtSnapshot.getTime()
+  ) {
+    return {
+      eligible: false,
+      reason: "CANCELLED_BEFORE_CHECKOUT",
+      cancelActiveInvitation: true,
+    };
+  }
+
+  if (reservation.hasReview) {
+    return {
+      eligible: false,
+      reason: "REVIEW_ALREADY_EXISTS",
+      cancelActiveInvitation: true,
+    };
+  }
+
+  if (now.getTime() < invitation.eligibleAt.getTime()) {
+    return {
+      eligible: false,
+      reason: "NOT_YET_ELIGIBLE",
+      cancelActiveInvitation: false,
+    };
+  }
+
+  return { eligible: true };
 }
 
 export function evaluateReviewInvitationBusinessEligibility(

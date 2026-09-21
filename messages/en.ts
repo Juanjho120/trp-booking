@@ -291,6 +291,64 @@ export const enMessages = {
         "Subphase 8.4 creates a pending reservation for 15 minutes. It still does not confirm payment, send emails, or create manual calendar blocks.",
     },
   },
+  reviews: {
+    submission: {
+      title: "Share your experience",
+      description:
+        "This private link lets you submit a review for your direct stay.",
+      formTitle: "Your review",
+      formDescription:
+        "The review will remain pending moderation before it appears publicly.",
+      propertyLabel: "Accommodation",
+      expiresAtLabel: "Link available until",
+      ratingLabel: "Rating",
+      ratingDescription: "Select a rating from 1 to 5.",
+      ratingOptions: {
+        1: "1 star",
+        2: "2 stars",
+        3: "3 stars",
+        4: "4 stars",
+        5: "5 stars",
+      },
+      commentLabel: "Comment",
+      commentPlaceholder: "Tell us how your stay was.",
+      commentHelper:
+        "Plain text only, without rich formatting. Do not include private information.",
+      characterCount: "{count}/{max} characters",
+      submit: "Submit review",
+      submitting: "Submitting...",
+      securityNote:
+        "This link is private, one-time, and does not show administrative reservation details.",
+      successTitle: "We received your review",
+      successDescription:
+        "Thank you for sharing your experience. The review is pending moderation.",
+      alreadySubmittedTitle: "Your review was already submitted",
+      alreadySubmittedDescription:
+        "This link has already been used and cannot edit or submit another review.",
+      expiredTitle: "This review link has expired",
+      expiredDescription:
+        "The time to use this private link has ended.",
+      unavailableTitle: "This link is no longer available",
+      unavailableDescription:
+        "We could not enable review submission from this link.",
+      invalidTitle: "We could not validate this review link",
+      invalidDescription:
+        "Review the link or contact the accommodation if you need help.",
+      backToAccommodations: "Back to accommodations",
+      errors: {
+        INVALID_REVIEW_INVITATION:
+          "We could not validate this review link.",
+        INVALID_REVIEW_SUBMISSION:
+          "Select a rating and enter a valid comment.",
+        REVIEW_INVITATION_EXPIRED:
+          "This review link has expired.",
+        REVIEW_INVITATION_UNAVAILABLE:
+          "This link is no longer available.",
+        REVIEW_SUBMISSION_UNEXPECTED_ERROR:
+          "We could not submit the review. Please try again.",
+      },
+    },
+  },
   payments: {
     tilopaySdk: {
       title: "Secure payment with Tilopay",
