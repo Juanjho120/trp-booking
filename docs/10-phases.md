@@ -17,8 +17,9 @@ Deferred — Intentionally postponed.
 Current phase state: Phase 12 — Test Deployment & External Integration Validation — Completed and accepted on 2026-08-11
 Current numbered phase: none active
 Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
-Current package: Final-E — Reservation reviews and post-checkout invitation — In progress
-Current subphase: Final-E.7 — Integrated regression and documentation closure owner-acceptance follow-up — Immediate-delivery correction completed and validation executed; owner re-validation pending
+Last completed and accepted package: Final-E — Reservation reviews and post-checkout invitation — Completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880
+Final-E accepted feature head: 3843a6637300201bcb44b7ed235952afda02d880
+Current/next package: Final-F — Twilio WhatsApp communication and staff alerts — Next / Not started
 Final-C implementation base head: e7ce19c49c5cfd45e1cc08796ee897a2dce0d1ed
 Final-C.1 status: Completed and accepted on 2026-08-25
 Final-C.1 accepted strategy head: 16d8b0411e573aaaa6b510ddb27a9b5d9c666478
@@ -129,11 +130,12 @@ Final-E.6 status: Completed and accepted on 2026-09-21 at 82f1c27ba2af41d9ade9f8
 Final-E.6 accepted implementation head: 82f1c27ba2af41d9ade9f8f57348bf66e18f800f
 Final-E.6 record: docs/191-final-e-6-admin-moderation-and-public-published-review-presentation.md
 Final-E.7 implementation base head: 4df7cbc07b6ae9789a62f568d1e3ab69a808d596
-Final-E.7 status: Implementation and owner-acceptance follow-up correction completed; validation executed; owner re-validation pending — Integrated regression and documentation closure
-Final-E.7 permanent regression: npm run final-e:validate — 88/88 PASS
+Final-E.7 accepted implementation/validation head: 3843a6637300201bcb44b7ed235952afda02d880
+Final-E.7 status: Completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880 — Integrated regression and documentation closure
+Final-E permanent regression: npm run final-e:validate — 88/88 accepted
 Final-E.7 record: docs/192-final-e-7-integrated-regression-and-documentation-closure.md
-Last completed package: Final-D — Additional charges and guest payment requests — Completed and accepted on 2026-09-18 at fd75663bb28be8a95b15c341eaa51f74e521241b
-Last accepted subphase: Final-E.6 Admin moderation and public published-review presentation — completed and accepted on 2026-09-21 at 82f1c27ba2af41d9ade9f8f57348bf66e18f800f
+Last completed package: Final-E — Reservation reviews and post-checkout invitation — Completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880
+Last accepted subphase: Final-E.7 Integrated regression and documentation closure — completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880
 Final-A.1 status: Completed and accepted on 2026-08-11
 Final-A.1 accepted head: 19531568752a44446d0802d6581262260b881aaf
 Final-A.2 status: Completed and accepted on 2026-08-11
@@ -216,7 +218,7 @@ Phase 12.9 closure: docs/158-phase-12.9-acceptance-closure.md
 Phase 12.10 status: Completed and accepted on 2026-08-11 — Phase 12 validation and closure
 Phase 12.10 validated repository head: ebe28579872cbc2414573ef852b15139a2501551
 Phase 12 closure: docs/159-phase-12.10-phase-12-validation-and-closure.md
-Current work: Final-E.7 Integrated regression and documentation closure owner-acceptance follow-up — Immediate-delivery correction completed and validation executed; owner re-validation pending. Final-E.6 is completed and accepted on 2026-09-21 at 82f1c27ba2af41d9ade9f8f57348bf66e18f800f. Phase 13 remains blocked until Final-H closes and the complete Final Improvement Track is explicitly accepted
+Current work: Final-F Twilio WhatsApp communication and staff alerts — Next / Not started. Final-E is completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880. Phase 13 remains blocked until Final-H closes and the complete Final Improvement Track is explicitly accepted
 Next planned numbered phase: Phase 13 — Production Infrastructure, Deployment & Go-Live — Not started
 Pre-Phase-12 Improvement Track status: Completed and accepted — Packages A, B, C, E, and F accepted; Package D remains deferred outside the current gate
 Pre-Phase-12 Improvement Track registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
@@ -1279,7 +1281,7 @@ Phase 12 explicitly excludes company-owned production account provisioning, prod
 
 ## Inter-Phase Work — Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 
-Status: **Active — Final-A, Final-B, Final-C and Final-D are completed and accepted; Final-E is In progress with Final-E.1 through Final-E.6 completed and accepted; Final-E.7 implementation and owner-acceptance follow-up correction are completed with validation executed and owner re-validation pending; Phase 13 remains Not started**
+Status: **Active — Final-A, Final-B, Final-C, Final-D and Final-E are completed and accepted; Final-F is Next / Not started; Final-G and Final-H remain Not started; Phase 13 remains Not started**
 
 Goal: Complete the final owner-approved feature, correctness, communication, pricing, and performance round before Production while preserving the accepted Test/Production ownership boundary.
 
@@ -1316,15 +1318,15 @@ Final-D Additional charges and guest payment requests — Completed and accepted
   Final-D.6 Email delivery and protected operational UX/history — Completed and accepted on 2026-09-18 at 965045c697a9bfd0a3318db9396b15214a0cd066; record: docs/184-final-d-6-email-delivery-and-protected-operational-ux-history.md
   Final-D.7 Integrated regression and documentation closure — Completed and accepted on 2026-09-18 at fd75663bb28be8a95b15c341eaa51f74e521241b; record: docs/185-final-d-7-integrated-regression-and-documentation-closure.md
   Final-D permanent regression — npm run final-d:validate — 66/66 PASS
-Final-E Reservation reviews and post-checkout invitation — In progress
+Final-E Reservation reviews and post-checkout invitation — Completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880
   Final-E.1 Review/invitation strategy, eligibility and security contract — Completed and accepted on 2026-09-18 at e83ad8443bd533715058e701769b10c2d5505436; record: docs/186-final-e-1-review-invitation-strategy-eligibility-and-security-contract.md
   Final-E.2 Review/invitation persistence foundation and migration — Completed and accepted on 2026-09-18 at f77938c5606ed636b697dc1af41c111a22ba1593; implementation base 2e1b26850c55364db8450fafc2bb35c6d89a2c3b; record: docs/187-final-e-2-review-invitation-persistence-foundation-and-migration.md
   Final-E.3 Eligibility and invitation/token lifecycle foundation — Completed and accepted on 2026-09-18 at c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030; record: docs/188-final-e-3-eligibility-and-invitation-token-lifecycle-foundation.md
   Final-E.4 Review-invitation scheduling, cron integration and email delivery — Completed and accepted on 2026-09-18 at e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1; record: docs/189-final-e-4-review-invitation-scheduling-cron-and-email-delivery.md
   Final-E.5 Private guest review submission — Completed and accepted on 2026-09-21 at f37f4802219aeb80d10f92b406e0a4847b10f15d; record: docs/190-final-e-5-private-guest-review-submission.md
   Final-E.6 Admin moderation and public published-review presentation — Completed and accepted on 2026-09-21 at 82f1c27ba2af41d9ade9f8f57348bf66e18f800f; implementation base 2b56d43d60da3558ce692e18f4756f1c862bcb17; record: docs/191-final-e-6-admin-moderation-and-public-published-review-presentation.md
-  Final-E.7 Integrated regression and documentation closure owner-acceptance follow-up — Immediate-delivery correction completed and validation executed; owner re-validation pending; record: docs/192-final-e-7-integrated-regression-and-documentation-closure.md
-Final-F Twilio WhatsApp communication and staff alerts — Not started
+  Final-E.7 Integrated regression and documentation closure — Completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880; record: docs/192-final-e-7-integrated-regression-and-documentation-closure.md
+Final-F Twilio WhatsApp communication and staff alerts — Next / Not started
 Final-G Performance audit and optimization — Not started
 Final-H Integrated regression and final improvement-track closure — Not started
 ```

@@ -27,9 +27,9 @@ This file defines the working rules for TRP Booking.
 - Final-D.7 is completed and accepted on 2026-09-18 at `fd75663bb28be8a95b15c341eaa51f74e521241b`.
 - Final-D accepted feature head: `fd75663bb28be8a95b15c341eaa51f74e521241b`.
 - Permanent Final-D regression gate: `npm run final-d:validate` — 66/66 accepted.
-- Current package: Final-E — Reservation reviews and post-checkout invitation — In progress.
-- Last accepted subphase: Final-E.6 — Admin moderation and public published-review presentation — Completed and accepted on 2026-09-21 at `82f1c27ba2af41d9ade9f8f57348bf66e18f800f`.
-- Current subphase: Final-E.7 — Integrated regression and documentation closure owner-acceptance follow-up — Immediate-delivery correction completed and validation executed; owner re-validation pending.
+- Last completed and accepted package: Final-E — Reservation reviews and post-checkout invitation — Completed and accepted on 2026-09-21 at `3843a6637300201bcb44b7ed235952afda02d880`.
+- Final-E accepted feature head: `3843a6637300201bcb44b7ed235952afda02d880`.
+- Current/next package: Final-F — Twilio WhatsApp communication and staff alerts — Next / Not started until explicitly requested.
 - Final-D.4 implementation base: `6a0d909fc325f4e8925677041be34c77c023c42b`.
 - Final-D.4 accepted implementation head: `7d996fd20db42b2560df11f7e00d7a5e9cc0d18c`.
 - Final-D.4 implementation record: `docs/182-final-d-4-private-guest-payment-link-and-tilopay-collection.md`.
@@ -63,10 +63,13 @@ This file defines the working rules for TRP Booking.
 - Final-E.6 implementation and acceptance record: `docs/191-final-e-6-admin-moderation-and-public-published-review-presentation.md`.
 - Final-E.6 is completed and accepted on 2026-09-21.
 - Final-E.7 implementation base: `4df7cbc07b6ae9789a62f568d1e3ab69a808d596`.
-- Final-E.7 implementation/validation record: `docs/192-final-e-7-integrated-regression-and-documentation-closure.md`.
-- Final-E.7 implementation and owner-acceptance follow-up correction are completed and validation is executed; owner re-validation remains pending.
-- Permanent Final-E regression gate: `npm run final-e:validate` — 88/88 implemented; owner re-validation pending.
-- Final-F, Final-G, and Final-H remain Not started.
+- Final-E.7 accepted implementation/validation head: `3843a6637300201bcb44b7ed235952afda02d880`.
+- Final-E.7 implementation/validation and acceptance record: `docs/192-final-e-7-integrated-regression-and-documentation-closure.md`.
+- Final-E.7 is completed and accepted on 2026-09-21.
+- Final-E is completed and accepted on 2026-09-21.
+- Permanent Final-E regression gate: `npm run final-e:validate` — 88/88 accepted.
+- Final-F is the next package but remains Not started until explicitly requested.
+- Final-G and Final-H remain Not started.
 - Phase 13 remains Not started and must not be activated implicitly.
 
 ## Environment Isolation
@@ -131,7 +134,7 @@ Rules:
 - Do not activate Production or Phase 13 work from a Final Improvement Track task.
 - A subphase may be declared completed only after implementation, required validation, documentation reconciliation, and owner acceptance are recorded.
 - If documentation and the accepted repository state disagree, stop advancement and reconcile the authoritative trackers before implementing the next subphase.
-- For the current handoff, Final-D.3 is accepted at `6a0d909fc325f4e8925677041be34c77c023c42b`; Final-D.4 is completed and accepted on 2026-09-14 at `7d996fd20db42b2560df11f7e00d7a5e9cc0d18c`; Final-D.5 is completed and accepted on 2026-09-17 at `06b3de23fbae23a77b58b432760abf12afd5a6c7`; Final-D.6 is completed and accepted on 2026-09-18 at `965045c697a9bfd0a3318db9396b15214a0cd066`; Final-D.7 and Final-D are completed and accepted on 2026-09-18 at `fd75663bb28be8a95b15c341eaa51f74e521241b`. Final-E is in progress; Final-E.1 is completed and accepted on 2026-09-18 at `e83ad8443bd533715058e701769b10c2d5505436`. Final-E.2 is completed and accepted on 2026-09-18 at `f77938c5606ed636b697dc1af41c111a22ba1593`. Final-E.3 is completed and accepted on 2026-09-18 at `c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030`. Final-E.4 is completed and accepted on 2026-09-18 at `e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1`; Final-E.5 is completed and accepted on 2026-09-21 at `f37f4802219aeb80d10f92b406e0a4847b10f15d`; Final-E.6 is completed and accepted on 2026-09-21 at `82f1c27ba2af41d9ade9f8f57348bf66e18f800f`; Final-E.7 implementation and owner-acceptance follow-up correction are completed and validation is executed, with owner re-validation pending.
+- For the current handoff, Final-D.3 is accepted at `6a0d909fc325f4e8925677041be34c77c023c42b`; Final-D.4 is completed and accepted on 2026-09-14 at `7d996fd20db42b2560df11f7e00d7a5e9cc0d18c`; Final-D.5 is completed and accepted on 2026-09-17 at `06b3de23fbae23a77b58b432760abf12afd5a6c7`; Final-D.6 is completed and accepted on 2026-09-18 at `965045c697a9bfd0a3318db9396b15214a0cd066`; Final-D.7 and Final-D are completed and accepted on 2026-09-18 at `fd75663bb28be8a95b15c341eaa51f74e521241b`. Final-E is completed and accepted on 2026-09-21 at `3843a6637300201bcb44b7ed235952afda02d880`; Final-E.1 is completed and accepted on 2026-09-18 at `e83ad8443bd533715058e701769b10c2d5505436`. Final-E.2 is completed and accepted on 2026-09-18 at `f77938c5606ed636b697dc1af41c111a22ba1593`. Final-E.3 is completed and accepted on 2026-09-18 at `c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030`. Final-E.4 is completed and accepted on 2026-09-18 at `e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1`; Final-E.5 is completed and accepted on 2026-09-21 at `f37f4802219aeb80d10f92b406e0a4847b10f15d`; Final-E.6 is completed and accepted on 2026-09-21 at `82f1c27ba2af41d9ade9f8f57348bf66e18f800f`; Final-E.7 is completed and accepted on 2026-09-21 at `3843a6637300201bcb44b7ed235952afda02d880`. Final-F is next but remains Not started until explicitly requested; Final-G, Final-H, and Phase 13 remain Not started.
 
 ## Implementation Completion Gate
 
@@ -172,7 +175,7 @@ npm run final-d:validate
 npm run final-e:validate
 ```
 
-Final-D.7 introduced the consolidated Final-D regression gate. Final-E.7 introduced the consolidated Final-E regression gate; owner re-validation remains pending after the admin review-submitted email follow-up. For any future Final-D/Final-E continuation, run the relevant existing regression commands plus targeted tests/checks introduced or affected by the active subphase, together with the database/lint/build/diff checks required by the active record.
+Final-D.7 introduced the consolidated Final-D regression gate. Final-E.7 introduced the consolidated Final-E regression gate and it is accepted at 88/88. For any future Final-F or later continuation, run the relevant existing regression commands plus targeted tests/checks introduced or affected by the active subphase, together with the database/lint/build/diff checks required by the active record.
 
 ## Phase and Progress Tracking
 
@@ -198,7 +201,7 @@ Final-D.7 introduced the consolidated Final-D regression gate. Final-E.7 introdu
 
 ## Final-D Accepted Boundaries and Final-E Accepted Boundaries
 
-Before continuing Final-E package acceptance or later work, read the complete Final-D.1 contract, the accepted D.2/D.3/D.4/D.5/D.6/D.7 records, the accepted Final-E.1 record, the accepted Final-E.2 record, the accepted Final-E.3 record, the accepted Final-E.4 record, the accepted Final-E.5 record, the accepted Final-E.6 record, and the Final-E.7 implementation/follow-up validation record (`docs/186-final-e-1-review-invitation-strategy-eligibility-and-security-contract.md`, `docs/187-final-e-2-review-invitation-persistence-foundation-and-migration.md`, `docs/188-final-e-3-eligibility-and-invitation-token-lifecycle-foundation.md`, `docs/189-final-e-4-review-invitation-scheduling-cron-and-email-delivery.md`, `docs/190-final-e-5-private-guest-review-submission.md`, `docs/191-final-e-6-admin-moderation-and-public-published-review-presentation.md`, and `docs/192-final-e-7-integrated-regression-and-documentation-closure.md`). Do not reopen D.1-D.7, Final-E.1, Final-E.2, Final-E.3, Final-E.4, Final-E.5, Final-E.6, or Final-E.7 unless new evidence or an explicit owner instruction requires it. Final-E package acceptance remains pending owner re-validation.
+Before starting Final-F or later work, read the complete Final-D.1 contract, the accepted D.2/D.3/D.4/D.5/D.6/D.7 records, the accepted Final-E.1 record, the accepted Final-E.2 record, the accepted Final-E.3 record, the accepted Final-E.4 record, the accepted Final-E.5 record, the accepted Final-E.6 record, and the accepted Final-E.7 record (`docs/186-final-e-1-review-invitation-strategy-eligibility-and-security-contract.md`, `docs/187-final-e-2-review-invitation-persistence-foundation-and-migration.md`, `docs/188-final-e-3-eligibility-and-invitation-token-lifecycle-foundation.md`, `docs/189-final-e-4-review-invitation-scheduling-cron-and-email-delivery.md`, `docs/190-final-e-5-private-guest-review-submission.md`, `docs/191-final-e-6-admin-moderation-and-public-published-review-presentation.md`, and `docs/192-final-e-7-integrated-regression-and-documentation-closure.md`). Do not reopen D.1-D.7, Final-E.1, Final-E.2, Final-E.3, Final-E.4, Final-E.5, Final-E.6, Final-E.7, or Final-E unless new evidence or an explicit owner instruction requires it.
 
 At minimum, preserve these frozen boundaries:
 
@@ -222,8 +225,8 @@ At minimum, preserve these frozen boundaries:
 - Final-E.4 activates review-invitation scheduling and email delivery together, including the internal cron registry/manual protected route and REVIEW_INVITATION dispatcher support; it keeps `vercel.json` empty, does not add `/resenas`, `/admin/reviews`, schema migrations, or `npm run final-e:validate`, and is completed and accepted at `e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1`.
 - Final-E.5 adds only private guest review submission for `/resenas/[token]` and `POST /api/reviews/[token]`, one-time `ReviewInvitation` consumption, `Review` creation as `PENDING`, safe guest display-name snapshots, localized private UX, noindex/nofollow metadata, and deterministic behavioral coverage. It keeps `vercel.json` empty, does not add `/resenas`, `/admin/reviews`, public published reviews, admin moderation, schema migrations, provider calls, or `npm run final-e:validate`; it is completed and accepted at `f37f4802219aeb80d10f92b406e0a4847b10f15d`.
 - Final-E.6 adds admin review moderation at `/admin/reviews`, protected PATCH moderation with `getAdminSessionActor()` and `isValidAdminMutationOrigin()`, exact PENDING -> PUBLISHED / PUBLISHED -> HIDDEN / HIDDEN -> PUBLISHED transitions, `expectedUpdatedAt` concurrency fencing, same-transaction safe AdminAuditLog evidence, public `/resenas`, PUBLISHED-only active-property review listing, safe public DTOs, plain-text comment rendering, and centralized ES/EN copy. It keeps `vercel.json` empty, does not add schema migrations, review editing/deletion, invitation/email mutations, provider calls, or `npm run final-e:validate`; it is completed and accepted at `82f1c27ba2af41d9ade9f8f57348bf66e18f800f`.
-- Final-E.7 adds the permanent `npm run final-e:validate` gate and integrated closure coverage. The owner-acceptance follow-up adds only `ADMIN_REVIEW_SUBMITTED` admin email intent creation on successful private review submission, immediate post-commit best-effort delivery limited to those committed notification IDs, the enum-only `email_notification_type` migration, shared admin routing, dispatcher/template support, and deterministic tests. It keeps `vercel.json` empty, does not call `processEmailNotifications()` from guest submission, does not add `EmailNotification.reviewId`, historical review backfill, manual resend support for submitted-review admin emails, review editing/deletion, invitation token changes, public route changes, or Final-F scope. Final-E.7 implementation/follow-up correction and validation are completed; owner re-validation remains pending.
-- Final-F, Final-G, Final-H, and Phase 13 must not begin automatically.
+- Final-E.7 adds the permanent `npm run final-e:validate` gate and integrated closure coverage. The owner-acceptance follow-up adds only `ADMIN_REVIEW_SUBMITTED` admin email intent creation on successful private review submission, immediate post-commit best-effort delivery limited to those committed notification IDs, the enum-only `email_notification_type` migration, shared admin routing, dispatcher/template support, and deterministic tests. It keeps `vercel.json` empty, does not call `processEmailNotifications()` from guest submission, does not add `EmailNotification.reviewId`, historical review backfill, manual resend support for submitted-review admin emails, review editing/deletion, invitation token changes, public route changes, or Final-F scope. Final-E.7 and Final-E are completed and accepted on 2026-09-21 at `3843a6637300201bcb44b7ed235952afda02d880`.
+- Final-F is the next package but remains Not started until explicitly requested. Final-G, Final-H, and Phase 13 must not begin automatically.
 ```
 
 ## UI and Design System Rules
