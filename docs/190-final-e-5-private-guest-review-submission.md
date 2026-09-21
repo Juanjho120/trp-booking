@@ -124,6 +124,24 @@ Replay and concurrency behavior:
 - Review creation failure rolls back invitation consumption.
 ```
 
+## Independent Review Follow-up Correction
+
+The independent review after the initial E.5 implementation identified a final client/runtime
+hardening gap. The follow-up keeps the accepted E.5 architecture intact and adds only these scoped
+corrections:
+
+```text
+- The private review client now tracks a local ACTIVE / ALREADY_SUBMITTED / EXPIRED / UNAVAILABLE / SUBMITTED state instead of relying only on the initial server DTO.
+- A stale ACTIVE browser page that receives REVIEW_INVITATION_EXPIRED or REVIEW_INVITATION_UNAVAILABLE from POST immediately transitions to terminal guest UI and hides the form, without reload or a second submit.
+- INVALID_REVIEW_SUBMISSION and REVIEW_SUBMISSION_UNEXPECTED_ERROR remain inline retryable client errors.
+- Malformed pathname percent-encoding is decoded through a safe helper that returns null without throwing, logging, or posting.
+- Initial page REVIEW_SUBMISSION_UNEXPECTED_ERROR renders the generic unavailable state instead of the invalid-link state.
+- The existing Serializable transaction P2034 retry behavior is now explicitly covered for first-attempt retry success and three-attempt exhaustion rollback.
+```
+
+No schema, migration, provider, scheduler, email, moderation, public review, or E.6 behavior was
+added by this correction.
+
 ## UI and Copy
 
 The private guest page uses centralized copy in:
@@ -196,6 +214,10 @@ Behavior covered:
 - replay without editing existing Review
 - concurrent submission race handling
 - P2002 uniqueness race convergence
+- stale ACTIVE client POST convergence to EXPIRED / UNAVAILABLE terminal UI
+- malformed private pathname token decoding without exception or POST eligibility
+- P2034 first-attempt retry success without duplicate Review creation
+- P2034 retry exhaustion mapped to a safe unexpected error with rollback
 - expired and business-revoked POST rejection without Review creation
 - invalid historical guestName fail-closed behavior
 - no raw review token persistence in the captured store
@@ -209,7 +231,7 @@ Executed validation:
 
 ```text
 npx tsx --tsconfig tests/final-e/tsconfig.json tests/final-e/run.ts
-PASS - Final-E targeted validation passed: 52/52 tests.
+PASS - Final-E targeted validation passed: 55/55 tests.
 
 npm run final-a:validate
 PASS - Final-A validation passed: 44/44 tests.
@@ -248,8 +270,7 @@ PASS - no whitespace errors; Git reported only LF/CRLF working-copy warnings.
 Environment notes:
 
 ```text
-- The first sandbox Final-E targeted-validation attempt failed before tests with Node/tsx uv_os_get_passwd ENOMEM; rerun outside the sandbox passed 52/52.
-- The first sandbox email contract attempt failed before validation with the same Node/tsx user-info error; rerun outside the sandbox passed.
+- The first sandbox attempts for the tsx-based Final-E targeted validation, Final-A/B/C/D gates, and email contract failed before tests with Node/tsx uv_os_get_passwd ENOMEM; reruns outside the sandbox passed.
 - The first sandbox build attempt failed because Next/Turbopack could not fetch Google Fonts; rerun outside the sandbox passed.
 - The first sandbox db:migrate:status attempt returned a Prisma Schema engine error while checking Supabase; rerun outside the sandbox passed.
 ```

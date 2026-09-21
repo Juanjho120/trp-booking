@@ -19,6 +19,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useLocale } from "@/features/i18n";
+import {
+  getInitialReviewSubmissionClientState,
+  getReviewSubmissionTerminalCopyKind,
+  readReviewSubmissionTokenFromPathname,
+  resolveReviewSubmissionClientState,
+  type ReviewSubmissionClientState,
+} from "@/features/reviews/review-submission-client-state";
 import type {
   ReviewSubmissionErrorCode,
   ReviewSubmissionOutcome,
@@ -32,12 +39,6 @@ type RatingValue = 1 | 2 | 3 | 4 | 5;
 
 function getCommentCodePointCount(value: string): number {
   return Array.from(value.replace(/\r\n/g, "\n").trim()).length;
-}
-
-function terminalFromSummary(
-  summary: ReviewSubmissionSummary | null,
-): ReviewSubmissionOutcome | null {
-  return summary?.state === "ALREADY_SUBMITTED" ? "already-submitted" : null;
 }
 
 export function ReviewSubmissionPage({
@@ -55,16 +56,15 @@ export function ReviewSubmissionPage({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [inlineError, setInlineError] =
     useState<ReviewSubmissionErrorCode | null>(null);
-  const [terminalOutcome, setTerminalOutcome] =
-    useState<ReviewSubmissionOutcome | null>(() =>
-      terminalFromSummary(summary),
+  const [clientState, setClientState] =
+    useState<ReviewSubmissionClientState>(() =>
+      getInitialReviewSubmissionClientState(summary?.state ?? null),
     );
   const copy = messages.reviews.submission;
   const intlLocale = locale === "en" ? "en-US" : "es-GT";
   const commentCount = getCommentCodePointCount(comment);
   const canSubmit =
-    summary?.state === "ACTIVE" &&
-    !terminalOutcome &&
+    clientState === "ACTIVE" &&
     Boolean(accessToken) &&
     rating !== null &&
     commentCount >= 1 &&
@@ -84,12 +84,9 @@ export function ReviewSubmissionPage({
   }, [locale, setLocale, summary]);
 
   useEffect(() => {
-    const tokenSegment = window.location.pathname
-      .split("/")
-      .filter(Boolean)
-      .pop();
-
-    setAccessToken(tokenSegment ? decodeURIComponent(tokenSegment) : null);
+    setAccessToken(
+      readReviewSubmissionTokenFromPathname(window.location.pathname),
+    );
   }, []);
 
   const formattedExpiresAt = useMemo(() => {
@@ -116,30 +113,47 @@ export function ReviewSubmissionPage({
     setInlineError(null);
 
     try {
-      const response = await fetch(`/api/reviews/${encodeURIComponent(accessToken)}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `/api/reviews/${encodeURIComponent(accessToken)}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            rating,
+            comment,
+            locale,
+          }),
         },
-        body: JSON.stringify({
-          rating,
-          comment,
-          locale,
-        }),
-      });
+      );
       const payload = (await response.json()) as {
         result?: { outcome?: ReviewSubmissionOutcome };
         error?: { code?: ReviewSubmissionErrorCode };
       };
 
       if (response.ok && payload.result?.outcome) {
-        setTerminalOutcome(payload.result.outcome);
+        setClientState(
+          resolveReviewSubmissionClientState(clientState, {
+            outcome: payload.result?.outcome,
+          }),
+        );
         return;
       }
 
-      setInlineError(
-        payload.error?.code ?? "REVIEW_SUBMISSION_UNEXPECTED_ERROR",
-      );
+      const nextError =
+        payload.error?.code ?? "REVIEW_SUBMISSION_UNEXPECTED_ERROR";
+      const nextState = resolveReviewSubmissionClientState(clientState, {
+        errorCode: nextError,
+      });
+
+      if (nextState !== clientState) {
+        setClientState(nextState);
+        setInlineError(null);
+        return;
+      }
+
+      setInlineError(nextError);
     } catch {
       setInlineError("REVIEW_SUBMISSION_UNEXPECTED_ERROR");
     } finally {
@@ -147,33 +161,34 @@ export function ReviewSubmissionPage({
     }
   }
 
-  const active = summary?.state === "ACTIVE" && !terminalOutcome;
-  const terminalTitle = terminalOutcome
-    ? terminalOutcome === "submitted"
+  const active = clientState === "ACTIVE";
+  const terminalCopyKind = getReviewSubmissionTerminalCopyKind(
+    clientState,
+    errorCode,
+  );
+  const terminalTitle =
+    terminalCopyKind === "submitted"
       ? copy.successTitle
-      : copy.alreadySubmittedTitle
-    : errorCode
-      ? copy.invalidTitle
-      : summary?.state === "ALREADY_SUBMITTED"
+      : terminalCopyKind === "already-submitted"
         ? copy.alreadySubmittedTitle
-        : summary?.state === "EXPIRED"
+        : terminalCopyKind === "expired"
           ? copy.expiredTitle
-          : summary?.state === "UNAVAILABLE"
-            ? copy.unavailableTitle
-            : copy.invalidTitle;
-  const terminalDescription = terminalOutcome
-    ? terminalOutcome === "submitted"
+          : terminalCopyKind === "invalid"
+            ? copy.invalidTitle
+            : copy.unavailableTitle;
+  const terminalDescription =
+    terminalCopyKind === "submitted"
       ? copy.successDescription
-      : copy.alreadySubmittedDescription
-    : errorCode
-      ? copy.invalidDescription
-      : summary?.state === "ALREADY_SUBMITTED"
+      : terminalCopyKind === "already-submitted"
         ? copy.alreadySubmittedDescription
-        : summary?.state === "EXPIRED"
+        : terminalCopyKind === "expired"
           ? copy.expiredDescription
-          : summary?.state === "UNAVAILABLE"
-            ? copy.unavailableDescription
-            : copy.invalidDescription;
+          : terminalCopyKind === "invalid"
+            ? copy.invalidDescription
+            : copy.unavailableDescription;
+  const terminalIsSuccessful =
+    terminalCopyKind === "submitted" ||
+    terminalCopyKind === "already-submitted";
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -184,9 +199,7 @@ export function ReviewSubmissionPage({
             <span className="mx-auto flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary">
               {active ? (
                 <Star aria-hidden="true" />
-              ) : terminalOutcome === "submitted" ||
-                terminalOutcome === "already-submitted" ||
-                summary?.state === "ALREADY_SUBMITTED" ? (
+              ) : terminalIsSuccessful ? (
                 <CheckCircle2 aria-hidden="true" />
               ) : (
                 <ShieldAlert aria-hidden="true" />

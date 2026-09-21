@@ -11,6 +11,14 @@ import {
 } from "@prisma/client";
 
 import {
+  getReviewSubmissionTerminalCopyKind,
+  readReviewSubmissionTokenFromPathname,
+  resolveReviewSubmissionClientState,
+} from "@/features/reviews/review-submission-client-state";
+import type {
+  ReviewSubmissionClientState,
+} from "@/features/reviews/review-submission-client-state";
+import {
   createReviewInvitationTokenMaterial,
   deriveReviewGuestDisplayNameSnapshot,
   getReviewSubmissionSummary,
@@ -83,6 +91,8 @@ type E5Store = {
 
 type E5ClientOptions = Readonly<{
   failReviewCreate?: boolean;
+  onTransactionAttempt?: () => void;
+  serializationConflictsBeforeSuccess?: number;
   uniqueRaceOnReviewCreate?: boolean;
 }>;
 
@@ -235,6 +245,16 @@ function makeP2002Error(): Prisma.PrismaClientKnownRequestError {
   );
 }
 
+function makeP2034Error(): Prisma.PrismaClientKnownRequestError {
+  return new Prisma.PrismaClientKnownRequestError(
+    "Transaction failed due to a write conflict or deadlock.",
+    {
+      code: "P2034",
+      clientVersion: "final-e5-test",
+    },
+  );
+}
+
 function findReservation(store: E5Store, reservationId: string) {
   return store.reservations.find((reservation) => reservation.id === reservationId) ?? null;
 }
@@ -292,6 +312,7 @@ function addExternalWinnerReview(store: E5Store): void {
 
 function makeClient(store: E5Store, options: E5ClientOptions = {}): PrismaClient {
   let transactionQueue = Promise.resolve<unknown>(undefined);
+  let serializationConflictAttempts = 0;
   const tx = {
     reviewInvitation: {
       async findUnique(args: { where: { accessTokenHash: string } }) {
@@ -390,6 +411,16 @@ function makeClient(store: E5Store, options: E5ClientOptions = {}): PrismaClient
         const snapshot = snapshotStore(store);
 
         try {
+          options.onTransactionAttempt?.();
+
+          if (
+            serializationConflictAttempts <
+            (options.serializationConflictsBeforeSuccess ?? 0)
+          ) {
+            serializationConflictAttempts += 1;
+            throw makeP2034Error();
+          }
+
           return await callback(tx as unknown as Prisma.TransactionClient);
         } catch (error) {
           restoreStore(store, snapshot);
@@ -475,6 +506,68 @@ test("E.5 validates rating and plain-text comment input exactly", () => {
   assert.equal(
     normalizeReviewSubmissionComment("<strong>Great stay</strong>"),
     "<strong>Great stay</strong>",
+  );
+});
+
+test("E.5 client state converges stale terminals and rejects malformed paths safely", () => {
+  const active: ReviewSubmissionClientState = "ACTIVE";
+
+  assert.equal(
+    resolveReviewSubmissionClientState(active, {
+      errorCode: "REVIEW_INVITATION_EXPIRED",
+    }),
+    "EXPIRED",
+  );
+  assert.equal(
+    resolveReviewSubmissionClientState(active, {
+      errorCode: "REVIEW_INVITATION_UNAVAILABLE",
+    }),
+    "UNAVAILABLE",
+  );
+  assert.equal(
+    resolveReviewSubmissionClientState(active, {
+      errorCode: "INVALID_REVIEW_SUBMISSION",
+    }),
+    "ACTIVE",
+  );
+  assert.equal(
+    resolveReviewSubmissionClientState(active, {
+      errorCode: "REVIEW_SUBMISSION_UNEXPECTED_ERROR",
+    }),
+    "ACTIVE",
+  );
+  assert.equal(
+    resolveReviewSubmissionClientState(active, { outcome: "submitted" }),
+    "SUBMITTED",
+  );
+  assert.equal(
+    resolveReviewSubmissionClientState(active, {
+      outcome: "already-submitted",
+    }),
+    "ALREADY_SUBMITTED",
+  );
+  assert.equal(
+    getReviewSubmissionTerminalCopyKind(
+      "UNAVAILABLE",
+      "REVIEW_SUBMISSION_UNEXPECTED_ERROR",
+    ),
+    "unavailable",
+  );
+  assert.equal(
+    getReviewSubmissionTerminalCopyKind(
+      "UNAVAILABLE",
+      "INVALID_REVIEW_INVITATION",
+    ),
+    "invalid",
+  );
+  assert.equal(
+    readReviewSubmissionTokenFromPathname(`/resenas/${E5_TOKEN}`),
+    E5_TOKEN,
+  );
+  assert.equal(readReviewSubmissionTokenFromPathname("/resenas/"), null);
+  assert.equal(
+    readReviewSubmissionTokenFromPathname("/resenas/%E0%A4%A"),
+    null,
   );
 });
 
@@ -717,6 +810,72 @@ test("E.5 POST converges Review uniqueness races to already-submitted without P2
   assert.equal(result.outcome, "already-submitted");
   assert.equal(store.reviews.length, 1);
   assert.equal(store.reviews[0].comment, "External winner");
+});
+
+test("E.5 POST retries one P2034 serialization conflict and commits once", async () => {
+  const store = createStore();
+  let transactionAttempts = 0;
+  const client = makeClient(store, {
+    onTransactionAttempt: () => {
+      transactionAttempts += 1;
+    },
+    serializationConflictsBeforeSuccess: 1,
+  });
+  const result = await submitReviewSubmission(
+    E5_TOKEN,
+    { rating: 5, comment: "Retry after conflict", locale: "en" },
+    { now: E5_NOW, prismaClient: client },
+  );
+
+  assert.equal(result.outcome, "submitted");
+  assert.equal(transactionAttempts, 2);
+  assert.equal(store.reviews.length, 1);
+  assert.equal(store.reviews[0].comment, "Retry after conflict");
+  assert.equal(store.invitations[0].status, ReviewInvitationStatus.CONSUMED);
+  assert.equal(
+    store.invitations[0].consumedAt?.toISOString(),
+    E5_NOW.toISOString(),
+  );
+  assert.equal(store.invitations[0].accessTokenEncrypted, null);
+});
+
+test("E.5 POST maps exhausted P2034 conflicts to a safe unexpected error", async () => {
+  const store = createStore();
+  let transactionAttempts = 0;
+  const client = makeClient(store, {
+    onTransactionAttempt: () => {
+      transactionAttempts += 1;
+    },
+    serializationConflictsBeforeSuccess: 3,
+  });
+  let caughtError: unknown = null;
+
+  try {
+    await submitReviewSubmission(
+      E5_TOKEN,
+      { rating: 5, comment: "Will exhaust conflicts", locale: "en" },
+      { now: E5_NOW, prismaClient: client },
+    );
+  } catch (error) {
+    caughtError = error;
+  }
+
+  if (!(caughtError instanceof ReviewSubmissionError)) {
+    assert.fail("Expected ReviewSubmissionError after P2034 exhaustion.");
+  }
+
+  assert.equal(caughtError.code, "REVIEW_SUBMISSION_UNEXPECTED_ERROR");
+  assert.equal(caughtError.message.includes("P2034"), false);
+  assert.equal(caughtError.message.includes("Prisma"), false);
+  assert.equal(caughtError.message.includes("write conflict"), false);
+  assert.equal(transactionAttempts, 3);
+  assert.equal(store.reviews.length, 0);
+  assert.equal(store.invitations[0].status, ReviewInvitationStatus.ACTIVE);
+  assert.equal(store.invitations[0].consumedAt, null);
+  assert.equal(
+    store.invitations[0].accessTokenEncrypted,
+    "encrypted-review-token",
+  );
 });
 
 test("E.5 POST rejects expired and business-revoked invitations without Review creation", async () => {
