@@ -986,6 +986,9 @@ test("E.5 private submission route coexists with E.6 public and admin review sur
     ),
     true,
   );
-  assert.equal(packageJson.scripts["final-e:validate"], undefined);
+  assert.equal(
+    packageJson.scripts["final-e:validate"],
+    "tsx --tsconfig tests/final-e/tsconfig.json tests/final-e/run.ts",
+  );
   assert.deepEqual(vercelConfig.crons, []);
 });

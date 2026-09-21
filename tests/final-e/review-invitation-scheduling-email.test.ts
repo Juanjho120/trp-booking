@@ -1672,7 +1672,10 @@ test("E.4 cron registry, scheduled route, Vercel boundary and package scripts ma
     true,
   );
   assert.deepEqual(vercelConfig.crons, []);
-  assert.equal(packageJson.scripts["final-e:validate"], undefined);
+  assert.equal(
+    packageJson.scripts["final-e:validate"],
+    "tsx --tsconfig tests/final-e/tsconfig.json tests/final-e/run.ts",
+  );
   assert.equal(
     existsSync(path.join(ROOT, "app/resenas/[token]/page.tsx")),
     true,

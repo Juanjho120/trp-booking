@@ -9,7 +9,7 @@ Current phase state: Phase 12 — Test Deployment & External Integration Validat
 Current numbered phase: none active
 Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
 Current package: Final-E — Reservation reviews and post-checkout invitation — In progress
-Current/next subphase: Final-E.7 — Integrated regression and documentation closure — Next / Not started
+Current subphase: Final-E.7 — Integrated regression and documentation closure — Implementation completed and validation executed; owner acceptance pending
 Final-C implementation base head: e7ce19c49c5cfd45e1cc08796ee897a2dce0d1ed
 Final-C.1 status: Completed and accepted on 2026-08-25
 Final-C.1 accepted strategy head: 16d8b0411e573aaaa6b510ddb27a9b5d9c666478
@@ -119,7 +119,10 @@ Final-E.6 implementation base head: 2b56d43d60da3558ce692e18f4756f1c862bcb17
 Final-E.6 status: Completed and accepted on 2026-09-21 at 82f1c27ba2af41d9ade9f8f57348bf66e18f800f — Admin moderation and public published-review presentation
 Final-E.6 accepted implementation head: 82f1c27ba2af41d9ade9f8f57348bf66e18f800f
 Final-E.6 record: docs/191-final-e-6-admin-moderation-and-public-published-review-presentation.md
-Final-E.7 status: Next / Not started — Integrated regression and documentation closure
+Final-E.7 implementation base head: 4df7cbc07b6ae9789a62f568d1e3ab69a808d596
+Final-E.7 status: Implementation completed and validation executed; owner acceptance pending — Integrated regression and documentation closure
+Final-E.7 permanent regression: npm run final-e:validate — 69/69 PASS
+Final-E.7 record: docs/192-final-e-7-integrated-regression-and-documentation-closure.md
 Last completed package: Final-D — Additional charges and guest payment requests — Completed and accepted on 2026-09-18 at fd75663bb28be8a95b15c341eaa51f74e521241b
 Final-A.1 status: Completed and accepted on 2026-08-11
 Final-A.1 accepted head: 19531568752a44446d0802d6581262260b881aaf
@@ -148,7 +151,7 @@ Phase 13 status: Not started
 Last updated: 2026-09-21
 Last completed package: Final-D — Additional charges and guest payment requests — Completed and accepted on 2026-09-18 at fd75663bb28be8a95b15c341eaa51f74e521241b
 Last accepted subphase: Final-E.6 Admin moderation and public published-review presentation — completed and accepted on 2026-09-21 at 82f1c27ba2af41d9ade9f8f57348bf66e18f800f
-Current/next: Final-E.7 Integrated regression and documentation closure — Next / Not started
+Current subphase: Final-E.7 Integrated regression and documentation closure — Implementation completed and validation executed; owner acceptance pending
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 11.6.5 acceptance: All 15 protected-history, ordering, relation, retry, ES/EN, responsive, security, and integrated criteria passed on 2026-08-05
 11.6.5 implementation and acceptance document: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md
@@ -215,7 +218,7 @@ Phase 12.9 acceptance closure: docs/158-phase-12.9-acceptance-closure.md
 Phase 12.10 status: Completed and accepted on 2026-08-11 — Phase 12 validation and closure
 Phase 12.10 validated repository head: ebe28579872cbc2414573ef852b15139a2501551
 Phase 12 closure record: docs/159-phase-12.10-phase-12-validation-and-closure.md
-Post-Phase-12 / Pre-Phase-13 Final Improvement Track: Active — Final-A, Final-B, Final-C and Final-D completed and accepted; Final-E is In progress with Final-E.1 through Final-E.6 completed and accepted; Final-E.7 is Next / Not started
+Post-Phase-12 / Pre-Phase-13 Final Improvement Track: Active — Final-A, Final-B, Final-C and Final-D completed and accepted; Final-E is In progress with Final-E.1 through Final-E.6 completed and accepted; Final-E.7 implementation and validation are completed with owner acceptance pending
 Final-A status: Completed and accepted on 2026-08-12 at 66afbeacd6ee7d669cb4bc251c8416160fae3f49 — Reservation financial correctness and effective stay value
 Final-A.1 status: Completed and accepted on 2026-08-11 at 19531568752a44446d0802d6581262260b881aaf — Financial source-of-truth and refund-allocation contract
 Final-A.2 status: Completed and accepted on 2026-08-11 at 9f4e04068726451ca87614dd99b1f10656510825 — Central financial summary and cancellation-policy correction
@@ -307,7 +310,9 @@ Final-E.6 status: Completed and accepted on 2026-09-21 at 82f1c27ba2af41d9ade9f8
 Final-E.6 implementation base head: 2b56d43d60da3558ce692e18f4756f1c862bcb17
 Final-E.6 accepted implementation head: 82f1c27ba2af41d9ade9f8f57348bf66e18f800f
 Final-E.6 record: docs/191-final-e-6-admin-moderation-and-public-published-review-presentation.md
-Final-E.7 status: Next / Not started — Integrated regression and documentation closure
+Final-E.7 status: Implementation completed and validation executed; owner acceptance pending — Integrated regression and documentation closure
+Final-E.7 permanent regression: npm run final-e:validate — 69/69 PASS
+Final-E.7 record: docs/192-final-e-7-integrated-regression-and-documentation-closure.md
 Final-F status: Not started — Twilio WhatsApp communication and staff alerts
 Final-G status: Not started — Performance audit and optimization
 Final-H status: Not started — Integrated regression and final improvement-track closure
@@ -1155,7 +1160,7 @@ Status: **Completed and accepted on 2026-08-11**
 
 ## Inter-Phase Work — Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 
-Status: **Active — Final-A, Final-B, Final-C and Final-D completed and accepted; Final-E is In progress with Final-E.1 through Final-E.6 completed and accepted; Final-E.7 is Next / Not started**
+Status: **Active — Final-A, Final-B, Final-C and Final-D completed and accepted; Final-E is In progress with Final-E.1 through Final-E.6 completed and accepted; Final-E.7 implementation and validation are completed with owner acceptance pending**
 
 ```text
 Registration base: dac105088d2c46be05a900abed3dfe83e608e964
@@ -1171,7 +1176,7 @@ Final-E Reservation reviews and post-checkout invitation — In progress
   Final-E.4 Review-invitation scheduling, cron integration and email delivery — Completed and accepted on 2026-09-18 at e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1; record: docs/189-final-e-4-review-invitation-scheduling-cron-and-email-delivery.md
   Final-E.5 Private guest review submission — Completed and accepted on 2026-09-21 at f37f4802219aeb80d10f92b406e0a4847b10f15d; record: docs/190-final-e-5-private-guest-review-submission.md
   Final-E.6 Admin moderation and public published-review presentation — Completed and accepted on 2026-09-21 at 82f1c27ba2af41d9ade9f8f57348bf66e18f800f; record: docs/191-final-e-6-admin-moderation-and-public-published-review-presentation.md
-  Final-E.7 Integrated regression and documentation closure — Next / Not started
+  Final-E.7 Integrated regression and documentation closure — Implementation completed and validation executed; owner acceptance pending; record: docs/192-final-e-7-integrated-regression-and-documentation-closure.md
 Final-F Twilio WhatsApp communication and staff alerts — Not started
 Final-G Performance audit and optimization — Not started
 Final-H Integrated regression and final improvement-track closure — Not started
@@ -1350,7 +1355,7 @@ Status: **Completed and accepted on 2026-09-18 at fd75663bb28be8a95b15c341eaa51f
 - Lint passed.
 - Build passed after network-enabled Google Fonts fetch; the sandbox-only first build attempt failed on font fetch.
 - Final-D is completed and accepted on 2026-09-18.
-- Final-E is In progress; Final-E.1 through Final-E.6 are completed and accepted; Final-E.7, Final-F/G/H and Phase 13 remain Not started.
+- Final-E is In progress; Final-E.1 through Final-E.6 are completed and accepted; Final-E.7 implementation and validation are completed with owner acceptance pending; Final-F/G/H and Phase 13 remain Not started.
 - Record: docs/185-final-d-7-integrated-regression-and-documentation-closure.md.
 ```
 
@@ -1376,7 +1381,7 @@ Status: **Completed and accepted on 2026-09-18**
 - No Prisma migration, runtime code, API route, page, email template, cron registration, provider call or validation script was added.
 - Owner acceptance was explicitly recorded on 2026-09-18 after the delivery activation boundary correction.
 - Final-E.2 is completed and accepted on 2026-09-18 at f77938c5606ed636b697dc1af41c111a22ba1593.
-- Final-E.3 is completed and accepted on 2026-09-18 at c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030; Final-E.4 is completed and accepted on 2026-09-18 at e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1; Final-E.5 is completed and accepted on 2026-09-21 at f37f4802219aeb80d10f92b406e0a4847b10f15d; Final-E.6 is completed and accepted on 2026-09-21 at 82f1c27ba2af41d9ade9f8f57348bf66e18f800f; Final-E.7 remains Not started.
+- Final-E.3 is completed and accepted on 2026-09-18 at c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030; Final-E.4 is completed and accepted on 2026-09-18 at e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1; Final-E.5 is completed and accepted on 2026-09-21 at f37f4802219aeb80d10f92b406e0a4847b10f15d; Final-E.6 is completed and accepted on 2026-09-21 at 82f1c27ba2af41d9ade9f8f57348bf66e18f800f; Final-E.7 implementation and validation are completed with owner acceptance pending.
 - Final-F/G/H and Phase 13 remain Not started.
 ```
 
@@ -1483,8 +1488,27 @@ Status: **Completed and accepted on 2026-09-21 at 82f1c27ba2af41d9ade9f8f57348bf
 - Vercel deployment for accepted head 82f1c27ba2af41d9ade9f8f57348bf66e18f800f is SUCCESS.
 - Real shared-Test guest review emails during implementation validation: NONE.
 - Owner acceptance was explicitly recorded on 2026-09-21 after independent runtime, moderation, public DTO, privacy and tests review.
-- Final-E.7 is Next / Not started.
+- Final-E.7 implementation and validation are completed with owner acceptance pending.
 - Record: docs/191-final-e-6-admin-moderation-and-public-published-review-presentation.md.
+```
+
+### Final-E.7 — Integrated regression and documentation closure
+
+Status: **Implementation completed and validation executed; owner acceptance pending**
+
+```text
+- Implementation base head: 4df7cbc07b6ae9789a62f568d1e3ab69a808d596.
+- Added the permanent package script `npm run final-e:validate`.
+- Added integrated E.7 acceptance coverage for the accepted E.1-E.6 lifecycle from eligibility through invitation, REVIEW_INVITATION email intent, private submission, PENDING review, admin publish/hide/republish, and public PUBLISHED-only visibility.
+- Added source-contract coverage for the permanent gate, accepted routes, zero Vercel crons, absence of review edit/delete APIs, and absence of Twilio/WhatsApp review delivery surfaces.
+- Final-E validation now passes 69/69 deterministic, non-destructive tests.
+- Final-A, Final-B, Final-C and Final-D regression gates passed 44/44, 38/38, 41/41 and 66/66.
+- Database checks passed with 21 migrations applied/up to date.
+- Email contract validation, lint, build and git diff --check passed.
+- Runtime product behavior changes: NONE.
+- Final-E package acceptance remains pending owner review.
+- Final-F/G/H and Phase 13 remain Not started.
+- Record: docs/192-final-e-7-integrated-regression-and-documentation-closure.md.
 ```
 
 ## Continuity Notes for New Conversations

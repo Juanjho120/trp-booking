@@ -5,6 +5,7 @@ import "./review-invitations-ensure.test";
 import "./review-invitation-scheduling-email.test";
 import "./review-submission.test";
 import "./review-moderation-public.test";
+import "./integrated-acceptance.test";
 
 import { runFinalETests } from "./harness";
 

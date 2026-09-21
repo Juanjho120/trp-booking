@@ -18,10 +18,12 @@ Authoritative contract: docs/186-final-e-1-review-invitation-strategy-eligibilit
 Accepted persistence record: docs/187-final-e-2-review-invitation-persistence-foundation-and-migration.md
 Accepted lifecycle foundation record: docs/188-final-e-3-eligibility-and-invitation-token-lifecycle-foundation.md
 Migration count: 21
-Current/next subphase: Final-E.7 - Integrated regression and documentation closure - Next / Not started
+Current subphase: Final-E.7 - Integrated regression and documentation closure - Implementation completed and validation executed; owner acceptance pending
 Final-E.5: Completed and accepted on 2026-09-21 at f37f4802219aeb80d10f92b406e0a4847b10f15d
 Final-E.6: Completed and accepted on 2026-09-21 at 82f1c27ba2af41d9ade9f8f57348bf66e18f800f
-Final-E.7: Next / Not started
+Final-E.7: Implementation completed and validation executed; owner acceptance pending
+Final-E.7 permanent regression: npm run final-e:validate - 69/69 PASS
+Final-E.7 record: docs/192-final-e-7-integrated-regression-and-documentation-closure.md
 Final-F/G/H: Not started
 Phase 13: Not started
 ```
@@ -483,7 +485,9 @@ Final-E.3 - Completed and accepted on 2026-09-18 at c67d2a59a8bec9ba84ca36c37fc0
 Final-E.4 - Completed and accepted on 2026-09-18 at e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1
 Final-E.5 - Completed and accepted on 2026-09-21 at f37f4802219aeb80d10f92b406e0a4847b10f15d
 Final-E.6 - Completed and accepted on 2026-09-21 at 82f1c27ba2af41d9ade9f8f57348bf66e18f800f
-Final-E.7 - Next / Not started
+Final-E.7 - Implementation completed and validation executed; owner acceptance pending
+Final-E.7 permanent regression - npm run final-e:validate - 69/69 PASS
+Final-E.7 record - docs/192-final-e-7-integrated-regression-and-documentation-closure.md
 Final-F/G/H - Not started
 Phase 13 - Not started
 ```

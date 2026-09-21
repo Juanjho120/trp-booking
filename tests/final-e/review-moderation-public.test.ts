@@ -890,7 +890,10 @@ test("E.6 moderation API, navigation and destructive-source boundaries stay insi
     true,
   );
   assert.doesNotMatch(siteHeader, /Reviews|Reseñas/);
-  assert.equal(packageJson.scripts["final-e:validate"], undefined);
+  assert.equal(
+    packageJson.scripts["final-e:validate"],
+    "tsx --tsconfig tests/final-e/tsconfig.json tests/final-e/run.ts",
+  );
   assert.deepEqual(vercelConfig.crons, []);
   assert.equal(existsSync(path.join(ROOT, "app/resenas/[token]/page.tsx")), true);
   assert.equal(existsSync(path.join(ROOT, "app/api/reviews/[token]/route.ts")), true);
