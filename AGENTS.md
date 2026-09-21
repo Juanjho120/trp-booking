@@ -30,7 +30,8 @@ This file defines the working rules for TRP Booking.
 - Last completed and accepted package: Final-E — Reservation reviews and post-checkout invitation — Completed and accepted on 2026-09-21 at `3843a6637300201bcb44b7ed235952afda02d880`.
 - Final-E accepted feature head: `3843a6637300201bcb44b7ed235952afda02d880`.
 - Current package: Final-F — Twilio WhatsApp communication and staff alerts — Active.
-- Current subphase: Final-F.1 — Twilio/WhatsApp + staff-alert strategy, onboarding, templates and security contract — Completed and accepted on 2026-09-21 at `d5db6a2605a03e75db7c16238a43cd5f79dde6d8`.
+- Last accepted subphase: Final-F.1 — Twilio/WhatsApp + staff-alert strategy, onboarding, templates and security contract — Completed and accepted on 2026-09-21 at `d5db6a2605a03e75db7c16238a43cd5f79dde6d8`.
+- Current subphase: Final-F.2 — Twilio Sandbox provider foundation, webhook signature validation and Test onboarding — Implementation completed; owner Sandbox onboarding / Hosted Test provider validation pending.
 - Final-D.4 implementation base: `6a0d909fc325f4e8925677041be34c77c023c42b`.
 - Final-D.4 accepted implementation head: `7d996fd20db42b2560df11f7e00d7a5e9cc0d18c`.
 - Final-D.4 implementation record: `docs/182-final-d-4-private-guest-payment-link-and-tilopay-collection.md`.
@@ -72,7 +73,9 @@ This file defines the working rules for TRP Booking.
 - Final-F.1 implementation base: `c6dbe2309f0cd373701fc9444f7f15879692f423`.
 - Final-F.1 accepted implementation head: `d5db6a2605a03e75db7c16238a43cd5f79dde6d8`.
 - Final-F.1 implementation and acceptance record: `docs/193-final-f-1-twilio-whatsapp-staff-alert-strategy-onboarding-and-security-contract.md`.
-- Final-F.2 is the next subphase but remains Not started until explicitly requested.
+- Final-F.2 implementation base: `ba47dc9f22f4d61a01c13066f84e15ae8ad549f7`.
+- Final-F.2 implementation record: `docs/194-final-f-2-twilio-sandbox-provider-foundation-webhook-signature-validation-and-test-onboarding.md`.
+- Final-F.2 implementation is completed, but owner Sandbox onboarding / Hosted Test provider validation and explicit acceptance are still pending.
 - Final-F.3 through Final-F.8 remain Not started.
 - Final-G and Final-H remain Not started.
 - Phase 13 remains Not started and must not be activated implicitly.
@@ -139,7 +142,7 @@ Rules:
 - Do not activate Production or Phase 13 work from a Final Improvement Track task.
 - A subphase may be declared completed only after implementation, required validation, documentation reconciliation, and owner acceptance are recorded.
 - If documentation and the accepted repository state disagree, stop advancement and reconcile the authoritative trackers before implementing the next subphase.
-- For the current handoff, Final-D.3 is accepted at `6a0d909fc325f4e8925677041be34c77c023c42b`; Final-D.4 is completed and accepted on 2026-09-14 at `7d996fd20db42b2560df11f7e00d7a5e9cc0d18c`; Final-D.5 is completed and accepted on 2026-09-17 at `06b3de23fbae23a77b58b432760abf12afd5a6c7`; Final-D.6 is completed and accepted on 2026-09-18 at `965045c697a9bfd0a3318db9396b15214a0cd066`; Final-D.7 and Final-D are completed and accepted on 2026-09-18 at `fd75663bb28be8a95b15c341eaa51f74e521241b`. Final-E is completed and accepted on 2026-09-21 at `3843a6637300201bcb44b7ed235952afda02d880`; Final-E.1 is completed and accepted on 2026-09-18 at `e83ad8443bd533715058e701769b10c2d5505436`. Final-E.2 is completed and accepted on 2026-09-18 at `f77938c5606ed636b697dc1af41c111a22ba1593`. Final-E.3 is completed and accepted on 2026-09-18 at `c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030`. Final-E.4 is completed and accepted on 2026-09-18 at `e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1`; Final-E.5 is completed and accepted on 2026-09-21 at `f37f4802219aeb80d10f92b406e0a4847b10f15d`; Final-E.6 is completed and accepted on 2026-09-21 at `82f1c27ba2af41d9ade9f8f57348bf66e18f800f`; Final-E.7 is completed and accepted on 2026-09-21 at `3843a6637300201bcb44b7ed235952afda02d880`. Final-F is active; Final-F.1 is completed and accepted on 2026-09-21 at `d5db6a2605a03e75db7c16238a43cd5f79dde6d8`; Final-F.2 is the next subphase but remains Not started until explicitly requested; Final-F.3 through Final-F.8 remain Not started; Final-G, Final-H, and Phase 13 remain Not started.
+- For the current handoff, Final-D.3 is accepted at `6a0d909fc325f4e8925677041be34c77c023c42b`; Final-D.4 is completed and accepted on 2026-09-14 at `7d996fd20db42b2560df11f7e00d7a5e9cc0d18c`; Final-D.5 is completed and accepted on 2026-09-17 at `06b3de23fbae23a77b58b432760abf12afd5a6c7`; Final-D.6 is completed and accepted on 2026-09-18 at `965045c697a9bfd0a3318db9396b15214a0cd066`; Final-D.7 and Final-D are completed and accepted on 2026-09-18 at `fd75663bb28be8a95b15c341eaa51f74e521241b`. Final-E is completed and accepted on 2026-09-21 at `3843a6637300201bcb44b7ed235952afda02d880`; Final-E.1 is completed and accepted on 2026-09-18 at `e83ad8443bd533715058e701769b10c2d5505436`. Final-E.2 is completed and accepted on 2026-09-18 at `f77938c5606ed636b697dc1af41c111a22ba1593`. Final-E.3 is completed and accepted on 2026-09-18 at `c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030`. Final-E.4 is completed and accepted on 2026-09-18 at `e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1`; Final-E.5 is completed and accepted on 2026-09-21 at `f37f4802219aeb80d10f92b406e0a4847b10f15d`; Final-E.6 is completed and accepted on 2026-09-21 at `82f1c27ba2af41d9ade9f8f57348bf66e18f800f`; Final-E.7 is completed and accepted on 2026-09-21 at `3843a6637300201bcb44b7ed235952afda02d880`. Final-F is active; Final-F.1 is completed and accepted on 2026-09-21 at `d5db6a2605a03e75db7c16238a43cd5f79dde6d8`; Final-F.2 implementation is completed from base `ba47dc9f22f4d61a01c13066f84e15ae8ad549f7` with owner Sandbox onboarding / Hosted Test provider validation and explicit acceptance pending; Final-F.3 through Final-F.8 remain Not started; Final-G, Final-H, and Phase 13 remain Not started.
 
 ## Implementation Completion Gate
 
@@ -201,6 +204,7 @@ Final-D.7 introduced the consolidated Final-D regression gate. Final-E.7 introdu
 - `docs/191-final-e-6-admin-moderation-and-public-published-review-presentation.md` is the Final-E.6 implementation and acceptance record.
 - `docs/192-final-e-7-integrated-regression-and-documentation-closure.md` is the Final-E.7 implementation/validation record.
 - `docs/193-final-f-1-twilio-whatsapp-staff-alert-strategy-onboarding-and-security-contract.md` is the accepted Final-F.1 implementation record and authoritative Final-F strategy contract.
+- `docs/194-final-f-2-twilio-sandbox-provider-foundation-webhook-signature-validation-and-test-onboarding.md` is the Final-F.2 implementation record; owner Sandbox onboarding / Hosted Test provider validation and explicit acceptance remain pending.
 - Any completed phase or subphase must be reflected in the progress tracker before moving to a new major phase or subphase.
 - When migrating to a new conversation or agent, use `AGENTS.md`, `README.md`, `docs/10-phases.md`, and `docs/11-progress-log.md` as the minimum continuity context. While the Final Improvement Track is active, also review `docs/160-post-phase-12-pre-phase-13-final-improvement-track.md` and the active package's authoritative records.
 - Historical Phase 12 deployment work remains grounded by `docs/89-test-and-production-environment-strategy.md`, `docs/136-phase-12.1-test-deployment-and-environment-strategy.md`, and the Phase 12 closure records.
@@ -236,9 +240,10 @@ At minimum, preserve these frozen boundaries:
 - Final-F uses Twilio Sandbox/Test before any real sender. The future Production company WhatsApp number will be a new Twilio-purchased number; no existing WhatsApp number migration is planned.
 - No Production sender purchase/registration, WABA/Meta onboarding, Production template submission, Production Twilio credential, Production scheduler activation, schema/runtime/dependency change, or provider call is introduced by Final-F.1.
 - Twilio credentials are server-side only, and Twilio webhooks must be validated with the official server-side Twilio SDK helper.
+- Final-F.2 adds only the official Twilio Node SDK dependency, optional server-side Twilio Sandbox/Test env recognition, server-only provider/config helpers, canonical URL webhook signature validation, minimal signed inbound/status ACK endpoints, bounded safe diagnostics, and a Local/Test-only manual Sandbox probe with explicit recipient configuration. It adds no schema/migration, no WhatsAppConversation or WhatsAppMessage persistence, no staff recipient/alert persistence, no reservation matching, no admin inbox, no outbound admin reply flow, no guest conversation creation, no 24-hour service-window UX, no Zoho behavior, no production sender/WABA/template work, and no permanent `npm run final-f:validate` gate.
 - Staff phone identity must be checked before guest matching. The seven mandatory staff alert classes are `RESERVATION_CONFIRMED`, `RESERVATION_CANCELLED`, `CHECK_IN_MINUS_48H`, `CHECK_OUT_MINUS_6H`, `REVIEW_SUBMITTED`, `GUEST_WHATSAPP_RECEIVED`, and `GUEST_EMAIL_RECEIVED`.
 - Zoho remains the human mailbox; TRP may ingest only bounded inbound-email event metadata for staff alerts and must not persist email body, HTML, attachments, mailbox search, inbox, sent, drafts, human replies, spam filtering, or retention data.
-- Final-F.2 through Final-F.8, Final-G, Final-H, and Phase 13 must not begin automatically.
+- Final-F.3 through Final-F.8, Final-G, Final-H, and Phase 13 must not begin automatically.
 ```
 
 ## UI and Design System Rules
