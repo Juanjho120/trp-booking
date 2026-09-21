@@ -1677,12 +1677,24 @@ test("E.4 cron registry, scheduled route, Vercel boundary and package scripts ma
     existsSync(path.join(ROOT, "app/resenas/[token]/page.tsx")),
     true,
   );
-  assert.equal(existsSync(path.join(ROOT, "app/resenas/page.tsx")), false);
   assert.equal(
     existsSync(path.join(ROOT, "app/api/reviews/[token]/route.ts")),
     true,
   );
-  assert.equal(existsSync(path.join(ROOT, "app/admin/reviews")), false);
+  assert.equal(existsSync(path.join(ROOT, "app/resenas/page.tsx")), true);
+  assert.equal(
+    existsSync(path.join(ROOT, "app/admin/reviews/page.tsx")),
+    true,
+  );
+  assert.equal(
+    existsSync(
+      path.join(
+        ROOT,
+        "app/api/admin/reviews/[reviewId]/moderation/route.ts",
+      ),
+    ),
+    true,
+  );
   assert.equal(
     isReviewInvitationNotificationType(EmailNotificationType.REVIEW_INVITATION),
     true,

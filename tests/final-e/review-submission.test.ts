@@ -956,7 +956,7 @@ test("E.5 does not persist raw review tokens or create guest AdminAuditLog evide
   assert.equal(store.auditLogs.length, 0);
 });
 
-test("E.5 source boundaries expose only private submission route and no future review surfaces", () => {
+test("E.5 private submission route coexists with E.6 public and admin review surfaces", () => {
   const packageJson = JSON.parse(
     readFileSync(path.join(ROOT, "package.json"), "utf8"),
   ) as { scripts: Record<string, string> };
@@ -972,8 +972,20 @@ test("E.5 source boundaries expose only private submission route and no future r
     existsSync(path.join(ROOT, "app/api/reviews/[token]/route.ts")),
     true,
   );
-  assert.equal(existsSync(path.join(ROOT, "app/resenas/page.tsx")), false);
-  assert.equal(existsSync(path.join(ROOT, "app/admin/reviews")), false);
+  assert.equal(existsSync(path.join(ROOT, "app/resenas/page.tsx")), true);
+  assert.equal(
+    existsSync(path.join(ROOT, "app/admin/reviews/page.tsx")),
+    true,
+  );
+  assert.equal(
+    existsSync(
+      path.join(
+        ROOT,
+        "app/api/admin/reviews/[reviewId]/moderation/route.ts",
+      ),
+    ),
+    true,
+  );
   assert.equal(packageJson.scripts["final-e:validate"], undefined);
   assert.deepEqual(vercelConfig.crons, []);
 });

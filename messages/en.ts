@@ -26,6 +26,11 @@ export const enMessages = {
       description:
         "Explore Black & White Apartment, Perfect Retreat Bungalow, and the Complete Private Retreat for direct booking in Panajachel.",
     },
+    reviews: {
+      title: "Guest reviews | Tu Refugio Perfecto",
+      description:
+        "Read published reviews from direct-booking guests at Bungalows Tu Refugio Perfecto.",
+    },
     notFoundAccommodation: {
       title: "Accommodation not found | Tu Refugio Perfecto",
       description:
@@ -49,6 +54,7 @@ export const enMessages = {
     items: [
       { label: "Home", href: "/" },
       { label: "Accommodations", href: "/alojamientos" },
+      { label: "Reviews", href: "/resenas" },
       { label: "Benefits", href: "/#beneficios" },
       { label: "Location", href: "/#ubicacion" },
       { label: "Contact", href: "#contacto" },
@@ -292,6 +298,22 @@ export const enMessages = {
     },
   },
   reviews: {
+    public: {
+      badge: "Reviews",
+      title: "Direct guest experiences.",
+      description:
+        "These reviews were shared by guests who completed a direct stay and passed moderation before publication.",
+      propertyLabel: "Accommodation",
+      submittedAtLabel: "Review date",
+      viewAccommodation: "View accommodation",
+      emptyTitle: "No published reviews yet",
+      emptyDescription:
+        "Approved reviews will appear here without exposing private reservation details.",
+      previous: "Previous",
+      next: "Next",
+      page: "Page",
+      of: "of",
+    },
     submission: {
       title: "Share your experience",
       description:
@@ -578,6 +600,78 @@ export const enMessages = {
         location: "Public location",
         catalogs: "Catalogs",
         cronJobs: "Cron jobs",
+        reviews: "Reviews",
+      },
+    },
+    reviewsPage: {
+      seoTitle: "Review moderation | Admin",
+      badge: "Reviews",
+      title: "Review moderation",
+      description:
+        "Review direct guest submissions and control which reviews are publicly visible.",
+      filters: {
+        allStatuses: "All statuses",
+        allProperties: "All accommodations",
+      },
+      labels: {
+        status: "Status",
+        property: "Accommodation",
+        rating: "Rating",
+        submittedAt: "Submitted",
+        publishedAt: "First publication",
+        moderatedAt: "Last moderation",
+        moderatedBy: "Moderated by",
+        reservation: "Open reservation",
+        results: "Results",
+        page: "Page",
+        of: "of",
+        unavailable: "Unavailable",
+      },
+      statuses: {
+        PENDING: "Pending",
+        PUBLISHED: "Published",
+        HIDDEN: "Hidden",
+      },
+      actions: {
+        publish: "Publish",
+        hide: "Hide",
+        republish: "Republish",
+        confirm: "Confirm",
+        cancel: "Cancel",
+        previous: "Previous",
+        next: "Next",
+        clear: "Clear",
+      },
+      dialog: {
+        publishTitle: "Publish review",
+        hideTitle: "Hide review",
+        republishTitle: "Republish review",
+        description:
+          "This action only changes the moderation status. The guest content is not edited.",
+      },
+      feedback: {
+        published: "The review was published.",
+        hidden: "The review was hidden.",
+        republished: "The review was republished.",
+      },
+      empty: {
+        noResults: "No reviews match these filters.",
+      },
+      errors: {
+        ADMIN_UNAUTHORIZED:
+          "Your admin session expired. Please sign in again.",
+        ADMIN_REVIEW_ORIGIN_INVALID:
+          "We could not validate the origin of this admin action.",
+        INVALID_ADMIN_REVIEW_REQUEST:
+          "We could not process the moderation request.",
+        ADMIN_REVIEW_NOT_FOUND:
+          "We could not find the requested review.",
+        ADMIN_REVIEW_STALE:
+          "This review changed since you loaded the page. We refreshed the view so you can check the current status.",
+        ADMIN_REVIEW_INVALID_TRANSITION:
+          "That status change is not allowed for this review.",
+        ADMIN_REVIEW_UNEXPECTED_ERROR:
+          "We could not complete moderation. Try again.",
       },
     },
     statuses: {

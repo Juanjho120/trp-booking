@@ -21,5 +21,6 @@ export { AdminReservationDetailPage } from "./components/admin-reservation-detai
 export { AdminReservationOperationalHistorySection } from "./components/admin-reservation-operational-history-section";
 export { AdminReservationRefundSection } from "./components/admin-reservation-refund-section";
 export { AdminReservationsPageView } from "./components/admin-reservations-page";
+export { AdminReviewsPageView } from "./components/admin-reviews-page";
 export { AdminShell } from "./components/admin-shell";
 export { AdminSnackbar } from "./components/admin-snackbar";

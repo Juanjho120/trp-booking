@@ -26,6 +26,11 @@ export const esMessages = {
       description:
         "Explora Apartamento Blanco y Negro, Bungalow Refugio Perfecto y Refugio Completo para reservar directo en Panajachel.",
     },
+    reviews: {
+      title: "Reseñas de huéspedes | Tu Refugio Perfecto",
+      description:
+        "Lee reseñas publicadas por huéspedes de reservas directas en Bungalows Tu Refugio Perfecto.",
+    },
     notFoundAccommodation: {
       title: "Alojamiento no encontrado | Tu Refugio Perfecto",
       description:
@@ -49,6 +54,7 @@ export const esMessages = {
     items: [
       { label: "Inicio", href: "/" },
       { label: "Alojamientos", href: "/alojamientos" },
+      { label: "Reseñas", href: "/resenas" },
       { label: "Beneficios", href: "/#beneficios" },
       { label: "Ubicación", href: "/#ubicacion" },
       { label: "Contacto", href: "#contacto" },
@@ -292,6 +298,22 @@ export const esMessages = {
     },
   },
   reviews: {
+    public: {
+      badge: "Reseñas",
+      title: "Experiencias de huéspedes directos.",
+      description:
+        "Estas reseñas fueron compartidas por huéspedes que completaron una estadía directa y pasaron por moderación antes de publicarse.",
+      propertyLabel: "Alojamiento",
+      submittedAtLabel: "Fecha de la reseña",
+      viewAccommodation: "Ver alojamiento",
+      emptyTitle: "Todavía no hay reseñas publicadas",
+      emptyDescription:
+        "Cuando una reseña sea aprobada, aparecerá aquí sin mostrar datos privados de la reservación.",
+      previous: "Anterior",
+      next: "Siguiente",
+      page: "Página",
+      of: "de",
+    },
     submission: {
       title: "Comparte tu experiencia",
       description:
@@ -578,6 +600,78 @@ export const esMessages = {
         location: "Ubicación pública",
         catalogs: "Catálogos",
         cronJobs: "Tareas programadas",
+        reviews: "Reseñas",
+      },
+    },
+    reviewsPage: {
+      seoTitle: "Moderación de reseñas | Admin",
+      badge: "Reseñas",
+      title: "Moderación de reseñas",
+      description:
+        "Revisa reseñas enviadas por huéspedes directos y controla cuáles aparecen públicamente.",
+      filters: {
+        allStatuses: "Todos los estados",
+        allProperties: "Todos los alojamientos",
+      },
+      labels: {
+        status: "Estado",
+        property: "Alojamiento",
+        rating: "Calificación",
+        submittedAt: "Enviada",
+        publishedAt: "Primera publicación",
+        moderatedAt: "Última moderación",
+        moderatedBy: "Moderada por",
+        reservation: "Abrir reserva",
+        results: "Resultados",
+        page: "Página",
+        of: "de",
+        unavailable: "No disponible",
+      },
+      statuses: {
+        PENDING: "Pendiente",
+        PUBLISHED: "Publicada",
+        HIDDEN: "Oculta",
+      },
+      actions: {
+        publish: "Publicar",
+        hide: "Ocultar",
+        republish: "Republicar",
+        confirm: "Confirmar",
+        cancel: "Cancelar",
+        previous: "Anterior",
+        next: "Siguiente",
+        clear: "Limpiar",
+      },
+      dialog: {
+        publishTitle: "Publicar reseña",
+        hideTitle: "Ocultar reseña",
+        republishTitle: "Republicar reseña",
+        description:
+          "Esta acción sólo cambia el estado de moderación. El contenido del huésped no se modifica.",
+      },
+      feedback: {
+        published: "La reseña fue publicada.",
+        hidden: "La reseña fue ocultada.",
+        republished: "La reseña fue republicada.",
+      },
+      empty: {
+        noResults: "No hay reseñas que coincidan con estos filtros.",
+      },
+      errors: {
+        ADMIN_UNAUTHORIZED:
+          "Tu sesión administrativa expiró. Ingresa nuevamente.",
+        ADMIN_REVIEW_ORIGIN_INVALID:
+          "No pudimos validar el origen de esta acción administrativa.",
+        INVALID_ADMIN_REVIEW_REQUEST:
+          "No pudimos procesar la solicitud de moderación.",
+        ADMIN_REVIEW_NOT_FOUND:
+          "No encontramos la reseña solicitada.",
+        ADMIN_REVIEW_STALE:
+          "La reseña cambió desde que cargaste la página. Actualizamos la vista para que revises el estado actual.",
+        ADMIN_REVIEW_INVALID_TRANSITION:
+          "Ese cambio de estado no está permitido para esta reseña.",
+        ADMIN_REVIEW_UNEXPECTED_ERROR:
+          "No pudimos completar la moderación. Inténtalo de nuevo.",
       },
     },
     statuses: {

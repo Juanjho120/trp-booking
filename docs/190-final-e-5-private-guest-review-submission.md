@@ -20,8 +20,9 @@ Accepted persistence record: docs/187-final-e-2-review-invitation-persistence-fo
 Accepted lifecycle foundation record: docs/188-final-e-3-eligibility-and-invitation-token-lifecycle-foundation.md
 Accepted scheduling/email record: docs/189-final-e-4-review-invitation-scheduling-cron-and-email-delivery.md
 Migration count: 21
-Next subphase: Final-E.6 - Admin moderation and public published-review presentation - Not started
-Final-E.7: Not started
+Next subphase: Final-E.7 - Integrated regression and documentation closure - Not started
+Final-E.6: Implementation completed and validation executed; owner acceptance pending
+Final-E.7: Next / Not started
 Final-F/G/H: Not started
 Phase 13: Not started
 ```
@@ -43,7 +44,8 @@ The Vercel deployment for this implementation head is accepted as:
 SUCCESS
 ```
 
-Final-E.6 is the next subphase, but it remains Not started until explicitly requested.
+Final-E.6 implementation is completed with validation executed, but owner acceptance remains pending.
+Final-E.7 is the next subphase and remains Not started until explicitly requested.
 
 ## Scope Implemented
 
@@ -664,8 +666,8 @@ Final-E.2 - Completed and accepted on 2026-09-18 at f77938c5606ed636b697dc1af41c
 Final-E.3 - Completed and accepted on 2026-09-18 at c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030
 Final-E.4 - Completed and accepted on 2026-09-18 at e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1
 Final-E.5 - Completed and accepted on 2026-09-21 at f37f4802219aeb80d10f92b406e0a4847b10f15d
-Final-E.6 - Admin moderation and public published-review presentation - Next / Not started
-Final-E.7 - Not started
+Final-E.6 - Admin moderation and public published-review presentation - Implementation completed and validation executed; owner acceptance pending
+Final-E.7 - Next / Not started
 Final-F/G/H - Not started
 Phase 13 - Not started
 ```
@@ -693,5 +695,5 @@ localized property name
 property slug if needed
 ```
 
-Final-E.6 must not add admin editing of rating, comment or guestDisplayName, and must not hard
-delete Reviews. Final-E.6 is Not started.
+Final-E.6 was implemented without admin editing of rating, comment or guestDisplayName, and without
+hard-deleting Reviews. Owner acceptance for Final-E.6 remains pending.

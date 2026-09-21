@@ -140,4 +140,9 @@ export {
 export { getAdminReservationDetail } from "./reservation-detail";
 export { getAdminReservationOperationalHistory } from "./reservation-operational-history";
 export { getAdminReservationsPage } from "./reservations";
+export {
+  AdminReviewError,
+  getAdminReviewsPage,
+  moderateAdminReview,
+} from "./reviews";
 export { getAdminSessionActor } from "./session";
