@@ -14,7 +14,7 @@ Accepted strategy head: e83ad8443bd533715058e701769b10c2d5505436
 Previous package: Final-D — Completed and accepted on 2026-09-18
 Final-D accepted feature head: fd75663bb28be8a95b15c341eaa51f74e521241b
 Authoritative track plan: docs/160-post-phase-12-pre-phase-13-final-improvement-track.md
-Current/next subphase: Final-E.6 — Admin moderation and public published-review presentation — Implementation completed and validation executed; owner acceptance pending
+Current/next subphase: Final-E.7 — Integrated regression and documentation closure — Next / Not started
 Final-F/G/H: Not started
 Phase 13: Not started
 ```
@@ -1052,7 +1052,7 @@ Final-E.2 — Review/invitation persistence foundation and migration — Complet
 Final-E.3 — Eligibility and invitation/token lifecycle foundation — Completed and accepted on 2026-09-18 at c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030
 Final-E.4 — Completed and accepted on 2026-09-18 at e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1
 Final-E.5 — Completed and accepted on 2026-09-21 at f37f4802219aeb80d10f92b406e0a4847b10f15d
-Final-E.6 — Implementation completed and validation executed; owner acceptance pending
+Final-E.6 — Completed and accepted on 2026-09-21 at 82f1c27ba2af41d9ade9f8f57348bf66e18f800f
 Final-E.7 — Next / Not started
 Final-F/G/H — Not started
 Phase 13 — Not started
@@ -1061,5 +1061,5 @@ Phase 13 — Not started
 Final-E.2 is completed and accepted. Final-E.3 is completed and accepted on 2026-09-18 at
 c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030. Final-E.4 is completed and accepted on 2026-09-18 at
 e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1. Final-E.5 is completed and accepted on 2026-09-21 at
-f37f4802219aeb80d10f92b406e0a4847b10f15d. Final-E.6 implementation is completed with validation
-executed and owner acceptance pending. Final-E.7, Final-F/G/H and Phase 13 remain Not started.
+f37f4802219aeb80d10f92b406e0a4847b10f15d. Final-E.6 is completed and accepted on 2026-09-21 at
+82f1c27ba2af41d9ade9f8f57348bf66e18f800f. Final-E.7, Final-F/G/H and Phase 13 remain Not started.

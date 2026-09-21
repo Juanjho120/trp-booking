@@ -7,9 +7,10 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-E - Reservation reviews and post-checkout invitation
 Subphase: Final-E.6 - Admin moderation and public published-review presentation
-Status: Implementation completed and validation executed; owner acceptance pending
+Status: Completed and accepted on 2026-09-21
 Implementation date: 2026-09-21
 Implementation base head: 2b56d43d60da3558ce692e18f4756f1c862bcb17
+Accepted implementation head: 82f1c27ba2af41d9ade9f8f57348bf66e18f800f
 Accepted Final-E.1 strategy head: e83ad8443bd533715058e701769b10c2d5505436
 Accepted Final-E.2 implementation head: f77938c5606ed636b697dc1af41c111a22ba1593
 Accepted Final-E.3 implementation head: c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030
@@ -21,12 +22,29 @@ Accepted lifecycle foundation record: docs/188-final-e-3-eligibility-and-invitat
 Accepted scheduling/email record: docs/189-final-e-4-review-invitation-scheduling-cron-and-email-delivery.md
 Accepted private submission record: docs/190-final-e-5-private-guest-review-submission.md
 Migration count: 21
-Final-E.7: Next / Not started
+Next subphase: Final-E.7 - Integrated regression and documentation closure - Not started
 Final-F/G/H: Not started
 Phase 13: Not started
 ```
 
-Final-E.6 is not marked accepted in this record. Owner acceptance remains pending.
+## Owner Acceptance
+
+The owner explicitly accepted Final-E.6 on 2026-09-21 after independent review of the runtime,
+admin moderation behavior, public DTO boundary, privacy guarantees and deterministic test evidence.
+
+Accepted implementation head:
+
+```text
+82f1c27ba2af41d9ade9f8f57348bf66e18f800f
+```
+
+Accepted deployment evidence:
+
+```text
+Vercel: SUCCESS
+```
+
+Final-E.7 remains the next subphase and is Not started.
 
 ## Scope Implemented
 
@@ -105,11 +123,11 @@ The UI provides a protected link to:
 ```
 
 No admin controls were added for rating editing, comment editing, guest display-name editing, or
-review deletion.
+review deletion. No hard-delete runtime and no DELETE review API were added.
 
 ## Moderation State Machine
 
-Exact allowed transitions:
+Accepted exact allowed transitions:
 
 ```text
 PENDING -> PUBLISHED
@@ -117,7 +135,7 @@ PUBLISHED -> HIDDEN
 HIDDEN -> PUBLISHED
 ```
 
-Rejected transitions:
+Accepted rejected transitions:
 
 ```text
 PENDING -> HIDDEN
@@ -126,6 +144,8 @@ HIDDEN -> PENDING
 same-status transitions
 client target PENDING
 ```
+
+No new moderation states are introduced.
 
 Accepted `publishedAt` semantics:
 
@@ -143,7 +163,33 @@ HIDDEN -> PUBLISHED with historical publishedAt = null:
   publishedAt = now
 ```
 
-Final-E.6 does not erase or continually rewrite a valid first-publication timestamp.
+`publishedAt` represents the first known publication time and is not rewritten on each moderation
+transition. Final-E.6 does not erase or continually rewrite a valid first-publication timestamp.
+
+## Moderation Metadata Boundary
+
+Each accepted moderation action updates only:
+
+```text
+moderationStatus
+publishedAt when required
+moderatedAt
+moderatedByAdminId
+updatedAt
+```
+
+It does not modify guest-authored or immutable review evidence:
+
+```text
+rating
+comment
+guestDisplayName
+reservationId
+propertyId
+submittedAt
+```
+
+No guest-content rewrite is accepted in E.6.
 
 ## Optimistic Concurrency and Transaction Boundary
 
@@ -174,16 +220,23 @@ updateMany where:
   updatedAt = previously-read updatedAt
 ```
 
-If the optimistic fence loses:
+If `updateMany.count != 1` or the optimistic fence otherwise loses:
 
 ```text
 ADMIN_REVIEW_STALE
 HTTP 409
 ```
 
-Prisma Serializable conflicts such as `P2034` are mapped to the same safe stale/reload outcome.
+Prisma Serializable conflicts such as `P2034` are mapped to the same safe stale/reload outcome:
 
-The route uses only `PATCH`. There is no public moderation route and no DELETE review API.
+```text
+ADMIN_REVIEW_STALE
+```
+
+No raw Prisma error or internal detail is exposed.
+
+The route uses only `PATCH`. There is no public moderation route, no `POST` or `PUT` moderation
+alternative, and no DELETE review API.
 
 ## Safe AdminAuditLog Evidence
 
@@ -245,6 +298,14 @@ createSeoMetadata(...)
 canonical path: /resenas
 ```
 
+The private one-time submission route remains:
+
+```text
+/resenas/[token]
+```
+
+Both routes coexist without token leakage.
+
 Public navigation is added through centralized message copy in both Spanish and English. Footer
 navigation inherits the existing navigation collection.
 
@@ -270,11 +331,37 @@ Property.status = ACTIVE
 Property.deletedAt = null
 ```
 
+Accepted public leakage boundary:
+
+```text
+PENDING public leakage:
+  NONE
+
+HIDDEN public leakage:
+  NONE
+
+inactive-property published review leakage:
+  NONE
+
+deleted-property published review leakage:
+  NONE
+```
+
 Ordering is deterministic:
 
 ```text
 submittedAt DESC
 id DESC
+```
+
+Accepted public pagination behavior:
+
+```text
+/resenas
+/resenas?page=N
+invalid page -> normalized
+out-of-range page -> clamped
+no unbounded browser load
 ```
 
 The public review DTO contains exactly:
@@ -306,6 +393,7 @@ token material
 payment data
 refund data
 AdminAuditLog data
+financial/payment/refund data
 ```
 
 The public component uses rendering-local keys instead of widening the DTO with Review IDs.
@@ -330,7 +418,7 @@ Public review links point only to:
 ```
 
 They never link to admin routes, reservation routes, private invitation URLs, or tokenized review
-submission URLs.
+submission URLs. They do not expose `/reservas`, `reservationId`, or review invitation token URLs.
 
 ## Copy and Navigation
 
@@ -357,6 +445,27 @@ messages.*.admin.reviewsPage
 ```
 
 No feature-local visible copy files were introduced.
+
+## No Invitation or Email Mutation
+
+Final-E.6 operates only on Review moderation and public presentation. Accepted E.6 runtime behavior:
+
+```text
+ReviewInvitation mutation:
+  NONE
+
+ReviewInvitation creation:
+  NONE
+
+token rotation:
+  NONE
+
+EmailNotification creation:
+  NONE
+
+review invitation email changes:
+  NONE
+```
 
 ## Tests
 
@@ -421,9 +530,9 @@ absence of ReviewInvitation/email mutation in E.6 runtime
 guest content byte-for-byte preservation through publish/hide/republish
 ```
 
-## Validation
+## Accepted Validation Evidence
 
-Executed validation:
+Accepted validation evidence for `82f1c27ba2af41d9ade9f8f57348bf66e18f800f`:
 
 ```text
 npx tsx --tsconfig tests/final-e/tsconfig.json tests/final-e/run.ts
@@ -461,6 +570,9 @@ PASS.
 
 git diff --check
 PASS - no whitespace errors; Git reported only LF/CRLF working-copy warnings.
+
+Vercel
+PASS - SUCCESS for accepted implementation head 82f1c27ba2af41d9ade9f8f57348bf66e18f800f.
 
 real shared-Test guest review emails during implementation validation
 NONE.
@@ -504,6 +616,76 @@ Final-F/G/H
 Phase 13
 ```
 
+## Runtime Boundary After E.6
+
+Accepted runtime after E.6 includes:
+
+```text
+/resenas/[token]
+POST /api/reviews/[token]
+/admin/reviews
+PATCH /api/admin/reviews/[reviewId]/moderation
+/resenas
+```
+
+Still not implemented:
+
+```text
+review editing
+review delete
+review replies
+review media
+review import
+review incentives
+final-e:validate
+Production scheduler
+Final-E.7
+Final-F/G/H
+Phase 13
+```
+
+## Final-E.7 Handoff
+
+Final-E.7 is the integrated regression and documentation closure subphase. It owns:
+
+```text
+npm run final-e:validate
+permanent Final-E integrated regression gate
+cross-subphase E.1-E.6 regression coverage
+Final-E docs reconciliation
+whole-package owner validation preparation
+final package acceptance record
+```
+
+Final-E.7 must verify the full accepted chain:
+
+```text
+eligible direct Reservation
+-> review invitation scheduling
+-> durable REVIEW_INVITATION email intent
+-> email retry/private URL
+-> /resenas/[token]
+-> atomic guest Review submission
+-> PENDING moderation state
+-> admin publish/hide/republish
+-> public /resenas PUBLISHED-only visibility
+```
+
+It must also preserve:
+
+```text
+token privacy
+recipient safety
+one Review per Reservation
+one invitation lifecycle
+no guest edit/delete
+moderation audit privacy
+public DTO privacy
+zero Test Vercel scheduler registrations
+```
+
+Final-E.7 is a closure/regression subphase and must not invent new review product scope.
+
 ## Current Decision
 
 ```text
@@ -514,8 +696,8 @@ Final-E.2 - Completed and accepted on 2026-09-18 at f77938c5606ed636b697dc1af41c
 Final-E.3 - Completed and accepted on 2026-09-18 at c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030
 Final-E.4 - Completed and accepted on 2026-09-18 at e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1
 Final-E.5 - Completed and accepted on 2026-09-21 at f37f4802219aeb80d10f92b406e0a4847b10f15d
-Final-E.6 - Admin moderation and public published-review presentation - Implementation completed and validation executed; owner acceptance pending
-Final-E.7 - Next / Not started
+Final-E.6 - Admin moderation and public published-review presentation - Completed and accepted on 2026-09-21 at 82f1c27ba2af41d9ade9f8f57348bf66e18f800f
+Final-E.7 - Integrated regression and documentation closure - Next / Not started
 Final-F/G/H - Not started
 Phase 13 - Not started
 ```
