@@ -16,11 +16,12 @@ Authoritative contract: docs/186-final-e-1-review-invitation-strategy-eligibilit
 Foundation migration: 20260918173000_final_e_2_review_invitation_persistence_foundation
 Corrective migration: 20260918183000_final_e_2_expand_review_guest_display_name
 Migration count: 21
-Current/next subphase: Final-E.5 - Private guest review submission - Implementation completed and validation executed; owner acceptance pending
+Current/next subphase: Final-E.6 - Admin moderation and public published-review presentation - Next / Not started
 Final-E.3: Completed and accepted on 2026-09-18 at c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030
 Final-E.4: Completed and accepted on 2026-09-18 at e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1
-Final-E.5: Implementation completed and validation executed; owner acceptance pending
-Final-E.6 through Final-E.7: Not started
+Final-E.5: Completed and accepted on 2026-09-21 at f37f4802219aeb80d10f92b406e0a4847b10f15d
+Final-E.6: Next / Not started
+Final-E.7: Not started
 Final-F/G/H: Not started
 Phase 13: Not started
 ```
@@ -292,8 +293,8 @@ public review listing: NONE
 npm run final-e:validate: NOT CREATED
 Final-E.3 is completed and accepted on 2026-09-18 at c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030.
 Final-E.4 is completed and accepted on 2026-09-18 at e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1.
-Final-E.5 implementation is completed and validation executed; owner acceptance pending.
-Final-E.6 and Final-E.7 remain Not started.
+Final-E.5 is completed and accepted on 2026-09-21 at f37f4802219aeb80d10f92b406e0a4847b10f15d.
+Final-E.6 is Next / Not started; Final-E.7 remains Not started.
 Final-F/G/H remain Not started.
 Phase 13 remains Not started.
 ```

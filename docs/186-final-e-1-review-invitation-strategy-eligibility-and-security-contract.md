@@ -14,7 +14,7 @@ Accepted strategy head: e83ad8443bd533715058e701769b10c2d5505436
 Previous package: Final-D — Completed and accepted on 2026-09-18
 Final-D accepted feature head: fd75663bb28be8a95b15c341eaa51f74e521241b
 Authoritative track plan: docs/160-post-phase-12-pre-phase-13-final-improvement-track.md
-Current/next subphase: Final-E.5 — Private guest review submission — Implementation completed and validation executed; owner acceptance pending
+Current/next subphase: Final-E.6 — Admin moderation and public published-review presentation — Next / Not started
 Final-F/G/H: Not started
 Phase 13: Not started
 ```
@@ -1051,8 +1051,8 @@ Final-E.1 accepted strategy head — e83ad8443bd533715058e701769b10c2d5505436
 Final-E.2 — Review/invitation persistence foundation and migration — Completed and accepted on 2026-09-18 at f77938c5606ed636b697dc1af41c111a22ba1593
 Final-E.3 — Eligibility and invitation/token lifecycle foundation — Completed and accepted on 2026-09-18 at c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030
 Final-E.4 — Completed and accepted on 2026-09-18 at e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1
-Final-E.5 — Implementation completed and validation executed; owner acceptance pending
-Final-E.6 — Not started
+Final-E.5 — Completed and accepted on 2026-09-21 at f37f4802219aeb80d10f92b406e0a4847b10f15d
+Final-E.6 — Next / Not started
 Final-E.7 — Not started
 Final-F/G/H — Not started
 Phase 13 — Not started
@@ -1060,6 +1060,6 @@ Phase 13 — Not started
 
 Final-E.2 is completed and accepted. Final-E.3 is completed and accepted on 2026-09-18 at
 c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030. Final-E.4 is completed and accepted on 2026-09-18 at
-e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1. Final-E.5 implementation is completed and validation
-executed with owner acceptance pending. Final-E.6, Final-E.7, Final-F/G/H and Phase 13 remain Not
-started.
+e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1. Final-E.5 is completed and accepted on 2026-09-21 at
+f37f4802219aeb80d10f92b406e0a4847b10f15d. Final-E.6, Final-E.7, Final-F/G/H and Phase 13 remain
+Not started.

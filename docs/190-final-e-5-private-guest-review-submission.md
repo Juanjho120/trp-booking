@@ -7,10 +7,10 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-E - Reservation reviews and post-checkout invitation
 Subphase: Final-E.5 - Private guest review submission
-Status: Implementation completed and validation executed; owner acceptance pending
+Status: Completed and accepted on 2026-09-21
 Implementation date: 2026-09-21
 Implementation base head: 2baddeb520c01cd860a73f84a22bd4ec5d0a148c
-Accepted implementation head: PENDING OWNER ACCEPTANCE
+Accepted implementation head: f37f4802219aeb80d10f92b406e0a4847b10f15d
 Accepted Final-E.1 strategy head: e83ad8443bd533715058e701769b10c2d5505436
 Accepted Final-E.2 implementation head: f77938c5606ed636b697dc1af41c111a22ba1593
 Accepted Final-E.3 implementation head: c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030
@@ -25,6 +25,25 @@ Final-E.7: Not started
 Final-F/G/H: Not started
 Phase 13: Not started
 ```
+
+## Owner Acceptance
+
+The owner explicitly accepted Final-E.5 on 2026-09-21 after the initial private guest review
+submission implementation and the independent-review hardening follow-up.
+
+Accepted implementation head:
+
+```text
+f37f4802219aeb80d10f92b406e0a4847b10f15d
+```
+
+The Vercel deployment for this implementation head is accepted as:
+
+```text
+SUCCESS
+```
+
+Final-E.6 is the next subphase, but it remains Not started until explicitly requested.
 
 ## Scope Implemented
 
@@ -42,6 +61,18 @@ The private page is dynamic and marked noindex/nofollow. The server component re
 returns only a bounded guest-safe summary, and never passes the raw token to the client component as
 a prop. The client reads the token only from the current pathname at submit time.
 
+Accepted privacy properties:
+
+```text
+dynamic / no-store private state
+noindex
+nofollow
+raw token used only as private capability credential
+lookup by SHA-256 token hash
+Reservation ID is not a credential
+no canonical/private SEO URL with token
+```
+
 The summary DTO contains only:
 
 ```text
@@ -53,6 +84,34 @@ expiresAt
 
 It excludes reservation ids, invitation ids, guest email, phone, payment data, refund data, admin
 data, token hashes, encrypted token material, and the raw review token.
+
+Accepted private GET summary:
+
+```text
+state
+locale
+propertyName
+expiresAt
+```
+
+Accepted exclusions:
+
+```text
+Reservation ID
+ReviewInvitation ID
+Review ID
+guest email
+guest phone
+full guest name
+financial data
+payments
+refunds
+additional charges
+admin IDs
+raw token
+token hash
+encrypted token
+```
 
 ## Domain and Security Behavior
 
@@ -69,42 +128,118 @@ Final-E.5 preserves the accepted Final-E token contract:
 Read-time convergence is implemented for the private page:
 
 ```text
-- ACTIVE + overdue -> EXPIRED, encrypted token cleared, no Review created.
-- ACTIVE + business-revoked -> CANCELLED, encrypted token cleared, no Review created.
-- ACTIVE + not-yet-eligible -> UNAVAILABLE without cancelling.
-- CONSUMED + existing Review -> ALREADY_SUBMITTED.
-- CONSUMED without Review -> UNAVAILABLE.
-- EXPIRED -> EXPIRED.
-- CANCELLED -> UNAVAILABLE.
+ACTIVE valid
+=> ACTIVE
+
+ACTIVE overdue
+=> EXPIRED
+=> accessTokenEncrypted cleared
+
+ACTIVE business-revoked
+=> CANCELLED
+=> guest state UNAVAILABLE
+=> encrypted token cleared
+
+ACTIVE before eligibleAt
+=> temporary UNAVAILABLE
+=> invitation remains ACTIVE
+
+CONSUMED + Review
+=> ALREADY_SUBMITTED
+
+CONSUMED without Review
+=> UNAVAILABLE
+
+EXPIRED
+=> EXPIRED
+
+CANCELLED
+=> UNAVAILABLE
 ```
+
+No terminal invitation is reactivated.
 
 The persisted invitation eligibility check is shared with E.4 delivery. Existing invitations are
 evaluated from `checkoutAtSnapshot` and `eligibleAt`; the E.5 branch does not recalculate mutable
 checkout timing from current property settings.
+
+Shared persisted-eligibility evaluator:
+
+```text
+evaluatePersistedReviewInvitationBusinessEligibility(...)
+```
+
+This evaluator is shared by:
+
+```text
+Final-E.4 review-invitation delivery/scheduling
+Final-E.5 private review read/submission
+```
+
+Existing invitations use:
+
+```text
+checkoutAtSnapshot
+eligibleAt
+```
+
+They do not recalculate historical checkout timing from the current `Property.checkOutTime`.
 
 ## Submission Behavior
 
 Accepted input:
 
 ```text
-rating: integer 1 through 5
-comment: plain text, non-empty after trimming, max 2,000 Unicode code points
-locale: es | en
+rating:
+integer
+1..5
+
+comment:
+required
+plain text
+trimmed
+1..2000 Unicode code points
+
+locale:
+es | en
 ```
 
 The comment is stored as plain text after CRLF normalization and trimming. E.5 does not add rich
 text, HTML rendering, uploads, images, attachments, or media.
 
+Comment normalization:
+
+```text
+CRLF -> LF
+trim leading/trailing whitespace
+preserve useful internal line breaks
+```
+
+HTML-looking and Markdown-looking content remains literal text. There is no rich-text or HTML
+interpretation.
+
 On valid first submission:
 
 ```text
-- A Review is created for the server-owned reservationId and propertyId.
-- moderationStatus is PENDING.
-- submittedAt is server time.
-- publishedAt, moderatedAt, and moderatedByAdminId remain null.
-- ReviewInvitation transitions to CONSUMED in the same Serializable transaction.
-- consumedAt is set.
-- accessTokenEncrypted is cleared.
+resolve token hash
+read invitation + Reservation + Review state
+validate lifecycle
+validate business eligibility
+validate no Review
+derive guestDisplayName
+guard ReviewInvitation ACTIVE -> CONSUMED
+create Review
+commit
+```
+
+Durable result:
+
+```text
+Review created
+ReviewInvitation.status = CONSUMED
+ReviewInvitation.consumedAt = same server now
+ReviewInvitation.accessTokenEncrypted = null
+ReviewInvitation.accessTokenHash may remain
 ```
 
 The guest display name is derived server-side from `Reservation.guestName`:
@@ -115,6 +250,37 @@ Multiple usable name tokens -> first token plus last initial
 No Unicode letter -> fail closed, no Review, no token consumption
 ```
 
+Accepted privacy snapshot normalization:
+
+```text
+source:
+Reservation.guestName
+
+normalize:
+Unicode NFC
+trim
+collapse Unicode whitespace
+```
+
+Accepted examples:
+
+```text
+Juan
+=> Juan
+
+Juan Jose Tzun
+=> Juan T.
+
+María del Carmen López
+=> María L.
+
+Élodie Brontë
+=> Élodie B.
+```
+
+An invalid historical name with no usable Unicode letter fails closed: no Review is created and the
+invitation is not consumed. The snapshot is persisted once and is not dynamically recalculated.
+
 Replay and concurrency behavior:
 
 ```text
@@ -122,6 +288,116 @@ Replay and concurrency behavior:
 - Concurrent submit races preserve exactly one winning Review payload.
 - Unique-constraint races converge to already-submitted without leaking Prisma/provider errors.
 - Review creation failure rolls back invitation consumption.
+```
+
+Accepted invitation concurrency fence:
+
+```text
+where:
+id = invitation.id
+status = ACTIVE
+consumedAt = null
+expiresAt > now
+
+transition:
+ACTIVE -> CONSUMED
+```
+
+If the fence loses, no Review is created by the loser and state is re-read safely.
+
+Accepted Review fields:
+
+```text
+reservationId:
+server-owned invitation Reservation
+
+propertyId:
+server-owned Reservation.propertyId
+
+rating:
+validated guest input
+
+comment:
+validated normalized guest input
+
+guestDisplayName:
+server-derived privacy snapshot
+
+moderationStatus:
+PENDING
+
+submittedAt:
+server now
+
+publishedAt:
+null
+
+moderatedAt:
+null
+
+moderatedByAdminId:
+null
+```
+
+The guest cannot supply `reservationId`, `propertyId`, `guestDisplayName`, `moderationStatus`,
+admin IDs or publication/moderation timestamps.
+
+Rollback guarantee:
+
+```text
+If Review.create() fails after the invitation fence:
+entire transaction rolls back
+
+Review:
+not created
+
+ReviewInvitation:
+ACTIVE
+
+consumedAt:
+null
+
+accessTokenEncrypted:
+preserved
+```
+
+This submission path cannot leave a CONSUMED invitation without a Review.
+
+Replay behavior:
+
+```text
+same token after successful submission
+=> already-submitted
+=> no new Review
+=> no edit to existing Review
+=> no token rotation
+=> no new invitation
+```
+
+Concurrent valid submissions produce exactly one winning Review and exactly one CONSUMED invitation.
+The losing submission converges to already-submitted and cannot overwrite the winning payload.
+`Review.reservationId UNIQUE` remains the DB-level secondary safeguard.
+
+P2002 uniqueness races roll back the losing transaction, re-read current state and converge to
+already-submitted without leaking raw Prisma errors.
+
+P2034 Serializable retry contract:
+
+```text
+max attempts:
+3
+
+first P2034
+second attempt success
+=> one Review
+=> one CONSUMED invitation
+
+3 P2034 conflicts
+=> REVIEW_SUBMISSION_UNEXPECTED_ERROR
+=> no raw P2034 text
+=> no Prisma detail
+=> no partial Review
+=> no partial CONSUMED state
 ```
 
 ## Independent Review Follow-up Correction
@@ -142,6 +418,39 @@ corrections:
 No schema, migration, provider, scheduler, email, moderation, public review, or E.6 behavior was
 added by this correction.
 
+Accepted retryable client errors:
+
+```text
+INVALID_REVIEW_SUBMISSION
+REVIEW_SUBMISSION_UNEXPECTED_ERROR
+```
+
+These do not automatically make the form terminal because the current lifecycle state is not known
+to have become terminal.
+
+Accepted pathname token decoding:
+
+```text
+malformed percent encoding
+=> null token
+=> no exception
+=> no POST eligibility
+```
+
+The token is not logged and is not persisted in localStorage, sessionStorage or cookies.
+
+Initial private page presentation:
+
+```text
+INVALID_REVIEW_INVITATION
+=> invalid link UI
+
+REVIEW_SUBMISSION_UNEXPECTED_ERROR
+=> generic unavailable UI
+```
+
+This avoids implying that a valid private link is necessarily invalid after an internal error.
+
 ## UI and Copy
 
 The private guest page uses centralized copy in:
@@ -154,6 +463,40 @@ messages/en.ts
 The page supports Spanish and English, uses the existing site header/footer and design-system
 controls, avoids native alert/confirm/prompt, and does not introduce feature-local visible copy
 files.
+
+The private form includes only safe context:
+
+```text
+localized property name
+invitation expiration
+1-5 accessible rating control
+plain-text comment textarea
+submit CTA
+private/one-time note
+```
+
+It does not display:
+
+```text
+Reservation reference
+guest email
+guest phone
+full guest name
+financial information
+admin information
+```
+
+Every successful Review starts with:
+
+```text
+moderationStatus = PENDING
+```
+
+Success copy says the review is pending moderation. E.5 does not publish automatically, does not add
+a guest edit surface, and does not add Review deletion.
+
+Guest submission creates no `AdminAuditLog` row. Guest submission evidence is the `Review` row plus
+the `ReviewInvitation` CONSUMED transition. Admin audit begins with actual admin moderation in E.6.
 
 ## Explicitly Not Implemented
 
@@ -178,6 +521,36 @@ Phase 13
 ```
 
 `vercel.json` remains with zero cron registrations.
+
+Accepted runtime route boundaries:
+
+```text
+/resenas/[token]
+implemented
+
+/api/reviews/[token]
+implemented
+
+/resenas
+not implemented
+
+/admin/reviews
+not implemented
+
+public review cards
+not implemented
+
+moderation API
+not implemented
+
+moderation UI
+not implemented
+```
+
+No real shared-Test guest review invitation email was sent during E.5 implementation validation.
+After E.5 acceptance, any future hosted end-to-end review invitation test must still be a
+controlled owner-approved Test case; scheduler/email must not be automatically executed against
+existing real guests.
 
 ## Tests
 
@@ -265,6 +638,12 @@ PASS.
 
 git diff --check
 PASS - no whitespace errors; Git reported only LF/CRLF working-copy warnings.
+
+Vercel deployment for f37f4802219aeb80d10f92b406e0a4847b10f15d
+PASS - SUCCESS.
+
+real shared-Test guest review emails during implementation validation
+NONE.
 ```
 
 Environment notes:
@@ -284,9 +663,35 @@ Final-E.1 - Completed and accepted on 2026-09-18 at e83ad8443bd533715058e701769b
 Final-E.2 - Completed and accepted on 2026-09-18 at f77938c5606ed636b697dc1af41c111a22ba1593
 Final-E.3 - Completed and accepted on 2026-09-18 at c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030
 Final-E.4 - Completed and accepted on 2026-09-18 at e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1
-Final-E.5 - Implementation completed and validation executed; owner acceptance pending
-Final-E.6 - Next / Not started only after explicit owner acceptance and request
+Final-E.5 - Completed and accepted on 2026-09-21 at f37f4802219aeb80d10f92b406e0a4847b10f15d
+Final-E.6 - Admin moderation and public published-review presentation - Next / Not started
 Final-E.7 - Not started
 Final-F/G/H - Not started
 Phase 13 - Not started
 ```
+
+## Final-E.6 Handoff
+
+Final-E.6 owns:
+
+```text
+/admin/reviews
+admin review listing/detail or equivalent bounded moderation UI
+PENDING -> PUBLISHED
+PUBLISHED -> HIDDEN
+HIDDEN -> PUBLISHED
+expectedUpdatedAt / optimistic concurrency
+safe AdminAuditLog moderation evidence
+public /resenas
+PUBLISHED reviews only
+safe public review DTO
+guestDisplayName
+rating
+comment
+submittedAt
+localized property name
+property slug if needed
+```
+
+Final-E.6 must not add admin editing of rating, comment or guestDisplayName, and must not hard
+delete Reviews. Final-E.6 is Not started.
