@@ -5,7 +5,7 @@
 ```text
 Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
-Status: Active — Final-A, Final-B, Final-C, Final-D and Final-E completed and accepted; Final-F is Next / Not started; Final-G and Final-H remain Not started
+Status: Active — Final-A, Final-B, Final-C, Final-D and Final-E completed and accepted; Final-F is Active with Final-F.1 implementation completed and owner acceptance pending; Final-G and Final-H remain Not started
 Registration date: 2026-08-11
 Registration base head: dac105088d2c46be05a900abed3dfe83e608e964
 Previous gate: Phase 12 — Completed and accepted
@@ -589,7 +589,7 @@ Package: Final-D — Completed and accepted on 2026-09-18
 Implementation base head: 0839b2935fdc2349d23de6ce6b38177504e514c6
 Accepted feature head: fd75663bb28be8a95b15c341eaa51f74e521241b
 Permanent regression: npm run final-d:validate — 66/66 PASS
-Following package: Final-E — Reservation reviews and post-checkout invitation — Completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880; Final-F is Next / Not started
+Following package: Final-E — Reservation reviews and post-checkout invitation — Completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880; Final-F is Active with Final-F.1 implementation completed and owner acceptance pending
 Final-D.1 status: Completed and accepted on 2026-08-31
 Final-D.1 accepted strategy head: 3dc4fa7d81d65244a94e7e43726e2f12591e578f
 Final-D.1 record: docs/179-final-d-1-additional-charge-payment-request-strategy-and-financial-isolation-contract.md
@@ -753,7 +753,9 @@ Final-E.7 — Integrated regression and documentation closure — Completed and 
 Final-E.7 implementation base head: 4df7cbc07b6ae9789a62f568d1e3ab69a808d596
 Final-E permanent regression: npm run final-e:validate — 88/88 accepted
 Final-E.7 record: docs/192-final-e-7-integrated-regression-and-documentation-closure.md
-Final-F: Next / Not started
+Final-F: Active — Final-F.1 implementation completed; owner acceptance pending
+Final-F.1 record: docs/193-final-f-1-twilio-whatsapp-staff-alert-strategy-onboarding-and-security-contract.md
+Final-F.2: Not started
 Final-G/H: Not started
 Phase 13: Not started
 ```
@@ -967,248 +969,94 @@ docs/186-final-e-1-review-invitation-strategy-eligibility-and-security-contract.
 
 # Final-F — Twilio WhatsApp Communication and Staff Alerts
 
+## Current Final-F Status
+
+```text
+Package: Final-F — Active
+Final-F.1 — Twilio/WhatsApp + staff-alert strategy, onboarding, templates and security contract — Implementation completed; owner acceptance pending
+Final-F.1 implementation base head: c6dbe2309f0cd373701fc9444f7f15879692f423
+Final-F.1 record: docs/193-final-f-1-twilio-whatsapp-staff-alert-strategy-onboarding-and-security-contract.md
+Final-F.2 — Twilio Sandbox provider foundation, webhook signature validation and Test onboarding — Not started
+Final-F.3 — WhatsApp conversation/message persistence + staff-recipient / staff-alert persistence foundation — Not started
+Final-F.4 — Guest inbound WhatsApp, safe Reservation matching and protected admin inbox — Not started
+Final-F.5 — Admin outbound replies, 24-hour service-window enforcement and Twilio status callbacks — Not started
+Final-F.6 — Operational staff WhatsApp alerts — Not started
+Final-F.7 — Zoho incoming-email webhook metadata + guest-email-received staff alert — Not started
+Final-F.8 — Integrated Sandbox/Hosted-Test regression and Final-F documentation closure — Not started
+Final-G: Not started
+Final-H: Not started
+Phase 13: Not started
+```
+
 ## Goal
 
-Add WhatsApp as a second official guest communication channel while preserving email as the existing
-transactional/human correspondence channel.
+Add WhatsApp as a second official guest communication channel and add internal staff operational
+alerts while preserving email as the existing transactional/human correspondence channel.
 
 Final-F has two separate flows:
 
 ```text
-A. Internal staff alerts
-B. Guest <-> business-number conversations
+A. Guest <-> Tu Refugio Perfecto WhatsApp communication
+B. Internal staff operational alerts through WhatsApp
 ```
 
-They use Twilio but are not the same conversation.
+They use Twilio but are not the same conversation. Staff personal numbers are alert recipients only
+and are never the guest-facing sender.
 
-## Environment strategy
-
-### Final-F Test implementation
-
-Use a developer-owned Twilio account and the Twilio Sandbox for WhatsApp where possible.
-
-The Sandbox is for testing/discovery only and uses Twilio's shared Sandbox sender. It is not the
-future Tu Refugio Perfecto company number.
-
-### Phase 13 Production onboarding
-
-Phase 13 must create/use the company-owned Twilio/Meta boundary and register the real business
-WhatsApp sender.
-
-Do not migrate or register the real company number during Final-F Test work.
-
-## Current WhatsApp platform assumptions
-
-As of track registration, the integration design assumes the current Twilio/WhatsApp rules:
+## Frozen Subphase Split
 
 ```text
-- An inbound guest message opens/resets a 24-hour customer-service window.
-- Inside that window the business can reply with free-form messages.
-- Outside that window a business-initiated message requires an approved WhatsApp Content Template.
-- Business-initiated messaging requires explicit opt-in.
-- Twilio sends inbound messages to an application webhook.
-- Twilio status callbacks can report queued/sent/delivered/read/failed-type delivery state.
-- Twilio signs webhooks; TRP must validate the Twilio signature server-side with the official SDK.
-- The Twilio Sandbox supports testing inbound/outbound behavior but is not a Production sender.
+Final-F.1 Twilio/WhatsApp + staff-alert strategy, onboarding, templates and security contract
+Final-F.2 Twilio Sandbox provider foundation, webhook signature validation and Test onboarding
+Final-F.3 WhatsApp conversation/message persistence + staff-recipient / staff-alert persistence foundation
+Final-F.4 Guest inbound WhatsApp, safe Reservation matching and protected admin inbox
+Final-F.5 Admin outbound replies, 24-hour service-window enforcement and Twilio status callbacks
+Final-F.6 Operational staff WhatsApp alerts:
+  - reservation confirmed
+  - reservation cancelled
+  - check-in -48h
+  - check-out -6h
+  - review submitted
+  - guest WhatsApp message received
+Final-F.7 Zoho incoming-email webhook metadata + guest-email-received staff alert
+Final-F.8 Integrated Sandbox/Hosted-Test regression and Final-F documentation closure
 ```
 
-These rules are external and can change. Final-F must re-check current official Twilio/Meta
-documentation immediately before implementation/acceptance.
+## Final-F.1 Strategy Summary
 
-## F1 — Internal staff notification flow
-
-Staff recipients are the personal WhatsApp numbers of the authorized Tu Refugio Perfecto
-caretakers/administrators who opted in to operational alerts.
-
-Recommended protected configuration:
+The authoritative F.1 strategy, onboarding, template, webhook, staff-alert, Zoho metadata, retry,
+scheduler, privacy, and non-goal contract is:
 
 ```text
-staff name
-normalized WhatsApp phone
-active/inactive
-new-reservation alerts enabled
-new-guest-message alerts enabled
+docs/193-final-f-1-twilio-whatsapp-staff-alert-strategy-onboarding-and-security-contract.md
 ```
 
-Twilio account credentials and sender credentials remain server-side environment secrets; they are
-not stored in the staff-recipient table.
-
-### Automatic alert: new confirmed reservation
-
-Trigger only after the normal payment-driven reservation confirmation commits.
+Key frozen decisions:
 
 ```text
-Payment APPROVED / Reservation CONFIRMED
--> create/reuse one internal WhatsApp alert intent per active staff recipient
--> send through Twilio using the permitted template/session contract
--> persist provider MessageSid + safe status
--> status callback updates delivery state
+- The owner is new to Twilio; Final-F onboarding must be step-by-step.
+- A Twilio account already exists.
+- No dedicated company phone number exists yet.
+- The Production company WhatsApp number will be a new number purchased directly through Twilio.
+- No existing personal/business WhatsApp number will be migrated.
+- The exact country/area code/number type/E.164 number is not frozen; future purchase must verify
+  current Twilio inventory, WhatsApp compatibility, OTP capability, regulatory requirements,
+  Meta/Twilio onboarding compatibility, and business ownership.
+- Final-F Test uses Twilio WhatsApp Sandbox/testing first.
+- No number purchase, WhatsApp Sender registration, WABA, Meta Business Portfolio, Production
+  template submission, Production credential, DNS, or Production scheduler activation happens in
+  Final-F.1.
+- Phase 13 remains the company-owned Production Twilio/Meta onboarding boundary.
+- Twilio credentials remain server-side only.
+- Twilio webhooks must be validated with the official server-side Twilio SDK helper.
+- Staff phone identity must be checked before guest matching.
+- Canonical protected admin inbox route is `/admin/whatsapp`.
+- Seven staff alert classes are mandatory: RESERVATION_CONFIRMED, RESERVATION_CANCELLED,
+  CHECK_IN_MINUS_48H, CHECK_OUT_MINUS_6H, REVIEW_SUBMITTED, GUEST_WHATSAPP_RECEIVED, and
+  GUEST_EMAIL_RECEIVED.
+- Zoho remains the human mailbox; TRP only ingests bounded inbound-email event metadata for staff
+  alerts.
 ```
-
-The alert should contain bounded operational context, for example:
-
-```text
-New reservation
-Property
-Guest display name
-Check-in / check-out
-Protected "Open reservation" admin link
-```
-
-Do not include card data, raw payment/provider data, private iCal values, or unnecessary sensitive
-guest information.
-
-### Automatic alert: guest sent a WhatsApp message
-
-```text
-Guest -> business WhatsApp sender
--> Twilio inbound webhook
--> validate X-Twilio-Signature
--> persist inbound message exactly once by provider MessageSid
--> resolve/create guest conversation
--> optionally link an unambiguous matching Reservation by normalized guest phone
--> mark conversation unread
--> create/reuse one staff alert per configured recipient
--> alert contains a protected "Open conversation" admin link
-```
-
-Staff alerts are notification-only.
-
-**A caretaker must not reply to the guest by replying directly to the alert on the caretaker's
-personal WhatsApp.**
-
-If a known staff number sends a message back to the business sender, Final-F must identify it as a
-staff-origin number before guest matching so it cannot create/contaminate a guest conversation. The
-UI/copy should direct staff to TRP Admin for guest replies.
-
-## F2 — Guest-to-business inbound flow
-
-A guest can message the business WhatsApp number before, during, or after a Reservation.
-
-```text
-Guest WhatsApp
--> business WhatsApp sender registered with Twilio
--> Twilio POST webhook to TRP Booking
--> server verifies Twilio signature
--> normalize From / To / MessageSid / body / supported media metadata
--> idempotently persist inbound WhatsAppMessage
--> find/create WhatsAppConversation
--> auto-link Reservation only when phone matching is safe and unambiguous
--> otherwise leave conversation unlinked for admin review
--> display unread conversation in protected admin inbox
--> notify staff
-```
-
-A guest does not need a Reservation to contact the business. Unknown numbers therefore create an
-unlinked guest conversation rather than being rejected.
-
-## F3 — Admin inbox and reply flow
-
-Recommended protected route:
-
-```text
-/admin/messages
-or
-/admin/whatsapp
-```
-
-Initial inbox capabilities:
-
-```text
-conversation list
-unread indicator
-guest phone / safe display identity
-optional linked Reservation
-last message/time
-conversation history
-inbound/outbound distinction
-delivery/read/failure status
-protected navigation to linked Reservation
-reply composer
-```
-
-Only existing authorized ADMIN users may access/reply in the initial Final-F scope. A separate
-messaging-agent RBAC role is not introduced unless explicitly approved later.
-
-### Reply inside the 24-hour window
-
-```text
-Admin types reply in TRP Admin
--> server verifies authorization + conversation state
--> persist outbound intent/message
--> Twilio Programmable Messaging sends from the business WhatsApp sender
--> guest receives the message from the company number
--> Twilio status callbacks update sent/delivered/read/failed state
-```
-
-The caretaker's personal number is never the guest-facing sender.
-
-### Reply outside the 24-hour window
-
-Free-form reply is not sent.
-
-The admin UI must explain that the customer-service window is closed and require an approved
-WhatsApp Content Template appropriate to the actual use case.
-
-```text
-Admin selects allowed template
--> TRP sends template from company WhatsApp sender
--> if/when guest replies, a new 24-hour customer-service window opens
--> admin can then continue with normal free-form replies
-```
-
-Do not bypass this by stuffing free-form text into a template field.
-
-## F4 — Staff alert template behavior
-
-New-reservation and new-message alerts are business-initiated messages to staff personal numbers.
-
-Therefore:
-
-```text
-- staff opt-in must be explicit and recorded
-- Sandbox staff must join the Sandbox during Test
-- Production alerts must use the then-current approved template/session rules
-- alerts are idempotent so reservation callback replay or Twilio retry does not spam staff
-```
-
-## F5 — Provider security and resilience
-
-Required:
-
-```text
-- validate X-Twilio-Signature with the official server-side Twilio SDK
-- HTTPS webhooks in hosted Test/Production
-- no raw Auth Token or credentials in logs/database/client bundles
-- provider MessageSid uniqueness/idempotency
-- status callbacks accepted out of order safely
-- safe normalized failure codes/messages
-- webhook retries must not duplicate messages/conversations/alerts
-- bounded media handling if media is included
-- no trust in client-provided phone/reservation relations
-```
-
-## F6 — Real company number decision
-
-The owner intends the company number to become the Twilio WhatsApp sender in Production.
-
-Current Twilio documentation states that migrating a number currently used by WhatsApp or the
-WhatsApp Business App to Twilio/WhatsApp Business Platform requires releasing it from that app, and
-the same number cannot continue to be used in the mobile/desktop WhatsApp Business App after that
-migration.
-
-Therefore the operational model after that Production migration is expected to be:
-
-```text
-Guests message the company WhatsApp number
--> Twilio receives the messages
--> TRP Admin inbox is where staff read/reply
--> Twilio sends replies from the same company number
-```
-
-Final-F implements and validates this architecture with Sandbox/Test. The real-number migration,
-Meta/WABA setup, approved Production templates, and company-owned Twilio credentials remain Phase 13
-work.
 
 ---
 
@@ -1380,8 +1228,12 @@ Phase 13 still owns:
 ```text
 Phase 12 — Completed and accepted
 Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
-Current package — Final-E Reservation reviews and post-checkout invitation — Completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880
-Current/next package — Final-F Twilio WhatsApp communication and staff alerts — Next / Not started
+Last completed package — Final-E Reservation reviews and post-checkout invitation — Completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880
+Current package — Final-F Twilio WhatsApp communication and staff alerts — Active
+Current subphase — Final-F.1 Twilio/WhatsApp + staff-alert strategy, onboarding, templates and security contract — Implementation completed; owner acceptance pending
+Final-F.1 implementation base — c6dbe2309f0cd373701fc9444f7f15879692f423
+Final-F.1 record — docs/193-final-f-1-twilio-whatsapp-staff-alert-strategy-onboarding-and-security-contract.md
+Final-F.2 — Not started
 Final-D implementation base — 0839b2935fdc2349d23de6ce6b38177504e514c6
 Final-D.1 status — Completed and accepted on 2026-08-31 at 3dc4fa7d81d65244a94e7e43726e2f12591e578f
 Final-D.1 record — docs/179-final-d-1-additional-charge-payment-request-strategy-and-financial-isolation-contract.md
@@ -1460,7 +1312,10 @@ Final-B.5 record — docs/171-final-b-5-trp-outbound-copy-rotation-and-export-co
 Final-B.6 record — docs/172-final-b-6-integrated-acceptance-regression-and-documentation-closure.md
 Last completed package — Final-E reservation reviews and post-checkout invitation — completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880
 Last accepted subphase — Final-E.7 Integrated regression and documentation closure — completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880
-Current/next package — Final-F Twilio WhatsApp communication and staff alerts — Next / Not started
+Current package — Final-F Twilio WhatsApp communication and staff alerts — Active
+Current subphase — Final-F.1 Twilio/WhatsApp + staff-alert strategy, onboarding, templates and security contract — Implementation completed; owner acceptance pending
+Final-F.1 record — docs/193-final-f-1-twilio-whatsapp-staff-alert-strategy-onboarding-and-security-contract.md
+Final-F.2 — Not started
 Final-A — Completed and accepted on 2026-08-12 at 66afbeacd6ee7d669cb4bc251c8416160fae3f49
 Final-B — Completed and accepted on 2026-08-25 at 1fe06de8c55ab1563999b2db1d210bfc9a82c613
 Final-B.1 — Completed and accepted on 2026-08-14 at 2627161d5b3960995be0f517682f84272431c291
@@ -1494,7 +1349,9 @@ Final-E.5 — Completed and accepted on 2026-09-21 at f37f4802219aeb80d10f92b406
 Final-E.6 — Completed and accepted on 2026-09-21 at 82f1c27ba2af41d9ade9f8f57348bf66e18f800f
 Final-E.7 — Completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880
 Final-E permanent regression — npm run final-e:validate — 88/88 accepted
-Final-F — Next / Not started
+Final-F — Active
+Final-F.1 — Implementation completed; owner acceptance pending; record: docs/193-final-f-1-twilio-whatsapp-staff-alert-strategy-onboarding-and-security-contract.md
+Final-F.2 — Not started
 Final-G — Not started
 Final-H — Not started
 Phase 13 — Not started
