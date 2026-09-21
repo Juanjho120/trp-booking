@@ -15,6 +15,7 @@ import type {
   ClaimedEmailNotificationDeliveryOutcome,
   EmailNotificationClaim,
   EmailNotificationDeliveryErrorCode,
+  ImmediateEmailDeliverySummary,
 } from "@/types/email-notification";
 import type {
   AdminReviewSubmittedEmailTemplateInput,
@@ -25,9 +26,12 @@ import {
   resolveAdminNotificationRouting,
 } from "./admin-notification-routing";
 import { EmailProviderError } from "./provider";
+import { createResendEmailProvider } from "./resend-provider";
 import {
   calculateNextEmailNotificationAttemptAt,
+  EMAIL_NOTIFICATION_MAX_ATTEMPTS,
 } from "./retry-policy";
+import { getEmailEnv } from "@/lib/env/server";
 
 type AdminReviewSubmittedNotificationIntent = Readonly<{
   id: string;
@@ -35,6 +39,12 @@ type AdminReviewSubmittedNotificationIntent = Readonly<{
   locale: "es" | "en";
   status: EmailNotificationStatus;
   created: boolean;
+}>;
+
+type ReviewSubmittedImmediateDeliveryOptions = Readonly<{
+  source?: NodeJS.ProcessEnv;
+  provider?: EmailProvider;
+  now?: () => Date;
 }>;
 
 type ReviewSubmittedEmailDeliveryErrorCode =
@@ -252,6 +262,71 @@ async function readClaimedReviewSubmittedNotification(
     },
     select: claimedReviewSubmittedSelect,
   });
+}
+
+async function claimPendingReviewSubmittedNotification(
+  notificationId: string,
+  processingStartedAt: Date,
+): Promise<EmailNotificationClaim | null> {
+  const candidate = await prisma.emailNotification.findFirst({
+    where: {
+      id: notificationId,
+      type: EmailNotificationType.ADMIN_REVIEW_SUBMITTED,
+      status: EmailNotificationStatus.PENDING,
+      manualResends: { none: {} },
+      attemptCount: {
+        lt: EMAIL_NOTIFICATION_MAX_ATTEMPTS,
+      },
+      OR: [
+        { nextAttemptAt: null },
+        { nextAttemptAt: { lte: processingStartedAt } },
+      ],
+    },
+    select: {
+      updatedAt: true,
+    },
+  });
+
+  if (!candidate) {
+    return null;
+  }
+
+  const result = await prisma.emailNotification.updateMany({
+    where: {
+      id: notificationId,
+      type: EmailNotificationType.ADMIN_REVIEW_SUBMITTED,
+      updatedAt: candidate.updatedAt,
+      status: EmailNotificationStatus.PENDING,
+      manualResends: { none: {} },
+      attemptCount: {
+        lt: EMAIL_NOTIFICATION_MAX_ATTEMPTS,
+      },
+      OR: [
+        { nextAttemptAt: null },
+        { nextAttemptAt: { lte: processingStartedAt } },
+      ],
+    },
+    data: {
+      status: EmailNotificationStatus.PROCESSING,
+      attemptCount: {
+        increment: 1,
+      },
+      lastAttemptAt: processingStartedAt,
+      processingStartedAt,
+      nextAttemptAt: null,
+      errorCode: null,
+      errorMessage: null,
+    },
+  });
+
+  if (result.count !== 1) {
+    return null;
+  }
+
+  return {
+    notificationId,
+    processingStartedAt,
+  };
 }
 
 function parseReviewIdFromDeduplicationKey(value: string): string | null {
@@ -499,4 +574,106 @@ export async function deliverClaimedReviewSubmittedEmailNotification(
       retryScheduled: nextAttemptAt !== null,
     };
   }
+}
+
+export async function deliverAdminReviewSubmittedNotificationsBestEffort(
+  notificationIds: readonly string[],
+  options: ReviewSubmittedImmediateDeliveryOptions = {},
+): Promise<ImmediateEmailDeliverySummary> {
+  const uniqueNotificationIds = Array.from(
+    new Set(notificationIds.map((id) => id.trim()).filter(Boolean)),
+  );
+  const emptySummary = {
+    requested: uniqueNotificationIds.length,
+    attempted: 0,
+    sent: 0,
+    failed: 0,
+    retryScheduled: 0,
+    skipped: 0,
+  } as const;
+  const source = options.source ?? process.env;
+  const now = options.now ?? (() => new Date());
+
+  let emailEnv: ReturnType<typeof getEmailEnv>;
+
+  try {
+    emailEnv = getEmailEnv(source);
+  } catch {
+    return {
+      deliveryMode: "unavailable",
+      ...emptySummary,
+    };
+  }
+
+  if (emailEnv.deliveryMode === "disabled") {
+    return {
+      deliveryMode: "disabled",
+      ...emptySummary,
+    };
+  }
+
+  let provider: EmailProvider;
+
+  try {
+    provider = options.provider ?? createResendEmailProvider(source);
+  } catch {
+    return {
+      deliveryMode: "unavailable",
+      ...emptySummary,
+    };
+  }
+
+  let attempted = 0;
+  let sent = 0;
+  let failed = 0;
+  let retryScheduled = 0;
+  let skipped = 0;
+
+  for (const notificationId of uniqueNotificationIds) {
+    try {
+      const claim = await claimPendingReviewSubmittedNotification(
+        notificationId,
+        now(),
+      );
+
+      if (!claim) {
+        skipped += 1;
+        continue;
+      }
+
+      attempted += 1;
+
+      const outcome = await deliverClaimedReviewSubmittedEmailNotification({
+        claim,
+        provider,
+        publicBaseUrl: emailEnv.publicBaseUrl,
+        brandLogoUrl: emailEnv.brandLogoUrl,
+        now,
+      });
+
+      if (outcome.outcome === "sent") {
+        sent += 1;
+      } else if (outcome.outcome === "failed") {
+        failed += 1;
+
+        if (outcome.retryScheduled) {
+          retryScheduled += 1;
+        }
+      } else {
+        skipped += 1;
+      }
+    } catch {
+      failed += 1;
+    }
+  }
+
+  return {
+    deliveryMode: emailEnv.deliveryMode,
+    requested: uniqueNotificationIds.length,
+    attempted,
+    sent,
+    failed,
+    retryScheduled,
+    skipped,
+  };
 }

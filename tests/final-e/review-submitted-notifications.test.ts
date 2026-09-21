@@ -14,6 +14,7 @@ import {
 import { buildAdminReviewSubmittedEmail } from "@/emails";
 import {
   buildAdminReviewSubmittedNotificationKey,
+  deliverAdminReviewSubmittedNotificationsBestEffort,
   deliverClaimedReviewSubmittedEmailNotification,
   isReviewSubmittedNotificationType,
 } from "@/lib/email/review-submitted-notifications";
@@ -208,10 +209,13 @@ function createEmailSource(): NodeJS.ProcessEnv {
 
 function createProvider(
   options: Readonly<{ fail?: boolean }> = {},
-): EmailProvider & { sent: ProviderSend[] } {
+): EmailProvider & { calls: ProviderSend[]; sent: ProviderSend[] } {
   return {
+    calls: [],
     sent: [],
     async send(input) {
+      this.calls.push(input);
+
       if (options.fail) {
         throw new EmailProviderError(
           "EMAIL_PROVIDER_TEMPORARY_FAILURE",
@@ -462,6 +466,187 @@ test("Final-E follow-up delivery sends ADMIN_REVIEW_SUBMITTED notifications as a
   );
 });
 
+test("Final-E follow-up immediate helper claims explicit ADMIN_REVIEW_SUBMITTED IDs and sends after commit", async () => {
+  const store = createStore({
+    notification: buildNotification({
+      status: EmailNotificationStatus.PENDING,
+      attemptCount: 0,
+      lastAttemptAt: null,
+      processingStartedAt: null,
+    }),
+  });
+  const provider = createProvider();
+
+  installDeliveryPrisma(store);
+
+  const result = await deliverAdminReviewSubmittedNotificationsBestEffort(
+    ["admin-review-notification-follow-up-1"],
+    {
+      source: createEmailSource(),
+      provider,
+      now: () => E_FOLLOW_UP_NOW,
+    },
+  );
+
+  assert.deepEqual(result, {
+    deliveryMode: "test",
+    requested: 1,
+    attempted: 1,
+    sent: 1,
+    failed: 0,
+    retryScheduled: 0,
+    skipped: 0,
+  });
+  assert.equal(provider.calls.length, 1);
+  assert.equal(provider.sent.length, 1);
+  assert.equal(store.notifications[0].status, EmailNotificationStatus.SENT);
+  assert.equal(store.notifications[0].attemptCount, 1);
+  assert.equal(
+    store.notifications[0].lastAttemptAt?.toISOString(),
+    E_FOLLOW_UP_NOW.toISOString(),
+  );
+});
+
+test("Final-E follow-up immediate helper records retryable provider failure and cron fallback later sends it", async () => {
+  const store = createStore({
+    notification: buildNotification({
+      status: EmailNotificationStatus.PENDING,
+      attemptCount: 0,
+      lastAttemptAt: null,
+      processingStartedAt: null,
+    }),
+  });
+  const failingProvider = createProvider({ fail: true });
+
+  installDeliveryPrisma(store);
+
+  const immediate = await deliverAdminReviewSubmittedNotificationsBestEffort(
+    ["admin-review-notification-follow-up-1"],
+    {
+      source: createEmailSource(),
+      provider: failingProvider,
+      now: () => E_FOLLOW_UP_NOW,
+    },
+  );
+
+  assert.equal(immediate.deliveryMode, "test");
+  assert.equal(immediate.requested, 1);
+  assert.equal(immediate.attempted, 1);
+  assert.equal(immediate.failed, 1);
+  assert.equal(immediate.retryScheduled, 1);
+  assert.equal(failingProvider.calls.length, 1);
+  assert.equal(store.notifications[0].status, EmailNotificationStatus.FAILED);
+  assert.equal(
+    store.notifications[0].errorCode,
+    "EMAIL_PROVIDER_TEMPORARY_FAILURE",
+  );
+  assert.notEqual(store.notifications[0].nextAttemptAt, null);
+
+  const retryProvider = createProvider();
+  const retryNow =
+    store.notifications[0].nextAttemptAt ??
+    new Date(E_FOLLOW_UP_NOW.getTime() + 5 * 60_000);
+  const retried = await processEmailNotifications({
+    source: createEmailSource(),
+    provider: retryProvider,
+    now: () => retryNow,
+  });
+
+  assert.equal(retried.sent, 1);
+  assert.equal(retryProvider.calls.length, 1);
+  assert.equal(store.notifications[0].status, EmailNotificationStatus.SENT);
+  assert.equal(store.notifications.length, 1);
+});
+
+test("Final-E follow-up immediate helper leaves durable intent PENDING when delivery environment is unavailable before claim", async () => {
+  const store = createStore({
+    notification: buildNotification({
+      status: EmailNotificationStatus.PENDING,
+      attemptCount: 0,
+      lastAttemptAt: null,
+      processingStartedAt: null,
+    }),
+  });
+  const provider = createProvider();
+
+  installDeliveryPrisma(store);
+
+  const result = await deliverAdminReviewSubmittedNotificationsBestEffort(
+    ["admin-review-notification-follow-up-1"],
+    {
+      source: {} as NodeJS.ProcessEnv,
+      provider,
+      now: () => E_FOLLOW_UP_NOW,
+    },
+  );
+
+  assert.deepEqual(result, {
+    deliveryMode: "unavailable",
+    requested: 1,
+    attempted: 0,
+    sent: 0,
+    failed: 0,
+    retryScheduled: 0,
+    skipped: 0,
+  });
+  assert.equal(provider.calls.length, 0);
+  assert.equal(store.notifications[0].status, EmailNotificationStatus.PENDING);
+  assert.equal(store.notifications[0].attemptCount, 0);
+});
+
+test("Final-E follow-up immediate helper attempts each explicit admin recipient independently", async () => {
+  const secondNotification = buildNotification({
+    id: "admin-review-notification-follow-up-2",
+    recipient: "ops@juantzun.dev",
+    deduplicationKey: buildAdminReviewSubmittedNotificationKey(
+      "review-follow-up-1",
+      "ops@juantzun.dev",
+    ),
+    status: EmailNotificationStatus.PENDING,
+    attemptCount: 0,
+    lastAttemptAt: null,
+    processingStartedAt: null,
+  });
+  const store = createStore({
+    notification: buildNotification({
+      status: EmailNotificationStatus.PENDING,
+      attemptCount: 0,
+      lastAttemptAt: null,
+      processingStartedAt: null,
+    }),
+  });
+  const provider = createProvider();
+
+  store.notifications.push(secondNotification);
+  installDeliveryPrisma(store);
+
+  const result = await deliverAdminReviewSubmittedNotificationsBestEffort(
+    [
+      "admin-review-notification-follow-up-1",
+      "admin-review-notification-follow-up-2",
+    ],
+    {
+      source: createEmailSource(),
+      provider,
+      now: () => E_FOLLOW_UP_NOW,
+    },
+  );
+
+  assert.equal(result.requested, 2);
+  assert.equal(result.attempted, 2);
+  assert.equal(result.sent, 2);
+  assert.equal(provider.calls.length, 2);
+  assert.deepEqual(
+    provider.calls.map((call) => call.intendedRecipient).sort(),
+    ["admin@juantzun.dev", "ops@juantzun.dev"],
+  );
+  assert.equal(store.notifications.length, 2);
+  assert.deepEqual(
+    store.notifications.map((notification) => notification.status),
+    [EmailNotificationStatus.SENT, EmailNotificationStatus.SENT],
+  );
+});
+
 test("Final-E follow-up delivery retries provider failures without mutating Review or Invitation state", async () => {
   const review = buildReview();
   const store = createStore({
@@ -622,6 +807,11 @@ test("Final-E follow-up source contract locks enum migration dispatcher labels a
     reviewSubmissionSource,
     /createAdminReviewSubmittedNotificationIntents/,
   );
+  assert.match(
+    reviewSubmissionSource,
+    /deliverAdminReviewSubmittedNotificationsBestEffort/,
+  );
+  assert.doesNotMatch(reviewSubmissionSource, /processEmailNotifications/);
   assert.notEqual(reviewSubmittedDispatchIndex, -1);
   assert.notEqual(genericFallbackIndex, -1);
   assert.equal(reviewSubmittedDispatchIndex < genericFallbackIndex, true);

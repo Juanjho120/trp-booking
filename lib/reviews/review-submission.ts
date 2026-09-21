@@ -9,7 +9,9 @@ import { z } from "zod";
 import { prisma } from "@/lib/db/prisma";
 import {
   createAdminReviewSubmittedNotificationIntents,
+  deliverAdminReviewSubmittedNotificationsBestEffort,
 } from "@/lib/email/review-submitted-notifications";
+import type { EmailProvider } from "@/types/email-provider";
 import {
   evaluatePersistedReviewInvitationBusinessEligibility,
 } from "./review-invitation-eligibility";
@@ -96,10 +98,15 @@ export type ReviewSubmissionOptions = Readonly<{
   now?: Date;
   prismaClient?: ReviewSubmissionPrismaClient;
   source?: NodeJS.ProcessEnv;
+  emailProvider?: EmailProvider;
 }>;
 
 type ReviewSubmissionTransactionResult =
   | ReviewSubmissionResult
+  | Readonly<{
+      outcome: "submitted";
+      adminNotificationIds: readonly string[];
+    }>
   | Readonly<{ errorCode: ReviewSubmissionErrorCode }>;
 
 class ReviewSubmissionRaceError extends Error {
@@ -481,7 +488,8 @@ async function submitReviewOnce(
       reservationId: true,
     },
   });
-  await createAdminReviewSubmittedNotificationIntents(
+  const adminNotifications =
+    await createAdminReviewSubmittedNotificationIntents(
     transaction,
     {
       reviewId: review.id,
@@ -490,7 +498,12 @@ async function submitReviewOnce(
     source,
   );
 
-  return { outcome: "submitted" };
+  return {
+    outcome: "submitted",
+    adminNotificationIds: adminNotifications.map(
+      (notification) => notification.id,
+    ),
+  };
 }
 
 function isReviewSubmissionTransactionError(
@@ -519,6 +532,25 @@ export async function submitReviewSubmission(
 
     if (isReviewSubmissionTransactionError(result)) {
       throw new ReviewSubmissionError(result.errorCode);
+    }
+
+    if (result.outcome === "submitted") {
+      if ("adminNotificationIds" in result) {
+        try {
+          await deliverAdminReviewSubmittedNotificationsBestEffort(
+            result.adminNotificationIds,
+            {
+              source,
+              provider: options.emailProvider,
+              now: () => now,
+            },
+          );
+        } catch {
+          // The review transaction already committed; retry processing owns recovery.
+        }
+      }
+
+      return { outcome: "submitted" };
     }
 
     return result;

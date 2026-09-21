@@ -39,6 +39,7 @@ export {
 export {
   buildAdminReviewSubmittedNotificationKey,
   createAdminReviewSubmittedNotificationIntents,
+  deliverAdminReviewSubmittedNotificationsBestEffort,
   deliverClaimedReviewSubmittedEmailNotification,
   isReviewSubmittedNotificationType,
 } from "./review-submitted-notifications";

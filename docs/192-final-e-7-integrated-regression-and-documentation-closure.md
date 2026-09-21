@@ -7,7 +7,7 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-E - Reservation reviews and post-checkout invitation
 Subphase: Final-E.7 - Integrated regression and documentation closure
-Status: Implementation and owner-acceptance follow-up completed; validation executed; owner re-validation pending
+Status: Implementation and owner-acceptance follow-up correction completed; validation executed; owner re-validation pending
 Implementation date: 2026-09-21
 Implementation base head: 4df7cbc07b6ae9789a62f568d1e3ab69a808d596
 Accepted Final-E.1 strategy head: e83ad8443bd533715058e701769b10c2d5505436
@@ -19,7 +19,7 @@ Accepted Final-E.6 implementation head: 82f1c27ba2af41d9ade9f8f57348bf66e18f800f
 Authoritative contract: docs/186-final-e-1-review-invitation-strategy-eligibility-and-security-contract.md
 Migration count: 22
 Permanent Final-E command: npm run final-e:validate
-Permanent Final-E validation result: 81/81
+Permanent Final-E validation result: 88/88
 Final-E package acceptance: Pending owner re-validation after follow-up
 Final-F/G/H: Not started
 Phase 13: Not started
@@ -29,8 +29,9 @@ Phase 13: Not started
 
 Final-E.7 originally added the permanent Final-E regression gate and package-closure evidence only.
 The owner-acceptance follow-up adds the narrow admin notification requested before package
-acceptance: an `ADMIN_REVIEW_SUBMITTED` email intent is now created atomically when a guest
-successfully submits a review.
+acceptance: an `ADMIN_REVIEW_SUBMITTED` email intent is created atomically when a guest
+successfully submits a review, and the immediate-delivery correction now attempts physical admin
+delivery best-effort after that transaction commits.
 
 Implemented:
 
@@ -43,6 +44,8 @@ prisma/migrations/20260921120000_final_e_owner_acceptance_admin_review_submitted
 
 Prisma EmailNotificationType.ADMIN_REVIEW_SUBMITTED
 admin review-submitted notification intent creation inside submitReviewSubmission(...)
+post-commit immediate best-effort ADMIN_REVIEW_SUBMITTED delivery limited to the committed IDs
+PROCESS_EMAIL_NOTIFICATIONS retained as fallback/retry only for this notification type
 shared admin notification routing helper reused by reservation confirmation and review-submitted flows
 ADMIN_REVIEW_SUBMITTED dispatcher branch before the generic reservation-confirmation fallback
 admin review-submitted ES/EN transactional template and centralized copy
@@ -60,8 +63,10 @@ Runtime product behavior change:
 Original E.7 closure: NONE.
 Owner-acceptance follow-up: when a new Review is created from a valid private invitation,
 the same Serializable transaction also creates idempotent ADMIN_REVIEW_SUBMITTED EmailNotification
-intent rows for configured admin recipients. Provider delivery remains outside the transaction and
-is handled by the existing email retry dispatcher.
+intent rows for configured admin recipients. After the transaction commits, only those committed
+ADMIN_REVIEW_SUBMITTED IDs are claimed and delivered immediately on a best-effort basis. Provider
+delivery remains outside the transaction, does not affect the guest response, and the existing email
+retry dispatcher remains the fallback/retry path.
 ```
 
 Final-E.7 does not add:
@@ -113,7 +118,7 @@ ADMIN_REVIEW_SUBMITTED admin email notification when a guest submits a review.
 Follow-up status:
 
 ```text
-Implementation completed.
+Implementation correction completed.
 Automated validation completed.
 Owner re-validation and Final-E package acceptance remain pending.
 ```
@@ -122,7 +127,15 @@ Historical note:
 
 ```text
 The original Final-E.7 closure did not send a real admin email for a submitted review.
-This follow-up adds that admin email path; acceptance of the new email behavior is still pending owner re-validation.
+The first owner re-validation of ADMIN_REVIEW_SUBMITTED confirmed intent creation but found physical
+immediate delivery failed: the notification stayed PENDING until PROCESS_EMAIL_NOTIFICATIONS was
+manually executed. The owner requirement is immediate post-commit admin delivery, with
+PROCESS_EMAIL_NOTIFICATIONS as fallback/retry only.
+This correction implements:
+Review + invitation CONSUMED + durable intent commit atomically
+post-commit immediate best-effort provider delivery for the committed IDs
+cron processor fallback/retry only
+Acceptance of the corrected email timing remains pending owner re-validation.
 ```
 
 ## Permanent Gate Safety
@@ -218,7 +231,7 @@ is mapped below.
 | replay cannot duplicate or edit | Existing E.5 replay/concurrency tests and E.7 integrated replay assertion. |
 | expired/cancelled invitation rejected | Existing E.5 expired/business-revoked GET/POST tests. |
 | raw Prisma errors do not leak | Existing E.5 P2002/P2034 safe mapping tests. |
-| admin is notified when a review is submitted | Final-E owner-acceptance follow-up tests assert same-transaction `ADMIN_REVIEW_SUBMITTED` intents, rollback, replay/deduplication, concurrency, admin routing, dispatcher routing, provider retry, privacy-safe ES/EN template rendering, and no manual resend support. |
+| admin is notified when a review is submitted | Final-E owner-acceptance follow-up tests assert same-transaction `ADMIN_REVIEW_SUBMITTED` intents, post-commit immediate best-effort delivery limited to committed IDs, provider-failure isolation from guest submission, delivery-environment unavailable behavior with durable PENDING intent, replay/deduplication, concurrency, multiple admin recipients, admin routing, dispatcher fallback routing, provider retry, privacy-safe ES/EN template rendering, no guest-response DTO change, no `processEmailNotifications()` call from guest submission, and no manual resend support. |
 
 ### E.6 - Moderation / Public Presentation
 
@@ -249,7 +262,7 @@ Executed validation:
 
 ```text
 npm run final-e:validate
-PASS - Final-E targeted validation passed: 81/81 tests.
+PASS - Final-E targeted validation passed: 88/88 tests.
 
 npm run final-a:validate
 PASS - Final-A validation passed: 44/44 tests.
@@ -288,7 +301,7 @@ PASS.
 Environment notes:
 
 ```text
-- The first sandbox attempt for npm run final-e:validate failed before tests with Node/tsx uv_os_get_passwd ENOMEM; the outside-sandbox rerun passed 81/81.
+- The first sandbox attempt for npm run final-e:validate failed before tests with Node/tsx uv_os_get_passwd ENOMEM; the outside-sandbox rerun passed 88/88.
 - The Final-A/B/C/D gates were run outside the sandbox after the same tsx sandbox failure was confirmed in this turn.
 - The first sandbox db:migrate:status attempt returned a Prisma Schema engine error while checking Supabase; the outside-sandbox rerun passed.
 - The first sandbox email:contract:validate attempt failed before execution with Node/tsx uv_os_get_passwd ENOMEM; the outside-sandbox rerun passed.
@@ -300,7 +313,7 @@ Environment notes:
 Dynamic trackers were reconciled to record:
 
 ```text
-Final-E.7 - Implementation and owner-acceptance follow-up completed; validation executed; owner re-validation pending
+Final-E.7 - Implementation and owner-acceptance follow-up correction completed; validation executed; owner re-validation pending
 Final-E - In progress; package acceptance pending owner re-validation
 Final-F/G/H - Not started
 Phase 13 - Not started
@@ -320,7 +333,7 @@ Final-E.3 - Completed and accepted on 2026-09-18 at c67d2a59a8bec9ba84ca36c37fc0
 Final-E.4 - Completed and accepted on 2026-09-18 at e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1
 Final-E.5 - Completed and accepted on 2026-09-21 at f37f4802219aeb80d10f92b406e0a4847b10f15d
 Final-E.6 - Completed and accepted on 2026-09-21 at 82f1c27ba2af41d9ade9f8f57348bf66e18f800f
-Final-E.7 - Implementation and owner-acceptance follow-up completed; validation executed; owner re-validation pending
+Final-E.7 - Implementation and owner-acceptance follow-up correction completed; validation executed; owner re-validation pending
 Final-F/G/H - Not started
 Phase 13 - Not started
 ```

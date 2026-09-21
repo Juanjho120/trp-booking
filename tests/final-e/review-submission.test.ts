@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { Buffer } from "node:buffer";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 
@@ -31,6 +32,9 @@ import {
   ReviewSubmissionError,
   submitReviewSubmission,
 } from "@/lib/reviews";
+import { EmailProviderError } from "@/lib/email/provider";
+import { prisma } from "@/lib/db/prisma";
+import type { EmailProvider } from "@/types/email-provider";
 
 import { test } from "./harness";
 
@@ -44,6 +48,9 @@ const E5_ADMIN_SOURCE = {
     " Admin@Example.com, second@example.com, admin@example.com, not-an-email ",
   EMAIL_ADMIN_LOCALE: "en",
 } as NodeJS.ProcessEnv;
+const E5_BRAND_LOGO_URL =
+  "https://res.cloudinary.com/juan-tzun-portfolio/image/upload/v1784668172/trp-booking/brand/logo-primary.png";
+const E5_PUBLIC_BASE_URL = "http://localhost:3000";
 
 type MutableReview = {
   id: string;
@@ -103,6 +110,13 @@ type MutableNotification = {
   deduplicationKey: string;
   origin: EmailNotificationOrigin;
   status: EmailNotificationStatus;
+  attemptCount: number;
+  lastAttemptAt: Date | null;
+  processingStartedAt: Date | null;
+  providerMessageId: string | null;
+  sentAt: Date | null;
+  errorCode: string | null;
+  errorMessage: string | null;
   scheduledFor: Date | null;
   nextAttemptAt: Date | null;
   createdAt: Date;
@@ -116,6 +130,15 @@ type MutableNotificationIntentData = Omit<
   | "refundId"
   | "guestPaymentRequestId"
   | "reviewInvitationId"
+  | "attemptCount"
+  | "lastAttemptAt"
+  | "processingStartedAt"
+  | "providerMessageId"
+  | "sentAt"
+  | "errorCode"
+  | "errorMessage"
+  | "scheduledFor"
+  | "nextAttemptAt"
   | "createdAt"
   | "updatedAt"
 >;
@@ -383,8 +406,15 @@ function insertNotificationIntent(
     refundId: null,
     guestPaymentRequestId: null,
     reviewInvitationId: null,
-    scheduledFor: data.scheduledFor ?? null,
-    nextAttemptAt: data.nextAttemptAt ?? null,
+    attemptCount: 0,
+    lastAttemptAt: null,
+    processingStartedAt: null,
+    providerMessageId: null,
+    sentAt: null,
+    errorCode: null,
+    errorMessage: null,
+    scheduledFor: null,
+    nextAttemptAt: null,
     createdAt: E5_NOW,
     updatedAt: E5_NOW,
   };
@@ -560,6 +590,192 @@ function makeClient(store: E5Store, options: E5ClientOptions = {}): PrismaClient
   };
 
   return client as unknown as PrismaClient;
+}
+
+type ProviderSend = Parameters<EmailProvider["send"]>[0];
+
+function createE5EmailSource(
+  input: Readonly<{
+    adminRecipients?: string;
+    adminLocale?: "es" | "en";
+  }> = {},
+): NodeJS.ProcessEnv {
+  return {
+    TRP_ENVIRONMENT: "local",
+    DATABASE_URL:
+      "postgresql://user:password@localhost:5432/trp_booking?schema=trp_booking",
+    DIRECT_URL:
+      "postgresql://user:password@localhost:5432/trp_booking?schema=trp_booking",
+    AUTH_SECRET: "final-e5-review-submission-secret-at-least-32-chars",
+    AUTH_TRUST_HOST: "true",
+    AUTH_GOOGLE_ID: "final-e5-review-submission-google-id",
+    AUTH_GOOGLE_SECRET: "final-e5-review-submission-google-secret",
+    AUTH_ALLOWED_ADMIN_EMAILS: "admin@juantzun.dev",
+    EXTERNAL_CALENDAR_ENCRYPTION_KEY: Buffer.alloc(32, 8).toString("base64"),
+    CLOUDINARY_CLOUD_NAME: "trpbookingtest",
+    CLOUDINARY_API_KEY: "123456789012345",
+    CLOUDINARY_API_SECRET: "final-e5-review-submission-cloudinary-secret",
+    CLOUDINARY_UPLOAD_FOLDER: "trp-booking/final-e5-review-submission",
+    TILOPAY_ENVIRONMENT: "sandbox",
+    TILOPAY_API_KEY: "final-e5-review-submission-api-key",
+    TILOPAY_API_USER: "final-e5-review-submission-api-user",
+    TILOPAY_API_PASSWORD: "final-e5-review-submission-api-password",
+    TILOPAY_REDIRECT_URL:
+      "http://localhost:3000/api/payments/tilopay/redirect",
+    TILOPAY_SUCCESS_URL: "http://localhost:3000/reservas/pago/exitoso",
+    TILOPAY_CANCEL_URL: "http://localhost:3000/reservas/pago/cancelado",
+    TILOPAY_ERROR_URL: "http://localhost:3000/reservas/pago/error",
+    TILOPAY_WEBHOOK_URL: "http://localhost:3000/api/payments/tilopay/webhook",
+    EMAIL_DELIVERY_MODE: "test",
+    RESEND_API_KEY: "re_finale5reviewsubmission",
+    EMAIL_FROM_ES:
+      "Tu Refugio Perfecto Local <reservas@mail.trp-booking.juantzun.dev>",
+    EMAIL_FROM_EN:
+      "Tu Refugio Perfecto Local <reservations@mail.trp-booking.juantzun.dev>",
+    EMAIL_REPLY_TO_ES: "reservas@juantzun.dev",
+    EMAIL_REPLY_TO_EN: "reservations@juantzun.dev",
+    EMAIL_ADMIN_RECIPIENTS: input.adminRecipients ?? "admin@juantzun.dev",
+    EMAIL_ADMIN_LOCALE: input.adminLocale ?? "es",
+    EMAIL_PUBLIC_BASE_URL: E5_PUBLIC_BASE_URL,
+    EMAIL_BRAND_LOGO_URL: E5_BRAND_LOGO_URL,
+    EMAIL_TEST_RECIPIENT: "local-review-submission-inbox@example.com",
+    VERCEL_ENV: "development",
+    NODE_ENV: "test",
+  };
+}
+
+function createE5Provider(
+  options: Readonly<{ fail?: boolean }> = {},
+): EmailProvider & { calls: ProviderSend[]; sent: ProviderSend[] } {
+  return {
+    calls: [],
+    sent: [],
+    async send(input) {
+      this.calls.push(input);
+
+      if (options.fail) {
+        throw new EmailProviderError(
+          "EMAIL_PROVIDER_TEMPORARY_FAILURE",
+          true,
+        );
+      }
+
+      this.sent.push(input);
+
+      return {
+        provider: "resend",
+        providerMessageId: `resend-e5-${this.calls.length}`,
+        deliveryMode: "test",
+        deliveredRecipient: input.intendedRecipient,
+      };
+    },
+  };
+}
+
+function applyNotificationUpdate(
+  notification: MutableNotification,
+  data: Record<string, unknown>,
+): void {
+  for (const [key, value] of Object.entries(data)) {
+    if (
+      key === "attemptCount" &&
+      typeof value === "object" &&
+      value !== null &&
+      "increment" in value
+    ) {
+      notification.attemptCount += Number(
+        (value as Readonly<{ increment: number }>).increment,
+      );
+      continue;
+    }
+
+    Object.assign(notification, { [key]: value });
+  }
+}
+
+function installReviewSubmittedDeliveryPrisma(store: E5Store): void {
+  const client = {
+    emailNotification: {
+      async findFirst(args: {
+        where: {
+          id: string;
+          type?: EmailNotificationType;
+          status: EmailNotificationStatus;
+          processingStartedAt?: Date;
+          updatedAt?: Date;
+        };
+      }) {
+        const notification = store.notifications.find(
+          (candidate) =>
+            candidate.id === args.where.id &&
+            (!args.where.type || candidate.type === args.where.type) &&
+            candidate.status === args.where.status &&
+            (!args.where.updatedAt ||
+              candidate.updatedAt.getTime() === args.where.updatedAt.getTime()) &&
+            (!args.where.processingStartedAt ||
+              candidate.processingStartedAt?.getTime() ===
+                args.where.processingStartedAt.getTime()),
+        );
+
+        if (!notification) {
+          return null;
+        }
+
+        const reservation =
+          store.reservations.find(
+            (candidate) => candidate.id === notification.reservationId,
+          ) ?? null;
+        const review =
+          store.reviews.find(
+            (candidate) => candidate.reservationId === notification.reservationId,
+          ) ?? null;
+
+        if (!reservation) {
+          return null;
+        }
+
+        return {
+          ...notification,
+          reservation: {
+            id: reservation.id,
+            property: { ...reservation.property },
+            review,
+          },
+        };
+      },
+      async updateMany(args: {
+        where: {
+          id?: string;
+          type?: EmailNotificationType;
+          status?: EmailNotificationStatus;
+          processingStartedAt?: Date;
+          updatedAt?: Date;
+        };
+        data: Record<string, unknown>;
+      }) {
+        const notification = store.notifications.find(
+          (candidate) =>
+            (!args.where.id || candidate.id === args.where.id) &&
+            (!args.where.type || candidate.type === args.where.type) &&
+            (!args.where.status || candidate.status === args.where.status) &&
+            (!args.where.updatedAt ||
+              candidate.updatedAt.getTime() === args.where.updatedAt.getTime()) &&
+            (!args.where.processingStartedAt ||
+              candidate.processingStartedAt?.getTime() ===
+                args.where.processingStartedAt.getTime()),
+        );
+
+        if (!notification) {
+          return { count: 0 };
+        }
+
+        applyNotificationUpdate(notification, args.data);
+        return { count: 1 };
+      },
+    },
+  };
+
+  Object.assign(prisma as unknown as typeof client, client);
 }
 
 async function assertSubmissionError(
@@ -882,6 +1098,101 @@ test("Final-E follow-up creates ADMIN_REVIEW_SUBMITTED intents for normalized ad
   }
 });
 
+test("Final-E follow-up immediately delivers ADMIN_REVIEW_SUBMITTED after successful review commit", async () => {
+  const store = createStore();
+  const client = makeClient(store);
+  const provider = createE5Provider();
+
+  installReviewSubmittedDeliveryPrisma(store);
+
+  const result = await submitReviewSubmission(
+    E5_TOKEN,
+    { rating: 5, comment: "Immediate delivery", locale: "en" },
+    {
+      now: E5_NOW,
+      prismaClient: client,
+      source: createE5EmailSource(),
+      emailProvider: provider,
+    },
+  );
+
+  assert.deepEqual(result, { outcome: "submitted" });
+  assert.equal(store.reviews.length, 1);
+  assert.equal(
+    store.reviews[0].moderationStatus,
+    ReviewModerationStatus.PENDING,
+  );
+  assert.equal(store.invitations[0].status, ReviewInvitationStatus.CONSUMED);
+  assert.equal(store.notifications.length, 1);
+  assert.equal(store.notifications[0].type, EmailNotificationType.ADMIN_REVIEW_SUBMITTED);
+  assert.equal(store.notifications[0].status, EmailNotificationStatus.SENT);
+  assert.equal(store.notifications[0].attemptCount, 1);
+  assert.equal(provider.calls.length, 1);
+  assert.equal(provider.sent.length, 1);
+  assert.equal(provider.calls[0].audience, "admin");
+});
+
+test("Final-E follow-up keeps guest submission successful when immediate provider delivery fails", async () => {
+  const store = createStore();
+  const client = makeClient(store);
+  const provider = createE5Provider({ fail: true });
+
+  installReviewSubmittedDeliveryPrisma(store);
+
+  const result = await submitReviewSubmission(
+    E5_TOKEN,
+    { rating: 5, comment: "Provider failure", locale: "en" },
+    {
+      now: E5_NOW,
+      prismaClient: client,
+      source: createE5EmailSource(),
+      emailProvider: provider,
+    },
+  );
+
+  assert.deepEqual(result, { outcome: "submitted" });
+  assert.equal(store.reviews.length, 1);
+  assert.equal(
+    store.reviews[0].moderationStatus,
+    ReviewModerationStatus.PENDING,
+  );
+  assert.equal(store.invitations[0].status, ReviewInvitationStatus.CONSUMED);
+  assert.equal(store.notifications.length, 1);
+  assert.equal(store.notifications[0].status, EmailNotificationStatus.FAILED);
+  assert.equal(
+    store.notifications[0].errorCode,
+    "EMAIL_PROVIDER_TEMPORARY_FAILURE",
+  );
+  assert.notEqual(store.notifications[0].nextAttemptAt, null);
+  assert.equal(provider.calls.length, 1);
+});
+
+test("Final-E follow-up preserves committed review and PENDING intent when immediate delivery environment is unavailable", async () => {
+  const store = createStore();
+  const client = makeClient(store);
+  const provider = createE5Provider();
+  const result = await submitReviewSubmission(
+    E5_TOKEN,
+    { rating: 5, comment: "Unavailable delivery", locale: "en" },
+    {
+      now: E5_NOW,
+      prismaClient: client,
+      source: E5_ADMIN_SOURCE,
+      emailProvider: provider,
+    },
+  );
+
+  assert.deepEqual(result, { outcome: "submitted" });
+  assert.equal(store.reviews.length, 1);
+  assert.equal(store.invitations[0].status, ReviewInvitationStatus.CONSUMED);
+  assert.equal(store.notifications.length, 2);
+  assert.equal(provider.calls.length, 0);
+  assert.deepEqual(
+    store.notifications.map((notification) => notification.status),
+    [EmailNotificationStatus.PENDING, EmailNotificationStatus.PENDING],
+  );
+});
+
 test("Final-E follow-up rolls back Review and invitation consumption when admin intent creation fails", async () => {
   const store = createStore();
   const client = makeClient(store, { failNotificationIntent: true });
@@ -905,43 +1216,58 @@ test("Final-E follow-up rolls back Review and invitation consumption when admin 
 test("Final-E follow-up replay reuses the submitted Review without duplicate admin intents", async () => {
   const store = createStore();
   const client = makeClient(store);
-  const source = {
-    TRP_ENVIRONMENT: "test",
-    EMAIL_ADMIN_RECIPIENTS: "admin@example.com",
-    EMAIL_ADMIN_LOCALE: "es",
-  } as NodeJS.ProcessEnv;
+  const source = createE5EmailSource();
+  const provider = createE5Provider();
+
+  installReviewSubmittedDeliveryPrisma(store);
+
   const first = await submitReviewSubmission(
     E5_TOKEN,
     { rating: 5, comment: "Winner", locale: "en" },
-    { now: E5_NOW, prismaClient: client, source },
+    { now: E5_NOW, prismaClient: client, source, emailProvider: provider },
   );
   const second = await submitReviewSubmission(
     E5_TOKEN,
     { rating: 1, comment: "Loser edit attempt", locale: "en" },
-    { now: new Date(E5_NOW.getTime() + 1_000), prismaClient: client, source },
+    {
+      now: new Date(E5_NOW.getTime() + 1_000),
+      prismaClient: client,
+      source,
+      emailProvider: provider,
+    },
   );
 
   assert.equal(first.outcome, "submitted");
   assert.equal(second.outcome, "already-submitted");
   assert.equal(store.reviews.length, 1);
   assert.equal(store.notifications.length, 1);
-  assert.equal(store.notifications[0].recipient, "admin@example.com");
+  assert.equal(store.notifications[0].recipient, "admin@juantzun.dev");
   assert.equal(store.notifications[0].locale, "es");
+  assert.equal(store.notifications[0].status, EmailNotificationStatus.SENT);
+  assert.equal(provider.calls.length, 1);
 });
 
 test("Final-E follow-up concurrent submissions create one Review and one intent per admin recipient", async () => {
   const store = createStore();
   const client = makeClient(store);
+  const source = createE5EmailSource({
+    adminRecipients: "admin@juantzun.dev, ops@juantzun.dev",
+    adminLocale: "en",
+  });
+  const provider = createE5Provider();
+
+  installReviewSubmittedDeliveryPrisma(store);
+
   const [first, second] = await Promise.all([
     submitReviewSubmission(
       E5_TOKEN,
       { rating: 4, comment: "First payload", locale: "en" },
-      { now: E5_NOW, prismaClient: client, source: E5_ADMIN_SOURCE },
+      { now: E5_NOW, prismaClient: client, source, emailProvider: provider },
     ),
     submitReviewSubmission(
       E5_TOKEN,
       { rating: 2, comment: "Second payload", locale: "en" },
-      { now: E5_NOW, prismaClient: client, source: E5_ADMIN_SOURCE },
+      { now: E5_NOW, prismaClient: client, source, emailProvider: provider },
     ),
   ]);
 
@@ -954,8 +1280,13 @@ test("Final-E follow-up concurrent submissions create one Review and one intent 
   assert.equal(store.notifications.length, 2);
   assert.deepEqual(
     store.notifications.map((notification) => notification.recipient).sort(),
-    ["admin@example.com", "second@example.com"],
+    ["admin@juantzun.dev", "ops@juantzun.dev"],
   );
+  assert.deepEqual(
+    store.notifications.map((notification) => notification.status),
+    [EmailNotificationStatus.SENT, EmailNotificationStatus.SENT],
+  );
+  assert.equal(provider.calls.length, 2);
 });
 
 test("Final-E follow-up admin intent creation does not couple submission to moderation", async () => {
