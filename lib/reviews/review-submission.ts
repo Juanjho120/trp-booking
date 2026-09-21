@@ -8,6 +8,9 @@ import { z } from "zod";
 
 import { prisma } from "@/lib/db/prisma";
 import {
+  createAdminReviewSubmittedNotificationIntents,
+} from "@/lib/email/review-submitted-notifications";
+import {
   evaluatePersistedReviewInvitationBusinessEligibility,
 } from "./review-invitation-eligibility";
 import {
@@ -92,6 +95,7 @@ export type ReviewSubmissionInput = Readonly<{
 export type ReviewSubmissionOptions = Readonly<{
   now?: Date;
   prismaClient?: ReviewSubmissionPrismaClient;
+  source?: NodeJS.ProcessEnv;
 }>;
 
 type ReviewSubmissionTransactionResult =
@@ -383,6 +387,7 @@ async function submitReviewOnce(
   tokenHash: string,
   input: ReviewSubmissionInput,
   now: Date,
+  source: NodeJS.ProcessEnv,
 ): Promise<ReviewSubmissionTransactionResult> {
   const invitation = await readInvitationByTokenHash(transaction, tokenHash);
 
@@ -458,7 +463,7 @@ async function submitReviewOnce(
     throw new ReviewSubmissionRaceError();
   }
 
-  await transaction.review.create({
+  const review = await transaction.review.create({
     data: {
       reservationId: invitation.reservationId,
       propertyId: invitation.reservation.propertyId,
@@ -471,7 +476,19 @@ async function submitReviewOnce(
       moderatedAt: null,
       moderatedByAdminId: null,
     },
+    select: {
+      id: true,
+      reservationId: true,
+    },
   });
+  await createAdminReviewSubmittedNotificationIntents(
+    transaction,
+    {
+      reviewId: review.id,
+      reservationId: review.reservationId,
+    },
+    source,
+  );
 
   return { outcome: "submitted" };
 }
@@ -491,11 +508,13 @@ export async function submitReviewSubmission(
   const input = parseReviewSubmissionInput(rawInput);
   const now = options.now ?? new Date();
   const prismaClient = options.prismaClient ?? prisma;
+  const source = options.source ?? process.env;
 
   try {
     const result = await runReviewSubmissionTransactionWithRetry(
       prismaClient,
-      (transaction) => submitReviewOnce(transaction, tokenHash, input, now),
+      (transaction) =>
+        submitReviewOnce(transaction, tokenHash, input, now, source),
     );
 
     if (isReviewSubmissionTransactionError(result)) {
@@ -508,6 +527,7 @@ export async function submitReviewSubmission(
       const summary = await getReviewSubmissionSummary(rawToken, {
         now,
         prismaClient,
+        source,
       });
 
       if (summary.state === "ALREADY_SUBMITTED") {

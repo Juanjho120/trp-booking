@@ -697,7 +697,7 @@ test("E.7 permanent gate remains deterministic, non-destructive and provider-saf
 
   assert.equal(packageJson.scripts["final-e:validate"], FINAL_E_VALIDATE_SCRIPT);
   assert.match(runSource, /integrated-acceptance\.test/);
-  assert.equal(migrations.length, 21);
+  assert.equal(migrations.length, 22);
   assert.doesNotMatch(
     packageJson.scripts["final-e:validate"],
     /prisma|migrate|next build|eslint|resend|curl|fetch/i,

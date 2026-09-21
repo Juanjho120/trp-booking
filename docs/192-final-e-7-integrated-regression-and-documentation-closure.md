@@ -7,7 +7,7 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-E - Reservation reviews and post-checkout invitation
 Subphase: Final-E.7 - Integrated regression and documentation closure
-Status: Implementation completed and validation executed; owner acceptance pending
+Status: Implementation and owner-acceptance follow-up completed; validation executed; owner re-validation pending
 Implementation date: 2026-09-21
 Implementation base head: 4df7cbc07b6ae9789a62f568d1e3ab69a808d596
 Accepted Final-E.1 strategy head: e83ad8443bd533715058e701769b10c2d5505436
@@ -17,17 +17,20 @@ Accepted Final-E.4 implementation head: e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1
 Accepted Final-E.5 implementation head: f37f4802219aeb80d10f92b406e0a4847b10f15d
 Accepted Final-E.6 implementation head: 82f1c27ba2af41d9ade9f8f57348bf66e18f800f
 Authoritative contract: docs/186-final-e-1-review-invitation-strategy-eligibility-and-security-contract.md
-Migration count: 21
+Migration count: 22
 Permanent Final-E command: npm run final-e:validate
-Permanent Final-E validation result: 69/69
-Final-E package acceptance: Pending owner review
+Permanent Final-E validation result: 81/81
+Final-E package acceptance: Pending owner re-validation after follow-up
 Final-F/G/H: Not started
 Phase 13: Not started
 ```
 
 ## Scope Implemented
 
-Final-E.7 adds the permanent Final-E regression gate and package-closure evidence only.
+Final-E.7 originally added the permanent Final-E regression gate and package-closure evidence only.
+The owner-acceptance follow-up adds the narrow admin notification requested before package
+acceptance: an `ADMIN_REVIEW_SUBMITTED` email intent is now created atomically when a guest
+successfully submits a review.
 
 Implemented:
 
@@ -35,7 +38,17 @@ Implemented:
 package.json:
   final-e:validate = tsx --tsconfig tests/final-e/tsconfig.json tests/final-e/run.ts
 
+prisma/migrations/20260921120000_final_e_owner_acceptance_admin_review_submitted_notification/migration.sql:
+  ALTER TYPE "email_notification_type" ADD VALUE 'ADMIN_REVIEW_SUBMITTED';
+
+Prisma EmailNotificationType.ADMIN_REVIEW_SUBMITTED
+admin review-submitted notification intent creation inside submitReviewSubmission(...)
+shared admin notification routing helper reused by reservation confirmation and review-submitted flows
+ADMIN_REVIEW_SUBMITTED dispatcher branch before the generic reservation-confirmation fallback
+admin review-submitted ES/EN transactional template and centralized copy
 tests/final-e/integrated-acceptance.test.ts
+tests/final-e/review-submission.test.ts follow-up coverage
+tests/final-e/review-submitted-notifications.test.ts
 tests/final-e/run.ts registration
 historical Final-E boundary tests updated to expect the E.7 permanent gate
 documentation/status reconciliation
@@ -44,24 +57,26 @@ documentation/status reconciliation
 Runtime product behavior change:
 
 ```text
-NONE
+Original E.7 closure: NONE.
+Owner-acceptance follow-up: when a new Review is created from a valid private invitation,
+the same Serializable transaction also creates idempotent ADMIN_REVIEW_SUBMITTED EmailNotification
+intent rows for configured admin recipients. Provider delivery remains outside the transaction and
+is handled by the existing email retry dispatcher.
 ```
 
 Final-E.7 does not add:
 
 ```text
-new product runtime behavior
-schema migration
-Prisma model or enum change
 Vercel cron registration
-provider integration
-real email delivery
 shared Test DB mutation
 review editing
 review deletion
 review replies
 review media
 review import
+manual resend support for ADMIN_REVIEW_SUBMITTED
+EmailNotification.reviewId
+historical review backfill
 Final-F/G/H
 Phase 13
 ```
@@ -72,6 +87,42 @@ Phase 13
 {
   "crons": []
 }
+```
+
+## Owner Hosted/UI Acceptance Follow-up
+
+Owner Hosted/UI validation on 2026-09-21 confirmed the previously implemented Final-E flow:
+
+```text
+review invitation email - PASS
+private review submission - PASS
+private submission replay - PASS
+admin PENDING review visibility - PASS
+publish - PASS
+public listing - PASS
+hide - PASS
+republish - PASS
+```
+
+Follow-up requested before Final-E package acceptance:
+
+```text
+ADMIN_REVIEW_SUBMITTED admin email notification when a guest submits a review.
+```
+
+Follow-up status:
+
+```text
+Implementation completed.
+Automated validation completed.
+Owner re-validation and Final-E package acceptance remain pending.
+```
+
+Historical note:
+
+```text
+The original Final-E.7 closure did not send a real admin email for a submitted review.
+This follow-up adds that admin email path; acceptance of the new email behavior is still pending owner re-validation.
 ```
 
 ## Permanent Gate Safety
@@ -167,6 +218,7 @@ is mapped below.
 | replay cannot duplicate or edit | Existing E.5 replay/concurrency tests and E.7 integrated replay assertion. |
 | expired/cancelled invitation rejected | Existing E.5 expired/business-revoked GET/POST tests. |
 | raw Prisma errors do not leak | Existing E.5 P2002/P2034 safe mapping tests. |
+| admin is notified when a review is submitted | Final-E owner-acceptance follow-up tests assert same-transaction `ADMIN_REVIEW_SUBMITTED` intents, rollback, replay/deduplication, concurrency, admin routing, dispatcher routing, provider retry, privacy-safe ES/EN template rendering, and no manual resend support. |
 
 ### E.6 - Moderation / Public Presentation
 
@@ -189,7 +241,7 @@ is mapped below.
 | Final-B remains green | `npm run final-b:validate` passed 38/38 during E.7 validation. |
 | Final-C remains green | `npm run final-c:validate` passed 41/41 during E.7 validation. |
 | Final-D remains green | `npm run final-d:validate` passed 66/66 during E.7 validation. |
-| lint/build/Prisma gates pass where runtime/schema changes require them | E.7 ran db:generate, db:validate, db:migrate:status, email:contract:validate, lint, build and git diff --check. No runtime/schema changes were made. |
+| lint/build/Prisma gates pass where runtime/schema changes require them | E.7 ran db:generate, db:validate, db:migrate:status, email:contract:validate, lint, build and git diff --check. The follow-up added one enum-only migration and reran the required gates. |
 
 ## Validation Evidence
 
@@ -197,7 +249,7 @@ Executed validation:
 
 ```text
 npm run final-e:validate
-PASS - Final-E targeted validation passed: 69/69 tests.
+PASS - Final-E targeted validation passed: 81/81 tests.
 
 npm run final-a:validate
 PASS - Final-A validation passed: 44/44 tests.
@@ -218,7 +270,7 @@ npm run db:validate
 PASS - Prisma schema is valid.
 
 npm run db:migrate:status
-PASS - 21 migrations found; database schema is up to date.
+PASS - 22 migrations found; database schema is up to date.
 
 npm run email:contract:validate
 PASS - Transactional email routing contract validation passed.
@@ -236,7 +288,7 @@ PASS.
 Environment notes:
 
 ```text
-- The first sandbox attempt for npm run final-e:validate failed before tests with Node/tsx uv_os_get_passwd ENOMEM; the outside-sandbox rerun passed 69/69 after correcting the new E.7 source-safety assertion.
+- The first sandbox attempt for npm run final-e:validate failed before tests with Node/tsx uv_os_get_passwd ENOMEM; the outside-sandbox rerun passed 81/81.
 - The Final-A/B/C/D gates were run outside the sandbox after the same tsx sandbox failure was confirmed in this turn.
 - The first sandbox db:migrate:status attempt returned a Prisma Schema engine error while checking Supabase; the outside-sandbox rerun passed.
 - The first sandbox email:contract:validate attempt failed before execution with Node/tsx uv_os_get_passwd ENOMEM; the outside-sandbox rerun passed.
@@ -248,27 +300,27 @@ Environment notes:
 Dynamic trackers were reconciled to record:
 
 ```text
-Final-E.7 - Implementation completed and validation executed; owner acceptance pending
-Final-E - In progress; package acceptance pending owner review
+Final-E.7 - Implementation and owner-acceptance follow-up completed; validation executed; owner re-validation pending
+Final-E - In progress; package acceptance pending owner re-validation
 Final-F/G/H - Not started
 Phase 13 - Not started
 ```
 
 Final-E is not marked completed or accepted by this implementation record. Final-E package closure
-still requires owner acceptance.
+still requires owner re-validation and explicit owner acceptance.
 
 ## Current Decision
 
 ```text
 Final-D - Completed and accepted on 2026-09-18 at fd75663bb28be8a95b15c341eaa51f74e521241b
-Final-E - In progress; package acceptance pending owner review
+Final-E - In progress; package acceptance pending owner re-validation
 Final-E.1 - Completed and accepted on 2026-09-18 at e83ad8443bd533715058e701769b10c2d5505436
 Final-E.2 - Completed and accepted on 2026-09-18 at f77938c5606ed636b697dc1af41c111a22ba1593
 Final-E.3 - Completed and accepted on 2026-09-18 at c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030
 Final-E.4 - Completed and accepted on 2026-09-18 at e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1
 Final-E.5 - Completed and accepted on 2026-09-21 at f37f4802219aeb80d10f92b406e0a4847b10f15d
 Final-E.6 - Completed and accepted on 2026-09-21 at 82f1c27ba2af41d9ade9f8f57348bf66e18f800f
-Final-E.7 - Implementation completed and validation executed; owner acceptance pending
+Final-E.7 - Implementation and owner-acceptance follow-up completed; validation executed; owner re-validation pending
 Final-F/G/H - Not started
 Phase 13 - Not started
 ```

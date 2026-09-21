@@ -191,6 +191,21 @@ export type TransactionalEmailMessages = Readonly<{
     supportDescription: string;
     closing: string;
   }>;
+  adminReviewSubmitted: Readonly<{
+    subjectPrefix: string;
+    preview: string;
+    eyebrow: string;
+    title: string;
+    introduction: string;
+    summaryTitle: string;
+    guestLabel: string;
+    ratingLabel: string;
+    submittedAtLabel: string;
+    commentTitle: string;
+    actionLabel: string;
+    actionFallback: string;
+    footer: string;
+  }>;
   additionalChargeEmailLabels: Readonly<{
     guestPaymentRequestStatuses: Readonly<{
       PENDING: string;

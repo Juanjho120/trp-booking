@@ -1747,6 +1747,7 @@ export const enMessages = {
           ADMIN_REFUND_PROCESSED: "Refund processed for administration",
           ARRIVAL_INSTRUCTIONS: "Arrival instructions",
           REVIEW_INVITATION: "Review invitation",
+          ADMIN_REVIEW_SUBMITTED: "New review for administration",
           ADMIN_NEW_RESERVATION: "New reservation for administration",
           DATE_CHANGE_PAYMENT_REQUIRED:
             "Payment required for date change",
@@ -3493,6 +3494,23 @@ export const enMessages = {
       supportDescription:
         "For assistance, reply to this email or contact us at",
       closing: "Thank you for choosing Tu Refugio Perfecto.",
+    },
+    adminReviewSubmitted: {
+      subjectPrefix: "New review received",
+      preview: "New review received for",
+      eyebrow: "Review received",
+      title: "There is a new review pending",
+      introduction:
+        "A guest submitted a review through the private link. Review the content in administration before publishing it.",
+      summaryTitle: "Review summary",
+      guestLabel: "Guest",
+      ratingLabel: "Rating",
+      submittedAtLabel: "Received",
+      commentTitle: "Comment",
+      actionLabel: "Open reviews",
+      actionFallback: "If the button does not work, open this link:",
+      footer:
+        "This notice includes only the information needed to moderate the review.",
     },
     lifecycleAdjustmentPayment: {
       guest: {

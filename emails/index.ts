@@ -1,5 +1,6 @@
 export { buildArrivalInstructionsEmail } from "./arrival-instructions-email";
 export { buildAdminNewReservationEmail } from "./admin-new-reservation-email";
+export { buildAdminReviewSubmittedEmail } from "./admin-review-submitted-email";
 export { EmailTemplateDataError } from "./template-data";
 export { buildReservationConfirmedEmail } from "./reservation-confirmed-email";
 export { buildReviewInvitationEmail } from "./review-invitation-email";

@@ -1749,6 +1749,7 @@ export const esMessages = {
             "Reembolso procesado para administración",
           ARRIVAL_INSTRUCTIONS: "Instrucciones de llegada",
           REVIEW_INVITATION: "Invitación para reseña",
+          ADMIN_REVIEW_SUBMITTED: "Nueva reseña para administración",
           ADMIN_NEW_RESERVATION: "Nueva reserva para administración",
           DATE_CHANGE_PAYMENT_REQUIRED:
             "Pago requerido para cambio de fechas",
@@ -3495,6 +3496,23 @@ export const esMessages = {
       supportDescription:
         "Si necesitas ayuda, responde a este correo o escríbenos a",
       closing: "Gracias por elegir Tu Refugio Perfecto.",
+    },
+    adminReviewSubmitted: {
+      subjectPrefix: "Nueva reseña recibida",
+      preview: "Nueva reseña recibida para",
+      eyebrow: "Reseña recibida",
+      title: "Hay una nueva reseña pendiente",
+      introduction:
+        "Un huésped envió una reseña desde el enlace privado. Revisa el contenido en administración antes de publicarla.",
+      summaryTitle: "Resumen de la reseña",
+      guestLabel: "Huésped",
+      ratingLabel: "Calificación",
+      submittedAtLabel: "Recibida",
+      commentTitle: "Comentario",
+      actionLabel: "Abrir reseñas",
+      actionFallback: "Si el botón no funciona, abre este enlace:",
+      footer:
+        "Este aviso solo contiene la información necesaria para moderar la reseña.",
     },
     lifecycleAdjustmentPayment: {
       guest: {

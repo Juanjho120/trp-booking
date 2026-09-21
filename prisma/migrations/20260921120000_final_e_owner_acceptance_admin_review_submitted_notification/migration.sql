@@ -1,0 +1,1 @@
+ALTER TYPE "email_notification_type" ADD VALUE 'ADMIN_REVIEW_SUBMITTED';

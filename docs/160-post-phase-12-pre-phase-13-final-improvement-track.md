@@ -5,7 +5,7 @@
 ```text
 Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
-Status: Active — Final-A, Final-B, Final-C and Final-D completed and accepted; Final-E is In progress with Final-E.1 through Final-E.6 completed and accepted; Final-E.7 implementation and validation completed with owner acceptance pending
+Status: Active — Final-A, Final-B, Final-C and Final-D completed and accepted; Final-E is In progress with Final-E.1 through Final-E.6 completed and accepted; Final-E.7 implementation and owner-acceptance follow-up completed with validation executed and owner re-validation pending
 Registration date: 2026-08-11
 Registration base head: dac105088d2c46be05a900abed3dfe83e608e964
 Previous gate: Phase 12 — Completed and accepted
@@ -589,7 +589,7 @@ Package: Final-D — Completed and accepted on 2026-09-18
 Implementation base head: 0839b2935fdc2349d23de6ce6b38177504e514c6
 Accepted feature head: fd75663bb28be8a95b15c341eaa51f74e521241b
 Permanent regression: npm run final-d:validate — 66/66 PASS
-Following package: Final-E — Reservation reviews and post-checkout invitation — In progress; Final-E.1 through Final-E.6 completed and accepted, Final-E.7 implementation and validation completed with owner acceptance pending
+Following package: Final-E — Reservation reviews and post-checkout invitation — In progress; Final-E.1 through Final-E.6 completed and accepted, Final-E.7 implementation and owner-acceptance follow-up completed with validation executed and owner re-validation pending
 Final-D.1 status: Completed and accepted on 2026-08-31
 Final-D.1 accepted strategy head: 3dc4fa7d81d65244a94e7e43726e2f12591e578f
 Final-D.1 record: docs/179-final-d-1-additional-charge-payment-request-strategy-and-financial-isolation-contract.md
@@ -749,9 +749,9 @@ Final-E.6 — Admin moderation and public published-review presentation — Comp
 Final-E.6 implementation base head: 2b56d43d60da3558ce692e18f4756f1c862bcb17
 Final-E.6 accepted implementation head: 82f1c27ba2af41d9ade9f8f57348bf66e18f800f
 Final-E.6 record: docs/191-final-e-6-admin-moderation-and-public-published-review-presentation.md
-Final-E.7 — Integrated regression and documentation closure — Implementation completed and validation executed; owner acceptance pending
+Final-E.7 — Integrated regression and documentation closure owner-acceptance follow-up — Implementation completed and validation executed; owner re-validation pending
 Final-E.7 implementation base head: 4df7cbc07b6ae9789a62f568d1e3ab69a808d596
-Final-E.7 permanent regression: npm run final-e:validate — 69/69 PASS
+Final-E.7 permanent regression: npm run final-e:validate — 81/81 PASS
 Final-E.7 record: docs/192-final-e-7-integrated-regression-and-documentation-closure.md
 Final-F/G/H: Not started
 Phase 13: Not started
@@ -1380,7 +1380,7 @@ Phase 13 still owns:
 Phase 12 — Completed and accepted
 Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
 Current package — Final-E Reservation reviews and post-checkout invitation — In progress
-Current subphase — Final-E.7 Integrated regression and documentation closure — Implementation completed and validation executed; owner acceptance pending
+Current subphase — Final-E.7 Integrated regression and documentation closure owner-acceptance follow-up — Implementation completed and validation executed; owner re-validation pending
 Final-D implementation base — 0839b2935fdc2349d23de6ce6b38177504e514c6
 Final-D.1 status — Completed and accepted on 2026-08-31 at 3dc4fa7d81d65244a94e7e43726e2f12591e578f
 Final-D.1 record — docs/179-final-d-1-additional-charge-payment-request-strategy-and-financial-isolation-contract.md
@@ -1430,9 +1430,9 @@ Final-E.6 — Completed and accepted on 2026-09-21 at 82f1c27ba2af41d9ade9f8f573
 Final-E.6 implementation base — 2b56d43d60da3558ce692e18f4756f1c862bcb17
 Final-E.6 accepted implementation head — 82f1c27ba2af41d9ade9f8f57348bf66e18f800f
 Final-E.6 record — docs/191-final-e-6-admin-moderation-and-public-published-review-presentation.md
-Final-E.7 — Implementation completed and validation executed; owner acceptance pending
+Final-E.7 — Implementation and owner-acceptance follow-up completed; validation executed; owner re-validation pending
 Final-E.7 implementation base — 4df7cbc07b6ae9789a62f568d1e3ab69a808d596
-Final-E.7 permanent regression — npm run final-e:validate — 69/69 PASS
+Final-E.7 permanent regression — npm run final-e:validate — 81/81 PASS
 Final-E.7 record — docs/192-final-e-7-integrated-regression-and-documentation-closure.md
 Final-C implementation base — e7ce19c49c5cfd45e1cc08796ee897a2dce0d1ed
 Final-C.1 accepted strategy head — 16d8b0411e573aaaa6b510ddb27a9b5d9c666478
@@ -1459,7 +1459,7 @@ Final-B.5 record — docs/171-final-b-5-trp-outbound-copy-rotation-and-export-co
 Final-B.6 record — docs/172-final-b-6-integrated-acceptance-regression-and-documentation-closure.md
 Last completed package — Final-D additional charges and guest payment requests — completed and accepted on 2026-09-18 at fd75663bb28be8a95b15c341eaa51f74e521241b
 Last accepted subphase — Final-E.6 Admin moderation and public published-review presentation — completed and accepted on 2026-09-21 at 82f1c27ba2af41d9ade9f8f57348bf66e18f800f
-Current subphase — Final-E.7 Integrated regression and documentation closure — Implementation completed and validation executed; owner acceptance pending
+Current subphase — Final-E.7 Integrated regression and documentation closure owner-acceptance follow-up — Implementation completed and validation executed; owner re-validation pending
 Final-A — Completed and accepted on 2026-08-12 at 66afbeacd6ee7d669cb4bc251c8416160fae3f49
 Final-B — Completed and accepted on 2026-08-25 at 1fe06de8c55ab1563999b2db1d210bfc9a82c613
 Final-B.1 — Completed and accepted on 2026-08-14 at 2627161d5b3960995be0f517682f84272431c291
@@ -1491,8 +1491,8 @@ Final-E.3 — Completed and accepted on 2026-09-18 at c67d2a59a8bec9ba84ca36c37f
 Final-E.4 — Completed and accepted on 2026-09-18 at e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1
 Final-E.5 — Completed and accepted on 2026-09-21 at f37f4802219aeb80d10f92b406e0a4847b10f15d
 Final-E.6 — Completed and accepted on 2026-09-21 at 82f1c27ba2af41d9ade9f8f57348bf66e18f800f
-Final-E.7 — Implementation completed and validation executed; owner acceptance pending
-Final-E.7 permanent regression — npm run final-e:validate — 69/69 PASS
+Final-E.7 — Implementation and owner-acceptance follow-up completed; validation executed; owner re-validation pending
+Final-E.7 permanent regression — npm run final-e:validate — 81/81 PASS
 Final-F — Not started
 Final-G — Not started
 Final-H — Not started

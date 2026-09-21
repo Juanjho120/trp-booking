@@ -37,6 +37,12 @@ export {
   scheduleReviewInvitations,
 } from "./review-invitation-notifications";
 export {
+  buildAdminReviewSubmittedNotificationKey,
+  createAdminReviewSubmittedNotificationIntents,
+  deliverClaimedReviewSubmittedEmailNotification,
+  isReviewSubmittedNotificationType,
+} from "./review-submitted-notifications";
+export {
   createReservationConfirmationNotificationIntents,
   deliverClaimedEmailNotification,
   deliverPendingEmailNotificationsBestEffort,

@@ -30,6 +30,10 @@ import {
   deliverClaimedReviewInvitationEmailNotification,
   isReviewInvitationNotificationType,
 } from "./review-invitation-notifications";
+import {
+  deliverClaimedReviewSubmittedEmailNotification,
+  isReviewSubmittedNotificationType,
+} from "./review-submitted-notifications";
 import { createResendEmailProvider } from "./resend-provider";
 import {
   EMAIL_NOTIFICATION_MAX_ATTEMPTS,
@@ -333,6 +337,14 @@ export async function processEmailNotifications(
             })
           : isReviewInvitationNotificationType(candidate.type)
             ? await deliverClaimedReviewInvitationEmailNotification({
+                claim: retryClaim.claim,
+                provider,
+                publicBaseUrl: emailEnv.publicBaseUrl,
+                brandLogoUrl: emailEnv.brandLogoUrl,
+                now,
+              })
+          : isReviewSubmittedNotificationType(candidate.type)
+            ? await deliverClaimedReviewSubmittedEmailNotification({
                 claim: retryClaim.claim,
                 provider,
                 publicBaseUrl: emailEnv.publicBaseUrl,

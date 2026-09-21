@@ -3,6 +3,9 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 import {
+  EmailNotificationOrigin,
+  EmailNotificationStatus,
+  EmailNotificationType,
   Prisma,
   ReservationStatus,
   ReviewInvitationStatus,
@@ -35,6 +38,12 @@ const ROOT = process.cwd();
 const E5_NOW = new Date("2026-09-21T18:00:00.000Z");
 const E5_TOKEN = "abcdef1234567890".repeat(4);
 const E5_TOKEN_HASH = hashReviewInvitationAccessToken(E5_TOKEN);
+const E5_ADMIN_SOURCE = {
+  TRP_ENVIRONMENT: "test",
+  EMAIL_ADMIN_RECIPIENTS:
+    " Admin@Example.com, second@example.com, admin@example.com, not-an-email ",
+  EMAIL_ADMIN_LOCALE: "en",
+} as NodeJS.ProcessEnv;
 
 type MutableReview = {
   id: string;
@@ -81,16 +90,49 @@ type MutableReservation = {
   review: { id: string } | null;
 };
 
+type MutableNotification = {
+  id: string;
+  reservationId: string;
+  lifecycleRequestId: string | null;
+  refundId: string | null;
+  guestPaymentRequestId: string | null;
+  reviewInvitationId: string | null;
+  type: EmailNotificationType;
+  recipient: string;
+  locale: string;
+  deduplicationKey: string;
+  origin: EmailNotificationOrigin;
+  status: EmailNotificationStatus;
+  scheduledFor: Date | null;
+  nextAttemptAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+type MutableNotificationIntentData = Omit<
+  MutableNotification,
+  | "id"
+  | "lifecycleRequestId"
+  | "refundId"
+  | "guestPaymentRequestId"
+  | "reviewInvitationId"
+  | "createdAt"
+  | "updatedAt"
+>;
+
 type E5Store = {
   reservations: MutableReservation[];
   invitations: MutableInvitation[];
   reviews: MutableReview[];
+  notifications: MutableNotification[];
   auditLogs: unknown[];
   nextReview: number;
+  nextNotification: number;
 };
 
 type E5ClientOptions = Readonly<{
   failReviewCreate?: boolean;
+  failNotificationIntent?: boolean;
   onTransactionAttempt?: () => void;
   serializationConflictsBeforeSuccess?: number;
   uniqueRaceOnReviewCreate?: boolean;
@@ -133,13 +175,29 @@ function cloneReview(review: MutableReview): MutableReview {
   };
 }
 
+function cloneNotification(notification: MutableNotification): MutableNotification {
+  return {
+    ...notification,
+    scheduledFor: notification.scheduledFor
+      ? cloneDate(notification.scheduledFor)
+      : null,
+    nextAttemptAt: notification.nextAttemptAt
+      ? cloneDate(notification.nextAttemptAt)
+      : null,
+    createdAt: cloneDate(notification.createdAt),
+    updatedAt: cloneDate(notification.updatedAt),
+  };
+}
+
 function snapshotStore(store: E5Store): E5Store {
   return {
     reservations: store.reservations.map(cloneReservation),
     invitations: store.invitations.map(cloneInvitation),
     reviews: store.reviews.map(cloneReview),
+    notifications: store.notifications.map(cloneNotification),
     auditLogs: [...store.auditLogs],
     nextReview: store.nextReview,
+    nextNotification: store.nextNotification,
   };
 }
 
@@ -147,8 +205,10 @@ function restoreStore(store: E5Store, snapshot: E5Store): void {
   store.reservations = snapshot.reservations.map(cloneReservation);
   store.invitations = snapshot.invitations.map(cloneInvitation);
   store.reviews = snapshot.reviews.map(cloneReview);
+  store.notifications = snapshot.notifications.map(cloneNotification);
   store.auditLogs = [...snapshot.auditLogs];
   store.nextReview = snapshot.nextReview;
+  store.nextNotification = snapshot.nextNotification;
 }
 
 function buildReservation(
@@ -230,8 +290,10 @@ function createStore(
     reservations: [reservation],
     invitations: [invitation],
     reviews: review ? [review] : [],
+    notifications: [],
     auditLogs: [],
     nextReview: review ? 2 : 1,
+    nextNotification: 1,
   };
 }
 
@@ -308,6 +370,29 @@ function addExternalWinnerReview(store: E5Store): void {
 
   store.reviews.push(review);
   reservation.review = { id: review.id };
+}
+
+function insertNotificationIntent(
+  store: E5Store,
+  data: MutableNotificationIntentData,
+): MutableNotification {
+  const notification: MutableNotification = {
+    ...data,
+    id: `review-submitted-notification-e5-${store.nextNotification}`,
+    lifecycleRequestId: null,
+    refundId: null,
+    guestPaymentRequestId: null,
+    reviewInvitationId: null,
+    scheduledFor: data.scheduledFor ?? null,
+    nextAttemptAt: data.nextAttemptAt ?? null,
+    createdAt: E5_NOW,
+    updatedAt: E5_NOW,
+  };
+
+  store.nextNotification += 1;
+  store.notifications.push(notification);
+
+  return notification;
 }
 
 function makeClient(store: E5Store, options: E5ClientOptions = {}): PrismaClient {
@@ -394,6 +479,36 @@ function makeClient(store: E5Store, options: E5ClientOptions = {}): PrismaClient
         }
 
         return review;
+      },
+    },
+    emailNotification: {
+      async createMany(args: {
+        data: MutableNotificationIntentData;
+        skipDuplicates?: boolean;
+      }) {
+        if (options.failNotificationIntent) {
+          throw new Error("ADMIN_REVIEW_SUBMITTED_INTENT_FAILED");
+        }
+
+        const existing = store.notifications.find(
+          (notification) =>
+            notification.deduplicationKey === args.data.deduplicationKey,
+        );
+
+        if (existing) {
+          return { count: 0 };
+        }
+
+        insertNotificationIntent(store, args.data);
+        return { count: 1 };
+      },
+      async findUnique(args: { where: { deduplicationKey: string } }) {
+        return (
+          store.notifications.find(
+            (notification) =>
+              notification.deduplicationKey === args.where.deduplicationKey,
+          ) ?? null
+        );
       },
     },
     adminAuditLog: {
@@ -730,6 +845,135 @@ test("E.5 POST atomically creates Review and consumes the invitation", async () 
   assert.equal(invitation.accessTokenEncrypted, null);
   assert.equal(invitation.accessTokenHash, E5_TOKEN_HASH);
   assert.equal(store.auditLogs.length, 0);
+});
+
+test("Final-E follow-up creates ADMIN_REVIEW_SUBMITTED intents for normalized admin recipients", async () => {
+  const store = createStore();
+  const client = makeClient(store);
+  const result = await submitReviewSubmission(
+    E5_TOKEN,
+    { rating: 5, comment: "Great stay", locale: "en" },
+    { now: E5_NOW, prismaClient: client, source: E5_ADMIN_SOURCE },
+  );
+  const review = store.reviews[0];
+
+  assert.deepEqual(Object.keys(result), ["outcome"]);
+  assert.equal(result.outcome, "submitted");
+  assert.equal(store.notifications.length, 2);
+  assert.deepEqual(
+    store.notifications.map((notification) => notification.recipient).sort(),
+    ["admin@example.com", "second@example.com"],
+  );
+
+  for (const notification of store.notifications) {
+    assert.equal(notification.reservationId, "reservation-e5-1");
+    assert.equal(notification.type, EmailNotificationType.ADMIN_REVIEW_SUBMITTED);
+    assert.equal(notification.locale, "en");
+    assert.equal(notification.origin, EmailNotificationOrigin.AUTOMATIC);
+    assert.equal(notification.status, EmailNotificationStatus.PENDING);
+    assert.equal(notification.reviewInvitationId, null);
+    assert.equal(notification.guestPaymentRequestId, null);
+    assert.equal(notification.lifecycleRequestId, null);
+    assert.equal(notification.refundId, null);
+    assert.equal(
+      notification.deduplicationKey,
+      `admin-review-submitted/${review.id}/${notification.recipient}`,
+    );
+  }
+});
+
+test("Final-E follow-up rolls back Review and invitation consumption when admin intent creation fails", async () => {
+  const store = createStore();
+  const client = makeClient(store, { failNotificationIntent: true });
+
+  await assertSubmissionError(
+    submitReviewSubmission(
+      E5_TOKEN,
+      { rating: 5, comment: "Great", locale: "en" },
+      { now: E5_NOW, prismaClient: client, source: E5_ADMIN_SOURCE },
+    ),
+    "REVIEW_SUBMISSION_UNEXPECTED_ERROR",
+  );
+
+  assert.equal(store.reviews.length, 0);
+  assert.equal(store.notifications.length, 0);
+  assert.equal(store.invitations[0].status, ReviewInvitationStatus.ACTIVE);
+  assert.equal(store.invitations[0].consumedAt, null);
+  assert.equal(store.invitations[0].accessTokenEncrypted, "encrypted-review-token");
+});
+
+test("Final-E follow-up replay reuses the submitted Review without duplicate admin intents", async () => {
+  const store = createStore();
+  const client = makeClient(store);
+  const source = {
+    TRP_ENVIRONMENT: "test",
+    EMAIL_ADMIN_RECIPIENTS: "admin@example.com",
+    EMAIL_ADMIN_LOCALE: "es",
+  } as NodeJS.ProcessEnv;
+  const first = await submitReviewSubmission(
+    E5_TOKEN,
+    { rating: 5, comment: "Winner", locale: "en" },
+    { now: E5_NOW, prismaClient: client, source },
+  );
+  const second = await submitReviewSubmission(
+    E5_TOKEN,
+    { rating: 1, comment: "Loser edit attempt", locale: "en" },
+    { now: new Date(E5_NOW.getTime() + 1_000), prismaClient: client, source },
+  );
+
+  assert.equal(first.outcome, "submitted");
+  assert.equal(second.outcome, "already-submitted");
+  assert.equal(store.reviews.length, 1);
+  assert.equal(store.notifications.length, 1);
+  assert.equal(store.notifications[0].recipient, "admin@example.com");
+  assert.equal(store.notifications[0].locale, "es");
+});
+
+test("Final-E follow-up concurrent submissions create one Review and one intent per admin recipient", async () => {
+  const store = createStore();
+  const client = makeClient(store);
+  const [first, second] = await Promise.all([
+    submitReviewSubmission(
+      E5_TOKEN,
+      { rating: 4, comment: "First payload", locale: "en" },
+      { now: E5_NOW, prismaClient: client, source: E5_ADMIN_SOURCE },
+    ),
+    submitReviewSubmission(
+      E5_TOKEN,
+      { rating: 2, comment: "Second payload", locale: "en" },
+      { now: E5_NOW, prismaClient: client, source: E5_ADMIN_SOURCE },
+    ),
+  ]);
+
+  assert.deepEqual(
+    [first.outcome, second.outcome].sort(),
+    ["already-submitted", "submitted"],
+  );
+  assert.equal(store.reviews.length, 1);
+  assert.equal(store.invitations[0].status, ReviewInvitationStatus.CONSUMED);
+  assert.equal(store.notifications.length, 2);
+  assert.deepEqual(
+    store.notifications.map((notification) => notification.recipient).sort(),
+    ["admin@example.com", "second@example.com"],
+  );
+});
+
+test("Final-E follow-up admin intent creation does not couple submission to moderation", async () => {
+  const store = createStore();
+  const client = makeClient(store);
+  const result = await submitReviewSubmission(
+    E5_TOKEN,
+    { rating: 5, comment: "Pending moderation", locale: "en" },
+    { now: E5_NOW, prismaClient: client, source: E5_ADMIN_SOURCE },
+  );
+  const review = store.reviews[0];
+
+  assert.deepEqual(result, { outcome: "submitted" });
+  assert.equal(review.moderationStatus, ReviewModerationStatus.PENDING);
+  assert.equal(review.publishedAt, null);
+  assert.equal(review.moderatedAt, null);
+  assert.equal(review.moderatedByAdminId, null);
+  assert.equal(store.notifications.length, 2);
 });
 
 test("E.5 POST rolls back invitation consumption when Review creation fails", async () => {

@@ -4,7 +4,6 @@ import {
   ReservationStatus,
   type Prisma,
 } from "@prisma/client";
-import { z } from "zod";
 
 import {
   buildAdminNewReservationEmail,
@@ -12,7 +11,6 @@ import {
   buildReservationConfirmedEmail,
   EmailTemplateDataError,
 } from "@/emails";
-import { environmentConfig } from "@/config/site";
 import { prisma } from "@/lib/db/prisma";
 import { getEmailEnv } from "@/lib/env/server";
 import type { EmailProvider } from "@/types/email-provider";
@@ -40,12 +38,7 @@ import {
 import { parseFinalCPricingSnapshot } from "@/lib/pricing";
 import { enMessages, esMessages } from "@/messages";
 
-const recipientSchema = z
-  .string()
-  .trim()
-  .email()
-  .max(160)
-  .transform((value) => value.toLowerCase());
+import { resolveAdminNotificationRouting } from "./admin-notification-routing";
 
 const SAFE_DELIVERY_ERROR_MESSAGES: Readonly<
   Record<EmailNotificationDeliveryErrorCode, string>
@@ -94,11 +87,6 @@ type ReservationForNotificationIntent = Readonly<{
   preferredLocale: string;
 }>;
 
-type ReservationNotificationRouting = Readonly<{
-  adminRecipients: readonly string[];
-  adminLocale: "es" | "en";
-}>;
-
 type ImmediateDeliveryOptions = Readonly<{
   source?: NodeJS.ProcessEnv;
   provider?: EmailProvider;
@@ -115,37 +103,6 @@ function normalizeRecipient(value: string): string {
 
 function normalizeLocale(value: string): "es" | "en" | null {
   return value === "es" || value === "en" ? value : null;
-}
-
-function getConfiguredAdminRecipients(source: NodeJS.ProcessEnv): string[] {
-  const configuredRecipients = source.EMAIL_ADMIN_RECIPIENTS?.split(",") ?? [];
-  const validRecipients = configuredRecipients.flatMap((recipient) => {
-    const parsedRecipient = recipientSchema.safeParse(recipient);
-
-    return parsedRecipient.success ? [parsedRecipient.data] : [];
-  });
-
-  return Array.from(new Set(validRecipients));
-}
-
-function getEnvironmentAdminFallback(source: NodeJS.ProcessEnv): string {
-  return source.TRP_ENVIRONMENT === "production"
-    ? environmentConfig.production.adminEmail
-    : environmentConfig.test.adminEmail;
-}
-
-function resolveReservationNotificationRouting(
-  source: NodeJS.ProcessEnv = process.env,
-): ReservationNotificationRouting {
-  const configuredRecipients = getConfiguredAdminRecipients(source);
-
-  return {
-    adminRecipients:
-      configuredRecipients.length > 0
-        ? configuredRecipients
-        : [getEnvironmentAdminFallback(source)],
-    adminLocale: source.EMAIL_ADMIN_LOCALE === "en" ? "en" : "es",
-  };
 }
 
 function buildDeduplicationKey(
@@ -215,7 +172,7 @@ export async function createReservationConfirmationNotificationIntents(
   reservation: ReservationForNotificationIntent,
   source: NodeJS.ProcessEnv = process.env,
 ): Promise<readonly ReservationConfirmationNotificationIntent[]> {
-  const routing = resolveReservationNotificationRouting(source);
+  const routing = resolveAdminNotificationRouting(source);
   const guestLocale = normalizeLocale(reservation.preferredLocale) ?? "es";
   const intents: ReservationConfirmationNotificationIntent[] = [];
 
