@@ -161,6 +161,12 @@ Implementation completed;
 owner Sandbox/Hosted Test inbound + admin-inbox validation and explicit acceptance pending
 ```
 
+Technical dependency cleanup before owner acceptance declared `libphonenumber-js` as a direct npm
+dependency because `lib/reservations/phone-normalization.ts` imports `libphonenumber-js/core` and
+`libphonenumber-js/metadata.min.json` directly for country-aware Reservation phone normalization.
+This did not change matching behavior, admin inbox behavior, schema, migrations, provider code, or
+the Final-F.4 acceptance status.
+
 ## Hosted Test Admin Inbox Tabs UX Correction
 
 Owner Hosted Test validation confirmed that candidate Reservation discovery now works, including
