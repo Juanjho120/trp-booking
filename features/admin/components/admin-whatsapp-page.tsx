@@ -13,7 +13,12 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocale } from "@/features/i18n";
+import {
+  formatWhatsAppReservationsTabLabel,
+  getDisplayedWhatsAppReservationCount,
+} from "@/lib/admin/whatsapp-display";
 import type {
   AdminWhatsAppConversationSummary,
   AdminWhatsAppErrorCode,
@@ -33,6 +38,9 @@ type AdminWhatsAppCopy = ReturnType<
 type MarkReadResponse =
   | Readonly<{ conversation: AdminWhatsAppConversationSummary }>
   | Readonly<{ error: { code: AdminWhatsAppErrorCode | string } }>;
+
+const WHATSAPP_CHAT_TAB = "chat";
+const WHATSAPP_RESERVATIONS_TAB = "reservations";
 
 function getIntlLocale(locale: Locale): string {
   return locale === "en" ? "en-US" : "es-GT";
@@ -356,6 +364,11 @@ function ConversationPanel({
   onMarkRead: (conversationId: string) => Promise<void>;
   propertyName: string;
 }>) {
+  const reservationsTabLabel = formatWhatsAppReservationsTabLabel(
+    copy.tabs.reservations,
+    getDisplayedWhatsAppReservationCount(conversation),
+  );
+
   return (
     <div className="flex min-h-[34rem] flex-col">
       <div className="border-b border-border px-5 py-4">
@@ -410,38 +423,70 @@ function ConversationPanel({
             </Button>
           </div>
         </div>
-        <p className="mt-4 text-xs text-muted-foreground">
-          {copy.descriptionNoReply}
-        </p>
-        <CandidateReservationSection
-          conversation={conversation}
-          copy={copy}
-          formatDate={formatDate}
-        />
       </div>
 
-      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto bg-muted/20 px-4 py-4">
-        {messages.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-border bg-background px-4 py-10 text-center text-sm text-muted-foreground">
-            {copy.empty.noMessages}
+      <Tabs
+        className="flex min-h-0 flex-1 flex-col"
+        defaultValue={WHATSAPP_CHAT_TAB}
+        key={conversation.id}
+      >
+        <div className="border-b border-border px-5 py-3">
+          <TabsList className="grid w-full grid-cols-2 sm:w-fit">
+            <TabsTrigger
+              className="min-h-10 min-w-0 px-2 sm:px-3"
+              value={WHATSAPP_CHAT_TAB}
+            >
+              {copy.tabs.chat}
+            </TabsTrigger>
+            <TabsTrigger
+              className="min-h-10 min-w-0 px-2 sm:px-3"
+              value={WHATSAPP_RESERVATIONS_TAB}
+            >
+              {reservationsTabLabel}
+            </TabsTrigger>
+          </TabsList>
+        </div>
+
+        <TabsContent
+          className="m-0 flex min-h-0 flex-1 flex-col data-[state=inactive]:hidden"
+          value={WHATSAPP_CHAT_TAB}
+        >
+          <div className="border-b border-border px-5 py-3">
+            <p className="text-xs text-muted-foreground">
+              {copy.descriptionNoReply}
+            </p>
           </div>
-        ) : (
-          messages.map((message) => (
-            <MessageBubble
-              copy={copy}
-              formatDateTime={formatDateTime}
-              key={message.id}
-              message={message}
-            />
-          ))
-        )}
-      </div>
+          <div className="min-h-0 flex-1 space-y-3 overflow-y-auto bg-muted/20 px-4 py-4">
+            {messages.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-border bg-background px-4 py-10 text-center text-sm text-muted-foreground">
+                {copy.empty.noMessages}
+              </div>
+            ) : (
+              messages.map((message) => (
+                <MessageBubble
+                  copy={copy}
+                  formatDateTime={formatDateTime}
+                  key={message.id}
+                  message={message}
+                />
+              ))
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent
+          className="m-0 min-h-0 flex-1 overflow-y-auto bg-muted/20 px-4 py-4 data-[state=inactive]:hidden"
+          value={WHATSAPP_RESERVATIONS_TAB}
+        >
+          <CandidateReservationSection
+            conversation={conversation}
+            copy={copy}
+            formatDate={formatDate}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
-}
-
-function formatCountLabel(value: string, count: number): string {
-  return value.replace("{count}", String(count));
 }
 
 function candidatePropertyName(
@@ -451,6 +496,10 @@ function candidatePropertyName(
   return locale === "en"
     ? reservation.property.nameEn
     : reservation.property.nameEs;
+}
+
+function formatCountLabel(value: string, count: number): string {
+  return value.replace("{count}", String(count));
 }
 
 function reservationStatusLabel(
@@ -479,7 +528,7 @@ function CandidateReservationSection({
 
   if (linkedReservation) {
     return (
-      <div className="mt-4 space-y-3">
+      <div className="space-y-3">
         <CandidateReservationGroup
           copy={copy}
           formatDate={formatDate}
@@ -505,29 +554,31 @@ function CandidateReservationSection({
 
   if (conversation.candidateReservations.length === 0) {
     return (
-      <div className="mt-4 rounded-lg border border-dashed border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+      <div className="rounded-lg border border-dashed border-border bg-background px-4 py-10 text-center text-sm text-muted-foreground">
         {copy.empty.noAssociatedReservations}
       </div>
     );
   }
 
-  return (
-    <div className="mt-4">
-      <CandidateReservationGroup
+  if (conversation.candidateReservations.length > 1) {
+    return (
+      <CandidateReservationGrid
         copy={copy}
         formatDate={formatDate}
         locale={locale}
         reservations={conversation.candidateReservations}
-        title={
-          conversation.candidateReservations.length === 1
-            ? copy.sections.possibleReservation
-            : formatCountLabel(
-                copy.sections.associatedReservations,
-                conversation.candidateReservations.length,
-              )
-        }
       />
-    </div>
+    );
+  }
+
+  return (
+    <CandidateReservationGroup
+      copy={copy}
+      formatDate={formatDate}
+      locale={locale}
+      reservations={conversation.candidateReservations}
+      title={copy.sections.possibleReservation}
+    />
   );
 }
 
@@ -547,18 +598,39 @@ function CandidateReservationGroup({
   return (
     <section className="space-y-2">
       <h3 className="text-sm font-semibold text-foreground">{title}</h3>
-      <div className="grid gap-2">
-        {reservations.map((reservation) => (
-          <CandidateReservationCard
-            copy={copy}
-            formatDate={formatDate}
-            key={reservation.id}
-            locale={locale}
-            reservation={reservation}
-          />
-        ))}
-      </div>
+      <CandidateReservationGrid
+        copy={copy}
+        formatDate={formatDate}
+        locale={locale}
+        reservations={reservations}
+      />
     </section>
+  );
+}
+
+function CandidateReservationGrid({
+  copy,
+  formatDate,
+  locale,
+  reservations,
+}: Readonly<{
+  copy: AdminWhatsAppCopy;
+  formatDate: (value: string) => string;
+  locale: Locale;
+  reservations: readonly AdminWhatsAppReservationSummary[];
+}>) {
+  return (
+    <div className="grid gap-2">
+      {reservations.map((reservation) => (
+        <CandidateReservationCard
+          copy={copy}
+          formatDate={formatDate}
+          key={reservation.id}
+          locale={locale}
+          reservation={reservation}
+        />
+      ))}
+    </div>
   );
 }
 

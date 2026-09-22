@@ -683,6 +683,10 @@ export const esMessages = {
         "Revisa mensajes entrantes de huéspedes y su posible vínculo seguro con reservaciones.",
       descriptionNoReply:
         "Final-F.4 es sólo lectura operativa. Las respuestas desde el panel se habilitarán en una subfase posterior.",
+      tabs: {
+        chat: "Chat",
+        reservations: "Reservaciones asociadas ({count})",
+      },
       sections: {
         conversations: "Conversaciones",
         linkedReservation: "Reservación vinculada",

@@ -683,6 +683,10 @@ export const enMessages = {
         "Review inbound guest messages and their safe optional reservation linkage.",
       descriptionNoReply:
         "Final-F.4 is read-only for operations. Admin replies will be enabled in a later subphase.",
+      tabs: {
+        chat: "Chat",
+        reservations: "Associated reservations ({count})",
+      },
       sections: {
         conversations: "Conversations",
         linkedReservation: "Linked reservation",

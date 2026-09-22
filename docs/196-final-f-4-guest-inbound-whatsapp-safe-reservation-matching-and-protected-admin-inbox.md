@@ -161,6 +161,57 @@ Implementation completed;
 owner Sandbox/Hosted Test inbound + admin-inbox validation and explicit acceptance pending
 ```
 
+## Hosted Test Admin Inbox Tabs UX Correction
+
+Owner Hosted Test validation confirmed that candidate Reservation discovery now works, including
+multiple associated Reservations for the same guest phone. The remaining UX issue was that the
+selected conversation panel stacked the common conversation header, all candidate Reservation cards,
+and the full chat history in one vertical flow, making `/admin/whatsapp` excessively tall whenever
+several Reservations share the phone.
+
+This correction keeps the common conversation header always visible outside tab-specific content:
+
+```text
+- guest WhatsApp phone;
+- linked/unlinked badge;
+- linked property summary when applicable;
+- last inbound timestamp;
+- 24-hour service-window expiry;
+- protected Open reservation action when linked;
+- protected Mark as read action.
+```
+
+Below that header, the selected conversation now reuses the shared `components/ui/tabs.tsx`
+implementation with exactly two tabs:
+
+```text
+1. Chat
+2. Reservaciones asociadas (N) / Associated reservations (N)
+```
+
+The Chat tab is selected by default and contains the read-only no-reply note plus the existing
+latest-100 chronological message history, including empty state, timestamps, statuses, and media
+indicators. Switching from one conversation to another resets the tab lifecycle to Chat using the
+selected `conversation.id` as the component boundary; tab state is not stored in the database and no
+tab query parameter is introduced.
+
+The Associated Reservations tab always displays the total unique Reservation count in the tab label,
+including `(0)`. The count is derived from unique IDs across `candidateReservations` plus the linked
+`conversation.reservation` when present, so a linked Reservation duplicated in the candidate list is
+counted once. A linked Reservation whose phone no longer matches the current candidate set is still
+shown and counted because it remains the persisted association for the conversation. Zero candidates
+still show the existing safe empty state.
+
+No reservation matching, inbound persistence, Twilio signature validation, MessageSid idempotency,
+staff sender discrimination, status callback behavior, schema, migration, provider call, outbound
+WhatsApp, reply composer, manual link/unlink/reassign, staff alert, Zoho behavior, cron, or Final-F.5
+behavior changed. Final-F.4 remains:
+
+```text
+Implementation completed;
+owner Sandbox/Hosted Test validation and explicit acceptance pending
+```
+
 ## Explicitly Not Implemented
 
 Final-F.4 does not add:
@@ -210,7 +261,7 @@ Executable validation completed:
 
 ```text
 npx tsx --tsconfig tests/final-f/tsconfig.json tests/final-f/run.ts
-Result: PASS — 47/47 tests
+Result: PASS — 49/49 tests
 Note: the same command failed inside the managed sandbox before loading project code with uv_os_get_passwd ENOMEM; it passed when rerun outside the sandbox with the same working tree.
 
 npm run db:generate

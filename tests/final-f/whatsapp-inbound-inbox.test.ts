@@ -9,10 +9,17 @@ import {
   getAdminWhatsAppPage,
   markAdminWhatsAppConversationRead,
 } from "@/lib/admin/whatsapp";
+import {
+  formatWhatsAppReservationsTabLabel,
+  getDisplayedWhatsAppReservationCount,
+} from "@/lib/admin/whatsapp-display";
 import { normalizeReservationPhone } from "@/lib/reservations/phone-normalization";
 import {
   processInboundWhatsAppWebhook,
 } from "@/lib/twilio/inbound-whatsapp";
+import { enMessages } from "@/messages/en";
+import { esMessages } from "@/messages/es";
+import type { AdminWhatsAppReservationSummary } from "@/types/admin-whatsapp";
 import {
   type TwilioWebhookPayload,
   validateTwilioWebhookRequest,
@@ -621,6 +628,24 @@ function expectPersisted(result: Awaited<ReturnType<typeof processWithFake>>) {
   assert.ok("conversationId" in result);
   assert.ok("messageId" in result);
   return result;
+}
+
+function reservationSummary(id: string): AdminWhatsAppReservationSummary {
+  return {
+    id,
+    guestName: `Guest ${id}`,
+    guestPhone: "+50255551234",
+    property: {
+      id: `property-${id}`,
+      nameEs: `Alojamiento ${id}`,
+      nameEn: `Property ${id}`,
+    },
+    checkInDate: "2026-10-10T00:00:00.000Z",
+    checkOutDate: "2026-10-12T00:00:00.000Z",
+    status: "CONFIRMED",
+    confirmedAt: "2026-09-22T10:00:00.000Z",
+    createdAt: "2026-09-22T12:00:00.000Z",
+  };
 }
 
 test("F.4 persists a valid signed inbound webhook after F.2 signature validation", async () => {
@@ -1265,6 +1290,89 @@ test("F.4 admin read model exposes safe conversation/message data without provid
   assert.equal(serialized.includes("SM11111111111111111111111111111111"), false);
 });
 
+test("F.4 admin WhatsApp reservation tab labels resolve with unique displayed Reservation counts", () => {
+  const linked = reservationSummary("reservation-linked");
+  const candidateA = reservationSummary("reservation-a");
+  const candidateB = reservationSummary("reservation-b");
+  const esTemplate = esMessages.admin.whatsappPage.tabs.reservations;
+  const enTemplate = enMessages.admin.whatsappPage.tabs.reservations;
+
+  assert.equal(esTemplate.includes("{count}"), true);
+  assert.equal(enTemplate.includes("{count}"), true);
+  assert.equal(formatWhatsAppReservationsTabLabel(esTemplate, 0), "Reservaciones asociadas (0)");
+  assert.equal(formatWhatsAppReservationsTabLabel(esTemplate, 1), "Reservaciones asociadas (1)");
+  assert.equal(formatWhatsAppReservationsTabLabel(enTemplate, 4), "Associated reservations (4)");
+  assert.equal(
+    getDisplayedWhatsAppReservationCount({
+      reservation: null,
+      candidateReservations: [],
+    }),
+    0,
+  );
+  assert.equal(
+    getDisplayedWhatsAppReservationCount({
+      reservation: null,
+      candidateReservations: [candidateA],
+    }),
+    1,
+  );
+  assert.equal(
+    getDisplayedWhatsAppReservationCount({
+      reservation: null,
+      candidateReservations: [candidateA, candidateB],
+    }),
+    2,
+  );
+  assert.equal(
+    getDisplayedWhatsAppReservationCount({
+      reservation: linked,
+      candidateReservations: [linked, candidateA],
+    }),
+    2,
+  );
+  assert.equal(
+    getDisplayedWhatsAppReservationCount({
+      reservation: linked,
+      candidateReservations: [],
+    }),
+    1,
+  );
+});
+
+test("F.4 admin WhatsApp panel uses the shared Tabs component to separate chat from reservation candidates", () => {
+  const component = read("features/admin/components/admin-whatsapp-page.tsx");
+  const tabsImport =
+    'import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";';
+  const tabsTriggerCount = component.match(/<TabsTrigger/g)?.length ?? 0;
+  const tabsContentCount = component.match(/<TabsContent/g)?.length ?? 0;
+  const chatContentIndex = component.indexOf(
+    'className="m-0 flex min-h-0 flex-1 flex-col data-[state=inactive]:hidden"',
+  );
+  const reservationsContentIndex = component.indexOf(
+    'className="m-0 min-h-0 flex-1 overflow-y-auto bg-muted/20 px-4 py-4 data-[state=inactive]:hidden"',
+  );
+  const descriptionIndex = component.indexOf("copy.descriptionNoReply");
+  const messageHistoryIndex = component.indexOf("messages.map((message)");
+  const candidatesIndex = component.indexOf("<CandidateReservationSection");
+
+  assert.equal(component.includes(tabsImport), true);
+  assert.equal(component.includes("radix-ui"), false);
+  assert.equal(tabsTriggerCount, 2);
+  assert.equal(tabsContentCount, 2);
+  assert.equal(component.includes("copy.tabs.chat"), true);
+  assert.equal(component.includes("formatWhatsAppReservationsTabLabel"), true);
+  assert.equal(component.includes("getDisplayedWhatsAppReservationCount"), true);
+  assert.equal(component.includes("defaultValue={WHATSAPP_CHAT_TAB}"), true);
+  assert.equal(component.includes("key={conversation.id}"), true);
+  assert.ok(chatContentIndex >= 0);
+  assert.ok(reservationsContentIndex > chatContentIndex);
+  assert.ok(descriptionIndex > chatContentIndex);
+  assert.ok(messageHistoryIndex > chatContentIndex);
+  assert.ok(messageHistoryIndex < reservationsContentIndex);
+  assert.ok(candidatesIndex > reservationsContentIndex);
+  assert.equal(component.includes("<textarea"), false);
+});
+
 test("F.4 admin WhatsApp navigation and i18n are centralized, with no reply composer", () => {
   const adminShell = read("features/admin/components/admin-shell.tsx");
   const component = read("features/admin/components/admin-whatsapp-page.tsx");
@@ -1275,6 +1383,8 @@ test("F.4 admin WhatsApp navigation and i18n are centralized, with no reply comp
   assert.equal(adminShell.includes('key: "whatsapp"'), true);
   assert.equal(es.includes("whatsappPage"), true);
   assert.equal(en.includes("whatsappPage"), true);
+  assert.equal(es.includes("Reservaciones asociadas ({count})"), true);
+  assert.equal(en.includes("Associated reservations ({count})"), true);
   assert.equal(component.includes("<textarea"), false);
   assert.equal(component.includes("messages.admin.whatsappPage"), true);
 });
