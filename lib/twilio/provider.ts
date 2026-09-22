@@ -7,9 +7,11 @@ export const TWILIO_STATUS_WEBHOOK_PATH = "/api/twilio/whatsapp/status";
 
 const TWILIO_SIGNATURE_HEADER = "x-twilio-signature";
 const DEFAULT_PROBE_BODY = "TRP Booking Twilio Sandbox onboarding probe.";
-const OUTBOUND_BODY_MAX_LENGTH = 320;
+const PROBE_BODY_MAX_LENGTH = 320;
+export const WHATSAPP_FREEFORM_BODY_MAX_LENGTH = 1600;
 const SAFE_DIAGNOSTIC_VALUE_MAX_LENGTH = 160;
 const TWILIO_ACCOUNT_SID_PATTERN = /^AC[0-9a-fA-F]{32}$/;
+const TWILIO_MESSAGE_SID_PATTERN = /^(SM|MM)[0-9a-fA-F]{32}$/;
 const WHATSAPP_E164_PATTERN = /^\+[1-9]\d{7,14}$/;
 const TRP_ENVIRONMENTS = new Set(["local", "test", "production"]);
 
@@ -108,15 +110,15 @@ export type TwilioSafeWebhookDiagnostics = Readonly<{
   extraParamCount: number;
 }>;
 
-type TwilioMessageClient = Readonly<{
+export type TwilioMessageClient = Readonly<{
   messages: Readonly<{
     create: (
-      input: TwilioSandboxProbeMessage,
+      input: TwilioOutboundMessageRequest,
     ) => Promise<Readonly<{ sid?: string | null; status?: string | null }>>;
   }>;
 }>;
 
-type TwilioSandboxProbeMessage = Readonly<{
+type TwilioOutboundMessageRequest = Readonly<{
   from: `whatsapp:${string}`;
   to: `whatsapp:${string}`;
   body: string;
@@ -132,6 +134,20 @@ export type SendTwilioSandboxProbeOptions = Readonly<{
 
 export type TwilioSandboxProbeResult = Readonly<{
   providerMessageId: string | null;
+  providerStatus: string | null;
+  statusCallbackUrl: string | null;
+}>;
+
+export type SendTwilioWhatsAppFreeformMessageOptions = Readonly<{
+  to: string;
+  body: string;
+  statusCallbackUrl?: string | null;
+  source?: NodeJS.ProcessEnv;
+  client?: TwilioMessageClient;
+}>;
+
+export type TwilioWhatsAppFreeformMessageResult = Readonly<{
+  providerMessageSid: string;
   providerStatus: string | null;
   statusCallbackUrl: string | null;
 }>;
@@ -650,7 +666,17 @@ export function normalizeTwilioProviderError(error: unknown): TwilioProviderErro
 function normalizeOutboundProbeBody(body?: string): string {
   const normalized = (body ?? DEFAULT_PROBE_BODY).trim();
 
-  if (!normalized || normalized.length > OUTBOUND_BODY_MAX_LENGTH) {
+  if (!normalized || normalized.length > PROBE_BODY_MAX_LENGTH) {
+    throw new TwilioProviderError("TWILIO_PROVIDER_INVALID_REQUEST");
+  }
+
+  return normalized;
+}
+
+function normalizeOutboundFreeformBody(body: string): string {
+  const normalized = body.trim();
+
+  if (!normalized || normalized.length > WHATSAPP_FREEFORM_BODY_MAX_LENGTH) {
     throw new TwilioProviderError("TWILIO_PROVIDER_INVALID_REQUEST");
   }
 
@@ -692,6 +718,41 @@ export async function sendTwilioSandboxProviderProbe(
 
     return {
       providerMessageId: response.sid ?? null,
+      providerStatus: response.status ?? null,
+      statusCallbackUrl,
+    };
+  } catch (error) {
+    throw normalizeTwilioProviderError(error);
+  }
+}
+
+export async function sendTwilioWhatsAppFreeformMessage(
+  options: SendTwilioWhatsAppFreeformMessageOptions,
+): Promise<TwilioWhatsAppFreeformMessageResult> {
+  const config = requireTwilioProviderConfig(options.source ?? process.env);
+  const to = normalizeTwilioWhatsappAddress(options.to);
+  const body = normalizeOutboundFreeformBody(options.body);
+  const statusCallbackUrl =
+    options.statusCallbackUrl === undefined
+      ? resolveStatusCallbackUrl(config)
+      : options.statusCallbackUrl;
+  const client = options.client ?? createTwilioClient(config);
+
+  try {
+    const response = await client.messages.create({
+      from: config.whatsappFrom,
+      to,
+      body,
+      ...(statusCallbackUrl ? { statusCallback: statusCallbackUrl } : {}),
+    });
+    const providerMessageSid = response.sid?.trim() ?? "";
+
+    if (!TWILIO_MESSAGE_SID_PATTERN.test(providerMessageSid)) {
+      throw new TwilioProviderError("TWILIO_PROVIDER_UNEXPECTED_ERROR", true);
+    }
+
+    return {
+      providerMessageSid,
       providerStatus: response.status ?? null,
       statusCallbackUrl,
     };

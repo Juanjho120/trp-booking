@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { validateTwilioWebhookRequest } from "@/lib/twilio/provider";
+import { processTwilioWhatsAppStatusCallback } from "@/lib/twilio/whatsapp-status";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -23,5 +24,11 @@ export async function POST(request: Request): Promise<NextResponse> {
     return errorResponse(validation.errorCode, validation.httpStatus);
   }
 
-  return new NextResponse(null, { status: 204, headers: NO_STORE_HEADERS });
+  try {
+    await processTwilioWhatsAppStatusCallback(validation.payload);
+
+    return new NextResponse(null, { status: 204, headers: NO_STORE_HEADERS });
+  } catch {
+    return errorResponse("TWILIO_STATUS_CALLBACK_UNEXPECTED_ERROR", 500);
+  }
 }

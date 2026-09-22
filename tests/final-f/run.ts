@@ -1,5 +1,6 @@
 import "./twilio-provider-foundation.test";
 import "./whatsapp-inbound-inbox.test";
+import "./whatsapp-outbound-status.test";
 import "./whatsapp-persistence-foundation.test";
 
 import { runFinalFTests } from "./harness";

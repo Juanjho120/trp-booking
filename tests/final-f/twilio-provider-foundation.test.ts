@@ -273,7 +273,7 @@ test("F.2 inbound route returns empty Messaging TwiML only after a valid signatu
   });
 });
 
-test("F.2 status callback route returns no content only after a valid signature", async () => {
+test("F.5 status callback route validates Twilio signature before processing", async () => {
   await withTwilioRouteEnv(async () => {
     const url = "https://trp-booking.juantzun.dev/api/twilio/whatsapp/status";
     const body = new URLSearchParams({
@@ -281,12 +281,6 @@ test("F.2 status callback route returns no content only after a valid signature"
       MessageStatus: "delivered",
       To: "whatsapp:+15005550001",
     });
-    const response = await statusPost(formRequest(url, body, url));
-
-    assert.equal(response.status, 204);
-    assert.equal(response.headers.get("cache-control"), "no-store, max-age=0");
-    assert.equal(await response.text(), "");
-
     const invalid = await statusPost(
       formRequest(url, body, url, "not-a-valid-signature"),
     );
@@ -296,6 +290,14 @@ test("F.2 status callback route returns no content only after a valid signature"
       error: { code: "TWILIO_WEBHOOK_SIGNATURE_INVALID" },
     });
   });
+
+  const routeSource = await import("node:fs").then(({ readFileSync }) =>
+    readFileSync("app/api/twilio/whatsapp/status/route.ts", "utf8"),
+  );
+  assert.ok(
+    routeSource.indexOf("validateTwilioWebhookRequest") <
+      routeSource.indexOf("processTwilioWhatsAppStatusCallback"),
+  );
 });
 
 test("F.2 Sandbox provider probe is Local/Test only and uses an injected client in tests", async () => {

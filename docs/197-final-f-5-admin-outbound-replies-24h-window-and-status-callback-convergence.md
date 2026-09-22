@@ -1,0 +1,258 @@
+# Final-F.5 — Admin Outbound Replies, 24-Hour Service Window and Status Callbacks
+
+## Record
+
+```text
+Project: TRP Booking
+Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
+Package: Final-F — Twilio WhatsApp communication and staff alerts
+Subphase: Final-F.5 — Admin outbound replies, 24-hour service-window enforcement and Twilio status callbacks
+Status: Implementation completed; owner Sandbox/Hosted Test outbound reply + status convergence validation and explicit acceptance pending
+Implementation date: 2026-09-22
+Implementation base head: 29e29283e002b11d4275465f05f4785d70eae3df
+Accepted Final-F.1 strategy head: d5db6a2605a03e75db7c16238a43cd5f79dde6d8
+Accepted Final-F.2 provider/onboarding head: 03861cb2d5daef7cca8bb759d16a0ef050d86b41
+Accepted Final-F.3 persistence foundation head: f0a465349b5217f7318146ad5b2de13f1d641a13
+Accepted Final-F.4 admin inbox head: 7912b233f5cc8b8aa726f17aeb30eaa7d15ae291
+F.5 migration: 20260922210000_final_f_5_whatsapp_outbound_idempotency
+Migration count before F.5: 24
+Migration count after F.5: 25
+Permanent Final-F gate: not introduced
+Final-F targeted validation: 60/60 PASS
+Owner acceptance: Pending
+Final-F.6: Next / Not started
+Final-F.7 through Final-F.8: Not started
+Final-G/H: Not started
+Phase 13: Not started
+```
+
+## Scope Implemented
+
+Final-F.5 activates only the accepted outbound admin-reply branch for existing
+WhatsApp conversations.
+
+Implemented runtime:
+
+```text
+- Protected POST /api/admin/whatsapp/conversations/[conversationId]/messages.
+- Admin authorization through getAdminSessionActor().
+- Same-origin mutation guard through isValidAdminMutationOrigin().
+- Body-only free-form replies; no media and no client-selected recipient.
+- Server-side recipient resolution from WhatsAppConversation.guestPhoneE164.
+- Twilio sender resolution from TWILIO_WHATSAPP_FROM.
+- 1600-character maximum after boundary trimming; internal whitespace is preserved.
+- Server-enforced 24-hour customer-service window from lastInboundAt + 24 hours.
+- Exactly 24 hours after lastInboundAt is closed.
+- customerServiceWindowExpiresAt remains display/reconciliation evidence, not authorization.
+- Unlinked conversations may receive replies when the window is open.
+- Outbound replies update lastMessageAt only.
+- Outbound replies do not update lastInboundAt, customerServiceWindowStartedAt,
+  customerServiceWindowExpiresAt, or unreadCount.
+```
+
+The admin inbox now exposes:
+
+```text
+- freeformReplyAllowed;
+- freeformWindowExpiresAt;
+- a reply composer at the bottom of the Chat tab;
+- disabled/closed-window UX with the accepted template boundary explanation;
+- success clearing + router.refresh() after the server accepts the send attempt.
+```
+
+## Persistence and Idempotency
+
+The additive F.5 migration adds:
+
+```text
+WhatsAppMessage.clientRequestId String? @unique @map("client_request_id") @db.VarChar(120)
+```
+
+Database migration:
+
+```text
+20260922210000_final_f_5_whatsapp_outbound_idempotency
+```
+
+The migration adds nullable `client_request_id`, a nonblank check when present, and a unique index.
+Inbound messages keep `clientRequestId = null`. Admin outbound messages require a nonblank
+`clientRequestId`.
+
+Accepted idempotency behavior:
+
+```text
+- Same clientRequestId + same conversationId + same normalized body reuses the existing row.
+- Reused identical submissions do not create another WhatsAppMessage.
+- Reused identical submissions do not call Twilio again.
+- Same clientRequestId with different conversationId or body is rejected.
+- Provider calls happen after the short database transaction commits.
+- Provider failure keeps the durable outbound row and marks it FAILED with safe error evidence.
+```
+
+## Provider Flow
+
+`lib/twilio/provider.ts` now includes `sendTwilioWhatsAppFreeformMessage()`.
+
+Provider behavior:
+
+```text
+- Reuses server-side Twilio config resolution and WhatsApp address normalization.
+- Sends from TWILIO_WHATSAPP_FROM.
+- Sends to whatsapp:{WhatsAppConversation.guestPhoneE164}.
+- Includes the canonical status callback URL when TWILIO_WEBHOOK_BASE_URL is configured.
+- Validates provider MessageSid as ^(SM|MM)[0-9a-fA-F]{32}$.
+- Treats missing/invalid provider MessageSid as a provider failure and does not persist it.
+- Maps accepted/sending/queued to QUEUED, sent to SENT, delivered to DELIVERED,
+  read to READ, failed to FAILED, and undelivered to UNDELIVERED.
+```
+
+`sendTwilioSandboxProviderProbe()` remains unchanged in scope and still enforces the F.2
+Local/Test-only onboarding probe boundary.
+
+## Status Callback Convergence
+
+`POST /api/twilio/whatsapp/status` now keeps F.2 signature validation first, then invokes the F.5
+outbound status convergence service.
+
+Callback policy:
+
+```text
+- Invalid/missing signature and provider configuration errors keep the F.2 error behavior.
+- Valid signed callbacks return 204 for processed, ignored, unknown, or duplicate provider events.
+- Unknown provider MessageSid returns 204 without creating rows.
+- Inbound WhatsAppMessage rows are ignored.
+- No raw webhook payload, raw params JSON, ChannelStatusMessage, raw Twilio text, signature,
+  Auth Token, or credentials are persisted.
+- Temporary database failure after valid signature validation returns 5xx for Twilio retry.
+```
+
+Status convergence:
+
+```text
+- QUEUED -> SENT -> DELIVERED -> READ may progress and may jump forward.
+- READ never regresses.
+- DELIVERED does not regress to SENT or QUEUED.
+- SENT does not regress to QUEUED.
+- FAILED and UNDELIVERED are terminal for later ordinary success callbacks.
+- Duplicate same-status callbacks are harmless.
+- sentAt, deliveredAt, readAt, and failedAt are set when that callback class is first observed.
+- Failure callbacks persist safe errorCode when available and a safe internal errorMessage.
+```
+
+## Protected Admin UX
+
+The `/admin/whatsapp` Chat tab now includes the reply composer below the latest-100 message history.
+
+The closed-window message is:
+
+```text
+ES: La ventana de 24 horas está cerrada. Para volver a contactar al huésped se requiere una plantilla de WhatsApp aprobada.
+EN: The 24-hour window is closed. Contacting the guest again requires an approved WhatsApp template.
+```
+
+No template selector, template send action, bypass, manual reservation linking, or optimistic fake
+provider status was added.
+
+## Explicitly Not Implemented
+
+Final-F.5 does not add:
+
+```text
+- Final-F.6 operational staff WhatsApp alerts.
+- StaffWhatsAppAlert creation or delivery.
+- GUEST_WHATSAPP_RECEIVED staff alert dispatch.
+- Retry worker or retry cron for outbound admin replies.
+- WhatsApp Content Template sending.
+- Sending outside the 24-hour window.
+- Manual conversation/reservation link, unlink, or reassignment.
+- Zoho inbound email ingestion.
+- Outbound WhatsApp campaign/bulk messaging.
+- Production sender purchase/registration, WABA/Meta onboarding, Production credentials, or template submission.
+- Vercel cron registration.
+- Permanent npm run final-f:validate gate.
+- Final-F.6 through Final-F.8, Final-G/H, or Phase 13.
+```
+
+`vercel.json` remains:
+
+```json
+{
+  "crons": []
+}
+```
+
+## Hosted Test Acceptance Steps
+
+Owner Sandbox / Hosted Test validation still needs to confirm:
+
+```text
+- an inbound Sandbox guest message opens the 24-hour free-form window;
+- /admin/whatsapp shows the reply composer while the window is open;
+- an admin free-form reply sends through Twilio Sandbox;
+- the outbound WhatsAppMessage is created as OUTBOUND with clientRequestId;
+- a repeated clientRequestId does not create a duplicate row or duplicate Twilio send;
+- status callbacks converge the outbound row through queued/sent/delivered/read or failure;
+- stale/duplicate status callbacks do not regress status;
+- a closed 24-hour window disables free-form replies and shows the accepted template boundary copy;
+- no template send flow exists in F.5;
+- Final-F.6 remains Not started.
+```
+
+## Validation Record
+
+Executable validation completed:
+
+```text
+npm run db:format
+Result: PASS — Prisma schema formatted
+Note: Prisma emitted the existing package.json#prisma deprecation warning.
+
+npm run db:generate
+Result: PASS — Prisma Client generated successfully
+Note: Prisma emitted the existing package.json#prisma deprecation warning.
+
+npx tsx --tsconfig tests/final-f/tsconfig.json tests/final-f/run.ts
+Result: PASS — 60/60 tests
+Note: the same command failed inside the managed sandbox before loading project code with uv_os_get_passwd ENOMEM; it passed when rerun outside the sandbox with the same working tree. It was rerun after the final type-narrowing fix and remained 60/60 PASS.
+
+npm run db:validate
+Result: PASS — Prisma schema valid
+Note: Prisma emitted the existing package.json#prisma deprecation warning.
+
+npm run db:migrate:deploy
+Result: PASS — 25 migrations found; applied 20260922210000_final_f_5_whatsapp_outbound_idempotency
+Note: the same command failed inside the managed sandbox with a Prisma Schema engine error before rerun outside the sandbox.
+
+npm run db:migrate:status
+Result: PASS — 25 migrations found; database schema is up to date
+Note: the same command failed inside the managed sandbox with a Prisma Schema engine error before rerun outside the sandbox.
+
+npm run final-d:validate
+Result: PASS — 66/66 tests
+
+npm run final-e:validate
+Result: PASS — 88/88 tests
+
+npm run lint
+Result: PASS
+Note: lint was rerun after the final type-narrowing fix.
+
+npm run build
+Result: PASS
+Note: initial sandboxed build failed because Next/Turbopack could not fetch Google Fonts. The first network-enabled rerun reached type-check and found a real conversationId narrowing issue, which was fixed. The final network-enabled rerun compiled, type-checked, and generated static pages successfully, including /admin/whatsapp and /api/admin/whatsapp/conversations/[conversationId]/messages.
+
+git diff --check
+Result: PASS
+Note: Git emitted working-copy LF/CRLF warnings only; no whitespace errors were reported.
+```
+
+## Owner Acceptance Status
+
+Owner Sandbox / Hosted Test outbound reply + status convergence validation and explicit acceptance
+remain pending. Final-F.5 must not be marked accepted until that validation is completed by the
+owner.
+
+## Next Subphase
+
+Final-F.6 — Operational staff WhatsApp alerts — is the next planned subphase, but remains Not
+started until explicitly requested.

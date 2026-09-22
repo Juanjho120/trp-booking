@@ -150,4 +150,5 @@ export {
   AdminWhatsAppError,
   getAdminWhatsAppPage,
   markAdminWhatsAppConversationRead,
+  sendAdminWhatsAppConversationMessage,
 } from "./whatsapp";

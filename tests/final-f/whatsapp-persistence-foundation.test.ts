@@ -9,12 +9,17 @@ const FOUNDATION_MIGRATION_NAME =
   "20260922170000_final_f_3_whatsapp_persistence_foundation";
 const CORRECTIVE_MIGRATION_NAME =
   "20260922193000_final_f_3_correct_twilio_message_sid_constraints";
+const OUTBOUND_IDEMPOTENCY_MIGRATION_NAME =
+  "20260922210000_final_f_5_whatsapp_outbound_idempotency";
 const SCHEMA = read("prisma/schema.prisma");
 const MIGRATION = read(
   `prisma/migrations/${FOUNDATION_MIGRATION_NAME}/migration.sql`,
 );
 const CORRECTIVE_MIGRATION = read(
   `prisma/migrations/${CORRECTIVE_MIGRATION_NAME}/migration.sql`,
+);
+const OUTBOUND_IDEMPOTENCY_MIGRATION = read(
+  `prisma/migrations/${OUTBOUND_IDEMPOTENCY_MIGRATION_NAME}/migration.sql`,
 );
 const PACKAGE_JSON = read("package.json");
 const VERCEL_JSON = read("vercel.json");
@@ -221,7 +226,7 @@ test("F.3 corrective migration enforces the accepted Twilio MessageSid contract"
   assert.equal(legacyContract.test(`MM${"a".repeat(32)}`), false);
 });
 
-test("F.3 message persistence has bounded fields and no raw webhook payload column", () => {
+test("F.5 adds nullable outbound clientRequestId idempotency without raw payload storage", () => {
   const conversation = schemaBlock("model", "WhatsAppConversation");
   const message = schemaBlock("model", "WhatsAppMessage");
   const alert = schemaBlock("model", "StaffWhatsAppAlert");
@@ -230,6 +235,7 @@ test("F.3 message persistence has bounded fields and no raw webhook payload colu
     "customerServiceWindowStartedAt",
     "customerServiceWindowExpiresAt",
     "providerMessageSid",
+    "clientRequestId",
     "mediaCount",
     "mediaMetadata",
     "attemptCount",
@@ -249,6 +255,30 @@ test("F.3 message persistence has bounded fields and no raw webhook payload colu
   expectExcludes(message, "webhookPayload");
   expectExcludes(alert, "rawPayload");
   expectExcludes(alert, "webhookPayload");
+
+  expectIncludes(
+    message,
+    '@unique @map("client_request_id") @db.VarChar(120)',
+  );
+  expectIncludes(
+    OUTBOUND_IDEMPOTENCY_MIGRATION,
+    'ADD COLUMN "client_request_id" VARCHAR(120)',
+  );
+  expectIncludes(
+    OUTBOUND_IDEMPOTENCY_MIGRATION,
+    '"whatsapp_messages_client_request_id_check"',
+  );
+  expectIncludes(
+    OUTBOUND_IDEMPOTENCY_MIGRATION,
+    'CREATE UNIQUE INDEX "whatsapp_messages_client_request_id_key"',
+  );
+
+  assert.equal(
+    /^\s*(INSERT\s+INTO|UPDATE\s+"|DELETE\s+FROM|TRUNCATE\s+)/imu.test(
+      OUTBOUND_IDEMPOTENCY_MIGRATION,
+    ),
+    false,
+  );
 });
 
 test("F.3 migration creates only the four dormant WhatsApp persistence tables", () => {
@@ -269,18 +299,19 @@ test("F.3 migration creates only the four dormant WhatsApp persistence tables", 
   }
 });
 
-test("F.4 activates signed inbound persistence while status callbacks remain ACK-only", () => {
+test("F.5 activates signed status callback convergence without inbound coupling", () => {
   expectIncludes(INBOUND_ROUTE, "validateTwilioWebhookRequest");
   expectIncludes(INBOUND_ROUTE, "processInboundWhatsAppWebhook");
   expectIncludes(INBOUND_ROUTE, "<Response></Response>");
 
   expectIncludes(STATUS_ROUTE, "validateTwilioWebhookRequest");
+  expectIncludes(STATUS_ROUTE, "processTwilioWhatsAppStatusCallback");
   expectExcludes(STATUS_ROUTE, "processInboundWhatsAppWebhook");
   expectExcludes(STATUS_ROUTE, "prisma");
   expectExcludes(STATUS_ROUTE, "WhatsAppConversation");
-  expectExcludes(STATUS_ROUTE, "WhatsAppMessage");
   expectExcludes(STATUS_ROUTE, "StaffWhatsAppAlert");
   expectExcludes(STATUS_ROUTE, "StaffWhatsAppRecipient");
+  expectExcludes(STATUS_ROUTE, "ChannelStatusMessage");
   expectIncludes(STATUS_ROUTE, "status: 204");
 });
 

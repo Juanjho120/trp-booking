@@ -1096,7 +1096,7 @@ test("F.4 inbound persistence does not create StaffWhatsAppAlert rows yet", asyn
   );
 });
 
-test("F.4 keeps status callbacks signed ACK-only with no WhatsApp persistence", async () => {
+test("F.5 routes signed status callbacks to the outbound convergence service", async () => {
   await withTwilioRouteEnv(async () => {
     const url = "https://trp-booking.juantzun.dev/api/twilio/whatsapp/status";
     const body = new URLSearchParams({
@@ -1104,15 +1104,25 @@ test("F.4 keeps status callbacks signed ACK-only with no WhatsApp persistence", 
       MessageStatus: "delivered",
       To: "whatsapp:+15005550001",
     });
-    const response = await statusPost(formRequest(url, body, url));
+    const response = await statusPost(
+      formRequest(url, body, url, "not-a-valid-signature"),
+    );
 
-    assert.equal(response.status, 204);
-    assert.equal(await response.text(), "");
+    assert.equal(response.status, 403);
   });
 
   const statusRoute = read("app/api/twilio/whatsapp/status/route.ts");
+  assert.equal(statusRoute.includes("validateTwilioWebhookRequest"), true);
+  assert.equal(
+    statusRoute.includes("processTwilioWhatsAppStatusCallback"),
+    true,
+  );
+  assert.ok(
+    statusRoute.indexOf("validateTwilioWebhookRequest") <
+      statusRoute.indexOf("processTwilioWhatsAppStatusCallback"),
+  );
   assert.equal(statusRoute.includes("processInboundWhatsAppWebhook"), false);
-  assert.equal(statusRoute.includes("whatsAppMessage"), false);
+  assert.equal(statusRoute.includes("ChannelStatusMessage"), false);
 });
 
 test("F.4 mark-read operation explicitly sets unread count to zero and is idempotent", async () => {
@@ -1279,12 +1289,17 @@ test("F.4 admin read model exposes safe conversation/message data without provid
 
   const data = await getAdminWhatsAppPage(
     { conversationId: fake.conversations[0].id, page: 1 },
-    { prismaClient: fake as never },
+    { now: NOW, prismaClient: fake as never },
   );
   const serialized = JSON.stringify(data);
 
   assert.equal(data.conversations.length, 1);
   assert.equal(data.selectedConversation?.reservation?.id, "reservation-safe");
+  assert.equal(data.selectedConversation?.freeformReplyAllowed, true);
+  assert.equal(
+    data.selectedConversation?.freeformWindowExpiresAt,
+    WINDOW_EXPIRES.toISOString(),
+  );
   assert.equal(data.messages.length, 1);
   assert.equal(data.messages[0].body, "Hola, necesito ayuda con mi reserva.");
   assert.equal(serialized.includes("SM11111111111111111111111111111111"), false);
@@ -1339,7 +1354,7 @@ test("F.4 admin WhatsApp reservation tab labels resolve with unique displayed Re
   );
 });
 
-test("F.4 admin WhatsApp panel uses the shared Tabs component to separate chat from reservation candidates", () => {
+test("F.5 admin WhatsApp panel uses shared Tabs and a bounded reply composer", () => {
   const component = read("features/admin/components/admin-whatsapp-page.tsx");
   const tabsImport =
     'import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";';
@@ -1351,7 +1366,7 @@ test("F.4 admin WhatsApp panel uses the shared Tabs component to separate chat f
   const reservationsContentIndex = component.indexOf(
     'className="m-0 min-h-0 flex-1 overflow-y-auto bg-muted/20 px-4 py-4 data-[state=inactive]:hidden"',
   );
-  const descriptionIndex = component.indexOf("copy.descriptionNoReply");
+  const descriptionIndex = component.indexOf("copy.descriptionReply");
   const messageHistoryIndex = component.indexOf("messages.map((message)");
   const candidatesIndex = component.indexOf("<CandidateReservationSection");
 
@@ -1370,10 +1385,13 @@ test("F.4 admin WhatsApp panel uses the shared Tabs component to separate chat f
   assert.ok(messageHistoryIndex > chatContentIndex);
   assert.ok(messageHistoryIndex < reservationsContentIndex);
   assert.ok(candidatesIndex > reservationsContentIndex);
-  assert.equal(component.includes("<textarea"), false);
+  assert.equal(component.includes("<ReplyComposer"), true);
+  assert.equal(component.includes("<textarea"), true);
+  assert.equal(component.includes("WHATSAPP_REPLY_MAX_LENGTH = 1600"), true);
+  assert.equal(component.includes("clientRequestId"), true);
 });
 
-test("F.4 admin WhatsApp navigation and i18n are centralized, with no reply composer", () => {
+test("F.5 admin WhatsApp navigation and reply copy are centralized", () => {
   const adminShell = read("features/admin/components/admin-shell.tsx");
   const component = read("features/admin/components/admin-whatsapp-page.tsx");
   const es = read("messages/es.ts");
@@ -1385,6 +1403,18 @@ test("F.4 admin WhatsApp navigation and i18n are centralized, with no reply comp
   assert.equal(en.includes("whatsappPage"), true);
   assert.equal(es.includes("Reservaciones asociadas ({count})"), true);
   assert.equal(en.includes("Associated reservations ({count})"), true);
-  assert.equal(component.includes("<textarea"), false);
+  assert.equal(
+    es.includes(
+      "La ventana de 24 horas está cerrada. Para volver a contactar al huésped se requiere una plantilla de WhatsApp aprobada.",
+    ),
+    true,
+  );
+  assert.equal(
+    en.includes(
+      "The 24-hour window is closed. Contacting the guest again requires an approved WhatsApp template.",
+    ),
+    true,
+  );
+  assert.equal(component.includes("copy.reply.windowClosed"), true);
   assert.equal(component.includes("messages.admin.whatsappPage"), true);
 });

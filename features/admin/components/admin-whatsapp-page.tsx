@@ -7,6 +7,7 @@ import {
   ExternalLink,
   MessageCircle,
   Paperclip,
+  Send,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -39,17 +40,31 @@ type MarkReadResponse =
   | Readonly<{ conversation: AdminWhatsAppConversationSummary }>
   | Readonly<{ error: { code: AdminWhatsAppErrorCode | string } }>;
 
+type SendMessageResponse =
+  | Readonly<{
+      message: AdminWhatsAppMessageSummary;
+      deliveryAttempted: boolean;
+    }>
+  | Readonly<{ error: { code: AdminWhatsAppErrorCode | string } }>;
+
 const WHATSAPP_CHAT_TAB = "chat";
 const WHATSAPP_RESERVATIONS_TAB = "reservations";
+const WHATSAPP_REPLY_MAX_LENGTH = 1600;
 
 function getIntlLocale(locale: Locale): string {
   return locale === "en" ? "en-US" : "es-GT";
 }
 
 function isErrorResponse(
-  response: MarkReadResponse,
+  response: MarkReadResponse | SendMessageResponse,
 ): response is { error: { code: string } } {
   return "error" in response;
+}
+
+function createClientRequestId(): string {
+  return typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
 export function AdminWhatsAppPageView({
@@ -62,6 +77,9 @@ export function AdminWhatsAppPageView({
   const [busyConversationId, setBusyConversationId] = useState<string | null>(
     null,
   );
+  const [sendingConversationId, setSendingConversationId] = useState<
+    string | null
+  >(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -153,6 +171,53 @@ export function AdminWhatsAppPageView({
       setErrorMessage(copy.errors.ADMIN_WHATSAPP_UNEXPECTED_ERROR);
     } finally {
       setBusyConversationId(null);
+    }
+  }
+
+  async function sendMessage(
+    conversationId: string,
+    body: string,
+  ): Promise<boolean> {
+    setSendingConversationId(conversationId);
+    setSuccessMessage(null);
+    setErrorMessage(null);
+
+    try {
+      const response = await fetch(
+        `/api/admin/whatsapp/conversations/${encodeURIComponent(
+          conversationId,
+        )}/messages`,
+        {
+          method: "POST",
+          headers: {
+            accept: "application/json",
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({
+            body,
+            clientRequestId: createClientRequestId(),
+          }),
+        },
+      );
+      const payload = (await response.json()) as SendMessageResponse;
+
+      if (!response.ok || isErrorResponse(payload)) {
+        const code = isErrorResponse(payload)
+          ? payload.error.code
+          : "ADMIN_WHATSAPP_UNEXPECTED_ERROR";
+        setErrorMessage(resolveError(code));
+        router.refresh();
+        return false;
+      }
+
+      setSuccessMessage(copy.feedback.messageSent);
+      router.refresh();
+      return true;
+    } catch {
+      setErrorMessage(copy.errors.ADMIN_WHATSAPP_UNEXPECTED_ERROR);
+      return false;
+    } finally {
+      setSendingConversationId(null);
     }
   }
 
@@ -258,7 +323,11 @@ export function AdminWhatsAppPageView({
                 formatDateTime={formatDateTime}
                 messages={data.messages}
                 onMarkRead={markRead}
+                onSendMessage={sendMessage}
                 propertyName={propertyName(data.selectedConversation)}
+                sending={
+                  sendingConversationId === data.selectedConversation.id
+                }
               />
             ) : (
               <div className="flex min-h-[24rem] flex-col items-center justify-center gap-3 px-6 py-12 text-center">
@@ -353,7 +422,9 @@ function ConversationPanel({
   formatDateTime,
   messages,
   onMarkRead,
+  onSendMessage,
   propertyName,
+  sending,
 }: Readonly<{
   busy: boolean;
   conversation: AdminWhatsAppConversationSummary;
@@ -362,7 +433,9 @@ function ConversationPanel({
   formatDateTime: (value: string | null) => string;
   messages: readonly AdminWhatsAppMessageSummary[];
   onMarkRead: (conversationId: string) => Promise<void>;
+  onSendMessage: (conversationId: string, body: string) => Promise<boolean>;
   propertyName: string;
+  sending: boolean;
 }>) {
   const reservationsTabLabel = formatWhatsAppReservationsTabLabel(
     copy.tabs.reservations,
@@ -398,7 +471,7 @@ function ConversationPanel({
               </span>
               <span>
                 {copy.labels.windowExpires}:{" "}
-                {formatDateTime(conversation.customerServiceWindowExpiresAt)}
+                {formatDateTime(conversation.freeformWindowExpiresAt)}
               </span>
             </div>
           </div>
@@ -453,7 +526,7 @@ function ConversationPanel({
         >
           <div className="border-b border-border px-5 py-3">
             <p className="text-xs text-muted-foreground">
-              {copy.descriptionNoReply}
+              {copy.descriptionReply}
             </p>
           </div>
           <div className="min-h-0 flex-1 space-y-3 overflow-y-auto bg-muted/20 px-4 py-4">
@@ -472,6 +545,13 @@ function ConversationPanel({
               ))
             )}
           </div>
+          <ReplyComposer
+            conversation={conversation}
+            copy={copy}
+            disabled={sending}
+            maxLength={WHATSAPP_REPLY_MAX_LENGTH}
+            onSendMessage={onSendMessage}
+          />
         </TabsContent>
 
         <TabsContent
@@ -485,6 +565,103 @@ function ConversationPanel({
           />
         </TabsContent>
       </Tabs>
+    </div>
+  );
+}
+
+function formatCharacterCount(pattern: string, count: number, max: number): string {
+  return pattern.replace("{count}", String(count)).replace("{max}", String(max));
+}
+
+function ReplyComposer({
+  conversation,
+  copy,
+  disabled,
+  maxLength,
+  onSendMessage,
+}: Readonly<{
+  conversation: AdminWhatsAppConversationSummary;
+  copy: AdminWhatsAppCopy;
+  disabled: boolean;
+  maxLength: number;
+  onSendMessage: (conversationId: string, body: string) => Promise<boolean>;
+}>) {
+  const [body, setBody] = useState("");
+  const normalizedLength = body.trim().length;
+  const canSend =
+    conversation.freeformReplyAllowed &&
+    !disabled &&
+    normalizedLength > 0 &&
+    normalizedLength <= maxLength;
+  const composerId = `whatsapp-reply-${conversation.id}`;
+  const helperId = `${composerId}-helper`;
+
+  async function submitMessage(): Promise<void> {
+    if (!canSend) {
+      return;
+    }
+
+    const sent = await onSendMessage(conversation.id, body);
+
+    if (sent) {
+      setBody("");
+    }
+  }
+
+  if (!conversation.freeformReplyAllowed) {
+    return (
+      <div className="border-t border-border bg-background px-5 py-4">
+        <p className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">
+          {copy.reply.windowClosed}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="border-t border-border bg-background px-5 py-4">
+      <label
+        className="text-sm font-medium text-foreground"
+        htmlFor={composerId}
+      >
+        {copy.reply.label}
+      </label>
+      <textarea
+        aria-describedby={helperId}
+        className="mt-2 min-h-24 w-full resize-y rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20 disabled:cursor-not-allowed disabled:opacity-60"
+        disabled={disabled}
+        id={composerId}
+        maxLength={maxLength}
+        onChange={(event) => setBody(event.target.value)}
+        placeholder={copy.reply.placeholder}
+        value={body}
+      />
+      <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <p
+          className={[
+            "text-xs",
+            normalizedLength > maxLength
+              ? "text-destructive"
+              : "text-muted-foreground",
+          ].join(" ")}
+          id={helperId}
+        >
+          {formatCharacterCount(
+            copy.reply.characterCount,
+            normalizedLength,
+            maxLength,
+          )}
+        </p>
+        <Button
+          disabled={!canSend}
+          onClick={() => void submitMessage()}
+          size="sm"
+          type="button"
+        >
+          <Send aria-hidden="true" />
+          {disabled ? copy.actions.sendingReply : copy.actions.sendReply}
+        </Button>
+      </div>
     </div>
   );
 }

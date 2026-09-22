@@ -681,8 +681,8 @@ export const esMessages = {
       title: "Bandeja de WhatsApp",
       description:
         "Revisa mensajes entrantes de huéspedes y su posible vínculo seguro con reservaciones.",
-      descriptionNoReply:
-        "Final-F.4 es sólo lectura operativa. Las respuestas desde el panel se habilitarán en una subfase posterior.",
+      descriptionReply:
+        "Responde al huésped desde la ventana operativa de WhatsApp sin exponer datos administrativos.",
       tabs: {
         chat: "Chat",
         reservations: "Reservaciones asociadas ({count})",
@@ -712,12 +712,21 @@ export const esMessages = {
         status: "Estado",
         phone: "Teléfono",
       },
+      reply: {
+        label: "Respuesta",
+        placeholder: "Escribe una respuesta para el huésped.",
+        characterCount: "{count}/{max} caracteres",
+        windowClosed:
+          "La ventana de 24 horas está cerrada. Para volver a contactar al huésped se requiere una plantilla de WhatsApp aprobada.",
+      },
       actions: {
         previous: "Anterior",
         next: "Siguiente",
         openReservation: "Abrir reserva",
         markRead: "Marcar como leído",
         markingRead: "Marcando...",
+        sendReply: "Enviar respuesta",
+        sendingReply: "Enviando...",
         dismiss: "Cerrar notificación",
       },
       directions: {
@@ -738,6 +747,7 @@ export const esMessages = {
       },
       feedback: {
         markedRead: "La conversación fue marcada como leída.",
+        messageSent: "La respuesta de WhatsApp quedó registrada.",
       },
       empty: {
         noConversations: "Todavía no hay conversaciones de WhatsApp.",
@@ -766,6 +776,14 @@ export const esMessages = {
           "No pudimos procesar la solicitud de WhatsApp.",
         ADMIN_WHATSAPP_CONVERSATION_NOT_FOUND:
           "No encontramos la conversación solicitada.",
+        ADMIN_WHATSAPP_MESSAGE_REQUIRED:
+          "Escribe una respuesta antes de enviar.",
+        ADMIN_WHATSAPP_MESSAGE_TOO_LONG:
+          "La respuesta supera el límite permitido.",
+        ADMIN_WHATSAPP_FREEFORM_WINDOW_CLOSED:
+          "La ventana de 24 horas está cerrada. Para volver a contactar al huésped se requiere una plantilla de WhatsApp aprobada.",
+        ADMIN_WHATSAPP_IDEMPOTENCY_CONFLICT:
+          "Esta solicitud de envío ya fue usada con otro contenido. Actualiza la vista e intenta de nuevo.",
         ADMIN_WHATSAPP_UNEXPECTED_ERROR:
           "No pudimos actualizar la conversación. Inténtalo de nuevo.",
       },

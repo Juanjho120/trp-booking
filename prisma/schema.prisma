@@ -1007,6 +1007,7 @@ model WhatsAppMessage {
   status              WhatsAppMessageStatus
   body                String?                  @db.Text
   providerMessageSid  String?                  @unique @map("provider_message_sid") @db.VarChar(64)
+  clientRequestId     String?                  @unique @map("client_request_id") @db.VarChar(120)
   mediaCount          Int                      @default(0) @map("media_count")
   mediaMetadata       Json?                    @map("media_metadata")
   attemptCount        Int                      @default(0) @map("attempt_count")

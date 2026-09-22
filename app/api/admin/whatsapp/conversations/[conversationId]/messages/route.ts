@@ -6,7 +6,7 @@ import {
   AdminWhatsAppError,
   getAdminSessionActor,
   isValidAdminMutationOrigin,
-  markAdminWhatsAppConversationRead,
+  sendAdminWhatsAppConversationMessage,
 } from "@/lib/admin";
 import type { AdminWhatsAppErrorCode } from "@/types/admin-whatsapp";
 
@@ -16,6 +16,13 @@ export const runtime = "nodejs";
 const paramsSchema = z
   .object({
     conversationId: z.string().trim().min(1).max(160),
+  })
+  .strict();
+
+const bodySchema = z
+  .object({
+    body: z.string(),
+    clientRequestId: z.string().trim().min(1).max(120),
   })
   .strict();
 
@@ -58,7 +65,7 @@ async function authorizeMutation(request: Request) {
   return actor;
 }
 
-export async function PATCH(request: Request, context: RouteContext) {
+export async function POST(request: Request, context: RouteContext) {
   try {
     const actor = await authorizeMutation(request);
     const parsedParams = paramsSchema.safeParse(await context.params);
@@ -67,12 +74,30 @@ export async function PATCH(request: Request, context: RouteContext) {
       return adminApiErrorResponse("INVALID_ADMIN_WHATSAPP_REQUEST", 400);
     }
 
-    const conversation = await markAdminWhatsAppConversationRead(
-      { conversationId: parsedParams.data.conversationId },
+    let requestBody: unknown;
+
+    try {
+      requestBody = await request.json();
+    } catch {
+      return adminApiErrorResponse("INVALID_ADMIN_WHATSAPP_REQUEST", 400);
+    }
+
+    const parsedBody = bodySchema.safeParse(requestBody);
+
+    if (!parsedBody.success) {
+      return adminApiErrorResponse("INVALID_ADMIN_WHATSAPP_REQUEST", 400);
+    }
+
+    const result = await sendAdminWhatsAppConversationMessage(
+      {
+        conversationId: parsedParams.data.conversationId,
+        body: parsedBody.data.body,
+        clientRequestId: parsedBody.data.clientRequestId,
+      },
       actor,
     );
 
-    return adminApiSuccessResponse({ conversation });
+    return adminApiSuccessResponse(result);
   } catch (error) {
     return adminWhatsAppErrorResponse(error);
   }

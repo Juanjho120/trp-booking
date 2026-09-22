@@ -681,8 +681,8 @@ export const enMessages = {
       title: "WhatsApp inbox",
       description:
         "Review inbound guest messages and their safe optional reservation linkage.",
-      descriptionNoReply:
-        "Final-F.4 is read-only for operations. Admin replies will be enabled in a later subphase.",
+      descriptionReply:
+        "Reply to the guest from the WhatsApp operational window without exposing administrative data.",
       tabs: {
         chat: "Chat",
         reservations: "Associated reservations ({count})",
@@ -712,12 +712,21 @@ export const enMessages = {
         status: "Status",
         phone: "Phone",
       },
+      reply: {
+        label: "Reply",
+        placeholder: "Write a reply for the guest.",
+        characterCount: "{count}/{max} characters",
+        windowClosed:
+          "The 24-hour window is closed. Contacting the guest again requires an approved WhatsApp template.",
+      },
       actions: {
         previous: "Previous",
         next: "Next",
         openReservation: "Open reservation",
         markRead: "Mark as read",
         markingRead: "Marking...",
+        sendReply: "Send reply",
+        sendingReply: "Sending...",
         dismiss: "Dismiss notification",
       },
       directions: {
@@ -738,6 +747,7 @@ export const enMessages = {
       },
       feedback: {
         markedRead: "The conversation was marked as read.",
+        messageSent: "The WhatsApp reply was recorded.",
       },
       empty: {
         noConversations: "There are no WhatsApp conversations yet.",
@@ -766,6 +776,14 @@ export const enMessages = {
           "We could not process the WhatsApp request.",
         ADMIN_WHATSAPP_CONVERSATION_NOT_FOUND:
           "We could not find the requested conversation.",
+        ADMIN_WHATSAPP_MESSAGE_REQUIRED:
+          "Write a reply before sending.",
+        ADMIN_WHATSAPP_MESSAGE_TOO_LONG:
+          "The reply exceeds the allowed limit.",
+        ADMIN_WHATSAPP_FREEFORM_WINDOW_CLOSED:
+          "The 24-hour window is closed. Contacting the guest again requires an approved WhatsApp template.",
+        ADMIN_WHATSAPP_IDEMPOTENCY_CONFLICT:
+          "This send request was already used with different content. Refresh the view and try again.",
         ADMIN_WHATSAPP_UNEXPECTED_ERROR:
           "We could not update the conversation. Try again.",
       },

@@ -34,6 +34,8 @@ export type AdminWhatsAppConversationSummary = Readonly<{
   lastMessageAt: string | null;
   lastInboundAt: string | null;
   customerServiceWindowExpiresAt: string | null;
+  freeformReplyAllowed: boolean;
+  freeformWindowExpiresAt: string | null;
   createdAt: string;
   updatedAt: string;
 }>;
@@ -76,4 +78,8 @@ export type AdminWhatsAppErrorCode =
   | "ADMIN_WHATSAPP_ORIGIN_INVALID"
   | "INVALID_ADMIN_WHATSAPP_REQUEST"
   | "ADMIN_WHATSAPP_CONVERSATION_NOT_FOUND"
+  | "ADMIN_WHATSAPP_MESSAGE_REQUIRED"
+  | "ADMIN_WHATSAPP_MESSAGE_TOO_LONG"
+  | "ADMIN_WHATSAPP_FREEFORM_WINDOW_CLOSED"
+  | "ADMIN_WHATSAPP_IDEMPOTENCY_CONFLICT"
   | "ADMIN_WHATSAPP_UNEXPECTED_ERROR";
