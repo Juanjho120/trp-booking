@@ -1,0 +1,253 @@
+import { Prisma, type PrismaClient } from "@prisma/client";
+
+import { prisma } from "@/lib/db/prisma";
+import type { AdminActor } from "@/types/admin";
+import type {
+  AdminWhatsAppConversationSummary,
+  AdminWhatsAppErrorCode,
+  AdminWhatsAppFilters,
+  AdminWhatsAppMediaItemSummary,
+  AdminWhatsAppMessageSummary,
+  AdminWhatsAppPageData,
+} from "@/types/admin-whatsapp";
+
+const ADMIN_WHATSAPP_PAGE_SIZE = 20;
+const ADMIN_WHATSAPP_MESSAGE_LIMIT = 100;
+
+const adminWhatsAppConversationSelect = {
+  id: true,
+  guestPhoneE164: true,
+  unreadCount: true,
+  lastMessageAt: true,
+  lastInboundAt: true,
+  customerServiceWindowExpiresAt: true,
+  createdAt: true,
+  updatedAt: true,
+  reservation: {
+    select: {
+      id: true,
+      guestName: true,
+      guestPhone: true,
+      property: {
+        select: {
+          id: true,
+          nameEs: true,
+          nameEn: true,
+        },
+      },
+    },
+  },
+} satisfies Prisma.WhatsAppConversationSelect;
+
+const adminWhatsAppMessageSelect = {
+  id: true,
+  direction: true,
+  status: true,
+  body: true,
+  mediaCount: true,
+  mediaMetadata: true,
+  createdAt: true,
+} satisfies Prisma.WhatsAppMessageSelect;
+
+type AdminWhatsAppConversationRecord = Prisma.WhatsAppConversationGetPayload<{
+  select: typeof adminWhatsAppConversationSelect;
+}>;
+
+type AdminWhatsAppMessageRecord = Prisma.WhatsAppMessageGetPayload<{
+  select: typeof adminWhatsAppMessageSelect;
+}>;
+
+type AdminWhatsAppPrismaClient = Pick<
+  PrismaClient,
+  "whatsAppConversation" | "whatsAppMessage"
+>;
+
+export class AdminWhatsAppError extends Error {
+  constructor(public readonly code: AdminWhatsAppErrorCode) {
+    super(code);
+    this.name = "AdminWhatsAppError";
+  }
+}
+
+function normalizePage(value: number | undefined): number {
+  return Number.isInteger(value) && (value ?? 0) > 0 ? value! : 1;
+}
+
+function normalizeConversationId(value: string | undefined): string | null {
+  const trimmed = value?.trim() ?? "";
+  return trimmed ? trimmed : null;
+}
+
+function toIsoString(value: Date | null): string | null {
+  return value?.toISOString() ?? null;
+}
+
+function toConversationSummary(
+  row: AdminWhatsAppConversationRecord,
+): AdminWhatsAppConversationSummary {
+  return {
+    id: row.id,
+    guestPhoneE164: row.guestPhoneE164,
+    reservation: row.reservation
+      ? {
+          id: row.reservation.id,
+          guestName: row.reservation.guestName,
+          guestPhone: row.reservation.guestPhone,
+          property: row.reservation.property,
+        }
+      : null,
+    linkState: row.reservation ? "LINKED" : "UNLINKED_OR_AMBIGUOUS",
+    unreadCount: row.unreadCount,
+    lastMessageAt: toIsoString(row.lastMessageAt),
+    lastInboundAt: toIsoString(row.lastInboundAt),
+    customerServiceWindowExpiresAt: toIsoString(
+      row.customerServiceWindowExpiresAt,
+    ),
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+  };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function toMediaItems(
+  mediaMetadata: Prisma.JsonValue | null,
+  mediaCount: number,
+): readonly AdminWhatsAppMediaItemSummary[] {
+  if (isRecord(mediaMetadata) && Array.isArray(mediaMetadata.items)) {
+    return mediaMetadata.items
+      .flatMap((item) =>
+        isRecord(item)
+          ? [
+              {
+                index: typeof item.index === "number" ? item.index : 0,
+                contentType:
+                  typeof item.contentType === "string"
+                    ? item.contentType
+                    : null,
+              },
+            ]
+          : [],
+      )
+      .slice(0, mediaCount);
+  }
+
+  return Array.from({ length: mediaCount }, (_, index) => ({
+    index,
+    contentType: null,
+  }));
+}
+
+function toMessageSummary(
+  row: AdminWhatsAppMessageRecord,
+): AdminWhatsAppMessageSummary {
+  return {
+    id: row.id,
+    direction: row.direction,
+    status: row.status,
+    body: row.body,
+    mediaCount: row.mediaCount,
+    mediaItems: toMediaItems(row.mediaMetadata, row.mediaCount),
+    createdAt: row.createdAt.toISOString(),
+  };
+}
+
+export async function getAdminWhatsAppPage(
+  input: AdminWhatsAppFilters,
+  options: Readonly<{ prismaClient?: AdminWhatsAppPrismaClient }> = {},
+): Promise<AdminWhatsAppPageData> {
+  const prismaClient = options.prismaClient ?? prisma;
+  const requestedPage = normalizePage(input.page);
+  const requestedConversationId = normalizeConversationId(input.conversationId);
+  const totalItems = await prismaClient.whatsAppConversation.count();
+  const totalPages = Math.max(1, Math.ceil(totalItems / ADMIN_WHATSAPP_PAGE_SIZE));
+  const page = Math.min(requestedPage, totalPages);
+  const conversations = await prismaClient.whatsAppConversation.findMany({
+    orderBy: [
+      { lastMessageAt: { sort: "desc", nulls: "last" } },
+      { id: "asc" },
+    ],
+    skip: (page - 1) * ADMIN_WHATSAPP_PAGE_SIZE,
+    take: ADMIN_WHATSAPP_PAGE_SIZE,
+    select: adminWhatsAppConversationSelect,
+  });
+  const conversationRows = conversations.map(toConversationSummary);
+  const selectedConversationId =
+    requestedConversationId ?? conversationRows[0]?.id ?? null;
+  const selectedConversationRecord = selectedConversationId
+    ? ((conversationRows.find((item) => item.id === selectedConversationId) ??
+        (await prismaClient.whatsAppConversation
+          .findUnique({
+            where: { id: selectedConversationId },
+            select: adminWhatsAppConversationSelect,
+          })
+          .then((row) => (row ? toConversationSummary(row) : null)))) as
+        | AdminWhatsAppConversationSummary
+        | null)
+    : null;
+  const messages = selectedConversationRecord
+    ? await prismaClient.whatsAppMessage.findMany({
+        where: { conversationId: selectedConversationRecord.id },
+        orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+        take: ADMIN_WHATSAPP_MESSAGE_LIMIT,
+        select: adminWhatsAppMessageSelect,
+      })
+    : [];
+
+  return {
+    generatedAt: new Date().toISOString(),
+    conversations: conversationRows,
+    selectedConversation: selectedConversationRecord,
+    messages: messages.map(toMessageSummary),
+    pagination: {
+      page,
+      pageSize: ADMIN_WHATSAPP_PAGE_SIZE,
+      totalItems,
+      totalPages,
+    },
+  };
+}
+
+export async function markAdminWhatsAppConversationRead(
+  input: Readonly<{ conversationId: string }>,
+  actor: AdminActor,
+  options: Readonly<{ prismaClient?: AdminWhatsAppPrismaClient }> = {},
+): Promise<AdminWhatsAppConversationSummary> {
+  if (!actor.email.trim()) {
+    throw new AdminWhatsAppError("ADMIN_UNAUTHORIZED");
+  }
+
+  const conversationId = input.conversationId.trim();
+
+  if (!conversationId) {
+    throw new AdminWhatsAppError("INVALID_ADMIN_WHATSAPP_REQUEST");
+  }
+
+  const prismaClient = options.prismaClient ?? prisma;
+  const existing = await prismaClient.whatsAppConversation.findUnique({
+    where: { id: conversationId },
+    select: { id: true },
+  });
+
+  if (!existing) {
+    throw new AdminWhatsAppError("ADMIN_WHATSAPP_CONVERSATION_NOT_FOUND");
+  }
+
+  await prismaClient.whatsAppConversation.updateMany({
+    where: { id: conversationId },
+    data: { unreadCount: 0 },
+  });
+
+  const updated = await prismaClient.whatsAppConversation.findUnique({
+    where: { id: conversationId },
+    select: adminWhatsAppConversationSelect,
+  });
+
+  if (!updated) {
+    throw new AdminWhatsAppError("ADMIN_WHATSAPP_CONVERSATION_NOT_FOUND");
+  }
+
+  return toConversationSummary(updated);
+}

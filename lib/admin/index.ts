@@ -146,3 +146,8 @@ export {
   moderateAdminReview,
 } from "./reviews";
 export { getAdminSessionActor } from "./session";
+export {
+  AdminWhatsAppError,
+  getAdminWhatsAppPage,
+  markAdminWhatsAppConversationRead,
+} from "./whatsapp";

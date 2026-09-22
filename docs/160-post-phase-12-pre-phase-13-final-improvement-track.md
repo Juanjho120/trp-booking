@@ -5,7 +5,7 @@
 ```text
 Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
-Status: Active — Final-A, Final-B, Final-C, Final-D and Final-E completed and accepted; Final-F is Active with Final-F.1 completed and accepted on 2026-09-21; Final-F.2 is completed and accepted on 2026-09-22 at 03861cb2d5daef7cca8bb759d16a0ef050d86b41; Final-F.3 is completed and accepted on 2026-09-22 at f0a465349b5217f7318146ad5b2de13f1d641a13; Final-G and Final-H remain Not started
+Status: Active — Final-A, Final-B, Final-C, Final-D and Final-E completed and accepted; Final-F is Active with Final-F.1 completed and accepted on 2026-09-21; Final-F.2 is completed and accepted on 2026-09-22 at 03861cb2d5daef7cca8bb759d16a0ef050d86b41; Final-F.3 is completed and accepted on 2026-09-22 at f0a465349b5217f7318146ad5b2de13f1d641a13; Final-F.4 implementation is completed with owner validation/acceptance pending; Final-G and Final-H remain Not started
 Registration date: 2026-08-11
 Registration base head: dac105088d2c46be05a900abed3dfe83e608e964
 Previous gate: Phase 12 — Completed and accepted
@@ -989,7 +989,9 @@ Final-F.3 implementation base head: 673e43c4d3f8f25a9aee5ee196552574637776dd
 Final-F.3 initial implementation head: ee6194f2d51969aae56aab2b5351314326c3ed8a
 Final-F.3 accepted implementation/validation head: f0a465349b5217f7318146ad5b2de13f1d641a13
 Final-F.3 record: docs/195-final-f-3-whatsapp-conversation-message-staff-recipient-alert-persistence-foundation.md
-Final-F.4 — Guest inbound WhatsApp, safe Reservation matching and protected admin inbox — Next / Not started
+Final-F.4 — Guest inbound WhatsApp, safe Reservation matching and protected admin inbox — Implementation completed; owner Sandbox/Hosted Test inbound + admin-inbox validation and explicit acceptance pending
+Final-F.4 implementation base head: 24e6d58060d62cf89924ddb75af29738fddf4dd1
+Final-F.4 record: docs/196-final-f-4-guest-inbound-whatsapp-safe-reservation-matching-and-protected-admin-inbox.md
 Final-F.5 — Admin outbound replies, 24-hour service-window enforcement and Twilio status callbacks — Not started
 Final-F.6 — Operational staff WhatsApp alerts — Not started
 Final-F.7 — Zoho incoming-email webhook metadata + guest-email-received staff alert — Not started
@@ -1241,7 +1243,7 @@ Phase 12 — Completed and accepted
 Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
 Last completed package — Final-E Reservation reviews and post-checkout invitation — Completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880
 Current package — Final-F Twilio WhatsApp communication and staff alerts — Active
-Current subphase — Final-F.4 Guest inbound WhatsApp, safe Reservation matching and protected admin inbox — Next / Not started
+Current subphase — Final-F.4 Guest inbound WhatsApp, safe Reservation matching and protected admin inbox — Implementation completed; owner Sandbox/Hosted Test inbound + admin-inbox validation and explicit acceptance pending
 Final-F.1 implementation base — c6dbe2309f0cd373701fc9444f7f15879692f423
 Final-F.1 accepted implementation head — d5db6a2605a03e75db7c16238a43cd5f79dde6d8
 Final-F.1 record — docs/193-final-f-1-twilio-whatsapp-staff-alert-strategy-onboarding-and-security-contract.md
@@ -1253,6 +1255,9 @@ Final-F.3 initial implementation head — ee6194f2d51969aae56aab2b5351314326c3ed
 Final-F.3 accepted implementation/validation head — f0a465349b5217f7318146ad5b2de13f1d641a13
 Final-F.3 status — Completed and accepted on 2026-09-22 at f0a465349b5217f7318146ad5b2de13f1d641a13
 Final-F.3 record — docs/195-final-f-3-whatsapp-conversation-message-staff-recipient-alert-persistence-foundation.md
+Final-F.4 implementation base — 24e6d58060d62cf89924ddb75af29738fddf4dd1
+Final-F.4 status — Implementation completed; owner Sandbox/Hosted Test inbound + admin-inbox validation and explicit acceptance pending
+Final-F.4 record — docs/196-final-f-4-guest-inbound-whatsapp-safe-reservation-matching-and-protected-admin-inbox.md
 Final-D implementation base — 0839b2935fdc2349d23de6ce6b38177504e514c6
 Final-D.1 status — Completed and accepted on 2026-08-31 at 3dc4fa7d81d65244a94e7e43726e2f12591e578f
 Final-D.1 record — docs/179-final-d-1-additional-charge-payment-request-strategy-and-financial-isolation-contract.md
@@ -1332,7 +1337,7 @@ Final-B.6 record — docs/172-final-b-6-integrated-acceptance-regression-and-doc
 Last completed package — Final-E reservation reviews and post-checkout invitation — completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880
 Last accepted subphase — Final-F.3 WhatsApp conversation/message persistence + staff-recipient / staff-alert persistence foundation — completed and accepted on 2026-09-22 at f0a465349b5217f7318146ad5b2de13f1d641a13
 Current package — Final-F Twilio WhatsApp communication and staff alerts — Active
-Current subphase — Final-F.4 Guest inbound WhatsApp, safe Reservation matching and protected admin inbox — Next / Not started
+Current subphase — Final-F.4 Guest inbound WhatsApp, safe Reservation matching and protected admin inbox — Implementation completed; owner Sandbox/Hosted Test inbound + admin-inbox validation and explicit acceptance pending
 Final-F.1 record — docs/193-final-f-1-twilio-whatsapp-staff-alert-strategy-onboarding-and-security-contract.md
 Final-F.2 — Completed and accepted on 2026-09-22 at 03861cb2d5daef7cca8bb759d16a0ef050d86b41
 Final-F.2 implementation base — ba47dc9f22f4d61a01c13066f84e15ae8ad549f7
@@ -1342,6 +1347,9 @@ Final-F.3 initial implementation head — ee6194f2d51969aae56aab2b5351314326c3ed
 Final-F.3 accepted implementation/validation head — f0a465349b5217f7318146ad5b2de13f1d641a13
 Final-F.3 status — Completed and accepted on 2026-09-22 at f0a465349b5217f7318146ad5b2de13f1d641a13
 Final-F.3 record — docs/195-final-f-3-whatsapp-conversation-message-staff-recipient-alert-persistence-foundation.md
+Final-F.4 implementation base — 24e6d58060d62cf89924ddb75af29738fddf4dd1
+Final-F.4 status — Implementation completed; owner Sandbox/Hosted Test inbound + admin-inbox validation and explicit acceptance pending
+Final-F.4 record — docs/196-final-f-4-guest-inbound-whatsapp-safe-reservation-matching-and-protected-admin-inbox.md
 Final-A — Completed and accepted on 2026-08-12 at 66afbeacd6ee7d669cb4bc251c8416160fae3f49
 Final-B — Completed and accepted on 2026-08-25 at 1fe06de8c55ab1563999b2db1d210bfc9a82c613
 Final-B.1 — Completed and accepted on 2026-08-14 at 2627161d5b3960995be0f517682f84272431c291
@@ -1379,6 +1387,8 @@ Final-F — Active
 Final-F.1 — Completed and accepted on 2026-09-21 at d5db6a2605a03e75db7c16238a43cd5f79dde6d8; record: docs/193-final-f-1-twilio-whatsapp-staff-alert-strategy-onboarding-and-security-contract.md
 Final-F.2 — Completed and accepted on 2026-09-22 at 03861cb2d5daef7cca8bb759d16a0ef050d86b41; record: docs/194-final-f-2-twilio-sandbox-provider-foundation-webhook-signature-validation-and-test-onboarding.md
 Final-F.3 — Completed and accepted on 2026-09-22 at f0a465349b5217f7318146ad5b2de13f1d641a13; implementation base 673e43c4d3f8f25a9aee5ee196552574637776dd; initial implementation head ee6194f2d51969aae56aab2b5351314326c3ed8a; record: docs/195-final-f-3-whatsapp-conversation-message-staff-recipient-alert-persistence-foundation.md
+Final-F.4 — Implementation completed; owner Sandbox/Hosted Test inbound + admin-inbox validation and explicit acceptance pending; implementation base 24e6d58060d62cf89924ddb75af29738fddf4dd1; record: docs/196-final-f-4-guest-inbound-whatsapp-safe-reservation-matching-and-protected-admin-inbox.md
+Final-F.5 through Final-F.8 — Not started
 Final-G — Not started
 Final-H — Not started
 Phase 13 — Not started

@@ -601,6 +601,7 @@ export const enMessages = {
         catalogs: "Catalogs",
         cronJobs: "Cron jobs",
         reviews: "Reviews",
+        whatsapp: "WhatsApp",
       },
     },
     reviewsPage: {
@@ -672,6 +673,76 @@ export const enMessages = {
           "That status change is not allowed for this review.",
         ADMIN_REVIEW_UNEXPECTED_ERROR:
           "We could not complete moderation. Try again.",
+      },
+    },
+    whatsappPage: {
+      seoTitle: "WhatsApp | Admin",
+      badge: "WhatsApp",
+      title: "WhatsApp inbox",
+      description:
+        "Review inbound guest messages and their safe optional reservation linkage.",
+      descriptionNoReply:
+        "Final-F.4 is read-only for operations. Admin replies will be enabled in a later subphase.",
+      sections: {
+        conversations: "Conversations",
+      },
+      labels: {
+        results: "Results",
+        page: "Page",
+        of: "of",
+        unavailable: "Unavailable",
+        linked: "Linked reservation",
+        unlinked: "No linked reservation or ambiguous match",
+        lastInbound: "Last inbound",
+        windowExpires: "24h window expires",
+        media: "Received attachments",
+        unknownMediaType: "Unspecified type",
+      },
+      actions: {
+        previous: "Previous",
+        next: "Next",
+        openReservation: "Open reservation",
+        markRead: "Mark as read",
+        markingRead: "Marking...",
+        dismiss: "Dismiss notification",
+      },
+      directions: {
+        INBOUND: "Inbound",
+        OUTBOUND: "Outbound",
+      },
+      messageStatuses: {
+        RECEIVED: "Received",
+        PENDING: "Pending",
+        PROCESSING: "Processing",
+        QUEUED: "Queued",
+        SENT: "Sent",
+        DELIVERED: "Delivered",
+        READ: "Read",
+        FAILED: "Failed",
+        UNDELIVERED: "Undelivered",
+        SKIPPED: "Skipped",
+      },
+      feedback: {
+        markedRead: "The conversation was marked as read.",
+      },
+      empty: {
+        noConversations: "There are no WhatsApp conversations yet.",
+        noSelectionTitle: "Select a conversation",
+        noSelectionDescription:
+          "When a valid inbound message arrives, it will appear here with protected history.",
+        noMessages: "This conversation does not have visible messages yet.",
+      },
+      errors: {
+        ADMIN_UNAUTHORIZED:
+          "Your admin session expired. Please sign in again.",
+        ADMIN_WHATSAPP_ORIGIN_INVALID:
+          "We could not validate the origin of this admin action.",
+        INVALID_ADMIN_WHATSAPP_REQUEST:
+          "We could not process the WhatsApp request.",
+        ADMIN_WHATSAPP_CONVERSATION_NOT_FOUND:
+          "We could not find the requested conversation.",
+        ADMIN_WHATSAPP_UNEXPECTED_ERROR:
+          "We could not update the conversation. Try again.",
       },
     },
     statuses: {

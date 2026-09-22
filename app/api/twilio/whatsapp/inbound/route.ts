@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { processInboundWhatsAppWebhook } from "@/lib/twilio/inbound-whatsapp";
 import { validateTwilioWebhookRequest } from "@/lib/twilio/provider";
 
 export const runtime = "nodejs";
@@ -22,6 +23,12 @@ export async function POST(request: Request): Promise<NextResponse> {
 
   if (!validation.valid) {
     return errorResponse(validation.errorCode, validation.httpStatus);
+  }
+
+  try {
+    await processInboundWhatsAppWebhook(validation.payload);
+  } catch {
+    return errorResponse("TWILIO_INBOUND_PERSISTENCE_TEMPORARY_FAILURE", 500);
   }
 
   return new NextResponse(EMPTY_MESSAGING_TWIML, {

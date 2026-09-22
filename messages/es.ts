@@ -601,6 +601,7 @@ export const esMessages = {
         catalogs: "Catálogos",
         cronJobs: "Tareas programadas",
         reviews: "Reseñas",
+        whatsapp: "WhatsApp",
       },
     },
     reviewsPage: {
@@ -672,6 +673,76 @@ export const esMessages = {
           "Ese cambio de estado no está permitido para esta reseña.",
         ADMIN_REVIEW_UNEXPECTED_ERROR:
           "No pudimos completar la moderación. Inténtalo de nuevo.",
+      },
+    },
+    whatsappPage: {
+      seoTitle: "WhatsApp | Admin",
+      badge: "WhatsApp",
+      title: "Bandeja de WhatsApp",
+      description:
+        "Revisa mensajes entrantes de huéspedes y su posible vínculo seguro con reservaciones.",
+      descriptionNoReply:
+        "Final-F.4 es sólo lectura operativa. Las respuestas desde el panel se habilitarán en una subfase posterior.",
+      sections: {
+        conversations: "Conversaciones",
+      },
+      labels: {
+        results: "Resultados",
+        page: "Página",
+        of: "de",
+        unavailable: "No disponible",
+        linked: "Reserva vinculada",
+        unlinked: "Sin reserva vinculada o coincidencia ambigua",
+        lastInbound: "Último inbound",
+        windowExpires: "Ventana de 24h vence",
+        media: "Adjuntos recibidos",
+        unknownMediaType: "Tipo no especificado",
+      },
+      actions: {
+        previous: "Anterior",
+        next: "Siguiente",
+        openReservation: "Abrir reserva",
+        markRead: "Marcar como leído",
+        markingRead: "Marcando...",
+        dismiss: "Cerrar notificación",
+      },
+      directions: {
+        INBOUND: "Entrante",
+        OUTBOUND: "Saliente",
+      },
+      messageStatuses: {
+        RECEIVED: "Recibido",
+        PENDING: "Pendiente",
+        PROCESSING: "Procesando",
+        QUEUED: "En cola",
+        SENT: "Enviado",
+        DELIVERED: "Entregado",
+        READ: "Leído",
+        FAILED: "Fallido",
+        UNDELIVERED: "No entregado",
+        SKIPPED: "Omitido",
+      },
+      feedback: {
+        markedRead: "La conversación fue marcada como leída.",
+      },
+      empty: {
+        noConversations: "Todavía no hay conversaciones de WhatsApp.",
+        noSelectionTitle: "Selecciona una conversación",
+        noSelectionDescription:
+          "Cuando llegue un mensaje entrante válido, aparecerá aquí con su historial protegido.",
+        noMessages: "Esta conversación todavía no tiene mensajes visibles.",
+      },
+      errors: {
+        ADMIN_UNAUTHORIZED:
+          "Tu sesión administrativa expiró. Ingresa nuevamente.",
+        ADMIN_WHATSAPP_ORIGIN_INVALID:
+          "No pudimos validar el origen de esta acción administrativa.",
+        INVALID_ADMIN_WHATSAPP_REQUEST:
+          "No pudimos procesar la solicitud de WhatsApp.",
+        ADMIN_WHATSAPP_CONVERSATION_NOT_FOUND:
+          "No encontramos la conversación solicitada.",
+        ADMIN_WHATSAPP_UNEXPECTED_ERROR:
+          "No pudimos actualizar la conversación. Inténtalo de nuevo.",
       },
     },
     statuses: {

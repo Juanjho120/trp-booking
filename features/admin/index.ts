@@ -24,3 +24,4 @@ export { AdminReservationsPageView } from "./components/admin-reservations-page"
 export { AdminReviewsPageView } from "./components/admin-reviews-page";
 export { AdminShell } from "./components/admin-shell";
 export { AdminSnackbar } from "./components/admin-snackbar";
+export { AdminWhatsAppPageView } from "./components/admin-whatsapp-page";

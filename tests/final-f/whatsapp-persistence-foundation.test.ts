@@ -269,17 +269,18 @@ test("F.3 migration creates only the four dormant WhatsApp persistence tables", 
   }
 });
 
-test("F.3 leaves accepted Twilio inbound and status routes ACK-only with no persistence activation", () => {
-  for (const route of [INBOUND_ROUTE, STATUS_ROUTE]) {
-    expectIncludes(route, "validateTwilioWebhookRequest");
-    expectExcludes(route, "prisma");
-    expectExcludes(route, "WhatsAppConversation");
-    expectExcludes(route, "WhatsAppMessage");
-    expectExcludes(route, "StaffWhatsAppAlert");
-    expectExcludes(route, "StaffWhatsAppRecipient");
-  }
-
+test("F.4 activates signed inbound persistence while status callbacks remain ACK-only", () => {
+  expectIncludes(INBOUND_ROUTE, "validateTwilioWebhookRequest");
+  expectIncludes(INBOUND_ROUTE, "processInboundWhatsAppWebhook");
   expectIncludes(INBOUND_ROUTE, "<Response></Response>");
+
+  expectIncludes(STATUS_ROUTE, "validateTwilioWebhookRequest");
+  expectExcludes(STATUS_ROUTE, "processInboundWhatsAppWebhook");
+  expectExcludes(STATUS_ROUTE, "prisma");
+  expectExcludes(STATUS_ROUTE, "WhatsAppConversation");
+  expectExcludes(STATUS_ROUTE, "WhatsAppMessage");
+  expectExcludes(STATUS_ROUTE, "StaffWhatsAppAlert");
+  expectExcludes(STATUS_ROUTE, "StaffWhatsAppRecipient");
   expectIncludes(STATUS_ROUTE, "status: 204");
 });
 

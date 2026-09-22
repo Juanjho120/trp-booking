@@ -15,6 +15,7 @@ import {
   LogOut,
   MapPinned,
   Menu,
+  MessagesSquare,
   Star,
   TimerReset,
 } from "lucide-react";
@@ -54,6 +55,11 @@ const navigationItems = [
     href: "/admin/reviews",
     key: "reviews",
     icon: Star,
+  },
+  {
+    href: "/admin/whatsapp",
+    key: "whatsapp",
+    icon: MessagesSquare,
   },
   {
     href: "/admin/calendar",
