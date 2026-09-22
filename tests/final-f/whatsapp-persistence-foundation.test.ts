@@ -5,14 +5,24 @@ import path from "node:path";
 import { test } from "./harness";
 
 const ROOT = process.cwd();
+const FOUNDATION_MIGRATION_NAME =
+  "20260922170000_final_f_3_whatsapp_persistence_foundation";
+const CORRECTIVE_MIGRATION_NAME =
+  "20260922193000_final_f_3_correct_twilio_message_sid_constraints";
 const SCHEMA = read("prisma/schema.prisma");
 const MIGRATION = read(
-  "prisma/migrations/20260922170000_final_f_3_whatsapp_persistence_foundation/migration.sql",
+  `prisma/migrations/${FOUNDATION_MIGRATION_NAME}/migration.sql`,
+);
+const CORRECTIVE_MIGRATION = read(
+  `prisma/migrations/${CORRECTIVE_MIGRATION_NAME}/migration.sql`,
 );
 const PACKAGE_JSON = read("package.json");
 const VERCEL_JSON = read("vercel.json");
 const INBOUND_ROUTE = read("app/api/twilio/whatsapp/inbound/route.ts");
 const STATUS_ROUTE = read("app/api/twilio/whatsapp/status/route.ts");
+const TWILIO_MESSAGE_SID_CONTRACT = /^(SM|MM)[0-9a-fA-F]{32}$/;
+const LEGACY_MESSAGE_SID_PATTERN = "^SM[0-9A-Za-z]{32}$";
+const CORRECT_MESSAGE_SID_PATTERN = "^(SM|MM)[0-9a-fA-F]{32}$";
 
 function read(relativePath: string): string {
   return readFileSync(path.join(ROOT, relativePath), "utf8");
@@ -151,12 +161,64 @@ test("F.3 migration adds idempotency and delivery indexes without data backfill"
     expectIncludes(MIGRATION, statement);
   }
 
-  assert.equal(
-    /^\s*(INSERT\s+INTO|UPDATE\s+"|DELETE\s+FROM|TRUNCATE\s+)/imu.test(
-      MIGRATION,
-    ),
-    false,
+  for (const migration of [MIGRATION, CORRECTIVE_MIGRATION]) {
+    assert.equal(
+      /^\s*(INSERT\s+INTO|UPDATE\s+"|DELETE\s+FROM|TRUNCATE\s+)/imu.test(
+        migration,
+      ),
+      false,
+    );
+  }
+});
+
+test("F.3 corrective migration enforces the accepted Twilio MessageSid contract", () => {
+  assert.ok(
+    CORRECTIVE_MIGRATION_NAME > FOUNDATION_MIGRATION_NAME,
+    "Corrective migration must run after the applied foundation migration",
   );
+  expectIncludes(MIGRATION, `'${LEGACY_MESSAGE_SID_PATTERN}'`);
+
+  for (const constraint of [
+    "whatsapp_messages_provider_message_sid_check",
+    "staff_whatsapp_alerts_provider_message_sid_check",
+  ]) {
+    expectIncludes(CORRECTIVE_MIGRATION, `DROP CONSTRAINT "${constraint}"`);
+    expectIncludes(CORRECTIVE_MIGRATION, `ADD CONSTRAINT "${constraint}"`);
+  }
+
+  expectIncludes(
+    CORRECTIVE_MIGRATION,
+    `"provider_message_sid" ~ '${CORRECT_MESSAGE_SID_PATTERN}'`,
+  );
+  assert.equal(
+    CORRECTIVE_MIGRATION.split(
+      `"provider_message_sid" ~ '${CORRECT_MESSAGE_SID_PATTERN}'`,
+    ).length - 1,
+    2,
+  );
+  expectExcludes(CORRECTIVE_MIGRATION, LEGACY_MESSAGE_SID_PATTERN);
+  expectExcludes(CORRECTIVE_MIGRATION, "CREATE UNIQUE INDEX");
+  expectExcludes(CORRECTIVE_MIGRATION, "DROP INDEX");
+  expectExcludes(CORRECTIVE_MIGRATION, "ALTER COLUMN");
+
+  for (const validSid of [
+    `SM${"a".repeat(32)}`,
+    `MM${"0123456789abcdef".repeat(2)}`,
+  ]) {
+    assert.equal(TWILIO_MESSAGE_SID_CONTRACT.test(validSid), true);
+  }
+
+  for (const invalidSid of [
+    `SM${"g".repeat(32)}`,
+    `XX${"a".repeat(32)}`,
+    `SM${"a".repeat(31)}`,
+  ]) {
+    assert.equal(TWILIO_MESSAGE_SID_CONTRACT.test(invalidSid), false);
+  }
+
+  const legacyContract = /^SM[0-9A-Za-z]{32}$/;
+  assert.equal(legacyContract.test(`SM${"g".repeat(32)}`), true);
+  assert.equal(legacyContract.test(`MM${"a".repeat(32)}`), false);
 });
 
 test("F.3 message persistence has bounded fields and no raw webhook payload column", () => {

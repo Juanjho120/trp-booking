@@ -10,12 +10,16 @@ Subphase: Final-F.3 — WhatsApp conversation/message persistence + staff-recipi
 Status: Implementation completed; owner acceptance pending
 Implementation date: 2026-09-22
 Implementation base head: 673e43c4d3f8f25a9aee5ee196552574637776dd
+Initial F.3 implementation head: ee6194f2d51969aae56aab2b5351314326c3ed8a
 Accepted Final-F.1 strategy head: d5db6a2605a03e75db7c16238a43cd5f79dde6d8
 Accepted Final-F.2 provider/onboarding head: 03861cb2d5daef7cca8bb759d16a0ef050d86b41
 Foundation migration: 20260922170000_final_f_3_whatsapp_persistence_foundation
+Corrective migration: 20260922193000_final_f_3_correct_twilio_message_sid_constraints
 Migration count before F.3: 22
-Migration count after F.3: 23
-Final-F targeted validation: 18/18 PASS
+Migration count after F.3 foundation: 23
+Migration count after F.3 corrective migration: 24
+MessageSid accepted contract: ^(SM|MM)[0-9a-fA-F]{32}$
+Final-F targeted validation: 19/19 PASS
 Final-F.4: Next / Not started
 Final-F.5 through Final-F.8: Not started
 Final-G/H: Not started
@@ -185,7 +189,7 @@ whatsapp_conversations.customer_service_window_*:
   expiresAt must be after startedAt when both are present
 
 whatsapp_messages.provider_message_sid:
-  Twilio MessageSid shape check
+  Twilio MessageSid shape check: ^(SM|MM)[0-9a-fA-F]{32}$
   UNIQUE nullable
 
 whatsapp_messages.media_count:
@@ -212,7 +216,7 @@ staff_whatsapp_alerts.recipient_phone_e164_snapshot:
   E.164 check
 
 staff_whatsapp_alerts.provider_message_sid:
-  Twilio MessageSid shape check
+  Twilio MessageSid shape check: ^(SM|MM)[0-9a-fA-F]{32}$
   UNIQUE nullable
 
 staff_whatsapp_alerts.attempt_count:
@@ -233,6 +237,29 @@ StaffWhatsAppAlert -> Reservation: ON DELETE SET NULL
 StaffWhatsAppAlert -> Review: ON DELETE SET NULL
 StaffWhatsAppAlert -> WhatsAppMessage source: ON DELETE SET NULL
 ```
+
+## Independent Review Correction
+
+An independent review found that the already-applied foundation migration used a provider MessageSid
+check that was too broad after the `SM` prefix and did not support valid `MM` Twilio Message SIDs.
+
+The applied foundation migration
+`20260922170000_final_f_3_whatsapp_persistence_foundation` was not modified. The additive corrective
+migration `20260922193000_final_f_3_correct_twilio_message_sid_constraints` replaces only:
+
+```text
+whatsapp_messages_provider_message_sid_check
+staff_whatsapp_alerts_provider_message_sid_check
+```
+
+with the accepted SQL-equivalent contract:
+
+```text
+provider_message_sid IS NULL OR provider_message_sid ~ '^(SM|MM)[0-9a-fA-F]{32}$'
+```
+
+The correction changes no unique indexes, no nullability, and no data. No operational rows existed in
+the Final-F.3 tables when the correction was applied, and no runtime webhook/provider behavior changed.
 
 ## Explicitly Not Implemented
 
@@ -348,9 +375,57 @@ Result: PASS
 Note: Git emitted LF/CRLF working-copy warnings only.
 ```
 
+Independent-review corrective validation completed on 2026-09-22 from the initial F.3 implementation
+head `ee6194f2d51969aae56aab2b5351314326c3ed8a` with only the corrective migration, source-contract
+test update, and this documentation update in scope:
+
+```text
+npx tsx --tsconfig tests/final-f/tsconfig.json tests/final-f/run.ts
+Result: PASS — 19/19 tests
+Note: the same command failed inside the managed sandbox before loading project code with uv_os_get_passwd ENOMEM; it passed when rerun outside the sandbox with the same working tree.
+
+npm run db:generate
+Result: PASS — Prisma Client generated successfully
+Note: Prisma emitted the existing package.json#prisma deprecation warning.
+
+npm run db:validate
+Result: PASS — Prisma schema valid
+Note: Prisma emitted the existing package.json#prisma deprecation warning.
+
+npm run db:migrate:deploy
+Result: PASS — 24 migrations found; 20260922193000_final_f_3_correct_twilio_message_sid_constraints applied successfully
+Note: executed outside the managed sandbox for DB connectivity / Prisma schema-engine reliability.
+
+npm run db:migrate:status
+Result: PASS — 24 migrations found; database schema is up to date
+Note: executed outside the managed sandbox for DB connectivity / Prisma schema-engine reliability.
+
+Final-F.3 operational row-count verification
+Result: PASS — whatsapp_conversations = 0; whatsapp_messages = 0; staff_whatsapp_recipients = 0; staff_whatsapp_alerts = 0
+
+npm run final-d:validate
+Result: PASS — 66/66 tests
+Note: executed outside the managed sandbox because tsx failed there before loading project code with uv_os_get_passwd ENOMEM.
+
+npm run final-e:validate
+Result: PASS — 88/88 tests
+Note: executed outside the managed sandbox because tsx failed there before loading project code with uv_os_get_passwd ENOMEM.
+
+npm run lint
+Result: PASS
+
+npm run build
+Result: PASS
+Note: initial sandboxed build failed because Next/Turbopack could not fetch Google Fonts; rerun outside the sandbox compiled, type-checked, and generated static pages successfully.
+
+vercel.json
+Result: PASS — { "crons": [] }
+```
+
 ## Operational Row Check
 
-After `db:migrate:deploy`, implementation validation confirmed zero rows in:
+After the initial F.3 `db:migrate:deploy` and again after the corrective `db:migrate:deploy`,
+implementation validation confirmed zero rows in:
 
 ```text
 whatsapp_conversations = 0
