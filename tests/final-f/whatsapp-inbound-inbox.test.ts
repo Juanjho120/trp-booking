@@ -82,6 +82,21 @@ function firstString(value: unknown): string | null {
   return typeof value === "string" ? value : null;
 }
 
+function p2002(target: string | readonly string[]) {
+  return {
+    code: "P2002",
+    meta: { target },
+  };
+}
+
+function serializableConflict() {
+  return { code: "P2034" };
+}
+
+function messageSid(suffix: string): string {
+  return `SM${suffix.padStart(32, "0")}`;
+}
+
 function makePayload(
   overrides: Record<string, string | undefined> = {},
 ): TwilioWebhookPayload {
@@ -159,6 +174,9 @@ class FakeWhatsAppPrismaClient {
   staff: StaffRecord[] = [];
   staffAlertCreateCalls = 0;
   uniqueConflictForSid: string | null = null;
+  conversationCreateUniqueConflictForPhoneOnce: string | null = null;
+  serializableConflictsRemaining = 0;
+  transactionAttempts = 0;
 
   staffWhatsAppRecipient = {
     findFirst: async (args: unknown) => {
@@ -214,6 +232,34 @@ class FakeWhatsAppPrismaClient {
       const data = (args as {
         data: { guestPhoneE164: string; reservationId?: string };
       }).data;
+      const existing = this.conversations.find(
+        (conversation) => conversation.guestPhoneE164 === data.guestPhoneE164,
+      );
+
+      if (this.conversationCreateUniqueConflictForPhoneOnce === data.guestPhoneE164) {
+        this.conversationCreateUniqueConflictForPhoneOnce = null;
+
+        if (!existing) {
+          this.conversations.push({
+            id: `conversation-${this.conversations.length + 1}`,
+            guestPhoneE164: data.guestPhoneE164,
+            reservationId: data.reservationId ?? null,
+            unreadCount: 0,
+            lastMessageAt: null,
+            lastInboundAt: null,
+            customerServiceWindowExpiresAt: null,
+            createdAt: NOW,
+            updatedAt: NOW,
+          });
+        }
+
+        throw p2002(["guestPhoneE164"]);
+      }
+
+      if (existing) {
+        throw p2002(["guest_phone_e164"]);
+      }
+
       const created: ConversationRecord = {
         id: `conversation-${this.conversations.length + 1}`,
         guestPhoneE164: data.guestPhoneE164,
@@ -299,18 +345,36 @@ class FakeWhatsAppPrismaClient {
         : null;
     },
     findMany: async (args: unknown) => {
-      const conversationId = firstString(
-        (args as { where?: { conversationId?: unknown } }).where
-          ?.conversationId,
-      );
+      const input = args as {
+        where?: { conversationId?: unknown };
+        orderBy?: Array<{ createdAt?: "asc" | "desc"; id?: "asc" | "desc" }>;
+        take?: number;
+      };
+      const conversationId = firstString(input.where?.conversationId);
+      const orderBy = input.orderBy ?? [{ createdAt: "asc" }, { id: "asc" }];
 
       return this.messages
         .filter((message) => message.conversationId === conversationId)
-        .sort(
-          (left, right) =>
-            left.createdAt.getTime() - right.createdAt.getTime() ||
-            left.id.localeCompare(right.id),
-        );
+        .sort((left, right) => {
+          for (const order of orderBy) {
+            if (order.createdAt) {
+              const diff = left.createdAt.getTime() - right.createdAt.getTime();
+              if (diff !== 0) {
+                return order.createdAt === "desc" ? -diff : diff;
+              }
+            }
+
+            if (order.id) {
+              const diff = left.id.localeCompare(right.id);
+              if (diff !== 0) {
+                return order.id === "desc" ? -diff : diff;
+              }
+            }
+          }
+
+          return 0;
+        })
+        .slice(0, input.take ?? this.messages.length);
     },
     create: async (args: unknown) => {
       const data = (args as {
@@ -328,7 +392,16 @@ class FakeWhatsAppPrismaClient {
       }).data;
 
       if (data.providerMessageSid === this.uniqueConflictForSid) {
-        throw { code: "P2002", meta: { target: ["provider_message_sid"] } };
+        throw p2002(["provider_message_sid"]);
+      }
+
+      if (
+        data.providerMessageSid &&
+        this.messages.some(
+          (message) => message.providerMessageSid === data.providerMessageSid,
+        )
+      ) {
+        throw p2002(["providerMessageSid"]);
       }
 
       const message: MessageRecord = {
@@ -357,6 +430,13 @@ class FakeWhatsAppPrismaClient {
   };
 
   async $transaction<T>(run: (transaction: this) => Promise<T>): Promise<T> {
+    this.transactionAttempts += 1;
+
+    if (this.serializableConflictsRemaining > 0) {
+      this.serializableConflictsRemaining -= 1;
+      throw serializableConflict();
+    }
+
     return run(this);
   }
 
@@ -414,6 +494,51 @@ function addReservation(
       nameEs: `Alojamiento ${id}`,
       nameEn: `Property ${id}`,
     },
+  });
+}
+
+function addConversation(
+  fake: FakeWhatsAppPrismaClient,
+  input: Readonly<{
+    id: string;
+    guestPhoneE164?: string;
+    reservationId?: string | null;
+  }>,
+) {
+  fake.conversations.push({
+    id: input.id,
+    guestPhoneE164: input.guestPhoneE164 ?? "+15005550100",
+    reservationId: input.reservationId ?? null,
+    unreadCount: 0,
+    lastMessageAt: null,
+    lastInboundAt: null,
+    customerServiceWindowExpiresAt: null,
+    createdAt: NOW,
+    updatedAt: NOW,
+  });
+}
+
+function addMessage(
+  fake: FakeWhatsAppPrismaClient,
+  input: Readonly<{
+    id: string;
+    conversationId: string;
+    createdAt: Date;
+    body?: string;
+    providerMessageSid?: string;
+  }>,
+) {
+  fake.messages.push({
+    id: input.id,
+    conversationId: input.conversationId,
+    direction: "INBOUND",
+    status: "RECEIVED",
+    body: input.body ?? input.id,
+    providerMessageSid: input.providerMessageSid ?? null,
+    mediaCount: 0,
+    mediaMetadata: null,
+    createdAt: input.createdAt,
+    updatedAt: input.createdAt,
   });
 }
 
@@ -490,6 +615,116 @@ test("F.4 provider MessageSid unique conflicts converge without a second side ef
   assert.equal(result.kind, "duplicate");
   assert.equal(fake.messages.length, 1);
   assert.equal(fake.conversations[0].unreadCount, 1);
+});
+
+test("F.4 retries a first-message guestPhoneE164 unique conflict and reuses the winning conversation", async () => {
+  const fake = new FakeWhatsAppPrismaClient();
+  fake.conversationCreateUniqueConflictForPhoneOnce = "+15005550100";
+  addReservation(fake, "reservation-retry", "+1 (500) 555-0100");
+
+  const result = expectPersisted(
+    await processWithFake(
+      fake,
+      makePayload({ MessageSid: messageSid("101") }),
+    ),
+  );
+
+  assert.equal(fake.transactionAttempts, 2);
+  assert.equal(fake.conversations.length, 1);
+  assert.equal(fake.messages.length, 1);
+  assert.equal(fake.conversations[0].unreadCount, 1);
+  assert.equal(fake.conversations[0].reservationId, "reservation-retry");
+  assert.equal(result.conversationId, fake.conversations[0].id);
+});
+
+test("F.4 converges concurrent first deliveries with the same MessageSid without duplicate side effects", async () => {
+  const fake = new FakeWhatsAppPrismaClient();
+  const payload = makePayload({
+    MessageSid: messageSid("202"),
+    Body: "same sid race",
+  });
+
+  const results = await Promise.all([
+    processWithFake(fake, payload),
+    processWithFake(fake, payload),
+  ]);
+  const resultKinds = results.map((result) => result.kind).sort();
+
+  assert.deepEqual(resultKinds, ["duplicate", "persisted"]);
+  assert.equal(fake.conversations.length, 1);
+  assert.equal(fake.messages.length, 1);
+  assert.equal(fake.conversations[0].unreadCount, 1);
+});
+
+test("F.4 converges concurrent first deliveries with different MessageSids into one conversation", async () => {
+  const fake = new FakeWhatsAppPrismaClient();
+
+  const results = await Promise.all([
+    processWithFake(
+      fake,
+      makePayload({
+        MessageSid: messageSid("303"),
+        Body: "first new message",
+      }),
+    ),
+    processWithFake(
+      fake,
+      makePayload({
+        MessageSid: messageSid("304"),
+        Body: "second new message",
+      }),
+    ),
+  ]);
+
+  assert.deepEqual(
+    results.map((result) => result.kind).sort(),
+    ["persisted", "persisted"],
+  );
+  assert.equal(fake.conversations.length, 1);
+  assert.equal(fake.messages.length, 2);
+  assert.deepEqual(
+    fake.messages.map((message) => message.providerMessageSid).sort(),
+    [messageSid("303"), messageSid("304")],
+  );
+  assert.equal(fake.conversations[0].unreadCount, 2);
+});
+
+test("F.4 retries serializable transaction conflicts within the bounded attempt budget", async () => {
+  const fake = new FakeWhatsAppPrismaClient();
+  fake.serializableConflictsRemaining = 2;
+
+  expectPersisted(
+    await processWithFake(
+      fake,
+      makePayload({ MessageSid: messageSid("405") }),
+    ),
+  );
+
+  assert.equal(fake.transactionAttempts, 3);
+  assert.equal(fake.conversations.length, 1);
+  assert.equal(fake.messages.length, 1);
+  assert.equal(fake.conversations[0].unreadCount, 1);
+});
+
+test("F.4 bounded retry exhaustion propagates the temporary database failure", async () => {
+  const fake = new FakeWhatsAppPrismaClient();
+  fake.serializableConflictsRemaining = 3;
+
+  await assert.rejects(
+    () =>
+      processWithFake(
+        fake,
+        makePayload({ MessageSid: messageSid("406") }),
+      ),
+    (error) =>
+      typeof error === "object" &&
+      error !== null &&
+      (error as { code?: unknown }).code === "P2034",
+  );
+
+  assert.equal(fake.transactionAttempts, 3);
+  assert.equal(fake.conversations.length, 0);
+  assert.equal(fake.messages.length, 0);
 });
 
 test("F.4 reuses one conversation per guest phone and only new messages increment unread", async () => {
@@ -738,6 +973,62 @@ test("F.4 mark-read operation explicitly sets unread count to zero and is idempo
   assert.equal(first.unreadCount, 0);
   assert.equal(second.unreadCount, 0);
   assert.equal(fake.conversations[0].unreadCount, 0);
+});
+
+test("F.4 admin read model exposes the latest 100 messages in stable chronological order", async () => {
+  const fake = new FakeWhatsAppPrismaClient();
+  addConversation(fake, { id: "conversation-window" });
+  const baseTime = Date.parse("2026-09-22T08:00:00.000Z");
+
+  for (let index = 1; index <= 102; index += 1) {
+    addMessage(fake, {
+      id: `message-${String(index).padStart(3, "0")}`,
+      conversationId: "conversation-window",
+      createdAt: new Date(baseTime + index * 60_000),
+    });
+  }
+
+  for (const id of ["message-tie-a", "message-tie-b", "message-tie-c"]) {
+    addMessage(fake, {
+      id,
+      conversationId: "conversation-window",
+      createdAt: new Date(baseTime + 200 * 60_000),
+    });
+  }
+
+  const data = await getAdminWhatsAppPage(
+    { conversationId: "conversation-window", page: 1 },
+    { prismaClient: fake as never },
+  );
+  const ids = data.messages.map((message) => message.id);
+
+  assert.equal(data.messages.length, 100);
+  assert.deepEqual(ids.slice(0, 3), [
+    "message-006",
+    "message-007",
+    "message-008",
+  ]);
+  assert.deepEqual(ids.slice(-3), [
+    "message-tie-a",
+    "message-tie-b",
+    "message-tie-c",
+  ]);
+  assert.equal(ids.includes("message-001"), false);
+  assert.equal(ids.includes("message-005"), false);
+  assert.equal(ids.includes("message-102"), true);
+  assert.equal(ids.includes("message-tie-c"), true);
+
+  for (let index = 1; index < data.messages.length; index += 1) {
+    const previous = data.messages[index - 1];
+    const current = data.messages[index];
+    const previousTime = Date.parse(previous.createdAt);
+    const currentTime = Date.parse(current.createdAt);
+
+    assert.ok(
+      previousTime < currentTime ||
+        (previousTime === currentTime && previous.id < current.id),
+    );
+  }
 });
 
 test("F.4 admin read model exposes safe conversation/message data without provider MessageSid", async () => {

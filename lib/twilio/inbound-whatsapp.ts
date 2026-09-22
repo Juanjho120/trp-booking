@@ -17,6 +17,15 @@ const E164_PATTERN = /^\+[1-9]\d{7,14}$/;
 const MAX_INBOUND_MEDIA_ITEMS = 10;
 const MEDIA_CONTENT_TYPE_MAX_LENGTH = 120;
 const CUSTOMER_SERVICE_WINDOW_HOURS = 24;
+const MAX_INBOUND_TRANSACTION_ATTEMPTS = 3;
+const PROVIDER_MESSAGE_SID_TARGETS = [
+  "providerMessageSid",
+  "provider_message_sid",
+] as const;
+const GUEST_PHONE_E164_TARGETS = [
+  "guestPhoneE164",
+  "guest_phone_e164",
+] as const;
 
 export type InboundWhatsAppIgnoredReason =
   | "CONFIGURATION_UNAVAILABLE"
@@ -221,35 +230,85 @@ function addHours(value: Date, hours: number): Date {
   return new Date(value.getTime() + hours * 60 * 60 * 1000);
 }
 
-function isProviderMessageSidUniqueConflict(error: unknown): boolean {
+function getPrismaErrorCode(error: unknown): string | null {
   if (typeof error !== "object" || error === null) {
-    return false;
+    return null;
   }
 
-  const prismaError = error as { code?: unknown; meta?: { target?: unknown } };
+  const code = (error as { code?: unknown }).code;
 
+  return typeof code === "string" ? code : null;
+}
+
+function getPrismaErrorMeta(error: unknown): Record<string, unknown> | null {
+  if (typeof error !== "object" || error === null) {
+    return null;
+  }
+
+  const meta = (error as { meta?: unknown }).meta;
+
+  return typeof meta === "object" && meta !== null
+    ? (meta as Record<string, unknown>)
+    : null;
+}
+
+function getPrismaErrorTargetText(error: unknown): string {
+  const target = getPrismaErrorMeta(error)?.target;
+
+  if (Array.isArray(target)) {
+    return target.join(" ");
+  }
+
+  return typeof target === "string" ? target : "";
+}
+
+function isUniqueConflictForTarget(
+  error: unknown,
+  targets: readonly string[],
+): boolean {
   if (
-    !(error instanceof Prisma.PrismaClientKnownRequestError) &&
-    prismaError.code !== "P2002"
+    getPrismaErrorCode(error) !== "P2002" &&
+    !(error instanceof Prisma.PrismaClientKnownRequestError)
   ) {
     return false;
   }
 
-  if (prismaError.code !== "P2002") {
+  if (getPrismaErrorCode(error) !== "P2002") {
     return false;
   }
 
-  const target = prismaError.meta?.target;
-  const targetText = Array.isArray(target)
-    ? target.join(" ")
-    : typeof target === "string"
-      ? target
-      : "";
+  const targetText = getPrismaErrorTargetText(error);
+
+  return targets.some((target) => targetText.includes(target));
+}
+
+function isProviderMessageSidUniqueConflict(error: unknown): boolean {
+  return isUniqueConflictForTarget(error, PROVIDER_MESSAGE_SID_TARGETS);
+}
+
+function isGuestPhoneE164UniqueConflict(error: unknown): boolean {
+  return isUniqueConflictForTarget(error, GUEST_PHONE_E164_TARGETS);
+}
+
+function isSerializableTransactionConflict(error: unknown): boolean {
+  const meta = getPrismaErrorMeta(error);
 
   return (
-    targetText.includes("providerMessageSid") ||
-    targetText.includes("provider_message_sid")
+    getPrismaErrorCode(error) === "P2034" ||
+    meta?.code === "40001" ||
+    meta?.code === "40P01"
   );
+}
+
+function shouldRetryInboundTransaction(error: unknown): boolean {
+  return (
+    isGuestPhoneE164UniqueConflict(error) ||
+    isSerializableTransactionConflict(error)
+  );
+}
+
+function hasAttemptsRemaining(attempt: number): boolean {
+  return attempt < MAX_INBOUND_TRANSACTION_ATTEMPTS;
 }
 
 async function resolveUniqueReservationIdByGuestPhone(
@@ -297,105 +356,116 @@ async function persistInboundGuestWhatsAppMessage(
 ): Promise<InboundWhatsAppProcessingResult> {
   const windowExpiresAt = addHours(options.now, CUSTOMER_SERVICE_WINDOW_HOURS);
 
-  try {
-    return await options.prismaClient.$transaction(
-      async (transaction) => {
-        const existingMessage = (await transaction.whatsAppMessage.findUnique({
-          where: { providerMessageSid: parsed.providerMessageSid },
-          select: {
-            id: true,
-            conversationId: true,
-          },
-        })) as ExistingMessage | null;
-
-        if (existingMessage) {
-          return {
-            kind: "duplicate",
-            messageId: existingMessage.id,
-            conversationId: existingMessage.conversationId,
-          };
-        }
-
-        let conversation = (await transaction.whatsAppConversation.findUnique({
-          where: { guestPhoneE164: parsed.guestPhoneE164 },
-          select: {
-            id: true,
-            reservationId: true,
-          },
-        })) as ExistingConversation | null;
-        const reservationId = conversation?.reservationId
-          ? conversation.reservationId
-          : await resolveUniqueReservationIdByGuestPhone(
-              transaction,
-              parsed.guestPhoneE164,
-            );
-
-        if (!conversation) {
-          conversation = (await transaction.whatsAppConversation.create({
-            data: {
-              guestPhoneE164: parsed.guestPhoneE164,
-              ...(reservationId ? { reservationId } : {}),
+  for (let attempt = 1; attempt <= MAX_INBOUND_TRANSACTION_ATTEMPTS; attempt += 1) {
+    try {
+      return await options.prismaClient.$transaction(
+        async (transaction) => {
+          const existingMessage = (await transaction.whatsAppMessage.findUnique({
+            where: { providerMessageSid: parsed.providerMessageSid },
+            select: {
+              id: true,
+              conversationId: true,
             },
+          })) as ExistingMessage | null;
+
+          if (existingMessage) {
+            return {
+              kind: "duplicate",
+              messageId: existingMessage.id,
+              conversationId: existingMessage.conversationId,
+            };
+          }
+
+          let conversation = (await transaction.whatsAppConversation.findUnique({
+            where: { guestPhoneE164: parsed.guestPhoneE164 },
             select: {
               id: true,
               reservationId: true,
             },
-          })) as ExistingConversation;
-        }
+          })) as ExistingConversation | null;
+          const reservationId = conversation?.reservationId
+            ? conversation.reservationId
+            : await resolveUniqueReservationIdByGuestPhone(
+                transaction,
+                parsed.guestPhoneE164,
+              );
 
-        const message = (await transaction.whatsAppMessage.create({
-          data: {
+          if (!conversation) {
+            conversation = (await transaction.whatsAppConversation.create({
+              data: {
+                guestPhoneE164: parsed.guestPhoneE164,
+                ...(reservationId ? { reservationId } : {}),
+              },
+              select: {
+                id: true,
+                reservationId: true,
+              },
+            })) as ExistingConversation;
+          }
+
+          const message = (await transaction.whatsAppMessage.create({
+            data: {
+              conversationId: conversation.id,
+              direction: WhatsAppMessageDirection.INBOUND,
+              status: WhatsAppMessageStatus.RECEIVED,
+              body: parsed.body,
+              providerMessageSid: parsed.providerMessageSid,
+              mediaCount: parsed.mediaCount,
+              ...(parsed.mediaMetadata
+                ? {
+                    mediaMetadata:
+                      parsed.mediaMetadata as Prisma.InputJsonValue,
+                  }
+                : {}),
+              createdAt: options.now,
+              updatedAt: options.now,
+            },
+            select: {
+              id: true,
+            },
+          })) as Readonly<{ id: string }>;
+
+          await transaction.whatsAppConversation.update({
+            where: { id: conversation.id },
+            data: {
+              unreadCount: { increment: 1 },
+              lastMessageAt: options.now,
+              lastInboundAt: options.now,
+              customerServiceWindowStartedAt: options.now,
+              customerServiceWindowExpiresAt: windowExpiresAt,
+              ...(!conversation.reservationId && reservationId
+                ? { reservationId }
+                : {}),
+            },
+            select: { id: true },
+          });
+
+          return {
+            kind: "persisted",
             conversationId: conversation.id,
-            direction: WhatsAppMessageDirection.INBOUND,
-            status: WhatsAppMessageStatus.RECEIVED,
-            body: parsed.body,
-            providerMessageSid: parsed.providerMessageSid,
-            mediaCount: parsed.mediaCount,
-            ...(parsed.mediaMetadata
-              ? {
-                  mediaMetadata:
-                    parsed.mediaMetadata as Prisma.InputJsonValue,
-                }
-              : {}),
-            createdAt: options.now,
-            updatedAt: options.now,
-          },
-          select: {
-            id: true,
-          },
-        })) as Readonly<{ id: string }>;
+            messageId: message.id,
+            reservationId: conversation.reservationId ?? reservationId,
+          };
+        },
+        { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+      );
+    } catch (error) {
+      if (isProviderMessageSidUniqueConflict(error)) {
+        return findDuplicateMessage(
+          options.prismaClient,
+          parsed.providerMessageSid,
+        );
+      }
 
-        await transaction.whatsAppConversation.update({
-          where: { id: conversation.id },
-          data: {
-            unreadCount: { increment: 1 },
-            lastMessageAt: options.now,
-            lastInboundAt: options.now,
-            customerServiceWindowStartedAt: options.now,
-            customerServiceWindowExpiresAt: windowExpiresAt,
-            ...(!conversation.reservationId && reservationId
-              ? { reservationId }
-              : {}),
-          },
-          select: { id: true },
-        });
+      if (shouldRetryInboundTransaction(error) && hasAttemptsRemaining(attempt)) {
+        continue;
+      }
 
-        return {
-          kind: "persisted",
-          conversationId: conversation.id,
-          messageId: message.id,
-          reservationId: conversation.reservationId ?? reservationId,
-        };
-      },
-      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
-    );
-  } catch (error) {
-    if (isProviderMessageSidUniqueConflict(error)) {
-      return findDuplicateMessage(options.prismaClient, parsed.providerMessageSid);
+      throw error;
     }
-
-    throw error;
   }
+
+  throw new Error("INBOUND_WHATSAPP_TRANSACTION_RETRY_EXHAUSTED");
 }
 
 export async function processInboundWhatsAppWebhook(

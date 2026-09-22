@@ -188,12 +188,14 @@ export async function getAdminWhatsAppPage(
         | null)
     : null;
   const messages = selectedConversationRecord
-    ? await prismaClient.whatsAppMessage.findMany({
-        where: { conversationId: selectedConversationRecord.id },
-        orderBy: [{ createdAt: "asc" }, { id: "asc" }],
-        take: ADMIN_WHATSAPP_MESSAGE_LIMIT,
-        select: adminWhatsAppMessageSelect,
-      })
+    ? (
+        await prismaClient.whatsAppMessage.findMany({
+          where: { conversationId: selectedConversationRecord.id },
+          orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+          take: ADMIN_WHATSAPP_MESSAGE_LIMIT,
+          select: adminWhatsAppMessageSelect,
+        })
+      ).reverse()
     : [];
 
   return {

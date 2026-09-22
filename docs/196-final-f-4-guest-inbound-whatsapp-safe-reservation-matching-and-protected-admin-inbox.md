@@ -80,6 +80,30 @@ Protected admin inbox:
 - Mark-read is idempotent.
 ```
 
+## Independent Review Corrections
+
+An independent review after the initial Final-F.4 implementation found two hardening issues. This
+correction keeps Final-F.4 in the same status:
+
+```text
+Implementation completed;
+owner Sandbox/Hosted Test inbound + admin-inbox validation and explicit acceptance pending
+```
+
+Corrections applied:
+
+```text
+1. Admin history originally used ASC + take 100, which selected the oldest 100 messages.
+   It now queries the latest 100 messages with createdAt DESC / id DESC and reverses them in
+   application code so the admin inbox displays the selected window in chronological order.
+
+2. Initial inbound implementation handled provider MessageSid uniqueness but did not converge
+   concurrent first-conversation guestPhoneE164 races. It now distinguishes providerMessageSid
+   P2002 from guestPhoneE164 P2002, retries guestPhoneE164/Serializable transaction conflicts
+   with a bounded 3-attempt budget, and still propagates exhausted/unknown database failures as
+   temporary webhook failures for Twilio retry.
+```
+
 ## Explicitly Not Implemented
 
 Final-F.4 does not add:
@@ -129,7 +153,7 @@ Executable validation completed:
 
 ```text
 npx tsx --tsconfig tests/final-f/tsconfig.json tests/final-f/run.ts
-Result: PASS — 36/36 tests
+Result: PASS — 42/42 tests
 Note: the same command failed inside the managed sandbox before loading project code with uv_os_get_passwd ENOMEM; it passed when rerun outside the sandbox with the same working tree.
 
 npm run db:generate
