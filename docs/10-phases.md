@@ -20,14 +20,15 @@ Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — 
 Last completed and accepted package: Final-E — Reservation reviews and post-checkout invitation — Completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880
 Final-E accepted feature head: 3843a6637300201bcb44b7ed235952afda02d880
 Current package: Final-F — Twilio WhatsApp communication and staff alerts — Active
-Current subphase: Final-F.2 — Twilio Sandbox provider foundation, webhook signature validation and Test onboarding — Implementation completed; owner Sandbox onboarding / Hosted Test provider validation pending
+Current subphase: Final-F.3 — WhatsApp conversation/message persistence + staff-recipient / staff-alert persistence foundation — Next / Not started
 Final-F.1 implementation base head: c6dbe2309f0cd373701fc9444f7f15879692f423
 Final-F.1 accepted implementation head: d5db6a2605a03e75db7c16238a43cd5f79dde6d8
 Final-F.1 record: docs/193-final-f-1-twilio-whatsapp-staff-alert-strategy-onboarding-and-security-contract.md
 Final-F.2 implementation base head: ba47dc9f22f4d61a01c13066f84e15ae8ad549f7
-Final-F.2 status: Implementation completed; owner Sandbox onboarding / Hosted Test provider validation pending
+Final-F.2 status: Completed and accepted on 2026-09-22 at 03861cb2d5daef7cca8bb759d16a0ef050d86b41
 Final-F.2 record: docs/194-final-f-2-twilio-sandbox-provider-foundation-webhook-signature-validation-and-test-onboarding.md
-Final-F.3 through Final-F.8 status: Not started
+Final-F.3 status: Next / Not started
+Final-F.4 through Final-F.8 status: Not started
 Final-C implementation base head: e7ce19c49c5cfd45e1cc08796ee897a2dce0d1ed
 Final-C.1 status: Completed and accepted on 2026-08-25
 Final-C.1 accepted strategy head: 16d8b0411e573aaaa6b510ddb27a9b5d9c666478
@@ -143,7 +144,7 @@ Final-E.7 status: Completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7
 Final-E permanent regression: npm run final-e:validate — 88/88 accepted
 Final-E.7 record: docs/192-final-e-7-integrated-regression-and-documentation-closure.md
 Last completed package: Final-E — Reservation reviews and post-checkout invitation — Completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880
-Last accepted subphase: Final-E.7 Integrated regression and documentation closure — completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880
+Last accepted subphase: Final-F.2 Twilio Sandbox provider foundation, webhook signature validation and Test onboarding — completed and accepted on 2026-09-22 at 03861cb2d5daef7cca8bb759d16a0ef050d86b41
 Final-A.1 status: Completed and accepted on 2026-08-11
 Final-A.1 accepted head: 19531568752a44446d0802d6581262260b881aaf
 Final-A.2 status: Completed and accepted on 2026-08-11
@@ -226,7 +227,7 @@ Phase 12.9 closure: docs/158-phase-12.9-acceptance-closure.md
 Phase 12.10 status: Completed and accepted on 2026-08-11 — Phase 12 validation and closure
 Phase 12.10 validated repository head: ebe28579872cbc2414573ef852b15139a2501551
 Phase 12 closure: docs/159-phase-12.10-phase-12-validation-and-closure.md
-Current work: Final-F Twilio WhatsApp communication and staff alerts — Active; Final-F.1 is completed and accepted on 2026-09-21 at d5db6a2605a03e75db7c16238a43cd5f79dde6d8; record docs/193-final-f-1-twilio-whatsapp-staff-alert-strategy-onboarding-and-security-contract.md. Final-F.2 implementation is completed from base ba47dc9f22f4d61a01c13066f84e15ae8ad549f7 with owner Sandbox onboarding / Hosted Test provider validation pending; record docs/194-final-f-2-twilio-sandbox-provider-foundation-webhook-signature-validation-and-test-onboarding.md. Final-F.3 through Final-F.8 remain Not started. Final-E is completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880. Phase 13 remains blocked until Final-H closes and the complete Final Improvement Track is explicitly accepted
+Current work: Final-F Twilio WhatsApp communication and staff alerts — Active; Final-F.1 is completed and accepted on 2026-09-21 at d5db6a2605a03e75db7c16238a43cd5f79dde6d8; record docs/193-final-f-1-twilio-whatsapp-staff-alert-strategy-onboarding-and-security-contract.md. Final-F.2 is completed and accepted on 2026-09-22 at 03861cb2d5daef7cca8bb759d16a0ef050d86b41 from implementation base ba47dc9f22f4d61a01c13066f84e15ae8ad549f7; record docs/194-final-f-2-twilio-sandbox-provider-foundation-webhook-signature-validation-and-test-onboarding.md. Final-F.3 is Next / Not started. Final-F.4 through Final-F.8 remain Not started. Final-E is completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880. Phase 13 remains blocked until Final-H closes and the complete Final Improvement Track is explicitly accepted
 Next planned numbered phase: Phase 13 — Production Infrastructure, Deployment & Go-Live — Not started
 Pre-Phase-12 Improvement Track status: Completed and accepted — Packages A, B, C, E, and F accepted; Package D remains deferred outside the current gate
 Pre-Phase-12 Improvement Track registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
@@ -1289,7 +1290,7 @@ Phase 12 explicitly excludes company-owned production account provisioning, prod
 
 ## Inter-Phase Work — Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 
-Status: **Active — Final-A, Final-B, Final-C, Final-D and Final-E are completed and accepted; Final-F is Active with Final-F.1 completed and accepted on 2026-09-21; Final-F.2 implementation is completed with owner Sandbox onboarding / Hosted Test provider validation pending; Final-G and Final-H remain Not started; Phase 13 remains Not started**
+Status: **Active — Final-A, Final-B, Final-C, Final-D and Final-E are completed and accepted; Final-F is Active with Final-F.1 completed and accepted on 2026-09-21; Final-F.2 is completed and accepted on 2026-09-22 at 03861cb2d5daef7cca8bb759d16a0ef050d86b41; Final-G and Final-H remain Not started; Phase 13 remains Not started**
 
 Goal: Complete the final owner-approved feature, correctness, communication, pricing, and performance round before Production while preserving the accepted Test/Production ownership boundary.
 
@@ -1336,8 +1337,9 @@ Final-E Reservation reviews and post-checkout invitation — Completed and accep
   Final-E.7 Integrated regression and documentation closure — Completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880; record: docs/192-final-e-7-integrated-regression-and-documentation-closure.md
 Final-F Twilio WhatsApp communication and staff alerts — Active
   Final-F.1 Twilio/WhatsApp + staff-alert strategy, onboarding, templates and security contract — Completed and accepted on 2026-09-21 at d5db6a2605a03e75db7c16238a43cd5f79dde6d8; record: docs/193-final-f-1-twilio-whatsapp-staff-alert-strategy-onboarding-and-security-contract.md
-  Final-F.2 Twilio Sandbox provider foundation, webhook signature validation and Test onboarding — Implementation completed; owner Sandbox onboarding / Hosted Test provider validation pending; record: docs/194-final-f-2-twilio-sandbox-provider-foundation-webhook-signature-validation-and-test-onboarding.md
-  Final-F.3 through Final-F.8 — Not started
+  Final-F.2 Twilio Sandbox provider foundation, webhook signature validation and Test onboarding — Completed and accepted on 2026-09-22 at 03861cb2d5daef7cca8bb759d16a0ef050d86b41; record: docs/194-final-f-2-twilio-sandbox-provider-foundation-webhook-signature-validation-and-test-onboarding.md
+  Final-F.3 — Next / Not started
+  Final-F.4 through Final-F.8 — Not started
 Final-G Performance audit and optimization — Not started
 Final-H Integrated regression and final improvement-track closure — Not started
 ```

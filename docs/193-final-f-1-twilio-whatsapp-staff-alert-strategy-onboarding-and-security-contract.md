@@ -12,7 +12,7 @@ Implementation base head: c6dbe2309f0cd373701fc9444f7f15879692f423
 Accepted implementation head: d5db6a2605a03e75db7c16238a43cd5f79dde6d8
 Document date: 2026-09-21
 Runtime/schema/dependency changes: none
-Next subphase: Final-F.2 — Twilio Sandbox provider foundation, webhook signature validation and Test onboarding — Implementation completed; owner Sandbox onboarding / Hosted Test provider validation pending; record docs/194-final-f-2-twilio-sandbox-provider-foundation-webhook-signature-validation-and-test-onboarding.md
+Next subphase: Final-F.3 — WhatsApp conversation/message persistence + staff-recipient / staff-alert persistence foundation — Next / Not started
 Final-G: Not started
 Final-H: Not started
 Phase 13: Not started
@@ -55,10 +55,11 @@ subphases, including:
 - At Final-F.1 acceptance time, Final-F.2 through Final-F.8 remained pending and not started.
 ```
 
-Final-F as a package remains active. Final-F.2 implementation is completed from base
-`ba47dc9f22f4d61a01c13066f84e15ae8ad549f7`, with owner Sandbox onboarding /
-Hosted Test provider validation and explicit acceptance still pending. Final-F.3 through Final-F.8,
-Final-G, Final-H, and Phase 13 remain Not started.
+Final-F as a package remains active. Final-F.2 is completed and accepted on 2026-09-22 at
+`03861cb2d5daef7cca8bb759d16a0ef050d86b41`; its accepted provider/onboarding record is
+`docs/194-final-f-2-twilio-sandbox-provider-foundation-webhook-signature-validation-and-test-onboarding.md`.
+Final-F.3 is Next / Not started. Final-F.4 through Final-F.8, Final-G, Final-H, and Phase 13 remain
+Not started.
 
 ## Goal
 

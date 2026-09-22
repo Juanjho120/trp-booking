@@ -1,10 +1,12 @@
 # Final-F.2 — Twilio Sandbox Provider Foundation, Webhook Signature Validation and Test Onboarding
 
-Status: Implementation completed; owner Sandbox onboarding / Hosted Test provider validation pending
+Status: Completed and accepted on 2026-09-22
 Implementation date: 2026-09-21
 Implementation base head: `ba47dc9f22f4d61a01c13066f84e15ae8ad549f7`
-Owner acceptance: Pending
-Next subphase: Final-F.3 — WhatsApp conversation/message persistence + staff-recipient / staff-alert persistence foundation — Not started
+Initial implementation head: `13e6dcadc9fa8930cd8166aebb8049093ce6fa3c`
+Accepted implementation/validation head: `03861cb2d5daef7cca8bb759d16a0ef050d86b41`
+Owner acceptance: Completed on 2026-09-22
+Next subphase: Final-F.3 — WhatsApp conversation/message persistence + staff-recipient / staff-alert persistence foundation — Next / Not started
 Phase 13: Not started
 
 ## Scope Implemented
@@ -103,7 +105,7 @@ Secrets remain server-side only. No `NEXT_PUBLIC_*` Twilio value is permitted.
 
 ## Test Onboarding Runbook
 
-Owner/manual Hosted Test steps still pending:
+Owner/manual Hosted Test onboarding was completed during acceptance. The accepted setup path was:
 
 1. In Twilio Console, use Try out WhatsApp or the legacy WhatsApp Sandbox page.
 2. Join the Sandbox from the explicit owner-controlled test WhatsApp recipient.
@@ -128,7 +130,7 @@ npx tsx scripts/final-f-2-twilio-sandbox-probe.ts
 
 The probe requires `TWILIO_ONBOARDING_TO`. It refuses Production and does not hardcode a phone number.
 
-Manual Sandbox/Hosted Test validation is not yet marked PASS because owner execution and acceptance have not occurred.
+Manual Sandbox/Hosted Test validation passed on 2026-09-22 with explicit owner acceptance.
 
 ## Runtime Behavior
 
@@ -177,14 +179,78 @@ Note: Git emitted LF/CRLF working-copy warnings only.
 
 No real Twilio credentials, real phone numbers, webhook bodies, or provider payloads were used in automated tests.
 
-## Acceptance State
+## Owner Acceptance
 
-Final-F.2 is not accepted yet.
+Final-F.2 was completed and explicitly accepted by the owner on 2026-09-22.
 
-Pending owner acceptance requires Hosted Test/Sandbox evidence that:
+Accepted implementation/validation head:
 
-- Twilio Sandbox setup is complete;
-- inbound webhook reaches the Test app and validates the official Twilio signature;
-- status callback reaches the Test app and validates the official Twilio signature;
-- controlled provider probe, if used, sends only to the explicitly authorized onboarding recipient;
-- no Production sender, WABA, Production templates, or Phase 13 work is activated.
+```text
+03861cb2d5daef7cca8bb759d16a0ef050d86b41
+```
+
+Final-F.3 is the next subphase and remains Not started.
+
+## Hosted Test / Sandbox Acceptance Evidence
+
+The owner completed real Twilio Sandbox / Hosted Test validation on 2026-09-22.
+
+Evidence recorded without Account SID values, Auth Token, owner phone number, Sandbox join code,
+raw webhook payload, full Twilio headers, or other secrets:
+
+```text
+Twilio Sandbox join
+PASS
+
+Inbound WhatsApp message sent by owner to Sandbox
+PASS
+
+Inbound message visible in Twilio Messaging Logs
+PASS
+
+Twilio Debugger showed no webhook error
+PASS
+
+Twilio -> TRP inbound webhook
+PASS
+
+X-Twilio-Signature validation on Hosted Test
+PASS
+
+TRP inbound Twilio-compatible acknowledgement
+200
+Content-Type: text/xml; charset=utf-8
+<Response></Response>
+PASS
+
+Primary Compliance Profile
+Initially blocked outbound provider use with:
+HTTP 401
+Twilio code 20003
+Primary compliance profile not approved
+
+Owner completed Twilio Trust Hub / KYC process
+Primary Compliance Profile approved
+PASS
+
+Controlled Sandbox provider probe
+npx tsx scripts/final-f-2-twilio-sandbox-probe.ts
+PASS
+
+Outbound WhatsApp received successfully by owner
+PASS
+
+Twilio status callbacks reached Hosted Test
+POST /api/twilio/whatsapp/status
+204 No Content
+multiple callbacks observed in Vercel
+PASS
+```
+
+The Trust Hub / Primary Compliance Profile issue was a Twilio provider onboarding blocker, not a TRP
+code defect.
+
+The real provider Hosted Test validation is separate from the automated validation above. Automated
+tests validated deterministic local behavior without real Twilio credentials, phone numbers, webhook
+payloads, or provider payloads; Hosted Test validated the real Twilio Sandbox, signature, inbound
+TwiML ACK, outbound probe, and status-callback behavior.
