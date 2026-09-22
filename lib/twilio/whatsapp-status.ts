@@ -22,8 +22,17 @@ const TERMINAL_FAILURE_STATUSES = new Set<WhatsAppMessageStatus>([
   WhatsAppMessageStatus.FAILED,
   WhatsAppMessageStatus.UNDELIVERED,
 ]);
+const STATUS_CALLBACK_SERIALIZABLE_RETRY_LIMIT = 3;
 
-type WhatsAppStatusPrismaClient = Pick<PrismaClient, "whatsAppMessage">;
+type WhatsAppStatusPrismaClient = Pick<
+  PrismaClient,
+  "$transaction" | "whatsAppMessage"
+>;
+
+type WhatsAppStatusTransactionClient = Pick<
+  Prisma.TransactionClient,
+  "whatsAppMessage"
+>;
 
 type ExistingWhatsAppStatusMessage = Readonly<{
   id: string;
@@ -80,6 +89,20 @@ function normalizeErrorCode(value: string | null): string | null {
   }
 
   return trimmed;
+}
+
+function getPrismaErrorCode(error: unknown): string | null {
+  if (typeof error !== "object" || error === null) {
+    return null;
+  }
+
+  const code = (error as { code?: unknown }).code;
+
+  return typeof code === "string" ? code : null;
+}
+
+function isSerializationConflict(error: unknown): boolean {
+  return getPrismaErrorCode(error) === "P2034";
 }
 
 export function mapTwilioMessageStatusToWhatsAppStatus(
@@ -203,6 +226,105 @@ function buildStatusUpdate(
   return Object.keys(data).length > 0 ? data : null;
 }
 
+async function processTwilioWhatsAppStatusCallbackInTransaction(
+  transaction: WhatsAppStatusTransactionClient,
+  input: Readonly<{
+    providerMessageSid: string;
+    incomingStatus: WhatsAppMessageStatus;
+    observedAt: Date;
+    errorCode: string | null;
+  }>,
+): Promise<WhatsAppStatusCallbackProcessingResult> {
+  const message = (await transaction.whatsAppMessage.findUnique({
+    where: { providerMessageSid: input.providerMessageSid },
+    select: {
+      id: true,
+      direction: true,
+      status: true,
+      sentAt: true,
+      deliveredAt: true,
+      readAt: true,
+      failedAt: true,
+    },
+  })) as ExistingWhatsAppStatusMessage | null;
+
+  if (!message) {
+    return { kind: "ignored", reason: "UNKNOWN_MESSAGE_SID" };
+  }
+
+  if (message.direction !== WhatsAppMessageDirection.OUTBOUND) {
+    return { kind: "ignored", reason: "INBOUND_MESSAGE" };
+  }
+
+  const data = buildStatusUpdate(
+    message,
+    input.incomingStatus,
+    input.observedAt,
+    input.errorCode,
+  );
+
+  if (!data) {
+    return {
+      kind: "processed",
+      messageId: message.id,
+      status: message.status,
+    };
+  }
+
+  const updated = (await transaction.whatsAppMessage.update({
+    where: { id: message.id },
+    data,
+    select: {
+      id: true,
+      status: true,
+    },
+  })) as Readonly<{ id: string; status: WhatsAppMessageStatus }>;
+
+  return {
+    kind: "processed",
+    messageId: updated.id,
+    status: updated.status,
+  };
+}
+
+async function processTwilioWhatsAppStatusCallbackWithRetry(
+  prismaClient: WhatsAppStatusPrismaClient,
+  input: Readonly<{
+    providerMessageSid: string;
+    incomingStatus: WhatsAppMessageStatus;
+    observedAt: Date;
+    errorCode: string | null;
+  }>,
+): Promise<WhatsAppStatusCallbackProcessingResult> {
+  for (
+    let attempt = 1;
+    attempt <= STATUS_CALLBACK_SERIALIZABLE_RETRY_LIMIT;
+    attempt += 1
+  ) {
+    try {
+      return await prismaClient.$transaction(
+        (transaction) =>
+          processTwilioWhatsAppStatusCallbackInTransaction(
+            transaction as WhatsAppStatusTransactionClient,
+            input,
+          ),
+        { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+      );
+    } catch (error) {
+      if (
+        attempt < STATUS_CALLBACK_SERIALIZABLE_RETRY_LIMIT &&
+        isSerializationConflict(error)
+      ) {
+        continue;
+      }
+
+      throw error;
+    }
+  }
+
+  throw new Error("TWILIO_STATUS_CALLBACK_RETRY_EXHAUSTED");
+}
+
 export async function processTwilioWhatsAppStatusCallback(
   payload: TwilioWebhookPayload,
   options: ProcessWhatsAppStatusCallbackOptions = {},
@@ -228,54 +350,11 @@ export async function processTwilioWhatsAppStatusCallback(
   }
 
   const prismaClient = options.prismaClient ?? prisma;
-  const message = (await prismaClient.whatsAppMessage.findUnique({
-    where: { providerMessageSid },
-    select: {
-      id: true,
-      direction: true,
-      status: true,
-      sentAt: true,
-      deliveredAt: true,
-      readAt: true,
-      failedAt: true,
-    },
-  })) as ExistingWhatsAppStatusMessage | null;
 
-  if (!message) {
-    return { kind: "ignored", reason: "UNKNOWN_MESSAGE_SID" };
-  }
-
-  if (message.direction !== WhatsAppMessageDirection.OUTBOUND) {
-    return { kind: "ignored", reason: "INBOUND_MESSAGE" };
-  }
-
-  const data = buildStatusUpdate(
-    message,
+  return processTwilioWhatsAppStatusCallbackWithRetry(prismaClient, {
+    providerMessageSid,
     incomingStatus,
-    options.now ?? new Date(),
-    normalizeErrorCode(readFirstParam(params, "ErrorCode")),
-  );
-
-  if (!data) {
-    return {
-      kind: "processed",
-      messageId: message.id,
-      status: message.status,
-    };
-  }
-
-  const updated = (await prismaClient.whatsAppMessage.update({
-    where: { id: message.id },
-    data,
-    select: {
-      id: true,
-      status: true,
-    },
-  })) as Readonly<{ id: string; status: WhatsAppMessageStatus }>;
-
-  return {
-    kind: "processed",
-    messageId: updated.id,
-    status: updated.status,
-  };
+    observedAt: options.now ?? new Date(),
+    errorCode: normalizeErrorCode(readFirstParam(params, "ErrorCode")),
+  });
 }

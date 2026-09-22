@@ -51,6 +51,11 @@ const WHATSAPP_CHAT_TAB = "chat";
 const WHATSAPP_RESERVATIONS_TAB = "reservations";
 const WHATSAPP_REPLY_MAX_LENGTH = 1600;
 
+type PendingLogicalReplyRequest = Readonly<{
+  clientRequestId: string;
+  normalizedBody: string;
+}>;
+
 function getIntlLocale(locale: Locale): string {
   return locale === "en" ? "en-US" : "es-GT";
 }
@@ -177,6 +182,7 @@ export function AdminWhatsAppPageView({
   async function sendMessage(
     conversationId: string,
     body: string,
+    clientRequestId: string,
   ): Promise<boolean> {
     setSendingConversationId(conversationId);
     setSuccessMessage(null);
@@ -195,7 +201,7 @@ export function AdminWhatsAppPageView({
           },
           body: JSON.stringify({
             body,
-            clientRequestId: createClientRequestId(),
+            clientRequestId,
           }),
         },
       );
@@ -433,7 +439,11 @@ function ConversationPanel({
   formatDateTime: (value: string | null) => string;
   messages: readonly AdminWhatsAppMessageSummary[];
   onMarkRead: (conversationId: string) => Promise<void>;
-  onSendMessage: (conversationId: string, body: string) => Promise<boolean>;
+  onSendMessage: (
+    conversationId: string,
+    body: string,
+    clientRequestId: string,
+  ) => Promise<boolean>;
   propertyName: string;
   sending: boolean;
 }>) {
@@ -584,27 +594,60 @@ function ReplyComposer({
   copy: AdminWhatsAppCopy;
   disabled: boolean;
   maxLength: number;
-  onSendMessage: (conversationId: string, body: string) => Promise<boolean>;
+  onSendMessage: (
+    conversationId: string,
+    body: string,
+    clientRequestId: string,
+  ) => Promise<boolean>;
 }>) {
   const [body, setBody] = useState("");
+  const [pendingLogicalRequest, setPendingLogicalRequest] =
+    useState<PendingLogicalReplyRequest | null>(null);
   const normalizedLength = body.trim().length;
+  const normalizedBody = body.trim();
   const canSend =
     conversation.freeformReplyAllowed &&
     !disabled &&
-    normalizedLength > 0 &&
+    normalizedBody.length > 0 &&
     normalizedLength <= maxLength;
   const composerId = `whatsapp-reply-${conversation.id}`;
   const helperId = `${composerId}-helper`;
+
+  function handleBodyChange(value: string): void {
+    setBody(value);
+
+    if (
+      pendingLogicalRequest &&
+      pendingLogicalRequest.normalizedBody !== value.trim()
+    ) {
+      setPendingLogicalRequest(null);
+    }
+  }
 
   async function submitMessage(): Promise<void> {
     if (!canSend) {
       return;
     }
 
-    const sent = await onSendMessage(conversation.id, body);
+    const logicalRequest =
+      pendingLogicalRequest?.normalizedBody === normalizedBody
+        ? pendingLogicalRequest
+        : {
+            clientRequestId: createClientRequestId(),
+            normalizedBody,
+          };
+
+    setPendingLogicalRequest(logicalRequest);
+
+    const sent = await onSendMessage(
+      conversation.id,
+      body,
+      logicalRequest.clientRequestId,
+    );
 
     if (sent) {
       setBody("");
+      setPendingLogicalRequest(null);
     }
   }
 
@@ -632,7 +675,7 @@ function ReplyComposer({
         disabled={disabled}
         id={composerId}
         maxLength={maxLength}
-        onChange={(event) => setBody(event.target.value)}
+        onChange={(event) => handleBodyChange(event.target.value)}
         placeholder={copy.reply.placeholder}
         value={body}
       />

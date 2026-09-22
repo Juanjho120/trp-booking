@@ -18,7 +18,7 @@ F.5 migration: 20260922210000_final_f_5_whatsapp_outbound_idempotency
 Migration count before F.5: 24
 Migration count after F.5: 25
 Permanent Final-F gate: not introduced
-Final-F targeted validation: 60/60 PASS
+Final-F targeted validation: 71/71 PASS
 Owner acceptance: Pending
 Final-F.6: Next / Not started
 Final-F.7 through Final-F.8: Not started
@@ -139,6 +139,39 @@ Status convergence:
 - Failure callbacks persist safe errorCode when available and a safe internal errorMessage.
 ```
 
+## Independent Review Hardening
+
+Independent review found three F.5 hardening gaps after the initial implementation:
+
+```text
+1. Sequential callback convergence was correct, but concurrent callbacks could race through a
+   read + update sequence and regress the persisted state.
+2. Browser retries generated a fresh clientRequestId per HTTP attempt, so an ambiguous successful
+   send followed by retry could create a duplicate logical outbound message.
+3. Replaying an already-committed PENDING outbound intent returned the row without recovering the
+   safe case where Twilio had never been called.
+```
+
+Hardening completed:
+
+```text
+- Status callback convergence now runs in a bounded Serializable transaction with up to three
+  retries on Prisma P2034 serialization conflicts.
+- Each retry rereads the latest WhatsAppMessage state before computing monotonic status,
+  timestamps, and safe failure evidence.
+- First-observed sentAt, deliveredAt, readAt, and failedAt values are preserved under duplicate
+  or concurrent callbacks; later duplicates do not replace an already-persisted timestamp.
+- The admin reply composer now owns the logical clientRequestId for the current normalized body,
+  keeps it across ambiguous retry of the same message, clears it only after success, and creates
+  a new logical identifier when the body changes.
+- Existing same-ID PENDING outbound intents with no providerMessageSid can be safely reclaimed by
+  the same atomic PENDING -> PROCESSING claim used for new sends.
+- Existing PROCESSING, QUEUED, SENT, DELIVERED, READ, FAILED, and UNDELIVERED same-ID replays are
+  returned without a blind provider resend.
+- Concurrent same-ID PENDING replays are claim-safe: exactly one caller may call Twilio and losers
+  reload the current message state.
+```
+
 ## Protected Admin UX
 
 The `/admin/whatsapp` Chat tab now includes the reply composer below the latest-100 message history.
@@ -212,8 +245,8 @@ Result: PASS — Prisma Client generated successfully
 Note: Prisma emitted the existing package.json#prisma deprecation warning.
 
 npx tsx --tsconfig tests/final-f/tsconfig.json tests/final-f/run.ts
-Result: PASS — 60/60 tests
-Note: the same command failed inside the managed sandbox before loading project code with uv_os_get_passwd ENOMEM; it passed when rerun outside the sandbox with the same working tree. It was rerun after the final type-narrowing fix and remained 60/60 PASS.
+Result: PASS — 71/71 tests
+Note: the same command failed inside the managed sandbox before loading project code with uv_os_get_passwd ENOMEM during the original F.5 implementation; it passed outside the sandbox. After the independent-review hardening, the same targeted suite passed at 71/71.
 
 npm run db:validate
 Result: PASS — Prisma schema valid

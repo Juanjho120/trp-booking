@@ -144,12 +144,12 @@ type OutboundWhatsAppIntentMessage = Readonly<{
 
 type OutboundWhatsAppIntent = Readonly<
   | {
-      created: true;
+      deliveryAllowed: true;
       guestPhoneE164: string;
       message: OutboundWhatsAppIntentMessage;
     }
   | {
-      created: false;
+      deliveryAllowed: false;
       message: OutboundWhatsAppIntentMessage;
     }
 >;
@@ -162,6 +162,11 @@ export type SendAdminWhatsAppConversationMessageInput = Readonly<{
 
 export type SendAdminWhatsAppConversationMessageResult = Readonly<{
   message: AdminWhatsAppMessageSummary;
+  deliveryAttempted: boolean;
+}>;
+
+type DeliverOutboundIntentResult = Readonly<{
+  message: OutboundWhatsAppIntentMessage;
   deliveryAttempted: boolean;
 }>;
 
@@ -393,7 +398,10 @@ function assertOutboundIdempotencyMatch(
 }
 
 async function findExistingOutboundIntentByClientRequestId(
-  prismaClient: Pick<AdminWhatsAppMutationPrismaClient, "whatsAppMessage">,
+  prismaClient: Pick<
+    AdminWhatsAppMutationPrismaClient,
+    "whatsAppConversation" | "whatsAppMessage"
+  >,
   input: Readonly<{
     clientRequestId: string;
     conversationId: string;
@@ -411,9 +419,36 @@ async function findExistingOutboundIntentByClientRequestId(
 
   assertOutboundIdempotencyMatch(existing, input);
 
+  if (
+    existing.status === WhatsAppMessageStatus.PENDING &&
+    !existing.providerMessageSid
+  ) {
+    return buildDeliverableOutboundIntent(prismaClient, existing);
+  }
+
   return {
-    created: false,
+    deliveryAllowed: false,
     message: existing,
+  };
+}
+
+async function buildDeliverableOutboundIntent(
+  prismaClient: Pick<AdminWhatsAppMutationPrismaClient, "whatsAppConversation">,
+  message: OutboundWhatsAppIntentMessage,
+): Promise<OutboundWhatsAppIntent> {
+  const conversation = (await prismaClient.whatsAppConversation.findUnique({
+    where: { id: message.conversationId },
+    select: { guestPhoneE164: true },
+  })) as Readonly<{ guestPhoneE164: string }> | null;
+
+  if (!conversation) {
+    throw new AdminWhatsAppError("ADMIN_WHATSAPP_UNEXPECTED_ERROR");
+  }
+
+  return {
+    deliveryAllowed: true,
+    guestPhoneE164: conversation.guestPhoneE164,
+    message,
   };
 }
 
@@ -434,8 +469,15 @@ async function createOutboundIntent(
   if (existing) {
     assertOutboundIdempotencyMatch(existing, input);
 
+    if (
+      existing.status === WhatsAppMessageStatus.PENDING &&
+      !existing.providerMessageSid
+    ) {
+      return buildDeliverableOutboundIntent(transaction, existing);
+    }
+
     return {
-      created: false,
+      deliveryAllowed: false,
       message: existing,
     };
   }
@@ -481,7 +523,7 @@ async function createOutboundIntent(
   });
 
   return {
-    created: true,
+    deliveryAllowed: true,
     guestPhoneE164: conversation.guestPhoneE164,
     message,
   };
@@ -530,14 +572,14 @@ async function getOutboundMessageOrThrow(
 }
 
 async function deliverOutboundIntent(
-  intent: Extract<OutboundWhatsAppIntent, { created: true }>,
+  intent: Extract<OutboundWhatsAppIntent, { deliveryAllowed: true }>,
   options: Readonly<{
     now: Date;
     prismaClient: AdminWhatsAppMutationPrismaClient;
     source?: NodeJS.ProcessEnv;
     twilioClient?: TwilioMessageClient;
   }>,
-): Promise<OutboundWhatsAppIntentMessage> {
+): Promise<DeliverOutboundIntentResult> {
   const claimed = await options.prismaClient.whatsAppMessage.updateMany({
     where: {
       id: intent.message.id,
@@ -553,10 +595,13 @@ async function deliverOutboundIntent(
   });
 
   if (claimed.count !== 1) {
-    return getOutboundMessageOrThrow(
-      options.prismaClient,
-      intent.message.id,
-    );
+    return {
+      message: await getOutboundMessageOrThrow(
+        options.prismaClient,
+        intent.message.id,
+      ),
+      deliveryAttempted: false,
+    };
   }
 
   try {
@@ -571,32 +616,38 @@ async function deliverOutboundIntent(
         providerResult.providerStatus,
       ) ?? WhatsAppMessageStatus.QUEUED;
 
-    return (await options.prismaClient.whatsAppMessage.update({
-      where: { id: intent.message.id },
-      data: {
-        providerMessageSid: providerResult.providerMessageSid,
-        status: providerStatus,
-        processingStartedAt: null,
-        errorCode: null,
-        errorMessage: null,
-        ...deliveryTimestampData(providerStatus, options.now),
-      },
-      select: outboundWhatsAppMessageSelect,
-    })) as OutboundWhatsAppIntentMessage;
+    return {
+      message: (await options.prismaClient.whatsAppMessage.update({
+        where: { id: intent.message.id },
+        data: {
+          providerMessageSid: providerResult.providerMessageSid,
+          status: providerStatus,
+          processingStartedAt: null,
+          errorCode: null,
+          errorMessage: null,
+          ...deliveryTimestampData(providerStatus, options.now),
+        },
+        select: outboundWhatsAppMessageSelect,
+      })) as OutboundWhatsAppIntentMessage,
+      deliveryAttempted: true,
+    };
   } catch (error) {
     const providerError = normalizeTwilioProviderError(error);
 
-    return (await options.prismaClient.whatsAppMessage.update({
-      where: { id: intent.message.id },
-      data: {
-        status: WhatsAppMessageStatus.FAILED,
-        processingStartedAt: null,
-        failedAt: options.now,
-        errorCode: providerError.code,
-        errorMessage: providerError.message,
-      },
-      select: outboundWhatsAppMessageSelect,
-    })) as OutboundWhatsAppIntentMessage;
+    return {
+      message: (await options.prismaClient.whatsAppMessage.update({
+        where: { id: intent.message.id },
+        data: {
+          status: WhatsAppMessageStatus.FAILED,
+          processingStartedAt: null,
+          failedAt: options.now,
+          errorCode: providerError.code,
+          errorMessage: providerError.message,
+        },
+        select: outboundWhatsAppMessageSelect,
+      })) as OutboundWhatsAppIntentMessage,
+      deliveryAttempted: true,
+    };
   }
 }
 
@@ -787,14 +838,14 @@ export async function sendAdminWhatsAppConversationMessage(
     }
   }
 
-  if (!intent.created) {
+  if (!intent.deliveryAllowed) {
     return {
       message: toMessageSummary(intent.message),
       deliveryAttempted: false,
     };
   }
 
-  const deliveredMessage = await deliverOutboundIntent(intent, {
+  const deliveryResult = await deliverOutboundIntent(intent, {
     now,
     prismaClient,
     source: options.source,
@@ -802,7 +853,7 @@ export async function sendAdminWhatsAppConversationMessage(
   });
 
   return {
-    message: toMessageSummary(deliveredMessage),
-    deliveryAttempted: true,
+    message: toMessageSummary(deliveryResult.message),
+    deliveryAttempted: deliveryResult.deliveryAttempted,
   };
 }

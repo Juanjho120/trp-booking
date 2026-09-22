@@ -93,10 +93,53 @@ function assertAdminWhatsAppError(code: string): (error: unknown) => boolean {
     error instanceof AdminWhatsAppError && error.code === code;
 }
 
+function prismaSerializationConflict(): Error & { code: string } {
+  return Object.assign(new Error("Serializable transaction conflict"), {
+    code: "P2034",
+  });
+}
+
+class AsyncBarrier {
+  private released = false;
+  private waiting = 0;
+  private readonly resolvers: Array<() => void> = [];
+
+  constructor(private readonly expectedCount: number) {}
+
+  async wait(): Promise<void> {
+    if (this.released) {
+      return;
+    }
+
+    this.waiting += 1;
+
+    if (this.waiting >= this.expectedCount) {
+      this.release();
+      return;
+    }
+
+    await new Promise<void>((resolve) => {
+      this.resolvers.push(resolve);
+    });
+  }
+
+  private release(): void {
+    this.released = true;
+
+    for (const resolve of this.resolvers.splice(0)) {
+      resolve();
+    }
+  }
+}
+
 class FakeFinalF5PrismaClient {
   conversations: ConversationRecord[] = [];
   messages: MessageRecord[] = [];
   inTransaction = false;
+  serializationFailuresRemaining = 0;
+  statusReadBarrier: AsyncBarrier | null = null;
+  private activeTransactions = 0;
+  private readonly messageVersions = new Map<string, number>();
 
   whatsAppConversation = {
     findUnique: async (args: unknown) => {
@@ -202,6 +245,7 @@ class FakeFinalF5PrismaClient {
       };
 
       this.messages.push(message);
+      this.messageVersions.set(message.id, 0);
 
       return { ...message };
     },
@@ -243,6 +287,11 @@ class FakeFinalF5PrismaClient {
         if ("processingStartedAt" in input.data) {
           message.processingStartedAt = input.data.processingStartedAt ?? null;
         }
+
+        this.messageVersions.set(
+          message.id,
+          (this.messageVersions.get(message.id) ?? 0) + 1,
+        );
       }
 
       return { count: matching.length };
@@ -256,6 +305,10 @@ class FakeFinalF5PrismaClient {
       assert.ok(message, `Missing message ${input.where.id}`);
 
       Object.assign(message, input.data, { updatedAt: NOW });
+      this.messageVersions.set(
+        message.id,
+        (this.messageVersions.get(message.id) ?? 0) + 1,
+      );
 
       return { ...message };
     },
@@ -264,14 +317,66 @@ class FakeFinalF5PrismaClient {
   async $transaction<T>(
     run: (transaction: this) => Promise<T>,
   ): Promise<T> {
-    assert.equal(this.inTransaction, false);
-    this.inTransaction = true;
+    if (this.serializationFailuresRemaining > 0) {
+      this.serializationFailuresRemaining -= 1;
+      throw prismaSerializationConflict();
+    }
+
+    const transaction = this.createTransactionClient();
+    this.activeTransactions += 1;
+    this.inTransaction = this.activeTransactions > 0;
 
     try {
-      return await run(this);
+      return await run(transaction as this);
     } finally {
-      this.inTransaction = false;
+      this.activeTransactions -= 1;
+      this.inTransaction = this.activeTransactions > 0;
     }
+  }
+
+  private createTransactionClient() {
+    const readVersions = new Map<string, number>();
+
+    return {
+      whatsAppConversation: this.whatsAppConversation,
+      whatsAppMessage: {
+        findUnique: async (args: unknown) => {
+          const message = await this.whatsAppMessage.findUnique(args);
+
+          if (message) {
+            readVersions.set(
+              message.id,
+              this.messageVersions.get(message.id) ?? 0,
+            );
+
+            const where = (args as {
+              where?: { providerMessageSid?: string };
+            }).where;
+
+            if (where?.providerMessageSid) {
+              await this.statusReadBarrier?.wait();
+            }
+          }
+
+          return message;
+        },
+        create: this.whatsAppMessage.create,
+        updateMany: this.whatsAppMessage.updateMany,
+        update: async (args: unknown) => {
+          const id = (args as { where: { id: string } }).where.id;
+          const readVersion = readVersions.get(id);
+
+          if (
+            readVersion !== undefined &&
+            readVersion !== (this.messageVersions.get(id) ?? 0)
+          ) {
+            throw prismaSerializationConflict();
+          }
+
+          return this.whatsAppMessage.update(args);
+        },
+      },
+    };
   }
 
   addConversation(
@@ -294,7 +399,7 @@ class FakeFinalF5PrismaClient {
   }
 
   addMessage(input: Partial<MessageRecord> & { id: string }): void {
-    this.messages.push({
+    const message = {
       id: input.id,
       conversationId: input.conversationId ?? "conversation-1",
       direction: input.direction ?? WhatsAppMessageDirection.OUTBOUND,
@@ -315,7 +420,10 @@ class FakeFinalF5PrismaClient {
       errorMessage: input.errorMessage ?? null,
       createdAt: input.createdAt ?? NOW,
       updatedAt: input.updatedAt ?? NOW,
-    });
+    };
+
+    this.messages.push(message);
+    this.messageVersions.set(message.id, 0);
   }
 }
 
@@ -333,6 +441,37 @@ function twilioClient(
       },
     },
   };
+}
+
+async function processConcurrentStatusCallbacks(
+  fake: FakeFinalF5PrismaClient,
+  providerMessageSid: string,
+  events: ReadonlyArray<
+    Readonly<{
+      status: string;
+      now: Date;
+      errorCode?: string;
+    }>
+  >,
+): Promise<readonly WhatsAppStatusCallbackProcessingResult[]> {
+  fake.statusReadBarrier = new AsyncBarrier(events.length);
+
+  try {
+    return await Promise.all(
+      events.map((event) =>
+        processTwilioWhatsAppStatusCallback(
+          payload({
+            MessageSid: providerMessageSid,
+            MessageStatus: event.status,
+            ...(event.errorCode ? { ErrorCode: event.errorCode } : {}),
+          }),
+          { now: event.now, prismaClient: fake as never },
+        ),
+      ),
+    );
+  } finally {
+    fake.statusReadBarrier = null;
+  }
 }
 
 test("F.5 sends admin free-form replies to the server-owned guest phone only", async () => {
@@ -419,6 +558,150 @@ test("F.5 reuses identical clientRequestId submissions without a second Twilio s
   assert.equal(calls.length, 1);
   assert.equal(replay.deliveryAttempted, false);
   assert.equal(replay.message.status, WhatsAppMessageStatus.SENT);
+});
+
+test("F.5 safely reclaims an existing PENDING clientRequestId intent", async () => {
+  const fake = new FakeFinalF5PrismaClient();
+  const calls: unknown[] = [];
+  fake.addConversation({ id: "conversation-1" });
+  fake.addMessage({
+    id: "message-pending-replay",
+    conversationId: "conversation-1",
+    status: WhatsAppMessageStatus.PENDING,
+    body: "Mensaje pendiente",
+    clientRequestId: "reply-pending-replay",
+    providerMessageSid: null,
+  });
+
+  const result = await sendAdminWhatsAppConversationMessage(
+    {
+      conversationId: "conversation-1",
+      body: "Mensaje pendiente",
+      clientRequestId: "reply-pending-replay",
+    },
+    { email: "admin@example.com", name: "Admin" },
+    {
+      now: NOW,
+      prismaClient: fake as never,
+      source: ENV,
+      twilioClient: twilioClient(
+        fake,
+        { sid: sid("106"), status: "sent" },
+        calls,
+      ) as never,
+    },
+  );
+
+  assert.equal(result.deliveryAttempted, true);
+  assert.equal(result.message.status, WhatsAppMessageStatus.SENT);
+  assert.equal(fake.messages.length, 1);
+  assert.equal(fake.messages[0].providerMessageSid, sid("106"));
+  assert.equal(fake.messages[0].attemptCount, 1);
+  assert.equal(calls.length, 1);
+});
+
+test("F.5 concurrent same-ID PENDING replays call Twilio exactly once", async () => {
+  const fake = new FakeFinalF5PrismaClient();
+  const calls: unknown[] = [];
+  fake.addConversation({ id: "conversation-1" });
+  fake.addMessage({
+    id: "message-pending-concurrent",
+    conversationId: "conversation-1",
+    status: WhatsAppMessageStatus.PENDING,
+    body: "Mensaje concurrente",
+    clientRequestId: "reply-pending-concurrent",
+    providerMessageSid: null,
+  });
+  const options = {
+    now: NOW,
+    prismaClient: fake as never,
+    source: ENV,
+    twilioClient: twilioClient(
+      fake,
+      { sid: sid("107"), status: "queued" },
+      calls,
+    ) as never,
+  };
+
+  const results = await Promise.all([
+    sendAdminWhatsAppConversationMessage(
+      {
+        conversationId: "conversation-1",
+        body: "Mensaje concurrente",
+        clientRequestId: "reply-pending-concurrent",
+      },
+      { email: "admin@example.com", name: "Admin" },
+      options,
+    ),
+    sendAdminWhatsAppConversationMessage(
+      {
+        conversationId: "conversation-1",
+        body: "Mensaje concurrente",
+        clientRequestId: "reply-pending-concurrent",
+      },
+      { email: "admin@example.com", name: "Admin" },
+      options,
+    ),
+  ]);
+
+  assert.equal(calls.length, 1);
+  assert.equal(fake.messages.length, 1);
+  assert.equal(fake.messages[0].providerMessageSid, sid("107"));
+  assert.equal(fake.messages[0].attemptCount, 1);
+  assert.equal(
+    results.filter((result) => result.deliveryAttempted).length,
+    1,
+  );
+});
+
+test("F.5 same-ID replay does not resend PROCESSING or terminal provider states", async () => {
+  const statuses = [
+    WhatsAppMessageStatus.PROCESSING,
+    WhatsAppMessageStatus.QUEUED,
+    WhatsAppMessageStatus.SENT,
+    WhatsAppMessageStatus.DELIVERED,
+    WhatsAppMessageStatus.READ,
+    WhatsAppMessageStatus.FAILED,
+    WhatsAppMessageStatus.UNDELIVERED,
+  ];
+
+  for (const status of statuses) {
+    const fake = new FakeFinalF5PrismaClient();
+    const calls: unknown[] = [];
+    fake.addConversation({ id: "conversation-1" });
+    fake.addMessage({
+      id: `message-${status}`,
+      conversationId: "conversation-1",
+      status,
+      body: "Mensaje ya procesado",
+      clientRequestId: `reply-${status}`,
+      providerMessageSid:
+        status === WhatsAppMessageStatus.PROCESSING ? null : sid(`9${statuses.indexOf(status)}`),
+    });
+
+    const result = await sendAdminWhatsAppConversationMessage(
+      {
+        conversationId: "conversation-1",
+        body: "Mensaje ya procesado",
+        clientRequestId: `reply-${status}`,
+      },
+      { email: "admin@example.com", name: "Admin" },
+      {
+        now: NOW,
+        prismaClient: fake as never,
+        source: ENV,
+        twilioClient: twilioClient(
+          fake,
+          { sid: sid("108"), status: "queued" },
+          calls,
+        ) as never,
+      },
+    );
+
+    assert.equal(result.deliveryAttempted, false);
+    assert.equal(result.message.status, status);
+    assert.equal(calls.length, 0);
+  }
 });
 
 test("F.5 rejects reused clientRequestId with different conversation or body", async () => {
@@ -630,6 +913,111 @@ test("F.5 status callbacks converge success states without regressions", async (
   assert.equal(fake.messages[0].readAt?.toISOString(), NOW.toISOString());
 });
 
+test("F.5 concurrent SENT and DELIVERED callbacks converge to DELIVERED", async () => {
+  const fake = new FakeFinalF5PrismaClient();
+  fake.addMessage({
+    id: "message-concurrent-delivered",
+    status: WhatsAppMessageStatus.QUEUED,
+    providerMessageSid: sid("302"),
+  });
+
+  const results = await processConcurrentStatusCallbacks(fake, sid("302"), [
+    { status: "sent", now: NOW },
+    { status: "delivered", now: new Date(NOW.getTime() + 1000) },
+  ]);
+
+  assert.equal(results.every((result) => result.kind === "processed"), true);
+  assert.equal(fake.messages[0].status, WhatsAppMessageStatus.DELIVERED);
+  assert.equal(fake.messages[0].sentAt?.toISOString(), NOW.toISOString());
+  assert.equal(
+    fake.messages[0].deliveredAt?.toISOString(),
+    new Date(NOW.getTime() + 1000).toISOString(),
+  );
+});
+
+test("F.5 concurrent SENT and READ callbacks converge to READ", async () => {
+  const fake = new FakeFinalF5PrismaClient();
+  fake.addMessage({
+    id: "message-concurrent-read-from-sent",
+    status: WhatsAppMessageStatus.QUEUED,
+    providerMessageSid: sid("303"),
+  });
+
+  await processConcurrentStatusCallbacks(fake, sid("303"), [
+    { status: "sent", now: NOW },
+    { status: "read", now: new Date(NOW.getTime() + 1000) },
+  ]);
+
+  assert.equal(fake.messages[0].status, WhatsAppMessageStatus.READ);
+  assert.equal(fake.messages[0].sentAt?.toISOString(), NOW.toISOString());
+  assert.equal(
+    fake.messages[0].readAt?.toISOString(),
+    new Date(NOW.getTime() + 1000).toISOString(),
+  );
+});
+
+test("F.5 concurrent DELIVERED and READ callbacks converge to READ", async () => {
+  const fake = new FakeFinalF5PrismaClient();
+  fake.addMessage({
+    id: "message-concurrent-read-from-delivered",
+    status: WhatsAppMessageStatus.SENT,
+    providerMessageSid: sid("304"),
+  });
+
+  await processConcurrentStatusCallbacks(fake, sid("304"), [
+    { status: "delivered", now: NOW },
+    { status: "read", now: new Date(NOW.getTime() + 1000) },
+  ]);
+
+  assert.equal(fake.messages[0].status, WhatsAppMessageStatus.READ);
+  assert.equal(fake.messages[0].deliveredAt?.toISOString(), NOW.toISOString());
+  assert.equal(
+    fake.messages[0].readAt?.toISOString(),
+    new Date(NOW.getTime() + 1000).toISOString(),
+  );
+});
+
+test("F.5 concurrent duplicate DELIVERED callbacks preserve first observed timestamp", async () => {
+  const fake = new FakeFinalF5PrismaClient();
+  const firstObservedAt = NOW;
+  const laterObservedAt = new Date(NOW.getTime() + 5000);
+  fake.addMessage({
+    id: "message-concurrent-duplicate-delivered",
+    status: WhatsAppMessageStatus.QUEUED,
+    providerMessageSid: sid("305"),
+  });
+
+  await processConcurrentStatusCallbacks(fake, sid("305"), [
+    { status: "delivered", now: firstObservedAt },
+    { status: "delivered", now: laterObservedAt },
+  ]);
+  const committedDeliveredAt = fake.messages[0].deliveredAt?.toISOString();
+
+  assert.equal(fake.messages[0].status, WhatsAppMessageStatus.DELIVERED);
+  assert.equal(
+    [firstObservedAt.toISOString(), laterObservedAt.toISOString()].includes(
+      committedDeliveredAt ?? "",
+    ),
+    true,
+  );
+
+  await processTwilioWhatsAppStatusCallback(
+    payload({
+      MessageSid: sid("305"),
+      MessageStatus: "delivered",
+    }),
+    {
+      now: new Date(NOW.getTime() + 10000),
+      prismaClient: fake as never,
+    },
+  );
+
+  assert.equal(
+    fake.messages[0].deliveredAt?.toISOString(),
+    committedDeliveredAt,
+  );
+});
+
 test("F.5 status callbacks keep failure terminal and store only safe error evidence", async () => {
   const fake = new FakeFinalF5PrismaClient();
   fake.addMessage({
@@ -668,6 +1056,91 @@ test("F.5 status callbacks keep failure terminal and store only safe error evide
   );
 });
 
+test("F.5 concurrent FAILED and ordinary success callbacks preserve terminal failure", async () => {
+  const fake = new FakeFinalF5PrismaClient();
+  fake.addMessage({
+    id: "message-concurrent-failed",
+    status: WhatsAppMessageStatus.QUEUED,
+    providerMessageSid: sid("402"),
+  });
+
+  await processConcurrentStatusCallbacks(fake, sid("402"), [
+    { status: "failed", now: NOW, errorCode: "30005" },
+    { status: "sent", now: new Date(NOW.getTime() + 1000) },
+  ]);
+
+  assert.equal(fake.messages[0].status, WhatsAppMessageStatus.FAILED);
+  assert.equal(fake.messages[0].errorCode, "30005");
+
+  await processTwilioWhatsAppStatusCallback(
+    payload({
+      MessageSid: sid("402"),
+      MessageStatus: "delivered",
+    }),
+    {
+      now: new Date(NOW.getTime() + 2000),
+      prismaClient: fake as never,
+    },
+  );
+
+  assert.equal(fake.messages[0].status, WhatsAppMessageStatus.FAILED);
+  assert.equal(fake.messages[0].deliveredAt, null);
+});
+
+test("F.5 status callback retries serialization conflicts and converges", async () => {
+  const fake = new FakeFinalF5PrismaClient();
+  fake.serializationFailuresRemaining = 1;
+  fake.addMessage({
+    id: "message-retry-converges",
+    status: WhatsAppMessageStatus.QUEUED,
+    providerMessageSid: sid("403"),
+  });
+
+  const result = await processTwilioWhatsAppStatusCallback(
+    payload({
+      MessageSid: sid("403"),
+      MessageStatus: "delivered",
+    }),
+    { now: NOW, prismaClient: fake as never },
+  );
+
+  assert.deepEqual(result, {
+    kind: "processed",
+    messageId: "message-retry-converges",
+    status: WhatsAppMessageStatus.DELIVERED,
+  });
+  assert.equal(fake.serializationFailuresRemaining, 0);
+  assert.equal(fake.messages[0].status, WhatsAppMessageStatus.DELIVERED);
+});
+
+test("F.5 status callback retry exhaustion propagates database failure", async () => {
+  const fake = new FakeFinalF5PrismaClient();
+  fake.serializationFailuresRemaining = 3;
+  fake.addMessage({
+    id: "message-retry-exhausted",
+    status: WhatsAppMessageStatus.QUEUED,
+    providerMessageSid: sid("404"),
+  });
+
+  await assert.rejects(
+    () =>
+      processTwilioWhatsAppStatusCallback(
+        payload({
+          MessageSid: sid("404"),
+          MessageStatus: "delivered",
+        }),
+        { now: NOW, prismaClient: fake as never },
+      ),
+    (error) =>
+      typeof error === "object" &&
+      error !== null &&
+      (error as { code?: unknown }).code === "P2034",
+  );
+
+  assert.equal(fake.serializationFailuresRemaining, 0);
+  assert.equal(fake.messages[0].status, WhatsAppMessageStatus.QUEUED);
+});
+
 test("F.5 status callbacks support EventType read compatibility", async () => {
   const fake = new FakeFinalF5PrismaClient();
   fake.addMessage({
@@ -686,6 +1159,37 @@ test("F.5 status callbacks support EventType read compatibility", async () => {
 
   assert.equal(fake.messages[0].status, WhatsAppMessageStatus.READ);
   assert.equal(fake.messages[0].readAt?.toISOString(), NOW.toISOString());
+});
+
+test("F.5 reply composer owns clientRequestId across ambiguous logical retries", () => {
+  const component = read("features/admin/components/admin-whatsapp-page.tsx");
+
+  assert.equal(component.includes("conversationId: string,"), true);
+  assert.equal(component.includes("body: string,"), true);
+  assert.equal(component.includes("clientRequestId: string,"), true);
+  assert.equal(component.includes("PendingLogicalReplyRequest"), true);
+  assert.equal(
+    component.includes(
+      "pendingLogicalRequest?.normalizedBody === normalizedBody",
+    ),
+    true,
+  );
+  assert.equal(
+    component.includes(
+      "onSendMessage(\n      conversation.id,\n      body,\n      logicalRequest.clientRequestId",
+    ),
+    true,
+  );
+  assert.equal(component.includes("setPendingLogicalRequest(null);"), true);
+  assert.equal(component.includes("setPendingLogicalRequest(logicalRequest);"), true);
+  assert.ok(
+    component.indexOf("clientRequestId: createClientRequestId()") >
+      component.indexOf("function ReplyComposer"),
+  );
+  assert.ok(
+    component.indexOf("clientRequestId,") <
+      component.indexOf("function ReplyComposer"),
+  );
 });
 
 test("F.5 source keeps outbound reply narrow and avoids raw callback persistence", () => {
