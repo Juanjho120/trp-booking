@@ -7,24 +7,87 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-F — Twilio WhatsApp communication and staff alerts
 Subphase: Final-F.4 — Guest inbound WhatsApp, safe Reservation matching and protected admin inbox
-Status: Implementation completed; owner Sandbox/Hosted Test inbound + admin-inbox validation and explicit acceptance pending
+Status: Completed and accepted on 2026-09-22
 Implementation date: 2026-09-22
 Implementation base head: 24e6d58060d62cf89924ddb75af29738fddf4dd1
-Implementation head: this commit
+Initial implementation head: fabd97438e5bb21021664f1c17ae0780820c3c66
+Accepted implementation/validation head: 7912b233f5cc8b8aa726f17aeb30eaa7d15ae291
 Accepted Final-F.1 strategy head: d5db6a2605a03e75db7c16238a43cd5f79dde6d8
 Accepted Final-F.2 provider/onboarding head: 03861cb2d5daef7cca8bb759d16a0ef050d86b41
 Accepted Final-F.3 persistence foundation head: f0a465349b5217f7318146ad5b2de13f1d641a13
 Schema/migration changes: none
 Permanent Final-F gate: not introduced
-Final-F.5: Next only after F.4 owner acceptance; Not started
+Final-F targeted validation: 49/49 PASS
+Owner acceptance: Completed on 2026-09-22
+Final-F.5: Next / Not started
 Final-F.6 through Final-F.8: Not started
 Final-G/H: Not started
 Phase 13: Not started
 ```
 
-Final-F.4 activates the accepted F.1/F.2/F.3 inbound guest WhatsApp boundary without advancing to
+## Accepted Implementation History
+
+```text
+Implementation base:
+24e6d58060d62cf89924ddb75af29738fddf4dd1
+
+Initial implementation:
+fabd97438e5bb21021664f1c17ae0780820c3c66
+
+Concurrency + latest-history correction:
+f39120489100fce5496eeaeeaaddcbaa41965845
+
+Reservation candidate / legacy phone correction:
+a9bef38833bea1d5ce5d28b1dfde35672030454e
+
+Tabs UX correction:
+00a8a07d8bc423b2dd5c4bb6979de397834201d8
+
+Accepted implementation/validation head:
+7912b233f5cc8b8aa726f17aeb30eaa7d15ae291
+```
+
+Final-F.4 accepted the F.1/F.2/F.3 inbound guest WhatsApp boundary without advancing to
 admin replies, status-callback convergence, staff alert creation, Zoho ingestion, cron registration,
 or Production sender work.
+
+## Owner Acceptance
+
+Final-F.4 was explicitly accepted by the owner on 2026-09-22 after Sandbox / Hosted Test validation.
+
+Accepted owner-facing evidence:
+
+```text
+- Twilio Sandbox inbound messages reached Hosted Test.
+- POST /api/twilio/whatsapp/inbound returned successful 200 responses.
+- Messages persisted and appeared in /admin/whatsapp.
+- Multiple inbound messages reused one phone conversation.
+- Unread state worked.
+- Mark-read worked.
+- Multiple Reservations associated with the same phone were surfaced.
+- Legacy/local Reservation phone formats were matched through explicit guestCountry context.
+- Multiple candidate Reservations remained safely unlinked.
+- Chat / Associated Reservations tabs worked correctly.
+- Associated Reservations tab displayed the correct count.
+- Switching conversations reset the active tab to Chat.
+- No runtime errors were observed.
+```
+
+Accepted automated validation:
+
+```text
+Final-F targeted tests: 49/49 PASS
+Final-D: 66/66 PASS
+Final-E: 88/88 PASS
+Prisma schema validation: PASS
+Prisma migration status: 24 migrations; database schema up to date
+lint: PASS
+build: PASS
+git diff --check: PASS
+Vercel: SUCCESS
+```
+
+No schema or migration change was required by Final-F.4.
 
 ## Scope Implemented
 
@@ -82,13 +145,9 @@ Protected admin inbox:
 
 ## Independent Review Corrections
 
-An independent review after the initial Final-F.4 implementation found two hardening issues. This
-correction keeps Final-F.4 in the same status:
-
-```text
-Implementation completed;
-owner Sandbox/Hosted Test inbound + admin-inbox validation and explicit acceptance pending
-```
+An independent review after the initial Final-F.4 implementation found two hardening issues. At the
+time of this correction, owner Sandbox / Hosted Test acceptance had not yet occurred; the correction
+is now part of the accepted Final-F.4 implementation history.
 
 Corrections applied:
 
@@ -154,18 +213,14 @@ The admin UI now distinguishes:
 
 This correction does not add manual link/unlink/reassign, reply composer, outbound WhatsApp,
 status persistence, staff alerts, Zoho behavior, cron registration, schema changes, migrations, or
-Final-F.5 behavior. Final-F.4 remains:
-
-```text
-Implementation completed;
-owner Sandbox/Hosted Test inbound + admin-inbox validation and explicit acceptance pending
-```
+Final-F.5 behavior.
 
 Technical dependency cleanup before owner acceptance declared `libphonenumber-js` as a direct npm
 dependency because `lib/reservations/phone-normalization.ts` imports `libphonenumber-js/core` and
 `libphonenumber-js/metadata.min.json` directly for country-aware Reservation phone normalization.
-This did not change matching behavior, admin inbox behavior, schema, migrations, provider code, or
-the Final-F.4 acceptance status.
+The accepted direct dependency is `libphonenumber-js` `^1.13.9`; validation resolved version
+`1.13.9`. This did not change matching behavior, admin inbox behavior, schema, migrations, provider
+code, or the accepted Final-F.4 runtime behavior.
 
 ## Hosted Test Admin Inbox Tabs UX Correction
 
@@ -211,12 +266,7 @@ still show the existing safe empty state.
 No reservation matching, inbound persistence, Twilio signature validation, MessageSid idempotency,
 staff sender discrimination, status callback behavior, schema, migration, provider call, outbound
 WhatsApp, reply composer, manual link/unlink/reassign, staff alert, Zoho behavior, cron, or Final-F.5
-behavior changed. Final-F.4 remains:
-
-```text
-Implementation completed;
-owner Sandbox/Hosted Test validation and explicit acceptance pending
-```
+behavior changed.
 
 ## Explicitly Not Implemented
 
@@ -307,22 +357,14 @@ provider webhook payloads, or provider sends.
 
 ## Owner Acceptance Status
 
-Owner Sandbox / Hosted Test validation remains pending for F.4.
-
-Required owner-facing acceptance evidence still pending:
+Owner Sandbox / Hosted Test validation and explicit acceptance were completed on 2026-09-22.
+The accepted implementation/validation head is:
 
 ```text
-- Real signed Sandbox inbound reaches Hosted Test and is persisted idempotently.
-- Active staff sender exclusion is confirmed in Hosted Test when applicable.
-- /admin/whatsapp displays the inbound conversation and safe message history.
-- Optional Reservation matching remains conservative and visibly unlinked when ambiguous.
-- Mark-read works through the protected admin operation.
-- Status callbacks continue to ACK without persistence.
+7912b233f5cc8b8aa726f17aeb30eaa7d15ae291
 ```
-
-Final-F.4 must not be marked accepted until that validation and explicit owner acceptance occur.
 
 ## Next Subphase
 
 Final-F.5 — Admin outbound replies, 24-hour service-window enforcement and Twilio status callbacks —
-is the next planned subphase after F.4 acceptance, but remains Not started.
+is the next planned subphase, but remains Not started.
