@@ -798,7 +798,13 @@ test("Final-E follow-up source contract locks enum migration dispatcher labels a
   );
 
   assert.match(schema, /ADMIN_REVIEW_SUBMITTED/);
-  assert.equal(migrationDirectories.length, 22);
+  assert.equal(
+    migrationDirectories.includes(
+      "20260921120000_final_e_owner_acceptance_admin_review_submitted_notification",
+    ),
+    true,
+  );
+  assert.equal(migrationDirectories.length >= 22, true);
   assert.equal(
     migrationSql.trim(),
     "ALTER TYPE \"email_notification_type\" ADD VALUE 'ADMIN_REVIEW_SUBMITTED';",

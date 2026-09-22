@@ -354,6 +354,54 @@ enum EmailNotificationOrigin {
   @@map("email_notification_origin")
 }
 
+enum WhatsAppMessageDirection {
+  INBOUND
+  OUTBOUND
+
+  @@map("whatsapp_message_direction")
+}
+
+enum WhatsAppMessageStatus {
+  RECEIVED
+  PENDING
+  PROCESSING
+  QUEUED
+  SENT
+  DELIVERED
+  READ
+  FAILED
+  UNDELIVERED
+  SKIPPED
+
+  @@map("whatsapp_message_status")
+}
+
+enum StaffWhatsAppAlertType {
+  RESERVATION_CONFIRMED
+  RESERVATION_CANCELLED
+  CHECK_IN_MINUS_48H
+  CHECK_OUT_MINUS_6H
+  REVIEW_SUBMITTED
+  GUEST_WHATSAPP_RECEIVED
+  GUEST_EMAIL_RECEIVED
+
+  @@map("staff_whatsapp_alert_type")
+}
+
+enum StaffWhatsAppAlertStatus {
+  PENDING
+  PROCESSING
+  QUEUED
+  SENT
+  DELIVERED
+  READ
+  FAILED
+  UNDELIVERED
+  SKIPPED
+
+  @@map("staff_whatsapp_alert_status")
+}
+
 model User {
   id        String   @id @default(cuid())
   name      String?
@@ -634,6 +682,8 @@ model Reservation {
   guestPaymentRequests      GuestPaymentRequest[]
   reviewInvitation          ReviewInvitation?
   review                    Review?
+  whatsappConversations     WhatsAppConversation[]
+  staffWhatsAppAlerts       StaffWhatsAppAlert[]
 
   @@index([propertyId, checkInDate, checkOutDate])
   @@index([status])
@@ -764,9 +814,10 @@ model Review {
   createdAt          DateTime               @default(now()) @map("created_at")
   updatedAt          DateTime               @updatedAt @map("updated_at")
 
-  reservation      Reservation @relation(fields: [reservationId], references: [id], onDelete: Restrict)
-  property         Property    @relation(fields: [propertyId], references: [id], onDelete: Restrict)
-  moderatedByAdmin User?       @relation("ReviewModeratedByAdmin", fields: [moderatedByAdminId], references: [id], onDelete: SetNull)
+  reservation         Reservation          @relation(fields: [reservationId], references: [id], onDelete: Restrict)
+  property            Property             @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  moderatedByAdmin    User?                @relation("ReviewModeratedByAdmin", fields: [moderatedByAdminId], references: [id], onDelete: SetNull)
+  staffWhatsAppAlerts StaffWhatsAppAlert[]
 
   @@index([propertyId])
   @@index([moderationStatus])
@@ -925,6 +976,126 @@ model Refund {
   @@index([requestedByAdminId])
   @@index([status, processingMode])
   @@map("refunds")
+}
+
+model WhatsAppConversation {
+  id                             String    @id @default(cuid())
+  guestPhoneE164                 String    @unique @map("guest_phone_e164") @db.VarChar(20)
+  reservationId                  String?   @map("reservation_id")
+  unreadCount                    Int       @default(0) @map("unread_count")
+  lastMessageAt                  DateTime? @map("last_message_at")
+  lastInboundAt                  DateTime? @map("last_inbound_at")
+  customerServiceWindowStartedAt DateTime? @map("customer_service_window_started_at")
+  customerServiceWindowExpiresAt DateTime? @map("customer_service_window_expires_at")
+  createdAt                      DateTime  @default(now()) @map("created_at")
+  updatedAt                      DateTime  @updatedAt @map("updated_at")
+
+  reservation Reservation?      @relation(fields: [reservationId], references: [id], onDelete: SetNull)
+  messages    WhatsAppMessage[]
+
+  @@index([reservationId])
+  @@index([lastMessageAt])
+  @@index([lastInboundAt])
+  @@index([customerServiceWindowExpiresAt])
+  @@map("whatsapp_conversations")
+}
+
+model WhatsAppMessage {
+  id                  String                   @id @default(cuid())
+  conversationId      String                   @map("conversation_id")
+  direction           WhatsAppMessageDirection
+  status              WhatsAppMessageStatus
+  body                String?                  @db.Text
+  providerMessageSid  String?                  @unique @map("provider_message_sid") @db.VarChar(64)
+  mediaCount          Int                      @default(0) @map("media_count")
+  mediaMetadata       Json?                    @map("media_metadata")
+  attemptCount        Int                      @default(0) @map("attempt_count")
+  lastAttemptAt       DateTime?                @map("last_attempt_at")
+  nextAttemptAt       DateTime?                @map("next_attempt_at")
+  processingStartedAt DateTime?                @map("processing_started_at")
+  sentAt              DateTime?                @map("sent_at")
+  deliveredAt         DateTime?                @map("delivered_at")
+  readAt              DateTime?                @map("read_at")
+  failedAt            DateTime?                @map("failed_at")
+  errorCode           String?                  @map("error_code") @db.VarChar(100)
+  errorMessage        String?                  @map("error_message") @db.Text
+  createdAt           DateTime                 @default(now()) @map("created_at")
+  updatedAt           DateTime                 @updatedAt @map("updated_at")
+
+  conversation      WhatsAppConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sourceStaffAlerts StaffWhatsAppAlert[] @relation("StaffAlertSourceWhatsAppMessage")
+
+  @@index([conversationId, createdAt])
+  @@index([status, nextAttemptAt])
+  @@index([direction])
+  @@index([createdAt])
+  @@map("whatsapp_messages")
+}
+
+model StaffWhatsAppRecipient {
+  id                           String    @id @default(cuid())
+  name                         String    @db.VarChar(160)
+  phoneE164                    String    @unique @map("phone_e164") @db.VarChar(20)
+  active                       Boolean   @default(false)
+  optedInAt                    DateTime? @map("opted_in_at")
+  reservationConfirmedEnabled  Boolean   @default(false) @map("reservation_confirmed_enabled")
+  reservationCancelledEnabled  Boolean   @default(false) @map("reservation_cancelled_enabled")
+  checkInReminderEnabled       Boolean   @default(false) @map("check_in_reminder_enabled")
+  checkOutReminderEnabled      Boolean   @default(false) @map("check_out_reminder_enabled")
+  reviewSubmittedEnabled       Boolean   @default(false) @map("review_submitted_enabled")
+  guestWhatsAppReceivedEnabled Boolean   @default(false) @map("guest_whatsapp_received_enabled")
+  guestEmailReceivedEnabled    Boolean   @default(false) @map("guest_email_received_enabled")
+  createdAt                    DateTime  @default(now()) @map("created_at")
+  updatedAt                    DateTime  @updatedAt @map("updated_at")
+
+  alerts StaffWhatsAppAlert[]
+
+  @@index([active])
+  @@map("staff_whatsapp_recipients")
+}
+
+model StaffWhatsAppAlert {
+  id                              String                   @id @default(cuid())
+  recipientId                     String                   @map("recipient_id")
+  reservationId                   String?                  @map("reservation_id")
+  reviewId                        String?                  @map("review_id")
+  sourceWhatsAppMessageId         String?                  @map("source_whatsapp_message_id")
+  type                            StaffWhatsAppAlertType
+  status                          StaffWhatsAppAlertStatus @default(PENDING)
+  deduplicationKey                String                   @unique @map("deduplication_key") @db.VarChar(220)
+  recipientPhoneE164Snapshot      String                   @map("recipient_phone_e164_snapshot") @db.VarChar(20)
+  scheduledFor                    DateTime?                @map("scheduled_for")
+  reservationCheckInDateSnapshot  DateTime?                @map("reservation_check_in_date_snapshot") @db.Date
+  reservationCheckOutDateSnapshot DateTime?                @map("reservation_check_out_date_snapshot") @db.Date
+  reservationCheckInTimeSnapshot  String?                  @map("reservation_check_in_time_snapshot") @db.VarChar(16)
+  reservationCheckOutTimeSnapshot String?                  @map("reservation_check_out_time_snapshot") @db.VarChar(16)
+  attemptCount                    Int                      @default(0) @map("attempt_count")
+  lastAttemptAt                   DateTime?                @map("last_attempt_at")
+  nextAttemptAt                   DateTime?                @map("next_attempt_at")
+  processingStartedAt             DateTime?                @map("processing_started_at")
+  providerMessageSid              String?                  @unique @map("provider_message_sid") @db.VarChar(64)
+  sentAt                          DateTime?                @map("sent_at")
+  deliveredAt                     DateTime?                @map("delivered_at")
+  readAt                          DateTime?                @map("read_at")
+  failedAt                        DateTime?                @map("failed_at")
+  errorCode                       String?                  @map("error_code") @db.VarChar(100)
+  errorMessage                    String?                  @map("error_message") @db.Text
+  createdAt                       DateTime                 @default(now()) @map("created_at")
+  updatedAt                       DateTime                 @updatedAt @map("updated_at")
+
+  recipient             StaffWhatsAppRecipient @relation(fields: [recipientId], references: [id], onDelete: Restrict)
+  reservation           Reservation?           @relation(fields: [reservationId], references: [id], onDelete: SetNull)
+  review                Review?                @relation(fields: [reviewId], references: [id], onDelete: SetNull)
+  sourceWhatsAppMessage WhatsAppMessage?       @relation("StaffAlertSourceWhatsAppMessage", fields: [sourceWhatsAppMessageId], references: [id], onDelete: SetNull)
+
+  @@index([recipientId])
+  @@index([reservationId])
+  @@index([reviewId])
+  @@index([sourceWhatsAppMessageId])
+  @@index([status, nextAttemptAt])
+  @@index([type])
+  @@index([scheduledFor])
+  @@map("staff_whatsapp_alerts")
 }
 
 model AdditionalChargeRefundAllocation {
