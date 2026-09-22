@@ -685,6 +685,12 @@ export const esMessages = {
         "Final-F.4 es sólo lectura operativa. Las respuestas desde el panel se habilitarán en una subfase posterior.",
       sections: {
         conversations: "Conversaciones",
+        linkedReservation: "Reservación vinculada",
+        possibleReservation: "Posible reservación",
+        associatedReservations:
+          "Reservaciones asociadas a este teléfono ({count})",
+        otherAssociatedReservations:
+          "Otras reservaciones asociadas a este teléfono ({count})",
       },
       labels: {
         results: "Resultados",
@@ -697,6 +703,10 @@ export const esMessages = {
         windowExpires: "Ventana de 24h vence",
         media: "Adjuntos recibidos",
         unknownMediaType: "Tipo no especificado",
+        checkIn: "Check-in",
+        checkOut: "Check-out",
+        status: "Estado",
+        phone: "Teléfono",
       },
       actions: {
         previous: "Anterior",
@@ -731,6 +741,17 @@ export const esMessages = {
         noSelectionDescription:
           "Cuando llegue un mensaje entrante válido, aparecerá aquí con su historial protegido.",
         noMessages: "Esta conversación todavía no tiene mensajes visibles.",
+        noAssociatedReservations:
+          "No se encontraron reservaciones asociadas a este teléfono.",
+      },
+      reservationStatuses: {
+        PENDING_PAYMENT: "Pendiente de pago",
+        CONFIRMED: "Confirmada",
+        CANCELLED: "Cancelada",
+        REFUNDED: "Reembolsada",
+        PARTIALLY_REFUNDED: "Parcialmente reembolsada",
+        EXPIRED: "Expirada",
+        BLOCKED: "Bloqueada",
       },
       errors: {
         ADMIN_UNAUTHORIZED:

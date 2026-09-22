@@ -1,8 +1,10 @@
 import { Prisma, type PrismaClient } from "@prisma/client";
 
 import { prisma } from "@/lib/db/prisma";
+import { normalizeReservationPhone } from "@/lib/reservations/phone-normalization";
 import type { AdminActor } from "@/types/admin";
 import type {
+  AdminWhatsAppReservationSummary,
   AdminWhatsAppConversationSummary,
   AdminWhatsAppErrorCode,
   AdminWhatsAppFilters,
@@ -28,6 +30,11 @@ const adminWhatsAppConversationSelect = {
       id: true,
       guestName: true,
       guestPhone: true,
+      checkInDate: true,
+      checkOutDate: true,
+      status: true,
+      confirmedAt: true,
+      createdAt: true,
       property: {
         select: {
           id: true,
@@ -38,6 +45,25 @@ const adminWhatsAppConversationSelect = {
     },
   },
 } satisfies Prisma.WhatsAppConversationSelect;
+
+const adminWhatsAppCandidateReservationSelect = {
+  id: true,
+  guestName: true,
+  guestPhone: true,
+  guestCountry: true,
+  checkInDate: true,
+  checkOutDate: true,
+  status: true,
+  confirmedAt: true,
+  createdAt: true,
+  property: {
+    select: {
+      id: true,
+      nameEs: true,
+      nameEn: true,
+    },
+  },
+} satisfies Prisma.ReservationSelect;
 
 const adminWhatsAppMessageSelect = {
   id: true,
@@ -53,13 +79,17 @@ type AdminWhatsAppConversationRecord = Prisma.WhatsAppConversationGetPayload<{
   select: typeof adminWhatsAppConversationSelect;
 }>;
 
+type AdminWhatsAppCandidateReservationRecord = Prisma.ReservationGetPayload<{
+  select: typeof adminWhatsAppCandidateReservationSelect;
+}>;
+
 type AdminWhatsAppMessageRecord = Prisma.WhatsAppMessageGetPayload<{
   select: typeof adminWhatsAppMessageSelect;
 }>;
 
 type AdminWhatsAppPrismaClient = Pick<
   PrismaClient,
-  "whatsAppConversation" | "whatsAppMessage"
+  "reservation" | "whatsAppConversation" | "whatsAppMessage"
 >;
 
 export class AdminWhatsAppError extends Error {
@@ -82,20 +112,33 @@ function toIsoString(value: Date | null): string | null {
   return value?.toISOString() ?? null;
 }
 
+function toReservationSummary(
+  row:
+    | NonNullable<AdminWhatsAppConversationRecord["reservation"]>
+    | AdminWhatsAppCandidateReservationRecord,
+): AdminWhatsAppReservationSummary {
+  return {
+    id: row.id,
+    guestName: row.guestName,
+    guestPhone: row.guestPhone,
+    property: row.property,
+    checkInDate: row.checkInDate.toISOString(),
+    checkOutDate: row.checkOutDate.toISOString(),
+    status: row.status,
+    confirmedAt: toIsoString(row.confirmedAt),
+    createdAt: row.createdAt.toISOString(),
+  };
+}
+
 function toConversationSummary(
   row: AdminWhatsAppConversationRecord,
+  candidateReservations: readonly AdminWhatsAppReservationSummary[] = [],
 ): AdminWhatsAppConversationSummary {
   return {
     id: row.id,
     guestPhoneE164: row.guestPhoneE164,
-    reservation: row.reservation
-      ? {
-          id: row.reservation.id,
-          guestName: row.reservation.guestName,
-          guestPhone: row.reservation.guestPhone,
-          property: row.reservation.property,
-        }
-      : null,
+    reservation: row.reservation ? toReservationSummary(row.reservation) : null,
+    candidateReservations,
     linkState: row.reservation ? "LINKED" : "UNLINKED_OR_AMBIGUOUS",
     unreadCount: row.unreadCount,
     lastMessageAt: toIsoString(row.lastMessageAt),
@@ -106,6 +149,31 @@ function toConversationSummary(
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
+}
+
+async function findCandidateReservationsByGuestPhone(
+  prismaClient: AdminWhatsAppPrismaClient,
+  guestPhoneE164: string,
+): Promise<readonly AdminWhatsAppReservationSummary[]> {
+  const reservations = (await prismaClient.reservation.findMany({
+    where: { guestPhone: { not: null } },
+    orderBy: [
+      { checkInDate: "desc" },
+      { createdAt: "desc" },
+      { id: "asc" },
+    ],
+    select: adminWhatsAppCandidateReservationSelect,
+  })) as AdminWhatsAppCandidateReservationRecord[];
+
+  return reservations
+    .filter(
+      (reservation) =>
+        normalizeReservationPhone(
+          reservation.guestPhone,
+          reservation.guestCountry,
+        ) === guestPhoneE164,
+    )
+    .map(toReservationSummary);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -173,7 +241,9 @@ export async function getAdminWhatsAppPage(
     take: ADMIN_WHATSAPP_PAGE_SIZE,
     select: adminWhatsAppConversationSelect,
   });
-  const conversationRows = conversations.map(toConversationSummary);
+  const conversationRows = conversations.map((conversation) =>
+    toConversationSummary(conversation),
+  );
   const selectedConversationId =
     requestedConversationId ?? conversationRows[0]?.id ?? null;
   const selectedConversationRecord = selectedConversationId
@@ -187,10 +257,19 @@ export async function getAdminWhatsAppPage(
         | AdminWhatsAppConversationSummary
         | null)
     : null;
-  const messages = selectedConversationRecord
+  const selectedConversation = selectedConversationRecord
+    ? {
+        ...selectedConversationRecord,
+        candidateReservations: await findCandidateReservationsByGuestPhone(
+          prismaClient,
+          selectedConversationRecord.guestPhoneE164,
+        ),
+      }
+    : null;
+  const messages = selectedConversation
     ? (
         await prismaClient.whatsAppMessage.findMany({
-          where: { conversationId: selectedConversationRecord.id },
+          where: { conversationId: selectedConversation.id },
           orderBy: [{ createdAt: "desc" }, { id: "desc" }],
           take: ADMIN_WHATSAPP_MESSAGE_LIMIT,
           select: adminWhatsAppMessageSelect,
@@ -201,7 +280,7 @@ export async function getAdminWhatsAppPage(
   return {
     generatedAt: new Date().toISOString(),
     conversations: conversationRows,
-    selectedConversation: selectedConversationRecord,
+    selectedConversation,
     messages: messages.map(toMessageSummary),
     pagination: {
       page,

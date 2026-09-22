@@ -685,6 +685,12 @@ export const enMessages = {
         "Final-F.4 is read-only for operations. Admin replies will be enabled in a later subphase.",
       sections: {
         conversations: "Conversations",
+        linkedReservation: "Linked reservation",
+        possibleReservation: "Possible reservation",
+        associatedReservations:
+          "Reservations associated with this phone ({count})",
+        otherAssociatedReservations:
+          "Other reservations associated with this phone ({count})",
       },
       labels: {
         results: "Results",
@@ -697,6 +703,10 @@ export const enMessages = {
         windowExpires: "24h window expires",
         media: "Received attachments",
         unknownMediaType: "Unspecified type",
+        checkIn: "Check-in",
+        checkOut: "Check-out",
+        status: "Status",
+        phone: "Phone",
       },
       actions: {
         previous: "Previous",
@@ -731,6 +741,17 @@ export const enMessages = {
         noSelectionDescription:
           "When a valid inbound message arrives, it will appear here with protected history.",
         noMessages: "This conversation does not have visible messages yet.",
+        noAssociatedReservations:
+          "No reservations were found for this phone.",
+      },
+      reservationStatuses: {
+        PENDING_PAYMENT: "Pending payment",
+        CONFIRMED: "Confirmed",
+        CANCELLED: "Cancelled",
+        REFUNDED: "Refunded",
+        PARTIALLY_REFUNDED: "Partially refunded",
+        EXPIRED: "Expired",
+        BLOCKED: "Blocked",
       },
       errors: {
         ADMIN_UNAUTHORIZED:

@@ -9,8 +9,8 @@ import {
   getAdminWhatsAppPage,
   markAdminWhatsAppConversationRead,
 } from "@/lib/admin/whatsapp";
+import { normalizeReservationPhone } from "@/lib/reservations/phone-normalization";
 import {
-  normalizeReservationGuestPhone,
   processInboundWhatsAppWebhook,
 } from "@/lib/twilio/inbound-whatsapp";
 import {
@@ -61,6 +61,12 @@ type ReservationRecord = {
   id: string;
   guestName: string;
   guestPhone: string | null;
+  guestCountry: string | null;
+  checkInDate: Date;
+  checkOutDate: Date;
+  status: string;
+  confirmedAt: Date | null;
+  createdAt: Date;
   property: {
     id: string;
     nameEs: string;
@@ -193,11 +199,64 @@ class FakeWhatsAppPrismaClient {
   };
 
   reservation = {
-    findMany: async () =>
-      this.reservations.map((reservation) => ({
-        id: reservation.id,
-        guestPhone: reservation.guestPhone,
-      })),
+    findMany: async (args: unknown = {}) => {
+      const input = args as {
+        where?: { guestPhone?: { not?: null } };
+        orderBy?: Array<{
+          checkInDate?: "asc" | "desc";
+          createdAt?: "asc" | "desc";
+          id?: "asc" | "desc";
+        }>;
+      };
+      const orderBy = input.orderBy ?? [];
+
+      return this.reservations
+        .filter(
+          (reservation) =>
+            !input.where?.guestPhone ||
+            input.where.guestPhone.not !== null ||
+            reservation.guestPhone !== null,
+        )
+        .sort((left, right) => {
+          for (const order of orderBy) {
+            if (order.checkInDate) {
+              const diff =
+                left.checkInDate.getTime() - right.checkInDate.getTime();
+              if (diff !== 0) {
+                return order.checkInDate === "desc" ? -diff : diff;
+              }
+            }
+
+            if (order.createdAt) {
+              const diff = left.createdAt.getTime() - right.createdAt.getTime();
+              if (diff !== 0) {
+                return order.createdAt === "desc" ? -diff : diff;
+              }
+            }
+
+            if (order.id) {
+              const diff = left.id.localeCompare(right.id);
+              if (diff !== 0) {
+                return order.id === "desc" ? -diff : diff;
+              }
+            }
+          }
+
+          return 0;
+        })
+        .map((reservation) => ({
+          id: reservation.id,
+          guestName: reservation.guestName,
+          guestPhone: reservation.guestPhone,
+          guestCountry: reservation.guestCountry,
+          checkInDate: reservation.checkInDate,
+          checkOutDate: reservation.checkOutDate,
+          status: reservation.status,
+          confirmedAt: reservation.confirmedAt,
+          createdAt: reservation.createdAt,
+          property: reservation.property,
+        }));
+    },
   };
 
   whatsAppConversation = {
@@ -484,11 +543,26 @@ function addReservation(
   fake: FakeWhatsAppPrismaClient,
   id: string,
   guestPhone: string | null,
+  options: Readonly<{
+    guestCountry?: string | null;
+    checkInDate?: Date;
+    checkOutDate?: Date;
+    status?: string;
+    confirmedAt?: Date | null;
+    createdAt?: Date;
+  }> = {},
 ) {
   fake.reservations.push({
     id,
     guestName: `Guest ${id}`,
     guestPhone,
+    guestCountry: options.guestCountry ?? "US",
+    checkInDate: options.checkInDate ?? new Date("2026-10-10T00:00:00.000Z"),
+    checkOutDate:
+      options.checkOutDate ?? new Date("2026-10-12T00:00:00.000Z"),
+    status: options.status ?? "CONFIRMED",
+    confirmedAt: options.confirmedAt ?? new Date("2026-09-22T10:00:00.000Z"),
+    createdAt: options.createdAt ?? NOW,
     property: {
       id: `property-${id}`,
       nameEs: `Alojamiento ${id}`,
@@ -815,7 +889,68 @@ test("F.4 links exactly one normalized Reservation guest phone and fails safe fo
   expectPersisted(await processWithFake(multiple, makePayload()));
   assert.equal(multiple.conversations[0].reservationId, null);
 
-  assert.equal(normalizeReservationGuestPhone("+1 (500) 555-0100"), "+15005550100");
+  assert.equal(
+    normalizeReservationPhone("+1 (500) 555-0100", null),
+    "+15005550100",
+  );
+});
+
+test("F.4 canonicalizes Reservation guest phones with explicit country context only", () => {
+  assert.equal(
+    normalizeReservationPhone("+502 5555 1234", "GT"),
+    "+50255551234",
+  );
+  assert.equal(
+    normalizeReservationPhone("5555 1234", "GT"),
+    "+50255551234",
+  );
+  assert.equal(normalizeReservationPhone("5555 1234", null), null);
+  assert.equal(normalizeReservationPhone("5555 1234", "ZZ"), null);
+  assert.equal(
+    normalizeReservationPhone("+502 5555 1234", null),
+    "+50255551234",
+  );
+});
+
+test("F.4 links one legacy national Reservation phone through guestCountry normalization", async () => {
+  const fake = new FakeWhatsAppPrismaClient();
+  addReservation(fake, "reservation-legacy", "5555 1234", {
+    guestCountry: "GT",
+  });
+
+  expectPersisted(
+    await processWithFake(
+      fake,
+      makePayload({
+        From: "whatsapp:+50255551234",
+        MessageSid: messageSid("407"),
+      }),
+    ),
+  );
+
+  assert.equal(fake.conversations[0].reservationId, "reservation-legacy");
+});
+
+test("F.4 keeps two current and legacy Reservation phone matches unlinked", async () => {
+  const fake = new FakeWhatsAppPrismaClient();
+  addReservation(fake, "reservation-current", "+502 5555 1234", {
+    guestCountry: "GT",
+  });
+  addReservation(fake, "reservation-legacy", "5555 1234", {
+    guestCountry: "GT",
+  });
+
+  expectPersisted(
+    await processWithFake(
+      fake,
+      makePayload({
+        From: "whatsapp:+50255551234",
+        MessageSid: messageSid("408"),
+      }),
+    ),
+  );
+
+  assert.equal(fake.conversations[0].reservationId, null);
 });
 
 test("F.4 preserves an existing reservation link and does not reassign it", async () => {
@@ -1029,6 +1164,87 @@ test("F.4 admin read model exposes the latest 100 messages in stable chronologic
         (previousTime === currentTime && previous.id < current.id),
     );
   }
+});
+
+test("F.4 admin read model exposes all phone-matched Reservation candidates in deterministic order", async () => {
+  const fake = new FakeWhatsAppPrismaClient();
+  addConversation(fake, {
+    id: "conversation-candidates",
+    guestPhoneE164: "+50255551234",
+  });
+  addReservation(fake, "reservation-a", "5555 1234", {
+    guestCountry: "GT",
+    checkInDate: new Date("2026-11-01T00:00:00.000Z"),
+    createdAt: new Date("2026-09-22T11:00:00.000Z"),
+  });
+  addReservation(fake, "reservation-b", "+502 5555 1234", {
+    guestCountry: "GT",
+    checkInDate: new Date("2026-12-01T00:00:00.000Z"),
+    createdAt: new Date("2026-09-22T10:00:00.000Z"),
+  });
+  addReservation(fake, "reservation-c", "5555 1234", {
+    guestCountry: "GT",
+    checkInDate: new Date("2026-12-01T00:00:00.000Z"),
+    createdAt: new Date("2026-09-22T12:00:00.000Z"),
+  });
+  addReservation(fake, "reservation-d", "+502 5555 1234", {
+    guestCountry: "GT",
+    checkInDate: new Date("2026-12-01T00:00:00.000Z"),
+    createdAt: new Date("2026-09-22T12:00:00.000Z"),
+  });
+  addReservation(fake, "reservation-national-no-country", "5555 1234", {
+    guestCountry: null,
+  });
+
+  const data = await getAdminWhatsAppPage(
+    { conversationId: "conversation-candidates", page: 1 },
+    { prismaClient: fake as never },
+  );
+
+  assert.equal(fake.conversations[0].reservationId, null);
+  assert.deepEqual(
+    data.selectedConversation?.candidateReservations.map(
+      (reservation) => reservation.id,
+    ),
+    ["reservation-c", "reservation-d", "reservation-b", "reservation-a"],
+  );
+  assert.equal(
+    data.selectedConversation?.candidateReservations[0].guestPhone,
+    "5555 1234",
+  );
+  assert.equal(
+    data.selectedConversation?.candidateReservations[1].guestPhone,
+    "+502 5555 1234",
+  );
+});
+
+test("F.4 admin read model preserves an existing link while exposing other phone candidates", async () => {
+  const fake = new FakeWhatsAppPrismaClient();
+  addReservation(fake, "reservation-linked", "+502 9999 0000", {
+    guestCountry: "GT",
+  });
+  addReservation(fake, "reservation-other", "5555 1234", {
+    guestCountry: "GT",
+  });
+  addConversation(fake, {
+    id: "conversation-linked",
+    guestPhoneE164: "+50255551234",
+    reservationId: "reservation-linked",
+  });
+
+  const data = await getAdminWhatsAppPage(
+    { conversationId: "conversation-linked", page: 1 },
+    { prismaClient: fake as never },
+  );
+
+  assert.equal(fake.conversations[0].reservationId, "reservation-linked");
+  assert.equal(data.selectedConversation?.reservation?.id, "reservation-linked");
+  assert.deepEqual(
+    data.selectedConversation?.candidateReservations.map(
+      (reservation) => reservation.id,
+    ),
+    ["reservation-other"],
+  );
 });
 
 test("F.4 admin read model exposes safe conversation/message data without provider MessageSid", async () => {

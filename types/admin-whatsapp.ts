@@ -1,4 +1,5 @@
 import type {
+  ReservationStatus,
   WhatsAppMessageDirection,
   WhatsAppMessageStatus,
 } from "@prisma/client";
@@ -16,12 +17,18 @@ export type AdminWhatsAppReservationSummary = Readonly<{
     nameEs: string;
     nameEn: string;
   }>;
+  checkInDate: string;
+  checkOutDate: string;
+  status: ReservationStatus;
+  confirmedAt: string | null;
+  createdAt: string;
 }>;
 
 export type AdminWhatsAppConversationSummary = Readonly<{
   id: string;
   guestPhoneE164: string;
   reservation: AdminWhatsAppReservationSummary | null;
+  candidateReservations: readonly AdminWhatsAppReservationSummary[];
   linkState: AdminWhatsAppConversationLinkState;
   unreadCount: number;
   lastMessageAt: string | null;

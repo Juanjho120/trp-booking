@@ -6,6 +6,7 @@ import {
 } from "@prisma/client";
 
 import { prisma } from "@/lib/db/prisma";
+import { normalizeReservationPhone } from "@/lib/reservations/phone-normalization";
 import {
   normalizeTwilioWhatsappAddress,
   resolveTwilioProviderConfig,
@@ -13,7 +14,6 @@ import {
 } from "@/lib/twilio/provider";
 
 const TWILIO_MESSAGE_SID_PATTERN = /^(SM|MM)[0-9a-fA-F]{32}$/;
-const E164_PATTERN = /^\+[1-9]\d{7,14}$/;
 const MAX_INBOUND_MEDIA_ITEMS = 10;
 const MEDIA_CONTENT_TYPE_MAX_LENGTH = 120;
 const CUSTOMER_SERVICE_WINDOW_HOURS = 24;
@@ -98,6 +98,7 @@ type ExistingMessage = Readonly<{
 type ReservationPhoneCandidate = Readonly<{
   id: string;
   guestPhone: string | null;
+  guestCountry: string | null;
 }>;
 
 export type ProcessInboundWhatsAppWebhookOptions = Readonly<{
@@ -176,14 +177,6 @@ function buildMediaMetadata(
 
 function toE164FromWhatsappAddress(value: `whatsapp:${string}`): string {
   return value.slice("whatsapp:".length);
-}
-
-export function normalizeReservationGuestPhone(
-  value: string | null | undefined,
-): string | null {
-  const compact = value?.trim().replace(/[\s().-]/g, "") ?? "";
-
-  return E164_PATTERN.test(compact) ? compact : null;
 }
 
 export function parseInboundWhatsAppPayload(
@@ -320,11 +313,15 @@ async function resolveUniqueReservationIdByGuestPhone(
     select: {
       id: true,
       guestPhone: true,
+      guestCountry: true,
     },
   })) as ReservationPhoneCandidate[];
   const matches = candidates.filter(
     (reservation) =>
-      normalizeReservationGuestPhone(reservation.guestPhone) === guestPhoneE164,
+      normalizeReservationPhone(
+        reservation.guestPhone,
+        reservation.guestCountry,
+      ) === guestPhoneE164,
   );
 
   return matches.length === 1 ? matches[0].id : null;

@@ -104,6 +104,63 @@ Corrections applied:
    temporary webhook failures for Twilio retry.
 ```
 
+## Hosted Test Candidate-Matching Correction
+
+Hosted Test validation confirmed that inbound WhatsApp persistence and `/admin/whatsapp` worked,
+but exposed a real reservation-matching visibility issue: the same guest phone appeared in more than
+one existing Reservation, the conversation correctly remained unlinked, and the admin inbox did not
+surface the safe Reservation candidates for operator review. A code review also found that the
+normalization used for `Reservation.guestPhone` was not compatible with historical/national-only
+rows.
+
+The correction preserves the accepted Final-F.4 conservative matching rule:
+
+```text
+- exactly 1 Reservation candidate -> link transactionally during inbound persistence;
+- 0 Reservation candidates -> keep WhatsAppConversation.reservationId null;
+- 2+ Reservation candidates -> keep WhatsAppConversation.reservationId null;
+- never choose latest/confirmed/name/property/status as a tiebreaker.
+```
+
+Phone normalization now uses one shared server-safe helper for both inbound automatic matching and
+admin candidate discovery:
+
+```text
+- current booking flow rows continue to store guestPhone as countryDialCode + guestPhoneLocal and
+  guestCountry as the explicit ISO2 country context;
+- current international rows such as "+502 5555 1234" + GT normalize to +50255551234;
+- legacy national rows such as "5555 1234" + GT normalize to +50255551234;
+- national rows without guestCountry remain unmatched;
+- invalid country values remain unmatched;
+- international rows can normalize without country inference;
+- no environment, locale, business location, or default country is used as a fallback.
+```
+
+The admin read model now dynamically exposes safe `candidateReservations` for the selected
+conversation without mutating data during GET/read operations. Candidate DTOs include only bounded
+operational fields (`id`, guest name, safe property names, dates, status, guest phone, and safe
+timestamps) and exclude financial/provider evidence. Existing linked conversations keep their
+persisted `reservationId`; other phone candidates may be shown as context, but the read model does
+not reassign the conversation.
+
+The admin UI now distinguishes:
+
+```text
+- linked Reservation: "Reservación vinculada";
+- one unlinked candidate: "Posible reservación";
+- multiple unlinked candidates: "Reservaciones asociadas a este teléfono (N)";
+- zero candidates: "No se encontraron reservaciones asociadas a este teléfono."
+```
+
+This correction does not add manual link/unlink/reassign, reply composer, outbound WhatsApp,
+status persistence, staff alerts, Zoho behavior, cron registration, schema changes, migrations, or
+Final-F.5 behavior. Final-F.4 remains:
+
+```text
+Implementation completed;
+owner Sandbox/Hosted Test inbound + admin-inbox validation and explicit acceptance pending
+```
+
 ## Explicitly Not Implemented
 
 Final-F.4 does not add:
@@ -153,7 +210,7 @@ Executable validation completed:
 
 ```text
 npx tsx --tsconfig tests/final-f/tsconfig.json tests/final-f/run.ts
-Result: PASS — 42/42 tests
+Result: PASS — 47/47 tests
 Note: the same command failed inside the managed sandbox before loading project code with uv_os_get_passwd ENOMEM; it passed when rerun outside the sandbox with the same working tree.
 
 npm run db:generate

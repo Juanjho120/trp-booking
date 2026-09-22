@@ -19,6 +19,7 @@ import type {
   AdminWhatsAppErrorCode,
   AdminWhatsAppMessageSummary,
   AdminWhatsAppPageData,
+  AdminWhatsAppReservationSummary,
 } from "@/types/admin-whatsapp";
 import type { Locale } from "@/types/locale";
 
@@ -63,6 +64,13 @@ export function AdminWhatsAppPageView({
       dateStyle: "medium",
       timeStyle: "short",
       timeZone: "America/Guatemala",
+    }).format(new Date(value));
+  }
+
+  function formatDate(value: string): string {
+    return new Intl.DateTimeFormat(intlLocale, {
+      dateStyle: "medium",
+      timeZone: "UTC",
     }).format(new Date(value));
   }
 
@@ -238,6 +246,7 @@ export function AdminWhatsAppPageView({
                 }
                 conversation={data.selectedConversation}
                 copy={copy}
+                formatDate={formatDate}
                 formatDateTime={formatDateTime}
                 messages={data.messages}
                 onMarkRead={markRead}
@@ -332,6 +341,7 @@ function ConversationPanel({
   busy,
   conversation,
   copy,
+  formatDate,
   formatDateTime,
   messages,
   onMarkRead,
@@ -340,6 +350,7 @@ function ConversationPanel({
   busy: boolean;
   conversation: AdminWhatsAppConversationSummary;
   copy: AdminWhatsAppCopy;
+  formatDate: (value: string) => string;
   formatDateTime: (value: string | null) => string;
   messages: readonly AdminWhatsAppMessageSummary[];
   onMarkRead: (conversationId: string) => Promise<void>;
@@ -402,6 +413,11 @@ function ConversationPanel({
         <p className="mt-4 text-xs text-muted-foreground">
           {copy.descriptionNoReply}
         </p>
+        <CandidateReservationSection
+          conversation={conversation}
+          copy={copy}
+          formatDate={formatDate}
+        />
       </div>
 
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto bg-muted/20 px-4 py-4">
@@ -421,6 +437,187 @@ function ConversationPanel({
         )}
       </div>
     </div>
+  );
+}
+
+function formatCountLabel(value: string, count: number): string {
+  return value.replace("{count}", String(count));
+}
+
+function candidatePropertyName(
+  reservation: AdminWhatsAppReservationSummary,
+  locale: Locale,
+): string {
+  return locale === "en"
+    ? reservation.property.nameEn
+    : reservation.property.nameEs;
+}
+
+function reservationStatusLabel(
+  copy: AdminWhatsAppCopy,
+  status: AdminWhatsAppReservationSummary["status"],
+): string {
+  return copy.reservationStatuses[status] ?? status;
+}
+
+function CandidateReservationSection({
+  conversation,
+  copy,
+  formatDate,
+}: Readonly<{
+  conversation: AdminWhatsAppConversationSummary;
+  copy: AdminWhatsAppCopy;
+  formatDate: (value: string) => string;
+}>) {
+  const { locale } = useLocale();
+  const linkedReservation = conversation.reservation;
+  const otherCandidates = linkedReservation
+    ? conversation.candidateReservations.filter(
+        (candidate) => candidate.id !== linkedReservation.id,
+      )
+    : conversation.candidateReservations;
+
+  if (linkedReservation) {
+    return (
+      <div className="mt-4 space-y-3">
+        <CandidateReservationGroup
+          copy={copy}
+          formatDate={formatDate}
+          locale={locale}
+          reservations={[linkedReservation]}
+          title={copy.sections.linkedReservation}
+        />
+        {otherCandidates.length > 0 ? (
+          <CandidateReservationGroup
+            copy={copy}
+            formatDate={formatDate}
+            locale={locale}
+            reservations={otherCandidates}
+            title={formatCountLabel(
+              copy.sections.otherAssociatedReservations,
+              otherCandidates.length,
+            )}
+          />
+        ) : null}
+      </div>
+    );
+  }
+
+  if (conversation.candidateReservations.length === 0) {
+    return (
+      <div className="mt-4 rounded-lg border border-dashed border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+        {copy.empty.noAssociatedReservations}
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-4">
+      <CandidateReservationGroup
+        copy={copy}
+        formatDate={formatDate}
+        locale={locale}
+        reservations={conversation.candidateReservations}
+        title={
+          conversation.candidateReservations.length === 1
+            ? copy.sections.possibleReservation
+            : formatCountLabel(
+                copy.sections.associatedReservations,
+                conversation.candidateReservations.length,
+              )
+        }
+      />
+    </div>
+  );
+}
+
+function CandidateReservationGroup({
+  copy,
+  formatDate,
+  locale,
+  reservations,
+  title,
+}: Readonly<{
+  copy: AdminWhatsAppCopy;
+  formatDate: (value: string) => string;
+  locale: Locale;
+  reservations: readonly AdminWhatsAppReservationSummary[];
+  title: string;
+}>) {
+  return (
+    <section className="space-y-2">
+      <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+      <div className="grid gap-2">
+        {reservations.map((reservation) => (
+          <CandidateReservationCard
+            copy={copy}
+            formatDate={formatDate}
+            key={reservation.id}
+            locale={locale}
+            reservation={reservation}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function CandidateReservationCard({
+  copy,
+  formatDate,
+  locale,
+  reservation,
+}: Readonly<{
+  copy: AdminWhatsAppCopy;
+  formatDate: (value: string) => string;
+  locale: Locale;
+  reservation: AdminWhatsAppReservationSummary;
+}>) {
+  return (
+    <article className="rounded-lg border border-border bg-background px-4 py-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0 space-y-1">
+          <p className="truncate text-sm font-semibold text-foreground">
+            {reservation.guestName}
+          </p>
+          <p className="truncate text-xs text-muted-foreground">
+            {candidatePropertyName(reservation, locale)}
+          </p>
+          <dl className="grid gap-x-4 gap-y-1 text-xs text-muted-foreground sm:grid-cols-2">
+            <div>
+              <dt className="font-medium text-foreground">
+                {copy.labels.checkIn}
+              </dt>
+              <dd>{formatDate(reservation.checkInDate)}</dd>
+            </div>
+            <div>
+              <dt className="font-medium text-foreground">
+                {copy.labels.checkOut}
+              </dt>
+              <dd>{formatDate(reservation.checkOutDate)}</dd>
+            </div>
+            <div>
+              <dt className="font-medium text-foreground">
+                {copy.labels.status}
+              </dt>
+              <dd>{reservationStatusLabel(copy, reservation.status)}</dd>
+            </div>
+            <div>
+              <dt className="font-medium text-foreground">
+                {copy.labels.phone}
+              </dt>
+              <dd>{reservation.guestPhone ?? copy.labels.unavailable}</dd>
+            </div>
+          </dl>
+        </div>
+        <Button asChild className="shrink-0" size="sm" variant="outline">
+          <Link href={`/admin/reservations/${reservation.id}`}>
+            <ExternalLink aria-hidden="true" />
+            {copy.actions.openReservation}
+          </Link>
+        </Button>
+      </div>
+    </article>
   );
 }
 
