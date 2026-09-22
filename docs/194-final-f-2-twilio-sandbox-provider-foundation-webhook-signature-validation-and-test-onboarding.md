@@ -23,6 +23,9 @@ Final-F.2 adds the smallest runtime/provider layer needed to begin Twilio WhatsA
   - `POST /api/twilio/whatsapp/inbound`;
   - `POST /api/twilio/whatsapp/status`;
 - bounded safe diagnostics for signed webhooks without raw payload, message body, or phone-number echo;
+- Twilio-compatible successful webhook acknowledgements:
+  - inbound signed requests return empty Messaging TwiML (`<Response></Response>`) as XML;
+  - signed status callbacks return `204 No Content`;
 - Local/Test-only manual Sandbox provider probe script:
   - `scripts/final-f-2-twilio-sandbox-probe.ts`;
 - deterministic targeted tests in `tests/final-f`.
@@ -134,8 +137,11 @@ Inbound and status routes:
 - return `503` when Twilio config is absent or incomplete;
 - return `400` for a missing Twilio signature;
 - return `403` for an invalid Twilio signature;
-- return `200` ACK only after official SDK signature validation succeeds;
-- expose only bounded diagnostics such as message SID/status, body length, presence booleans, and extra-param count;
+- return Twilio-facing ACKs only after official SDK signature validation succeeds;
+- return `200` with `Content-Type: text/xml; charset=utf-8` and empty Messaging TwiML for the inbound webhook;
+- return `204 No Content` for the status callback;
+- may reduce signed payloads to bounded internal diagnostics such as message SID/status, body length, presence booleans, and extra-param count;
+- do not expose diagnostics in successful Twilio-facing ACK responses;
 - do not persist payloads;
 - do not log raw payloads;
 - do not echo guest message body or phone numbers in the ACK.
@@ -146,7 +152,7 @@ Executable validation completed for this implementation:
 
 ```text
 npx tsx --tsconfig tests/final-f/tsconfig.json tests/final-f/run.ts
-Result: PASS — 8/8 tests
+Result: PASS — 9/9 tests
 Note: the same command failed inside the managed sandbox before loading project code with uv_os_get_passwd ENOMEM; it passed when rerun outside the sandbox with the same working tree.
 
 npm run final-e:validate

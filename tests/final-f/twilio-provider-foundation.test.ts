@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import twilio from "twilio";
 
 import { POST as inboundPost } from "@/app/api/twilio/whatsapp/inbound/route";
+import { POST as statusPost } from "@/app/api/twilio/whatsapp/status/route";
 import {
   extractTwilioWebhookDiagnostics,
   normalizeTwilioWhatsappAddress,
@@ -62,6 +63,30 @@ function jsonRequest(
 function expectTwilioError(code: string): (error: unknown) => boolean {
   return (error: unknown) =>
     error instanceof TwilioProviderError && error.code === code;
+}
+
+async function withTwilioRouteEnv<T>(run: () => Promise<T>): Promise<T> {
+  const originalEnv = {
+    TRP_ENVIRONMENT: process.env.TRP_ENVIRONMENT,
+    TWILIO_ACCOUNT_SID: process.env.TWILIO_ACCOUNT_SID,
+    TWILIO_AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN,
+    TWILIO_WHATSAPP_FROM: process.env.TWILIO_WHATSAPP_FROM,
+    TWILIO_WEBHOOK_BASE_URL: process.env.TWILIO_WEBHOOK_BASE_URL,
+  };
+
+  Object.assign(process.env, ENV);
+
+  try {
+    return await run();
+  } finally {
+    for (const [key, value] of Object.entries(originalEnv)) {
+      if (value === undefined) {
+        delete process.env[key];
+      } else {
+        process.env[key] = value;
+      }
+    }
+  }
 }
 
 test("F.2 resolves Twilio config only when optional Sandbox values are complete", () => {
@@ -213,18 +238,8 @@ test("F.2 safely fails webhook validation when Twilio config is absent", async (
   }
 });
 
-test("F.2 inbound route ACKs only signed Twilio webhook requests with bounded diagnostics", async () => {
-  const originalEnv = {
-    TRP_ENVIRONMENT: process.env.TRP_ENVIRONMENT,
-    TWILIO_ACCOUNT_SID: process.env.TWILIO_ACCOUNT_SID,
-    TWILIO_AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN,
-    TWILIO_WHATSAPP_FROM: process.env.TWILIO_WHATSAPP_FROM,
-    TWILIO_WEBHOOK_BASE_URL: process.env.TWILIO_WEBHOOK_BASE_URL,
-  };
-
-  Object.assign(process.env, ENV);
-
-  try {
+test("F.2 inbound route returns empty Messaging TwiML only after a valid signature", async () => {
+  await withTwilioRouteEnv(async () => {
     const url = "https://trp-booking.juantzun.dev/api/twilio/whatsapp/inbound";
     const body = new URLSearchParams({
       MessageSid: "SMeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
@@ -234,22 +249,53 @@ test("F.2 inbound route ACKs only signed Twilio webhook requests with bounded di
       NumMedia: "0",
     });
     const response = await inboundPost(formRequest(url, body, url));
-    const payload = await response.json();
+    const responseBody = await response.text();
 
     assert.equal(response.status, 200);
-    assert.equal(payload.ok, true);
-    assert.equal(payload.diagnostics.messageSid, "SMeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
-    assert.equal(JSON.stringify(payload).includes("private guest text"), false);
-    assert.equal(JSON.stringify(payload).includes("+15005550001"), false);
-  } finally {
-    for (const [key, value] of Object.entries(originalEnv)) {
-      if (value === undefined) {
-        delete process.env[key];
-      } else {
-        process.env[key] = value;
-      }
-    }
-  }
+    assert.equal(
+      response.headers.get("content-type"),
+      "text/xml; charset=utf-8",
+    );
+    assert.equal(response.headers.get("cache-control"), "no-store, max-age=0");
+    assert.equal(responseBody, "<Response></Response>");
+    assert.equal(responseBody.includes("private guest text"), false);
+    assert.equal(responseBody.includes("+15005550001"), false);
+    assert.equal(responseBody.includes("SMeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"), false);
+
+    const invalid = await inboundPost(
+      formRequest(url, body, url, "not-a-valid-signature"),
+    );
+
+    assert.equal(invalid.status, 403);
+    assert.deepEqual(await invalid.json(), {
+      error: { code: "TWILIO_WEBHOOK_SIGNATURE_INVALID" },
+    });
+  });
+});
+
+test("F.2 status callback route returns no content only after a valid signature", async () => {
+  await withTwilioRouteEnv(async () => {
+    const url = "https://trp-booking.juantzun.dev/api/twilio/whatsapp/status";
+    const body = new URLSearchParams({
+      MessageSid: "SMffffffffffffffffffffffffffffffff",
+      MessageStatus: "delivered",
+      To: "whatsapp:+15005550001",
+    });
+    const response = await statusPost(formRequest(url, body, url));
+
+    assert.equal(response.status, 204);
+    assert.equal(response.headers.get("cache-control"), "no-store, max-age=0");
+    assert.equal(await response.text(), "");
+
+    const invalid = await statusPost(
+      formRequest(url, body, url, "not-a-valid-signature"),
+    );
+
+    assert.equal(invalid.status, 403);
+    assert.deepEqual(await invalid.json(), {
+      error: { code: "TWILIO_WEBHOOK_SIGNATURE_INVALID" },
+    });
+  });
 });
 
 test("F.2 Sandbox provider probe is Local/Test only and uses an injected client in tests", async () => {

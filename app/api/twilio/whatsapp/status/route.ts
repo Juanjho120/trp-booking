@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
 
-import {
-  extractTwilioWebhookDiagnostics,
-  validateTwilioWebhookRequest,
-} from "@/lib/twilio/provider";
+import { validateTwilioWebhookRequest } from "@/lib/twilio/provider";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,12 +23,5 @@ export async function POST(request: Request): Promise<NextResponse> {
     return errorResponse(validation.errorCode, validation.httpStatus);
   }
 
-  return NextResponse.json(
-    {
-      ok: true,
-      event: "TWILIO_WHATSAPP_STATUS_RECEIVED",
-      diagnostics: extractTwilioWebhookDiagnostics(validation.payload),
-    },
-    { status: 200, headers: NO_STORE_HEADERS },
-  );
+  return new NextResponse(null, { status: 204, headers: NO_STORE_HEADERS });
 }

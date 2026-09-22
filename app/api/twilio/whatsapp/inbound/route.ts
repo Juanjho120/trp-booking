@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
 
-import {
-  extractTwilioWebhookDiagnostics,
-  validateTwilioWebhookRequest,
-} from "@/lib/twilio/provider";
+import { validateTwilioWebhookRequest } from "@/lib/twilio/provider";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -11,6 +8,7 @@ export const dynamic = "force-dynamic";
 const NO_STORE_HEADERS = {
   "cache-control": "no-store, max-age=0",
 } as const;
+const EMPTY_MESSAGING_TWIML = "<Response></Response>";
 
 function errorResponse(code: string, status: number): NextResponse {
   return NextResponse.json(
@@ -26,12 +24,11 @@ export async function POST(request: Request): Promise<NextResponse> {
     return errorResponse(validation.errorCode, validation.httpStatus);
   }
 
-  return NextResponse.json(
-    {
-      ok: true,
-      event: "TWILIO_WHATSAPP_INBOUND_RECEIVED",
-      diagnostics: extractTwilioWebhookDiagnostics(validation.payload),
+  return new NextResponse(EMPTY_MESSAGING_TWIML, {
+    status: 200,
+    headers: {
+      ...NO_STORE_HEADERS,
+      "content-type": "text/xml; charset=utf-8",
     },
-    { status: 200, headers: NO_STORE_HEADERS },
-  );
+  });
 }
