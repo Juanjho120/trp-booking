@@ -30,8 +30,8 @@ This file defines the working rules for TRP Booking.
 - Last completed and accepted package: Final-E — Reservation reviews and post-checkout invitation — Completed and accepted on 2026-09-21 at `3843a6637300201bcb44b7ed235952afda02d880`.
 - Final-E accepted feature head: `3843a6637300201bcb44b7ed235952afda02d880`.
 - Current package: Final-F — Twilio WhatsApp communication and staff alerts — Active.
-- Last accepted subphase: Final-F.2 — Twilio Sandbox provider foundation, webhook signature validation and Test onboarding — Completed and accepted on 2026-09-22 at `03861cb2d5daef7cca8bb759d16a0ef050d86b41`.
-- Current subphase: Final-F.3 — WhatsApp conversation/message persistence + staff-recipient / staff-alert persistence foundation — Implementation completed; owner acceptance pending.
+- Last accepted subphase: Final-F.3 — WhatsApp conversation/message persistence + staff-recipient / staff-alert persistence foundation — Completed and accepted on 2026-09-22 at `f0a465349b5217f7318146ad5b2de13f1d641a13`.
+- Current subphase: Final-F.4 — Guest inbound WhatsApp, safe Reservation matching and protected admin inbox — Next / Not started.
 - Final-D.4 implementation base: `6a0d909fc325f4e8925677041be34c77c023c42b`.
 - Final-D.4 accepted implementation head: `7d996fd20db42b2560df11f7e00d7a5e9cc0d18c`.
 - Final-D.4 implementation record: `docs/182-final-d-4-private-guest-payment-link-and-tilopay-collection.md`.
@@ -79,8 +79,10 @@ This file defines the working rules for TRP Booking.
 - Final-F.2 implementation and acceptance record: `docs/194-final-f-2-twilio-sandbox-provider-foundation-webhook-signature-validation-and-test-onboarding.md`.
 - Final-F.2 is completed and accepted on 2026-09-22 after owner Sandbox onboarding / Hosted Test provider validation.
 - Final-F.3 implementation base: `673e43c4d3f8f25a9aee5ee196552574637776dd`.
+- Final-F.3 initial implementation head: `ee6194f2d51969aae56aab2b5351314326c3ed8a`.
+- Final-F.3 accepted implementation/validation head: `f0a465349b5217f7318146ad5b2de13f1d641a13`.
 - Final-F.3 implementation record: `docs/195-final-f-3-whatsapp-conversation-message-staff-recipient-alert-persistence-foundation.md`.
-- Final-F.3 implementation is completed; owner acceptance is pending.
+- Final-F.3 is completed and accepted on 2026-09-22.
 - Final-F.4 is the next subphase but remains Not started until explicitly requested.
 - Final-F.4 through Final-F.8 remain Not started.
 - Final-G and Final-H remain Not started.
@@ -148,7 +150,7 @@ Rules:
 - Do not activate Production or Phase 13 work from a Final Improvement Track task.
 - A subphase may be declared completed only after implementation, required validation, documentation reconciliation, and owner acceptance are recorded.
 - If documentation and the accepted repository state disagree, stop advancement and reconcile the authoritative trackers before implementing the next subphase.
-- For the current handoff, Final-D.3 is accepted at `6a0d909fc325f4e8925677041be34c77c023c42b`; Final-D.4 is completed and accepted on 2026-09-14 at `7d996fd20db42b2560df11f7e00d7a5e9cc0d18c`; Final-D.5 is completed and accepted on 2026-09-17 at `06b3de23fbae23a77b58b432760abf12afd5a6c7`; Final-D.6 is completed and accepted on 2026-09-18 at `965045c697a9bfd0a3318db9396b15214a0cd066`; Final-D.7 and Final-D are completed and accepted on 2026-09-18 at `fd75663bb28be8a95b15c341eaa51f74e521241b`. Final-E is completed and accepted on 2026-09-21 at `3843a6637300201bcb44b7ed235952afda02d880`; Final-E.1 is completed and accepted on 2026-09-18 at `e83ad8443bd533715058e701769b10c2d5505436`. Final-E.2 is completed and accepted on 2026-09-18 at `f77938c5606ed636b697dc1af41c111a22ba1593`. Final-E.3 is completed and accepted on 2026-09-18 at `c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030`. Final-E.4 is completed and accepted on 2026-09-18 at `e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1`; Final-E.5 is completed and accepted on 2026-09-21 at `f37f4802219aeb80d10f92b406e0a4847b10f15d`; Final-E.6 is completed and accepted on 2026-09-21 at `82f1c27ba2af41d9ade9f8f57348bf66e18f800f`; Final-E.7 is completed and accepted on 2026-09-21 at `3843a6637300201bcb44b7ed235952afda02d880`. Final-F is active; Final-F.1 is completed and accepted on 2026-09-21 at `d5db6a2605a03e75db7c16238a43cd5f79dde6d8`; Final-F.2 is completed and accepted on 2026-09-22 at `03861cb2d5daef7cca8bb759d16a0ef050d86b41`; Final-F.3 implementation is completed with owner acceptance pending; Final-F.4 through Final-F.8 remain Not started; Final-G, Final-H, and Phase 13 remain Not started.
+- For the current handoff, Final-D.3 is accepted at `6a0d909fc325f4e8925677041be34c77c023c42b`; Final-D.4 is completed and accepted on 2026-09-14 at `7d996fd20db42b2560df11f7e00d7a5e9cc0d18c`; Final-D.5 is completed and accepted on 2026-09-17 at `06b3de23fbae23a77b58b432760abf12afd5a6c7`; Final-D.6 is completed and accepted on 2026-09-18 at `965045c697a9bfd0a3318db9396b15214a0cd066`; Final-D.7 and Final-D are completed and accepted on 2026-09-18 at `fd75663bb28be8a95b15c341eaa51f74e521241b`. Final-E is completed and accepted on 2026-09-21 at `3843a6637300201bcb44b7ed235952afda02d880`; Final-E.1 is completed and accepted on 2026-09-18 at `e83ad8443bd533715058e701769b10c2d5505436`. Final-E.2 is completed and accepted on 2026-09-18 at `f77938c5606ed636b697dc1af41c111a22ba1593`. Final-E.3 is completed and accepted on 2026-09-18 at `c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030`. Final-E.4 is completed and accepted on 2026-09-18 at `e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1`; Final-E.5 is completed and accepted on 2026-09-21 at `f37f4802219aeb80d10f92b406e0a4847b10f15d`; Final-E.6 is completed and accepted on 2026-09-21 at `82f1c27ba2af41d9ade9f8f57348bf66e18f800f`; Final-E.7 is completed and accepted on 2026-09-21 at `3843a6637300201bcb44b7ed235952afda02d880`. Final-F is active; Final-F.1 is completed and accepted on 2026-09-21 at `d5db6a2605a03e75db7c16238a43cd5f79dde6d8`; Final-F.2 is completed and accepted on 2026-09-22 at `03861cb2d5daef7cca8bb759d16a0ef050d86b41`; Final-F.3 is completed and accepted on 2026-09-22 at `f0a465349b5217f7318146ad5b2de13f1d641a13`; Final-F.4 through Final-F.8 remain Not started; Final-G, Final-H, and Phase 13 remain Not started.
 
 ## Implementation Completion Gate
 
@@ -211,7 +213,7 @@ Final-D.7 introduced the consolidated Final-D regression gate. Final-E.7 introdu
 - `docs/192-final-e-7-integrated-regression-and-documentation-closure.md` is the Final-E.7 implementation/validation record.
 - `docs/193-final-f-1-twilio-whatsapp-staff-alert-strategy-onboarding-and-security-contract.md` is the accepted Final-F.1 implementation record and authoritative Final-F strategy contract.
 - `docs/194-final-f-2-twilio-sandbox-provider-foundation-webhook-signature-validation-and-test-onboarding.md` is the accepted Final-F.2 provider/onboarding implementation and acceptance record.
-- `docs/195-final-f-3-whatsapp-conversation-message-staff-recipient-alert-persistence-foundation.md` is the Final-F.3 implementation record; owner acceptance remains pending.
+- `docs/195-final-f-3-whatsapp-conversation-message-staff-recipient-alert-persistence-foundation.md` is the accepted Final-F.3 implementation/validation record.
 - Any completed phase or subphase must be reflected in the progress tracker before moving to a new major phase or subphase.
 - When migrating to a new conversation or agent, use `AGENTS.md`, `README.md`, `docs/10-phases.md`, and `docs/11-progress-log.md` as the minimum continuity context. While the Final Improvement Track is active, also review `docs/160-post-phase-12-pre-phase-13-final-improvement-track.md` and the active package's authoritative records.
 - Historical Phase 12 deployment work remains grounded by `docs/89-test-and-production-environment-strategy.md`, `docs/136-phase-12.1-test-deployment-and-environment-strategy.md`, and the Phase 12 closure records.
@@ -251,7 +253,7 @@ At minimum, preserve these frozen boundaries:
 - Final-F.3 implementation adds only dormant Prisma schema/migration support for `WhatsAppConversation`, `WhatsAppMessage`, `StaffWhatsAppRecipient`, and `StaffWhatsAppAlert`, with exact staff alert classes, optional Reservation/Review/message source relations, E.164 and opt-in constraints, provider SID/deduplication uniqueness, retry/status metadata, and deterministic source/migration tests. It creates zero operational rows and adds no webhook persistence, no guest/reservation matching, no `/admin/whatsapp`, no admin replies, no staff alert creation/delivery/retry worker, no Zoho ingestion, no cron registration, no provider calls, no Production sender/WABA/template work, and no permanent `npm run final-f:validate` gate.
 - Staff phone identity must be checked before guest matching. The seven mandatory staff alert classes are `RESERVATION_CONFIRMED`, `RESERVATION_CANCELLED`, `CHECK_IN_MINUS_48H`, `CHECK_OUT_MINUS_6H`, `REVIEW_SUBMITTED`, `GUEST_WHATSAPP_RECEIVED`, and `GUEST_EMAIL_RECEIVED`.
 - Zoho remains the human mailbox; TRP may ingest only bounded inbound-email event metadata for staff alerts and must not persist email body, HTML, attachments, mailbox search, inbox, sent, drafts, human replies, spam filtering, or retention data.
-- Final-F.3 implementation is completed with owner acceptance pending. Final-F.4 through Final-F.8, Final-G, Final-H, and Phase 13 must not begin automatically.
+- Final-F.3 is completed and accepted on 2026-09-22 at `f0a465349b5217f7318146ad5b2de13f1d641a13`. Final-F.4 through Final-F.8, Final-G, Final-H, and Phase 13 must not begin automatically.
 ```
 
 ## UI and Design System Rules

@@ -7,23 +7,54 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-F — Twilio WhatsApp communication and staff alerts
 Subphase: Final-F.3 — WhatsApp conversation/message persistence + staff-recipient / staff-alert persistence foundation
-Status: Implementation completed; owner acceptance pending
+Status: Completed and accepted on 2026-09-22
 Implementation date: 2026-09-22
 Implementation base head: 673e43c4d3f8f25a9aee5ee196552574637776dd
-Initial F.3 implementation head: ee6194f2d51969aae56aab2b5351314326c3ed8a
+Initial implementation head: ee6194f2d51969aae56aab2b5351314326c3ed8a
+Accepted implementation/validation head: f0a465349b5217f7318146ad5b2de13f1d641a13
 Accepted Final-F.1 strategy head: d5db6a2605a03e75db7c16238a43cd5f79dde6d8
 Accepted Final-F.2 provider/onboarding head: 03861cb2d5daef7cca8bb759d16a0ef050d86b41
 Foundation migration: 20260922170000_final_f_3_whatsapp_persistence_foundation
 Corrective migration: 20260922193000_final_f_3_correct_twilio_message_sid_constraints
 Migration count before F.3: 22
 Migration count after F.3 foundation: 23
-Migration count after F.3 corrective migration: 24
+Migration count: 24
 MessageSid accepted contract: ^(SM|MM)[0-9a-fA-F]{32}$
 Final-F targeted validation: 19/19 PASS
+Owner acceptance: Completed on 2026-09-22
 Final-F.4: Next / Not started
 Final-F.5 through Final-F.8: Not started
 Final-G/H: Not started
 Phase 13: Not started
+```
+
+## Owner Acceptance
+
+The owner explicitly accepted Final-F.3 on 2026-09-22.
+
+Accepted implementation/validation head:
+
+```text
+f0a465349b5217f7318146ad5b2de13f1d641a13
+```
+
+Accepted implementation history:
+
+```text
+Implementation base:
+673e43c4d3f8f25a9aee5ee196552574637776dd
+
+Initial implementation head:
+ee6194f2d51969aae56aab2b5351314326c3ed8a
+
+Initial foundation migration:
+20260922170000_final_f_3_whatsapp_persistence_foundation
+
+Independent-review corrective migration:
+20260922193000_final_f_3_correct_twilio_message_sid_constraints
+
+Accepted implementation/validation head:
+f0a465349b5217f7318146ad5b2de13f1d641a13
 ```
 
 ## Scope Implemented
@@ -141,6 +172,11 @@ updatedAt
 
 Recipients default inactive and per-alert toggles default false. A database check prevents `active = true` without `optedInAt`.
 
+The accepted model supports multiple different `StaffWhatsAppRecipient` rows, one per unique E.164
+phone number. `phoneE164 @unique` means one durable recipient record per phone, not one staff
+recipient globally. Future activation/reactivation should reuse the same row for that phone rather
+than creating duplicates.
+
 `StaffWhatsAppAlert` stores future durable staff-alert intents:
 
 ```text
@@ -181,6 +217,7 @@ Key database constraints and indexes:
 whatsapp_conversations.guest_phone_e164:
   E.164 check
   UNIQUE
+  optional Reservation relation
 
 whatsapp_conversations.unread_count:
   nonnegative check
@@ -198,6 +235,10 @@ whatsapp_messages.media_count:
 whatsapp_messages.attempt_count:
   nonnegative check
 
+whatsapp_messages.body/media:
+  body or media required
+  no raw Twilio webhook payload column
+
 staff_whatsapp_recipients.name:
   nonblank check
 
@@ -207,6 +248,8 @@ staff_whatsapp_recipients.phone_e164:
 
 staff_whatsapp_recipients.active:
   active requires optedInAt
+  one durable row per phoneE164
+  per-event preferences
 
 staff_whatsapp_alerts.deduplication_key:
   nonblank check
@@ -221,6 +264,14 @@ staff_whatsapp_alerts.provider_message_sid:
 
 staff_whatsapp_alerts.attempt_count:
   nonnegative check
+
+staff_whatsapp_alerts:
+  dedicated WhatsApp durable intent
+  recipient phone snapshot
+  nullable Reservation relation
+  nullable Review relation
+  nullable source WhatsAppMessage relation
+  retry metadata
 
 retry/status lookup indexes:
   whatsapp_messages(status, next_attempt_at)
@@ -420,6 +471,9 @@ Note: initial sandboxed build failed because Next/Turbopack could not fetch Goog
 
 vercel.json
 Result: PASS — { "crons": [] }
+
+Vercel
+Result: SUCCESS
 ```
 
 ## Operational Row Check
