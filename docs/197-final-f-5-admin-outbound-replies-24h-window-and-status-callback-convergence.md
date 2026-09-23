@@ -7,9 +7,10 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-F — Twilio WhatsApp communication and staff alerts
 Subphase: Final-F.5 — Admin outbound replies, 24-hour service-window enforcement and Twilio status callbacks
-Status: Implementation completed; owner Sandbox/Hosted Test outbound reply + status convergence validation and explicit acceptance pending
+Status: Twilio-based implementation completed; superseded before owner acceptance by Final-F Architecture Revision R1
 Implementation date: 2026-09-22
 Implementation base head: 29e29283e002b11d4275465f05f4785d70eae3df
+Superseded implementation head: 551199a3e562be7c7fd9861760c3e38cafbf0b15
 Accepted Final-F.1 strategy head: d5db6a2605a03e75db7c16238a43cd5f79dde6d8
 Accepted Final-F.2 provider/onboarding head: 03861cb2d5daef7cca8bb759d16a0ef050d86b41
 Accepted Final-F.3 persistence foundation head: f0a465349b5217f7318146ad5b2de13f1d641a13
@@ -19,12 +20,36 @@ Migration count before F.5: 24
 Migration count after F.5: 25
 Permanent Final-F gate: not introduced
 Final-F targeted validation: 71/71 PASS
-Owner acceptance: Pending
-Final-F.6: Next / Not started
+Owner acceptance: Not performed; Twilio acceptance path superseded before owner acceptance
+Superseding architecture record: docs/198-final-f-architecture-revision-360dialog-coexistence.md
+Final-F.R2 through Final-F.R4: Not started
+Final-F.6: Blocked until the R1-R4 correction track completes
 Final-F.7 through Final-F.8: Not started
 Final-G/H: Not started
 Phase 13: Not started
 ```
+
+## Supersession Notice
+
+This implementation record remains historically accurate. The F.5 runtime reached implementation
+completion and deterministic validation at 71/71, but the owner changed the target architecture
+before Sandbox/Hosted Test acceptance. Therefore F.5 must not be marked accepted, and the previously
+planned Twilio Sandbox outbound reply + status convergence owner acceptance test must not be run.
+
+The reusable F.5 product/domain behavior to migrate to 360dialog/Meta is:
+
+```text
+- admin reply composer
+- server 24-hour customer-service window enforcement
+- clientRequestId idempotency
+- durable outbound intent
+- status convergence
+- concurrency hardening
+```
+
+Provider-specific Twilio runtime, Twilio status callback handling, Twilio SID assumptions, and
+Twilio provider send behavior are superseded by
+`docs/198-final-f-architecture-revision-360dialog-coexistence.md`.
 
 ## Scope Implemented
 
@@ -214,22 +239,11 @@ Final-F.5 does not add:
 }
 ```
 
-## Hosted Test Acceptance Steps
+## Historical Hosted Test Acceptance Plan
 
-Owner Sandbox / Hosted Test validation still needs to confirm:
-
-```text
-- an inbound Sandbox guest message opens the 24-hour free-form window;
-- /admin/whatsapp shows the reply composer while the window is open;
-- an admin free-form reply sends through Twilio Sandbox;
-- the outbound WhatsAppMessage is created as OUTBOUND with clientRequestId;
-- a repeated clientRequestId does not create a duplicate row or duplicate Twilio send;
-- status callbacks converge the outbound row through queued/sent/delivered/read or failure;
-- stale/duplicate status callbacks do not regress status;
-- a closed 24-hour window disables free-form replies and shows the accepted template boundary copy;
-- no template send flow exists in F.5;
-- Final-F.6 remains Not started.
-```
+The owner Sandbox / Hosted Test validation plan for Twilio F.5 is no longer active. It remains only
+as historical context because Final-F Architecture Revision R1 superseded Twilio before owner
+acceptance. Do not execute the former Twilio Sandbox acceptance path for F.5.
 
 ## Validation Record
 
@@ -281,11 +295,12 @@ Note: Git emitted working-copy LF/CRLF warnings only; no whitespace errors were 
 
 ## Owner Acceptance Status
 
-Owner Sandbox / Hosted Test outbound reply + status convergence validation and explicit acceptance
-remain pending. Final-F.5 must not be marked accepted until that validation is completed by the
-owner.
+Owner Sandbox / Hosted Test outbound reply + status convergence validation was not performed, and
+explicit owner acceptance was not granted for the Twilio F.5 implementation. Final-F.5 must not be
+marked accepted. Its reusable behavior must be migrated through the 360dialog/Meta correction track.
 
 ## Next Subphase
 
-Final-F.6 — Operational staff WhatsApp alerts — is the next planned subphase, but remains Not
-started until explicitly requested.
+Final-F.R2 — 360dialog provider foundation + Developer/Test Coexistence onboarding — is the next
+correction subphase but remains Not started until explicitly requested. Final-F.6 remains blocked
+until Final-F.R1 through Final-F.R4 complete.

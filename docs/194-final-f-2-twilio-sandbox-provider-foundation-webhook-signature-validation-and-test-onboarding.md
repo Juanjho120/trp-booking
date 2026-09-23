@@ -9,6 +9,15 @@ Owner acceptance: Completed on 2026-09-22
 Next subphase: Final-F.3 — WhatsApp conversation/message persistence + staff-recipient / staff-alert persistence foundation — Next / Not started
 Phase 13: Not started
 
+## Supersession Notice
+
+This record remains historical and accepted. The Twilio Sandbox/provider foundation was completed
+and accepted on 2026-09-22, but its provider-specific target architecture was superseded on
+2026-09-23 by `docs/198-final-f-architecture-revision-360dialog-coexistence.md`. Future Final-F
+provider work must replace the Twilio runtime, webhook-security model, Sandbox onboarding path,
+templates, and status/inbound transport with the 360dialog + Meta Coexistence architecture recorded
+in R1.
+
 ## Scope Implemented
 
 Final-F.2 adds the smallest runtime/provider layer needed to begin Twilio WhatsApp Sandbox onboarding safely:

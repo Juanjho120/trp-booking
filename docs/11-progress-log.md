@@ -10,8 +10,8 @@ Current numbered phase: none active
 Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
 Last completed and accepted package: Final-E — Reservation reviews and post-checkout invitation — Completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880
 Final-E accepted feature head: 3843a6637300201bcb44b7ed235952afda02d880
-Current package: Final-F — Twilio WhatsApp communication and staff alerts — Active
-Current subphase: Final-F.5 — Admin outbound replies, 24-hour service-window enforcement and Twilio status callbacks — Implementation completed; owner Sandbox/Hosted Test outbound reply + status convergence validation and explicit acceptance pending
+Current package: Final-F — WhatsApp communication and staff alerts — Active under Final-F Architecture Revision R1
+Current subphase: Final-F.R1 — 360dialog + Meta Coexistence architecture revision — Documentation-only; explicit owner acceptance pending
 Final-F.1 implementation base head: c6dbe2309f0cd373701fc9444f7f15879692f423
 Final-F.1 accepted implementation head: d5db6a2605a03e75db7c16238a43cd5f79dde6d8
 Final-F.1 record: docs/193-final-f-1-twilio-whatsapp-staff-alert-strategy-onboarding-and-security-contract.md
@@ -26,7 +26,7 @@ Final-F.3 record: docs/195-final-f-3-whatsapp-conversation-message-staff-recipie
 Final-F.4 implementation base head: 24e6d58060d62cf89924ddb75af29738fddf4dd1
 Final-F.4 status: Completed and accepted on 2026-09-22 at 7912b233f5cc8b8aa726f17aeb30eaa7d15ae291
 Final-F.4 record: docs/196-final-f-4-guest-inbound-whatsapp-safe-reservation-matching-and-protected-admin-inbox.md
-Final-F.5 status: Implementation completed; owner Sandbox/Hosted Test outbound reply + status convergence validation and explicit acceptance pending; record: docs/197-final-f-5-admin-outbound-replies-24h-window-and-status-callback-convergence.md; Final-F.6 through Final-F.8 status: Not started
+Final-F.5 status: Twilio-based implementation completed at 551199a3e562be7c7fd9861760c3e38cafbf0b15 but superseded before owner acceptance by Final-F Architecture Revision R1; record: docs/197-final-f-5-admin-outbound-replies-24h-window-and-status-callback-convergence.md; Final-F.R1 record: docs/198-final-f-architecture-revision-360dialog-coexistence.md; Final-F.R2-R4 status: Not started; Final-F.6 status: Blocked until R1-R4 completes; Final-F.7-F.8 status: Not started
 Final-C implementation base head: e7ce19c49c5cfd45e1cc08796ee897a2dce0d1ed
 Final-C.1 status: Completed and accepted on 2026-08-25
 Final-C.1 accepted strategy head: 16d8b0411e573aaaa6b510ddb27a9b5d9c666478
@@ -166,11 +166,11 @@ Final-A.4 record: docs/164-final-a-4-negative-date-change-multi-payment-integrat
 Final-A.5 record: docs/165-final-a-5-admin-refund-ux-notification-and-operational-history.md
 Final-A.6 record: docs/166-final-a-6-integrated-acceptance-and-documentation-closure.md
 Phase 13 status: Not started
-Last updated: 2026-09-22
+Last updated: 2026-09-23
 Last completed package: Final-E — Reservation reviews and post-checkout invitation — Completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880
 Last accepted subphase: Final-F.4 Guest inbound WhatsApp, safe Reservation matching and protected admin inbox — completed and accepted on 2026-09-22 at 7912b233f5cc8b8aa726f17aeb30eaa7d15ae291
-Current package: Final-F Twilio WhatsApp communication and staff alerts — Active
-Current subphase: Final-F.5 Admin outbound replies, 24-hour service-window enforcement and Twilio status callbacks — Implementation completed; owner Sandbox/Hosted Test outbound reply + status convergence validation and explicit acceptance pending
+Current package: Final-F WhatsApp communication and staff alerts — Active under Final-F Architecture Revision R1
+Current subphase: Final-F.R1 360dialog + Meta Coexistence architecture revision — Documentation-only; explicit owner acceptance pending
 Final-F.1 implementation base head: c6dbe2309f0cd373701fc9444f7f15879692f423
 Final-F.1 accepted implementation head: d5db6a2605a03e75db7c16238a43cd5f79dde6d8
 Final-F.1 record: docs/193-final-f-1-twilio-whatsapp-staff-alert-strategy-onboarding-and-security-contract.md
@@ -185,7 +185,7 @@ Final-F.3 record: docs/195-final-f-3-whatsapp-conversation-message-staff-recipie
 Final-F.4 implementation base head: 24e6d58060d62cf89924ddb75af29738fddf4dd1
 Final-F.4 status: Completed and accepted on 2026-09-22 at 7912b233f5cc8b8aa726f17aeb30eaa7d15ae291
 Final-F.4 record: docs/196-final-f-4-guest-inbound-whatsapp-safe-reservation-matching-and-protected-admin-inbox.md
-Final-F.5 status: Implementation completed; owner Sandbox/Hosted Test outbound reply + status convergence validation and explicit acceptance pending; record: docs/197-final-f-5-admin-outbound-replies-24h-window-and-status-callback-convergence.md; Final-F.6 through Final-F.8 status: Not started
+Final-F.5 status: Twilio-based implementation completed at 551199a3e562be7c7fd9861760c3e38cafbf0b15 but superseded before owner acceptance by Final-F Architecture Revision R1; record: docs/197-final-f-5-admin-outbound-replies-24h-window-and-status-callback-convergence.md; Final-F.R1 record: docs/198-final-f-architecture-revision-360dialog-coexistence.md; Final-F.R2-R4 status: Not started; Final-F.6 status: Blocked until R1-R4 completes; Final-F.7-F.8 status: Not started
 11.6.5 implementation and accepted head: 6a14fa7f8dd39765bb782b59c737436465ca3e0f
 11.6.5 acceptance: All 15 protected-history, ordering, relation, retry, ES/EN, responsive, security, and integrated criteria passed on 2026-08-05
 11.6.5 implementation and acceptance document: docs/119-phase-11.6.5-protected-operational-history-and-acceptance.md
@@ -252,7 +252,7 @@ Phase 12.9 acceptance closure: docs/158-phase-12.9-acceptance-closure.md
 Phase 12.10 status: Completed and accepted on 2026-08-11 — Phase 12 validation and closure
 Phase 12.10 validated repository head: ebe28579872cbc2414573ef852b15139a2501551
 Phase 12 closure record: docs/159-phase-12.10-phase-12-validation-and-closure.md
-Post-Phase-12 / Pre-Phase-13 Final Improvement Track: Active — Final-A, Final-B, Final-C, Final-D and Final-E completed and accepted; Final-F is Active with Final-F.1 completed and accepted on 2026-09-21; Final-F.2 is completed and accepted on 2026-09-22 at 03861cb2d5daef7cca8bb759d16a0ef050d86b41; Final-G/H remain Not started
+Post-Phase-12 / Pre-Phase-13 Final Improvement Track: Active — Final-A, Final-B, Final-C, Final-D and Final-E completed and accepted; Final-F is Active under Final-F Architecture Revision R1 with Final-F.1 through Final-F.4 completed and accepted; Final-F.5 superseded before owner acceptance; Final-F.R1 explicit owner acceptance pending; Final-F.R2-R4 Not started; Final-F.6 blocked until R1-R4 completes; Final-G/H remain Not started
 Final-A status: Completed and accepted on 2026-08-12 at 66afbeacd6ee7d669cb4bc251c8416160fae3f49 — Reservation financial correctness and effective stay value
 Final-A.1 status: Completed and accepted on 2026-08-11 at 19531568752a44446d0802d6581262260b881aaf — Financial source-of-truth and refund-allocation contract
 Final-A.2 status: Completed and accepted on 2026-08-11 at 9f4e04068726451ca87614dd99b1f10656510825 — Central financial summary and cancellation-policy correction
@@ -348,7 +348,7 @@ Final-E.7 accepted implementation/validation head: 3843a6637300201bcb44b7ed23595
 Final-E.7 status: Completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880 — Integrated regression and documentation closure
 Final-E permanent regression: npm run final-e:validate — 88/88 accepted
 Final-E.7 record: docs/192-final-e-7-integrated-regression-and-documentation-closure.md
-Final-F status: Active — Twilio WhatsApp communication and staff alerts
+Final-F status: Active under Final-F Architecture Revision R1 — WhatsApp communication and staff alerts
 Final-F.1 status: Completed and accepted on 2026-09-21 at d5db6a2605a03e75db7c16238a43cd5f79dde6d8 — Twilio/WhatsApp + staff-alert strategy, onboarding, templates and security contract
 Final-F.1 implementation base head: c6dbe2309f0cd373701fc9444f7f15879692f423
 Final-F.1 accepted implementation head: d5db6a2605a03e75db7c16238a43cd5f79dde6d8
@@ -364,7 +364,7 @@ Final-F.3 record: docs/195-final-f-3-whatsapp-conversation-message-staff-recipie
 Final-F.4 implementation base head: 24e6d58060d62cf89924ddb75af29738fddf4dd1
 Final-F.4 status: Completed and accepted on 2026-09-22 at 7912b233f5cc8b8aa726f17aeb30eaa7d15ae291
 Final-F.4 record: docs/196-final-f-4-guest-inbound-whatsapp-safe-reservation-matching-and-protected-admin-inbox.md
-Final-F.5 status: Implementation completed; owner Sandbox/Hosted Test outbound reply + status convergence validation and explicit acceptance pending; record: docs/197-final-f-5-admin-outbound-replies-24h-window-and-status-callback-convergence.md; Final-F.6 through Final-F.8 status: Not started
+Final-F.5 status: Twilio-based implementation completed at 551199a3e562be7c7fd9861760c3e38cafbf0b15 but superseded before owner acceptance by Final-F Architecture Revision R1; record: docs/197-final-f-5-admin-outbound-replies-24h-window-and-status-callback-convergence.md; Final-F.R1 record: docs/198-final-f-architecture-revision-360dialog-coexistence.md; Final-F.R2-R4 status: Not started; Final-F.6 status: Blocked until R1-R4 completes; Final-F.7-F.8 status: Not started
 Final-G status: Not started — Performance audit and optimization
 Final-H status: Not started — Integrated regression and final improvement-track closure
 Final Improvement Track plan: docs/160-post-phase-12-pre-phase-13-final-improvement-track.md
@@ -1211,7 +1211,7 @@ Status: **Completed and accepted on 2026-08-11**
 
 ## Inter-Phase Work — Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 
-Status: **Active — Final-A, Final-B, Final-C, Final-D and Final-E completed and accepted; Final-F is Active with Final-F.1 completed and accepted on 2026-09-21; Final-F.2 is completed and accepted on 2026-09-22 at 03861cb2d5daef7cca8bb759d16a0ef050d86b41; Final-G and Final-H remain Not started**
+Status: **Active — Final-A, Final-B, Final-C, Final-D and Final-E completed and accepted; Final-F is Active under Final-F Architecture Revision R1 with Final-F.1 through Final-F.4 completed and accepted; Final-F.5 superseded before owner acceptance; Final-F.R1 explicit owner acceptance pending; Final-F.R2-R4 Not started; Final-F.6 blocked until R1-R4 completes; Final-G and Final-H remain Not started**
 
 ```text
 Registration base: dac105088d2c46be05a900abed3dfe83e608e964
@@ -1228,13 +1228,16 @@ Final-E Reservation reviews and post-checkout invitation — Completed and accep
   Final-E.5 Private guest review submission — Completed and accepted on 2026-09-21 at f37f4802219aeb80d10f92b406e0a4847b10f15d; record: docs/190-final-e-5-private-guest-review-submission.md
   Final-E.6 Admin moderation and public published-review presentation — Completed and accepted on 2026-09-21 at 82f1c27ba2af41d9ade9f8f57348bf66e18f800f; record: docs/191-final-e-6-admin-moderation-and-public-published-review-presentation.md
   Final-E.7 Integrated regression and documentation closure — Completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880; record: docs/192-final-e-7-integrated-regression-and-documentation-closure.md
-Final-F Twilio WhatsApp communication and staff alerts — Active
+Final-F WhatsApp communication and staff alerts — Active under Final-F Architecture Revision R1
   Final-F.1 Twilio/WhatsApp + staff-alert strategy, onboarding, templates and security contract — Completed and accepted on 2026-09-21 at d5db6a2605a03e75db7c16238a43cd5f79dde6d8; record: docs/193-final-f-1-twilio-whatsapp-staff-alert-strategy-onboarding-and-security-contract.md
   Final-F.2 Twilio Sandbox provider foundation, webhook signature validation and Test onboarding — Completed and accepted on 2026-09-22 at 03861cb2d5daef7cca8bb759d16a0ef050d86b41; record: docs/194-final-f-2-twilio-sandbox-provider-foundation-webhook-signature-validation-and-test-onboarding.md
   Final-F.3 WhatsApp conversation/message persistence + staff-recipient / staff-alert persistence foundation — Completed and accepted on 2026-09-22 at f0a465349b5217f7318146ad5b2de13f1d641a13; implementation base 673e43c4d3f8f25a9aee5ee196552574637776dd; record: docs/195-final-f-3-whatsapp-conversation-message-staff-recipient-alert-persistence-foundation.md
   Final-F.4 Guest inbound WhatsApp, safe Reservation matching and protected admin inbox — Completed and accepted on 2026-09-22 at 7912b233f5cc8b8aa726f17aeb30eaa7d15ae291; implementation base 24e6d58060d62cf89924ddb75af29738fddf4dd1; record: docs/196-final-f-4-guest-inbound-whatsapp-safe-reservation-matching-and-protected-admin-inbox.md
-  Final-F.5 Admin outbound replies, 24-hour service-window enforcement and Twilio status callbacks — Implementation completed; owner Sandbox/Hosted Test outbound reply + status convergence validation and explicit acceptance pending; implementation base 29e29283e002b11d4275465f05f4785d70eae3df; record: docs/197-final-f-5-admin-outbound-replies-24h-window-and-status-callback-convergence.md
-  Final-F.6 through Final-F.8 — Not started
+  Final-F.5 Admin outbound replies, 24-hour service-window enforcement and Twilio status callbacks — Twilio-based implementation completed at 551199a3e562be7c7fd9861760c3e38cafbf0b15 but superseded before owner acceptance by Final-F Architecture Revision R1; implementation base 29e29283e002b11d4275465f05f4785d70eae3df; record: docs/197-final-f-5-admin-outbound-replies-24h-window-and-status-callback-convergence.md
+  Final-F.R1 360dialog + Meta Coexistence architecture revision — Documentation-only; explicit owner acceptance pending; record: docs/198-final-f-architecture-revision-360dialog-coexistence.md
+  Final-F.R2 through Final-F.R4 — Not started
+  Final-F.6 — Blocked until R1-R4 completes / Not started
+Final-F.7 through Final-F.8 — Not started
 Final-G Performance audit and optimization — Not started
 Final-H Integrated regression and final improvement-track closure — Not started
 Phase 13 — Not started
@@ -1412,7 +1415,7 @@ Status: **Completed and accepted on 2026-09-18 at fd75663bb28be8a95b15c341eaa51f
 - Lint passed.
 - Build passed after network-enabled Google Fonts fetch; the sandbox-only first build attempt failed on font fetch.
 - Final-D is completed and accepted on 2026-09-18.
-- Final-E is completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880; Final-F is Active with Final-F.1 completed and accepted on 2026-09-21 at d5db6a2605a03e75db7c16238a43cd5f79dde6d8. Final-F.2 is completed and accepted on 2026-09-22 at 03861cb2d5daef7cca8bb759d16a0ef050d86b41; Final-F.3 is completed and accepted on 2026-09-22 at f0a465349b5217f7318146ad5b2de13f1d641a13; Final-F.4 is completed and accepted on 2026-09-22 at 7912b233f5cc8b8aa726f17aeb30eaa7d15ae291; Final-F.5 implementation is completed with owner Sandbox/Hosted Test outbound reply + status convergence validation and explicit acceptance pending; Final-F.6-F.8, Final-G/H and Phase 13 remain Not started.
+- Final-E is completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880; Final-F is Active under Final-F Architecture Revision R1 with Final-F.1 completed and accepted on 2026-09-21 at d5db6a2605a03e75db7c16238a43cd5f79dde6d8. Final-F.2 is completed and accepted on 2026-09-22 at 03861cb2d5daef7cca8bb759d16a0ef050d86b41; Final-F.3 is completed and accepted on 2026-09-22 at f0a465349b5217f7318146ad5b2de13f1d641a13; Final-F.4 is completed and accepted on 2026-09-22 at 7912b233f5cc8b8aa726f17aeb30eaa7d15ae291; Final-F.5 Twilio-based implementation is completed at 551199a3e562be7c7fd9861760c3e38cafbf0b15 but superseded before owner acceptance by Final-F Architecture Revision R1; Final-F.R2-R4 remain Not started; Final-F.6 is blocked until R1-R4 completes; Final-F.7-F.8, Final-G/H and Phase 13 remain Not started.
 - Record: docs/185-final-d-7-integrated-regression-and-documentation-closure.md.
 ```
 
@@ -1439,7 +1442,7 @@ Status: **Completed and accepted on 2026-09-18**
 - Owner acceptance was explicitly recorded on 2026-09-18 after the delivery activation boundary correction.
 - Final-E.2 is completed and accepted on 2026-09-18 at f77938c5606ed636b697dc1af41c111a22ba1593.
 - Final-E.3 is completed and accepted on 2026-09-18 at c67d2a59a8bec9ba84ca36c37fc0ddfbbf250030; Final-E.4 is completed and accepted on 2026-09-18 at e8d4e8e771dbbdb32250d03dea09f2c2c02a1dc1; Final-E.5 is completed and accepted on 2026-09-21 at f37f4802219aeb80d10f92b406e0a4847b10f15d; Final-E.6 is completed and accepted on 2026-09-21 at 82f1c27ba2af41d9ade9f8f57348bf66e18f800f; Final-E.7 and Final-E are completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880.
-- Final-F is Active with Final-F.1 completed and accepted on 2026-09-21 at d5db6a2605a03e75db7c16238a43cd5f79dde6d8. Final-F.2 is completed and accepted on 2026-09-22 at 03861cb2d5daef7cca8bb759d16a0ef050d86b41; Final-F.3 is completed and accepted on 2026-09-22 at f0a465349b5217f7318146ad5b2de13f1d641a13; Final-F.4 is completed and accepted on 2026-09-22 at 7912b233f5cc8b8aa726f17aeb30eaa7d15ae291; Final-F.5 implementation is completed with owner Sandbox/Hosted Test outbound reply + status convergence validation and explicit acceptance pending; Final-F.6-F.8, Final-G/H and Phase 13 remain Not started.
+- Final-F is Active under Final-F Architecture Revision R1 with Final-F.1 completed and accepted on 2026-09-21 at d5db6a2605a03e75db7c16238a43cd5f79dde6d8. Final-F.2 is completed and accepted on 2026-09-22 at 03861cb2d5daef7cca8bb759d16a0ef050d86b41; Final-F.3 is completed and accepted on 2026-09-22 at f0a465349b5217f7318146ad5b2de13f1d641a13; Final-F.4 is completed and accepted on 2026-09-22 at 7912b233f5cc8b8aa726f17aeb30eaa7d15ae291; Final-F.5 Twilio-based implementation is completed at 551199a3e562be7c7fd9861760c3e38cafbf0b15 but superseded before owner acceptance by Final-F Architecture Revision R1; Final-F.R2-R4 remain Not started; Final-F.6 is blocked until R1-R4 completes; Final-F.7-F.8, Final-G/H and Phase 13 remain Not started.
 ```
 
 ### Final-E.2 — Review/invitation persistence foundation and migration
@@ -1564,7 +1567,7 @@ Status: **Completed and accepted on 2026-09-21**
 - Email contract validation, lint, build and git diff --check passed.
 - Runtime product behavior changes: NONE.
 - Final-E package acceptance is completed on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880.
-- Final-F is Active with Final-F.1 completed and accepted on 2026-09-21 at d5db6a2605a03e75db7c16238a43cd5f79dde6d8. Final-F.2 is completed and accepted on 2026-09-22 at 03861cb2d5daef7cca8bb759d16a0ef050d86b41; Final-F.3 is completed and accepted on 2026-09-22 at f0a465349b5217f7318146ad5b2de13f1d641a13; Final-F.4 is completed and accepted on 2026-09-22 at 7912b233f5cc8b8aa726f17aeb30eaa7d15ae291; Final-F.5 implementation is completed with owner Sandbox/Hosted Test outbound reply + status convergence validation and explicit acceptance pending; Final-F.6-F.8, Final-G/H and Phase 13 remain Not started.
+- Final-F is Active under Final-F Architecture Revision R1 with Final-F.1 completed and accepted on 2026-09-21 at d5db6a2605a03e75db7c16238a43cd5f79dde6d8. Final-F.2 is completed and accepted on 2026-09-22 at 03861cb2d5daef7cca8bb759d16a0ef050d86b41; Final-F.3 is completed and accepted on 2026-09-22 at f0a465349b5217f7318146ad5b2de13f1d641a13; Final-F.4 is completed and accepted on 2026-09-22 at 7912b233f5cc8b8aa726f17aeb30eaa7d15ae291; Final-F.5 Twilio-based implementation is completed at 551199a3e562be7c7fd9861760c3e38cafbf0b15 but superseded before owner acceptance by Final-F Architecture Revision R1; Final-F.R2-R4 remain Not started; Final-F.6 is blocked until R1-R4 completes; Final-F.7-F.8, Final-G/H and Phase 13 remain Not started.
 - Record: docs/192-final-e-7-integrated-regression-and-documentation-closure.md.
 ```
 

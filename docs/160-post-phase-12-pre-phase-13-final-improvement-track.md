@@ -5,7 +5,7 @@
 ```text
 Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
-Status: Active — Final-A, Final-B, Final-C, Final-D and Final-E completed and accepted; Final-F is Active with Final-F.1 completed and accepted on 2026-09-21; Final-F.2 is completed and accepted on 2026-09-22 at 03861cb2d5daef7cca8bb759d16a0ef050d86b41; Final-F.3 is completed and accepted on 2026-09-22 at f0a465349b5217f7318146ad5b2de13f1d641a13; Final-F.4 is completed and accepted on 2026-09-22 at 7912b233f5cc8b8aa726f17aeb30eaa7d15ae291; Final-F.5 implementation is completed with owner Sandbox/Hosted Test outbound reply + status convergence validation and explicit acceptance pending; Final-G and Final-H remain Not started
+Status: Active — Final-A, Final-B, Final-C, Final-D and Final-E completed and accepted; Final-F is Active under Final-F Architecture Revision R1; Final-F.1 through Final-F.4 are completed and accepted; Final-F.5 Twilio-based implementation is completed at 551199a3e562be7c7fd9861760c3e38cafbf0b15 but superseded before owner acceptance by R1; Final-F.R1 is documentation-only with explicit owner acceptance pending; Final-F.R2 through Final-F.R4 are Not started; Final-F.6 is blocked until R1-R4 completes; Final-G and Final-H remain Not started
 Registration date: 2026-08-11
 Registration base head: dac105088d2c46be05a900abed3dfe83e608e964
 Previous gate: Phase 12 — Completed and accepted
@@ -24,7 +24,7 @@ The track addresses seven owner-requested areas:
 ```text
 1. Admin-managed Airbnb iCal configuration and TRP outbound feed copy/rotation.
 2. Reservation review invitations and one-time guest review submission.
-3. Twilio WhatsApp guest communication plus internal staff notifications.
+3. WhatsApp guest communication plus internal staff notifications; provider target revised by Final-F.R1 to 360dialog + Meta Coexistence.
 4. Financial-correctness bug for refunds/cancellation after paid positive stay adjustments.
 5. Seasonal and length-of-stay pricing rules.
 6. Additional guest charges and payment requests.
@@ -46,7 +46,7 @@ before new pricing and charge behavior is added.
 - Production ownership rules accepted in Phase 12 remain unchanged.
 - All public/admin visible copy remains centralized in messages/es.ts and messages/en.ts.
 - No native alert(), confirm(), or prompt() UI.
-- No raw provider errors, private iCal URLs, tokens, Twilio credentials, auth values, or card data
+- No raw provider errors, private iCal URLs, tokens, Twilio/360dialog credentials, auth values, or card data
   may be exposed through public/admin output or logs.
 - Existing audit, idempotency, soft-delete, transaction, and evidence-based financial rules remain
   mandatory.
@@ -60,7 +60,7 @@ Final-B — Admin external-calendar integrations
 Final-C — Pricing rules: seasonal and length-of-stay
 Final-D — Additional charges and guest payment requests
 Final-E — Reservation reviews and post-checkout invitation
-Final-F — Twilio WhatsApp communication and staff alerts
+Final-F — WhatsApp communication and staff alerts
 Final-G — Performance audit and optimization
 Final-H — Integrated regression and final improvement-track closure
 ```
@@ -589,7 +589,7 @@ Package: Final-D — Completed and accepted on 2026-09-18
 Implementation base head: 0839b2935fdc2349d23de6ce6b38177504e514c6
 Accepted feature head: fd75663bb28be8a95b15c341eaa51f74e521241b
 Permanent regression: npm run final-d:validate — 66/66 PASS
-Following package: Final-E — Reservation reviews and post-checkout invitation — Completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880; Final-F is Active with Final-F.1 completed and accepted on 2026-09-21 at d5db6a2605a03e75db7c16238a43cd5f79dde6d8
+Following package: Final-E — Reservation reviews and post-checkout invitation — Completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880; Final-F is Active under Final-F Architecture Revision R1; Final-F.1 through Final-F.4 are completed and accepted, Final-F.5 is superseded before owner acceptance, Final-F.R1 explicit owner acceptance remains pending, Final-F.R2-R4 remain Not started, and Final-F.6 is blocked until R1-R4 completes
 Final-D.1 status: Completed and accepted on 2026-08-31
 Final-D.1 accepted strategy head: 3dc4fa7d81d65244a94e7e43726e2f12591e578f
 Final-D.1 record: docs/179-final-d-1-additional-charge-payment-request-strategy-and-financial-isolation-contract.md
@@ -969,12 +969,12 @@ docs/186-final-e-1-review-invitation-strategy-eligibility-and-security-contract.
 
 ---
 
-# Final-F — Twilio WhatsApp Communication and Staff Alerts
+# Final-F — WhatsApp Communication and Staff Alerts
 
 ## Current Final-F Status
 
 ```text
-Package: Final-F — Active
+Package: Final-F — Active under Final-F Architecture Revision R1
 Final-F.1 — Twilio/WhatsApp + staff-alert strategy, onboarding, templates and security contract — Completed and accepted on 2026-09-21 at d5db6a2605a03e75db7c16238a43cd5f79dde6d8
 Final-F.1 implementation base head: c6dbe2309f0cd373701fc9444f7f15879692f423
 Final-F.1 accepted implementation head: d5db6a2605a03e75db7c16238a43cd5f79dde6d8
@@ -992,12 +992,16 @@ Final-F.3 record: docs/195-final-f-3-whatsapp-conversation-message-staff-recipie
 Final-F.4 — Guest inbound WhatsApp, safe Reservation matching and protected admin inbox — Completed and accepted on 2026-09-22 at 7912b233f5cc8b8aa726f17aeb30eaa7d15ae291
 Final-F.4 implementation base head: 24e6d58060d62cf89924ddb75af29738fddf4dd1
 Final-F.4 record: docs/196-final-f-4-guest-inbound-whatsapp-safe-reservation-matching-and-protected-admin-inbox.md
-Final-F.5 — Admin outbound replies, 24-hour service-window enforcement and Twilio status callbacks — Implementation completed; owner Sandbox/Hosted Test outbound reply + status convergence validation and explicit acceptance pending
+Final-F.5 — Admin outbound replies, 24-hour service-window enforcement and Twilio status callbacks — Twilio-based implementation completed at 551199a3e562be7c7fd9861760c3e38cafbf0b15 but superseded before owner acceptance by Final-F Architecture Revision R1
 Final-F.5 implementation base head: 29e29283e002b11d4275465f05f4785d70eae3df
 Final-F.5 record: docs/197-final-f-5-admin-outbound-replies-24h-window-and-status-callback-convergence.md
-Final-F.6 — Operational staff WhatsApp alerts — Not started
+Final-F.R1 — 360dialog + Meta Coexistence architecture revision — Documentation-only; explicit owner acceptance pending; record: docs/198-final-f-architecture-revision-360dialog-coexistence.md
+Final-F.R2 — 360dialog provider foundation + Developer/Test Coexistence onboarding — Not started
+Final-F.R3 — guest messaging transport migration: standard inbound messages, provider-neutral message identity, statuses, smb_message_echoes, optional controlled history sync boundary — Not started
+Final-F.R4 — admin outbound reply migration, 24h API enforcement, status convergence, Twilio runtime/dependency decommission — Not started
+Final-F.6 — Six operational staff WhatsApp alerts via 360dialog — Blocked until R1-R4 completes / Not started
 Final-F.7 — Zoho incoming-email webhook metadata + guest-email-received staff alert — Not started
-Final-F.8 — Integrated Sandbox/Hosted-Test regression and Final-F documentation closure — Not started
+Final-F.8 — Integrated real-provider regression and Final-F documentation closure — Not started
 Final-G: Not started
 Final-H: Not started
 Phase 13: Not started
@@ -1015,63 +1019,81 @@ A. Guest <-> Tu Refugio Perfecto WhatsApp communication
 B. Internal staff operational alerts through WhatsApp
 ```
 
-They use Twilio but are not the same conversation. Staff personal numbers are alert recipients only
-and are never the guest-facing sender.
+Final-F.R1 changes the target provider architecture to 360dialog + Meta WhatsApp Cloud API +
+WhatsApp Business App Coexistence. WhatsApp Business App is the primary human guest-messaging
+interface and native guest-message notification source. `/admin/whatsapp` remains a protected
+historical mirror, Reservation context surface, alternative reply channel, and delivery/status
+evidence view.
 
-## Frozen Subphase Split
+## Revised Correction Sequence
 
 ```text
-Final-F.1 Twilio/WhatsApp + staff-alert strategy, onboarding, templates and security contract
-Final-F.2 Twilio Sandbox provider foundation, webhook signature validation and Test onboarding
-Final-F.3 WhatsApp conversation/message persistence + staff-recipient / staff-alert persistence foundation
-Final-F.4 Guest inbound WhatsApp, safe Reservation matching and protected admin inbox
-Final-F.5 Admin outbound replies, 24-hour service-window enforcement and Twilio status callbacks
-Final-F.6 Operational staff WhatsApp alerts:
-  - reservation confirmed
-  - reservation cancelled
-  - check-in -48h
-  - check-out -6h
-  - review submitted
-  - guest WhatsApp message received
-Final-F.7 Zoho incoming-email webhook metadata + guest-email-received staff alert
-Final-F.8 Integrated Sandbox/Hosted-Test regression and Final-F documentation closure
+Final-F.R1 —
+360dialog + Meta Coexistence architecture revision
+(documentation-only)
+
+Final-F.R2 —
+360dialog provider foundation
++ Developer/Test Coexistence onboarding
+
+Final-F.R3 —
+guest messaging transport migration:
+standard inbound messages
+provider-neutral message identity
+statuses
+smb_message_echoes
+optional controlled history sync boundary
+
+Final-F.R4 —
+admin outbound reply migration
+24h API enforcement
+status convergence
+Twilio runtime/dependency decommission
+
+Final-F.6 —
+six operational staff WhatsApp alerts via 360dialog
 ```
 
-## Final-F.1 Strategy Summary
+Final-F.7 and Final-F.8 remain after Final-F.6 as appropriate.
 
-The authoritative F.1 strategy, onboarding, template, webhook, staff-alert, Zoho metadata, retry,
-scheduler, privacy, and non-goal contract is:
+## Final-F.R1 Provider Architecture Summary
+
+The authoritative provider-architecture revision is:
 
 ```text
-docs/193-final-f-1-twilio-whatsapp-staff-alert-strategy-onboarding-and-security-contract.md
+docs/198-final-f-architecture-revision-360dialog-coexistence.md
 ```
 
-Key frozen decisions:
+Key target decisions:
 
 ```text
-- The owner is new to Twilio; Final-F onboarding must be step-by-step.
-- A Twilio account already exists.
-- No dedicated company phone number exists yet.
-- The Production company WhatsApp number will be a new number purchased directly through Twilio.
-- No existing personal/business WhatsApp number will be migrated.
-- The exact country/area code/number type/E.164 number is not frozen; future purchase must verify
-  current Twilio inventory, WhatsApp compatibility, OTP capability, regulatory requirements,
-  Meta/Twilio onboarding compatibility, and business ownership.
-- Final-F Test uses Twilio WhatsApp Sandbox/testing first.
-- No number purchase, WhatsApp Sender registration, WABA, Meta Business Portfolio, Production
-  template submission, Production credential, DNS, or Production scheduler activation happens in
-  Final-F.1.
-- Phase 13 remains the company-owned Production Twilio/Meta onboarding boundary.
-- Twilio credentials remain server-side only.
-- Twilio webhooks must be validated with the official server-side Twilio SDK helper.
+- 360dialog is the only target provider for guest messaging, status callbacks, staff automatic
+  alerts, templates, and provider onboarding.
+- The target uses Meta WhatsApp Cloud API + WhatsApp Business App Coexistence.
+- Standard inbound messages, statuses, and smb_message_echoes are mandatory future webhook
+  families.
+- Messages sent by staff in WhatsApp Business App must be persisted into TRP as OUTBOUND history
+  without causing another provider send.
+- GUEST_WHATSAPP_RECEIVED is legacy / deprecated / inactive and must not be generated by F.6.
+- The six active staff automatic alerts are RESERVATION_CONFIRMED, RESERVATION_CANCELLED,
+  CHECK_IN_MINUS_48H, CHECK_OUT_MINUS_6H, REVIEW_SUBMITTED, and GUEST_EMAIL_RECEIVED.
+- Local/Test uses a developer-company-owned real WhatsApp Business App number under the developer
+  company's Meta Business Portfolio, WABA/Coexistence setup, and 360dialog channel/subscription.
+- Production uses a different Tu Refugio Perfecto-owned WhatsApp Business App number under TRP's
+  own Meta Business Portfolio, WABA, and 360dialog channel/subscription.
+- 360dialog does not provide the normal Coexistence phone number; a valid business-owned
+  mobile/SIM/eSIM-capable number is preferred.
+- Meta `+1 555` Embedded Signup numbers are not suitable for TRP Coexistence.
+- Future webhook security uses HTTPS, a high-entropy configured webhook authentication
+  header/secret, and strict expected Meta-format payload parsing.
 - Staff phone identity must be checked before guest matching.
 - Canonical protected admin inbox route is `/admin/whatsapp`.
-- Seven staff alert classes are mandatory: RESERVATION_CONFIRMED, RESERVATION_CANCELLED,
-  CHECK_IN_MINUS_48H, CHECK_OUT_MINUS_6H, REVIEW_SUBMITTED, GUEST_WHATSAPP_RECEIVED, and
-  GUEST_EMAIL_RECEIVED.
 - Zoho remains the human mailbox; TRP only ingests bounded inbound-email event metadata for staff
   alerts.
 ```
+
+The original F.1 and F.2 Twilio documents remain historical accepted records. Their provider-specific
+decisions are superseded by R1 and must not be used as the future target architecture.
 
 ---
 
@@ -1225,7 +1247,7 @@ Phase 13 still owns:
 
 ```text
 - company-owned Vercel/Supabase/Tilopay/Resend/Zoho/Cloudinary
-- company-owned Twilio/Meta WhatsApp sender and real business-number onboarding
+- company-owned 360dialog/Meta WhatsApp Business App Coexistence channel and real business-number onboarding
 - company Google/Auth identity
 - Production DNS/email cutover
 - environment-aware Vercel scheduler activation
@@ -1244,8 +1266,8 @@ Phase 13 still owns:
 Phase 12 — Completed and accepted
 Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
 Last completed package — Final-E Reservation reviews and post-checkout invitation — Completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880
-Current package — Final-F Twilio WhatsApp communication and staff alerts — Active
-Current subphase — Final-F.5 Admin outbound replies, 24-hour service-window enforcement and Twilio status callbacks — Implementation completed; owner Sandbox/Hosted Test outbound reply + status convergence validation and explicit acceptance pending
+Current package — Final-F WhatsApp communication and staff alerts — Active under Final-F Architecture Revision R1
+Current subphase — Final-F.R1 360dialog + Meta Coexistence architecture revision — Documentation-only; explicit owner acceptance pending
 Final-F.1 implementation base — c6dbe2309f0cd373701fc9444f7f15879692f423
 Final-F.1 accepted implementation head — d5db6a2605a03e75db7c16238a43cd5f79dde6d8
 Final-F.1 record — docs/193-final-f-1-twilio-whatsapp-staff-alert-strategy-onboarding-and-security-contract.md
@@ -1261,7 +1283,7 @@ Final-F.4 implementation base — 24e6d58060d62cf89924ddb75af29738fddf4dd1
 Final-F.4 status — Completed and accepted on 2026-09-22 at 7912b233f5cc8b8aa726f17aeb30eaa7d15ae291
 Final-F.4 record — docs/196-final-f-4-guest-inbound-whatsapp-safe-reservation-matching-and-protected-admin-inbox.md
 Final-F.5 implementation base — 29e29283e002b11d4275465f05f4785d70eae3df
-Final-F.5 status — Implementation completed; owner Sandbox/Hosted Test outbound reply + status convergence validation and explicit acceptance pending
+Final-F.5 status — Twilio-based implementation completed at 551199a3e562be7c7fd9861760c3e38cafbf0b15 but superseded before owner acceptance by Final-F Architecture Revision R1
 Final-F.5 record — docs/197-final-f-5-admin-outbound-replies-24h-window-and-status-callback-convergence.md
 Final-D implementation base — 0839b2935fdc2349d23de6ce6b38177504e514c6
 Final-D.1 status — Completed and accepted on 2026-08-31 at 3dc4fa7d81d65244a94e7e43726e2f12591e578f
@@ -1341,8 +1363,8 @@ Final-B.5 record — docs/171-final-b-5-trp-outbound-copy-rotation-and-export-co
 Final-B.6 record — docs/172-final-b-6-integrated-acceptance-regression-and-documentation-closure.md
 Last completed package — Final-E reservation reviews and post-checkout invitation — completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880
 Last accepted subphase — Final-F.4 Guest inbound WhatsApp, safe Reservation matching and protected admin inbox — completed and accepted on 2026-09-22 at 7912b233f5cc8b8aa726f17aeb30eaa7d15ae291
-Current package — Final-F Twilio WhatsApp communication and staff alerts — Active
-Current subphase — Final-F.5 Admin outbound replies, 24-hour service-window enforcement and Twilio status callbacks — Implementation completed; owner Sandbox/Hosted Test outbound reply + status convergence validation and explicit acceptance pending
+Current package — Final-F WhatsApp communication and staff alerts — Active under Final-F Architecture Revision R1
+Current subphase — Final-F.R1 360dialog + Meta Coexistence architecture revision — Documentation-only; explicit owner acceptance pending
 Final-F.1 record — docs/193-final-f-1-twilio-whatsapp-staff-alert-strategy-onboarding-and-security-contract.md
 Final-F.2 — Completed and accepted on 2026-09-22 at 03861cb2d5daef7cca8bb759d16a0ef050d86b41
 Final-F.2 implementation base — ba47dc9f22f4d61a01c13066f84e15ae8ad549f7
@@ -1356,7 +1378,7 @@ Final-F.4 implementation base — 24e6d58060d62cf89924ddb75af29738fddf4dd1
 Final-F.4 status — Completed and accepted on 2026-09-22 at 7912b233f5cc8b8aa726f17aeb30eaa7d15ae291
 Final-F.4 record — docs/196-final-f-4-guest-inbound-whatsapp-safe-reservation-matching-and-protected-admin-inbox.md
 Final-F.5 implementation base — 29e29283e002b11d4275465f05f4785d70eae3df
-Final-F.5 status — Implementation completed; owner Sandbox/Hosted Test outbound reply + status convergence validation and explicit acceptance pending
+Final-F.5 status — Twilio-based implementation completed at 551199a3e562be7c7fd9861760c3e38cafbf0b15 but superseded before owner acceptance by Final-F Architecture Revision R1
 Final-F.5 record — docs/197-final-f-5-admin-outbound-replies-24h-window-and-status-callback-convergence.md
 Final-A — Completed and accepted on 2026-08-12 at 66afbeacd6ee7d669cb4bc251c8416160fae3f49
 Final-B — Completed and accepted on 2026-08-25 at 1fe06de8c55ab1563999b2db1d210bfc9a82c613
@@ -1396,8 +1418,11 @@ Final-F.1 — Completed and accepted on 2026-09-21 at d5db6a2605a03e75db7c16238a
 Final-F.2 — Completed and accepted on 2026-09-22 at 03861cb2d5daef7cca8bb759d16a0ef050d86b41; record: docs/194-final-f-2-twilio-sandbox-provider-foundation-webhook-signature-validation-and-test-onboarding.md
 Final-F.3 — Completed and accepted on 2026-09-22 at f0a465349b5217f7318146ad5b2de13f1d641a13; implementation base 673e43c4d3f8f25a9aee5ee196552574637776dd; initial implementation head ee6194f2d51969aae56aab2b5351314326c3ed8a; record: docs/195-final-f-3-whatsapp-conversation-message-staff-recipient-alert-persistence-foundation.md
 Final-F.4 — Completed and accepted on 2026-09-22 at 7912b233f5cc8b8aa726f17aeb30eaa7d15ae291; implementation base 24e6d58060d62cf89924ddb75af29738fddf4dd1; record: docs/196-final-f-4-guest-inbound-whatsapp-safe-reservation-matching-and-protected-admin-inbox.md
-Final-F.5 — Implementation completed; owner Sandbox/Hosted Test outbound reply + status convergence validation and explicit acceptance pending; implementation base 29e29283e002b11d4275465f05f4785d70eae3df; record: docs/197-final-f-5-admin-outbound-replies-24h-window-and-status-callback-convergence.md
-Final-F.6 through Final-F.8 — Not started
+Final-F.5 — Twilio-based implementation completed at 551199a3e562be7c7fd9861760c3e38cafbf0b15 but superseded before owner acceptance by Final-F Architecture Revision R1; implementation base 29e29283e002b11d4275465f05f4785d70eae3df; record: docs/197-final-f-5-admin-outbound-replies-24h-window-and-status-callback-convergence.md
+Final-F.R1 — 360dialog + Meta Coexistence architecture revision — Documentation-only; explicit owner acceptance pending; record: docs/198-final-f-architecture-revision-360dialog-coexistence.md
+Final-F.R2 through Final-F.R4 — Not started
+Final-F.6 — Blocked until R1-R4 completes / Not started
+Final-F.7 through Final-F.8 — Not started
 Final-G — Not started
 Final-H — Not started
 Phase 13 — Not started

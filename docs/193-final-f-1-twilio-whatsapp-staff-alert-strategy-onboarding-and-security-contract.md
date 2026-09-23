@@ -22,6 +22,15 @@ Final-F.1 is documentation-only. This document is the authoritative Final-F stra
 explicit owner acceptance on 2026-09-21. It starts Final-F at the strategy level only and does not
 implement Twilio, Zoho, schema, routes, UI, cron, secrets, or provider calls.
 
+## Supersession Notice
+
+This record remains historical and accepted. Its provider-specific Twilio target decisions were
+superseded on 2026-09-23 by `docs/198-final-f-architecture-revision-360dialog-coexistence.md`.
+From Final-F.R1 forward, the target Final-F provider architecture is 360dialog + Meta WhatsApp
+Cloud API + WhatsApp Business App Coexistence. Twilio is no longer part of the target provider
+architecture for guest messaging, staff automatic alerts, templates, webhook security, onboarding,
+or future provider runtime.
+
 ## Owner Acceptance
 
 The owner explicitly accepted Final-F.1 on 2026-09-21.
