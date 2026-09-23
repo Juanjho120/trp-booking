@@ -14,7 +14,8 @@ Accepted documentation/architecture head: 4c94db87ebd9df225944ce76c78f98462e4755
 Runtime/schema/dependency changes: none
 Owner acceptance: Completed on 2026-09-23
 Current authoritative Final-F architecture contract: 360dialog + Meta WhatsApp Cloud API + WhatsApp Business App Coexistence
-Final-F.R2: Next / Not started
+Final-F.R2: Implementation completed; Developer/Test 360dialog Coexistence onboarding + Hosted Test provider validation + explicit owner acceptance pending
+Final-F.R2 implementation record: docs/199-final-f-r2-360dialog-provider-foundation-and-developer-test-coexistence-onboarding.md
 Final-F.R3: Not started
 Final-F.R4: Not started
 Final-F.6: Blocked until R2-R4 complete / Not started
@@ -90,8 +91,9 @@ The accepted R1 architecture confirms:
   `docs/198` as the current authoritative Final-F architecture contract for all R1-revised
   decisions, with `docs/198` prevailing over conflicting R1-revised decisions in `docs/193` or
   `docs/194`.
-- Final-F.R2 is Next / Not started; R3-R4 remain Not started; F.6 remains blocked until R2-R4
-  complete.
+- Final-F.R2 implementation is completed; Developer/Test 360dialog Coexistence onboarding,
+  Hosted Test provider validation, and explicit owner acceptance remain pending. R3-R4 remain Not
+  started; F.6 remains blocked until R2-R4 complete.
 ```
 
 ## Documentation Authority And Precedence
@@ -531,7 +533,7 @@ Final-F.R1 —
 Final-F.R2 —
 360dialog provider foundation
 + Developer/Test Coexistence onboarding
-(Next / Not started)
+(Implementation completed; Developer/Test 360dialog Coexistence onboarding + Hosted Test provider validation + explicit owner acceptance pending)
 
 Final-F.R3 —
 guest messaging transport migration:
@@ -554,8 +556,9 @@ six operational staff WhatsApp alerts via 360dialog
 (Blocked until R2-R4 complete / Not started)
 ```
 
-Final-F.R2 is the next subphase and remains Not started until explicitly requested. Final-F.R3,
-Final-F.R4, and Final-F.6 are not started by R1. Final-F.6 remains blocked until R2-R4 complete.
+Final-F.R2 implementation is completed; Developer/Test 360dialog Coexistence onboarding, Hosted
+Test provider validation, and explicit owner acceptance remain pending. Final-F.R3, Final-F.R4,
+and Final-F.6 are not started. Final-F.6 remains blocked until R2-R4 complete.
 Final-F.7 and Final-F.8 remain after Final-F.6 as appropriate.
 
 ## Explicit Non-Goals for R1
