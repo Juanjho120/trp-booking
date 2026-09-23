@@ -5,7 +5,7 @@
 ```text
 Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
-Status: Active — Final-A, Final-B, Final-C, Final-D and Final-E completed and accepted; Final-F is Active under Final-F Architecture Revision R1; Final-F.1 through Final-F.4 are completed and accepted; Final-F.5 Twilio-based implementation is completed at 551199a3e562be7c7fd9861760c3e38cafbf0b15 but superseded before owner acceptance by R1; Final-F.R1 is documentation-only with explicit owner acceptance pending; Final-F.R2 through Final-F.R4 are Not started; Final-F.6 is blocked until R1-R4 completes; Final-G and Final-H remain Not started
+Status: Active — Final-A, Final-B, Final-C, Final-D and Final-E completed and accepted; Final-F is Active under Final-F Architecture Revision R1; Final-F.1 through Final-F.4 are completed and accepted; Final-F.5 Twilio-based implementation is completed at 551199a3e562be7c7fd9861760c3e38cafbf0b15 but superseded before owner acceptance by R1; Final-F.R1 is completed and accepted on 2026-09-23 at 4c94db87ebd9df225944ce76c78f98462e4755d1; Final-F.R2 is Next / Not started; Final-F.R3 and Final-F.R4 are Not started; Final-F.6 is blocked until R2-R4 complete; Final-G and Final-H remain Not started
 Registration date: 2026-08-11
 Registration base head: dac105088d2c46be05a900abed3dfe83e608e964
 Previous gate: Phase 12 — Completed and accepted
@@ -589,7 +589,7 @@ Package: Final-D — Completed and accepted on 2026-09-18
 Implementation base head: 0839b2935fdc2349d23de6ce6b38177504e514c6
 Accepted feature head: fd75663bb28be8a95b15c341eaa51f74e521241b
 Permanent regression: npm run final-d:validate — 66/66 PASS
-Following package: Final-E — Reservation reviews and post-checkout invitation — Completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880; Final-F is Active under Final-F Architecture Revision R1; Final-F.1 through Final-F.4 are completed and accepted, Final-F.5 is superseded before owner acceptance, Final-F.R1 explicit owner acceptance remains pending, Final-F.R2-R4 remain Not started, and Final-F.6 is blocked until R1-R4 completes
+Following package: Final-E — Reservation reviews and post-checkout invitation — Completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880; Final-F is Active under Final-F Architecture Revision R1; Final-F.1 through Final-F.4 are completed and accepted, Final-F.5 is superseded before owner acceptance, Final-F.R1 completed and accepted on 2026-09-23 at 4c94db87ebd9df225944ce76c78f98462e4755d1, Final-F.R2 is Next / Not started; Final-F.R3-R4 remain Not started, and Final-F.6 is blocked until R2-R4 complete
 Final-D.1 status: Completed and accepted on 2026-08-31
 Final-D.1 accepted strategy head: 3dc4fa7d81d65244a94e7e43726e2f12591e578f
 Final-D.1 record: docs/179-final-d-1-additional-charge-payment-request-strategy-and-financial-isolation-contract.md
@@ -995,11 +995,11 @@ Final-F.4 record: docs/196-final-f-4-guest-inbound-whatsapp-safe-reservation-mat
 Final-F.5 — Admin outbound replies, 24-hour service-window enforcement and Twilio status callbacks — Twilio-based implementation completed at 551199a3e562be7c7fd9861760c3e38cafbf0b15 but superseded before owner acceptance by Final-F Architecture Revision R1
 Final-F.5 implementation base head: 29e29283e002b11d4275465f05f4785d70eae3df
 Final-F.5 record: docs/197-final-f-5-admin-outbound-replies-24h-window-and-status-callback-convergence.md
-Final-F.R1 — 360dialog + Meta Coexistence architecture revision — Documentation-only; explicit owner acceptance pending; record: docs/198-final-f-architecture-revision-360dialog-coexistence.md
-Final-F.R2 — 360dialog provider foundation + Developer/Test Coexistence onboarding — Not started
+Final-F.R1 — 360dialog + Meta Coexistence architecture revision — Completed and accepted on 2026-09-23 at 4c94db87ebd9df225944ce76c78f98462e4755d1; record: docs/198-final-f-architecture-revision-360dialog-coexistence.md
+Final-F.R2 — 360dialog provider foundation + Developer/Test Coexistence onboarding — Next / Not started
 Final-F.R3 — guest messaging transport migration: standard inbound messages, provider-neutral message identity, statuses, smb_message_echoes, optional controlled history sync boundary — Not started
 Final-F.R4 — admin outbound reply migration, 24h API enforcement, status convergence, Twilio runtime/dependency decommission — Not started
-Final-F.6 — Six operational staff WhatsApp alerts via 360dialog — Blocked until R1-R4 completes / Not started
+Final-F.6 — Six operational staff WhatsApp alerts via 360dialog — Blocked until R2-R4 complete / Not started
 Final-F.7 — Zoho incoming-email webhook metadata + guest-email-received staff alert — Not started
 Final-F.8 — Integrated real-provider regression and Final-F documentation closure — Not started
 Final-G: Not started
@@ -1268,7 +1268,8 @@ Phase 12 — Completed and accepted
 Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
 Last completed package — Final-E Reservation reviews and post-checkout invitation — Completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880
 Current package — Final-F WhatsApp communication and staff alerts — Active under Final-F Architecture Revision R1
-Current subphase — Final-F.R1 360dialog + Meta Coexistence architecture revision — Documentation-only; explicit owner acceptance pending
+Last accepted subphase — Final-F.R1 360dialog + Meta Coexistence architecture revision — Completed and accepted on 2026-09-23 at 4c94db87ebd9df225944ce76c78f98462e4755d1
+Next subphase — Final-F.R2 360dialog provider foundation + Developer/Test Coexistence onboarding — Next / Not started
 Final-F.1 implementation base — c6dbe2309f0cd373701fc9444f7f15879692f423
 Final-F.1 accepted implementation head — d5db6a2605a03e75db7c16238a43cd5f79dde6d8
 Final-F.1 record — docs/193-final-f-1-twilio-whatsapp-staff-alert-strategy-onboarding-and-security-contract.md
@@ -1363,9 +1364,10 @@ Final-B.4 record — docs/170-final-b-4-airbnb-inbound-configuration-and-operati
 Final-B.5 record — docs/171-final-b-5-trp-outbound-copy-rotation-and-export-controls.md
 Final-B.6 record — docs/172-final-b-6-integrated-acceptance-regression-and-documentation-closure.md
 Last completed package — Final-E reservation reviews and post-checkout invitation — completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880
-Last accepted subphase — Final-F.4 Guest inbound WhatsApp, safe Reservation matching and protected admin inbox — completed and accepted on 2026-09-22 at 7912b233f5cc8b8aa726f17aeb30eaa7d15ae291
+Previous accepted implementation subphase — Final-F.4 Guest inbound WhatsApp, safe Reservation matching and protected admin inbox — completed and accepted on 2026-09-22 at 7912b233f5cc8b8aa726f17aeb30eaa7d15ae291
 Current package — Final-F WhatsApp communication and staff alerts — Active under Final-F Architecture Revision R1
-Current subphase — Final-F.R1 360dialog + Meta Coexistence architecture revision — Documentation-only; explicit owner acceptance pending
+Last accepted subphase — Final-F.R1 360dialog + Meta Coexistence architecture revision — Completed and accepted on 2026-09-23 at 4c94db87ebd9df225944ce76c78f98462e4755d1
+Next subphase — Final-F.R2 360dialog provider foundation + Developer/Test Coexistence onboarding — Next / Not started
 Final-F.1 record — docs/193-final-f-1-twilio-whatsapp-staff-alert-strategy-onboarding-and-security-contract.md
 Final-F.2 — Completed and accepted on 2026-09-22 at 03861cb2d5daef7cca8bb759d16a0ef050d86b41
 Final-F.2 implementation base — ba47dc9f22f4d61a01c13066f84e15ae8ad549f7
@@ -1420,9 +1422,10 @@ Final-F.2 — Completed and accepted on 2026-09-22 at 03861cb2d5daef7cca8bb759d1
 Final-F.3 — Completed and accepted on 2026-09-22 at f0a465349b5217f7318146ad5b2de13f1d641a13; implementation base 673e43c4d3f8f25a9aee5ee196552574637776dd; initial implementation head ee6194f2d51969aae56aab2b5351314326c3ed8a; record: docs/195-final-f-3-whatsapp-conversation-message-staff-recipient-alert-persistence-foundation.md
 Final-F.4 — Completed and accepted on 2026-09-22 at 7912b233f5cc8b8aa726f17aeb30eaa7d15ae291; implementation base 24e6d58060d62cf89924ddb75af29738fddf4dd1; record: docs/196-final-f-4-guest-inbound-whatsapp-safe-reservation-matching-and-protected-admin-inbox.md
 Final-F.5 — Twilio-based implementation completed at 551199a3e562be7c7fd9861760c3e38cafbf0b15 but superseded before owner acceptance by Final-F Architecture Revision R1; implementation base 29e29283e002b11d4275465f05f4785d70eae3df; record: docs/197-final-f-5-admin-outbound-replies-24h-window-and-status-callback-convergence.md
-Final-F.R1 — 360dialog + Meta Coexistence architecture revision — Documentation-only; explicit owner acceptance pending; record: docs/198-final-f-architecture-revision-360dialog-coexistence.md
-Final-F.R2 through Final-F.R4 — Not started
-Final-F.6 — Blocked until R1-R4 completes / Not started
+Final-F.R1 — 360dialog + Meta Coexistence architecture revision — Completed and accepted on 2026-09-23 at 4c94db87ebd9df225944ce76c78f98462e4755d1; record: docs/198-final-f-architecture-revision-360dialog-coexistence.md
+Final-F.R2 — Next / Not started
+Final-F.R3 through Final-F.R4 — Not started
+Final-F.6 — Blocked until R2-R4 complete / Not started
 Final-F.7 through Final-F.8 — Not started
 Final-G — Not started
 Final-H — Not started
