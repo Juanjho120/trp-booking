@@ -90,7 +90,7 @@ This file defines the working rules for TRP Booking.
 - Final-F.5 implementation base: `29e29283e002b11d4275465f05f4785d70eae3df`.
 - Final-F.5 implementation record: `docs/197-final-f-5-admin-outbound-replies-24h-window-and-status-callback-convergence.md`.
 - Final-F.5 Twilio-based implementation is completed at `551199a3e562be7c7fd9861760c3e38cafbf0b15`, but was superseded before owner acceptance by Final-F Architecture Revision R1; do not run the former Twilio Sandbox/Hosted Test F.5 acceptance path.
-- Final-F.R1 authoritative architecture record: `docs/198-final-f-architecture-revision-360dialog-coexistence.md`.
+- Final-F.R1 current authoritative architecture contract: `docs/198-final-f-architecture-revision-360dialog-coexistence.md`.
 - Final-F.R1 is documentation-only; explicit owner acceptance remains pending.
 - Final-F.R2, Final-F.R3, and Final-F.R4 remain Not started.
 - Final-F.6 is blocked until the R1-R4 correction track completes and remains Not started until explicitly requested.
@@ -221,12 +221,13 @@ Final-D.7 introduced the consolidated Final-D regression gate. Final-E.7 introdu
 - `docs/190-final-e-5-private-guest-review-submission.md` is the Final-E.5 implementation and acceptance record.
 - `docs/191-final-e-6-admin-moderation-and-public-published-review-presentation.md` is the Final-E.6 implementation and acceptance record.
 - `docs/192-final-e-7-integrated-regression-and-documentation-closure.md` is the Final-E.7 implementation/validation record.
-- `docs/193-final-f-1-twilio-whatsapp-staff-alert-strategy-onboarding-and-security-contract.md` is the accepted Final-F.1 implementation record and authoritative Final-F strategy contract.
+- `docs/193-final-f-1-twilio-whatsapp-staff-alert-strategy-onboarding-and-security-contract.md` is the historical accepted Final-F.1 strategy and implementation record.
 - `docs/194-final-f-2-twilio-sandbox-provider-foundation-webhook-signature-validation-and-test-onboarding.md` is the accepted Final-F.2 provider/onboarding implementation and acceptance record.
 - `docs/195-final-f-3-whatsapp-conversation-message-staff-recipient-alert-persistence-foundation.md` is the accepted Final-F.3 implementation/validation record.
 - `docs/196-final-f-4-guest-inbound-whatsapp-safe-reservation-matching-and-protected-admin-inbox.md` is the Final-F.4 implementation and acceptance record.
 - `docs/197-final-f-5-admin-outbound-replies-24h-window-and-status-callback-convergence.md` is the historical Final-F.5 Twilio-based implementation record; it was superseded before owner acceptance by Final-F.R1 and must not be marked accepted.
-- `docs/198-final-f-architecture-revision-360dialog-coexistence.md` is the Final-F.R1 authoritative provider-architecture revision record; explicit owner acceptance remains pending.
+- `docs/198-final-f-architecture-revision-360dialog-coexistence.md` is the current authoritative Final-F architecture contract for every decision revised by Final-F.R1; explicit owner acceptance remains pending.
+- For revised Final-F decisions, `docs/198-final-f-architecture-revision-360dialog-coexistence.md` overrides conflicting future-facing or provider-specific guidance in `docs/193-final-f-1-twilio-whatsapp-staff-alert-strategy-onboarding-and-security-contract.md` and `docs/194-final-f-2-twilio-sandbox-provider-foundation-webhook-signature-validation-and-test-onboarding.md`.
 - Any completed phase or subphase must be reflected in the progress tracker before moving to a new major phase or subphase.
 - When migrating to a new conversation or agent, use `AGENTS.md`, `README.md`, `docs/10-phases.md`, and `docs/11-progress-log.md` as the minimum continuity context. While the Final Improvement Track is active, also review `docs/160-post-phase-12-pre-phase-13-final-improvement-track.md` and the active package's authoritative records.
 - Historical Phase 12 deployment work remains grounded by `docs/89-test-and-production-environment-strategy.md`, `docs/136-phase-12.1-test-deployment-and-environment-strategy.md`, and the Phase 12 closure records.

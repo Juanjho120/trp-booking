@@ -18,9 +18,14 @@ Final-H: Not started
 Phase 13: Not started
 ```
 
-Final-F.1 is documentation-only. This document is the authoritative Final-F strategy contract after
-explicit owner acceptance on 2026-09-21. It starts Final-F at the strategy level only and does not
-implement Twilio, Zoho, schema, routes, UI, cron, secrets, or provider calls.
+Final-F.1 is documentation-only. This document was the accepted authoritative Final-F.1 strategy
+baseline at the time of explicit owner acceptance on 2026-09-21. It remains a historical accepted
+record. For all architecture, provider, and staff-alert decisions revised by Final-F.R1,
+`docs/198-final-f-architecture-revision-360dialog-coexistence.md` is the current authoritative
+contract and takes precedence.
+
+F.1 started Final-F at the strategy level only and did not implement Twilio, Zoho, schema, routes,
+UI, cron, secrets, or provider calls.
 
 ## Supersession Notice
 
@@ -29,7 +34,8 @@ superseded on 2026-09-23 by `docs/198-final-f-architecture-revision-360dialog-co
 From Final-F.R1 forward, the target Final-F provider architecture is 360dialog + Meta WhatsApp
 Cloud API + WhatsApp Business App Coexistence. Twilio is no longer part of the target provider
 architecture for guest messaging, staff automatic alerts, templates, webhook security, onboarding,
-or future provider runtime.
+or future provider runtime. When this historical F.1 record conflicts with `docs/198` on an
+R1-revised decision, `docs/198` prevails.
 
 ## Owner Acceptance
 
@@ -41,8 +47,9 @@ Accepted implementation head:
 d5db6a2605a03e75db7c16238a43cd5f79dde6d8
 ```
 
-The owner accepted this F.1 contract as the authoritative strategy boundary for future Final-F
-subphases, including:
+At the time of F.1 acceptance, the owner accepted this contract as the strategy boundary for the
+then-planned Final-F subphases. That future-facing authority was later revised by Final-F.R1.
+The historical accepted baseline included:
 
 ```text
 - Sandbox/Test first strategy.
@@ -396,6 +403,14 @@ metadata, not as durable public assets.
 
 ## Mandatory Staff Alerts
 
+Historical F.1 contract only. Under the current Final-F.R1 architecture:
+
+```text
+GUEST_WHATSAPP_RECEIVED is legacy / deprecated / inactive.
+Final-F has six active automatic staff alerts.
+docs/198-final-f-architecture-revision-360dialog-coexistence.md is authoritative for the current alert set.
+```
+
 Exactly seven staff alert classes are frozen:
 
 ```text
@@ -589,6 +604,9 @@ review-submitted/{reviewId}/{staffRecipientId}
 ```
 
 ### GUEST_WHATSAPP_RECEIVED
+
+Historical F.1 event contract only. Under Final-F.R1, `GUEST_WHATSAPP_RECEIVED` is legacy /
+deprecated / inactive and must not be treated as an active future Final-F.6 requirement.
 
 Conceptual flow:
 
@@ -1114,6 +1132,10 @@ F.1 does not:
 ```
 
 ## Acceptance Matrix
+
+This matrix records the historical F.1 acceptance-time result. R1-revised provider, number, and
+active staff-alert decisions are governed by
+`docs/198-final-f-architecture-revision-360dialog-coexistence.md`.
 
 | # | Criterion | F.1 result |
 |---|---|---|

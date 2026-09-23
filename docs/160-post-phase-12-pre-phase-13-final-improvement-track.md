@@ -1058,7 +1058,8 @@ Final-F.7 and Final-F.8 remain after Final-F.6 as appropriate.
 
 ## Final-F.R1 Provider Architecture Summary
 
-The authoritative provider-architecture revision is:
+This track document remains the authoritative roadmap for the overall Final Improvement Track. The
+current authoritative Final-F architecture contract for every decision revised by R1 is:
 
 ```text
 docs/198-final-f-architecture-revision-360dialog-coexistence.md

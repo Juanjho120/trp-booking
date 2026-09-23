@@ -22,11 +22,18 @@ Migration count: 24
 MessageSid accepted contract: ^(SM|MM)[0-9a-fA-F]{32}$
 Final-F targeted validation: 19/19 PASS
 Owner acceptance: Completed on 2026-09-22
-Final-F.4: Next / Not started
-Final-F.5 through Final-F.8: Not started
+Historical next at F.3 acceptance: Final-F.4 — Next / Not started at the time; later completed and accepted
+Historical later subphases at F.3 acceptance: Final-F.5 through Final-F.8 — Not started at the time
 Final-G/H: Not started
 Phase 13: Not started
 ```
+
+## R1 Architecture Context
+
+This record remains the accepted Final-F.3 persistence/domain foundation. Its historical Twilio SID
+naming and `GUEST_WHATSAPP_RECEIVED` enum/schema artifacts are not current target architecture.
+Provider-neutral cleanup and the active six-alert contract are governed by
+`docs/198-final-f-architecture-revision-360dialog-coexistence.md`.
 
 ## Owner Acceptance
 

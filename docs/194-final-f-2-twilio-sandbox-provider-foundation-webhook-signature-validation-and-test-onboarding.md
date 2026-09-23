@@ -16,7 +16,8 @@ and accepted on 2026-09-22, but its provider-specific target architecture was su
 2026-09-23 by `docs/198-final-f-architecture-revision-360dialog-coexistence.md`. Future Final-F
 provider work must replace the Twilio runtime, webhook-security model, Sandbox onboarding path,
 templates, and status/inbound transport with the 360dialog + Meta Coexistence architecture recorded
-in R1.
+in R1. When this historical F.2 record conflicts with `docs/198` on an R1-revised provider or
+architecture decision, `docs/198` prevails.
 
 ## Scope Implemented
 

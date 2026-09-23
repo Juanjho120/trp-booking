@@ -19,11 +19,20 @@ Schema/migration changes: none
 Permanent Final-F gate: not introduced
 Final-F targeted validation: 49/49 PASS
 Owner acceptance: Completed on 2026-09-22
-Final-F.5: Next / Not started
-Final-F.6 through Final-F.8: Not started
+Historical next at F.4 acceptance: Final-F.5 — Next / Not started at the time; later superseded before owner acceptance by Final-F.R1
+Historical later subphases at F.4 acceptance: Final-F.6 through Final-F.8 — Not started at the time
 Final-G/H: Not started
 Phase 13: Not started
 ```
+
+## R1 Architecture Context
+
+This record remains the accepted Final-F.4 product-behavior record for guest conversation history,
+safe Reservation matching, candidate display, unread state, mark-read, and the protected
+`/admin/whatsapp` inbox. The Twilio-specific inbound transport, webhook validation, Sandbox
+evidence, and MessageSid naming beneath that product behavior were superseded by Final-F.R1.
+`docs/198-final-f-architecture-revision-360dialog-coexistence.md` is authoritative for the current
+provider architecture.
 
 ## Accepted Implementation History
 

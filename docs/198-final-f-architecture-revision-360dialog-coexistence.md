@@ -11,7 +11,7 @@ Status: Architecture revision documented; explicit owner acceptance pending
 Document date: 2026-09-23
 Starting head: 551199a3e562be7c7fd9861760c3e38cafbf0b15
 Runtime/schema/dependency changes: none
-Authoritative provider architecture: 360dialog + Meta WhatsApp Cloud API + WhatsApp Business App Coexistence
+Current authoritative Final-F architecture contract: 360dialog + Meta WhatsApp Cloud API + WhatsApp Business App Coexistence
 Final-F.R2: Not started
 Final-F.R3: Not started
 Final-F.R4: Not started
@@ -24,7 +24,59 @@ Phase 13: Not started
 This document supersedes the provider-specific Twilio target decisions in the accepted Final-F.1 and
 Final-F.2 historical records. It does not revoke the fact that Final-F.1 and Final-F.2 were accepted
 when Twilio was the approved provider strategy, and it does not rewrite repository history. From R1
-forward, this document is the authoritative Final-F provider-architecture record.
+forward, this document is the current authoritative Final-F architecture contract for every decision
+explicitly revised by R1.
+
+## Documentation Authority And Precedence
+
+The documentation hierarchy is:
+
+```text
+docs/160-post-phase-12-pre-phase-13-final-improvement-track.md
+-> authoritative Final Improvement Track roadmap
+
+docs/198-final-f-architecture-revision-360dialog-coexistence.md
+-> current authoritative Final-F architecture contract for all decisions revised by R1
+
+docs/193-final-f-1-twilio-whatsapp-staff-alert-strategy-onboarding-and-security-contract.md
+-> historical accepted Final-F.1 strategy baseline
+
+docs/194-final-f-2-twilio-sandbox-provider-foundation-webhook-signature-validation-and-test-onboarding.md
+-> historical accepted Final-F.2 Twilio provider/onboarding implementation record
+
+docs/195-final-f-3-whatsapp-conversation-message-staff-recipient-alert-persistence-foundation.md
+-> accepted persistence/domain foundation record, subject to future provider-neutral cleanup defined by R1
+
+docs/196-final-f-4-guest-inbound-whatsapp-safe-reservation-matching-and-protected-admin-inbox.md
+-> accepted Final-F.4 product behavior record; provider-specific transport underneath it is superseded
+
+docs/197-final-f-5-admin-outbound-replies-24h-window-and-status-callback-convergence.md
+-> historical Twilio Final-F.5 implementation record; superseded before owner acceptance
+```
+
+When `docs/193-final-f-1-twilio-whatsapp-staff-alert-strategy-onboarding-and-security-contract.md`
+or `docs/194-final-f-2-twilio-sandbox-provider-foundation-webhook-signature-validation-and-test-onboarding.md`
+conflicts with this document on a decision revised by R1, this document prevails.
+
+R1-revised decisions include:
+
+```text
+provider selection
+number acquisition strategy
+Coexistence
+WhatsApp Business App role
+guest-facing transport
+outbound provider
+status provider/webhooks
+webhook authentication model
+template provider
+staff-alert provider
+active staff-alert set
+GUEST_WHATSAPP_RECEIVED status
+Developer/Test number architecture
+Production number architecture
+R1-R4 correction sequence
+```
 
 ## Owner Decision
 
