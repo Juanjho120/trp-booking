@@ -13,6 +13,8 @@ const TRP_ENVIRONMENTS = new Set(["local", "test", "production"]);
 const BASIC_AUTH_SCHEME = "basic ";
 const JSON_CONTENT_TYPE = "application/json";
 const SAFE_DIAGNOSTIC_DEPTH_LIMIT = 6;
+const FETCH_TRANSPORT_ERROR_PATTERN =
+  /(?:fetch failed|failed to fetch|network|socket|terminated|timed?\s*out|timeout|econnreset|econnrefused|etimedout|enotfound|eai_again|undici|aborted)/i;
 
 export type D360ProviderErrorCode =
   | "D360_PROVIDER_CONFIGURATION_ERROR"
@@ -538,6 +540,33 @@ function getProviderErrorStatus(error: ProviderErrorLike): number | null {
   return status !== null && Number.isFinite(status) ? status : null;
 }
 
+function readErrorStringProperty(
+  error: unknown,
+  propertyName: "name" | "message",
+): string | null {
+  if (typeof error !== "object" || error === null) {
+    return null;
+  }
+
+  const value = (error as Record<string, unknown>)[propertyName];
+  return typeof value === "string" ? value : null;
+}
+
+function isFetchTransportError(error: unknown): boolean {
+  const name = readErrorStringProperty(error, "name");
+  const message = readErrorStringProperty(error, "message") ?? "";
+
+  if (name === "AbortError" || name === "TimeoutError") {
+    return true;
+  }
+
+  if (name === "TypeError") {
+    return FETCH_TRANSPORT_ERROR_PATTERN.test(message);
+  }
+
+  return false;
+}
+
 export function normalizeD360ProviderError(error: unknown): D360ProviderError {
   if (error instanceof D360ProviderError) {
     return error;
@@ -569,6 +598,10 @@ export function normalizeD360ProviderError(error: unknown): D360ProviderError {
     return new D360ProviderError("D360_PROVIDER_REJECTED", false);
   }
 
+  if (isFetchTransportError(error)) {
+    return new D360ProviderError("D360_PROVIDER_TEMPORARY_FAILURE", true);
+  }
+
   return new D360ProviderError("D360_PROVIDER_UNEXPECTED_ERROR", true);
 }
 
@@ -590,10 +623,13 @@ async function parseProviderJson(response: Response): Promise<unknown> {
   }
 }
 
-function readFirstProviderMessageId(value: unknown): string | null {
+function readFirstProviderMessage(
+  value: unknown,
+): Readonly<Record<string, unknown>> | null {
   if (
     typeof value !== "object" ||
     value === null ||
+    Array.isArray(value) ||
     !Array.isArray((value as Record<string, unknown>).messages)
   ) {
     return null;
@@ -604,23 +640,36 @@ function readFirstProviderMessageId(value: unknown): string | null {
   if (
     typeof firstMessage !== "object" ||
     firstMessage === null ||
-    typeof (firstMessage as Record<string, unknown>).id !== "string"
+    Array.isArray(firstMessage)
   ) {
     return null;
   }
 
-  const id = (firstMessage as { id: string }).id.trim();
+  return firstMessage as Readonly<Record<string, unknown>>;
+}
+
+function readFirstProviderMessageId(value: unknown): string | null {
+  const firstMessage = readFirstProviderMessage(value);
+  const idValue = firstMessage?.id;
+
+  if (typeof idValue !== "string") {
+    return null;
+  }
+
+  const id = idValue.trim();
   return id || null;
 }
 
 function readProviderMessageStatus(value: unknown): string | null {
-  if (typeof value !== "object" || value === null) {
+  const firstMessage = readFirstProviderMessage(value);
+  const status = firstMessage?.message_status;
+
+  if (typeof status !== "string") {
     return null;
   }
 
-  const status = (value as Record<string, unknown>).message_status;
-
-  return typeof status === "string" && status.trim() ? status.trim() : null;
+  const trimmed = status.trim();
+  return trimmed || null;
 }
 
 export async function sendD360OnboardingProviderProbe(

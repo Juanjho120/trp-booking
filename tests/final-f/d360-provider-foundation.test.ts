@@ -138,8 +138,12 @@ test("F.R2 sends the 360dialog onboarding probe through the official messages en
     return new Response(
       JSON.stringify({
         messaging_product: "whatsapp",
-        messages: [{ id: "wamid.HBgMNTDUMMYPROBE" }],
-        message_status: "accepted",
+        messages: [
+          {
+            id: "wamid.HBgMNTDUMMYPROBE",
+            message_status: "accepted",
+          },
+        ],
       }),
       {
         status: 200,
@@ -172,6 +176,27 @@ test("F.R2 sends the 360dialog onboarding probe through the official messages en
     type: "text",
     text: { body: ENV.D360_ONBOARDING_PROBE_BODY },
   });
+});
+
+test("F.R2 reads 360dialog provider status only from the first response message", async () => {
+  const result = await sendD360OnboardingProviderProbe({
+    source: ENV,
+    fetch: (async () =>
+      new Response(
+        JSON.stringify({
+          messaging_product: "whatsapp",
+          messages: [{ id: "wamid.HBgMNTDUMMYPROBE" }],
+          message_status: "accepted",
+        }),
+        {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        },
+      )) as typeof fetch,
+  });
+
+  assert.equal(result.providerMessageId, "wamid.HBgMNTDUMMYPROBE");
+  assert.equal(result.providerStatus, null);
 });
 
 test("F.R2 refuses the 360dialog onboarding probe in production", async () => {
@@ -216,6 +241,22 @@ test("F.R2 maps 360dialog provider failures to bounded safe error codes", () => 
       retryable: normalizeD360ProviderError({ status: 503 }).retryable,
     },
     { code: "D360_PROVIDER_TEMPORARY_FAILURE", retryable: true },
+  );
+});
+
+test("F.R2 maps fetch transport failures to retryable temporary provider failures", async () => {
+  await assert.rejects(
+    () =>
+      sendD360OnboardingProviderProbe({
+        source: ENV,
+        fetch: (async () => {
+          throw new TypeError("fetch failed");
+        }) as typeof fetch,
+      }),
+    (error: unknown) =>
+      error instanceof D360ProviderError &&
+      error.code === "D360_PROVIDER_TEMPORARY_FAILURE" &&
+      error.retryable,
   );
 });
 
