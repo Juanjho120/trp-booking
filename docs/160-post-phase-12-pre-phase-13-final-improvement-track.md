@@ -60,7 +60,7 @@ Final-B — Admin external-calendar integrations
 Final-C — Pricing rules: seasonal and length-of-stay
 Final-D — Additional charges and guest payment requests
 Final-E — Reservation reviews and post-checkout invitation
-Final-F — WhatsApp communication and staff alerts
+Final-F — Public WhatsApp Contact and Admin Notifications
 Final-G — Performance audit and optimization
 Final-H — Integrated regression and final improvement-track closure
 ```
@@ -72,7 +72,7 @@ Final-A establishes the financial source of truth.
 Final-C and Final-D must build on that corrected financial contract.
 Final-B is operationally independent and can follow the financial correction safely.
 Final-E reuses the existing reservation/email/cron foundation.
-Final-F introduces the largest new external communication integration.
+Final-F introduces public guest communication through direct WhatsApp Business App contact and internal ADMIN operational notifications through existing email plus Android Web Push.
 Final-G optimizes the final feature set instead of optimizing an intermediate state.
 Final-H is the last gate before Phase 13 may be planned.
 ```
@@ -969,12 +969,12 @@ docs/186-final-e-1-review-invitation-strategy-eligibility-and-security-contract.
 
 ---
 
-# Final-F — WhatsApp Communication and Staff Alerts
+# Final-F — Public WhatsApp Contact and Admin Notifications
 
 ## Current Final-F Status
 
 ```text
-Package: Final-F — Active under Final-F.R3 architecture rebaseline
+Package: Final-F — Public WhatsApp Contact and Admin Notifications — Active under Final-F.R3 architecture rebaseline
 Final-F.1 — Twilio/WhatsApp + staff-alert strategy, onboarding, templates and security contract — Completed and accepted on 2026-09-21 at d5db6a2605a03e75db7c16238a43cd5f79dde6d8
 Final-F.1 implementation base head: c6dbe2309f0cd373701fc9444f7f15879692f423
 Final-F.1 accepted implementation head: d5db6a2605a03e75db7c16238a43cd5f79dde6d8
@@ -1098,7 +1098,7 @@ Key target decisions:
 - Web Push permission must be requested only from an explicit authenticated ADMIN gesture.
 - Push lock-screen content is bounded and full details remain behind Admin authentication.
 - Zoho remains the human mailbox; TRP only ingests bounded inbound-email event metadata for
-  GUEST_EMAIL_RECEIVED during Final-F.7.
+  ADMIN notifications through GUEST_EMAIL_RECEIVED during Final-F.7.
 ```
 
 The original F.1 and F.2 Twilio documents remain historical accepted records. Their provider-specific
@@ -1203,17 +1203,41 @@ Reviews
 - publish/hide
 - safe public output
 
-WhatsApp
-- Sandbox inbound webhook
-- signature validation
-- guest conversation creation/linking
-- staff alert
-- admin reply
-- provider status callback
-- 24-hour-window behavior
-- known staff-number separation
-- idempotency/retry
-- no credential exposure
+Public WhatsApp Contact
+- floating WhatsApp action present on accepted public surfaces
+- correct environment-specific public WhatsApp Business App number
+- localized ES/EN initial message
+- mobile Android flow opens WhatsApp correctly
+- desktop/web flow opens compatible WhatsApp destination
+- guest WhatsApp remains completely outside TRP backend
+- no WhatsApp provider webhook/runtime remains
+- no guest WhatsApp conversation persistence remains
+- no `/admin/whatsapp` remains
+- no Meta/Twilio/360dialog/Gupshup provider behavior required
+
+Android Admin PWA / Web Push
+- manifest/installability on accepted Android Chromium target
+- installed experience opens `/admin/notifications`
+- existing Google OAuth/Auth.js ADMIN authorization
+- no STAFF role
+- explicit user-gesture notification permission
+- register current-device PushSubscription
+- multiple subscriptions per ADMIN supported
+- disable/revoke current device
+- push delivery while TRP is not open
+- notification click opens expected Admin target
+- expired session follows existing login/callback behavior
+- push target matches shared admin email target resolver
+- notification center latest history
+- unread/read behavior
+- privacy-bounded lock-screen copy
+- no guest phone/email/payment amount/token/private content by default
+- invalid/expired PushSubscription cleanup
+- durable intent / idempotency / retry behavior
+- Web Push failure never rolls back source business state
+- no VAPID private key or subscription secret leakage
+- existing admin emails continue functioning in parallel
+- iOS/iPadOS Web Push acceptance is Deferred; Final-H must not fail because iOS was not implemented or tested in current Final-F
 
 Performance
 - compare baseline vs final hosted metrics
@@ -1276,7 +1300,7 @@ Phase 13 still owns:
 Phase 12 — Completed and accepted
 Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
 Last completed package — Final-E Reservation reviews and post-checkout invitation — Completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880
-Current package — Final-F WhatsApp communication and staff alerts — Active under Final-F.R3 architecture rebaseline
+Current package — Final-F — Public WhatsApp Contact and Admin Notifications — Active under Final-F.R3 architecture rebaseline
 Last accepted subphase — Final-F.R1 360dialog + Meta Coexistence architecture revision — Completed and accepted historically on 2026-09-23 at 4c94db87ebd9df225944ce76c78f98462e4755d1; future target decisions superseded by Final-F.R3
 Current subphase — Final-F.R3 Admin Web Push + public WhatsApp architecture rebaseline — Architecture rebaseline documented; explicit owner acceptance pending
 Final-F.1 implementation base — c6dbe2309f0cd373701fc9444f7f15879692f423
@@ -1380,7 +1404,7 @@ Final-B.5 record — docs/171-final-b-5-trp-outbound-copy-rotation-and-export-co
 Final-B.6 record — docs/172-final-b-6-integrated-acceptance-regression-and-documentation-closure.md
 Last completed package — Final-E reservation reviews and post-checkout invitation — completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880
 Previous accepted implementation subphase — Final-F.4 Guest inbound WhatsApp, safe Reservation matching and protected admin inbox — completed and accepted on 2026-09-22 at 7912b233f5cc8b8aa726f17aeb30eaa7d15ae291
-Current package — Final-F WhatsApp communication and staff alerts — Active under Final-F.R3 architecture rebaseline
+Current package — Final-F — Public WhatsApp Contact and Admin Notifications — Active under Final-F.R3 architecture rebaseline
 Last accepted subphase — Final-F.R1 360dialog + Meta Coexistence architecture revision — Completed and accepted historically on 2026-09-23 at 4c94db87ebd9df225944ce76c78f98462e4755d1; future target decisions superseded by R3
 Current subphase — Final-F.R3 Admin Web Push + public WhatsApp architecture rebaseline — Architecture rebaseline documented; explicit owner acceptance pending
 Final-F.1 record — docs/193-final-f-1-twilio-whatsapp-staff-alert-strategy-onboarding-and-security-contract.md

@@ -5,7 +5,7 @@
 ```text
 Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
-Package: Final-F — WhatsApp communication and staff alerts
+Package: Final-F — Public WhatsApp Contact and Admin Notifications
 Subphase: Final-F.R3 — Admin Web Push + public WhatsApp architecture rebaseline
 Status: Architecture rebaseline documented; explicit owner acceptance pending
 Document date: 2026-09-24
@@ -41,7 +41,7 @@ The owner explicitly rebaselined Final-F away from backend WhatsApp provider int
 - abandon Twilio WhatsApp, 360dialog, Gupshup, Meta Cloud API, and Coexistence as target providers
 - use WhatsApp Business App directly as the human guest-facing communication channel
 - add a public floating WhatsApp button that opens the official number through a wa.me / compatible deep link
-- replace automatic WhatsApp staff alerts with Android Admin Web Push
+- replace former automatic WhatsApp alert targets with Android Admin Web Push for ADMIN operational notifications
 - keep only ADMIN users; do not introduce STAFF
 - keep existing admin email notifications in parallel with Web Push
 - add a protected notification center at /admin/notifications
@@ -323,7 +323,7 @@ REVIEW_SUBMITTED
 GUEST_EMAIL_RECEIVED
 ```
 
-They are Admin Web Push events, not WhatsApp staff alerts. `GUEST_WHATSAPP_RECEIVED` remains
+They are Admin Web Push events, not backend WhatsApp alert events. `GUEST_WHATSAPP_RECEIVED` remains
 permanently removed/inactive because guest WhatsApp communication is outside the TRP backend.
 
 ## Delivery Semantics
@@ -407,8 +407,8 @@ Final-G Performance Audit —
 unchanged / Not started
 
 Final-H Integrated Regression —
-unchanged, but future checklist must be reconciled from WhatsApp API tests to the accepted
-public-WhatsApp + Android-push contract
+unchanged in status; the active checklist is reconciled in `docs/160` from the superseded
+provider/API checklist to the accepted public-WhatsApp + Android-push contract
 
 Phase 13 —
 Not started

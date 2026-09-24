@@ -29,7 +29,7 @@ This file defines the working rules for TRP Booking.
 - Permanent Final-D regression gate: `npm run final-d:validate` — 66/66 accepted.
 - Last completed and accepted package: Final-E — Reservation reviews and post-checkout invitation — Completed and accepted on 2026-09-21 at `3843a6637300201bcb44b7ed235952afda02d880`.
 - Final-E accepted feature head: `3843a6637300201bcb44b7ed235952afda02d880`.
-- Current package: Final-F — WhatsApp communication and staff alerts — Active under Final-F.R3 architecture rebaseline.
+- Current package: Final-F — Public WhatsApp Contact and Admin Notifications — Active under Final-F.R3 architecture rebaseline.
 - Previous accepted subphase: Final-F.4 — Guest inbound WhatsApp, safe Reservation matching and protected admin inbox — Completed and accepted on 2026-09-22 at `7912b233f5cc8b8aa726f17aeb30eaa7d15ae291`.
 - Last accepted subphase: Final-F.R1 — 360dialog + Meta Coexistence architecture revision — Completed and accepted on 2026-09-23 at `4c94db87ebd9df225944ce76c78f98462e4755d1`.
 - Final-D.4 implementation base: `6a0d909fc325f4e8925677041be34c77c023c42b`.
@@ -273,7 +273,7 @@ At minimum, preserve these frozen boundaries:
 - Guest-facing WhatsApp communication is now a human channel: `TRP public website -> floating WhatsApp button -> official WhatsApp Business App number -> human guest/admin conversation`.
 - The future public floating WhatsApp action must use `wa.me` or a WhatsApp-compatible deep link with localized ES/EN initial text. The guest-facing number is public and not a secret. Test/Developer and Production numbers may differ.
 - No backend WhatsApp webhook, guest conversation persistence, phone-to-Reservation matching, `/admin/whatsapp`, replies from TRP, service-window logic, or WhatsApp provider status tracking remains target behavior after the R3 rebaseline.
-- Automatic staff WhatsApp alerts are replaced by Android Admin Web Push. Existing admin email notifications remain in parallel; Web Push is an additional channel, not an email replacement.
+- Former automatic WhatsApp alert targets are replaced by Android Admin Web Push for ADMIN operational notifications. Existing admin email notifications remain in parallel; Web Push is an additional channel, not an email replacement.
 - Keep only existing `ADMIN` users. Do not add `STAFF`, do not change `UserRole`, and reuse Auth.js / Google OAuth, `ADMIN_ROLE`, `AUTH_ALLOWED_ADMIN_EMAILS`, `User`, `getAdminSessionActor()`, `resolveAdminActor()`, and `resolveAdminNotificationRouting()` / `EMAIL_ADMIN_RECIPIENTS`.
 - Email and Push must not compute destinations independently. Future implementation must use a shared target resolver equivalent to `resolveAdminNotificationTarget(...)`; Reservation events target `/admin/reservations/{reservationId}`, `REVIEW_SUBMITTED` targets `/admin/reviews`, and `GUEST_EMAIL_RECEIVED` receives its exact target in Final-F.7 according to the Zoho/admin-email contract.
 - Final-F mobile/PWA acceptance targets Android plus the current Chromium-based browser only. iOS/iPadOS are Deferred and must not be promised as Final-F acceptance scope.
@@ -290,7 +290,7 @@ At minimum, preserve these frozen boundaries:
 - Final-F.R2 implementation added only the server-side 360dialog provider boundary, optional D360 env validation, Basic Auth protected ACK-only webhook ingress at `/api/360dialog/whatsapp/webhook`, Local/Test onboarding probe, `.env.example` guidance, deterministic tests, and documentation. It did not receive owner acceptance and is superseded before acceptance by Final-F.R3. Do not pursue the former R2 Hosted Test/provider onboarding path unless explicitly re-opened.
 - Final-F now has exactly six active ADMIN operational notification classes: `RESERVATION_CONFIRMED`, `RESERVATION_CANCELLED`, `CHECK_IN_MINUS_48H`, `CHECK_OUT_MINUS_6H`, `REVIEW_SUBMITTED`, and `GUEST_EMAIL_RECEIVED`.
 - `GUEST_WHATSAPP_RECEIVED` remains permanently removed/inactive because guest WhatsApp is outside the TRP backend.
-- Zoho remains the human mailbox; TRP may ingest only bounded inbound-email event metadata for staff alerts and must not persist email body, HTML, attachments, mailbox search, inbox, sent, drafts, human replies, spam filtering, or retention data.
+- Zoho remains the human mailbox; TRP may ingest only bounded inbound-email event metadata for ADMIN notifications and must not persist email body, HTML, attachments, mailbox search, inbox, sent, drafts, human replies, spam filtering, or retention data.
 - Final-F.R1 is completed and accepted on 2026-09-23 at `4c94db87ebd9df225944ce76c78f98462e4755d1` and remains historical accepted work. Final-F.R2 implementation is completed but superseded before owner acceptance by Final-F.R3 architecture rebaseline. Final-F.R3 is documented with explicit owner acceptance pending. Final-F.R4, Final-F.R5, Final-F.6 through Final-F.8, Final-G, Final-H, and Phase 13 must not begin automatically.
 ```
 

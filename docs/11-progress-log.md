@@ -10,7 +10,7 @@ Current numbered phase: none active
 Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
 Last completed and accepted package: Final-E — Reservation reviews and post-checkout invitation — Completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880
 Final-E accepted feature head: 3843a6637300201bcb44b7ed235952afda02d880
-Current package: Final-F — WhatsApp communication and staff alerts — Active under Final-F.R3 architecture rebaseline
+Current package: Final-F — Public WhatsApp Contact and Admin Notifications — Active under Final-F.R3 architecture rebaseline
 Last accepted subphase: Final-F.R1 — 360dialog + Meta Coexistence architecture revision — Completed and accepted on 2026-09-23 at 4c94db87ebd9df225944ce76c78f98462e4755d1; historical accepted architecture superseded for future target decisions by Final-F.R3
 Current subphase: Final-F.R3 — Admin Web Push + public WhatsApp architecture rebaseline — Architecture rebaseline documented; explicit owner acceptance pending
 Final-F.1 implementation base head: c6dbe2309f0cd373701fc9444f7f15879692f423
@@ -170,7 +170,7 @@ Phase 13 status: Not started
 Last updated: 2026-09-23
 Last completed package: Final-E — Reservation reviews and post-checkout invitation — Completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880
 Previous accepted implementation subphase: Final-F.4 Guest inbound WhatsApp, safe Reservation matching and protected admin inbox — completed and accepted on 2026-09-22 at 7912b233f5cc8b8aa726f17aeb30eaa7d15ae291
-Current package: Final-F WhatsApp communication and staff alerts — Active under Final-F.R3 architecture rebaseline
+Current package: Final-F — Public WhatsApp Contact and Admin Notifications — Active under Final-F.R3 architecture rebaseline
 Last accepted subphase: Final-F.R1 360dialog + Meta Coexistence architecture revision — Completed and accepted on 2026-09-23 at 4c94db87ebd9df225944ce76c78f98462e4755d1; historical accepted architecture superseded for future target decisions by Final-F.R3
 Current subphase: Final-F.R3 Admin Web Push + public WhatsApp architecture rebaseline — Architecture rebaseline documented; explicit owner acceptance pending
 Final-F.1 implementation base head: c6dbe2309f0cd373701fc9444f7f15879692f423
@@ -350,7 +350,7 @@ Final-E.7 accepted implementation/validation head: 3843a6637300201bcb44b7ed23595
 Final-E.7 status: Completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880 — Integrated regression and documentation closure
 Final-E permanent regression: npm run final-e:validate — 88/88 accepted
 Final-E.7 record: docs/192-final-e-7-integrated-regression-and-documentation-closure.md
-Final-F status: Active under Final-F.R3 architecture rebaseline — WhatsApp communication and staff alerts
+Final-F status: Active under Final-F.R3 architecture rebaseline — Public WhatsApp Contact and Admin Notifications
 Final-F.1 status: Completed and accepted on 2026-09-21 at d5db6a2605a03e75db7c16238a43cd5f79dde6d8 — Twilio/WhatsApp + staff-alert strategy, onboarding, templates and security contract
 Final-F.1 implementation base head: c6dbe2309f0cd373701fc9444f7f15879692f423
 Final-F.1 accepted implementation head: d5db6a2605a03e75db7c16238a43cd5f79dde6d8
@@ -1230,7 +1230,7 @@ Final-E Reservation reviews and post-checkout invitation — Completed and accep
   Final-E.5 Private guest review submission — Completed and accepted on 2026-09-21 at f37f4802219aeb80d10f92b406e0a4847b10f15d; record: docs/190-final-e-5-private-guest-review-submission.md
   Final-E.6 Admin moderation and public published-review presentation — Completed and accepted on 2026-09-21 at 82f1c27ba2af41d9ade9f8f57348bf66e18f800f; record: docs/191-final-e-6-admin-moderation-and-public-published-review-presentation.md
   Final-E.7 Integrated regression and documentation closure — Completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880; record: docs/192-final-e-7-integrated-regression-and-documentation-closure.md
-Final-F WhatsApp communication and staff alerts — Active under Final-F.R3 architecture rebaseline
+Final-F — Public WhatsApp Contact and Admin Notifications — Active under Final-F.R3 architecture rebaseline
   Final-F.1 Twilio/WhatsApp + staff-alert strategy, onboarding, templates and security contract — Completed and accepted on 2026-09-21 at d5db6a2605a03e75db7c16238a43cd5f79dde6d8; record: docs/193-final-f-1-twilio-whatsapp-staff-alert-strategy-onboarding-and-security-contract.md
   Final-F.2 Twilio Sandbox provider foundation, webhook signature validation and Test onboarding — Completed and accepted on 2026-09-22 at 03861cb2d5daef7cca8bb759d16a0ef050d86b41; record: docs/194-final-f-2-twilio-sandbox-provider-foundation-webhook-signature-validation-and-test-onboarding.md
   Final-F.3 WhatsApp conversation/message persistence + staff-recipient / staff-alert persistence foundation — Completed and accepted on 2026-09-22 at f0a465349b5217f7318146ad5b2de13f1d641a13; implementation base 673e43c4d3f8f25a9aee5ee196552574637776dd; record: docs/195-final-f-3-whatsapp-conversation-message-staff-recipient-alert-persistence-foundation.md
