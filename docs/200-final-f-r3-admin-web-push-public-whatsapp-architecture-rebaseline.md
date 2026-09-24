@@ -7,15 +7,16 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-F — Public WhatsApp Contact and Admin Notifications
 Subphase: Final-F.R3 — Admin Web Push + public WhatsApp architecture rebaseline
-Status: Architecture rebaseline documented; explicit owner acceptance pending
+Status: Completed and accepted on 2026-09-24
 Document date: 2026-09-24
 Architecture rebaseline starting head: 26e197c851e6305b848eb9da76ae1a89912500c5
+Accepted documentation/architecture head: be80af9b36f285c7669986e9c9b4d6676042f6f0
 Runtime changes: none
 Schema changes: none
 Migration changes: none
 Dependency changes: none
-Owner acceptance: pending
-Final-F.R4: Not started
+Owner acceptance: Completed on 2026-09-24
+Final-F.R4: Next / Not started
 Final-F.R5: Not started
 Final-F.6: Not started
 Final-F.7: Not started
@@ -24,13 +25,28 @@ Final-G/H: Not started
 Phase 13: Not started
 ```
 
-This document records the owner's new Final-F architecture decision. It is documentation-only and
-does not implement the future runtime cleanup, public floating WhatsApp contact, PWA surface, Web
-Push, schema changes, provider removal, or notification center.
+This document records the owner's accepted Final-F architecture decision. It is documentation-only
+and does not implement the future runtime cleanup, public floating WhatsApp contact, PWA surface,
+Web Push, schema changes, provider removal, or notification center.
 
-After future explicit owner acceptance, this document becomes the current Final-F architecture
-contract for the decisions revised by R3. Until that acceptance occurs, the rebaseline is documented
-but not accepted.
+As of the owner's explicit 2026-09-24 acceptance, this document is the current authoritative
+Final-F architecture contract for the decisions revised by R3.
+
+## Owner Acceptance
+
+Final-F.R3 was completed and accepted by the owner on 2026-09-24.
+
+```text
+Accepted documentation/architecture head: be80af9b36f285c7669986e9c9b4d6676042f6f0
+Vercel for accepted head: SUCCESS
+```
+
+The owner accepted the rebaseline to public human WhatsApp Business App contact for guests,
+Android Admin Web Push as an additional ADMIN notification channel beside existing admin email,
+ADMIN-only authorization, Android/current-Chromium PWA acceptance, iOS/iPadOS Deferred treatment,
+standard Web Push + VAPID direction, shared email/push target resolution, the six ADMIN
+notification classes, privacy-bounded lock-screen copy, durable delivery semantics, and the
+revised Final-F sequence with Final-F.R4 as Next / Not started.
 
 ## Owner Decision
 
@@ -87,8 +103,8 @@ work that occurred.
 `docs/160-post-phase-12-pre-phase-13-final-improvement-track.md` remains the authoritative roadmap
 for the full Final Improvement Track.
 
-This record is the Final-F.R3 architecture rebaseline record. Once accepted by the owner, it
-prevails for R3-revised decisions over the earlier R1/R2 future target guidance in:
+This record is the accepted Final-F.R3 architecture rebaseline record. It prevails for R3-revised
+decisions over the earlier R1/R2 future target guidance in:
 
 ```text
 docs/198-final-f-architecture-revision-360dialog-coexistence.md
@@ -364,14 +380,15 @@ No complex inbox/workflow and no offline requirement are included in current Fin
 Final-F.R3 —
 Architecture rebaseline: Public WhatsApp Business App + Android Admin Web Push
 — documentation-only
-— owner acceptance pending
+— completed and accepted on 2026-09-24
+— accepted documentation/architecture head be80af9b36f285c7669986e9c9b4d6676042f6f0
 
 Final-F.R4 —
 WhatsApp backend/provider decommission
 - remove /admin/whatsapp
 - provider/schema cleanup
 - public floating WhatsApp contact
-— Not started
+— Next / Not started
 
 Final-F.R5 —
 Android Admin PWA/Web Push foundation
@@ -472,5 +489,5 @@ R3 does not implement:
 - /admin/notifications
 - notification-center UI
 - Android validation
-- Final-F.R4, Final-F.R5, Final-F.6, Final-F.7, Final-F.8, Final-G, Final-H, or Phase 13
+- any future Final-F subphase work, Final-G, Final-H, or Phase 13
 ```
