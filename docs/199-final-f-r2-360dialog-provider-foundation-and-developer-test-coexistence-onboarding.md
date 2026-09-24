@@ -7,7 +7,7 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-F — WhatsApp communication and staff alerts
 Subphase: Final-F.R2 — 360dialog provider foundation + Developer/Test Coexistence onboarding
-Status: Implementation completed; Developer/Test 360dialog Coexistence onboarding + Hosted Test provider validation + explicit owner acceptance pending
+Status: Implementation completed but superseded before owner acceptance by Final-F.R3 architecture rebaseline
 Document date: 2026-09-23
 Implementation base head: e6dda44f15ba54d3e386d3f4f676ace8cab22441
 Accepted architecture base: Final-F.R1 at 4c94db87ebd9df225944ce76c78f98462e4755d1
@@ -15,20 +15,24 @@ Schema changes: none
 Migration changes: none
 Dependency changes: none
 Cron registrations: none; vercel.json remains {"crons":[]}
-Final-F.R3: Not started
+Final-F.R3: Architecture rebaseline documented; explicit owner acceptance pending
+Final-F.R3 record: docs/200-final-f-r3-admin-web-push-public-whatsapp-architecture-rebaseline.md
 Final-F.R4: Not started
-Final-F.6: Blocked until R2-R4 complete / Not started
+Final-F.R5: Not started
+Final-F.6 through Final-F.8: Not started
 Final-G/H: Not started
 Phase 13: Not started
 ```
 
-This record implements only the R2 foundation accepted by Final-F.R1. It does not accept R2 yet;
-owner Developer/Test onboarding, Hosted Test provider validation, and explicit owner acceptance
-remain pending.
+This record implemented only the R2 foundation accepted by Final-F.R1. It did not receive owner
+acceptance. As of the owner-directed Final-F.R3 architecture rebaseline, the former Developer/Test
+360dialog Coexistence onboarding and Hosted Test provider acceptance path is superseded and must not
+be pursued unless explicitly re-opened.
 
 ## Implemented Scope
 
-Final-F.R2 adds the server-side 360dialog foundation needed before the R3/R4 migration work:
+Final-F.R2 added the server-side 360dialog foundation that the then-current R1 plan required before
+the old R3/R4 migration work:
 
 ```text
 - dedicated 360dialog provider boundary in lib/360dialog/provider.ts
@@ -146,9 +150,11 @@ Missing or invalid Basic Auth fails closed with safe 401 errors. Missing/invalid
 with a safe 503. Malformed JSON fails with a safe 400. Authenticated unknown Meta-format payloads are
 ACKed without persistence so provider verification and future fields do not break R2.
 
-## Developer/Test Coexistence Onboarding Checklist
+## Historical Developer/Test Coexistence Onboarding Checklist
 
-Before Hosted Test acceptance, complete the 360dialog / Meta Developer-Test setup with placeholder
+This was the R2 Hosted Test acceptance checklist before R2 was superseded. It is preserved as a
+historical record and must not be treated as a current onboarding gate unless explicitly re-opened.
+The former checklist required completing the 360dialog / Meta Developer-Test setup with placeholder
 values replaced only in provider/admin consoles or protected environment variables.
 
 Prerequisites:
@@ -234,9 +240,10 @@ Environment and probe setup:
 - Do not enable Production numbers, Production WABA, Production 360dialog channels, templates, or staff-alert automation during R2.
 ```
 
-## Hosted Test Acceptance Checklist
+## Historical Hosted Test Acceptance Checklist
 
-R2 owner acceptance remains pending until Hosted Test confirms:
+R2 owner acceptance did not occur. This former Hosted Test checklist is superseded by Final-F.R3 and
+is preserved only as historical implementation context:
 
 ```text
 - Developer/Test Coexistence number is onboarded through 360dialog.

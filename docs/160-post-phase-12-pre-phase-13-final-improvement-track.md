@@ -5,7 +5,7 @@
 ```text
 Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
-Status: Active — Final-A, Final-B, Final-C, Final-D and Final-E completed and accepted; Final-F is Active under Final-F Architecture Revision R1; Final-F.1 through Final-F.4 are completed and accepted; Final-F.5 Twilio-based implementation is completed at 551199a3e562be7c7fd9861760c3e38cafbf0b15 but superseded before owner acceptance by R1; Final-F.R1 is completed and accepted on 2026-09-23 at 4c94db87ebd9df225944ce76c78f98462e4755d1; Final-F.R2 implementation is completed with Developer/Test onboarding, Hosted Test provider validation, and explicit owner acceptance pending; Final-F.R3 and Final-F.R4 are Not started; Final-F.6 is blocked until R2-R4 complete; Final-G and Final-H remain Not started
+Status: Active — Final-A, Final-B, Final-C, Final-D and Final-E completed and accepted; Final-F is Active under Final-F.R3 architecture rebaseline; Final-F.1 through Final-F.4 are completed and accepted; Final-F.5 Twilio-based implementation is completed at 551199a3e562be7c7fd9861760c3e38cafbf0b15 but superseded before owner acceptance by R1; Final-F.R1 is completed and accepted historically on 2026-09-23 at 4c94db87ebd9df225944ce76c78f98462e4755d1 but superseded for future target decisions by R3; Final-F.R2 implementation is completed but superseded before owner acceptance by R3; Final-F.R3 architecture rebaseline is documented with explicit owner acceptance pending; Final-F.R4, Final-F.R5 and Final-F.6-F.8 remain Not started; Final-G and Final-H remain Not started
 Registration date: 2026-08-11
 Registration base head: dac105088d2c46be05a900abed3dfe83e608e964
 Previous gate: Phase 12 — Completed and accepted
@@ -24,7 +24,7 @@ The track addresses seven owner-requested areas:
 ```text
 1. Admin-managed Airbnb iCal configuration and TRP outbound feed copy/rotation.
 2. Reservation review invitations and one-time guest review submission.
-3. WhatsApp guest communication plus internal staff notifications; provider target revised by Final-F.R1 to 360dialog + Meta Coexistence.
+3. Public WhatsApp Business App contact plus internal ADMIN operational notifications; provider/API target revised by Final-F.R3 to public human WhatsApp + Android Admin Web Push.
 4. Financial-correctness bug for refunds/cancellation after paid positive stay adjustments.
 5. Seasonal and length-of-stay pricing rules.
 6. Additional guest charges and payment requests.
@@ -46,7 +46,7 @@ before new pricing and charge behavior is added.
 - Production ownership rules accepted in Phase 12 remain unchanged.
 - All public/admin visible copy remains centralized in messages/es.ts and messages/en.ts.
 - No native alert(), confirm(), or prompt() UI.
-- No raw provider errors, private iCal URLs, tokens, Twilio/360dialog credentials, auth values, or card data
+- No raw provider errors, private iCal URLs, tokens, Twilio/360dialog/Web Push credentials, auth values, or card data
   may be exposed through public/admin output or logs.
 - Existing audit, idempotency, soft-delete, transaction, and evidence-based financial rules remain
   mandatory.
@@ -589,7 +589,7 @@ Package: Final-D — Completed and accepted on 2026-09-18
 Implementation base head: 0839b2935fdc2349d23de6ce6b38177504e514c6
 Accepted feature head: fd75663bb28be8a95b15c341eaa51f74e521241b
 Permanent regression: npm run final-d:validate — 66/66 PASS
-Following package: Final-E — Reservation reviews and post-checkout invitation — Completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880; Final-F is Active under Final-F Architecture Revision R1; Final-F.1 through Final-F.4 are completed and accepted, Final-F.5 is superseded before owner acceptance, Final-F.R1 completed and accepted on 2026-09-23 at 4c94db87ebd9df225944ce76c78f98462e4755d1, Final-F.R2 implementation is completed with Developer/Test onboarding, Hosted Test provider validation, and explicit owner acceptance pending; Final-F.R3-R4 remain Not started, and Final-F.6 is blocked until R2-R4 complete
+Following package: Final-E — Reservation reviews and post-checkout invitation — Completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880; Final-F is Active under Final-F.R3 architecture rebaseline; Final-F.1 through Final-F.4 are completed and accepted, Final-F.5 is superseded before owner acceptance, Final-F.R1 completed and accepted historically on 2026-09-23 at 4c94db87ebd9df225944ce76c78f98462e4755d1 but superseded for future target decisions by R3, Final-F.R2 implementation completed but superseded before owner acceptance, Final-F.R3 architecture rebaseline documented with explicit owner acceptance pending, and Final-F.R4, Final-F.R5 and Final-F.6-F.8 remain Not started
 Final-D.1 status: Completed and accepted on 2026-08-31
 Final-D.1 accepted strategy head: 3dc4fa7d81d65244a94e7e43726e2f12591e578f
 Final-D.1 record: docs/179-final-d-1-additional-charge-payment-request-strategy-and-financial-isolation-contract.md
@@ -974,7 +974,7 @@ docs/186-final-e-1-review-invitation-strategy-eligibility-and-security-contract.
 ## Current Final-F Status
 
 ```text
-Package: Final-F — Active under Final-F Architecture Revision R1
+Package: Final-F — Active under Final-F.R3 architecture rebaseline
 Final-F.1 — Twilio/WhatsApp + staff-alert strategy, onboarding, templates and security contract — Completed and accepted on 2026-09-21 at d5db6a2605a03e75db7c16238a43cd5f79dde6d8
 Final-F.1 implementation base head: c6dbe2309f0cd373701fc9444f7f15879692f423
 Final-F.1 accepted implementation head: d5db6a2605a03e75db7c16238a43cd5f79dde6d8
@@ -995,13 +995,14 @@ Final-F.4 record: docs/196-final-f-4-guest-inbound-whatsapp-safe-reservation-mat
 Final-F.5 — Admin outbound replies, 24-hour service-window enforcement and Twilio status callbacks — Twilio-based implementation completed at 551199a3e562be7c7fd9861760c3e38cafbf0b15 but superseded before owner acceptance by Final-F Architecture Revision R1
 Final-F.5 implementation base head: 29e29283e002b11d4275465f05f4785d70eae3df
 Final-F.5 record: docs/197-final-f-5-admin-outbound-replies-24h-window-and-status-callback-convergence.md
-Final-F.R1 — 360dialog + Meta Coexistence architecture revision — Completed and accepted on 2026-09-23 at 4c94db87ebd9df225944ce76c78f98462e4755d1; record: docs/198-final-f-architecture-revision-360dialog-coexistence.md
-Final-F.R2 — 360dialog provider foundation + Developer/Test Coexistence onboarding — Implementation completed; Developer/Test onboarding + Hosted Test provider validation + explicit owner acceptance pending
-Final-F.R3 — guest messaging transport migration: standard inbound messages, provider-neutral message identity, statuses, smb_message_echoes, optional controlled history sync boundary — Not started
-Final-F.R4 — admin outbound reply migration, 24h API enforcement, status convergence, Twilio runtime/dependency decommission — Not started
-Final-F.6 — Six operational staff WhatsApp alerts via 360dialog — Blocked until R2-R4 complete / Not started
-Final-F.7 — Zoho incoming-email webhook metadata + guest-email-received staff alert — Not started
-Final-F.8 — Integrated real-provider regression and Final-F documentation closure — Not started
+Final-F.R1 — 360dialog + Meta Coexistence architecture revision — Completed and accepted historically on 2026-09-23 at 4c94db87ebd9df225944ce76c78f98462e4755d1; future target decisions superseded by R3; record: docs/198-final-f-architecture-revision-360dialog-coexistence.md
+Final-F.R2 — 360dialog provider foundation + Developer/Test Coexistence onboarding — Implementation completed at 4e5d7dee3444dfbb427468a1c2ebbf6a94b70e5c with hardening at 26e197c851e6305b848eb9da76ae1a89912500c5, but superseded before owner acceptance by Final-F.R3 architecture rebaseline; record: docs/199-final-f-r2-360dialog-provider-foundation-and-developer-test-coexistence-onboarding.md
+Final-F.R3 — Admin Web Push + public WhatsApp architecture rebaseline — Architecture rebaseline documented; explicit owner acceptance pending; record: docs/200-final-f-r3-admin-web-push-public-whatsapp-architecture-rebaseline.md
+Final-F.R4 — WhatsApp backend/provider decommission, provider/schema cleanup and public floating WhatsApp contact — Not started
+Final-F.R5 — Android Admin PWA/Web Push foundation — Not started
+Final-F.6 — Admin Web Push operational notifications for RESERVATION_CONFIRMED, RESERVATION_CANCELLED, CHECK_IN_MINUS_48H, CHECK_OUT_MINUS_6H and REVIEW_SUBMITTED — Not started
+Final-F.7 — Zoho incoming-email bounded metadata + GUEST_EMAIL_RECEIVED Admin Web Push — Not started
+Final-F.8 — Android PWA/Web Push integrated regression, public WhatsApp contact acceptance and Final-F documentation closure — Not started
 Final-G: Not started
 Final-H: Not started
 Phase 13: Not started
@@ -1009,93 +1010,100 @@ Phase 13: Not started
 
 ## Goal
 
-Add WhatsApp as a second official guest communication channel and add internal staff operational
-alerts while preserving email as the existing transactional/human correspondence channel.
+Add a public WhatsApp Business App contact path for human guest communication and add Android Admin
+Web Push for internal operational notifications while preserving email as the existing
+transactional/human correspondence channel.
 
 Final-F has two separate flows:
 
 ```text
-A. Guest <-> Tu Refugio Perfecto WhatsApp communication
-B. Internal staff operational alerts through WhatsApp
+A. Public TRP website -> floating WhatsApp button -> official WhatsApp Business App number -> human guest/admin conversation
+B. Internal ADMIN operational notifications through email + Android Admin Web Push
 ```
 
-Final-F.R1 changes the target provider architecture to 360dialog + Meta WhatsApp Cloud API +
-WhatsApp Business App Coexistence. WhatsApp Business App is the primary human guest-messaging
-interface and native guest-message notification source. `/admin/whatsapp` remains a protected
-historical mirror, Reservation context surface, alternative reply channel, and delivery/status
-evidence view.
+Final-F.R3 changes the target architecture away from backend WhatsApp APIs entirely. WhatsApp
+Business App is the human guest-facing channel reached through a public deep link; TRP does not
+target backend WhatsApp webhooks, guest conversation persistence, `/admin/whatsapp`, admin replies
+from TRP, service-window logic, or provider status tracking.
 
 ## Revised Correction Sequence
 
 ```text
-Final-F.R1 —
-360dialog + Meta Coexistence architecture revision
-(documentation-only)
-
-Final-F.R2 —
-360dialog provider foundation
-+ Developer/Test Coexistence onboarding
-(Implementation completed; Developer/Test onboarding + Hosted Test provider validation + explicit owner acceptance pending)
-
 Final-F.R3 —
-guest messaging transport migration:
-standard inbound messages
-provider-neutral message identity
-statuses
-smb_message_echoes
-optional controlled history sync boundary
+Architecture rebaseline: Public WhatsApp Business App + Android Admin Web Push
+(documentation-only; owner acceptance pending)
 
 Final-F.R4 —
-admin outbound reply migration
-24h API enforcement
-status convergence
-Twilio runtime/dependency decommission
+WhatsApp backend/provider decommission
+provider/schema cleanup
+public floating WhatsApp contact
+
+Final-F.R5 —
+Android Admin PWA/Web Push foundation
+manifest/service worker/VAPID
+AdminPushSubscription
+/admin/notifications
+controlled Android Test push
 
 Final-F.6 —
-six operational staff WhatsApp alerts via 360dialog
+Admin Web Push operational notifications:
+RESERVATION_CONFIRMED
+RESERVATION_CANCELLED
+CHECK_IN_MINUS_48H
+CHECK_OUT_MINUS_6H
+REVIEW_SUBMITTED
+
+Final-F.7 —
+Zoho incoming-email bounded metadata
+GUEST_EMAIL_RECEIVED Admin Web Push
+
+Final-F.8 —
+Android PWA/Web Push integrated regression
+public WhatsApp contact acceptance
+Final-F documentation closure
 ```
 
-Final-F.7 and Final-F.8 remain after Final-F.6 as appropriate.
+Final-F.R4 and later remain Not started until explicitly requested.
 
-## Final-F.R1 Provider Architecture Summary
+## Final-F.R3 Architecture Summary
 
 This track document remains the authoritative roadmap for the overall Final Improvement Track. The
-current authoritative Final-F architecture contract for every decision revised by R1 is:
+Final-F.R3 architecture rebaseline record is:
 
 ```text
-docs/198-final-f-architecture-revision-360dialog-coexistence.md
+docs/200-final-f-r3-admin-web-push-public-whatsapp-architecture-rebaseline.md
 ```
 
 Key target decisions:
 
 ```text
-- 360dialog is the only target provider for guest messaging, status callbacks, staff automatic
-  alerts, templates, and provider onboarding.
-- The target uses Meta WhatsApp Cloud API + WhatsApp Business App Coexistence.
-- Standard inbound messages, statuses, and smb_message_echoes are mandatory future webhook
-  families.
-- Messages sent by staff in WhatsApp Business App must be persisted into TRP as OUTBOUND history
-  without causing another provider send.
-- GUEST_WHATSAPP_RECEIVED is legacy / deprecated / inactive and must not be generated by F.6.
-- The six active staff automatic alerts are RESERVATION_CONFIRMED, RESERVATION_CANCELLED,
+- Guest WhatsApp is outside the TRP backend and handled by WhatsApp Business App directly.
+- TRP adds a public floating WhatsApp button/deep link with localized ES/EN initial text.
+- No backend WhatsApp provider, webhook, guest conversation persistence, phone-to-Reservation
+  matching, `/admin/whatsapp`, TRP replies, service-window logic, or provider status tracking
+  remains target behavior.
+- Existing admin email notifications remain active.
+- Android Admin Web Push is added as a parallel ADMIN notification channel.
+- No STAFF role is introduced; existing ADMIN users and Auth.js / Google OAuth remain the auth
+  boundary.
+- Email and Push must share one target/link resolver.
+- The six active ADMIN notification classes are RESERVATION_CONFIRMED, RESERVATION_CANCELLED,
   CHECK_IN_MINUS_48H, CHECK_OUT_MINUS_6H, REVIEW_SUBMITTED, and GUEST_EMAIL_RECEIVED.
-- Local/Test uses a developer-company-owned real WhatsApp Business App number under the developer
-  company's Meta Business Portfolio, WABA/Coexistence setup, and 360dialog channel/subscription.
-- Production uses a different Tu Refugio Perfecto-owned WhatsApp Business App number under TRP's
-  own Meta Business Portfolio, WABA, and 360dialog channel/subscription.
-- 360dialog does not provide the normal Coexistence phone number; a valid business-owned
-  mobile/SIM/eSIM-capable number is preferred.
-- Meta `+1 555` Embedded Signup numbers are not suitable for TRP Coexistence.
-- Future webhook security uses HTTPS, a high-entropy configured webhook authentication
-  header/secret, and strict expected Meta-format payload parsing.
-- Staff phone identity must be checked before guest matching.
-- Canonical protected admin inbox route is `/admin/whatsapp`.
-- Zoho remains the human mailbox; TRP only ingests bounded inbound-email event metadata for staff
-  alerts.
+- Android + current Chromium-based browser is the only mobile/PWA acceptance target; iOS/iPadOS is
+  Deferred.
+- The future PWA starts at `/admin/notifications` and does not introduce a native app, separate
+  login, offline admin data, background sync, or sensitive admin-data cache.
+- Standard Web Push + VAPID is the target; no Firebase, Twilio, Meta, 360dialog, or Gupshup provider
+  is required by the accepted architecture.
+- Web Push permission must be requested only from an explicit authenticated ADMIN gesture.
+- Push lock-screen content is bounded and full details remain behind Admin authentication.
+- Zoho remains the human mailbox; TRP only ingests bounded inbound-email event metadata for
+  GUEST_EMAIL_RECEIVED during Final-F.7.
 ```
 
 The original F.1 and F.2 Twilio documents remain historical accepted records. Their provider-specific
-decisions are superseded by R1 and must not be used as the future target architecture.
+decisions were superseded by R1 and then by R3. The R1/R2 360dialog/Coexistence records remain
+historically accurate, but are superseded by R3 for future target architecture.
 
 ---
 
@@ -1249,7 +1257,7 @@ Phase 13 still owns:
 
 ```text
 - company-owned Vercel/Supabase/Tilopay/Resend/Zoho/Cloudinary
-- company-owned 360dialog/Meta WhatsApp Business App Coexistence channel and real business-number onboarding
+- company-owned public WhatsApp Business App number/contact path as needed for Production
 - company Google/Auth identity
 - Production DNS/email cutover
 - environment-aware Vercel scheduler activation
@@ -1268,9 +1276,9 @@ Phase 13 still owns:
 Phase 12 — Completed and accepted
 Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
 Last completed package — Final-E Reservation reviews and post-checkout invitation — Completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880
-Current package — Final-F WhatsApp communication and staff alerts — Active under Final-F Architecture Revision R1
-Last accepted subphase — Final-F.R1 360dialog + Meta Coexistence architecture revision — Completed and accepted on 2026-09-23 at 4c94db87ebd9df225944ce76c78f98462e4755d1
-Current subphase — Final-F.R2 360dialog provider foundation + Developer/Test Coexistence onboarding — Implementation completed; Developer/Test onboarding + Hosted Test provider validation + explicit owner acceptance pending
+Current package — Final-F WhatsApp communication and staff alerts — Active under Final-F.R3 architecture rebaseline
+Last accepted subphase — Final-F.R1 360dialog + Meta Coexistence architecture revision — Completed and accepted historically on 2026-09-23 at 4c94db87ebd9df225944ce76c78f98462e4755d1; future target decisions superseded by Final-F.R3
+Current subphase — Final-F.R3 Admin Web Push + public WhatsApp architecture rebaseline — Architecture rebaseline documented; explicit owner acceptance pending
 Final-F.1 implementation base — c6dbe2309f0cd373701fc9444f7f15879692f423
 Final-F.1 accepted implementation head — d5db6a2605a03e75db7c16238a43cd5f79dde6d8
 Final-F.1 record — docs/193-final-f-1-twilio-whatsapp-staff-alert-strategy-onboarding-and-security-contract.md
@@ -1288,6 +1296,12 @@ Final-F.4 record — docs/196-final-f-4-guest-inbound-whatsapp-safe-reservation-
 Final-F.5 implementation base — 29e29283e002b11d4275465f05f4785d70eae3df
 Final-F.5 status — Twilio-based implementation completed at 551199a3e562be7c7fd9861760c3e38cafbf0b15 but superseded before owner acceptance by Final-F Architecture Revision R1
 Final-F.5 record — docs/197-final-f-5-admin-outbound-replies-24h-window-and-status-callback-convergence.md
+Final-F.R1 record — docs/198-final-f-architecture-revision-360dialog-coexistence.md — historical accepted architecture superseded for future target decisions by R3
+Final-F.R2 record — docs/199-final-f-r2-360dialog-provider-foundation-and-developer-test-coexistence-onboarding.md — implementation completed but superseded before owner acceptance by R3
+Final-F.R3 record — docs/200-final-f-r3-admin-web-push-public-whatsapp-architecture-rebaseline.md
+Final-F.R4 status — Not started
+Final-F.R5 status — Not started
+Final-F.6-F.8 status — Not started
 Final-D implementation base — 0839b2935fdc2349d23de6ce6b38177504e514c6
 Final-D.1 status — Completed and accepted on 2026-08-31 at 3dc4fa7d81d65244a94e7e43726e2f12591e578f
 Final-D.1 record — docs/179-final-d-1-additional-charge-payment-request-strategy-and-financial-isolation-contract.md
@@ -1366,9 +1380,9 @@ Final-B.5 record — docs/171-final-b-5-trp-outbound-copy-rotation-and-export-co
 Final-B.6 record — docs/172-final-b-6-integrated-acceptance-regression-and-documentation-closure.md
 Last completed package — Final-E reservation reviews and post-checkout invitation — completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880
 Previous accepted implementation subphase — Final-F.4 Guest inbound WhatsApp, safe Reservation matching and protected admin inbox — completed and accepted on 2026-09-22 at 7912b233f5cc8b8aa726f17aeb30eaa7d15ae291
-Current package — Final-F WhatsApp communication and staff alerts — Active under Final-F Architecture Revision R1
-Last accepted subphase — Final-F.R1 360dialog + Meta Coexistence architecture revision — Completed and accepted on 2026-09-23 at 4c94db87ebd9df225944ce76c78f98462e4755d1
-Current subphase — Final-F.R2 360dialog provider foundation + Developer/Test Coexistence onboarding — Implementation completed; Developer/Test onboarding + Hosted Test provider validation + explicit owner acceptance pending
+Current package — Final-F WhatsApp communication and staff alerts — Active under Final-F.R3 architecture rebaseline
+Last accepted subphase — Final-F.R1 360dialog + Meta Coexistence architecture revision — Completed and accepted historically on 2026-09-23 at 4c94db87ebd9df225944ce76c78f98462e4755d1; future target decisions superseded by R3
+Current subphase — Final-F.R3 Admin Web Push + public WhatsApp architecture rebaseline — Architecture rebaseline documented; explicit owner acceptance pending
 Final-F.1 record — docs/193-final-f-1-twilio-whatsapp-staff-alert-strategy-onboarding-and-security-contract.md
 Final-F.2 — Completed and accepted on 2026-09-22 at 03861cb2d5daef7cca8bb759d16a0ef050d86b41
 Final-F.2 implementation base — ba47dc9f22f4d61a01c13066f84e15ae8ad549f7
@@ -1423,11 +1437,14 @@ Final-F.2 — Completed and accepted on 2026-09-22 at 03861cb2d5daef7cca8bb759d1
 Final-F.3 — Completed and accepted on 2026-09-22 at f0a465349b5217f7318146ad5b2de13f1d641a13; implementation base 673e43c4d3f8f25a9aee5ee196552574637776dd; initial implementation head ee6194f2d51969aae56aab2b5351314326c3ed8a; record: docs/195-final-f-3-whatsapp-conversation-message-staff-recipient-alert-persistence-foundation.md
 Final-F.4 — Completed and accepted on 2026-09-22 at 7912b233f5cc8b8aa726f17aeb30eaa7d15ae291; implementation base 24e6d58060d62cf89924ddb75af29738fddf4dd1; record: docs/196-final-f-4-guest-inbound-whatsapp-safe-reservation-matching-and-protected-admin-inbox.md
 Final-F.5 — Twilio-based implementation completed at 551199a3e562be7c7fd9861760c3e38cafbf0b15 but superseded before owner acceptance by Final-F Architecture Revision R1; implementation base 29e29283e002b11d4275465f05f4785d70eae3df; record: docs/197-final-f-5-admin-outbound-replies-24h-window-and-status-callback-convergence.md
-Final-F.R1 — 360dialog + Meta Coexistence architecture revision — Completed and accepted on 2026-09-23 at 4c94db87ebd9df225944ce76c78f98462e4755d1; record: docs/198-final-f-architecture-revision-360dialog-coexistence.md
-Final-F.R2 — Implementation completed; Developer/Test onboarding + Hosted Test provider validation + explicit owner acceptance pending
-Final-F.R3 through Final-F.R4 — Not started
-Final-F.6 — Blocked until R2-R4 complete / Not started
-Final-F.7 through Final-F.8 — Not started
+Final-F.R1 — 360dialog + Meta Coexistence architecture revision — Completed and accepted historically on 2026-09-23 at 4c94db87ebd9df225944ce76c78f98462e4755d1; future target decisions superseded by R3; record: docs/198-final-f-architecture-revision-360dialog-coexistence.md
+Final-F.R2 — Implementation completed at 4e5d7dee3444dfbb427468a1c2ebbf6a94b70e5c with hardening at 26e197c851e6305b848eb9da76ae1a89912500c5, but superseded before owner acceptance by Final-F.R3 architecture rebaseline; record: docs/199-final-f-r2-360dialog-provider-foundation-and-developer-test-coexistence-onboarding.md
+Final-F.R3 — Admin Web Push + public WhatsApp architecture rebaseline — Architecture rebaseline documented; explicit owner acceptance pending; record: docs/200-final-f-r3-admin-web-push-public-whatsapp-architecture-rebaseline.md
+Final-F.R4 — WhatsApp backend/provider decommission, provider/schema cleanup and public floating WhatsApp contact — Not started
+Final-F.R5 — Android Admin PWA/Web Push foundation — Not started
+Final-F.6 — Admin Web Push operational notifications for RESERVATION_CONFIRMED, RESERVATION_CANCELLED, CHECK_IN_MINUS_48H, CHECK_OUT_MINUS_6H and REVIEW_SUBMITTED — Not started
+Final-F.7 — Zoho incoming-email bounded metadata + GUEST_EMAIL_RECEIVED Admin Web Push — Not started
+Final-F.8 — Android PWA/Web Push integrated regression, public WhatsApp contact acceptance and Final-F documentation closure — Not started
 Final-G — Not started
 Final-H — Not started
 Phase 13 — Not started

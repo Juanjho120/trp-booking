@@ -13,22 +13,28 @@ Architecture revision starting head: 551199a3e562be7c7fd9861760c3e38cafbf0b15
 Accepted documentation/architecture head: 4c94db87ebd9df225944ce76c78f98462e4755d1
 Runtime/schema/dependency changes: none
 Owner acceptance: Completed on 2026-09-23
-Current authoritative Final-F architecture contract: 360dialog + Meta WhatsApp Cloud API + WhatsApp Business App Coexistence
-Final-F.R2: Implementation completed; Developer/Test 360dialog Coexistence onboarding + Hosted Test provider validation + explicit owner acceptance pending
+Historical accepted Final-F.R1 architecture contract: 360dialog + Meta WhatsApp Cloud API + WhatsApp Business App Coexistence
+Supersession: R1 remains historically accepted but its future target architecture is superseded by Final-F.R3 Admin Web Push + public WhatsApp rebaseline
+Final-F.R2: Implementation completed but superseded before owner acceptance by Final-F.R3 architecture rebaseline
 Final-F.R2 implementation record: docs/199-final-f-r2-360dialog-provider-foundation-and-developer-test-coexistence-onboarding.md
-Final-F.R3: Not started
+Final-F.R3: Architecture rebaseline documented; explicit owner acceptance pending
+Final-F.R3 record: docs/200-final-f-r3-admin-web-push-public-whatsapp-architecture-rebaseline.md
 Final-F.R4: Not started
-Final-F.6: Blocked until R2-R4 complete / Not started
-Final-F.7 through Final-F.8: Not started
+Final-F.R5: Not started
+Final-F.6 through Final-F.8: Not started
 Final-G/H: Not started
 Phase 13: Not started
 ```
 
-This document supersedes the provider-specific Twilio target decisions in the accepted Final-F.1 and
-Final-F.2 historical records. It does not revoke the fact that Final-F.1 and Final-F.2 were accepted
-when Twilio was the approved provider strategy, and it does not rewrite repository history. From R1
-forward, this document is the current authoritative Final-F architecture contract for every decision
-explicitly revised by R1.
+This document superseded the provider-specific Twilio target decisions in the accepted Final-F.1 and
+Final-F.2 historical records at the time R1 was accepted. It does not revoke the fact that Final-F.1
+and Final-F.2 were accepted when Twilio was the approved provider strategy, and it does not rewrite
+repository history.
+
+As of the owner-directed Final-F.R3 architecture rebaseline documented in
+`docs/200-final-f-r3-admin-web-push-public-whatsapp-architecture-rebaseline.md`, this R1 record is
+historical. Its 360dialog + Meta Coexistence target must not be treated as the current future target
+once R3 receives owner acceptance.
 
 ## Owner Acceptance
 
@@ -54,12 +60,12 @@ WhatsApp Business App Coexistence
 The accepted R1 architecture confirms:
 
 ```text
-- 360dialog is the only target provider for guest inbound, guest outbound, status callbacks,
+- At R1 acceptance, 360dialog was the only target provider for guest inbound, guest outbound, status callbacks,
   staff automatic alerts, templates, and provider onboarding.
 - Twilio is historical / superseded and is not part of the target architecture.
 - WhatsApp Business App is the primary human messaging interface and native notification source
   for guest messages.
-- /admin/whatsapp remains a protected historical/context surface and alternative reply surface;
+- At R1 acceptance, /admin/whatsapp remained a protected historical/context surface and alternative reply surface;
   it is not the only human channel and does not replace WhatsApp Business App.
 - Future implementation must support standard inbound messages, statuses, and smb_message_echoes.
 - Staff replies sent from WhatsApp Business App must persist into TRP as OUTBOUND history without
@@ -87,13 +93,13 @@ The accepted R1 architecture confirms:
   Twilio SID constraints, and Twilio-specific identity assumptions deferred to the correction track.
 - F.1 and F.2 remain historical accepted records; F.4 product behavior remains accepted; F.5 remains
   a Twilio-based implementation superseded before owner acceptance and must not be marked accepted.
-- The accepted documentation hierarchy keeps `docs/160` as the Final Improvement Track roadmap and
-  `docs/198` as the current authoritative Final-F architecture contract for all R1-revised
+- The accepted R1 documentation hierarchy kept `docs/160` as the Final Improvement Track roadmap
+  and `docs/198` as the then-authoritative Final-F architecture contract for all R1-revised
   decisions, with `docs/198` prevailing over conflicting R1-revised decisions in `docs/193` or
   `docs/194`.
-- Final-F.R2 implementation is completed; Developer/Test 360dialog Coexistence onboarding,
-  Hosted Test provider validation, and explicit owner acceptance remain pending. R3-R4 remain Not
-  started; F.6 remains blocked until R2-R4 complete.
+- Final-F.R2 implementation was completed but superseded before owner acceptance by the later
+  Final-F.R3 architecture rebaseline. The former R3/R4/F.6 360dialog continuation path is replaced
+  by the R3 sequence recorded in `docs/200`.
 ```
 
 ## Documentation Authority And Precedence
@@ -105,7 +111,11 @@ docs/160-post-phase-12-pre-phase-13-final-improvement-track.md
 -> authoritative Final Improvement Track roadmap
 
 docs/198-final-f-architecture-revision-360dialog-coexistence.md
--> current authoritative Final-F architecture contract for all decisions revised by R1
+-> historical accepted Final-F.R1 architecture contract for all decisions revised by R1
+
+docs/200-final-f-r3-admin-web-push-public-whatsapp-architecture-rebaseline.md
+-> Final-F.R3 architecture rebaseline record; after future owner acceptance, authoritative
+   contract for R3-revised future decisions
 
 docs/193-final-f-1-twilio-whatsapp-staff-alert-strategy-onboarding-and-security-contract.md
 -> historical accepted Final-F.1 strategy baseline
@@ -521,9 +531,9 @@ R1 must not delete current Twilio/F.4/F.5 Test evidence. Future provider migrati
 data safely or explicitly document any Test-only cleanup requiring owner approval. No Production
 destructive operation is allowed.
 
-## Revised Correction Sequence
+## Historical R1 Correction Sequence
 
-The correction track before Final-F.6 is:
+The R1-planned correction track before Final-F.6 was:
 
 ```text
 Final-F.R1 —
@@ -533,7 +543,7 @@ Final-F.R1 —
 Final-F.R2 —
 360dialog provider foundation
 + Developer/Test Coexistence onboarding
-(Implementation completed; Developer/Test 360dialog Coexistence onboarding + Hosted Test provider validation + explicit owner acceptance pending)
+(Implementation completed, but superseded before owner acceptance by Final-F.R3 architecture rebaseline)
 
 Final-F.R3 —
 guest messaging transport migration:
@@ -542,24 +552,25 @@ provider-neutral message identity
 statuses
 smb_message_echoes
 optional controlled history sync boundary
-(Not started)
+(superseded before implementation)
 
 Final-F.R4 —
 admin outbound reply migration
 24h API enforcement
 status convergence
 Twilio runtime/dependency decommission
-(Not started)
+(superseded before implementation)
 
 Final-F.6 —
-six operational staff WhatsApp alerts via 360dialog
-(Blocked until R2-R4 complete / Not started)
+superseded operational WhatsApp-alert implementation via 360dialog
+(superseded before implementation)
 ```
 
-Final-F.R2 implementation is completed; Developer/Test 360dialog Coexistence onboarding, Hosted
-Test provider validation, and explicit owner acceptance remain pending. Final-F.R3, Final-F.R4,
-and Final-F.6 are not started. Final-F.6 remains blocked until R2-R4 complete.
-Final-F.7 and Final-F.8 remain after Final-F.6 as appropriate.
+The current R3 sequence is documented in
+`docs/200-final-f-r3-admin-web-push-public-whatsapp-architecture-rebaseline.md`: R4 decommissions
+backend/provider WhatsApp, R5 introduces Android Admin PWA/Web Push foundation, F.6-F.8 complete
+Admin Web Push notifications, Zoho bounded metadata, integrated regression, public WhatsApp contact
+acceptance and Final-F closure.
 
 ## Explicit Non-Goals for R1
 
