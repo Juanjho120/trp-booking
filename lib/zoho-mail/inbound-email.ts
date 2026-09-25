@@ -165,6 +165,22 @@ function requireVerifiedSignature(
   }
 }
 
+function verifyBootstrapSignatureIfPresent(
+  input: Readonly<{
+    rawBody: string;
+    hookSecret: string;
+    signatureHeader: string | null | undefined;
+  }>,
+): void {
+  if (!input.signatureHeader?.trim()) {
+    return;
+  }
+
+  if (!verifyZohoMailWebhookSignature(input)) {
+    throw new ZohoMailWebhookError("ZOHO_MAIL_SIGNATURE_INVALID", 403);
+  }
+}
+
 function readAdminLocale(source: NodeJS.ProcessEnv): "es" | "en" {
   return source.EMAIL_ADMIN_LOCALE === "en" ? "en" : "es";
 }
@@ -383,7 +399,7 @@ async function bootstrapWebhookConfiguration(
     throw new ZohoMailWebhookError("ZOHO_MAIL_BOOTSTRAP_INVALID", 403);
   }
 
-  requireVerifiedSignature({
+  verifyBootstrapSignatureIfPresent({
     rawBody: input.rawBody,
     hookSecret,
     signatureHeader: input.signatureHeader,

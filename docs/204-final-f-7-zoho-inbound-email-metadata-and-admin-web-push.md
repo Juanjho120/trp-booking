@@ -32,7 +32,7 @@ TRP into an email client.
 - dynamic node runtime route with request.text() raw-body handling
 - 16 KB raw-body limit
 - Base64 HMAC-SHA256 signature verification over the exact raw body
-- first-request bootstrap using x-hook-secret plus ZOHO_MAIL_WEBHOOK_BOOTSTRAP_TOKEN
+- first-request bootstrap using x-hook-secret plus ZOHO_MAIL_WEBHOOK_BOOTSTRAP_TOKEN, with optional signature verification when Zoho provides x-hook-signature during the initial Save/validation POST
 - encrypted persisted hook secret per TRP business environment
 - AES-256-GCM secret encryption bound with environment AAD
 - bounded Limited Data parsing for subject/from/to/received-or-sent time
@@ -94,6 +94,9 @@ mailbox search, or mailbox retention data.
 - Absent Zoho webhook env values make the integration unavailable safely.
 - x-hook-secret is accepted only during first bootstrap when no persisted config exists.
 - The bootstrap query token is compared in constant time.
+- The first bootstrap accepts an absent x-hook-signature only when no persisted config exists and the high-entropy bootstrap credential plus non-empty x-hook-secret are valid.
+- If Zoho provides `x-hook-signature` during bootstrap, TRP verifies it against the exact raw body.
+- After configuration persistence, `x-hook-signature` is strictly mandatory.
 - Once a config exists, the persisted decrypted hook secret is authoritative.
 - Bootstrap query params cannot overwrite an existing persisted secret.
 - A subsequently supplied x-hook-secret cannot overwrite the persisted encrypted secret.
@@ -114,6 +117,21 @@ https://trp-booking.juantzun.dev/api/integrations/zoho-mail/webhook
 Only after the clean URL is saved successfully should the owner remove
 `ZOHO_MAIL_WEBHOOK_BOOTSTRAP_TOKEN` from Vercel Test and redeploy. The persisted encrypted
 `x-hook-secret` then remains authoritative for normal requests.
+
+## Hosted Test Bootstrap Evidence
+
+During Hosted Test onboarding, the first real Zoho Mail Save attempt reached TRP but returned HTTP 401.
+That response mapped to `ZOHO_MAIL_SIGNATURE_MISSING`: the callback URL carried the expected
+`bootstrap` value and Zoho supplied `x-hook-secret`, but the initial Save/validation POST omitted
+`x-hook-signature`. This demonstrates that Zoho's initial Save/validation POST may omit
+`x-hook-signature` even though normal deliveries are signed.
+
+For first registration only, TRP therefore authenticates the bootstrap with the temporary
+high-entropy `ZOHO_MAIL_WEBHOOK_BOOTSTRAP_TOKEN` plus the supplied non-empty `x-hook-secret`. If Zoho
+does provide `x-hook-signature` during that bootstrap request, TRP still verifies it against the
+exact raw body. After `ZohoMailWebhookConfiguration` exists for the environment, every registered
+webhook request must include a valid `x-hook-signature`; missing signatures remain HTTP 401 and
+invalid signatures remain HTTP 403.
 
 ## Accepted Recipient And Sender Rules
 
@@ -220,6 +238,23 @@ Executed during bootstrap-security/documentation hardening on 2026-09-25:
 git status --short --branch - PASS; starting branch main at 094daf028302ed9eac2dc50f82bddb18174bdcc4
 git rev-parse HEAD - PASS; 094daf028302ed9eac2dc50f82bddb18174bdcc4
 npx tsx --tsconfig tests/final-f/tsconfig.json tests/final-f/run.ts - PASS after elevated run; Final-F targeted validation 107/107
+npm run final-d:validate - PASS after elevated run; 66/66
+npm run final-e:validate - PASS after elevated run; 88/88
+npm run env:validate - PASS after elevated run
+npm run db:validate - PASS
+npm run db:generate - PASS; Prisma Client v6.19.3 generated
+npm run db:migrate:status - PASS after elevated run; 29 migrations found; database schema is up to date
+npm run lint - PASS
+npm run build - PASS after elevated run; /api/integrations/zoho-mail/webhook remains dynamic
+git diff --check - PASS
+```
+
+Executed during Hosted Test bootstrap compatibility fix on 2026-09-25:
+
+```text
+git status --short --branch - PASS; starting branch main at 699dad7c51f4ae648bd8ec3e58ca225924d55dfc
+git rev-parse HEAD - PASS; 699dad7c51f4ae648bd8ec3e58ca225924d55dfc
+npx tsx --tsconfig tests/final-f/tsconfig.json tests/final-f/run.ts - PASS after elevated run; Final-F targeted validation 108/108
 npm run final-d:validate - PASS after elevated run; 66/66
 npm run final-e:validate - PASS after elevated run; 88/88
 npm run env:validate - PASS after elevated run
