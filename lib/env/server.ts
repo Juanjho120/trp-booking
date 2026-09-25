@@ -287,6 +287,25 @@ const externalCalendarEncryptionKeySchema = placeholderValueSchema.refine(
   "Must be exactly 32 random bytes encoded as canonical Base64.",
 );
 
+const optionalZohoMailWebhookEncryptionKeySchema = z.preprocess(
+  emptyStringToUndefined,
+  placeholderValueSchema
+    .refine(
+      (value) => /^[A-Za-z0-9+/]{42}[AEIMQUYcgkosw048]=$/.test(value),
+      "Must be exactly 32 random bytes encoded as canonical Base64.",
+    )
+    .optional(),
+);
+
+const optionalZohoMailWebhookBootstrapTokenSchema = z.preprocess(
+  emptyStringToUndefined,
+  placeholderValueSchema
+    .min(32, "Must be at least 32 characters long.")
+    .max(512, "Must not exceed 512 characters.")
+    .refine((value) => !/\s/.test(value), "Must not contain whitespace.")
+    .optional(),
+);
+
 const cloudinaryCloudNameSchema = placeholderValueSchema.refine(
   (value) => /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/.test(value),
   "Must use lowercase letters, numbers, and hyphens only.",
@@ -387,6 +406,10 @@ const rawServerEnvSchema = z.object({
   WEB_PUSH_VAPID_PUBLIC_KEY: optionalWebPushVapidKeySchema,
   WEB_PUSH_VAPID_PRIVATE_KEY: optionalWebPushVapidKeySchema,
   WEB_PUSH_SUBJECT: optionalWebPushSubjectSchema,
+  ZOHO_MAIL_WEBHOOK_ENCRYPTION_KEY:
+    optionalZohoMailWebhookEncryptionKeySchema,
+  ZOHO_MAIL_WEBHOOK_BOOTSTRAP_TOKEN:
+    optionalZohoMailWebhookBootstrapTokenSchema,
   VERCEL_ENV: vercelEnvironmentSchema,
   NODE_ENV: z
     .enum(["development", "test", "production"])
@@ -710,6 +733,13 @@ export type EnabledWebPushEnv = Readonly<{
 
 export type WebPushEnv = DisabledWebPushEnv | EnabledWebPushEnv;
 
+export type ZohoMailWebhookEnv = Readonly<{
+  trpEnvironment: TrpEnvironment;
+  encryptionKeyBase64: string | null;
+  bootstrapToken: string | null;
+  configured: boolean;
+}>;
+
 export function validateServerEnv(
   source: NodeJS.ProcessEnv = process.env,
 ): ServerEnv {
@@ -752,6 +782,10 @@ export function validateServerEnv(
     WEB_PUSH_VAPID_PUBLIC_KEY: source.WEB_PUSH_VAPID_PUBLIC_KEY,
     WEB_PUSH_VAPID_PRIVATE_KEY: source.WEB_PUSH_VAPID_PRIVATE_KEY,
     WEB_PUSH_SUBJECT: source.WEB_PUSH_SUBJECT,
+    ZOHO_MAIL_WEBHOOK_ENCRYPTION_KEY:
+      source.ZOHO_MAIL_WEBHOOK_ENCRYPTION_KEY,
+    ZOHO_MAIL_WEBHOOK_BOOTSTRAP_TOKEN:
+      source.ZOHO_MAIL_WEBHOOK_BOOTSTRAP_TOKEN,
     VERCEL_ENV: source.VERCEL_ENV,
     NODE_ENV: source.NODE_ENV,
   });
@@ -893,6 +927,20 @@ export function getWebPushEnv(
     publicKey: env.WEB_PUSH_VAPID_PUBLIC_KEY,
     privateKey: env.WEB_PUSH_VAPID_PRIVATE_KEY,
     subject: env.WEB_PUSH_SUBJECT,
+  };
+}
+
+export function getZohoMailWebhookEnv(
+  source: NodeJS.ProcessEnv = process.env,
+): ZohoMailWebhookEnv {
+  const env = validateServerEnv(source);
+  const encryptionKeyBase64 = env.ZOHO_MAIL_WEBHOOK_ENCRYPTION_KEY ?? null;
+
+  return {
+    trpEnvironment: env.TRP_ENVIRONMENT,
+    encryptionKeyBase64,
+    bootstrapToken: env.ZOHO_MAIL_WEBHOOK_BOOTSTRAP_TOKEN ?? null,
+    configured: encryptionKeyBase64 !== null,
   };
 }
 

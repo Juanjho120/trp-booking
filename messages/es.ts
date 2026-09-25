@@ -683,6 +683,7 @@ export const esMessages = {
         disable: "Desactivar en este dispositivo",
         test: "Enviar notificación de prueba",
         open: "Abrir",
+        openZohoMail: "Abrir Zoho Mail",
         markRead: "Marcar como leída",
         working: "Procesando",
         dismiss: "Cerrar notificación",
@@ -693,6 +694,8 @@ export const esMessages = {
           "Las notificaciones quedaron desactivadas para este dispositivo.",
         testSent: "Enviamos una notificación de prueba a este dispositivo.",
         markedRead: "La notificación quedó marcada como leída.",
+        zohoEmailCopied:
+          "Abrimos Zoho Mail y copiamos el correo del huésped.",
       },
       history: {
         title: "Notificaciones recientes",
@@ -702,6 +705,16 @@ export const esMessages = {
         empty: "Todavía no hay notificaciones operativas.",
         unread: "Sin leer",
         read: "Leída",
+        zohoEmail: {
+          from: "De",
+          to: "Para",
+          subject: "Asunto",
+          receivedAt: "Recibido",
+          reservationMatch: "Reserva vinculada",
+          matched: "Sí",
+          unmatched: "No",
+          emptySubject: "Sin asunto",
+        },
       },
       errors: {
         ADMIN_UNAUTHORIZED:
@@ -732,6 +745,8 @@ export const esMessages = {
           "No pudimos procesar la notificación seleccionada.",
         ADMIN_NOTIFICATION_NOT_FOUND:
           "La notificación ya no está disponible.",
+        ADMIN_NOTIFICATION_ZOHO_COPY_FAILED:
+          "Abrimos Zoho Mail, pero no pudimos copiar el correo del huésped.",
         ADMIN_NOTIFICATION_UNEXPECTED_ERROR:
           "No pudimos actualizar el estado de lectura. Inténtalo nuevamente.",
         ADMIN_PUSH_UNEXPECTED_ERROR:

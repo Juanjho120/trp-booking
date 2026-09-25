@@ -683,6 +683,7 @@ export const enMessages = {
         disable: "Disable on this device",
         test: "Send test notification",
         open: "Open",
+        openZohoMail: "Open Zoho Mail",
         markRead: "Mark as read",
         working: "Processing",
         dismiss: "Dismiss notification",
@@ -692,6 +693,7 @@ export const enMessages = {
         disabled: "Notifications are disabled for this device.",
         testSent: "We sent a test notification to this device.",
         markedRead: "The notification was marked as read.",
+        zohoEmailCopied: "We opened Zoho Mail and copied the guest email.",
       },
       history: {
         title: "Recent notifications",
@@ -701,6 +703,16 @@ export const enMessages = {
         empty: "There are no operational notifications yet.",
         unread: "Unread",
         read: "Read",
+        zohoEmail: {
+          from: "From",
+          to: "To",
+          subject: "Subject",
+          receivedAt: "Received",
+          reservationMatch: "Linked reservation",
+          matched: "Yes",
+          unmatched: "No",
+          emptySubject: "No subject",
+        },
       },
       errors: {
         ADMIN_UNAUTHORIZED:
@@ -731,6 +743,8 @@ export const enMessages = {
           "We could not process the selected notification.",
         ADMIN_NOTIFICATION_NOT_FOUND:
           "The notification is no longer available.",
+        ADMIN_NOTIFICATION_ZOHO_COPY_FAILED:
+          "We opened Zoho Mail, but could not copy the guest email.",
         ADMIN_NOTIFICATION_UNEXPECTED_ERROR:
           "We could not update the read state. Please try again.",
         ADMIN_PUSH_UNEXPECTED_ERROR:

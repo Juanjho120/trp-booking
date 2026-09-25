@@ -361,6 +361,7 @@ enum AdminNotificationType {
   CHECK_IN_MINUS_48H
   CHECK_OUT_MINUS_6H
   REVIEW_SUBMITTED
+  GUEST_EMAIL_RECEIVED
 
   @@map("admin_notification_type")
 }
@@ -658,6 +659,7 @@ model Reservation {
   reviewInvitation          ReviewInvitation?
   review                    Review?
   adminNotifications        AdminNotification[]
+  zohoInboundEmailEvents    ZohoInboundEmailEvent[]
 
   @@index([propertyId, checkInDate, checkOutDate])
   @@index([status])
@@ -1299,26 +1301,56 @@ model AdminPushSubscription {
 }
 
 model AdminNotification {
-  id               String                @id @default(cuid())
-  type             AdminNotificationType
-  reservationId    String?               @map("reservation_id")
-  reviewId         String?               @map("review_id")
-  deduplicationKey String                @unique @map("deduplication_key") @db.VarChar(191)
-  title            String                @db.VarChar(160)
-  body             String                @db.VarChar(240)
-  targetPath       String                @map("target_path") @db.VarChar(512)
-  createdAt        DateTime              @default(now()) @map("created_at")
+  id                      String                @id @default(cuid())
+  type                    AdminNotificationType
+  reservationId           String?               @map("reservation_id")
+  reviewId                String?               @map("review_id")
+  zohoInboundEmailEventId String?               @unique @map("zoho_inbound_email_event_id")
+  deduplicationKey        String                @unique @map("deduplication_key") @db.VarChar(191)
+  title                   String                @db.VarChar(160)
+  body                    String                @db.VarChar(240)
+  targetPath              String                @map("target_path") @db.VarChar(512)
+  createdAt               DateTime              @default(now()) @map("created_at")
 
-  reservation Reservation?            @relation(fields: [reservationId], references: [id], onDelete: SetNull)
-  review      Review?                 @relation(fields: [reviewId], references: [id], onDelete: SetNull)
-  reads       AdminNotificationRead[]
-  deliveries  AdminPushDelivery[]
+  reservation           Reservation?            @relation(fields: [reservationId], references: [id], onDelete: SetNull)
+  review                Review?                 @relation(fields: [reviewId], references: [id], onDelete: SetNull)
+  zohoInboundEmailEvent ZohoInboundEmailEvent?  @relation(fields: [zohoInboundEmailEventId], references: [id], onDelete: SetNull)
+  reads                 AdminNotificationRead[]
+  deliveries            AdminPushDelivery[]
 
   @@index([type])
   @@index([createdAt])
   @@index([reservationId])
   @@index([reviewId])
   @@map("admin_notifications")
+}
+
+model ZohoMailWebhookConfiguration {
+  id                  String   @id @default(cuid())
+  businessEnvironment String   @unique @map("business_environment") @db.VarChar(32)
+  hookSecretEncrypted String   @map("hook_secret_encrypted") @db.Text
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  @@map("zoho_mail_webhook_configurations")
+}
+
+model ZohoInboundEmailEvent {
+  id               String   @id @default(cuid())
+  eventFingerprint String   @unique @map("event_fingerprint") @db.VarChar(80)
+  fromAddress      String   @map("from_address") @db.VarChar(320)
+  toAddress        String   @map("to_address") @db.VarChar(1000)
+  subject          String   @db.VarChar(500)
+  receivedAt       DateTime @map("received_at")
+  reservationId    String?  @map("reservation_id")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  reservation       Reservation?       @relation(fields: [reservationId], references: [id], onDelete: SetNull)
+  adminNotification AdminNotification?
+
+  @@index([reservationId])
+  @@index([receivedAt])
+  @@map("zoho_inbound_email_events")
 }
 
 model AdminNotificationRead {

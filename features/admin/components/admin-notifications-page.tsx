@@ -7,6 +7,7 @@ import {
   Download,
   ExternalLink,
   Inbox,
+  MailOpen,
   Send,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -15,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { siteConfig } from "@/config/site";
 import { useLocale } from "@/features/i18n";
 import type {
   AdminNotificationCenterData,
@@ -212,6 +214,28 @@ function formatNotificationTimestamp(value: string, locale: string): string {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(value));
+}
+
+function copyTextWithSelection(value: string): boolean {
+  const input = document.createElement("input");
+  input.value = value;
+  input.setAttribute("readonly", "true");
+  input.style.position = "fixed";
+  input.style.top = "0";
+  input.style.left = "0";
+  input.style.opacity = "0";
+  input.style.pointerEvents = "none";
+  document.body.appendChild(input);
+  input.focus();
+  input.select();
+
+  try {
+    return document.execCommand("copy");
+  } catch {
+    return false;
+  } finally {
+    document.body.removeChild(input);
+  }
 }
 
 export function AdminNotificationsPageView({
@@ -571,6 +595,41 @@ export function AdminNotificationsPageView({
     }
   }
 
+  async function openZohoMailForNotification(
+    notification: AdminNotificationCenterItem,
+  ): Promise<void> {
+    if (!notification.zohoEmail) {
+      return;
+    }
+
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    window.open(
+      siteConfig.correspondence.zohoMailWebUrl,
+      "_blank",
+      "noopener,noreferrer",
+    );
+
+    let copied = false;
+
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(notification.zohoEmail.fromAddress);
+        copied = true;
+      } catch {
+        copied = copyTextWithSelection(notification.zohoEmail.fromAddress);
+      }
+    } else {
+      copied = copyTextWithSelection(notification.zohoEmail.fromAddress);
+    }
+
+    if (copied) {
+      setSuccessMessage(copy.feedback.zohoEmailCopied);
+    } else {
+      setErrorMessage(copy.errors.ADMIN_NOTIFICATION_ZOHO_COPY_FAILED);
+    }
+  }
+
   const statusItems = useMemo(
     () => [
       {
@@ -714,6 +773,56 @@ export function AdminNotificationsPageView({
                               {notification.body}
                             </p>
                           </div>
+                          {notification.zohoEmail ? (
+                            <dl className="grid gap-2 rounded-md border border-border/60 bg-muted/30 p-3 text-xs sm:grid-cols-2">
+                              <div className="min-w-0">
+                                <dt className="font-medium text-muted-foreground">
+                                  {copy.history.zohoEmail.from}
+                                </dt>
+                                <dd className="mt-1 break-all text-foreground">
+                                  {notification.zohoEmail.fromAddress}
+                                </dd>
+                              </div>
+                              <div className="min-w-0">
+                                <dt className="font-medium text-muted-foreground">
+                                  {copy.history.zohoEmail.to}
+                                </dt>
+                                <dd className="mt-1 break-all text-foreground">
+                                  {notification.zohoEmail.toAddress}
+                                </dd>
+                              </div>
+                              <div className="min-w-0">
+                                <dt className="font-medium text-muted-foreground">
+                                  {copy.history.zohoEmail.subject}
+                                </dt>
+                                <dd className="mt-1 break-words text-foreground">
+                                  {notification.zohoEmail.subject ||
+                                    copy.history.zohoEmail.emptySubject}
+                                </dd>
+                              </div>
+                              <div className="min-w-0">
+                                <dt className="font-medium text-muted-foreground">
+                                  {copy.history.zohoEmail.receivedAt}
+                                </dt>
+                                <dd className="mt-1 text-foreground">
+                                  {formatNotificationTimestamp(
+                                    notification.zohoEmail.receivedAt,
+                                    locale,
+                                  )}
+                                </dd>
+                              </div>
+                              <div className="min-w-0 sm:col-span-2">
+                                <dt className="font-medium text-muted-foreground">
+                                  {copy.history.zohoEmail.reservationMatch}
+                                </dt>
+                                <dd className="mt-1 text-foreground">
+                                  {notification.zohoEmail.reservationMatched
+                                    ? copy.history.zohoEmail.matched
+                                    : copy.history.zohoEmail.unmatched}
+                                </dd>
+                              </div>
+                            </dl>
+                          ) : null}
                         </div>
 
                         <div className="flex flex-wrap items-center gap-2 sm:justify-end">
@@ -723,6 +832,19 @@ export function AdminNotificationsPageView({
                               {copy.actions.open}
                             </a>
                           </Button>
+                          {notification.zohoEmail ? (
+                            <Button
+                              onClick={() =>
+                                void openZohoMailForNotification(notification)
+                              }
+                              size="sm"
+                              type="button"
+                              variant="secondary"
+                            >
+                              <MailOpen aria-hidden="true" />
+                              {copy.actions.openZohoMail}
+                            </Button>
+                          ) : null}
                           {!read ? (
                             <Button
                               disabled={busyNotificationId === notification.id}

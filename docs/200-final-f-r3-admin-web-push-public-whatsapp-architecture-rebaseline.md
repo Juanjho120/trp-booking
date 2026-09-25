@@ -19,7 +19,7 @@ Owner acceptance: Completed on 2026-09-24
 Final-F.R4: Completed and accepted on 2026-09-25 at ae0db63efdabfa3bc952a8a2a71220de231ebc18
 Final-F.R5: Completed and accepted on 2026-09-25 at 88616acf46645ccc01cc475f20a868d7c18dbadf
 Final-F.6: Completed and accepted on 2026-09-25 at 13e9249f54899de0863cdd6ab8747337319df3e5
-Final-F.7: Next / Not started
+Final-F.7: Implementation completed; Zoho Test webhook onboarding + Hosted inbound-email Web Push validation + owner acceptance pending
 Final-F.8: Not started
 Final-G/H: Not started
 Phase 13: Not started
@@ -424,7 +424,7 @@ REVIEW_SUBMITTED
 - reminder scheduling
 — completed and accepted on 2026-09-25 at 13e9249f54899de0863cdd6ab8747337319df3e5
 
-Final-F.7 — Next / Not started
+Final-F.7 — Implementation completed; Zoho Test webhook onboarding + Hosted inbound-email Web Push validation + owner acceptance pending
 Zoho incoming-email bounded metadata
 - GUEST_EMAIL_RECEIVED Admin Web Push
 

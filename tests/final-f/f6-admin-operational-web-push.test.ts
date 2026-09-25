@@ -273,7 +273,7 @@ function createFakeNotificationCenterClient() {
   };
 }
 
-test("F.6 adds only the five accepted AdminNotification types", () => {
+test("F.6/F.7 expose the six accepted AdminNotification types", () => {
   for (const expected of [
     "enum AdminNotificationType",
     "RESERVATION_CONFIRMED",
@@ -281,19 +281,18 @@ test("F.6 adds only the five accepted AdminNotification types", () => {
     "CHECK_IN_MINUS_48H",
     "CHECK_OUT_MINUS_6H",
     "REVIEW_SUBMITTED",
+    "GUEST_EMAIL_RECEIVED",
     '@@map("admin_notification_type")',
   ]) {
     expectIncludes(SCHEMA, expected);
   }
-
-  expectExcludes(SCHEMA, "GUEST_EMAIL_RECEIVED");
 });
 
 test("F.6 adds durable notification, read-state and delivery persistence", () => {
   for (const expected of [
     "model AdminNotification",
-    "deduplicationKey String                @unique",
-    "targetPath       String",
+    "deduplicationKey        String                @unique",
+    "targetPath              String",
     "model AdminNotificationRead",
     "@@id([notificationId, userId])",
     "model AdminPushDelivery",
@@ -366,13 +365,17 @@ test("F.6 lock-screen copy is privacy-bounded and localized", () => {
     "Check-in en 48 horas ·",
     "Check-out en 6 horas ·",
     "Nueva reseña recibida ·",
+    "Nuevo correo de huésped ·",
     "Reservation confirmed ·",
     "Reservation cancelled ·",
     "Check-in in 48 hours ·",
     "Check-out in 6 hours ·",
     "New review received ·",
+    "New guest email ·",
     "Toca para ver detalles.",
+    "Toca para revisar la correspondencia.",
     "Tap to view details.",
+    "Tap to review correspondence.",
   ]) {
     expectIncludes(OPERATIONAL_SERVICE, expected);
   }

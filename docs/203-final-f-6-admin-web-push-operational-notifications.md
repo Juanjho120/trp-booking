@@ -21,7 +21,7 @@ Owner acceptance: Completed on 2026-09-25
 Hosted Test: Completed and accepted
 Visual validation: Completed and accepted
 Vercel: SUCCESS
-Final-F.7: Next / Not started
+Final-F.7: Implementation completed; Zoho Test webhook onboarding + Hosted inbound-email Web Push validation + owner acceptance pending
 Final-F.8: Not started
 Final-G/H: Not started
 Phase 13: Not started
@@ -339,7 +339,7 @@ implementation/validation record.
 Next subphase:
 
 ```text
-Final-F.7 - Zoho incoming-email bounded metadata and GUEST_EMAIL_RECEIVED Admin Web Push - Next / Not started
+Final-F.7 - Zoho incoming-email bounded metadata and GUEST_EMAIL_RECEIVED Admin Web Push - Implementation completed; Zoho Test webhook onboarding + Hosted inbound-email Web Push validation + owner acceptance pending
 ```
 
 ## Documentation Authority

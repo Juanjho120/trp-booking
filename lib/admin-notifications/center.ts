@@ -25,6 +25,13 @@ export type AdminNotificationCenterItem = Readonly<{
   targetPath: string;
   createdAt: string;
   readAt: string | null;
+  zohoEmail: Readonly<{
+    fromAddress: string;
+    toAddress: string;
+    subject: string;
+    receivedAt: string;
+    reservationMatched: boolean;
+  }> | null;
 }>;
 
 export type AdminNotificationCenterData = Readonly<{
@@ -54,9 +61,28 @@ function serializeNotification(
     body: string;
     targetPath: string;
     createdAt: Date;
+    reservationId?: string | null;
+    zohoInboundEmailEvent?: {
+      fromAddress: string;
+      toAddress: string;
+      subject: string;
+      receivedAt: Date;
+    } | null;
     reads: readonly { readAt: Date }[];
   }>,
 ): AdminNotificationCenterItem {
+  const zohoEmail =
+    notification.type === "GUEST_EMAIL_RECEIVED" &&
+    notification.zohoInboundEmailEvent
+      ? {
+          fromAddress: notification.zohoInboundEmailEvent.fromAddress,
+          toAddress: notification.zohoInboundEmailEvent.toAddress,
+          subject: notification.zohoInboundEmailEvent.subject,
+          receivedAt: notification.zohoInboundEmailEvent.receivedAt.toISOString(),
+          reservationMatched: notification.reservationId !== null,
+        }
+      : null;
+
   return {
     id: notification.id,
     type: notification.type,
@@ -65,6 +91,7 @@ function serializeNotification(
     targetPath: coerceAdminNotificationTargetPath(notification.targetPath),
     createdAt: notification.createdAt.toISOString(),
     readAt: notification.reads[0]?.readAt.toISOString() ?? null,
+    zohoEmail,
   };
 }
 
@@ -96,6 +123,15 @@ export async function getAdminNotificationCenter(
         body: true,
         targetPath: true,
         createdAt: true,
+        reservationId: true,
+        zohoInboundEmailEvent: {
+          select: {
+            fromAddress: true,
+            toAddress: true,
+            subject: true,
+            receivedAt: true,
+          },
+        },
         reads: {
           where: { userId: user.id },
           select: { readAt: true },

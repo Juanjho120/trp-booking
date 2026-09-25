@@ -168,11 +168,15 @@ function buildAdminNotificationCopy(
       CHECK_IN_MINUS_48H: `Check-in in 48 hours · ${propertyName}`,
       CHECK_OUT_MINUS_6H: `Check-out in 6 hours · ${propertyName}`,
       REVIEW_SUBMITTED: `New review received · ${propertyName}`,
+      GUEST_EMAIL_RECEIVED: `New guest email · ${propertyName}`,
     }[input.type];
 
     return {
       title,
-      body: "Tap to view details.",
+      body:
+        input.type === AdminNotificationType.GUEST_EMAIL_RECEIVED
+          ? "Tap to review correspondence."
+          : "Tap to view details.",
     };
   }
 
@@ -182,11 +186,15 @@ function buildAdminNotificationCopy(
     CHECK_IN_MINUS_48H: `Check-in en 48 horas · ${propertyName}`,
     CHECK_OUT_MINUS_6H: `Check-out en 6 horas · ${propertyName}`,
     REVIEW_SUBMITTED: `Nueva reseña recibida · ${propertyName}`,
+    GUEST_EMAIL_RECEIVED: `Nuevo correo de huésped · ${propertyName}`,
   }[input.type];
 
   return {
     title,
-    body: "Toca para ver detalles.",
+    body:
+      input.type === AdminNotificationType.GUEST_EMAIL_RECEIVED
+        ? "Toca para revisar la correspondencia."
+        : "Toca para ver detalles.",
   };
 }
 
