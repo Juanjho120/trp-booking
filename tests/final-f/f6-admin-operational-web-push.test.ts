@@ -25,6 +25,12 @@ import {
   getAdminNotificationCenter,
   markAdminNotificationRead,
 } from "@/lib/admin-notifications/center";
+import {
+  resolveAdminNotificationsActiveTab,
+  resolveAdminNotificationsDefaultTab,
+  type AdminNotificationsDeviceState,
+  type AdminNotificationsTab,
+} from "@/features/admin/components/admin-notifications-page";
 import type { AdminActor } from "@/types/admin";
 
 import { test } from "./harness";
@@ -58,6 +64,20 @@ function expectExcludes(source: string, unexpected: string): void {
     false,
     `Expected source to exclude: ${unexpected}`,
   );
+}
+
+function expectOrderedSource(source: string, expected: string[]): void {
+  let previousIndex = -1;
+
+  for (const snippet of expected) {
+    const index = source.indexOf(snippet);
+    assert.ok(index >= 0, `Expected source to include: ${snippet}`);
+    assert.ok(
+      index > previousIndex,
+      `Expected ${snippet} to appear after the previous ordered snippet`,
+    );
+    previousIndex = index;
+  }
 }
 
 const SCHEMA = read("prisma/schema.prisma");
@@ -504,20 +524,157 @@ test("F.6 /admin/notifications preserves R5 device UX and adds safe recent histo
   expectIncludes(NOTIFICATIONS_VIEW, "notificationCenter");
   expectIncludes(NOTIFICATIONS_VIEW, "recentNotifications");
   expectIncludes(NOTIFICATIONS_VIEW, "copy.history.title");
+  expectIncludes(NOTIFICATIONS_VIEW, "Tabs, TabsContent, TabsList, TabsTrigger");
+  expectIncludes(NOTIFICATIONS_VIEW, '<TabsList className="grid w-full grid-cols-2');
+  expectIncludes(NOTIFICATIONS_VIEW, '<TabsTrigger className="min-h-10" value="notifications">');
+  expectIncludes(NOTIFICATIONS_VIEW, '<TabsTrigger className="min-h-10" value="configuration">');
+  expectIncludes(NOTIFICATIONS_VIEW, '<TabsContent className="mt-6" value="notifications">');
+  expectIncludes(NOTIFICATIONS_VIEW, '<TabsContent className="mt-6" value="configuration">');
+  expectIncludes(NOTIFICATIONS_VIEW, "copy.tabs.notifications");
+  expectIncludes(NOTIFICATIONS_VIEW, "copy.tabs.configuration");
   expectIncludes(NOTIFICATIONS_VIEW, "safeAdminTargetPath");
   expectIncludes(NOTIFICATIONS_VIEW, '"/api/admin/push/test"');
   expectIncludes(NOTIFICATIONS_VIEW, '"/api/admin/push/subscriptions"');
   expectIncludes(NOTIFICATIONS_VIEW, "/api/admin/notifications/");
+  expectExcludes(NOTIFICATIONS_VIEW, "xl:grid-cols-[minmax(0,1fr)_22rem]");
 });
 
 test("F.6 localized copy covers history, cron labels and mark-read errors", () => {
   for (const source of [ES_MESSAGES, EN_MESSAGES]) {
     expectIncludes(source, "PROCESS_ADMIN_PUSH_NOTIFICATIONS");
     expectIncludes(source, "history:");
+    expectIncludes(source, "tabs:");
     expectIncludes(source, "markRead");
     expectIncludes(source, "ADMIN_NOTIFICATION_ORIGIN_INVALID");
     expectIncludes(source, "INVALID_ADMIN_NOTIFICATION_REQUEST");
     expectIncludes(source, "ADMIN_NOTIFICATION_NOT_FOUND");
+  }
+
+  expectIncludes(ES_MESSAGES, 'notifications: "Notificaciones recientes"');
+  expectIncludes(ES_MESSAGES, 'configuration: "Configuración"');
+  expectIncludes(EN_MESSAGES, 'notifications: "Recent notifications"');
+  expectIncludes(EN_MESSAGES, 'configuration: "Configuration"');
+});
+
+test("F.6 /admin/notifications source keeps tab content isolated", () => {
+  const notificationsTabIndex = NOTIFICATIONS_VIEW.indexOf(
+    '<TabsContent className="mt-6" value="notifications">',
+  );
+  const configurationTabIndex = NOTIFICATIONS_VIEW.indexOf(
+    '<TabsContent className="mt-6" value="configuration">',
+  );
+  const historyIndex = NOTIFICATIONS_VIEW.indexOf("copy.history.title");
+  const installIndex = NOTIFICATIONS_VIEW.indexOf("copy.install.title");
+  const deviceIndex = NOTIFICATIONS_VIEW.indexOf("copy.device.title");
+  const statusGridIndex = NOTIFICATIONS_VIEW.indexOf("statusItems.map");
+
+  assert.ok(notificationsTabIndex >= 0);
+  assert.ok(configurationTabIndex > notificationsTabIndex);
+  assert.ok(historyIndex > notificationsTabIndex);
+  assert.ok(historyIndex < configurationTabIndex);
+  assert.ok(installIndex > configurationTabIndex);
+  assert.ok(deviceIndex > installIndex);
+  assert.ok(statusGridIndex > deviceIndex);
+});
+
+test("F.6 /admin/notifications configuration source order is stable", () => {
+  expectOrderedSource(NOTIFICATIONS_VIEW, [
+    "copy.install.title",
+    "copy.device.title",
+    "statusItems.map",
+  ]);
+
+  expectOrderedSource(NOTIFICATIONS_VIEW, [
+    "copy.status.browserSupport",
+    "copy.status.serverConfig",
+    "copy.status.permission",
+    "copy.status.serviceWorker",
+    "copy.status.browserSubscription",
+    "copy.status.serverRegistration",
+    "copy.status.displayMode",
+  ]);
+});
+
+test("F.6 /admin/notifications removes obsolete scope and accepted-target UI copy", () => {
+  for (const source of [NOTIFICATIONS_VIEW, ES_MESSAGES, EN_MESSAGES]) {
+    for (const obsolete of [
+      "copy.scope",
+      "copy.android",
+      "Operational scope",
+      "Accepted target",
+      "Alcance operativo",
+      "Target aceptado",
+    ]) {
+      expectExcludes(source, obsolete);
+    }
+  }
+});
+
+test("F.6 notification tabs default from complete device setup only", () => {
+  const readyDevice: AdminNotificationsDeviceState = {
+    supported: true,
+    configured: true,
+    permission: "granted",
+    serviceWorkerState: "ready",
+    subscriptionState: "subscribed",
+    serverRegistrationState: "registered",
+    displayMode: "standalone",
+  };
+
+  assert.equal(resolveAdminNotificationsDefaultTab(readyDevice), "notifications");
+
+  const incompleteCases: Array<
+    [string, Partial<AdminNotificationsDeviceState>]
+  > = [
+    ["not installed", { displayMode: "browser" }],
+    ["permission default", { permission: "default" }],
+    ["permission denied", { permission: "denied" }],
+    ["subscription missing", { subscriptionState: "notSubscribed" }],
+    ["server registration missing", { serverRegistrationState: "notRegistered" }],
+    ["service worker checking", { serviceWorkerState: "checking" }],
+    ["service worker error", { serviceWorkerState: "error" }],
+    ["server config unavailable", { configured: false }],
+    ["unsupported browser", { supported: false }],
+  ];
+
+  for (const [name, override] of incompleteCases) {
+    assert.equal(
+      resolveAdminNotificationsDefaultTab({ ...readyDevice, ...override }),
+      "configuration",
+      name,
+    );
+  }
+});
+
+test("F.6 notification tabs preserve explicit admin selection over async defaults", () => {
+  const readyDevice: AdminNotificationsDeviceState = {
+    supported: true,
+    configured: true,
+    permission: "granted",
+    serviceWorkerState: "ready",
+    subscriptionState: "subscribed",
+    serverRegistrationState: "registered",
+    displayMode: "standalone",
+  };
+  const incompleteDevice: AdminNotificationsDeviceState = {
+    ...readyDevice,
+    displayMode: "browser",
+  };
+
+  const cases: Array<
+    [AdminNotificationsTab | null, AdminNotificationsDeviceState, AdminNotificationsTab]
+  > = [
+    ["configuration", readyDevice, "configuration"],
+    ["notifications", incompleteDevice, "notifications"],
+    [null, readyDevice, "notifications"],
+    [null, incompleteDevice, "configuration"],
+  ];
+
+  for (const [selectedTab, deviceState, expected] of cases) {
+    assert.equal(
+      resolveAdminNotificationsActiveTab({ selectedTab, deviceState }),
+      expected,
+    );
   }
 });
 

@@ -614,7 +614,11 @@ export const enMessages = {
       badge: "Notifications",
       title: "Admin notifications",
       description:
-        "Manage Web Push notifications for this Android device in the installed admin experience.",
+        "Review recent operational notifications and manage Web Push settings for this device.",
+      tabs: {
+        notifications: "Recent notifications",
+        configuration: "Configuration",
+      },
       status: {
         ariaLabel: "Device notification status",
         browserSupport: "Browser support",
@@ -673,18 +677,6 @@ export const enMessages = {
         installed: "TRP Admin is already running as an installed app.",
         instructions:
           "On Android Chrome, open the browser menu and choose Install app or Add to Home screen.",
-      },
-      scope: {
-        title: "Operational scope",
-        deviceOnly: "Only manages the current device subscription.",
-        noHistory:
-          "Recent history is shown per administrator and does not expose sensitive data.",
-        noOffline: "No admin content is stored for offline use.",
-      },
-      android: {
-        title: "Accepted target",
-        description:
-          "This subphase validates Android with a current Chromium browser. iOS/iPadOS is deferred.",
       },
       actions: {
         enable: "Enable notifications",

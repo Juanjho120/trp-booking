@@ -4,20 +4,17 @@ import {
   Bell,
   BellOff,
   CheckCheck,
-  CheckCircle2,
   Download,
   ExternalLink,
   Inbox,
   Send,
-  ShieldCheck,
-  Smartphone,
-  XCircle,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocale } from "@/features/i18n";
 import type {
   AdminNotificationCenterData,
@@ -63,6 +60,41 @@ type ServerRegistrationState =
   | "notRegistered"
   | "unknown"
   | "error";
+export type AdminNotificationsTab = "notifications" | "configuration";
+
+export type AdminNotificationsDeviceState = Readonly<{
+  supported: boolean;
+  configured: boolean;
+  permission: NotificationPermission | "unsupported";
+  serviceWorkerState: ServiceWorkerState;
+  subscriptionState: SubscriptionState;
+  serverRegistrationState: ServerRegistrationState;
+  displayMode: "browser" | "standalone";
+}>;
+
+export function resolveAdminNotificationsDefaultTab(
+  state: AdminNotificationsDeviceState,
+): AdminNotificationsTab {
+  return state.supported &&
+    state.configured &&
+    state.permission === "granted" &&
+    state.serviceWorkerState === "ready" &&
+    state.subscriptionState === "subscribed" &&
+    state.serverRegistrationState === "registered" &&
+    state.displayMode === "standalone"
+    ? "notifications"
+    : "configuration";
+}
+
+export function resolveAdminNotificationsActiveTab({
+  selectedTab,
+  deviceState,
+}: Readonly<{
+  selectedTab: AdminNotificationsTab | null;
+  deviceState: AdminNotificationsDeviceState;
+}>): AdminNotificationsTab {
+  return selectedTab ?? resolveAdminNotificationsDefaultTab(deviceState);
+}
 
 function hasApiError(payload: unknown): payload is ApiErrorResponse {
   return (
@@ -218,6 +250,9 @@ export function AdminNotificationsPageView({
   );
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [selectedTab, setSelectedTab] = useState<AdminNotificationsTab | null>(
+    null,
+  );
 
   const supported = serviceWorkerState !== "unsupported";
   const configured = config?.configured === true;
@@ -585,6 +620,18 @@ export function AdminNotificationsPageView({
       supported,
     ],
   );
+  const activeTab = resolveAdminNotificationsActiveTab({
+    selectedTab,
+    deviceState: {
+      supported,
+      configured,
+      permission,
+      serviceWorkerState,
+      subscriptionState,
+      serverRegistrationState,
+      displayMode,
+    },
+  });
 
   return (
     <>
@@ -594,77 +641,25 @@ export function AdminNotificationsPageView({
         title={copy.title}
       />
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
-        <section className="grid gap-4" aria-label={copy.status.ariaLabel}>
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {statusItems.map((item) => (
-              <div
-                className="rounded-2xl border border-border/70 bg-background p-4 shadow-sm"
-                key={item.label}
-              >
-                <div className="mb-3 flex items-center justify-between gap-3">
-                  <p className="text-sm font-medium text-muted-foreground">
-                    {item.label}
-                  </p>
-                  <Badge variant={item.ok ? "secondary" : "outline"}>
-                    {item.ok ? copy.values.ok : copy.values.needsAttention}
-                  </Badge>
-                </div>
-                <p className="text-base font-semibold text-foreground">
-                  {item.value}
-                </p>
-              </div>
-            ))}
-          </div>
+      <Tabs
+        className="mt-6"
+        onValueChange={(value) => {
+          if (value === "notifications" || value === "configuration") {
+            setSelectedTab(value);
+          }
+        }}
+        value={activeTab}
+      >
+        <TabsList className="grid w-full grid-cols-2 sm:w-fit">
+          <TabsTrigger className="min-h-10" value="notifications">
+            {copy.tabs.notifications}
+          </TabsTrigger>
+          <TabsTrigger className="min-h-10" value="configuration">
+            {copy.tabs.configuration}
+          </TabsTrigger>
+        </TabsList>
 
-          <Card className="border-border/70 bg-card shadow-sm">
-            <CardContent className="grid gap-5 p-5">
-              <div className="flex flex-col gap-2">
-                <h2 className="text-lg font-semibold tracking-tight">
-                  {copy.device.title}
-                </h2>
-                <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
-                  {copy.device.description}
-                </p>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  disabled={!canEnable}
-                  onClick={() => void enableNotifications()}
-                  type="button"
-                >
-                  <Bell aria-hidden="true" />
-                  {busyAction === "enable"
-                    ? copy.actions.working
-                    : copy.actions.enable}
-                </Button>
-                <Button
-                  disabled={!canDisable}
-                  onClick={() => void disableNotifications()}
-                  type="button"
-                  variant="outline"
-                >
-                  <BellOff aria-hidden="true" />
-                  {busyAction === "disable"
-                    ? copy.actions.working
-                    : copy.actions.disable}
-                </Button>
-                <Button
-                  disabled={!canTest}
-                  onClick={() => void sendTestNotification()}
-                  type="button"
-                  variant="secondary"
-                >
-                  <Send aria-hidden="true" />
-                  {busyAction === "test"
-                    ? copy.actions.working
-                    : copy.actions.test}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
+        <TabsContent className="mt-6" value="notifications">
           <Card className="border-border/70 bg-card shadow-sm">
             <CardContent className="grid gap-5 p-5">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -752,57 +747,101 @@ export function AdminNotificationsPageView({
               )}
             </CardContent>
           </Card>
-        </section>
+        </TabsContent>
 
-        <aside className="grid content-start gap-4">
-          <div className="rounded-2xl border border-border/70 bg-background p-5 shadow-sm">
-            <div className="mb-3 flex items-center gap-2">
-              <Download aria-hidden="true" className="size-4 text-primary" />
-              <h2 className="font-semibold">{copy.install.title}</h2>
-            </div>
-            {displayMode === "standalone" ? (
-              <p className="text-sm leading-6 text-muted-foreground">
-                {copy.install.installed}
-              </p>
-            ) : (
-              <p className="text-sm leading-6 text-muted-foreground">
-                {copy.install.instructions}
-              </p>
-            )}
-          </div>
+        <TabsContent className="mt-6" value="configuration">
+          <section className="grid gap-4" aria-label={copy.status.ariaLabel}>
+            <Card className="border-border/70 bg-card shadow-sm">
+              <CardContent className="grid gap-3 p-5">
+                <div className="flex items-center gap-2">
+                  <Download aria-hidden="true" className="size-4 text-primary" />
+                  <h2 className="text-lg font-semibold tracking-tight">
+                    {copy.install.title}
+                  </h2>
+                </div>
+                {displayMode === "standalone" ? (
+                  <p className="text-sm leading-6 text-muted-foreground">
+                    {copy.install.installed}
+                  </p>
+                ) : (
+                  <p className="text-sm leading-6 text-muted-foreground">
+                    {copy.install.instructions}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
 
-          <div className="rounded-2xl border border-border/70 bg-background p-5 shadow-sm">
-            <div className="mb-3 flex items-center gap-2">
-              <ShieldCheck aria-hidden="true" className="size-4 text-primary" />
-              <h2 className="font-semibold">{copy.scope.title}</h2>
-            </div>
-            <ul className="grid gap-2 text-sm leading-6 text-muted-foreground">
-              <li className="flex gap-2">
-                <CheckCircle2 aria-hidden="true" className="mt-1 size-4 shrink-0" />
-                <span>{copy.scope.deviceOnly}</span>
-              </li>
-              <li className="flex gap-2">
-                <CheckCircle2 aria-hidden="true" className="mt-1 size-4 shrink-0" />
-                <span>{copy.scope.noHistory}</span>
-              </li>
-              <li className="flex gap-2">
-                <XCircle aria-hidden="true" className="mt-1 size-4 shrink-0" />
-                <span>{copy.scope.noOffline}</span>
-              </li>
-            </ul>
-          </div>
+            <Card className="border-border/70 bg-card shadow-sm">
+              <CardContent className="grid gap-5 p-5">
+                <div className="flex flex-col gap-2">
+                  <h2 className="text-lg font-semibold tracking-tight">
+                    {copy.device.title}
+                  </h2>
+                  <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
+                    {copy.device.description}
+                  </p>
+                </div>
 
-          <div className="rounded-2xl border border-border/70 bg-background p-5 shadow-sm">
-            <div className="mb-3 flex items-center gap-2">
-              <Smartphone aria-hidden="true" className="size-4 text-primary" />
-              <h2 className="font-semibold">{copy.android.title}</h2>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    disabled={!canEnable}
+                    onClick={() => void enableNotifications()}
+                    type="button"
+                  >
+                    <Bell aria-hidden="true" />
+                    {busyAction === "enable"
+                      ? copy.actions.working
+                      : copy.actions.enable}
+                  </Button>
+                  <Button
+                    disabled={!canDisable}
+                    onClick={() => void disableNotifications()}
+                    type="button"
+                    variant="outline"
+                  >
+                    <BellOff aria-hidden="true" />
+                    {busyAction === "disable"
+                      ? copy.actions.working
+                      : copy.actions.disable}
+                  </Button>
+                  <Button
+                    disabled={!canTest}
+                    onClick={() => void sendTestNotification()}
+                    type="button"
+                    variant="secondary"
+                  >
+                    <Send aria-hidden="true" />
+                    {busyAction === "test"
+                      ? copy.actions.working
+                      : copy.actions.test}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {statusItems.map((item) => (
+                <div
+                  className="rounded-2xl border border-border/70 bg-background p-4 shadow-sm"
+                  key={item.label}
+                >
+                  <div className="mb-3 flex items-center justify-between gap-3">
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {item.label}
+                    </p>
+                    <Badge variant={item.ok ? "secondary" : "outline"}>
+                      {item.ok ? copy.values.ok : copy.values.needsAttention}
+                    </Badge>
+                  </div>
+                  <p className="text-base font-semibold text-foreground">
+                    {item.value}
+                  </p>
+                </div>
+              ))}
             </div>
-            <p className="text-sm leading-6 text-muted-foreground">
-              {copy.android.description}
-            </p>
-          </div>
-        </aside>
-      </div>
+          </section>
+        </TabsContent>
+      </Tabs>
 
       <AdminSnackbar
         closeLabel={copy.actions.dismiss}

@@ -614,7 +614,11 @@ export const esMessages = {
       badge: "Notificaciones",
       title: "Notificaciones del administrador",
       description:
-        "Gestiona las notificaciones Web Push de este dispositivo Android para la experiencia administrativa instalada.",
+        "Consulta las notificaciones operativas recientes y administra la configuración Web Push de este dispositivo.",
+      tabs: {
+        notifications: "Notificaciones recientes",
+        configuration: "Configuración",
+      },
       status: {
         ariaLabel: "Estado de notificaciones del dispositivo",
         browserSupport: "Compatibilidad del navegador",
@@ -673,19 +677,6 @@ export const esMessages = {
         installed: "TRP Admin ya se está ejecutando como aplicación instalada.",
         instructions:
           "En Android Chrome, abre el menú del navegador y elige Instalar app o Agregar a pantalla principal.",
-      },
-      scope: {
-        title: "Alcance operativo",
-        deviceOnly: "Sólo administra la suscripción del dispositivo actual.",
-        noHistory:
-          "El historial reciente se muestra por administrador y no expone datos sensibles.",
-        noOffline:
-          "No se guarda contenido administrativo para uso sin conexión.",
-      },
-      android: {
-        title: "Target aceptado",
-        description:
-          "Esta subfase valida Android con un navegador Chromium actual. iOS/iPadOS queda diferido.",
       },
       actions: {
         enable: "Activar notificaciones",
