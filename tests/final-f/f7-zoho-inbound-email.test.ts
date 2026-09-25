@@ -72,6 +72,12 @@ const TARGETS = read("lib/admin-notifications/targets.ts");
 const NOTIFICATIONS_VIEW = read(
   "features/admin/components/admin-notifications-page.tsx",
 );
+const DOC_200 = read(
+  "docs/200-final-f-r3-admin-web-push-public-whatsapp-architecture-rebaseline.md",
+);
+const DOC_204 = read(
+  "docs/204-final-f-7-zoho-inbound-email-metadata-and-admin-web-push.md",
+);
 const ES_MESSAGES = read("messages/es.ts");
 const EN_MESSAGES = read("messages/en.ts");
 const SERVICE_WORKER = read("public/sw.js");
@@ -396,7 +402,10 @@ test("F.7 documents and validates server-only Zoho webhook environment variables
     "ZOHO_MAIL_WEBHOOK_ENCRYPTION_KEY",
     "ZOHO_MAIL_WEBHOOK_BOOTSTRAP_TOKEN",
     "Limited Data List metadata",
-    "Remove it from Vercel and redeploy",
+    "webhook?bootstrap=<temporary-token>",
+    "Treat that temporary callback URL as a credential.",
+    "https://trp-booking.juantzun.dev/api/integrations/zoho-mail/webhook",
+    "remove ZOHO_MAIL_WEBHOOK_BOOTSTRAP_TOKEN from",
   ]) {
     expectIncludes(ENV_EXAMPLE, expected);
   }
@@ -415,6 +424,37 @@ test("F.7 documents and validates server-only Zoho webhook environment variables
       ZOHO_MAIL_WEBHOOK_BOOTSTRAP_TOKEN: "",
     }).configured,
     false,
+  );
+});
+
+test("F.7 docs require cleaning the bootstrap URL before removing the Vercel bootstrap variable", () => {
+  for (const source of [ENV_EXAMPLE, DOC_204, DOC_200]) {
+    expectIncludes(
+      source,
+      "https://trp-booking.juantzun.dev/api/integrations/zoho-mail/webhook?bootstrap=<temporary-token>",
+    );
+    expectIncludes(
+      source,
+      "https://trp-booking.juantzun.dev/api/integrations/zoho-mail/webhook",
+    );
+    expectIncludes(source, "ZOHO_MAIL_WEBHOOK_BOOTSTRAP_TOKEN");
+  }
+
+  for (const expected of [
+    "The temporary callback URL with ?bootstrap=... must be treated as a credential.",
+    "must never be logged, persisted in the database, returned in API responses, included in Web Push/service-worker payloads, or exposed to application clients",
+    "Only after the clean URL is saved successfully should the owner remove",
+    "The persisted encrypted\n`x-hook-secret` then remains authoritative for normal requests.",
+    "Bootstrap query params cannot overwrite an existing persisted secret.",
+    "A subsequently supplied x-hook-secret cannot overwrite the persisted encrypted secret.",
+    "No secret-rotation flow exists in Final-F.7.",
+  ]) {
+    expectIncludes(DOC_204, expected);
+  }
+
+  expectExcludes(
+    ENV_EXAMPLE,
+    "Never expose them through NEXT_PUBLIC\n# variables, logs, docs, query strings",
   );
 });
 
@@ -570,15 +610,25 @@ test("F.7 bootstrap persists only encrypted hook secret and creates no guest ema
   assert.equal(fake.configurations.size, 1);
   assert.equal(fake.events.size, 0);
   assert.equal(fake.notifications.size, 0);
+  const encryptedSecret = Array.from(fake.configurations.values())[0]
+    ?.hookSecretEncrypted;
+
+  assert.equal(encryptedSecret?.includes("zoho-hook-secret"), false);
   assert.equal(
-    Array.from(fake.configurations.values())[0]?.hookSecretEncrypted.includes(
-      "zoho-hook-secret",
-    ),
+    encryptedSecret?.includes(baseEnv.ZOHO_MAIL_WEBHOOK_BOOTSTRAP_TOKEN),
     false,
+  );
+  assert.equal(
+    decryptZohoMailWebhookSecret({
+      encryptedSecret: encryptedSecret ?? "",
+      businessEnvironment: "test",
+      source: baseEnv,
+    }),
+    "zoho-hook-secret",
   );
 });
 
-test("F.7 rejects invalid bootstrap token and invalid registered signatures", async () => {
+test("F.7 rejects invalid bootstrap token or signature without persisting configuration", async () => {
   const fake = createFakeZohoPrismaClient();
   const rawBody = createLimitedRawBody();
 
@@ -599,6 +649,23 @@ test("F.7 rejects invalid bootstrap token and invalid registered signatures", as
       error instanceof ZohoMailWebhookError &&
       error.code === "ZOHO_MAIL_BOOTSTRAP_INVALID",
   );
+  assert.equal(fake.configurations.size, 0);
+
+  await assert.rejects(
+    () =>
+      processZohoMailWebhook({
+        rawBody,
+        hookSecretHeader: "zoho-hook-secret",
+        signatureHeader: createZohoMailWebhookSignature(rawBody, "wrong-secret"),
+        bootstrapTokenParam: baseEnv.ZOHO_MAIL_WEBHOOK_BOOTSTRAP_TOKEN,
+        source: baseEnv,
+        prismaClient: fake.prismaClient,
+      }),
+    (error: unknown) =>
+      error instanceof ZohoMailWebhookError &&
+      error.code === "ZOHO_MAIL_SIGNATURE_INVALID",
+  );
+  assert.equal(fake.configurations.size, 0);
 
   await bootstrapFakeWebhook(fake);
   await assert.rejects(
@@ -613,6 +680,91 @@ test("F.7 rejects invalid bootstrap token and invalid registered signatures", as
       error instanceof ZohoMailWebhookError &&
       error.code === "ZOHO_MAIL_SIGNATURE_INVALID",
   );
+});
+
+test("F.7 existing configuration ignores later bootstrap tokens and x-hook-secret overwrite attempts", async () => {
+  const fake = createFakeZohoPrismaClient();
+  await bootstrapFakeWebhook(fake, "original-hook-secret");
+  const originalEncryptedSecret = Array.from(fake.configurations.values())[0]
+    ?.hookSecretEncrypted;
+  const rawBody = createLimitedRawBody({ subject: "Second delivery" });
+
+  await assert.rejects(
+    () =>
+      processZohoMailWebhook({
+        rawBody,
+        hookSecretHeader: "replacement-hook-secret",
+        signatureHeader: createZohoMailWebhookSignature(
+          rawBody,
+          "replacement-hook-secret",
+        ),
+        bootstrapTokenParam: baseEnv.ZOHO_MAIL_WEBHOOK_BOOTSTRAP_TOKEN,
+        source: baseEnv,
+        prismaClient: fake.prismaClient,
+      }),
+    (error: unknown) =>
+      error instanceof ZohoMailWebhookError &&
+      error.code === "ZOHO_MAIL_SIGNATURE_INVALID",
+  );
+
+  assert.equal(fake.configurations.size, 1);
+  assert.equal(
+    Array.from(fake.configurations.values())[0]?.hookSecretEncrypted,
+    originalEncryptedSecret,
+  );
+  assert.equal(
+    decryptZohoMailWebhookSecret({
+      encryptedSecret: originalEncryptedSecret ?? "",
+      businessEnvironment: "test",
+      source: baseEnv,
+    }),
+    "original-hook-secret",
+  );
+
+  const outcome = await processZohoMailWebhook({
+    rawBody,
+    hookSecretHeader: "replacement-hook-secret",
+    signatureHeader: createZohoMailWebhookSignature(
+      rawBody,
+      "original-hook-secret",
+    ),
+    bootstrapTokenParam: baseEnv.ZOHO_MAIL_WEBHOOK_BOOTSTRAP_TOKEN,
+    source: baseEnv,
+    prismaClient: fake.prismaClient,
+  });
+
+  assert.equal(outcome.status, "processed");
+  assert.equal(fake.configurations.size, 1);
+  assert.equal(
+    Array.from(fake.configurations.values())[0]?.hookSecretEncrypted,
+    originalEncryptedSecret,
+  );
+});
+
+test("F.7 processes registered webhooks after the bootstrap token is removed from env", async () => {
+  const fake = createFakeZohoPrismaClient();
+  await bootstrapFakeWebhook(fake);
+  const registeredOnlyEnv: NodeJS.ProcessEnv = { ...baseEnv };
+  delete registeredOnlyEnv.ZOHO_MAIL_WEBHOOK_BOOTSTRAP_TOKEN;
+  const rawBody = createLimitedRawBody({ subject: "Post bootstrap" });
+
+  assert.deepEqual(getZohoMailWebhookEnv(registeredOnlyEnv), {
+    trpEnvironment: "test",
+    encryptionKeyBase64: ZOHO_KEY,
+    bootstrapToken: null,
+    configured: true,
+  });
+
+  const outcome = await processZohoMailWebhook({
+    rawBody,
+    signatureHeader: createZohoMailWebhookSignature(rawBody, "zoho-hook-secret"),
+    source: registeredOnlyEnv,
+    prismaClient: fake.prismaClient,
+  });
+
+  assert.equal(outcome.status, "processed");
+  assert.equal(fake.events.size, 1);
+  assert.equal(fake.notifications.size, 1);
 });
 
 test("F.7 creates one matched event, AdminNotification and delivery after verified registered webhook", async () => {
@@ -765,6 +917,54 @@ test("F.7 ignores irrelevant recipients, own-domain senders and ambiguous reserv
     Array.from(ambiguous.notifications.values())[0]?.targetPath,
     "/admin/notifications",
   );
+});
+
+test("F.7 keeps bootstrap tokens out of persisted records, notification center data, push payloads and API responses", async () => {
+  const sensitiveBootstrapToken =
+    "bootstrap-sensitive-token-that-must-not-persist";
+  const source: NodeJS.ProcessEnv = {
+    ...baseEnv,
+    ZOHO_MAIL_WEBHOOK_BOOTSTRAP_TOKEN: sensitiveBootstrapToken,
+  };
+  const fake = createFakeZohoPrismaClient();
+  const bootstrapRawBody = createLimitedRawBody({ subject: "Bootstrap" });
+
+  await processZohoMailWebhook({
+    rawBody: bootstrapRawBody,
+    hookSecretHeader: "zoho-hook-secret",
+    signatureHeader: createZohoMailWebhookSignature(
+      bootstrapRawBody,
+      "zoho-hook-secret",
+    ),
+    bootstrapTokenParam: sensitiveBootstrapToken,
+    source,
+    prismaClient: fake.prismaClient,
+  });
+
+  const deliveryRawBody = createLimitedRawBody({ subject: "Safe event" });
+  await processZohoMailWebhook({
+    rawBody: deliveryRawBody,
+    signatureHeader: createZohoMailWebhookSignature(
+      deliveryRawBody,
+      "zoho-hook-secret",
+    ),
+    source,
+    prismaClient: fake.prismaClient,
+  });
+
+  const persistedState = JSON.stringify({
+    configurations: Array.from(fake.configurations.values()),
+    events: Array.from(fake.events.values()),
+    notifications: Array.from(fake.notifications.values()),
+    deliveries: fake.deliveries,
+  });
+
+  assert.equal(persistedState.includes(sensitiveBootstrapToken), false);
+  expectExcludes(CENTER_SERVICE, "bootstrapToken");
+  expectExcludes(SERVICE_WORKER, "bootstrap");
+  expectIncludes(ROUTE, "jsonResponse({ ok: true, status: outcome.status }, 200)");
+  expectIncludes(ROUTE, "error: { code: error.code }");
+  expectExcludes(ROUTE, "ZOHO_MAIL_WEBHOOK_BOOTSTRAP_TOKEN");
 });
 
 test("F.7 notification center exposes bounded authenticated email metadata only", () => {

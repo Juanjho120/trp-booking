@@ -427,6 +427,7 @@ REVIEW_SUBMITTED
 Final-F.7 — Implementation completed; Zoho Test webhook onboarding + Hosted inbound-email Web Push validation + owner acceptance pending
 Zoho incoming-email bounded metadata
 - GUEST_EMAIL_RECEIVED Admin Web Push
+- First Zoho registration temporarily uses the credential URL https://trp-booking.juantzun.dev/api/integrations/zoho-mail/webhook?bootstrap=<temporary-token>; after the first HTTP 200 persists the encrypted x-hook-secret, the owner must save the clean callback URL https://trp-booking.juantzun.dev/api/integrations/zoho-mail/webhook, remove ZOHO_MAIL_WEBHOOK_BOOTSTRAP_TOKEN from Vercel Test and redeploy. Existing configurations ignore later bootstrap params and x-hook-secret overwrite attempts; the persisted encrypted secret remains authoritative.
 
 Final-F.8 —
 Android PWA/Web Push integrated regression

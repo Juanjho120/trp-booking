@@ -87,20 +87,33 @@ mailbox search, or mailbox retention data.
 
 ```text
 - ZOHO_MAIL_WEBHOOK_ENCRYPTION_KEY is exactly 32 random bytes in canonical Base64.
-- ZOHO_MAIL_WEBHOOK_BOOTSTRAP_TOKEN is temporary and server-only.
+- ZOHO_MAIL_WEBHOOK_BOOTSTRAP_TOKEN is temporary, random, server-side and used only for first registration.
+- During first Zoho outgoing-webhook registration only, the bootstrap token is placed in the callback URL query string as https://trp-booking.juantzun.dev/api/integrations/zoho-mail/webhook?bootstrap=<temporary-token>.
+- The temporary callback URL with ?bootstrap=... must be treated as a credential.
+- The bootstrap token must never be logged, persisted in the database, returned in API responses, included in Web Push/service-worker payloads, or exposed to application clients.
 - Absent Zoho webhook env values make the integration unavailable safely.
 - x-hook-secret is accepted only during first bootstrap when no persisted config exists.
 - The bootstrap query token is compared in constant time.
 - Once a config exists, the persisted decrypted hook secret is authoritative.
 - Bootstrap query params cannot overwrite an existing persisted secret.
+- A subsequently supplied x-hook-secret cannot overwrite the persisted encrypted secret.
+- No secret-rotation flow exists in Final-F.7.
 - Signatures are checked before JSON parsing.
 - The route never logs raw payloads, headers, hook secrets, signatures, bodies, attachments or provider responses.
 - The persisted event fingerprint is SHA-256 of the verified exact raw Limited Data payload.
 - The Admin push payload contains only safe title, safe body and internal targetPath.
 ```
 
-After Hosted Test confirms the webhook secret was persisted, the owner must remove
-`ZOHO_MAIL_WEBHOOK_BOOTSTRAP_TOKEN` from Vercel and redeploy.
+After the first Zoho registration POST returns HTTP 200 and the hook secret has been persisted,
+the owner must edit the Zoho outgoing webhook and replace the callback URL with the clean URL:
+
+```text
+https://trp-booking.juantzun.dev/api/integrations/zoho-mail/webhook
+```
+
+Only after the clean URL is saved successfully should the owner remove
+`ZOHO_MAIL_WEBHOOK_BOOTSTRAP_TOKEN` from Vercel Test and redeploy. The persisted encrypted
+`x-hook-secret` then remains authoritative for normal requests.
 
 ## Accepted Recipient And Sender Rules
 
@@ -201,6 +214,23 @@ npm run build - PASS after elevated rerun; sandbox run failed only on Google Fon
 git diff --check - PASS
 ```
 
+Executed during bootstrap-security/documentation hardening on 2026-09-25:
+
+```text
+git status --short --branch - PASS; starting branch main at 094daf028302ed9eac2dc50f82bddb18174bdcc4
+git rev-parse HEAD - PASS; 094daf028302ed9eac2dc50f82bddb18174bdcc4
+npx tsx --tsconfig tests/final-f/tsconfig.json tests/final-f/run.ts - PASS after elevated run; Final-F targeted validation 107/107
+npm run final-d:validate - PASS after elevated run; 66/66
+npm run final-e:validate - PASS after elevated run; 88/88
+npm run env:validate - PASS after elevated run
+npm run db:validate - PASS
+npm run db:generate - PASS; Prisma Client v6.19.3 generated
+npm run db:migrate:status - PASS after elevated run; 29 migrations found; database schema is up to date
+npm run lint - PASS
+npm run build - PASS after elevated run; /api/integrations/zoho-mail/webhook remains dynamic
+git diff --check - PASS
+```
+
 ## Pending Hosted Test / Owner Acceptance
 
 Final-F.7 must not be marked accepted until the owner completes the Hosted Test flow:
@@ -208,8 +238,10 @@ Final-F.7 must not be marked accepted until the owner completes the Hosted Test 
 ```text
 - configure ZOHO_MAIL_WEBHOOK_ENCRYPTION_KEY in Vercel Test
 - configure temporary ZOHO_MAIL_WEBHOOK_BOOTSTRAP_TOKEN in Vercel Test
-- configure Zoho Mail outgoing webhook with Entity Mail and Limited Data List enabled
+- configure Zoho Mail outgoing webhook with Entity Mail, Limited Data List enabled and the temporary callback URL https://trp-booking.juantzun.dev/api/integrations/zoho-mail/webhook?bootstrap=<temporary-token>
 - complete first bootstrap request
+- after HTTP 200, replace the Zoho callback URL with https://trp-booking.juantzun.dev/api/integrations/zoho-mail/webhook
+- save the clean Zoho callback URL successfully
 - remove ZOHO_MAIL_WEBHOOK_BOOTSTRAP_TOKEN from Vercel Test and redeploy
 - send an external test email to an accepted correspondence recipient
 - confirm GUEST_EMAIL_RECEIVED Admin Web Push delivery
