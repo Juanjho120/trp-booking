@@ -334,15 +334,13 @@ test("F.R4 keeps Vercel cron registrations empty", () => {
   assert.deepEqual(JSON.parse(read("vercel.json")), { crons: [] });
 });
 
-test("F.R4 keeps durable Admin Web Push notification history out of scope", () => {
-  for (const removedSource of [
-    "model AdminNotification",
-    "model AdminNotificationRead",
-    "model AdminPushDelivery",
-  ]) {
-    expectExcludes(SCHEMA, removedSource);
-  }
+test("F.R4 kept durable Admin Web Push notification history out of its historical scope", () => {
+  const r4Record = read(
+    "docs/201-final-f-r4-whatsapp-backend-decommission-and-public-whatsapp-contact.md",
+  );
 
+  expectIncludes(r4Record, "no PWA, service worker, manifest, Web Push");
+  expectIncludes(r4Record, "no /admin/notifications route");
   assert.equal(PACKAGE_JSON.dependencies?.firebase, undefined);
   assert.equal(PACKAGE_JSON.dependencies?.["firebase-admin"], undefined);
 });

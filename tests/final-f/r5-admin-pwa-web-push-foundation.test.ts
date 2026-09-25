@@ -219,7 +219,7 @@ test("F.R5 Web Push config endpoint exposes only safe public config", () => {
   expectExcludes(CONFIG_ROUTE, "WEB_PUSH_VAPID_PRIVATE_KEY");
 });
 
-test("F.R5 adds only AdminPushSubscription persistence", () => {
+test("F.R5 introduced AdminPushSubscription persistence before F.6 history", () => {
   for (const expected of [
     "model AdminPushSubscription",
     "adminPushSubscriptions",
@@ -236,13 +236,9 @@ test("F.R5 adds only AdminPushSubscription persistence", () => {
     expectIncludes(SCHEMA, expected);
   }
 
-  for (const unexpected of [
-    "model AdminNotification",
-    "model AdminNotificationRead",
-    "model AdminPushDelivery",
-  ]) {
-    expectExcludes(SCHEMA, unexpected);
-  }
+  expectIncludes(SCHEMA, "model AdminNotification");
+  expectIncludes(SCHEMA, "model AdminNotificationRead");
+  expectIncludes(SCHEMA, "model AdminPushDelivery");
 });
 
 test("F.R5 migration creates only the AdminPushSubscription table and indexes", () => {

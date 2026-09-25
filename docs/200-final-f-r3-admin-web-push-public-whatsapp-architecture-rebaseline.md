@@ -18,8 +18,8 @@ Dependency changes: none
 Owner acceptance: Completed on 2026-09-24
 Final-F.R4: Completed and accepted on 2026-09-25 at ae0db63efdabfa3bc952a8a2a71220de231ebc18
 Final-F.R5: Completed and accepted on 2026-09-25 at 88616acf46645ccc01cc475f20a868d7c18dbadf
-Final-F.6: Next / Not started
-Final-F.7: Not started
+Final-F.6: Implementation completed; Hosted Test operational Web Push validation and explicit owner acceptance pending
+Final-F.7: Next / Not started
 Final-F.8: Not started
 Final-G/H: Not started
 Phase 13: Not started
@@ -421,12 +421,12 @@ CHECK_OUT_MINUS_6H
 REVIEW_SUBMITTED
 - durable AdminNotification delivery/retry
 - reminder scheduling
-— Next / Not started
+— Implementation completed; Hosted Test operational Web Push validation and explicit owner acceptance pending
 
 Final-F.7 —
 Zoho incoming-email bounded metadata
 - GUEST_EMAIL_RECEIVED Admin Web Push
-— Not started
+— Next / Not started
 
 Final-F.8 —
 Android PWA/Web Push integrated regression

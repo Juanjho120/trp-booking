@@ -7,6 +7,10 @@ import {
 
 import { prisma } from "@/lib/db/prisma";
 import {
+  deliverAdminPushNotificationsBestEffort,
+  ensureReservationConfirmedAdminNotificationIntent,
+} from "@/lib/admin-notifications";
+import {
   createReservationConfirmationNotificationIntents,
   deliverReservationConfirmationNotificationsBestEffort,
 } from "@/lib/email/reservation-confirmation-notifications";
@@ -78,6 +82,7 @@ type ConfirmedReservationForNotifications = Readonly<{
 type ConfirmationTransactionResult = Readonly<{
   confirmation: ConfirmedReservationAfterPayment;
   notificationIds: readonly string[];
+  adminPushNotificationIds: readonly string[];
 }>;
 
 async function createNotificationIntents(
@@ -102,6 +107,18 @@ async function createNotificationIntents(
   }
 
   return notificationIds;
+}
+
+async function createAdminPushNotificationIntent(
+  tx: Prisma.TransactionClient,
+  reservationId: string,
+): Promise<readonly string[]> {
+  const intent = await ensureReservationConfirmedAdminNotificationIntent(
+    tx,
+    reservationId,
+  );
+
+  return intent.id ? [intent.id] : [];
 }
 
 export async function confirmReservationAfterApprovedPayment(
@@ -248,6 +265,10 @@ export async function confirmReservationAfterApprovedPayment(
             phaseBoundary: "RESERVATION_CONFIRMED_AFTER_VALIDATED_PAYMENT",
           },
           notificationIds,
+          adminPushNotificationIds: await createAdminPushNotificationIntent(
+            tx,
+            payment.reservation.id,
+          ),
         };
       }
 
@@ -306,6 +327,10 @@ export async function confirmReservationAfterApprovedPayment(
           phaseBoundary: "RESERVATION_CONFIRMED_AFTER_VALIDATED_PAYMENT",
         },
         notificationIds,
+        adminPushNotificationIds: await createAdminPushNotificationIntent(
+          tx,
+          reservation.id,
+        ),
       };
     });
 
@@ -313,6 +338,16 @@ export async function confirmReservationAfterApprovedPayment(
     try {
       await deliverReservationConfirmationNotificationsBestEffort(
         transactionResult.notificationIds,
+      );
+    } catch {
+      // Reservation confirmation is committed and must remain successful.
+    }
+  }
+
+  if (transactionResult.adminPushNotificationIds.length > 0) {
+    try {
+      await deliverAdminPushNotificationsBestEffort(
+        transactionResult.adminPushNotificationIds,
       );
     } catch {
       // Reservation confirmation is committed and must remain successful.

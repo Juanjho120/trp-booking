@@ -675,10 +675,10 @@ export const esMessages = {
           "En Android Chrome, abre el menú del navegador y elige Instalar app o Agregar a pantalla principal.",
       },
       scope: {
-        title: "Alcance de R5",
+        title: "Alcance operativo",
         deviceOnly: "Sólo administra la suscripción del dispositivo actual.",
         noHistory:
-          "El historial de notificaciones y lectura pertenece a Final-F.6.",
+          "El historial reciente se muestra por administrador y no expone datos sensibles.",
         noOffline:
           "No se guarda contenido administrativo para uso sin conexión.",
       },
@@ -691,6 +691,8 @@ export const esMessages = {
         enable: "Activar notificaciones",
         disable: "Desactivar en este dispositivo",
         test: "Enviar notificación de prueba",
+        open: "Abrir",
+        markRead: "Marcar como leída",
         working: "Procesando",
         dismiss: "Cerrar notificación",
       },
@@ -699,6 +701,16 @@ export const esMessages = {
         disabled:
           "Las notificaciones quedaron desactivadas para este dispositivo.",
         testSent: "Enviamos una notificación de prueba a este dispositivo.",
+        markedRead: "La notificación quedó marcada como leída.",
+      },
+      history: {
+        title: "Notificaciones recientes",
+        description:
+          "Historial operativo seguro para este administrador. Los avisos abren sólo rutas internas de Admin.",
+        unreadCount: "{count} sin leer",
+        empty: "Todavía no hay notificaciones operativas.",
+        unread: "Sin leer",
+        read: "Leída",
       },
       errors: {
         ADMIN_UNAUTHORIZED:
@@ -723,6 +735,14 @@ export const esMessages = {
           "El navegador no concedió permiso para notificaciones.",
         ADMIN_PUSH_BROWSER_UNSUBSCRIBE_FAILED:
           "TRP desactivó el dispositivo, pero el navegador no confirmó la baja local.",
+        ADMIN_NOTIFICATION_ORIGIN_INVALID:
+          "No pudimos validar el origen de esta acción administrativa.",
+        INVALID_ADMIN_NOTIFICATION_REQUEST:
+          "No pudimos procesar la notificación seleccionada.",
+        ADMIN_NOTIFICATION_NOT_FOUND:
+          "La notificación ya no está disponible.",
+        ADMIN_NOTIFICATION_UNEXPECTED_ERROR:
+          "No pudimos actualizar el estado de lectura. Inténtalo nuevamente.",
         ADMIN_PUSH_UNEXPECTED_ERROR:
           "No pudimos completar la acción de notificaciones. Inténtalo de nuevo.",
       },
@@ -2394,6 +2414,11 @@ export const esMessages = {
           title: "Programar invitaciones de reseña",
           description:
             "Crea o repara invitaciones de reseña para estadías directas elegibles después del checkout.",
+        },
+        PROCESS_ADMIN_PUSH_NOTIFICATIONS: {
+          title: "Procesar Web Push administrativas",
+          description:
+            "Crea recordatorios operativos elegibles y procesa entregas Web Push con reintentos seguros.",
         },
       },
       labels: {

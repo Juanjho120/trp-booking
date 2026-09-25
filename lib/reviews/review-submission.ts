@@ -8,6 +8,10 @@ import { z } from "zod";
 
 import { prisma } from "@/lib/db/prisma";
 import {
+  deliverAdminPushNotificationsBestEffort,
+  ensureReviewSubmittedAdminNotificationIntent,
+} from "@/lib/admin-notifications";
+import {
   createAdminReviewSubmittedNotificationIntents,
   deliverAdminReviewSubmittedNotificationsBestEffort,
 } from "@/lib/email/review-submitted-notifications";
@@ -106,6 +110,7 @@ type ReviewSubmissionTransactionResult =
   | Readonly<{
       outcome: "submitted";
       adminNotificationIds: readonly string[];
+      adminPushNotificationIds: readonly string[];
     }>
   | Readonly<{ errorCode: ReviewSubmissionErrorCode }>;
 
@@ -497,12 +502,24 @@ async function submitReviewOnce(
     },
     source,
   );
+  const adminPushNotification =
+    await ensureReviewSubmittedAdminNotificationIntent(
+      transaction,
+      {
+        reviewId: review.id,
+        reservationId: review.reservationId,
+      },
+      source,
+    );
 
   return {
     outcome: "submitted",
     adminNotificationIds: adminNotifications.map(
       (notification) => notification.id,
     ),
+    adminPushNotificationIds: adminPushNotification.id
+      ? [adminPushNotification.id]
+      : [],
   };
 }
 
@@ -543,6 +560,20 @@ export async function submitReviewSubmission(
               source,
               provider: options.emailProvider,
               now: () => now,
+            },
+          );
+        } catch {
+          // The review transaction already committed; retry processing owns recovery.
+        }
+      }
+
+      if ("adminPushNotificationIds" in result) {
+        try {
+          await deliverAdminPushNotificationsBestEffort(
+            result.adminPushNotificationIds,
+            {
+              source,
+              now,
             },
           );
         } catch {

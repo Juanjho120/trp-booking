@@ -2,6 +2,10 @@ import { z } from "zod";
 
 import { siteConfig } from "@/config/site";
 import { EmailTemplateDataError } from "@/emails/template-data";
+import {
+  buildAbsoluteAdminNotificationTargetUrl,
+  resolveAdminNotificationTarget,
+} from "@/lib/admin-notifications";
 import type { TransactionalEmailLocale } from "@/types/email-provider";
 import type {
   RefundProcessedEmailTemplateInput,
@@ -202,10 +206,13 @@ function buildBaseView(input: z.infer<typeof baseSchema>) {
     propertyName: locale === "es" ? reservation.propertyNameEs : reservation.propertyNameEn,
     logoUrl: input.brandLogoUrl,
     publicHomeUrl: new URL("/", baseUrl).toString(),
-    adminReservationUrl: new URL(
-      `/admin/reservations/${encodeURIComponent(reservation.id)}`,
+    adminReservationUrl: buildAbsoluteAdminNotificationTargetUrl(
+      resolveAdminNotificationTarget({
+        kind: "reservation",
+        reservationId: reservation.id,
+      }).targetPath,
       baseUrl,
-    ).toString(),
+    ),
     supportEmail:
       locale === "es" ? siteConfig.emails.reservationsEs : siteConfig.emails.reservationsEn,
   };

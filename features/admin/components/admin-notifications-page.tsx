@@ -3,8 +3,11 @@
 import {
   Bell,
   BellOff,
+  CheckCheck,
   CheckCircle2,
   Download,
+  ExternalLink,
+  Inbox,
   Send,
   ShieldCheck,
   Smartphone,
@@ -16,6 +19,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLocale } from "@/features/i18n";
+import type {
+  AdminNotificationCenterData,
+  AdminNotificationCenterItem,
+} from "@/lib/admin";
 
 import { AdminPageHeader } from "./admin-page-header";
 import { AdminSnackbar } from "./admin-snackbar";
@@ -38,6 +45,9 @@ type ApiErrorResponse = Readonly<{
 
 type RegistrationResponse = Readonly<{
   registered: boolean;
+}>;
+type ReadNotificationResponse = Readonly<{
+  readAt: string;
 }>;
 
 type ServiceWorkerState =
@@ -142,9 +152,49 @@ function permissionValue(): NotificationPermission | "unsupported" {
   return "Notification" in window ? Notification.permission : "unsupported";
 }
 
-export function AdminNotificationsPageView() {
+function safeAdminTargetPath(value: string): string {
+  const trimmed = value.trim();
+
+  if (!trimmed || !trimmed.startsWith("/") || trimmed.startsWith("//")) {
+    return "/admin/notifications";
+  }
+
+  try {
+    const parsed = new URL(trimmed, window.location.origin);
+
+    if (
+      parsed.origin !== window.location.origin ||
+      !/^\/admin(?:\/|$)/.test(parsed.pathname)
+    ) {
+      return "/admin/notifications";
+    }
+
+    return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+  } catch {
+    return "/admin/notifications";
+  }
+}
+
+function formatNotificationTimestamp(value: string, locale: string): string {
+  return new Intl.DateTimeFormat(locale === "en" ? "en-US" : "es-GT", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+}
+
+export function AdminNotificationsPageView({
+  notificationCenter,
+}: Readonly<{
+  notificationCenter: AdminNotificationCenterData;
+}>) {
   const { locale, messages } = useLocale();
   const copy = messages.admin.notificationsPage;
+  const [recentNotifications, setRecentNotifications] = useState(
+    notificationCenter.notifications,
+  );
+  const [unreadCount, setUnreadCount] = useState(
+    notificationCenter.unreadCount,
+  );
   const [config, setConfig] = useState<PushConfig | null>(null);
   const [serviceWorkerState, setServiceWorkerState] =
     useState<ServiceWorkerState>("checking");
@@ -163,6 +213,9 @@ export function AdminNotificationsPageView() {
   const [busyAction, setBusyAction] = useState<
     "enable" | "disable" | "test" | null
   >(null);
+  const [busyNotificationId, setBusyNotificationId] = useState<string | null>(
+    null,
+  );
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -439,6 +492,50 @@ export function AdminNotificationsPageView() {
     }
   }
 
+  async function markNotificationRead(
+    notification: AdminNotificationCenterItem,
+  ): Promise<void> {
+    if (notification.readAt) {
+      return;
+    }
+
+    setBusyNotificationId(notification.id);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+
+    try {
+      const result = await requestJson<ReadNotificationResponse>(
+        `/api/admin/notifications/${encodeURIComponent(
+          notification.id,
+        )}/read`,
+        { method: "PATCH" },
+      );
+
+      setRecentNotifications((current) =>
+        current.map((item) =>
+          item.id === notification.id
+            ? {
+                ...item,
+                readAt: result.readAt,
+              }
+            : item,
+        ),
+      );
+      setUnreadCount((current) => Math.max(0, current - 1));
+      setSuccessMessage(copy.feedback.markedRead);
+    } catch (error) {
+      setErrorMessage(
+        resolveError(
+          error instanceof Error
+            ? error.message
+            : "ADMIN_PUSH_UNEXPECTED_ERROR",
+        ),
+      );
+    } finally {
+      setBusyNotificationId(null);
+    }
+  }
+
   const statusItems = useMemo(
     () => [
       {
@@ -565,6 +662,94 @@ export function AdminNotificationsPageView() {
                     : copy.actions.test}
                 </Button>
               </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border/70 bg-card shadow-sm">
+            <CardContent className="grid gap-5 p-5">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex flex-col gap-2">
+                  <h2 className="text-lg font-semibold tracking-tight">
+                    {copy.history.title}
+                  </h2>
+                  <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
+                    {copy.history.description}
+                  </p>
+                </div>
+                <Badge variant={unreadCount > 0 ? "secondary" : "outline"}>
+                  {copy.history.unreadCount.replace(
+                    "{count}",
+                    String(unreadCount),
+                  )}
+                </Badge>
+              </div>
+
+              {recentNotifications.length === 0 ? (
+                <div className="flex items-center gap-3 rounded-lg border border-dashed border-border/70 p-4 text-sm text-muted-foreground">
+                  <Inbox aria-hidden="true" className="size-4 shrink-0" />
+                  <span>{copy.history.empty}</span>
+                </div>
+              ) : (
+                <div className="grid gap-3">
+                  {recentNotifications.map((notification) => {
+                    const read = notification.readAt !== null;
+
+                    return (
+                      <article
+                        className="grid gap-3 rounded-lg border border-border/70 bg-background p-4 sm:grid-cols-[minmax(0,1fr)_auto]"
+                        key={notification.id}
+                      >
+                        <div className="grid gap-2">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Badge variant={read ? "outline" : "secondary"}>
+                              {read ? copy.history.read : copy.history.unread}
+                            </Badge>
+                            <time className="text-xs text-muted-foreground">
+                              {formatNotificationTimestamp(
+                                notification.createdAt,
+                                locale,
+                              )}
+                            </time>
+                          </div>
+                          <div className="grid gap-1">
+                            <h3 className="text-sm font-semibold text-foreground">
+                              {notification.title}
+                            </h3>
+                            <p className="text-sm leading-6 text-muted-foreground">
+                              {notification.body}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+                          <Button asChild size="sm" variant="outline">
+                            <a href={safeAdminTargetPath(notification.targetPath)}>
+                              <ExternalLink aria-hidden="true" />
+                              {copy.actions.open}
+                            </a>
+                          </Button>
+                          {!read ? (
+                            <Button
+                              disabled={busyNotificationId === notification.id}
+                              onClick={() =>
+                                void markNotificationRead(notification)
+                              }
+                              size="sm"
+                              type="button"
+                              variant="secondary"
+                            >
+                              <CheckCheck aria-hidden="true" />
+                              {busyNotificationId === notification.id
+                                ? copy.actions.working
+                                : copy.actions.markRead}
+                            </Button>
+                          ) : null}
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              )}
             </CardContent>
           </Card>
         </section>

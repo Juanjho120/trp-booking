@@ -4,6 +4,7 @@ export const cronJobSlugs = [
   "process-email-notifications",
   "schedule-arrival-instructions",
   "schedule-review-invitations",
+  "process-admin-push-notifications",
 ] as const;
 
 export type CronJobSlug = (typeof cronJobSlugs)[number];
@@ -13,7 +14,8 @@ export type CronJobKeyValue =
   | "EXPIRE_PENDING_RESERVATION_HOLDS"
   | "PROCESS_EMAIL_NOTIFICATIONS"
   | "SCHEDULE_ARRIVAL_INSTRUCTIONS"
-  | "SCHEDULE_REVIEW_INVITATIONS";
+  | "SCHEDULE_REVIEW_INVITATIONS"
+  | "PROCESS_ADMIN_PUSH_NOTIFICATIONS";
 
 export type CronJobTriggerSourceValue = "SCHEDULED" | "MANUAL";
 

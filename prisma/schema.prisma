@@ -100,6 +100,7 @@ enum CronJobKey {
   PROCESS_EMAIL_NOTIFICATIONS
   SCHEDULE_ARRIVAL_INSTRUCTIONS
   SCHEDULE_REVIEW_INVITATIONS
+  PROCESS_ADMIN_PUSH_NOTIFICATIONS
 
   @@map("cron_job_key")
 }
@@ -354,6 +355,26 @@ enum EmailNotificationOrigin {
   @@map("email_notification_origin")
 }
 
+enum AdminNotificationType {
+  RESERVATION_CONFIRMED
+  RESERVATION_CANCELLED
+  CHECK_IN_MINUS_48H
+  CHECK_OUT_MINUS_6H
+  REVIEW_SUBMITTED
+
+  @@map("admin_notification_type")
+}
+
+enum AdminPushDeliveryStatus {
+  PENDING
+  PROCESSING
+  SENT
+  FAILED
+  SKIPPED
+
+  @@map("admin_push_delivery_status")
+}
+
 model User {
   id        String   @id @default(cuid())
   name      String?
@@ -377,6 +398,7 @@ model User {
   createdGuestPaymentRequests GuestPaymentRequest[]         @relation("GuestPaymentRequestCreatedByAdmin")
   moderatedReviews            Review[]                      @relation("ReviewModeratedByAdmin")
   adminPushSubscriptions      AdminPushSubscription[]       @relation("AdminPushSubscriptionUser")
+  adminNotificationReads      AdminNotificationRead[]       @relation("AdminNotificationReadUser")
   cronJobExecutions           CronJobExecution[]            @relation("CronJobExecutionAdminActor")
   auditLogs                   AdminAuditLog[]
 
@@ -635,6 +657,7 @@ model Reservation {
   guestPaymentRequests      GuestPaymentRequest[]
   reviewInvitation          ReviewInvitation?
   review                    Review?
+  adminNotifications        AdminNotification[]
 
   @@index([propertyId, checkInDate, checkOutDate])
   @@index([status])
@@ -765,9 +788,10 @@ model Review {
   createdAt          DateTime               @default(now()) @map("created_at")
   updatedAt          DateTime               @updatedAt @map("updated_at")
 
-  reservation      Reservation @relation(fields: [reservationId], references: [id], onDelete: Restrict)
-  property         Property    @relation(fields: [propertyId], references: [id], onDelete: Restrict)
-  moderatedByAdmin User?       @relation("ReviewModeratedByAdmin", fields: [moderatedByAdminId], references: [id], onDelete: SetNull)
+  reservation        Reservation         @relation(fields: [reservationId], references: [id], onDelete: Restrict)
+  property           Property            @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  moderatedByAdmin   User?               @relation("ReviewModeratedByAdmin", fields: [moderatedByAdminId], references: [id], onDelete: SetNull)
+  adminNotifications AdminNotification[]
 
   @@index([propertyId])
   @@index([moderationStatus])
@@ -1266,11 +1290,72 @@ model AdminPushSubscription {
   lastUsedAt DateTime? @map("last_used_at")
   revokedAt  DateTime? @map("revoked_at")
 
-  user User @relation("AdminPushSubscriptionUser", fields: [userId], references: [id], onDelete: Cascade)
+  user       User                @relation("AdminPushSubscriptionUser", fields: [userId], references: [id], onDelete: Cascade)
+  deliveries AdminPushDelivery[]
 
   @@index([userId])
   @@index([active])
   @@map("admin_push_subscriptions")
+}
+
+model AdminNotification {
+  id               String                @id @default(cuid())
+  type             AdminNotificationType
+  reservationId    String?               @map("reservation_id")
+  reviewId         String?               @map("review_id")
+  deduplicationKey String                @unique @map("deduplication_key") @db.VarChar(191)
+  title            String                @db.VarChar(160)
+  body             String                @db.VarChar(240)
+  targetPath       String                @map("target_path") @db.VarChar(512)
+  createdAt        DateTime              @default(now()) @map("created_at")
+
+  reservation Reservation?            @relation(fields: [reservationId], references: [id], onDelete: SetNull)
+  review      Review?                 @relation(fields: [reviewId], references: [id], onDelete: SetNull)
+  reads       AdminNotificationRead[]
+  deliveries  AdminPushDelivery[]
+
+  @@index([type])
+  @@index([createdAt])
+  @@index([reservationId])
+  @@index([reviewId])
+  @@map("admin_notifications")
+}
+
+model AdminNotificationRead {
+  notificationId String   @map("notification_id")
+  userId         String   @map("user_id")
+  readAt         DateTime @default(now()) @map("read_at")
+
+  notification AdminNotification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  user         User              @relation("AdminNotificationReadUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([notificationId, userId])
+  @@index([userId])
+  @@map("admin_notification_reads")
+}
+
+model AdminPushDelivery {
+  id                  String                  @id @default(cuid())
+  notificationId      String                  @map("notification_id")
+  subscriptionId      String                  @map("subscription_id")
+  status              AdminPushDeliveryStatus @default(PENDING)
+  attemptCount        Int                     @default(0) @map("attempt_count")
+  lastAttemptAt       DateTime?               @map("last_attempt_at")
+  nextAttemptAt       DateTime?               @map("next_attempt_at")
+  processingStartedAt DateTime?               @map("processing_started_at")
+  errorCode           String?                 @map("error_code") @db.VarChar(80)
+  errorMessage        String?                 @map("error_message") @db.VarChar(240)
+  createdAt           DateTime                @default(now()) @map("created_at")
+  updatedAt           DateTime                @updatedAt @map("updated_at")
+
+  notification AdminNotification     @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  subscription AdminPushSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@unique([notificationId, subscriptionId])
+  @@index([status, nextAttemptAt])
+  @@index([notificationId])
+  @@index([subscriptionId])
+  @@map("admin_push_deliveries")
 }
 
 model Setting {

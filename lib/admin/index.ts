@@ -158,3 +158,13 @@ export {
   moderateAdminReview,
 } from "./reviews";
 export { getAdminSessionActor } from "./session";
+export {
+  AdminNotificationCenterError,
+  getAdminNotificationCenter,
+  markAdminNotificationRead,
+} from "@/lib/admin-notifications";
+export type {
+  AdminNotificationCenterData,
+  AdminNotificationCenterErrorCode,
+  AdminNotificationCenterItem,
+} from "@/lib/admin-notifications";

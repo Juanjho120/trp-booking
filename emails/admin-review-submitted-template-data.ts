@@ -1,5 +1,9 @@
 import { z } from "zod";
 
+import {
+  buildAbsoluteAdminNotificationTargetUrl,
+  resolveAdminNotificationTarget,
+} from "@/lib/admin-notifications";
 import type { TransactionalEmailLocale } from "@/types/email-provider";
 import type {
   AdminReviewSubmittedEmailTemplateInput,
@@ -137,7 +141,10 @@ export function buildAdminReviewSubmittedEmailTemplateViewModel(
     rating: `${review.rating} / 5`,
     comment: review.comment,
     submittedAt: formatGuatemalaTimestamp(review.submittedAt, locale),
-    adminReviewsUrl: new URL("/admin/reviews", baseUrl).toString(),
+    adminReviewsUrl: buildAbsoluteAdminNotificationTargetUrl(
+      resolveAdminNotificationTarget({ kind: "reviews" }).targetPath,
+      baseUrl,
+    ),
     logoUrl: parsedInput.data.brandLogoUrl,
     publicHomeUrl: new URL("/", baseUrl).toString(),
   };

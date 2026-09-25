@@ -1,6 +1,10 @@
 import { z } from "zod";
 
 import { siteConfig } from "@/config/site";
+import {
+  buildAbsoluteAdminNotificationTargetUrl,
+  resolveAdminNotificationTarget,
+} from "@/lib/admin-notifications";
 import { normalizeTimeOfDay } from "@/lib/email/time-of-day";
 import type { TransactionalEmailLocale } from "@/types/email-provider";
 import type {
@@ -365,10 +369,13 @@ export function buildReservationEmailTemplateViewModel(
     confirmedAt: formatConfirmedAt(reservation.confirmedAt, locale),
     logoUrl: parsedInput.data.brandLogoUrl,
     publicHomeUrl: new URL("/", baseUrl).toString(),
-    adminReservationUrl: new URL(
-      `/admin/reservations/${encodeURIComponent(reservation.id)}`,
+    adminReservationUrl: buildAbsoluteAdminNotificationTargetUrl(
+      resolveAdminNotificationTarget({
+        kind: "reservation",
+        reservationId: reservation.id,
+      }).targetPath,
       baseUrl,
-    ).toString(),
+    ),
     supportEmail: getSupportEmail(locale),
     appliedPricingSummary: reservation.appliedPricingSummary,
   };

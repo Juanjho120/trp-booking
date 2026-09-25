@@ -12,6 +12,10 @@ import {
 
 import { prisma } from "@/lib/db/prisma";
 import {
+  deliverAdminPushNotificationsBestEffort,
+  ensureReservationCancelledAdminNotificationIntent,
+} from "@/lib/admin-notifications";
+import {
   createLifecycleRequestNotificationIntents,
   deliverLifecycleNotificationsBestEffort,
   getArrivalCheckInDateTime,
@@ -154,6 +158,7 @@ type RequestForDecision = Prisma.ReservationLifecycleRequestGetPayload<{
 type CancellationDecisionTransactionResult = Readonly<{
   decisionResult: AdminCancellationDecisionResult;
   notificationIds: readonly string[];
+  adminPushNotificationIds: readonly string[];
 }>;
 
 export class AdminReservationCancellationError extends Error {
@@ -161,6 +166,18 @@ export class AdminReservationCancellationError extends Error {
     super(code);
     this.name = "AdminReservationCancellationError";
   }
+}
+
+async function createReservationCancelledAdminPushNotificationIntent(
+  transaction: Prisma.TransactionClient,
+  reservationId: string,
+): Promise<readonly string[]> {
+  const intent = await ensureReservationCancelledAdminNotificationIntent(
+    transaction,
+    reservationId,
+  );
+
+  return intent.id ? [intent.id] : [];
 }
 
 function normalizeRequiredText(value: string, maximumLength: number): string {
@@ -699,6 +716,11 @@ async function decideCancellationRequestTransaction(
             alreadyProcessed: true,
           },
           notificationIds: [],
+          adminPushNotificationIds:
+            await createReservationCancelledAdminPushNotificationIntent(
+              transaction,
+              request.reservation.id,
+            ),
         };
       }
 
@@ -716,6 +738,7 @@ async function decideCancellationRequestTransaction(
             alreadyProcessed: true,
           },
           notificationIds: [],
+          adminPushNotificationIds: [],
         };
       }
 
@@ -725,6 +748,7 @@ async function decideCancellationRequestTransaction(
       let reservationStatus = request.reservation.status;
       let cancelledAt: Date | null = request.reservation.cancelledAt;
       let lifecycleNotificationIntents: readonly { id: string }[] = [];
+      let adminPushNotificationIds: readonly string[] = [];
 
       if (input.decision === "APPROVE") {
         const reservationUpdate = await transaction.reservation.updateMany({
@@ -804,6 +828,11 @@ async function decideCancellationRequestTransaction(
             guestEmail: request.reservation.guestEmail,
             preferredLocale: request.reservation.preferredLocale,
           });
+        adminPushNotificationIds =
+          await createReservationCancelledAdminPushNotificationIntent(
+            transaction,
+            request.reservation.id,
+          );
         skippedArrivalNotifications = skippedNotifications.count;
         reservationStatus = ReservationStatus.CANCELLED;
         cancelledAt = decidedAt;
@@ -902,6 +931,7 @@ async function decideCancellationRequestTransaction(
           alreadyProcessed: false,
         },
         notificationIds: lifecycleNotificationIntents.map(({ id }) => id),
+        adminPushNotificationIds,
       };
     },
     {
@@ -922,6 +952,9 @@ export async function decideAdminCancellationRequest(
 
     await deliverLifecycleNotificationsBestEffort(
       transactionResult.notificationIds,
+    );
+    await deliverAdminPushNotificationsBestEffort(
+      transactionResult.adminPushNotificationIds,
     );
 
     return transactionResult.decisionResult;

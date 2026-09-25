@@ -1,5 +1,6 @@
 import { CalendarSyncTriggeredBy } from "@prisma/client";
 
+import { processAdminPushNotifications } from "@/lib/admin-notifications";
 import { syncConfiguredAirbnbIcalImports } from "@/lib/airbnb-ical/scheduled-sync";
 import {
   processEmailNotifications,
@@ -183,6 +184,39 @@ const definitions: readonly CronJobDefinition[] = [
         errorMessage:
           result.failed > 0
             ? "One or more review invitations could not be scheduled."
+            : null,
+      };
+    },
+  },
+  {
+    key: "PROCESS_ADMIN_PUSH_NOTIFICATIONS",
+    slug: "process-admin-push-notifications",
+    schedule: "*/5 * * * *",
+    safeUnexpectedErrorCode: "ADMIN_PUSH_PROCESSING_UNEXPECTED_ERROR",
+    safeUnexpectedErrorMessage:
+      "Admin Web Push notification processing could not be completed.",
+    async execute() {
+      const result = await processAdminPushNotifications();
+
+      if (result.deliveryMode === "unavailable") {
+        return {
+          status: "FAILED",
+          result,
+          errorCode: "ADMIN_PUSH_DELIVERY_UNAVAILABLE",
+          errorMessage: "Admin Web Push delivery is currently unavailable.",
+        };
+      }
+
+      return {
+        status: result.failed > 0 ? "PARTIAL_SUCCESS" : "SUCCESS",
+        result,
+        errorCode:
+          result.failed > 0
+            ? "ADMIN_PUSH_PROCESSING_PARTIAL_SUCCESS"
+            : null,
+        errorMessage:
+          result.failed > 0
+            ? "One or more admin Web Push notifications could not be delivered."
             : null,
       };
     },

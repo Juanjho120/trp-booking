@@ -675,10 +675,10 @@ export const enMessages = {
           "On Android Chrome, open the browser menu and choose Install app or Add to Home screen.",
       },
       scope: {
-        title: "R5 scope",
+        title: "Operational scope",
         deviceOnly: "Only manages the current device subscription.",
         noHistory:
-          "Notification history and read state belong to Final-F.6.",
+          "Recent history is shown per administrator and does not expose sensitive data.",
         noOffline: "No admin content is stored for offline use.",
       },
       android: {
@@ -690,6 +690,8 @@ export const enMessages = {
         enable: "Enable notifications",
         disable: "Disable on this device",
         test: "Send test notification",
+        open: "Open",
+        markRead: "Mark as read",
         working: "Processing",
         dismiss: "Dismiss notification",
       },
@@ -697,6 +699,16 @@ export const enMessages = {
         enabled: "Notifications are active for this device.",
         disabled: "Notifications are disabled for this device.",
         testSent: "We sent a test notification to this device.",
+        markedRead: "The notification was marked as read.",
+      },
+      history: {
+        title: "Recent notifications",
+        description:
+          "Safe operational history for this administrator. Notifications open only internal Admin routes.",
+        unreadCount: "{count} unread",
+        empty: "There are no operational notifications yet.",
+        unread: "Unread",
+        read: "Read",
       },
       errors: {
         ADMIN_UNAUTHORIZED:
@@ -721,6 +733,14 @@ export const enMessages = {
           "The browser did not grant notification permission.",
         ADMIN_PUSH_BROWSER_UNSUBSCRIBE_FAILED:
           "TRP disabled the device, but the browser did not confirm the local unsubscribe.",
+        ADMIN_NOTIFICATION_ORIGIN_INVALID:
+          "We could not validate the origin of this admin action.",
+        INVALID_ADMIN_NOTIFICATION_REQUEST:
+          "We could not process the selected notification.",
+        ADMIN_NOTIFICATION_NOT_FOUND:
+          "The notification is no longer available.",
+        ADMIN_NOTIFICATION_UNEXPECTED_ERROR:
+          "We could not update the read state. Please try again.",
         ADMIN_PUSH_UNEXPECTED_ERROR:
           "We could not complete the notification action. Try again.",
       },
@@ -2390,6 +2410,11 @@ export const enMessages = {
           title: "Schedule review invitations",
           description:
             "Creates or repairs review invitations for eligible direct stays after checkout.",
+        },
+        PROCESS_ADMIN_PUSH_NOTIFICATIONS: {
+          title: "Process admin Web Push",
+          description:
+            "Creates eligible operational reminders and processes Web Push deliveries with safe retries.",
         },
       },
       labels: {
