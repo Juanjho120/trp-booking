@@ -1,6 +1,31 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
+import {
+  AdminNotificationType,
+  AdminPushDeliveryStatus,
+  type PrismaClient,
+} from "@prisma/client";
+
+import {
+  buildCheckInMinus48hAdminNotificationDeduplicationKey,
+  buildCheckOutMinus6hAdminNotificationDeduplicationKey,
+  calculateNextAdminPushDeliveryAttemptAt,
+  classifyAdminPushDeliveryStatusCode,
+  isCheckInMinus48hAdminReminderDue,
+  isCheckOutMinus6hAdminReminderDue,
+  recoverStaleAdminPushDeliveries,
+} from "@/lib/admin-notifications/operational";
+import {
+  buildAbsoluteAdminNotificationTargetUrl,
+  coerceAdminNotificationTargetPath,
+  resolveAdminNotificationTarget,
+} from "@/lib/admin-notifications/targets";
+import {
+  getAdminNotificationCenter,
+  markAdminNotificationRead,
+} from "@/lib/admin-notifications/center";
+import type { AdminActor } from "@/types/admin";
 
 import { test } from "./harness";
 
@@ -66,6 +91,167 @@ const REVIEW_TEMPLATE_DATA = read(
 const ES_MESSAGES = read("messages/es.ts");
 const EN_MESSAGES = read("messages/en.ts");
 const VERCEL = read("vercel.json");
+
+type FakeAdminPushDelivery = {
+  id: string;
+  status: AdminPushDeliveryStatus;
+  attemptCount: number;
+  processingStartedAt: Date | null;
+  nextAttemptAt: Date | null;
+  errorCode: string | null;
+  errorMessage: string | null;
+};
+
+type FakeNotificationRead = {
+  notificationId: string;
+  userId: string;
+  readAt: Date;
+};
+
+function createFakeRecoveryClient(deliveries: FakeAdminPushDelivery[]) {
+  return {
+    adminPushDelivery: {
+      async updateMany(input: {
+        where: {
+          status: AdminPushDeliveryStatus;
+          processingStartedAt: { lt: Date };
+          attemptCount: { lt?: number; gte?: number };
+        };
+        data: Partial<FakeAdminPushDelivery>;
+      }): Promise<{ count: number }> {
+        let count = 0;
+
+        for (const delivery of deliveries) {
+          const isStale =
+            delivery.status === input.where.status &&
+            delivery.processingStartedAt !== null &&
+            delivery.processingStartedAt.getTime() <
+              input.where.processingStartedAt.lt.getTime();
+          const attemptMatches =
+            input.where.attemptCount.lt !== undefined
+              ? delivery.attemptCount < input.where.attemptCount.lt
+              : delivery.attemptCount >= input.where.attemptCount.gte!;
+
+          if (!isStale || !attemptMatches) {
+            continue;
+          }
+
+          Object.assign(delivery, input.data);
+          count += 1;
+        }
+
+        return { count };
+      },
+    },
+  } as unknown as Pick<PrismaClient, "adminPushDelivery">;
+}
+
+function createFakeNotificationCenterClient() {
+  const notifications = [
+    {
+      id: "notification-1",
+      type: AdminNotificationType.RESERVATION_CONFIRMED,
+      title: "Reservación confirmada · Bungalow",
+      body: "Toca para ver detalles.",
+      targetPath: "/admin/reservations/res-1",
+      createdAt: new Date("2026-09-25T18:00:00.000Z"),
+    },
+  ];
+  const reads: FakeNotificationRead[] = [];
+  const usersByEmail = new Map([
+    ["admin-a@example.com", { id: "admin-a", email: "admin-a@example.com", name: null }],
+    ["admin-b@example.com", { id: "admin-b", email: "admin-b@example.com", name: null }],
+  ]);
+
+  const prismaClient = {
+    adminNotification: {
+      async findMany(input: {
+        select: { reads: { where: { userId: string } } };
+      }) {
+        const userId = input.select.reads.where.userId;
+
+        return notifications.map((notification) => ({
+          ...notification,
+          reads: reads
+            .filter(
+              (read) =>
+                read.notificationId === notification.id &&
+                read.userId === userId,
+            )
+            .map((read) => ({ readAt: read.readAt })),
+        }));
+      },
+      async count(input: { where: { reads: { none: { userId: string } } } }) {
+        const userId = input.where.reads.none.userId;
+
+        return notifications.filter(
+          (notification) =>
+            !reads.some(
+              (read) =>
+                read.notificationId === notification.id &&
+                read.userId === userId,
+            ),
+        ).length;
+      },
+      async findUnique(input: { where: { id: string } }) {
+        const notification = notifications.find(
+          (current) => current.id === input.where.id,
+        );
+
+        return notification ? { id: notification.id } : null;
+      },
+    },
+    adminNotificationRead: {
+      async createMany(input: {
+        data: FakeNotificationRead;
+        skipDuplicates: boolean;
+      }) {
+        const exists = reads.some(
+          (read) =>
+            read.notificationId === input.data.notificationId &&
+            read.userId === input.data.userId,
+        );
+
+        if (!exists) {
+          reads.push({ ...input.data });
+          return { count: 1 };
+        }
+
+        return { count: input.skipDuplicates ? 0 : 1 };
+      },
+      async findUnique(input: {
+        where: {
+          notificationId_userId: {
+            notificationId: string;
+            userId: string;
+          };
+        };
+      }) {
+        const read = reads.find(
+          (current) =>
+            current.notificationId ===
+              input.where.notificationId_userId.notificationId &&
+            current.userId === input.where.notificationId_userId.userId,
+        );
+
+        return read ? { readAt: read.readAt } : null;
+      },
+    },
+  } as unknown as PrismaClient;
+
+  return {
+    prismaClient,
+    resolveActor: async (_client: PrismaClient, actor: AdminActor) => {
+      const user = usersByEmail.get(actor.email);
+
+      if (!user) {
+        throw new Error("ADMIN_UNAUTHORIZED");
+      }
+
+      return user;
+    },
+  };
+}
 
 test("F.6 adds only the five accepted AdminNotification types", () => {
   for (const expected of [
@@ -285,7 +471,9 @@ test("F.6 notification center exposes safe history and per-admin read state", ()
     "coerceAdminNotificationTargetPath",
     "markAdminNotificationRead",
     "notificationId_userId",
-    "upsert",
+    "createMany",
+    "skipDuplicates: true",
+    "findUnique",
   ]) {
     expectIncludes(CENTER_SERVICE, expected);
   }
@@ -347,4 +535,363 @@ test("F.6 runtime sources do not log push secrets, endpoints or provider bodies"
     expectExcludes(source, "raw provider");
     expectExcludes(source, "WEB_PUSH_VAPID_PRIVATE_KEY");
   }
+});
+
+test("F.6 check-in reminder timing executes Guatemala 48h boundaries", () => {
+  const checkInDate = new Date("2026-10-01T00:00:00.000Z");
+  const checkInAt = new Date("2026-10-01T21:00:00.000Z");
+
+  assert.equal(
+    isCheckInMinus48hAdminReminderDue({
+      checkInDate,
+      checkInTime: "15:00",
+      now: new Date(checkInAt.getTime() - 48 * 60 * 60 * 1000 - 1),
+    }),
+    false,
+  );
+  assert.equal(
+    isCheckInMinus48hAdminReminderDue({
+      checkInDate,
+      checkInTime: "15:00",
+      now: new Date(checkInAt.getTime() - 48 * 60 * 60 * 1000),
+    }),
+    true,
+  );
+  assert.equal(
+    isCheckInMinus48hAdminReminderDue({
+      checkInDate,
+      checkInTime: "15:00",
+      now: new Date(checkInAt.getTime() - 47 * 60 * 60 * 1000 - 59 * 60 * 1000),
+    }),
+    true,
+  );
+  assert.equal(
+    isCheckInMinus48hAdminReminderDue({
+      checkInDate,
+      checkInTime: "15:00",
+      now: checkInAt,
+    }),
+    false,
+  );
+  assert.equal(
+    isCheckInMinus48hAdminReminderDue({
+      checkInDate,
+      checkInTime: "15:00",
+      now: new Date(checkInAt.getTime() + 1),
+    }),
+    false,
+  );
+});
+
+test("F.6 check-out reminder timing executes Guatemala 6h boundaries", () => {
+  const checkOutDate = new Date("2026-10-03T00:00:00.000Z");
+  const checkOutAt = new Date("2026-10-03T17:00:00.000Z");
+
+  assert.equal(
+    isCheckOutMinus6hAdminReminderDue({
+      checkOutDate,
+      checkOutTime: "11:00",
+      now: new Date(checkOutAt.getTime() - 6 * 60 * 60 * 1000 - 1),
+    }),
+    false,
+  );
+  assert.equal(
+    isCheckOutMinus6hAdminReminderDue({
+      checkOutDate,
+      checkOutTime: "11:00",
+      now: new Date(checkOutAt.getTime() - 6 * 60 * 60 * 1000),
+    }),
+    true,
+  );
+  assert.equal(
+    isCheckOutMinus6hAdminReminderDue({
+      checkOutDate,
+      checkOutTime: "11:00",
+      now: new Date(checkOutAt.getTime() - 5 * 60 * 60 * 1000),
+    }),
+    true,
+  );
+  assert.equal(
+    isCheckOutMinus6hAdminReminderDue({
+      checkOutDate,
+      checkOutTime: "11:00",
+      now: checkOutAt,
+    }),
+    false,
+  );
+  assert.equal(
+    isCheckOutMinus6hAdminReminderDue({
+      checkOutDate,
+      checkOutTime: "11:00",
+      now: new Date(checkOutAt.getTime() + 1),
+    }),
+    false,
+  );
+});
+
+test("F.6 retry delays execute the accepted bounded attempt schedule", () => {
+  const failedAt = new Date("2026-09-25T12:00:00.000Z");
+  const expectedDelays = [
+    5 * 60 * 1000,
+    15 * 60 * 1000,
+    60 * 60 * 1000,
+    6 * 60 * 60 * 1000,
+  ];
+
+  for (const [index, delay] of expectedDelays.entries()) {
+    assert.equal(
+      calculateNextAdminPushDeliveryAttemptAt(index + 1, failedAt)?.toISOString(),
+      new Date(failedAt.getTime() + delay).toISOString(),
+    );
+  }
+
+  assert.equal(calculateNextAdminPushDeliveryAttemptAt(5, failedAt), null);
+  assert.equal(calculateNextAdminPushDeliveryAttemptAt(6, failedAt), null);
+});
+
+test("F.6 stale PROCESSING recovery handles retryable and max-attempt deliveries", async () => {
+  const now = new Date("2026-09-25T12:30:00.000Z");
+  const stale = new Date("2026-09-25T12:00:00.000Z");
+  const fresh = new Date("2026-09-25T12:25:00.000Z");
+  const deliveries: FakeAdminPushDelivery[] = [
+    {
+      id: "retryable-stale",
+      status: AdminPushDeliveryStatus.PROCESSING,
+      attemptCount: 1,
+      processingStartedAt: stale,
+      nextAttemptAt: null,
+      errorCode: null,
+      errorMessage: null,
+    },
+    {
+      id: "exhausted-stale",
+      status: AdminPushDeliveryStatus.PROCESSING,
+      attemptCount: 5,
+      processingStartedAt: stale,
+      nextAttemptAt: null,
+      errorCode: null,
+      errorMessage: null,
+    },
+    {
+      id: "fresh-processing",
+      status: AdminPushDeliveryStatus.PROCESSING,
+      attemptCount: 1,
+      processingStartedAt: fresh,
+      nextAttemptAt: null,
+      errorCode: null,
+      errorMessage: null,
+    },
+  ];
+
+  const recovered = await recoverStaleAdminPushDeliveries(
+    now,
+    createFakeRecoveryClient(deliveries),
+  );
+
+  assert.equal(recovered, 2);
+  assert.deepEqual(
+    deliveries.find((delivery) => delivery.id === "retryable-stale"),
+    {
+      id: "retryable-stale",
+      status: AdminPushDeliveryStatus.FAILED,
+      attemptCount: 1,
+      processingStartedAt: null,
+      nextAttemptAt: now,
+      errorCode: "ADMIN_PUSH_DELIVERY_STALE",
+      errorMessage: "The Web Push delivery was recovered after stale processing.",
+    },
+  );
+  assert.deepEqual(
+    deliveries.find((delivery) => delivery.id === "exhausted-stale"),
+    {
+      id: "exhausted-stale",
+      status: AdminPushDeliveryStatus.FAILED,
+      attemptCount: 5,
+      processingStartedAt: null,
+      nextAttemptAt: null,
+      errorCode: "ADMIN_PUSH_DELIVERY_MAX_ATTEMPTS",
+      errorMessage: "The Web Push delivery reached the retry limit.",
+    },
+  );
+  assert.equal(
+    deliveries.find((delivery) => delivery.id === "fresh-processing")?.status,
+    AdminPushDeliveryStatus.PROCESSING,
+  );
+});
+
+test("F.6 notification read state is per-admin and preserves first readAt", async () => {
+  const { prismaClient, resolveActor } = createFakeNotificationCenterClient();
+  const adminA: AdminActor = { email: "admin-a@example.com" };
+  const adminB: AdminActor = { email: "admin-b@example.com" };
+  const firstReadAt = new Date("2026-09-25T12:00:00.000Z");
+  const secondReadAt = new Date("2026-09-25T12:30:00.000Z");
+
+  const first = await markAdminNotificationRead({
+    notificationId: "notification-1",
+    actor: adminA,
+    now: firstReadAt,
+    prismaClient,
+    resolveActor,
+  });
+  const second = await markAdminNotificationRead({
+    notificationId: "notification-1",
+    actor: adminA,
+    now: secondReadAt,
+    prismaClient,
+    resolveActor,
+  });
+  const centerA = await getAdminNotificationCenter(adminA, {
+    prismaClient,
+    resolveActor,
+  });
+  const centerB = await getAdminNotificationCenter(adminB, {
+    prismaClient,
+    resolveActor,
+  });
+
+  assert.equal(first.readAt, firstReadAt.toISOString());
+  assert.equal(second.readAt, firstReadAt.toISOString());
+  assert.equal(centerA.unreadCount, 0);
+  assert.equal(centerA.notifications[0]?.readAt, firstReadAt.toISOString());
+  assert.equal(centerB.unreadCount, 1);
+  assert.equal(centerB.notifications[0]?.readAt, null);
+});
+
+test("F.6 target resolver behavior is executable and fails closed", () => {
+  assert.equal(
+    resolveAdminNotificationTarget({
+      kind: "reservation",
+      reservationId: "abc",
+    }).targetPath,
+    "/admin/reservations/abc",
+  );
+  assert.equal(
+    resolveAdminNotificationTarget({
+      kind: "reservation",
+      reservationId: "abc/def?x=1 #",
+    }).targetPath,
+    "/admin/reservations/abc%2Fdef%3Fx%3D1%20%23",
+  );
+  assert.equal(
+    resolveAdminNotificationTarget({ kind: "reviews" }).targetPath,
+    "/admin/reviews",
+  );
+  assert.equal(
+    coerceAdminNotificationTargetPath("https://evil.example/admin"),
+    "/admin/notifications",
+  );
+  assert.equal(
+    coerceAdminNotificationTargetPath("//evil.example/admin"),
+    "/admin/notifications",
+  );
+  assert.equal(
+    coerceAdminNotificationTargetPath("/public"),
+    "/admin/notifications",
+  );
+  assert.equal(
+    buildAbsoluteAdminNotificationTargetUrl(
+      "/admin/reviews",
+      "https://trp-booking.juantzun.dev",
+    ),
+    "https://trp-booking.juantzun.dev/admin/reviews",
+  );
+});
+
+test("F.6 reminder deduplication keys change when stay timing changes", () => {
+  const checkInDate = new Date("2026-10-01T00:00:00.000Z");
+  const changedCheckInDate = new Date("2026-10-02T00:00:00.000Z");
+  const checkOutDate = new Date("2026-10-03T00:00:00.000Z");
+  const changedCheckOutDate = new Date("2026-10-04T00:00:00.000Z");
+
+  assert.equal(
+    buildCheckInMinus48hAdminNotificationDeduplicationKey({
+      reservationId: "res-1",
+      checkInDate,
+      checkInTime: "15:00",
+    }),
+    buildCheckInMinus48hAdminNotificationDeduplicationKey({
+      reservationId: "res-1",
+      checkInDate,
+      checkInTime: "15:00",
+    }),
+  );
+  assert.notEqual(
+    buildCheckInMinus48hAdminNotificationDeduplicationKey({
+      reservationId: "res-1",
+      checkInDate,
+      checkInTime: "15:00",
+    }),
+    buildCheckInMinus48hAdminNotificationDeduplicationKey({
+      reservationId: "res-1",
+      checkInDate: changedCheckInDate,
+      checkInTime: "15:00",
+    }),
+  );
+  assert.notEqual(
+    buildCheckInMinus48hAdminNotificationDeduplicationKey({
+      reservationId: "res-1",
+      checkInDate,
+      checkInTime: "15:00",
+    }),
+    buildCheckInMinus48hAdminNotificationDeduplicationKey({
+      reservationId: "res-1",
+      checkInDate,
+      checkInTime: "16:00",
+    }),
+  );
+  assert.notEqual(
+    buildCheckOutMinus6hAdminNotificationDeduplicationKey({
+      reservationId: "res-1",
+      checkOutDate,
+      checkOutTime: "11:00",
+    }),
+    buildCheckOutMinus6hAdminNotificationDeduplicationKey({
+      reservationId: "res-1",
+      checkOutDate: changedCheckOutDate,
+      checkOutTime: "12:00",
+    }),
+  );
+});
+
+test("F.6 provider status classification is executable and bounded", () => {
+  assert.deepEqual(classifyAdminPushDeliveryStatusCode(404), {
+    code: "ADMIN_PUSH_SUBSCRIPTION_EXPIRED",
+    retryable: false,
+    expired: true,
+  });
+  assert.deepEqual(classifyAdminPushDeliveryStatusCode(410), {
+    code: "ADMIN_PUSH_SUBSCRIPTION_EXPIRED",
+    retryable: false,
+    expired: true,
+  });
+  assert.deepEqual(classifyAdminPushDeliveryStatusCode(429), {
+    code: "ADMIN_PUSH_PROVIDER_RATE_LIMITED",
+    retryable: true,
+    expired: false,
+  });
+  assert.deepEqual(classifyAdminPushDeliveryStatusCode(500), {
+    code: "ADMIN_PUSH_PROVIDER_TEMPORARY_FAILURE",
+    retryable: true,
+    expired: false,
+  });
+  assert.deepEqual(classifyAdminPushDeliveryStatusCode(503), {
+    code: "ADMIN_PUSH_PROVIDER_TEMPORARY_FAILURE",
+    retryable: true,
+    expired: false,
+  });
+  assert.deepEqual(classifyAdminPushDeliveryStatusCode(400), {
+    code: "ADMIN_PUSH_PROVIDER_REJECTED",
+    retryable: false,
+    expired: false,
+  });
+  assert.deepEqual(classifyAdminPushDeliveryStatusCode(403), {
+    code: "ADMIN_PUSH_PROVIDER_REJECTED",
+    retryable: false,
+    expired: false,
+  });
+  assert.deepEqual(classifyAdminPushDeliveryStatusCode(null), {
+    code: "ADMIN_PUSH_DELIVERY_UNEXPECTED_ERROR",
+    retryable: true,
+    expired: false,
+  });
 });

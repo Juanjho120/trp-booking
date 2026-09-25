@@ -23,7 +23,7 @@ Public WhatsApp contact: implemented through NEXT_PUBLIC_WHATSAPP_PHONE_E164 and
 Cron registrations: none; vercel.json remains {"crons":[]}
 Final-F.R5: Completed and accepted on 2026-09-25 at 88616acf46645ccc01cc475f20a868d7c18dbadf
 Final-F.6: Implementation completed; Hosted Test operational Web Push validation and explicit owner acceptance pending
-Final-F.7: Next / Not started
+Final-F.7: Not started
 Final-F.8: Not started
 Final-G/H: Not started
 Phase 13: Not started
@@ -256,7 +256,7 @@ Final-F.R3 — Completed and accepted on 2026-09-24
 Final-F.R4 — Completed and accepted on 2026-09-25 at ae0db63efdabfa3bc952a8a2a71220de231ebc18
 Final-F.R5 — Android Admin PWA/Web Push foundation — Completed and accepted on 2026-09-25 at 88616acf46645ccc01cc475f20a868d7c18dbadf
 Final-F.6 — Admin Web Push operational notifications — Implementation completed; Hosted Test operational Web Push validation and explicit owner acceptance pending
-Final-F.7 — Zoho incoming-email bounded metadata and GUEST_EMAIL_RECEIVED Admin Web Push — Next / Not started
+Final-F.7 — Zoho incoming-email bounded metadata and GUEST_EMAIL_RECEIVED Admin Web Push — Not started
 Final-F.8 — Android PWA/Web Push integrated regression, public WhatsApp contact acceptance and Final-F closure — Not started
 Final-G/H — Not started
 Phase 13 — Not started

@@ -1,10 +1,21 @@
-import type { AdminNotificationType } from "@prisma/client";
+import type { AdminNotificationType, PrismaClient } from "@prisma/client";
 
 import { prisma } from "@/lib/db/prisma";
 import type { AdminActor } from "@/types/admin";
 
 import { resolveAdminActor } from "@/lib/admin/admin-actor";
 import { coerceAdminNotificationTargetPath } from "./targets";
+
+type AdminNotificationCenterActor = Readonly<{
+  id: string;
+  email: string;
+  name: string | null;
+}>;
+
+type AdminNotificationCenterActorResolver = (
+  prismaClient: PrismaClient,
+  actor: AdminActor,
+) => Promise<AdminNotificationCenterActor>;
 
 export type AdminNotificationCenterItem = Readonly<{
   id: string;
@@ -59,14 +70,23 @@ function serializeNotification(
 
 export async function getAdminNotificationCenter(
   actor: AdminActor | null,
+  input: Readonly<{
+    prismaClient?: PrismaClient;
+    resolveActor?: AdminNotificationCenterActorResolver;
+  }> = {},
 ): Promise<AdminNotificationCenterData> {
   if (!actor) {
     throw new AdminNotificationCenterError("ADMIN_UNAUTHORIZED");
   }
 
-  const user = await resolveAdminActor(prisma, actor);
+  const prismaClient = input.prismaClient ?? prisma;
+  const resolveActor =
+    input.resolveActor ??
+    ((client: PrismaClient, adminActor: AdminActor) =>
+      resolveAdminActor(client, adminActor));
+  const user = await resolveActor(prismaClient, actor);
   const [notifications, unreadCount] = await Promise.all([
-    prisma.adminNotification.findMany({
+    prismaClient.adminNotification.findMany({
       orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       take: 50,
       select: {
@@ -83,7 +103,7 @@ export async function getAdminNotificationCenter(
         },
       },
     }),
-    prisma.adminNotification.count({
+    prismaClient.adminNotification.count({
       where: {
         reads: {
           none: { userId: user.id },
@@ -103,6 +123,8 @@ export async function markAdminNotificationRead(
     notificationId: string;
     actor: AdminActor | null;
     now?: Date;
+    prismaClient?: PrismaClient;
+    resolveActor?: AdminNotificationCenterActorResolver;
   }>,
 ): Promise<Readonly<{ readAt: string }>> {
   if (!input.actor) {
@@ -117,8 +139,13 @@ export async function markAdminNotificationRead(
     );
   }
 
-  const user = await resolveAdminActor(prisma, input.actor);
-  const notification = await prisma.adminNotification.findUnique({
+  const prismaClient = input.prismaClient ?? prisma;
+  const resolveActor =
+    input.resolveActor ??
+    ((client: PrismaClient, adminActor: AdminActor) =>
+      resolveAdminActor(client, adminActor));
+  const user = await resolveActor(prismaClient, input.actor);
+  const notification = await prismaClient.adminNotification.findUnique({
     where: { id: notificationId },
     select: { id: true },
   });
@@ -128,25 +155,32 @@ export async function markAdminNotificationRead(
   }
 
   const readAt = input.now ?? new Date();
-  const read = await prisma.adminNotificationRead.upsert({
+  await prismaClient.adminNotificationRead.createMany({
+    data: {
+      notificationId: notification.id,
+      userId: user.id,
+      readAt,
+    },
+    skipDuplicates: true,
+  });
+
+  const read = await prismaClient.adminNotificationRead.findUnique({
     where: {
       notificationId_userId: {
         notificationId: notification.id,
         userId: user.id,
       },
     },
-    update: {
-      readAt,
-    },
-    create: {
-      notificationId: notification.id,
-      userId: user.id,
-      readAt,
-    },
     select: {
       readAt: true,
     },
   });
+
+  if (!read) {
+    throw new AdminNotificationCenterError(
+      "ADMIN_NOTIFICATION_UNEXPECTED_ERROR",
+    );
+  }
 
   return {
     readAt: read.readAt.toISOString(),

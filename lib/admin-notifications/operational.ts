@@ -270,7 +270,7 @@ function getGuatemalaDateTime(date: Date, time: string | null): Date | null {
   );
 }
 
-function isDueWithinWindow(
+export function isAdminOperationalReminderDueWithinWindow(
   target: Date | null,
   now: Date,
   windowMs: number,
@@ -282,6 +282,44 @@ function isDueWithinWindow(
   const deltaMs = target.getTime() - now.getTime();
 
   return deltaMs > 0 && deltaMs <= windowMs;
+}
+
+export function isCheckInMinus48hAdminReminderDue(
+  input: Readonly<{
+    checkInDate: Date;
+    checkInTime: string | null;
+    now: Date;
+  }>,
+): boolean {
+  return isAdminOperationalReminderDueWithinWindow(
+    input.checkInTime
+      ? getArrivalCheckInDateTime(input.checkInDate, input.checkInTime)
+      : null,
+    input.now,
+    CHECK_IN_REMINDER_WINDOW_MS,
+  );
+}
+
+export function isCheckOutMinus6hAdminReminderDue(
+  input: Readonly<{
+    checkOutDate: Date;
+    checkOutTime: string | null;
+    now: Date;
+  }>,
+): boolean {
+  const checkoutTime = calculateReviewInvitationTimes(
+    input.checkOutDate,
+    input.checkOutTime,
+  );
+  const checkOutAt = checkoutTime.ok
+    ? checkoutTime.checkoutAt
+    : getGuatemalaDateTime(input.checkOutDate, input.checkOutTime);
+
+  return isAdminOperationalReminderDueWithinWindow(
+    checkOutAt,
+    input.now,
+    CHECK_OUT_REMINDER_WINDOW_MS,
+  );
 }
 
 async function readReservationNotificationContext(
@@ -510,14 +548,21 @@ async function ensureCheckInReminderIntent(
     return null;
   }
 
+  const deduplicationKey = buildCheckInMinus48hAdminNotificationDeduplicationKey(
+    {
+      reservationId: reservation.id,
+      checkInDate: reservation.checkInDate,
+      checkInTime: normalizedCheckInTime,
+    },
+  );
+
+  if (!deduplicationKey) {
+    return null;
+  }
+
   return ensureAdminOperationalNotificationIntent(transaction, {
     type: AdminNotificationType.CHECK_IN_MINUS_48H,
-    deduplicationKey: [
-      "admin-notification/check-in-minus-48h",
-      reservation.id,
-      toDateOnly(reservation.checkInDate),
-      normalizedCheckInTime,
-    ].join("/"),
+    deduplicationKey,
     context: {
       reservationId: reservation.id,
       reviewId: null,
@@ -547,14 +592,20 @@ async function ensureCheckOutReminderIntent(
     return null;
   }
 
+  const deduplicationKey =
+    buildCheckOutMinus6hAdminNotificationDeduplicationKey({
+      reservationId: reservation.id,
+      checkOutDate: reservation.checkOutDate,
+      checkOutTime: normalizedCheckOutTime,
+    });
+
+  if (!deduplicationKey) {
+    return null;
+  }
+
   return ensureAdminOperationalNotificationIntent(transaction, {
     type: AdminNotificationType.CHECK_OUT_MINUS_6H,
-    deduplicationKey: [
-      "admin-notification/check-out-minus-6h",
-      reservation.id,
-      toDateOnly(reservation.checkOutDate),
-      normalizedCheckOutTime,
-    ].join("/"),
+    deduplicationKey,
     context: {
       reservationId: reservation.id,
       reviewId: null,
@@ -628,7 +679,13 @@ export async function ensureDueAdminOperationalReminders(
       reservation.property.checkInTime,
     );
 
-    if (!isDueWithinWindow(checkInAt, now, CHECK_IN_REMINDER_WINDOW_MS)) {
+    if (
+      !isAdminOperationalReminderDueWithinWindow(
+        checkInAt,
+        now,
+        CHECK_IN_REMINDER_WINDOW_MS,
+      )
+    ) {
       skipped += 1;
       continue;
     }
@@ -658,7 +715,13 @@ export async function ensureDueAdminOperationalReminders(
           reservation.property.checkOutTime,
         );
 
-    if (!isDueWithinWindow(checkOutAt, now, CHECK_OUT_REMINDER_WINDOW_MS)) {
+    if (
+      !isAdminOperationalReminderDueWithinWindow(
+        checkOutAt,
+        now,
+        CHECK_OUT_REMINDER_WINDOW_MS,
+      )
+    ) {
       skipped += 1;
       continue;
     }
@@ -712,13 +775,55 @@ function getWebPushStatusCode(error: unknown): number | null {
   return null;
 }
 
-function normalizeDeliveryError(error: unknown): Readonly<{
+export function buildCheckInMinus48hAdminNotificationDeduplicationKey(
+  input: Readonly<{
+    reservationId: string;
+    checkInDate: Date;
+    checkInTime: string | null;
+  }>,
+): string | null {
+  const normalizedCheckInTime = normalizeTimeOfDay(input.checkInTime ?? "");
+
+  if (!normalizedCheckInTime) {
+    return null;
+  }
+
+  return [
+    "admin-notification/check-in-minus-48h",
+    input.reservationId,
+    toDateOnly(input.checkInDate),
+    normalizedCheckInTime,
+  ].join("/");
+}
+
+export function buildCheckOutMinus6hAdminNotificationDeduplicationKey(
+  input: Readonly<{
+    reservationId: string;
+    checkOutDate: Date;
+    checkOutTime: string | null;
+  }>,
+): string | null {
+  const normalizedCheckOutTime = normalizeTimeOfDay(input.checkOutTime ?? "");
+
+  if (!normalizedCheckOutTime) {
+    return null;
+  }
+
+  return [
+    "admin-notification/check-out-minus-6h",
+    input.reservationId,
+    toDateOnly(input.checkOutDate),
+    normalizedCheckOutTime,
+  ].join("/");
+}
+
+export function classifyAdminPushDeliveryStatusCode(
+  statusCode: number | null,
+): Readonly<{
   code: AdminPushDeliveryErrorCode;
   retryable: boolean;
   expired: boolean;
 }> {
-  const statusCode = getWebPushStatusCode(error);
-
   if (statusCode === 404 || statusCode === 410) {
     return {
       code: "ADMIN_PUSH_SUBSCRIPTION_EXPIRED",
@@ -758,14 +863,22 @@ function normalizeDeliveryError(error: unknown): Readonly<{
   };
 }
 
-async function recoverStaleAdminPushDeliveries(
+function normalizeDeliveryError(error: unknown): Readonly<{
+  code: AdminPushDeliveryErrorCode;
+  retryable: boolean;
+  expired: boolean;
+}> {
+  return classifyAdminPushDeliveryStatusCode(getWebPushStatusCode(error));
+}
+
+export async function recoverStaleAdminPushDeliveries(
   now: Date,
-  prismaClient: PrismaClient,
+  prismaClient: Pick<PrismaClient, "adminPushDelivery">,
 ): Promise<number> {
   const staleBefore = new Date(
     now.getTime() - ADMIN_PUSH_DELIVERY_STALE_TIMEOUT_MS,
   );
-  const result = await prismaClient.adminPushDelivery.updateMany({
+  const retryable = await prismaClient.adminPushDelivery.updateMany({
     where: {
       status: AdminPushDeliveryStatus.PROCESSING,
       processingStartedAt: { lt: staleBefore },
@@ -779,8 +892,23 @@ async function recoverStaleAdminPushDeliveries(
       errorMessage: SAFE_PUSH_DELIVERY_ERROR_MESSAGES.ADMIN_PUSH_DELIVERY_STALE,
     },
   });
+  const exhausted = await prismaClient.adminPushDelivery.updateMany({
+    where: {
+      status: AdminPushDeliveryStatus.PROCESSING,
+      processingStartedAt: { lt: staleBefore },
+      attemptCount: { gte: ADMIN_PUSH_DELIVERY_MAX_ATTEMPTS },
+    },
+    data: {
+      status: AdminPushDeliveryStatus.FAILED,
+      processingStartedAt: null,
+      nextAttemptAt: null,
+      errorCode: "ADMIN_PUSH_DELIVERY_MAX_ATTEMPTS",
+      errorMessage:
+        SAFE_PUSH_DELIVERY_ERROR_MESSAGES.ADMIN_PUSH_DELIVERY_MAX_ATTEMPTS,
+    },
+  });
 
-  return result.count;
+  return retryable.count + exhausted.count;
 }
 
 function buildEligibleDeliveryWhere(

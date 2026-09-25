@@ -16,7 +16,7 @@ Migration: 20260925190000_final_f_6_admin_operational_notifications
 Migration application: Applied to developer-owned Local/Test database on 2026-09-25
 Owner acceptance: Pending
 Hosted Test: Pending
-Final-F.7: Next / Not started
+Final-F.7: Not started
 Final-F.8: Not started
 Final-G/H: Not started
 Phase 13: Not started
@@ -64,6 +64,17 @@ targetPath: internal Admin path only
 It does not include guest names, guest emails, guest phone numbers, review comments, payment
 amounts, tokens, PushSubscription endpoints, subscription keys, provider bodies, or VAPID private
 key material.
+
+## Independent Review Hardening
+
+The pre-Hosted-Test hardening pass corrected the following issues without adding schema changes,
+migrations, dependencies, Vercel cron registrations, Final-F.7 runtime, or new notification types:
+
+```text
+- stale PROCESSING deliveries at the maximum attempt count are terminally recovered instead of remaining stuck;
+- mark-read preserves the original per-admin read timestamp;
+- F.6 timing, retry, read-state, target, deduplication and provider-classification behavior now has executable behavioral coverage.
+```
 
 ## Persistence
 
@@ -134,7 +145,7 @@ Executed for the F.6 implementation:
 ```text
 git status --short --branch - PASS; starting branch main at b328d3f3dff6e0fd19303dad225454bc9af4126f
 git rev-parse HEAD - PASS; b328d3f3dff6e0fd19303dad225454bc9af4126f
-npx tsx --tsconfig tests/final-f/tsconfig.json tests/final-f/run.ts - PASS after elevated rerun; Final-F targeted validation 73/73
+npx tsx --tsconfig tests/final-f/tsconfig.json tests/final-f/run.ts - PASS after elevated rerun; Final-F targeted validation 81/81
 npm run env:validate - PASS after elevated rerun; first sandbox run failed only with uv_os_get_passwd ENOMEM
 npm run db:format - PASS
 npm run db:validate - PASS
@@ -152,6 +163,21 @@ The initial `npm run db:migrate:status` run before applying the migration correc
 `20260925190000_final_f_6_admin_operational_notifications` as pending in the developer-owned
 Local/Test database. After applying it with `npm run db:migrate:deploy`, the post-deploy status
 reported the database schema up to date.
+
+Hardening validation refresh:
+
+```text
+npx tsx --tsconfig tests/final-f/tsconfig.json tests/final-f/run.ts - PASS after elevated rerun; Final-F targeted validation 81/81
+npm run final-d:validate - PASS after elevated rerun; 66/66
+npm run final-e:validate - PASS after elevated rerun; 88/88
+npm run env:validate - PASS after elevated rerun; environment variables are valid
+npm run db:validate - PASS
+npm run db:generate - PASS; Prisma Client v6.19.3 generated
+npm run db:migrate:status - PASS after elevated rerun; 28 migrations; database schema up to date
+npm run lint - PASS
+npm run build - PASS after elevated rerun; sandbox run failed on Google Fonts network fetch, and an intermediate type error was corrected before the final passing run
+git diff --check - PASS; no whitespace errors
+```
 
 ## Acceptance State
 
