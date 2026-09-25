@@ -84,83 +84,6 @@ const providerCredentialValueSchema = placeholderValueSchema.refine(
   "Must not contain whitespace.",
 );
 
-const optionalProviderCredentialValueSchema = z.preprocess(
-  emptyStringToUndefined,
-  providerCredentialValueSchema.optional(),
-);
-
-const optionalTwilioAccountSidSchema = z.preprocess(
-  emptyStringToUndefined,
-  providerCredentialValueSchema
-    .refine(
-      (value) => /^AC[0-9a-fA-F]{32}$/.test(value),
-      "Must be a valid Twilio Account SID.",
-    )
-    .optional(),
-);
-
-const optionalTwilioWhatsappAddressSchema = z.preprocess(
-  emptyStringToUndefined,
-  z
-    .string()
-    .trim()
-    .refine(
-      (value) => /^whatsapp:\+[1-9]\d{7,14}$/.test(value),
-      "Must be a whatsapp:+E.164 address.",
-    )
-    .optional(),
-);
-
-const optionalTwilioProbeBodySchema = z.preprocess(
-  emptyStringToUndefined,
-  z.string().trim().min(1).max(320).optional(),
-);
-
-const optionalD360WebhookUsernameSchema = z.preprocess(
-  emptyStringToUndefined,
-  z
-    .string()
-    .trim()
-    .min(1)
-    .max(120)
-    .refine(
-      (value) => /^[\x21-\x7E]+$/.test(value) && !value.includes(":"),
-      "Must use visible ASCII characters and must not contain a colon.",
-    )
-    .optional(),
-);
-
-const optionalD360WebhookPasswordSchema = z.preprocess(
-  emptyStringToUndefined,
-  z
-    .string()
-    .trim()
-    .min(32, "Must be at least 32 characters long.")
-    .max(256)
-    .refine(
-      (value) => /^[\x21-\x7E]+$/.test(value),
-      "Must use visible ASCII characters only.",
-    )
-    .optional(),
-);
-
-const optionalD360OnboardingRecipientSchema = z.preprocess(
-  emptyStringToUndefined,
-  z
-    .string()
-    .trim()
-    .refine(
-      (value) => /^\+[1-9]\d{7,14}$/.test(value.replace(/[\s().-]/g, "")),
-      "Must be an E.164 international phone number.",
-    )
-    .optional(),
-);
-
-const optionalD360ProbeBodySchema = z.preprocess(
-  emptyStringToUndefined,
-  z.string().trim().min(1).max(320).optional(),
-);
-
 const optionalEmailSchema = z.preprocess(
   emptyStringToUndefined,
   z
@@ -384,9 +307,6 @@ const emailRequiredKeys = [
   "EMAIL_BRAND_LOGO_URL",
 ] as const;
 
-const twilioWebhookBaseUrlKey = "TWILIO_WEBHOOK_BASE_URL" as const;
-const d360WebhookBaseUrlKey = "D360_WEBHOOK_BASE_URL" as const;
-
 const rawServerEnvSchema = z.object({
   TRP_ENVIRONMENT: z.enum(["local", "test", "production"], {
     message: "Must be local, test, or production.",
@@ -432,18 +352,6 @@ const rawServerEnvSchema = z.object({
   EMAIL_PUBLIC_BASE_URL: optionalUrlSchema,
   EMAIL_BRAND_LOGO_URL: optionalPublicAssetUrlSchema,
   EMAIL_TEST_RECIPIENT: optionalEmailSchema,
-  TWILIO_ACCOUNT_SID: optionalTwilioAccountSidSchema,
-  TWILIO_AUTH_TOKEN: optionalProviderCredentialValueSchema,
-  TWILIO_WHATSAPP_FROM: optionalTwilioWhatsappAddressSchema,
-  TWILIO_WEBHOOK_BASE_URL: optionalUrlSchema,
-  TWILIO_ONBOARDING_TO: optionalTwilioWhatsappAddressSchema,
-  TWILIO_ONBOARDING_PROBE_BODY: optionalTwilioProbeBodySchema,
-  D360_API_KEY: optionalProviderCredentialValueSchema,
-  D360_WEBHOOK_BASE_URL: optionalUrlSchema,
-  D360_WEBHOOK_USERNAME: optionalD360WebhookUsernameSchema,
-  D360_WEBHOOK_PASSWORD: optionalD360WebhookPasswordSchema,
-  D360_ONBOARDING_TO: optionalD360OnboardingRecipientSchema,
-  D360_ONBOARDING_PROBE_BODY: optionalD360ProbeBodySchema,
   VERCEL_ENV: vercelEnvironmentSchema,
   NODE_ENV: z
     .enum(["development", "test", "production"])
@@ -507,58 +415,6 @@ function validateEnvironmentUrl(
 const serverEnvSchema = rawServerEnvSchema.superRefine((env, context) => {
   for (const key of tilopayCallbackUrlKeys) {
     validateEnvironmentUrl(context, key, env[key], env.TRP_ENVIRONMENT);
-  }
-
-  if (env[twilioWebhookBaseUrlKey]) {
-    const webhookBaseUrl = new URL(env[twilioWebhookBaseUrlKey]);
-
-    if (
-      webhookBaseUrl.pathname !== "/" ||
-      webhookBaseUrl.search ||
-      webhookBaseUrl.hash ||
-      webhookBaseUrl.username ||
-      webhookBaseUrl.password
-    ) {
-      context.addIssue({
-        code: "custom",
-        path: [twilioWebhookBaseUrlKey],
-        message:
-          "Must be a canonical public origin without path, query, credentials, or fragment.",
-      });
-    } else {
-      validateEnvironmentUrl(
-        context,
-        twilioWebhookBaseUrlKey,
-        env[twilioWebhookBaseUrlKey],
-        env.TRP_ENVIRONMENT,
-      );
-    }
-  }
-
-  if (env[d360WebhookBaseUrlKey]) {
-    const webhookBaseUrl = new URL(env[d360WebhookBaseUrlKey]);
-
-    if (
-      webhookBaseUrl.pathname !== "/" ||
-      webhookBaseUrl.search ||
-      webhookBaseUrl.hash ||
-      webhookBaseUrl.username ||
-      webhookBaseUrl.password
-    ) {
-      context.addIssue({
-        code: "custom",
-        path: [d360WebhookBaseUrlKey],
-        message:
-          "Must be a canonical public origin without path, query, credentials, or fragment.",
-      });
-    } else {
-      validateEnvironmentUrl(
-        context,
-        d360WebhookBaseUrlKey,
-        env[d360WebhookBaseUrlKey],
-        env.TRP_ENVIRONMENT,
-      );
-    }
   }
 
   const expectedTilopayEnvironment =
@@ -740,28 +596,6 @@ export type TilopayEnv = Pick<
   | "TILOPAY_WEBHOOK_URL"
 >;
 
-export type TwilioEnv = Pick<
-  ServerEnv,
-  | "TRP_ENVIRONMENT"
-  | "TWILIO_ACCOUNT_SID"
-  | "TWILIO_AUTH_TOKEN"
-  | "TWILIO_WHATSAPP_FROM"
-  | "TWILIO_WEBHOOK_BASE_URL"
-  | "TWILIO_ONBOARDING_TO"
-  | "TWILIO_ONBOARDING_PROBE_BODY"
->;
-
-export type D360Env = Pick<
-  ServerEnv,
-  | "TRP_ENVIRONMENT"
-  | "D360_API_KEY"
-  | "D360_WEBHOOK_BASE_URL"
-  | "D360_WEBHOOK_USERNAME"
-  | "D360_WEBHOOK_PASSWORD"
-  | "D360_ONBOARDING_TO"
-  | "D360_ONBOARDING_PROBE_BODY"
->;
-
 export type EmailDeliveryMode = "disabled" | "test" | "production";
 
 export type DisabledEmailEnv = Readonly<{
@@ -840,18 +674,6 @@ export function validateServerEnv(
     EMAIL_PUBLIC_BASE_URL: source.EMAIL_PUBLIC_BASE_URL,
     EMAIL_BRAND_LOGO_URL: source.EMAIL_BRAND_LOGO_URL,
     EMAIL_TEST_RECIPIENT: source.EMAIL_TEST_RECIPIENT,
-    TWILIO_ACCOUNT_SID: source.TWILIO_ACCOUNT_SID,
-    TWILIO_AUTH_TOKEN: source.TWILIO_AUTH_TOKEN,
-    TWILIO_WHATSAPP_FROM: source.TWILIO_WHATSAPP_FROM,
-    TWILIO_WEBHOOK_BASE_URL: source.TWILIO_WEBHOOK_BASE_URL,
-    TWILIO_ONBOARDING_TO: source.TWILIO_ONBOARDING_TO,
-    TWILIO_ONBOARDING_PROBE_BODY: source.TWILIO_ONBOARDING_PROBE_BODY,
-    D360_API_KEY: source.D360_API_KEY,
-    D360_WEBHOOK_BASE_URL: source.D360_WEBHOOK_BASE_URL,
-    D360_WEBHOOK_USERNAME: source.D360_WEBHOOK_USERNAME,
-    D360_WEBHOOK_PASSWORD: source.D360_WEBHOOK_PASSWORD,
-    D360_ONBOARDING_TO: source.D360_ONBOARDING_TO,
-    D360_ONBOARDING_PROBE_BODY: source.D360_ONBOARDING_PROBE_BODY,
     VERCEL_ENV: source.VERCEL_ENV,
     NODE_ENV: source.NODE_ENV,
   });
@@ -897,34 +719,6 @@ export function getTilopayEnv(
     TILOPAY_CANCEL_URL: env.TILOPAY_CANCEL_URL,
     TILOPAY_ERROR_URL: env.TILOPAY_ERROR_URL,
     TILOPAY_WEBHOOK_URL: env.TILOPAY_WEBHOOK_URL,
-  };
-}
-
-export function getTwilioEnv(source: NodeJS.ProcessEnv = process.env): TwilioEnv {
-  const env = validateServerEnv(source);
-
-  return {
-    TRP_ENVIRONMENT: env.TRP_ENVIRONMENT,
-    TWILIO_ACCOUNT_SID: env.TWILIO_ACCOUNT_SID,
-    TWILIO_AUTH_TOKEN: env.TWILIO_AUTH_TOKEN,
-    TWILIO_WHATSAPP_FROM: env.TWILIO_WHATSAPP_FROM,
-    TWILIO_WEBHOOK_BASE_URL: env.TWILIO_WEBHOOK_BASE_URL,
-    TWILIO_ONBOARDING_TO: env.TWILIO_ONBOARDING_TO,
-    TWILIO_ONBOARDING_PROBE_BODY: env.TWILIO_ONBOARDING_PROBE_BODY,
-  };
-}
-
-export function getD360Env(source: NodeJS.ProcessEnv = process.env): D360Env {
-  const env = validateServerEnv(source);
-
-  return {
-    TRP_ENVIRONMENT: env.TRP_ENVIRONMENT,
-    D360_API_KEY: env.D360_API_KEY,
-    D360_WEBHOOK_BASE_URL: env.D360_WEBHOOK_BASE_URL,
-    D360_WEBHOOK_USERNAME: env.D360_WEBHOOK_USERNAME,
-    D360_WEBHOOK_PASSWORD: env.D360_WEBHOOK_PASSWORD,
-    D360_ONBOARDING_TO: env.D360_ONBOARDING_TO,
-    D360_ONBOARDING_PROBE_BODY: env.D360_ONBOARDING_PROBE_BODY,
   };
 }
 

@@ -51,6 +51,7 @@ import { test } from "./harness";
 const D6_TOKEN =
   "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 const D6_BASE_NOW = new Date("2026-09-17T12:00:00.000Z");
+const D6_ACTIVE_REQUEST_EXPIRES_AT = new Date("2099-09-24T12:00:00.000Z");
 const D6_RESERVATION_ID = "reservation-final-d6";
 const D6_REQUEST_ID = "request-final-d6";
 const D6_NOTIFICATION_ID = "notification-final-d6";
@@ -1178,7 +1179,7 @@ function seedD6PaymentRequest(
     accessTokenHash: tokenMaterial.tokenHash,
     accessTokenEncrypted: tokenMaterial.encryptedToken,
     expiresAt:
-      options.expiresAt ?? new Date("2026-09-24T12:00:00.000Z"),
+      options.expiresAt ?? new Date(D6_ACTIVE_REQUEST_EXPIRES_AT.getTime()),
     createdByAdminId: "admin-final-d6",
     clientRequestId: "client-d6-seeded",
     paidAt: null,
@@ -1973,7 +1974,7 @@ test("D.6 behavior fails delivery safely without rolling back the request or exp
     currency: "USD",
     accessTokenHash: tokenMaterial.tokenHash,
     accessTokenEncrypted: tokenMaterial.encryptedToken,
-    expiresAt: new Date("2026-09-24T12:00:00.000Z"),
+    expiresAt: new Date(D6_ACTIVE_REQUEST_EXPIRES_AT.getTime()),
     createdByAdminId: "admin-final-d6",
     clientRequestId: "client-d6",
     paidAt: null,
@@ -2655,7 +2656,7 @@ test("D.6 behavior creates idempotent manual resends tied to the same guest paym
     currency: "USD",
     accessTokenHash: tokenMaterial.tokenHash,
     accessTokenEncrypted: tokenMaterial.encryptedToken,
-    expiresAt: new Date("2026-09-24T12:00:00.000Z"),
+    expiresAt: new Date(D6_ACTIVE_REQUEST_EXPIRES_AT.getTime()),
     createdByAdminId: "admin-final-d6",
     clientRequestId: "client-d6-manual",
     paidAt: null,
@@ -2951,7 +2952,7 @@ test("D.6 behavior exposes additional-charge email history with safe guest-payme
     currency: "USD",
     accessTokenHash: hashGuestPaymentRequestAccessToken(D6_TOKEN),
     accessTokenEncrypted: "encrypted-only",
-    expiresAt: new Date("2026-09-24T12:00:00.000Z"),
+    expiresAt: new Date(D6_ACTIVE_REQUEST_EXPIRES_AT.getTime()),
     createdByAdminId: "admin-final-d6",
     clientRequestId: "client-d6-history",
     paidAt: null,

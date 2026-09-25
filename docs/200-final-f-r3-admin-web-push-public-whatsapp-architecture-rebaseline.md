@@ -16,7 +16,7 @@ Schema changes: none
 Migration changes: none
 Dependency changes: none
 Owner acceptance: Completed on 2026-09-24
-Final-F.R4: Next / Not started
+Final-F.R4: Implementation completed in repository after R3; Local/Test cleanup migration applied; Hosted Test validation and explicit owner acceptance pending
 Final-F.R5: Not started
 Final-F.6: Not started
 Final-F.7: Not started
@@ -32,6 +32,17 @@ Web Push, schema changes, provider removal, or notification center.
 As of the owner's explicit 2026-09-24 acceptance, this document is the current authoritative
 Final-F architecture contract for the decisions revised by R3.
 
+## R4 Continuation Note
+
+Final-F.R4 has since implemented the R3-directed backend WhatsApp/provider decommission and public
+WhatsApp contact scope in the repository. Local/Test cleanup migration is applied. Hosted Test
+public contact validation and explicit owner acceptance remain pending. The R4 implementation record
+is:
+
+```text
+docs/201-final-f-r4-whatsapp-backend-decommission-and-public-whatsapp-contact.md
+```
+
 ## Owner Acceptance
 
 Final-F.R3 was completed and accepted by the owner on 2026-09-24.
@@ -46,7 +57,9 @@ Android Admin Web Push as an additional ADMIN notification channel beside existi
 ADMIN-only authorization, Android/current-Chromium PWA acceptance, iOS/iPadOS Deferred treatment,
 standard Web Push + VAPID direction, shared email/push target resolution, the six ADMIN
 notification classes, privacy-bounded lock-screen copy, durable delivery semantics, and the
-revised Final-F sequence with Final-F.R4 as Next / Not started.
+revised Final-F sequence with Final-F.R4 as the next implementation step. R4 has since been
+implemented in repository, Local/Test cleanup migration has been applied, and Hosted Test validation
+plus explicit owner acceptance remain pending.
 
 ## Owner Decision
 

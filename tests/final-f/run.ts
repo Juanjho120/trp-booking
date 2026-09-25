@@ -1,8 +1,4 @@
-import "./d360-provider-foundation.test";
-import "./twilio-provider-foundation.test";
-import "./whatsapp-inbound-inbox.test";
-import "./whatsapp-outbound-status.test";
-import "./whatsapp-persistence-foundation.test";
+import "./r4-whatsapp-decommission-public-contact.test";
 
 import { runFinalFTests } from "./harness";
 

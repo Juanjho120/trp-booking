@@ -12,7 +12,7 @@ export function test(name: string, run: FinalFTest["run"]): void {
 export async function runFinalFTests(): Promise<void> {
   let passed = 0;
 
-  console.log("Final-F targeted provider foundation validation");
+  console.log("Final-F targeted R4 validation");
   console.log(`Registered tests: ${registeredTests.length}`);
 
   for (const current of registeredTests) {

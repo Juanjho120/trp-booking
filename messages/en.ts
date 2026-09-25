@@ -73,6 +73,11 @@ export const enMessages = {
     note:
       "Soon you will be able to check availability, book, and pay online from this website.",
   },
+  publicWhatsApp: {
+    ariaLabel: "Contact us on WhatsApp",
+    footerLabel: "Contact us on WhatsApp",
+    initialMessage: "Hello, I have a question about Tu Refugio Perfecto.",
+  },
   home: {
     hero: {
       badge: "Panajachel · Lake Atitlán",
@@ -601,7 +606,6 @@ export const enMessages = {
         catalogs: "Catalogs",
         cronJobs: "Cron jobs",
         reviews: "Reviews",
-        whatsapp: "WhatsApp",
       },
     },
     reviewsPage: {
@@ -673,119 +677,6 @@ export const enMessages = {
           "That status change is not allowed for this review.",
         ADMIN_REVIEW_UNEXPECTED_ERROR:
           "We could not complete moderation. Try again.",
-      },
-    },
-    whatsappPage: {
-      seoTitle: "WhatsApp | Admin",
-      badge: "WhatsApp",
-      title: "WhatsApp inbox",
-      description:
-        "Review inbound guest messages and their safe optional reservation linkage.",
-      descriptionReply:
-        "Reply to the guest from the WhatsApp operational window without exposing administrative data.",
-      tabs: {
-        chat: "Chat",
-        reservations: "Associated reservations ({count})",
-      },
-      sections: {
-        conversations: "Conversations",
-        linkedReservation: "Linked reservation",
-        possibleReservation: "Possible reservation",
-        associatedReservations:
-          "Reservations associated with this phone ({count})",
-        otherAssociatedReservations:
-          "Other reservations associated with this phone ({count})",
-      },
-      labels: {
-        results: "Results",
-        page: "Page",
-        of: "of",
-        unavailable: "Unavailable",
-        linked: "Linked reservation",
-        unlinked: "No linked reservation or ambiguous match",
-        lastInbound: "Last inbound",
-        windowExpires: "24h window expires",
-        media: "Received attachments",
-        unknownMediaType: "Unspecified type",
-        checkIn: "Check-in",
-        checkOut: "Check-out",
-        status: "Status",
-        phone: "Phone",
-      },
-      reply: {
-        label: "Reply",
-        placeholder: "Write a reply for the guest.",
-        characterCount: "{count}/{max} characters",
-        windowClosed:
-          "The 24-hour window is closed. Contacting the guest again requires an approved WhatsApp template.",
-      },
-      actions: {
-        previous: "Previous",
-        next: "Next",
-        openReservation: "Open reservation",
-        markRead: "Mark as read",
-        markingRead: "Marking...",
-        sendReply: "Send reply",
-        sendingReply: "Sending...",
-        dismiss: "Dismiss notification",
-      },
-      directions: {
-        INBOUND: "Inbound",
-        OUTBOUND: "Outbound",
-      },
-      messageStatuses: {
-        RECEIVED: "Received",
-        PENDING: "Pending",
-        PROCESSING: "Processing",
-        QUEUED: "Queued",
-        SENT: "Sent",
-        DELIVERED: "Delivered",
-        READ: "Read",
-        FAILED: "Failed",
-        UNDELIVERED: "Undelivered",
-        SKIPPED: "Skipped",
-      },
-      feedback: {
-        markedRead: "The conversation was marked as read.",
-        messageSent: "The WhatsApp reply was recorded.",
-      },
-      empty: {
-        noConversations: "There are no WhatsApp conversations yet.",
-        noSelectionTitle: "Select a conversation",
-        noSelectionDescription:
-          "When a valid inbound message arrives, it will appear here with protected history.",
-        noMessages: "This conversation does not have visible messages yet.",
-        noAssociatedReservations:
-          "No reservations were found for this phone.",
-      },
-      reservationStatuses: {
-        PENDING_PAYMENT: "Pending payment",
-        CONFIRMED: "Confirmed",
-        CANCELLED: "Cancelled",
-        REFUNDED: "Refunded",
-        PARTIALLY_REFUNDED: "Partially refunded",
-        EXPIRED: "Expired",
-        BLOCKED: "Blocked",
-      },
-      errors: {
-        ADMIN_UNAUTHORIZED:
-          "Your admin session expired. Please sign in again.",
-        ADMIN_WHATSAPP_ORIGIN_INVALID:
-          "We could not validate the origin of this admin action.",
-        INVALID_ADMIN_WHATSAPP_REQUEST:
-          "We could not process the WhatsApp request.",
-        ADMIN_WHATSAPP_CONVERSATION_NOT_FOUND:
-          "We could not find the requested conversation.",
-        ADMIN_WHATSAPP_MESSAGE_REQUIRED:
-          "Write a reply before sending.",
-        ADMIN_WHATSAPP_MESSAGE_TOO_LONG:
-          "The reply exceeds the allowed limit.",
-        ADMIN_WHATSAPP_FREEFORM_WINDOW_CLOSED:
-          "The 24-hour window is closed. Contacting the guest again requires an approved WhatsApp template.",
-        ADMIN_WHATSAPP_IDEMPOTENCY_CONFLICT:
-          "This send request was already used with different content. Refresh the view and try again.",
-        ADMIN_WHATSAPP_UNEXPECTED_ERROR:
-          "We could not update the conversation. Try again.",
       },
     },
     statuses: {
