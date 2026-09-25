@@ -7,15 +7,20 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-F — Public WhatsApp Contact and Admin Notifications
 Subphase: Final-F.R5 — Android Admin PWA/Web Push foundation
-Status: Implementation completed; Hosted Test VAPID setup + Android installed-PWA controlled push validation + explicit owner acceptance pending
+Status: Completed and accepted on 2026-09-25
 Document date: 2026-09-25
 Implementation base head: 126f807e9159b52fe44e374e33f2755186a649c7
+Implementation head: f35354a775e8d744945d896da4e3c7f4787aed8e
+Accepted implementation/hardening/validation head: 88616acf46645ccc01cc475f20a868d7c18dbadf
 Accepted architecture base: Final-F.R3 at be80af9b36f285c7669986e9c9b4d6676042f6f0
 Previous accepted subphase: Final-F.R4 completed and accepted on 2026-09-25 at ae0db63efdabfa3bc952a8a2a71220de231ebc18
 Migration: 20260925170000_final_f_r5_admin_push_subscription
 Migration application: Applied to developer-owned Local/Test database on 2026-09-25
-Final-F.R5 acceptance: Pending
-Final-F.6: Not started
+Owner acceptance: Completed on 2026-09-25
+Hosted Test: Completed and accepted
+Vercel for accepted head: SUCCESS
+Final-F.R5 acceptance: Completed
+Final-F.6: Next / Not started
 Final-F.7: Not started
 Final-F.8: Not started
 Final-G/H: Not started
@@ -246,47 +251,92 @@ npm run final-e:validate — PASS; 88/88
 npm run lint — PASS
 npm run build — PASS after elevated rerun; first sandbox run failed only on Google Fonts network fetch, and an intermediate type error was corrected before the passing run
 git diff --check — PASS; no whitespace errors
+Vercel — SUCCESS for 88616acf46645ccc01cc475f20a868d7c18dbadf
+Hosted Android Test — PASS by owner on 2026-09-25
 ```
 
 `git diff --check` is run at final review time before commit.
 
-## Hosted Test Pending
+## Hosted Test / Owner Acceptance
 
-Final-F.R5 is not accepted yet. Required owner Hosted Test sequence remains:
+Final-F.R5 was explicitly accepted by the owner on 2026-09-25 at accepted
+implementation/hardening/validation head `88616acf46645ccc01cc475f20a868d7c18dbadf`.
+Vercel for the accepted head was SUCCESS.
+
+Owner-validated Hosted Test evidence:
 
 ```text
-1. generate one stable Developer/Test VAPID pair
-2. configure WEB_PUSH_VAPID_PUBLIC_KEY in Vercel
-3. configure WEB_PUSH_VAPID_PRIVATE_KEY as secret/sensitive value
-4. configure WEB_PUSH_SUBJECT
-5. redeploy stable Test
-6. Android Chrome -> https://trp-booking.juantzun.dev/admin/notifications
-7. Google ADMIN login
-8. install TRP Admin / add to Home Screen
-9. launch installed TRP Admin
-10. confirm /admin/notifications
-11. tap Activar notificaciones
-12. Android permission prompt appears only after tap
-13. grant permission
-14. confirm device registered
-15. close/background TRP Admin
-16. trigger controlled test notification
-17. notification appears in Android system tray
-18. tap notification
-19. TRP Admin opens /admin/notifications
-20. disable current device
-21. controlled test no longer treats revoked subscription as active
+- TRP Admin installed successfully on Android
+- installed app opens the protected Admin experience
+- /admin/notifications works
+- Web Push browser support confirmed
+- VAPID configuration works in stable Test
+- notification permission granted through explicit user gesture
+- Android browser/device PushSubscription created
+- current device registered successfully in TRP
+- controlled Web Push test notification delivered successfully
+- no runtime errors observed
+- tapping the test notification opens TRP Admin at /admin/notifications
+- disabling the current device succeeds
+- browser subscription becomes not subscribed after disable
+- TRP server registration becomes not registered after disable
 ```
 
 iOS/iPadOS remains Deferred and is not part of the R5 acceptance gate.
+
+R5 acceptance does not claim integrated business-event push delivery. Durable operational
+notifications, read/unread state, delivery history, retries, and business-event push acceptance
+belong to Final-F.6 and Final-F.8.
+
+The accepted installed PWA contract is:
+
+```text
+Installed app name: TRP Admin
+start_url: /admin/notifications
+scope: /admin/
+display: standalone
+icons: /brand/favicon-192.png and /brand/favicon-512.png
+```
+
+No separate frontend or native app was created; the same TRP Booking deployment provides the
+installed Admin experience.
+
+The accepted notification-click behavior remains bounded:
+
+```text
+Push payload: title, body, targetPath
+targetPath: constrained to internal /admin paths
+fallback: /admin/notifications
+existing same-origin client -> navigate/focus target
+otherwise -> openWindow(target)
+```
+
+Authentication continues through the existing middleware/Auth.js flow. There is no duplicate PWA
+auth system and no arbitrary cross-origin navigation from push payloads.
+
+The owner validated Disable successfully. R5 acceptance does not depend on leaving the current
+Android subscription active after that test. Before Hosted Test of Final-F.6, ensure at least one
+accepted Android ADMIN device is re-enabled/registered so real operational notifications can be
+delivered. Do not claim the device was re-enabled unless independently confirmed.
+
+## Documentation Authority
+
+After R5 acceptance:
+
+```text
+docs/160 = authoritative Final Improvement Track roadmap
+docs/200 = accepted authoritative Final-F architecture contract
+docs/201 = accepted Final-F.R4 implementation/validation record
+docs/202 = accepted Final-F.R5 implementation/validation record
+```
 
 ## Next State
 
 ```text
 Final-F.R3 — Completed and accepted on 2026-09-24
 Final-F.R4 — Completed and accepted on 2026-09-25 at ae0db63efdabfa3bc952a8a2a71220de231ebc18
-Final-F.R5 — Implementation completed; Hosted Test VAPID setup + Android installed-PWA controlled push validation + explicit owner acceptance pending
-Final-F.6 — Admin Web Push operational notifications — Not started
+Final-F.R5 — Completed and accepted on 2026-09-25 at 88616acf46645ccc01cc475f20a868d7c18dbadf
+Final-F.6 — Admin Web Push operational notifications — Next / Not started
 Final-F.7 — Zoho incoming-email bounded metadata and GUEST_EMAIL_RECEIVED Admin Web Push — Not started
 Final-F.8 — Android PWA/Web Push integrated regression, public WhatsApp contact acceptance and Final-F closure — Not started
 Final-G/H — Not started

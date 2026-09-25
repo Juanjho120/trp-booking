@@ -17,8 +17,8 @@ Migration changes: none
 Dependency changes: none
 Owner acceptance: Completed on 2026-09-24
 Final-F.R4: Completed and accepted on 2026-09-25 at ae0db63efdabfa3bc952a8a2a71220de231ebc18
-Final-F.R5: Implementation completed; Hosted Test VAPID setup + Android installed-PWA controlled push validation + explicit owner acceptance pending
-Final-F.6: Not started
+Final-F.R5: Completed and accepted on 2026-09-25 at 88616acf46645ccc01cc475f20a868d7c18dbadf
+Final-F.6: Next / Not started
 Final-F.7: Not started
 Final-F.8: Not started
 Final-G/H: Not started
@@ -58,9 +58,9 @@ ADMIN-only authorization, Android/current-Chromium PWA acceptance, iOS/iPadOS De
 standard Web Push + VAPID direction, shared email/push target resolution, the six ADMIN
 notification classes, privacy-bounded lock-screen copy, durable delivery semantics, and the
 revised Final-F sequence with Final-F.R4 as the next implementation step. R4 has since been
-completed and accepted on 2026-09-25; Final-F.R5 implementation is completed in repository
-with VAPID Hosted Test setup, Android installed-PWA controlled push validation, and explicit
-owner acceptance pending.
+completed and accepted on 2026-09-25; Final-F.R5 has since been completed and accepted on
+2026-09-25 at `88616acf46645ccc01cc475f20a868d7c18dbadf` after Vercel SUCCESS and owner
+Hosted Android Test acceptance.
 
 ## Owner Decision
 
@@ -410,7 +410,7 @@ Android Admin PWA/Web Push foundation
 - AdminPushSubscription
 - /admin/notifications
 - controlled Android Test push
-— implementation completed; Hosted Test VAPID setup + Android installed-PWA controlled push validation + explicit owner acceptance pending
+— completed and accepted on 2026-09-25 at 88616acf46645ccc01cc475f20a868d7c18dbadf
 
 Final-F.6 —
 Admin Web Push operational notifications for:
@@ -421,7 +421,7 @@ CHECK_OUT_MINUS_6H
 REVIEW_SUBMITTED
 - durable AdminNotification delivery/retry
 - reminder scheduling
-— Not started
+— Next / Not started
 
 Final-F.7 —
 Zoho incoming-email bounded metadata

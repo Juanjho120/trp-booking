@@ -5,7 +5,7 @@
 ```text
 Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
-Status: Active — Final-A, Final-B, Final-C, Final-D and Final-E completed and accepted; Final-F is Active under accepted Final-F.R3 architecture rebaseline; Final-F.1 through Final-F.4 are completed and accepted; Final-F.5 Twilio-based implementation is completed at 551199a3e562be7c7fd9861760c3e38cafbf0b15 but superseded before owner acceptance by R1; Final-F.R1 is completed and accepted historically on 2026-09-23 at 4c94db87ebd9df225944ce76c78f98462e4755d1 but superseded for future target decisions by R3; Final-F.R2 implementation is completed but superseded before owner acceptance by R3; Final-F.R3 is completed and accepted on 2026-09-24 at be80af9b36f285c7669986e9c9b4d6676042f6f0; Final-F.R4 is completed and accepted on 2026-09-25 at ae0db63efdabfa3bc952a8a2a71220de231ebc18; Final-F.R5 implementation is completed; Hosted Test VAPID setup + Android installed-PWA controlled push validation + explicit owner acceptance pending; Final-F.6-F.8 remain Not started; Final-G and Final-H remain Not started
+Status: Active — Final-A, Final-B, Final-C, Final-D and Final-E completed and accepted; Final-F is Active under accepted Final-F.R3 architecture rebaseline; Final-F.1 through Final-F.4 are completed and accepted; Final-F.5 Twilio-based implementation is completed at 551199a3e562be7c7fd9861760c3e38cafbf0b15 but superseded before owner acceptance by R1; Final-F.R1 is completed and accepted historically on 2026-09-23 at 4c94db87ebd9df225944ce76c78f98462e4755d1 but superseded for future target decisions by R3; Final-F.R2 implementation is completed but superseded before owner acceptance by R3; Final-F.R3 is completed and accepted on 2026-09-24 at be80af9b36f285c7669986e9c9b4d6676042f6f0; Final-F.R4 is completed and accepted on 2026-09-25 at ae0db63efdabfa3bc952a8a2a71220de231ebc18; Final-F.R5 is completed and accepted on 2026-09-25 at 88616acf46645ccc01cc475f20a868d7c18dbadf; Final-F.6 is Next / Not started; Final-F.7-F.8 remain Not started; Final-G and Final-H remain Not started
 Registration date: 2026-08-11
 Registration base head: dac105088d2c46be05a900abed3dfe83e608e964
 Previous gate: Phase 12 — Completed and accepted
@@ -589,7 +589,7 @@ Package: Final-D — Completed and accepted on 2026-09-18
 Implementation base head: 0839b2935fdc2349d23de6ce6b38177504e514c6
 Accepted feature head: fd75663bb28be8a95b15c341eaa51f74e521241b
 Permanent regression: npm run final-d:validate — 66/66 PASS
-Following package: Final-E — Reservation reviews and post-checkout invitation — Completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880; Final-F is Active under accepted Final-F.R3 architecture rebaseline; Final-F.1 through Final-F.4 are completed and accepted, Final-F.5 is superseded before owner acceptance, Final-F.R1 completed and accepted historically on 2026-09-23 at 4c94db87ebd9df225944ce76c78f98462e4755d1 but superseded for future target decisions by R3, Final-F.R2 implementation completed but superseded before owner acceptance, Final-F.R3 completed and accepted on 2026-09-24 at be80af9b36f285c7669986e9c9b4d6676042f6f0, Final-F.R4 is completed and accepted on 2026-09-25 at ae0db63efdabfa3bc952a8a2a71220de231ebc18, and Final-F.R5 implementation is completed; Hosted Test VAPID setup + Android installed-PWA controlled push validation + explicit owner acceptance pending; Final-F.6-F.8 remain Not started
+Following package: Final-E — Reservation reviews and post-checkout invitation — Completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880; Final-F is Active under accepted Final-F.R3 architecture rebaseline; Final-F.1 through Final-F.4 are completed and accepted, Final-F.5 is superseded before owner acceptance, Final-F.R1 completed and accepted historically on 2026-09-23 at 4c94db87ebd9df225944ce76c78f98462e4755d1 but superseded for future target decisions by R3, Final-F.R2 implementation completed but superseded before owner acceptance, Final-F.R3 completed and accepted on 2026-09-24 at be80af9b36f285c7669986e9c9b4d6676042f6f0, Final-F.R4 is completed and accepted on 2026-09-25 at ae0db63efdabfa3bc952a8a2a71220de231ebc18, and Final-F.R5 is completed and accepted on 2026-09-25 at 88616acf46645ccc01cc475f20a868d7c18dbadf; Final-F.6 is Next / Not started; Final-F.7-F.8 remain Not started
 Final-D.1 status: Completed and accepted on 2026-08-31
 Final-D.1 accepted strategy head: 3dc4fa7d81d65244a94e7e43726e2f12591e578f
 Final-D.1 record: docs/179-final-d-1-additional-charge-payment-request-strategy-and-financial-isolation-contract.md
@@ -999,8 +999,8 @@ Final-F.R1 — 360dialog + Meta Coexistence architecture revision — Completed 
 Final-F.R2 — 360dialog provider foundation + Developer/Test Coexistence onboarding — Implementation completed at 4e5d7dee3444dfbb427468a1c2ebbf6a94b70e5c with hardening at 26e197c851e6305b848eb9da76ae1a89912500c5, but superseded before owner acceptance by Final-F.R3 architecture rebaseline; record: docs/199-final-f-r2-360dialog-provider-foundation-and-developer-test-coexistence-onboarding.md
 Final-F.R3 — Admin Web Push + public WhatsApp architecture rebaseline — Completed and accepted on 2026-09-24 at be80af9b36f285c7669986e9c9b4d6676042f6f0; record: docs/200-final-f-r3-admin-web-push-public-whatsapp-architecture-rebaseline.md
 Final-F.R4 — WhatsApp backend/provider decommission, provider/schema cleanup and public floating WhatsApp contact — Completed and accepted on 2026-09-25 at ae0db63efdabfa3bc952a8a2a71220de231ebc18; record: docs/201-final-f-r4-whatsapp-backend-decommission-and-public-whatsapp-contact.md
-Final-F.R5 — Android Admin PWA/Web Push foundation — Implementation completed; Hosted Test VAPID setup + Android installed-PWA controlled push validation + explicit owner acceptance pending
-Final-F.6 — Admin Web Push operational notifications for RESERVATION_CONFIRMED, RESERVATION_CANCELLED, CHECK_IN_MINUS_48H, CHECK_OUT_MINUS_6H and REVIEW_SUBMITTED — Not started
+Final-F.R5 — Android Admin PWA/Web Push foundation — Completed and accepted on 2026-09-25 at 88616acf46645ccc01cc475f20a868d7c18dbadf
+Final-F.6 — Admin Web Push operational notifications for RESERVATION_CONFIRMED, RESERVATION_CANCELLED, CHECK_IN_MINUS_48H, CHECK_OUT_MINUS_6H and REVIEW_SUBMITTED — Next / Not started
 Final-F.7 — Zoho incoming-email bounded metadata + GUEST_EMAIL_RECEIVED Admin Web Push — Not started
 Final-F.8 — Android PWA/Web Push integrated regression, public WhatsApp contact acceptance and Final-F documentation closure — Not started
 Final-G: Not started
@@ -1065,7 +1065,7 @@ public WhatsApp contact acceptance
 Final-F documentation closure
 ```
 
-Final-F.R4 is completed and accepted on 2026-09-25 at ae0db63efdabfa3bc952a8a2a71220de231ebc18. Final-F.R5 implementation is completed; Hosted Test VAPID setup + Android installed-PWA controlled push validation + explicit owner acceptance pending; later Final-F subphases remain Not started.
+Final-F.R4 is completed and accepted on 2026-09-25 at ae0db63efdabfa3bc952a8a2a71220de231ebc18. Final-F.R5 is completed and accepted on 2026-09-25 at 88616acf46645ccc01cc475f20a868d7c18dbadf; later Final-F subphases remain Not started.
 
 ## Final-F.R3 Architecture Summary
 
@@ -1303,8 +1303,8 @@ Phase 12 — Completed and accepted
 Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
 Last completed package — Final-E Reservation reviews and post-checkout invitation — Completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880
 Current package — Final-F — Public WhatsApp Contact and Admin Notifications — Active under accepted Final-F.R3 architecture rebaseline
-Last accepted subphase — Final-F.R4 WhatsApp backend/provider decommission, provider/schema cleanup and public floating WhatsApp contact — Completed and accepted on 2026-09-25 at ae0db63efdabfa3bc952a8a2a71220de231ebc18
-Current subphase — Final-F.R5 Android Admin PWA/Web Push foundation — Implementation completed; Hosted Test VAPID setup + Android installed-PWA controlled push validation + explicit owner acceptance pending
+Last accepted subphase — Final-F.R5 Android Admin PWA/Web Push foundation — Completed and accepted on 2026-09-25 at 88616acf46645ccc01cc475f20a868d7c18dbadf
+Current subphase — Final-F.6 Admin Web Push operational notifications — Next / Not started
 Final-F.1 implementation base — c6dbe2309f0cd373701fc9444f7f15879692f423
 Final-F.1 accepted implementation head — d5db6a2605a03e75db7c16238a43cd5f79dde6d8
 Final-F.1 record — docs/193-final-f-1-twilio-whatsapp-staff-alert-strategy-onboarding-and-security-contract.md
@@ -1326,8 +1326,8 @@ Final-F.R1 record — docs/198-final-f-architecture-revision-360dialog-coexisten
 Final-F.R2 record — docs/199-final-f-r2-360dialog-provider-foundation-and-developer-test-coexistence-onboarding.md — implementation completed but superseded before owner acceptance by R3
 Final-F.R3 record — docs/200-final-f-r3-admin-web-push-public-whatsapp-architecture-rebaseline.md — Completed and accepted on 2026-09-24 at be80af9b36f285c7669986e9c9b4d6676042f6f0
 Final-F.R4 status — Completed and accepted on 2026-09-25 at ae0db63efdabfa3bc952a8a2a71220de231ebc18; record — docs/201-final-f-r4-whatsapp-backend-decommission-and-public-whatsapp-contact.md
-Final-F.R5 status — Implementation completed; Hosted Test VAPID setup + Android installed-PWA controlled push validation + explicit owner acceptance pending; record — docs/202-final-f-r5-android-admin-pwa-web-push-foundation.md
-Final-F.6-F.8 status — Not started
+Final-F.R5 status — Completed and accepted on 2026-09-25 at 88616acf46645ccc01cc475f20a868d7c18dbadf; implementation head f35354a775e8d744945d896da4e3c7f4787aed8e; record — docs/202-final-f-r5-android-admin-pwa-web-push-foundation.md
+Final-F.6 status — Next / Not started; Final-F.7-F.8 status — Not started
 Final-D implementation base — 0839b2935fdc2349d23de6ce6b38177504e514c6
 Final-D.1 status — Completed and accepted on 2026-08-31 at 3dc4fa7d81d65244a94e7e43726e2f12591e578f
 Final-D.1 record — docs/179-final-d-1-additional-charge-payment-request-strategy-and-financial-isolation-contract.md
@@ -1405,10 +1405,10 @@ Final-B.4 record — docs/170-final-b-4-airbnb-inbound-configuration-and-operati
 Final-B.5 record — docs/171-final-b-5-trp-outbound-copy-rotation-and-export-controls.md
 Final-B.6 record — docs/172-final-b-6-integrated-acceptance-regression-and-documentation-closure.md
 Last completed package — Final-E reservation reviews and post-checkout invitation — completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880
-Previous accepted implementation subphase — Final-F.4 Guest inbound WhatsApp, safe Reservation matching and protected admin inbox — completed and accepted on 2026-09-22 at 7912b233f5cc8b8aa726f17aeb30eaa7d15ae291
+Previous accepted pre-rebaseline implementation subphase — Final-F.4 Guest inbound WhatsApp, safe Reservation matching and protected admin inbox — completed and accepted on 2026-09-22 at 7912b233f5cc8b8aa726f17aeb30eaa7d15ae291
 Current package — Final-F — Public WhatsApp Contact and Admin Notifications — Active under accepted Final-F.R3 architecture rebaseline
-Last accepted subphase — Final-F.R4 WhatsApp backend/provider decommission, provider/schema cleanup and public floating WhatsApp contact — Completed and accepted on 2026-09-25 at ae0db63efdabfa3bc952a8a2a71220de231ebc18
-Current subphase — Final-F.R5 Android Admin PWA/Web Push foundation — Implementation completed; Hosted Test VAPID setup + Android installed-PWA controlled push validation + explicit owner acceptance pending
+Last accepted subphase — Final-F.R5 Android Admin PWA/Web Push foundation — Completed and accepted on 2026-09-25 at 88616acf46645ccc01cc475f20a868d7c18dbadf
+Current subphase — Final-F.6 Admin Web Push operational notifications — Next / Not started
 Final-F.1 record — docs/193-final-f-1-twilio-whatsapp-staff-alert-strategy-onboarding-and-security-contract.md
 Final-F.2 — Completed and accepted on 2026-09-22 at 03861cb2d5daef7cca8bb759d16a0ef050d86b41
 Final-F.2 implementation base — ba47dc9f22f4d61a01c13066f84e15ae8ad549f7
@@ -1467,8 +1467,8 @@ Final-F.R1 — 360dialog + Meta Coexistence architecture revision — Completed 
 Final-F.R2 — Implementation completed at 4e5d7dee3444dfbb427468a1c2ebbf6a94b70e5c with hardening at 26e197c851e6305b848eb9da76ae1a89912500c5, but superseded before owner acceptance by Final-F.R3 architecture rebaseline; record: docs/199-final-f-r2-360dialog-provider-foundation-and-developer-test-coexistence-onboarding.md
 Final-F.R3 — Admin Web Push + public WhatsApp architecture rebaseline — Completed and accepted on 2026-09-24 at be80af9b36f285c7669986e9c9b4d6676042f6f0; record: docs/200-final-f-r3-admin-web-push-public-whatsapp-architecture-rebaseline.md
 Final-F.R4 — WhatsApp backend/provider decommission, provider/schema cleanup and public floating WhatsApp contact — Completed and accepted on 2026-09-25 at ae0db63efdabfa3bc952a8a2a71220de231ebc18; record: docs/201-final-f-r4-whatsapp-backend-decommission-and-public-whatsapp-contact.md
-Final-F.R5 — Android Admin PWA/Web Push foundation — Implementation completed; Hosted Test VAPID setup + Android installed-PWA controlled push validation + explicit owner acceptance pending
-Final-F.6 — Admin Web Push operational notifications for RESERVATION_CONFIRMED, RESERVATION_CANCELLED, CHECK_IN_MINUS_48H, CHECK_OUT_MINUS_6H and REVIEW_SUBMITTED — Not started
+Final-F.R5 — Android Admin PWA/Web Push foundation — Completed and accepted on 2026-09-25 at 88616acf46645ccc01cc475f20a868d7c18dbadf
+Final-F.6 — Admin Web Push operational notifications for RESERVATION_CONFIRMED, RESERVATION_CANCELLED, CHECK_IN_MINUS_48H, CHECK_OUT_MINUS_6H and REVIEW_SUBMITTED — Next / Not started
 Final-F.7 — Zoho incoming-email bounded metadata + GUEST_EMAIL_RECEIVED Admin Web Push — Not started
 Final-F.8 — Android PWA/Web Push integrated regression, public WhatsApp contact acceptance and Final-F documentation closure — Not started
 Final-G — Not started
