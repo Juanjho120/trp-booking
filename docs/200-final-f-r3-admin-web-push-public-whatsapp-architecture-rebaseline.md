@@ -16,8 +16,8 @@ Schema changes: none
 Migration changes: none
 Dependency changes: none
 Owner acceptance: Completed on 2026-09-24
-Final-F.R4: Implementation completed in repository after R3; Local/Test cleanup migration applied; Hosted Test validation and explicit owner acceptance pending
-Final-F.R5: Not started
+Final-F.R4: Completed and accepted on 2026-09-25 at ae0db63efdabfa3bc952a8a2a71220de231ebc18
+Final-F.R5: Next / Not started
 Final-F.6: Not started
 Final-F.7: Not started
 Final-F.8: Not started
@@ -34,10 +34,10 @@ Final-F architecture contract for the decisions revised by R3.
 
 ## R4 Continuation Note
 
-Final-F.R4 has since implemented the R3-directed backend WhatsApp/provider decommission and public
-WhatsApp contact scope in the repository. Local/Test cleanup migration is applied. Hosted Test
-public contact validation and explicit owner acceptance remain pending. The R4 implementation record
-is:
+Final-F.R4 has since completed and accepted the R3-directed backend WhatsApp/provider decommission
+and public WhatsApp contact scope on 2026-09-25 at
+`ae0db63efdabfa3bc952a8a2a71220de231ebc18`. Local/Test cleanup migration is applied. The accepted
+R4 implementation/validation record is:
 
 ```text
 docs/201-final-f-r4-whatsapp-backend-decommission-and-public-whatsapp-contact.md
@@ -58,8 +58,7 @@ ADMIN-only authorization, Android/current-Chromium PWA acceptance, iOS/iPadOS De
 standard Web Push + VAPID direction, shared email/push target resolution, the six ADMIN
 notification classes, privacy-bounded lock-screen copy, durable delivery semantics, and the
 revised Final-F sequence with Final-F.R4 as the next implementation step. R4 has since been
-implemented in repository, Local/Test cleanup migration has been applied, and Hosted Test validation
-plus explicit owner acceptance remain pending.
+completed and accepted on 2026-09-25; Final-F.R5 is the next subphase and remains Not started.
 
 ## Owner Decision
 
