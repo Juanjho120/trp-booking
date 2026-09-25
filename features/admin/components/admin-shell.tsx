@@ -6,6 +6,7 @@ import { signOut } from "next-auth/react";
 import { useState, type ReactNode } from "react";
 import {
   BedDouble,
+  Bell,
   CalendarDays,
   CreditCard,
   ExternalLink,
@@ -54,6 +55,11 @@ const navigationItems = [
     href: "/admin/reviews",
     key: "reviews",
     icon: Star,
+  },
+  {
+    href: "/admin/notifications",
+    key: "notifications",
+    icon: Bell,
   },
   {
     href: "/admin/calendar",

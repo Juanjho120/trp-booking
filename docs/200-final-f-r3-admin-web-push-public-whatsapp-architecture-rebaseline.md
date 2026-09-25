@@ -17,7 +17,7 @@ Migration changes: none
 Dependency changes: none
 Owner acceptance: Completed on 2026-09-24
 Final-F.R4: Completed and accepted on 2026-09-25 at ae0db63efdabfa3bc952a8a2a71220de231ebc18
-Final-F.R5: Next / Not started
+Final-F.R5: Implementation completed; Hosted Test VAPID setup + Android installed-PWA controlled push validation + explicit owner acceptance pending
 Final-F.6: Not started
 Final-F.7: Not started
 Final-F.8: Not started
@@ -58,7 +58,9 @@ ADMIN-only authorization, Android/current-Chromium PWA acceptance, iOS/iPadOS De
 standard Web Push + VAPID direction, shared email/push target resolution, the six ADMIN
 notification classes, privacy-bounded lock-screen copy, durable delivery semantics, and the
 revised Final-F sequence with Final-F.R4 as the next implementation step. R4 has since been
-completed and accepted on 2026-09-25; Final-F.R5 is the next subphase and remains Not started.
+completed and accepted on 2026-09-25; Final-F.R5 implementation is completed in repository
+with VAPID Hosted Test setup, Android installed-PWA controlled push validation, and explicit
+owner acceptance pending.
 
 ## Owner Decision
 
@@ -400,7 +402,7 @@ WhatsApp backend/provider decommission
 - remove /admin/whatsapp
 - provider/schema cleanup
 - public floating WhatsApp contact
-— Next / Not started
+— completed and accepted on 2026-09-25 at ae0db63efdabfa3bc952a8a2a71220de231ebc18
 
 Final-F.R5 —
 Android Admin PWA/Web Push foundation
@@ -408,7 +410,7 @@ Android Admin PWA/Web Push foundation
 - AdminPushSubscription
 - /admin/notifications
 - controlled Android Test push
-— Not started
+— implementation completed; Hosted Test VAPID setup + Android installed-PWA controlled push validation + explicit owner acceptance pending
 
 Final-F.6 —
 Admin Web Push operational notifications for:

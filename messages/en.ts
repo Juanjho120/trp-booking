@@ -606,6 +606,123 @@ export const enMessages = {
         catalogs: "Catalogs",
         cronJobs: "Cron jobs",
         reviews: "Reviews",
+        notifications: "Notifications",
+      },
+    },
+    notificationsPage: {
+      seoTitle: "Notifications | Admin",
+      badge: "Notifications",
+      title: "Admin notifications",
+      description:
+        "Manage Web Push notifications for this Android device in the installed admin experience.",
+      status: {
+        ariaLabel: "Device notification status",
+        browserSupport: "Browser support",
+        serverConfig: "Web Push configuration",
+        permission: "Browser permission",
+        serviceWorker: "Service worker",
+        browserSubscription: "Browser subscription",
+        serverRegistration: "TRP registration",
+        displayMode: "Display mode",
+      },
+      values: {
+        supported: "Supported",
+        unsupported: "Unsupported",
+        configured: "Configured",
+        unavailable: "Not configured",
+        ok: "Ready",
+        needsAttention: "Review",
+      },
+      permissionValues: {
+        default: "Not decided",
+        granted: "Granted",
+        denied: "Blocked",
+        unsupported: "Unsupported",
+      },
+      serviceWorkerValues: {
+        checking: "Checking",
+        unsupported: "Unsupported",
+        registering: "Registering",
+        ready: "Ready",
+        error: "Error",
+      },
+      subscriptionValues: {
+        checking: "Checking",
+        subscribed: "Subscribed",
+        notSubscribed: "Not subscribed",
+        error: "Error",
+      },
+      serverRegistrationValues: {
+        checking: "Checking",
+        registered: "Registered",
+        notRegistered: "Not registered",
+        unknown: "Not checked",
+        error: "Error",
+      },
+      displayModeValues: {
+        browser: "Browser",
+        standalone: "Installed",
+      },
+      device: {
+        title: "Current device",
+        description:
+          "Enable, test, or disable only this browser's Web Push subscription. Permission is requested only when you press enable.",
+      },
+      install: {
+        title: "Android installation",
+        installed: "TRP Admin is already running as an installed app.",
+        instructions:
+          "On Android Chrome, open the browser menu and choose Install app or Add to Home screen.",
+      },
+      scope: {
+        title: "R5 scope",
+        deviceOnly: "Only manages the current device subscription.",
+        noHistory:
+          "Notification history and read state belong to Final-F.6.",
+        noOffline: "No admin content is stored for offline use.",
+      },
+      android: {
+        title: "Accepted target",
+        description:
+          "This subphase validates Android with a current Chromium browser. iOS/iPadOS is deferred.",
+      },
+      actions: {
+        enable: "Enable notifications",
+        disable: "Disable on this device",
+        test: "Send test notification",
+        working: "Processing",
+        dismiss: "Dismiss notification",
+      },
+      feedback: {
+        enabled: "Notifications are active for this device.",
+        disabled: "Notifications are disabled for this device.",
+        testSent: "We sent a test notification to this device.",
+      },
+      errors: {
+        ADMIN_UNAUTHORIZED:
+          "Your admin session expired. Please sign in again.",
+        ADMIN_PUSH_ORIGIN_INVALID:
+          "We could not validate the origin of this admin action.",
+        INVALID_ADMIN_PUSH_REQUEST:
+          "We could not process the notification request.",
+        ADMIN_PUSH_CONFIGURATION_INVALID:
+          "The Web Push configuration is incomplete or invalid.",
+        ADMIN_PUSH_UNAVAILABLE:
+          "Web Push is not configured for this environment yet.",
+        ADMIN_PUSH_SUBSCRIPTION_OWNERSHIP_CONFLICT:
+          "This subscription belongs to another administrator.",
+        ADMIN_PUSH_SUBSCRIPTION_NOT_FOUND:
+          "This device does not have an active registered subscription.",
+        ADMIN_PUSH_SUBSCRIPTION_EXPIRED:
+          "This device subscription expired and was disabled.",
+        ADMIN_PUSH_TEST_SEND_FAILED:
+          "We could not send the test notification. Try again.",
+        ADMIN_PUSH_PERMISSION_DENIED:
+          "The browser did not grant notification permission.",
+        ADMIN_PUSH_BROWSER_UNSUBSCRIBE_FAILED:
+          "TRP disabled the device, but the browser did not confirm the local unsubscribe.",
+        ADMIN_PUSH_UNEXPECTED_ERROR:
+          "We could not complete the notification action. Try again.",
       },
     },
     reviewsPage: {

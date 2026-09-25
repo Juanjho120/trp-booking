@@ -111,12 +111,11 @@ test("F.R4 removes the protected Admin WhatsApp inbox and APIs", () => {
   }
 });
 
-test("F.R4 removes WhatsApp from Admin navigation without adding Notifications", () => {
+test("F.R4 removes WhatsApp from Admin navigation", () => {
   for (const removedSource of [
     "/admin/whatsapp",
     'key: "whatsapp"',
     "MessagesSquare",
-    "/admin/notifications",
   ]) {
     expectExcludes(ADMIN_SHELL, removedSource);
   }
@@ -335,14 +334,15 @@ test("F.R4 keeps Vercel cron registrations empty", () => {
   assert.deepEqual(JSON.parse(read("vercel.json")), { crons: [] });
 });
 
-test("F.R4 does not add PWA or Web Push runtime scope", () => {
-  for (const unexpectedPath of [
-    "app/admin/notifications/page.tsx",
-    "public/manifest.json",
-    "public/sw.js",
+test("F.R4 keeps durable Admin Web Push notification history out of scope", () => {
+  for (const removedSource of [
+    "model AdminNotification",
+    "model AdminNotificationRead",
+    "model AdminPushDelivery",
   ]) {
-    assert.equal(exists(unexpectedPath), false, `${unexpectedPath} must be absent`);
+    expectExcludes(SCHEMA, removedSource);
   }
 
-  assert.equal(PACKAGE_JSON.dependencies?.["web-push"], undefined);
+  assert.equal(PACKAGE_JSON.dependencies?.firebase, undefined);
+  assert.equal(PACKAGE_JSON.dependencies?.["firebase-admin"], undefined);
 });

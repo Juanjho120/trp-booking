@@ -8,6 +8,7 @@ export { AdminAmenitiesHouseRulesManager } from "./components/admin-amenities-ho
 export { AdminArrivalInstructionsEditor } from "./components/admin-arrival-instructions-editor";
 export { AdminCatalogManager } from "./components/admin-catalog-manager";
 export { AdminDashboardPage } from "./components/admin-dashboard-page";
+export { AdminNotificationsPageView } from "./components/admin-notifications-page";
 export { AdminPageHeader } from "./components/admin-page-header";
 export { AdminPaymentDetailPage } from "./components/admin-payment-detail-page";
 export { AdminPaymentSubmissionAttemptHistory } from "./components/admin-payment-submission-attempt-history";

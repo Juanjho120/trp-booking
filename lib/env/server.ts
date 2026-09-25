@@ -93,6 +93,38 @@ const optionalEmailSchema = z.preprocess(
     .optional(),
 );
 
+const optionalWebPushVapidKeySchema = z.preprocess(
+  emptyStringToUndefined,
+  z
+    .string()
+    .trim()
+    .min(20, "Must be a valid VAPID key.")
+    .max(256, "Must not exceed 256 characters.")
+    .regex(/^[A-Za-z0-9_-]+={0,2}$/, "Must be URL-safe Base64.")
+    .optional(),
+);
+
+const optionalWebPushSubjectSchema = z.preprocess(
+  emptyStringToUndefined,
+  z
+    .string()
+    .trim()
+    .max(320, "Must not exceed 320 characters.")
+    .refine((value) => {
+      if (value.startsWith("mailto:")) {
+        return z.string().email().safeParse(value.slice("mailto:".length)).success;
+      }
+
+      try {
+        const url = new URL(value);
+        return url.protocol === "https:" && !url.username && !url.password;
+      } catch {
+        return false;
+      }
+    }, "Must be a mailto: email or https: URL without embedded credentials.")
+    .optional(),
+);
+
 const vercelEnvironmentSchema = z
   .enum(["development", "preview", "production"], {
     message: "Must be development, preview, or production.",
@@ -352,6 +384,9 @@ const rawServerEnvSchema = z.object({
   EMAIL_PUBLIC_BASE_URL: optionalUrlSchema,
   EMAIL_BRAND_LOGO_URL: optionalPublicAssetUrlSchema,
   EMAIL_TEST_RECIPIENT: optionalEmailSchema,
+  WEB_PUSH_VAPID_PUBLIC_KEY: optionalWebPushVapidKeySchema,
+  WEB_PUSH_VAPID_PRIVATE_KEY: optionalWebPushVapidKeySchema,
+  WEB_PUSH_SUBJECT: optionalWebPushSubjectSchema,
   VERCEL_ENV: vercelEnvironmentSchema,
   NODE_ENV: z
     .enum(["development", "test", "production"])
@@ -438,6 +473,33 @@ const serverEnvSchema = rawServerEnvSchema.superRefine((env, context) => {
       path: ["VERCEL_ENV"],
       message: "TRP production must run as a Vercel production deployment.",
     });
+  }
+
+  const webPushValues = [
+    env.WEB_PUSH_VAPID_PUBLIC_KEY,
+    env.WEB_PUSH_VAPID_PRIVATE_KEY,
+    env.WEB_PUSH_SUBJECT,
+  ];
+  const configuredWebPushValues = webPushValues.filter(Boolean);
+
+  if (
+    configuredWebPushValues.length > 0 &&
+    configuredWebPushValues.length < webPushValues.length
+  ) {
+    for (const key of [
+      "WEB_PUSH_VAPID_PUBLIC_KEY",
+      "WEB_PUSH_VAPID_PRIVATE_KEY",
+      "WEB_PUSH_SUBJECT",
+    ] as const) {
+      if (!env[key]) {
+        context.addIssue({
+          code: "custom",
+          path: [key],
+          message:
+            "Required when any Web Push VAPID setting is configured.",
+        });
+      }
+    }
   }
 
   if (env.EMAIL_DELIVERY_MODE === "disabled") {
@@ -635,6 +697,19 @@ export type ProductionEmailEnv = EnabledEmailEnvBase &
 export type EnabledEmailEnv = TestEmailEnv | ProductionEmailEnv;
 export type EmailEnv = DisabledEmailEnv | EnabledEmailEnv;
 
+export type DisabledWebPushEnv = Readonly<{
+  configured: false;
+}>;
+
+export type EnabledWebPushEnv = Readonly<{
+  configured: true;
+  publicKey: string;
+  privateKey: string;
+  subject: string;
+}>;
+
+export type WebPushEnv = DisabledWebPushEnv | EnabledWebPushEnv;
+
 export function validateServerEnv(
   source: NodeJS.ProcessEnv = process.env,
 ): ServerEnv {
@@ -674,6 +749,9 @@ export function validateServerEnv(
     EMAIL_PUBLIC_BASE_URL: source.EMAIL_PUBLIC_BASE_URL,
     EMAIL_BRAND_LOGO_URL: source.EMAIL_BRAND_LOGO_URL,
     EMAIL_TEST_RECIPIENT: source.EMAIL_TEST_RECIPIENT,
+    WEB_PUSH_VAPID_PUBLIC_KEY: source.WEB_PUSH_VAPID_PUBLIC_KEY,
+    WEB_PUSH_VAPID_PRIVATE_KEY: source.WEB_PUSH_VAPID_PRIVATE_KEY,
+    WEB_PUSH_SUBJECT: source.WEB_PUSH_SUBJECT,
     VERCEL_ENV: source.VERCEL_ENV,
     NODE_ENV: source.NODE_ENV,
   });
@@ -786,6 +864,35 @@ export function getEmailEnv(source: NodeJS.ProcessEnv = process.env): EmailEnv {
     ...enabledEmailEnvBase,
     trpEnvironment: "production",
     deliveryMode: "production",
+  };
+}
+
+export function getWebPushEnv(
+  source: NodeJS.ProcessEnv = process.env,
+): WebPushEnv {
+  const env = validateServerEnv(source);
+
+  if (
+    !env.WEB_PUSH_VAPID_PUBLIC_KEY &&
+    !env.WEB_PUSH_VAPID_PRIVATE_KEY &&
+    !env.WEB_PUSH_SUBJECT
+  ) {
+    return { configured: false };
+  }
+
+  if (
+    !env.WEB_PUSH_VAPID_PUBLIC_KEY ||
+    !env.WEB_PUSH_VAPID_PRIVATE_KEY ||
+    !env.WEB_PUSH_SUBJECT
+  ) {
+    throw new Error("Validated Web Push configuration is incomplete.");
+  }
+
+  return {
+    configured: true,
+    publicKey: env.WEB_PUSH_VAPID_PUBLIC_KEY,
+    privateKey: env.WEB_PUSH_VAPID_PRIVATE_KEY,
+    subject: env.WEB_PUSH_SUBJECT,
   };
 }
 

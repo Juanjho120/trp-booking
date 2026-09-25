@@ -606,6 +606,125 @@ export const esMessages = {
         catalogs: "Catálogos",
         cronJobs: "Tareas programadas",
         reviews: "Reseñas",
+        notifications: "Notificaciones",
+      },
+    },
+    notificationsPage: {
+      seoTitle: "Notificaciones | Admin",
+      badge: "Notificaciones",
+      title: "Notificaciones del administrador",
+      description:
+        "Gestiona las notificaciones Web Push de este dispositivo Android para la experiencia administrativa instalada.",
+      status: {
+        ariaLabel: "Estado de notificaciones del dispositivo",
+        browserSupport: "Compatibilidad del navegador",
+        serverConfig: "Configuración Web Push",
+        permission: "Permiso del navegador",
+        serviceWorker: "Service worker",
+        browserSubscription: "Suscripción del navegador",
+        serverRegistration: "Registro en TRP",
+        displayMode: "Modo de visualización",
+      },
+      values: {
+        supported: "Compatible",
+        unsupported: "No compatible",
+        configured: "Configurado",
+        unavailable: "No configurado",
+        ok: "Listo",
+        needsAttention: "Revisar",
+      },
+      permissionValues: {
+        default: "Sin decidir",
+        granted: "Concedido",
+        denied: "Bloqueado",
+        unsupported: "No compatible",
+      },
+      serviceWorkerValues: {
+        checking: "Revisando",
+        unsupported: "No compatible",
+        registering: "Registrando",
+        ready: "Listo",
+        error: "Error",
+      },
+      subscriptionValues: {
+        checking: "Revisando",
+        subscribed: "Suscrito",
+        notSubscribed: "No suscrito",
+        error: "Error",
+      },
+      serverRegistrationValues: {
+        checking: "Revisando",
+        registered: "Registrado",
+        notRegistered: "No registrado",
+        unknown: "Sin revisar",
+        error: "Error",
+      },
+      displayModeValues: {
+        browser: "Navegador",
+        standalone: "Instalado",
+      },
+      device: {
+        title: "Dispositivo actual",
+        description:
+          "Activa, prueba o desactiva únicamente la suscripción Web Push de este navegador. El permiso se solicita sólo cuando presionas activar.",
+      },
+      install: {
+        title: "Instalación Android",
+        installed: "TRP Admin ya se está ejecutando como aplicación instalada.",
+        instructions:
+          "En Android Chrome, abre el menú del navegador y elige Instalar app o Agregar a pantalla principal.",
+      },
+      scope: {
+        title: "Alcance de R5",
+        deviceOnly: "Sólo administra la suscripción del dispositivo actual.",
+        noHistory:
+          "El historial de notificaciones y lectura pertenece a Final-F.6.",
+        noOffline:
+          "No se guarda contenido administrativo para uso sin conexión.",
+      },
+      android: {
+        title: "Target aceptado",
+        description:
+          "Esta subfase valida Android con un navegador Chromium actual. iOS/iPadOS queda diferido.",
+      },
+      actions: {
+        enable: "Activar notificaciones",
+        disable: "Desactivar en este dispositivo",
+        test: "Enviar notificación de prueba",
+        working: "Procesando",
+        dismiss: "Cerrar notificación",
+      },
+      feedback: {
+        enabled: "Las notificaciones quedaron activas para este dispositivo.",
+        disabled:
+          "Las notificaciones quedaron desactivadas para este dispositivo.",
+        testSent: "Enviamos una notificación de prueba a este dispositivo.",
+      },
+      errors: {
+        ADMIN_UNAUTHORIZED:
+          "Tu sesión administrativa expiró. Ingresa nuevamente.",
+        ADMIN_PUSH_ORIGIN_INVALID:
+          "No pudimos validar el origen de esta acción administrativa.",
+        INVALID_ADMIN_PUSH_REQUEST:
+          "No pudimos procesar la solicitud de notificaciones.",
+        ADMIN_PUSH_CONFIGURATION_INVALID:
+          "La configuración Web Push está incompleta o es inválida.",
+        ADMIN_PUSH_UNAVAILABLE:
+          "Web Push todavía no está configurado para este ambiente.",
+        ADMIN_PUSH_SUBSCRIPTION_OWNERSHIP_CONFLICT:
+          "Esta suscripción pertenece a otro administrador.",
+        ADMIN_PUSH_SUBSCRIPTION_NOT_FOUND:
+          "Este dispositivo no tiene una suscripción activa registrada.",
+        ADMIN_PUSH_SUBSCRIPTION_EXPIRED:
+          "La suscripción de este dispositivo expiró y fue desactivada.",
+        ADMIN_PUSH_TEST_SEND_FAILED:
+          "No pudimos enviar la notificación de prueba. Inténtalo de nuevo.",
+        ADMIN_PUSH_PERMISSION_DENIED:
+          "El navegador no concedió permiso para notificaciones.",
+        ADMIN_PUSH_BROWSER_UNSUBSCRIBE_FAILED:
+          "TRP desactivó el dispositivo, pero el navegador no confirmó la baja local.",
+        ADMIN_PUSH_UNEXPECTED_ERROR:
+          "No pudimos completar la acción de notificaciones. Inténtalo de nuevo.",
       },
     },
     reviewsPage: {
