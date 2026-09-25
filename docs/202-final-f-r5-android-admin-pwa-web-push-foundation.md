@@ -179,6 +179,12 @@ The browser cannot submit arbitrary notification title/body/target copy. 404/410
 responses deactivate the subscription and return a safe error. R5 does not persist delivery history
 or retries.
 
+Independent review hardening corrected expired browser PushSubscription recovery: after a controlled
+test push receives `ADMIN_PUSH_SUBSCRIPTION_EXPIRED`, the backend-deactivated subscription can now
+be followed by local browser `unsubscribe()` and clean re-subscription without reactivating the same
+expired endpoint in a loop. Manual current-device disable also remains available when the browser
+still has a subscription but the server registration is inactive.
+
 ## `/admin/notifications`
 
 The protected R5 page shows only current-device/PWA foundation state:
@@ -230,7 +236,7 @@ npm install web-push — PASS after elevated rerun; web-push 3.6.7
 npm install --save-dev @types/web-push — PASS; @types/web-push 3.6.4
 npm run db:format — PASS
 npm run db:generate — PASS
-npx tsx --tsconfig tests/final-f/tsconfig.json tests/final-f/run.ts — PASS after elevated rerun; Final-F targeted validation 54/54
+npx tsx --tsconfig tests/final-f/tsconfig.json tests/final-f/run.ts — PASS after elevated rerun; Final-F targeted validation 57/57
 npm run db:validate — PASS
 npm run env:validate — PASS after elevated rerun; first sandbox run failed only with uv_os_get_passwd ENOMEM
 npm run db:migrate:status — PASS after applying R5; Database schema is up to date with 27 migrations

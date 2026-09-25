@@ -36,6 +36,20 @@ function expectExcludes(source: string, unexpected: string): void {
   );
 }
 
+function sourceBlock(
+  source: string,
+  startMarker: string,
+  endMarker: string,
+): string {
+  const start = source.indexOf(startMarker);
+  assert.ok(start >= 0, `Expected source marker: ${startMarker}`);
+
+  const end = source.indexOf(endMarker, start);
+  assert.ok(end > start, `Expected source marker after start: ${endMarker}`);
+
+  return source.slice(start, end);
+}
+
 const PACKAGE_JSON = JSON.parse(read("package.json")) as {
   dependencies?: Record<string, string>;
   devDependencies?: Record<string, string>;
@@ -402,20 +416,78 @@ test("F.R5 UI registers the service worker and never persists subscription secre
 });
 
 test("F.R5 UI sends disable to the backend before browser unsubscribe", () => {
-  const disableIndex = NOTIFICATIONS_VIEW.indexOf(
+  const disableBlock = sourceBlock(
+    NOTIFICATIONS_VIEW,
     "async function disableNotifications",
+    "async function sendTestNotification",
   );
-  const revokeIndex = NOTIFICATIONS_VIEW.indexOf(
+  const revokeIndex = disableBlock.indexOf(
     '"/api/admin/push/subscriptions"',
-    disableIndex,
   );
-  const unsubscribeIndex = NOTIFICATIONS_VIEW.indexOf(
+  const unsubscribeIndex = disableBlock.indexOf(
     "subscription.unsubscribe()",
   );
 
-  assert.ok(disableIndex >= 0);
   assert.ok(revokeIndex >= 0);
   assert.ok(unsubscribeIndex > revokeIndex);
+});
+
+test("F.R5 UI allows disable cleanup when browser is subscribed but server is not registered", () => {
+  const canDisableBlock = sourceBlock(
+    NOTIFICATIONS_VIEW,
+    "const canDisable =",
+    "const canTest =",
+  );
+
+  expectIncludes(
+    canDisableBlock,
+    'subscriptionState === "subscribed"',
+  );
+  expectExcludes(
+    canDisableBlock,
+    'serverRegistrationState === "registered"',
+  );
+});
+
+test("F.R5 UI handles expired test-push responses by attempting local browser unsubscribe", () => {
+  const sendTestBlock = sourceBlock(
+    NOTIFICATIONS_VIEW,
+    "async function sendTestNotification",
+    "const statusItems = useMemo",
+  );
+  const expiredBlock = sourceBlock(
+    sendTestBlock,
+    'code === "ADMIN_PUSH_SUBSCRIPTION_EXPIRED"',
+    "setErrorMessage(\n        resolveError(code),",
+  );
+
+  expectIncludes(expiredBlock, "navigator.serviceWorker.ready");
+  expectIncludes(expiredBlock, "registration.pushManager.getSubscription()");
+  expectIncludes(expiredBlock, "subscription.unsubscribe()");
+});
+
+test("F.R5 expired test-push cleanup refreshes device state without issuing another server revoke", () => {
+  const sendTestBlock = sourceBlock(
+    NOTIFICATIONS_VIEW,
+    "async function sendTestNotification",
+    "const statusItems = useMemo",
+  );
+  const expiredBlock = sourceBlock(
+    sendTestBlock,
+    'code === "ADMIN_PUSH_SUBSCRIPTION_EXPIRED"',
+    "setErrorMessage(\n        resolveError(code),",
+  );
+
+  const unsubscribeIndex = expiredBlock.indexOf("subscription.unsubscribe()");
+  const refreshIndex = expiredBlock.indexOf("await refreshCurrentDevice()");
+
+  assert.ok(unsubscribeIndex >= 0);
+  assert.ok(refreshIndex > unsubscribeIndex);
+  expectExcludes(expiredBlock, '"/api/admin/push/subscriptions"');
+  expectIncludes(
+    expiredBlock,
+    "copy.errors.ADMIN_PUSH_BROWSER_UNSUBSCRIBE_FAILED",
+  );
 });
 
 test("F.R5 UI exposes only the controlled test notification action", () => {

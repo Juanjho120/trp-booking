@@ -175,9 +175,7 @@ export function AdminNotificationsPageView() {
     busyAction === null &&
     serverRegistrationState !== "registered";
   const canDisable =
-    busyAction === null &&
-    subscriptionState === "subscribed" &&
-    serverRegistrationState === "registered";
+    busyAction === null && subscriptionState === "subscribed";
   const canTest =
     busyAction === null &&
     configured &&
@@ -404,12 +402,36 @@ export function AdminNotificationsPageView() {
       setSuccessMessage(copy.feedback.testSent);
       await refreshCurrentDevice();
     } catch (error) {
+      const code =
+        error instanceof Error
+          ? error.message
+          : "ADMIN_PUSH_UNEXPECTED_ERROR";
+
+      if (code === "ADMIN_PUSH_SUBSCRIPTION_EXPIRED") {
+        try {
+          const registration = await navigator.serviceWorker.ready;
+          const subscription =
+            currentSubscription ??
+            (await registration.pushManager.getSubscription());
+          const unsubscribed = subscription
+            ? await subscription.unsubscribe()
+            : true;
+
+          setErrorMessage(
+            unsubscribed
+              ? resolveError(code)
+              : copy.errors.ADMIN_PUSH_BROWSER_UNSUBSCRIBE_FAILED,
+          );
+        } catch {
+          setErrorMessage(copy.errors.ADMIN_PUSH_BROWSER_UNSUBSCRIBE_FAILED);
+        }
+
+        await refreshCurrentDevice();
+        return;
+      }
+
       setErrorMessage(
-        resolveError(
-          error instanceof Error
-            ? error.message
-            : "ADMIN_PUSH_UNEXPECTED_ERROR",
-        ),
+        resolveError(code),
       );
       await refreshCurrentDevice();
     } finally {
