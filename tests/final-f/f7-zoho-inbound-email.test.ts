@@ -13,6 +13,7 @@ import {
   decryptZohoMailWebhookSecret,
   encryptZohoMailWebhookSecret,
   getAcceptedZohoMailRecipientAddresses,
+  getAcceptedZohoMailRecipientDomain,
   isAcceptedZohoMailRecipient,
   isInternalZohoMailSender,
   parseZohoLimitedInboundEmailPayload,
@@ -524,6 +525,7 @@ test("F.7 webhook route uses raw text once, 16 KB cap, node runtime and signatur
     '"x-hook-signature"',
     "searchParams.get(\"bootstrap\")",
     "processZohoMailWebhook",
+    "reason: outcome.reason",
   ]) {
     expectIncludes(ROUTE, expected);
   }
@@ -573,7 +575,7 @@ test("F.7 parses Limited Data metadata and rejects full-content payloads", () =>
   expectIncludes(LIMITED_DATA, "ZOHO_MAIL_FULL_CONTENT_PAYLOAD");
 });
 
-test("F.7 resolves accepted recipients and ignores internal correspondence-domain senders", () => {
+test("F.7 resolves accepted recipients by exact correspondence domain and ignores internal senders", () => {
   assert.deepEqual(getAcceptedZohoMailRecipientAddresses("test"), [
     "admin@juantzun.dev",
     "reservas@juantzun.dev",
@@ -584,19 +586,55 @@ test("F.7 resolves accepted recipients and ignores internal correspondence-domai
     "reservas@turefugioperfecto.com",
     "reservations@turefugioperfecto.com",
   ]);
+  assert.equal(getAcceptedZohoMailRecipientDomain("test"), "juantzun.dev");
   assert.equal(
-    isAcceptedZohoMailRecipient({
-      toAddresses: ["owner@example.com", "reservas@juantzun.dev"],
-      trpEnvironment: "test",
-    }),
-    true,
+    getAcceptedZohoMailRecipientDomain("production"),
+    "turefugioperfecto.com",
   );
+
+  for (const toAddresses of [
+    ["reservas@juantzun.dev"],
+    ["admin@juantzun.dev"],
+    ["mailbox@juantzun.dev"],
+    ["MAILBOX@JUANTZUN.DEV"],
+    ["owner@example.com", "reservations@juantzun.dev"],
+  ]) {
+    assert.equal(
+      isAcceptedZohoMailRecipient({
+        toAddresses,
+        trpEnvironment: "test",
+      }),
+      true,
+    );
+  }
+
+  for (const toAddresses of [
+    ["user@eviljuantzun.dev"],
+    ["user@juantzun.dev.attacker.example"],
+    ["user@example.com"],
+  ]) {
+    assert.equal(
+      isAcceptedZohoMailRecipient({
+        toAddresses,
+        trpEnvironment: "test",
+      }),
+      false,
+    );
+  }
+
   assert.equal(
     isInternalZohoMailSender({
       fromAddress: "admin@juantzun.dev",
       trpEnvironment: "test",
     }),
     true,
+  );
+  assert.equal(
+    isInternalZohoMailSender({
+      fromAddress: "guest@example.com",
+      trpEnvironment: "test",
+    }),
+    false,
   );
 });
 
@@ -845,7 +883,7 @@ test("F.7 processes registered webhooks after the bootstrap token is removed fro
   assert.equal(fake.notifications.size, 1);
 });
 
-test("F.7 creates one matched event, AdminNotification and delivery after verified registered webhook", async () => {
+test("F.7 creates one matched event, AdminNotification and immediate delivery for provider-normalized mailbox recipients", async () => {
   const fake = createFakeZohoPrismaClient({
     reservations: [
       {
@@ -858,7 +896,9 @@ test("F.7 creates one matched event, AdminNotification and delivery after verifi
   const delivered: string[][] = [];
   await bootstrapFakeWebhook(fake);
 
-  const rawBody = createLimitedRawBody();
+  const rawBody = createLimitedRawBody({
+    to: "Provider Mailbox <mailbox@juantzun.dev>",
+  });
   const outcome = await processZohoMailWebhook({
     rawBody,
     signatureHeader: createZohoMailWebhookSignature(rawBody, "zoho-hook-secret"),
@@ -892,6 +932,10 @@ test("F.7 creates one matched event, AdminNotification and delivery after verifi
   assert.equal(notification?.title, "Nuevo correo de huésped · Bungalow Luna");
   assert.equal(notification?.body, "Toca para revisar la correspondencia.");
   assert.equal(notification?.title.includes("guest@example.com"), false);
+  assert.equal(
+    Array.from(fake.events.values())[0]?.toAddress,
+    "mailbox@juantzun.dev",
+  );
 });
 
 test("F.7 duplicate webhook reuses the same event and notification without duplicate deliveries", async () => {
@@ -930,7 +974,7 @@ test("F.7 duplicate webhook reuses the same event and notification without dupli
   assert.equal(Array.from(fake.notifications.values())[0]?.reservationId, null);
 });
 
-test("F.7 ignores irrelevant recipients, own-domain senders and ambiguous reservation matches", async () => {
+test("F.7 ignores unsafe recipients and internal senders without creating notifications or deliveries", async () => {
   const ignoredRecipient = createFakeZohoPrismaClient();
   await bootstrapFakeWebhook(ignoredRecipient);
   const ignoredRawBody = createLimitedRawBody({
@@ -946,9 +990,14 @@ test("F.7 ignores irrelevant recipients, own-domain senders and ambiguous reserv
       source: baseEnv,
       prismaClient: ignoredRecipient.prismaClient,
     }),
-    { status: "ignored" },
+    {
+      status: "ignored",
+      reason: "recipient_outside_correspondence_domain",
+    },
   );
+  assert.equal(ignoredRecipient.events.size, 0);
   assert.equal(ignoredRecipient.notifications.size, 0);
+  assert.equal(ignoredRecipient.deliveries.length, 0);
 
   const internalSender = createFakeZohoPrismaClient();
   await bootstrapFakeWebhook(internalSender);
@@ -965,9 +1014,14 @@ test("F.7 ignores irrelevant recipients, own-domain senders and ambiguous reserv
       source: baseEnv,
       prismaClient: internalSender.prismaClient,
     }),
-    { status: "ignored" },
+    { status: "ignored", reason: "internal_sender" },
   );
+  assert.equal(internalSender.events.size, 0);
+  assert.equal(internalSender.notifications.size, 0);
+  assert.equal(internalSender.deliveries.length, 0);
+});
 
+test("F.7 processes ambiguous reservation matches without linking but keeps notification center target", async () => {
   const ambiguous = createFakeZohoPrismaClient({
     reservations: [
       {
@@ -983,14 +1037,18 @@ test("F.7 ignores irrelevant recipients, own-domain senders and ambiguous reserv
     ],
   });
   await bootstrapFakeWebhook(ambiguous);
-  const rawBody = createLimitedRawBody();
-  await processZohoMailWebhook({
+  const rawBody = createLimitedRawBody({
+    to: "Provider Mailbox <mailbox@juantzun.dev>",
+  });
+  const outcome = await processZohoMailWebhook({
     rawBody,
     signatureHeader: createZohoMailWebhookSignature(rawBody, "zoho-hook-secret"),
     source: baseEnv,
     prismaClient: ambiguous.prismaClient,
   });
 
+  assert.equal(outcome.status, "processed");
+  assert.equal(Array.from(ambiguous.events.values())[0]?.reservationId, null);
   assert.equal(
     Array.from(ambiguous.notifications.values())[0]?.targetPath,
     "/admin/notifications",
@@ -1040,8 +1098,15 @@ test("F.7 keeps bootstrap tokens out of persisted records, notification center d
   assert.equal(persistedState.includes(sensitiveBootstrapToken), false);
   expectExcludes(CENTER_SERVICE, "bootstrapToken");
   expectExcludes(SERVICE_WORKER, "bootstrap");
-  expectIncludes(ROUTE, "jsonResponse({ ok: true, status: outcome.status }, 200)");
+  expectIncludes(ROUTE, "reason: outcome.reason");
+  expectIncludes(
+    ROUTE,
+    "jsonResponse({ ok: true, status: outcome.status }, 200)",
+  );
   expectIncludes(ROUTE, "error: { code: error.code }");
+  expectExcludes(ROUTE, "fromAddress");
+  expectExcludes(ROUTE, "toAddress");
+  expectExcludes(ROUTE, "subject");
   expectExcludes(ROUTE, "ZOHO_MAIL_WEBHOOK_BOOTSTRAP_TOKEN");
 });
 
@@ -1093,7 +1158,10 @@ test("F.7 keeps targets shared and service-worker push payload privacy bounded",
   expectIncludes(TARGETS, 'kind: "notifications"');
   expectIncludes(TARGETS, 'kind: "reservation"');
   expectIncludes(INBOUND_SERVICE, "deliverAdminPushNotificationsBestEffort");
+  expectIncludes(INBOUND_SERVICE, "if (result.created)");
+  expectIncludes(INBOUND_SERVICE, "await deliver([result.notificationId]");
   expectIncludes(INBOUND_SERVICE, "targetPath");
+  expectExcludes(INBOUND_SERVICE, "processAdminPushNotifications");
 
   for (const forbidden of [
     "fromAddress",

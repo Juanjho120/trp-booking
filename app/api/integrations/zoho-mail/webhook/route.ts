@@ -43,6 +43,13 @@ export async function POST(request: Request) {
       bootstrapTokenParam: new URL(request.url).searchParams.get("bootstrap"),
     });
 
+    if (outcome.status === "ignored") {
+      return jsonResponse(
+        { ok: true, status: outcome.status, reason: outcome.reason },
+        200,
+      );
+    }
+
     return jsonResponse({ ok: true, status: outcome.status }, 200);
   } catch (error) {
     if (error instanceof ZohoMailWebhookError) {

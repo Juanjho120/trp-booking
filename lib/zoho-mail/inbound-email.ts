@@ -42,9 +42,13 @@ export type ZohoMailWebhookErrorCode =
   | "ZOHO_MAIL_FULL_CONTENT_PAYLOAD"
   | "ZOHO_MAIL_WEBHOOK_UNEXPECTED_ERROR";
 
+export type ZohoMailWebhookIgnoredReason =
+  | "recipient_outside_correspondence_domain"
+  | "internal_sender";
+
 export type ZohoMailWebhookOutcome =
   | Readonly<{ status: "bootstrapped" }>
-  | Readonly<{ status: "ignored" }>
+  | Readonly<{ status: "ignored"; reason: ZohoMailWebhookIgnoredReason }>
   | Readonly<{
       status: "processed" | "duplicate";
       eventId: string;
@@ -90,6 +94,18 @@ function correspondenceDomainFor(trpEnvironment: TrpEnvironment): string {
     : environmentConfig.test.correspondenceDomain;
 }
 
+function emailDomainFor(address: string): string {
+  const parts = address.trim().toLowerCase().split("@");
+
+  return parts.length === 2 ? (parts[1] ?? "") : "";
+}
+
+export function getAcceptedZohoMailRecipientDomain(
+  trpEnvironment: TrpEnvironment,
+): string {
+  return correspondenceDomainFor(trpEnvironment);
+}
+
 export function getAcceptedZohoMailRecipientAddresses(
   trpEnvironment: TrpEnvironment,
 ): readonly string[] {
@@ -108,11 +124,13 @@ export function isAcceptedZohoMailRecipient(
     trpEnvironment: TrpEnvironment;
   }>,
 ): boolean {
-  const accepted = new Set(
-    getAcceptedZohoMailRecipientAddresses(input.trpEnvironment),
+  const acceptedDomain = getAcceptedZohoMailRecipientDomain(
+    input.trpEnvironment,
   );
 
-  return input.toAddresses.some((address) => accepted.has(address.toLowerCase()));
+  return input.toAddresses.some(
+    (address) => emailDomainFor(address) === acceptedDomain,
+  );
 }
 
 export function isInternalZohoMailSender(
@@ -121,8 +139,8 @@ export function isInternalZohoMailSender(
     trpEnvironment: TrpEnvironment;
   }>,
 ): boolean {
-  const domain = correspondenceDomainFor(input.trpEnvironment);
-  const senderDomain = input.fromAddress.toLowerCase().split("@")[1] ?? "";
+  const domain = getAcceptedZohoMailRecipientDomain(input.trpEnvironment);
+  const senderDomain = emailDomainFor(input.fromAddress);
 
   return senderDomain === domain;
 }
@@ -491,13 +509,21 @@ export async function processZohoMailWebhook(
     !isAcceptedZohoMailRecipient({
       toAddresses: event.toAddresses,
       trpEnvironment: env.trpEnvironment,
-    }) ||
+    })
+  ) {
+    return {
+      status: "ignored",
+      reason: "recipient_outside_correspondence_domain",
+    };
+  }
+
+  if (
     isInternalZohoMailSender({
       fromAddress: event.fromAddress,
       trpEnvironment: env.trpEnvironment,
     })
   ) {
-    return { status: "ignored" };
+    return { status: "ignored", reason: "internal_sender" };
   }
 
   const eventFingerprint = fingerprintZohoMailLimitedDataRawBody(input.rawBody);

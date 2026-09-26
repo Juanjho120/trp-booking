@@ -133,9 +133,27 @@ exact raw body. After `ZohoMailWebhookConfiguration` exists for the environment,
 webhook request must include a valid `x-hook-signature`; missing signatures remain HTTP 401 and
 invalid signatures remain HTTP 403.
 
+## Hosted Test Recipient-Filtering Evidence
+
+After the bootstrap compatibility fix, Zoho outgoing webhook registration reached TRP and returned
+HTTP 200 for a real external email sent to `reservas@juantzun.dev`. Hosted Test evidence still showed
+no Android Web Push delivery, no `Nuevo correo de huésped` notification-center row and zero
+`trp_booking.zoho_inbound_email_events` rows while an active ADMIN `AdminPushSubscription` existed.
+That means the request was acknowledged before persistence and before the push pipeline.
+
+The compatible ignored branch was recipient filtering: the implementation accepted only the three
+public aliases as exact recipients, while the real Zoho Limited Data payload may expose the active
+mailbox-normalized recipient address for the same correspondence domain. The fix keeps the public
+aliases as intended Zoho trigger/filter addresses, but TRP runtime acceptance now uses exact parsed
+recipient email-domain matching for the active correspondence domain. It accepts `juantzun.dev` in
+Local/Test and `turefugioperfecto.com` in Production, case-insensitively, and rejects suffix tricks
+such as `eviljuantzun.dev` or `juantzun.dev.attacker.example`.
+
 ## Accepted Recipient And Sender Rules
 
-Local/Test accepted recipients:
+The documented public aliases remain the intended Zoho outgoing-webhook trigger/filter addresses:
+
+Local/Test intended aliases:
 
 ```text
 admin@juantzun.dev
@@ -143,7 +161,7 @@ reservas@juantzun.dev
 reservations@juantzun.dev
 ```
 
-Production accepted recipients:
+Production intended aliases:
 
 ```text
 admin@turefugioperfecto.com
@@ -151,8 +169,30 @@ reservas@turefugioperfecto.com
 reservations@turefugioperfecto.com
 ```
 
-Webhook events for other recipients return 200 ignored. Senders from the active correspondence
-domain are internal and also return 200 ignored.
+Runtime acceptance is intentionally domain-based, not exact-alias-based, because Zoho Limited Data
+may expose the active mailbox-normalized recipient while the event was triggered by one of the
+intended aliases. TRP accepts a registered webhook only when at least one parsed recipient email has
+an exact active correspondence domain:
+
+```text
+Local/Test: juantzun.dev
+Production: turefugioperfecto.com
+```
+
+Matching is case-insensitive after email parsing and compares the full domain only. It rejects
+suffix and substring tricks such as:
+
+```text
+user@eviljuantzun.dev
+user@juantzun.dev.attacker.example
+user@example.com
+```
+
+Webhook events for recipients outside the active correspondence domain return HTTP 200 ignored with
+the safe reason code `recipient_outside_correspondence_domain`. Senders from the active
+correspondence domain are internal and return HTTP 200 ignored with the safe reason code
+`internal_sender`. Ignored requests create no `ZohoInboundEmailEvent`, no `AdminNotification`, no
+`AdminPushDelivery` and no best-effort Web Push attempt.
 
 ## Reservation Matching And Targets
 
@@ -263,6 +303,24 @@ npm run db:generate - PASS; Prisma Client v6.19.3 generated
 npm run db:migrate:status - PASS after elevated run; 29 migrations found; database schema is up to date
 npm run lint - PASS
 npm run build - PASS after elevated run; /api/integrations/zoho-mail/webhook remains dynamic
+git diff --check - PASS
+```
+
+Executed during Hosted Test recipient-domain filtering hardening on 2026-09-25:
+
+```text
+git status --short --branch - PASS; starting branch main at cd602ee93a3c0b34c54b6a49ab013d9a6c32d1f0
+git rev-parse HEAD - PASS; cd602ee93a3c0b34c54b6a49ab013d9a6c32d1f0
+npx tsx --tsconfig tests/final-f/tsconfig.json tests/final-f/run.ts - PASS after elevated rerun; first sandbox run failed only with uv_os_get_passwd ENOMEM; Final-F targeted validation 109/109
+npm run final-d:validate - PASS after elevated run; 66/66
+npm run final-e:validate - PASS after elevated run; 88/88
+npm run env:validate - PASS after elevated run
+npm run db:validate - PASS; Prisma schema valid; Prisma 7 config deprecation warning only
+npm run db:generate - PASS; Prisma Client v6.19.3 generated
+npm run db:migrate:status - PASS after elevated rerun; first sandbox run failed with Schema engine error; 29 migrations found; database schema is up to date
+npm run lint - PASS
+npm run build - PASS after elevated rerun; first sandbox run failed only on Google Fonts fetch; /api/integrations/zoho-mail/webhook remains dynamic
+vercel.json - PASS; { "crons": [] }
 git diff --check - PASS
 ```
 

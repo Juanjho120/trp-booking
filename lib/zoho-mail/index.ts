@@ -3,12 +3,14 @@ export {
   buildZohoMailInboundDeduplicationKey,
   fingerprintZohoMailLimitedDataRawBody,
   getAcceptedZohoMailRecipientAddresses,
+  getAcceptedZohoMailRecipientDomain,
   isAcceptedZohoMailRecipient,
   isInternalZohoMailSender,
   processZohoMailWebhook,
 } from "./inbound-email";
 export type {
   ZohoMailWebhookErrorCode,
+  ZohoMailWebhookIgnoredReason,
   ZohoMailWebhookOutcome,
 } from "./inbound-email";
 export {
