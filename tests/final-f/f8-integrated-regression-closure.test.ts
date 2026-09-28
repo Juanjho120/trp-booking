@@ -279,14 +279,18 @@ test("F.8 integrated Zoho inbound contract accepts bounded metadata and ignores 
   expectIncludes(ZOHO_ROUTE, "fieldCategory: error.fieldCategory");
 });
 
-test("F.8 documentation records pending Hosted acceptance and closure boundaries", () => {
+test("F.8 documentation records accepted Hosted closure and package boundaries", () => {
   for (const expected of [
-    "Status: Implementation completed; Hosted integrated regression + explicit owner acceptance pending",
+    "Status: Completed and accepted on 2026-09-28",
     "Implementation base head: c5a41d8a01b7772f7a75c7c0ae382e3df92ff13e",
-    "Final-F.7 accepted feature head: 3d32a5f2320f81ef08387f82cdf9157202c8cf95",
+    "Accepted implementation/validation head: 13f0e0cf6904e34155dd754230f320ca6c214141",
+    "Final-F accepted feature head: 13f0e0cf6904e34155dd754230f320ca6c214141",
+    "Owner acceptance: Completed on 2026-09-28",
+    "Hosted integrated regression: Completed and accepted",
+    "Vercel for accepted head: SUCCESS",
     "npm run final-f:validate",
-    "Hosted integrated regression + explicit owner acceptance pending",
-    "Final-G: Not started",
+    "Final-F package — completed and accepted",
+    "Final-G: Next / Not started",
     "Final-H: Not started",
     "Phase 13: Not started",
     "No schema changes",

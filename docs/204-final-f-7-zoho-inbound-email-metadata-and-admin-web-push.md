@@ -18,8 +18,9 @@ Migration application: Applied to developer-owned Local/Test database on 2026-09
 Owner acceptance: Completed on 2026-09-28
 Hosted Test: Completed and accepted
 Vercel: SUCCESS
-Final-F.8: Next / Not started
-Final-G/H: Not started
+Final-F.8: Completed and accepted on 2026-09-28 at 13f0e0cf6904e34155dd754230f320ca6c214141
+Final-G: Next / Not started
+Final-H: Not started
 Phase 13: Not started
 ```
 
@@ -585,7 +586,8 @@ from Vercel Test, and continued normal signed delivery using the persisted encry
 
 ```text
 Final-F.7: Completed and accepted on 2026-09-28 at 3d32a5f2320f81ef08387f82cdf9157202c8cf95
-Final-F.8: Next / Not started
-Final-G/H: Not started
+Final-F.8: Completed and accepted on 2026-09-28 at 13f0e0cf6904e34155dd754230f320ca6c214141
+Final-G: Next / Not started
+Final-H: Not started
 Phase 13: Not started
 ```
