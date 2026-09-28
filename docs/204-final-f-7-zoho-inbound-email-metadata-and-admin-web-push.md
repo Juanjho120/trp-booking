@@ -47,7 +47,7 @@ TRP into an email client.
 - deterministic exact guest-email to Reservation.guestEmail matching, case-insensitive, ranked by confirmed current stay, earliest upcoming stay, then latest recent completed stay
 - safe target routing through resolveAdminNotificationTarget(...)
 - notification-center bounded metadata display for authenticated admins
-- secondary Open Zoho Mail action with Android current-Chromium intent handoff, web fallback and best-effort sender-address clipboard copy
+- secondary Open Zoho Mail action with stable web handoff to https://mail.zoho.com/ and best-effort sender-address clipboard copy
 ```
 
 ## Mailbox Boundary Preserved
@@ -218,11 +218,17 @@ IDs.
 
 The current hardening replaces the earlier unique-email-only match with the deterministic relevance
 ranking documented below. It also records the owner privacy-boundary revision allowing
-`Reservation.guestName` in ADMIN-only push titles, and changes the Admin notification-center
-`Abrir Zoho Mail` action on Android/current Chromium to attempt an Android intent for package
-`com.zoho.mail` with `https://mail.zoho.com/` as the browser fallback. Non-Android clients continue
-opening the web URL. The handoff URL never includes subject, sender, recipient, body, secrets,
-signatures or bootstrap values; sender-address copying remains the separate bounded clipboard action.
+`Reservation.guestName` in ADMIN-only push titles.
+
+Hosted Android validation then tested the package-targeted web intent handoff for Zoho Mail. The
+real Android TRP Admin PWA did not reliably open the Zoho Mail native application and instead fell
+back to the browser at `https://mail.zoho.com/`. Android 12+ app-link and package resolution are
+controlled by the target application and its domain association, and Zoho Mail does not expose a
+supported public deep-link contract that TRP can rely on from a web/PWA surface. Final-F.7 therefore
+uses the stable web handoff `https://mail.zoho.com/` for all clients. Opening Zoho Mail in the
+browser is accepted behavior, and native Zoho app launch is not a Final-F acceptance requirement.
+The handoff URL never includes subject, sender, recipient, body, secrets, signatures or bootstrap
+values; sender-address copying remains the separate bounded clipboard action.
 
 ## Accepted Recipient And Sender Rules
 
@@ -453,6 +459,24 @@ Executed during Final-F.7/F.6 reservation-matching, ADMIN title and Android Zoho
 git status --short --branch - PASS; starting branch main at 86f431e241c7136d96c4bcab10bba73288555b1e
 git rev-parse HEAD - PASS; 86f431e241c7136d96c4bcab10bba73288555b1e
 npx tsx --tsconfig tests/final-f/tsconfig.json tests/final-f/run.ts - PASS after elevated rerun; first sandbox run failed only with uv_os_get_passwd ENOMEM; Final-F targeted validation 118/118
+npm run final-d:validate - PASS after elevated run; 66/66
+npm run final-e:validate - PASS after elevated run; 88/88
+npm run env:validate - PASS after elevated run
+npm run db:validate - PASS after elevated run; Prisma schema valid; Prisma 7 config deprecation warning only
+npm run db:generate - PASS after elevated run; Prisma Client v6.19.3 generated
+npm run db:migrate:status - PASS after elevated run; 29 migrations found; database schema is up to date
+npm run lint - PASS after elevated run
+npm run build - PASS after elevated run; slow filesystem warning only; /api/integrations/zoho-mail/webhook remains dynamic
+vercel.json - PASS; { "crons": [] }
+git diff --check - PASS; CRLF/LF warnings only, no whitespace errors
+```
+
+Executed during Android Zoho native-handoff removal on 2026-09-28:
+
+```text
+git status --short --branch - PASS; starting branch main at 0abdb8e17290ffe73ff247392bc1399366daf348
+git rev-parse HEAD - PASS; 0abdb8e17290ffe73ff247392bc1399366daf348
+npx tsx --tsconfig tests/final-f/tsconfig.json tests/final-f/run.ts - PASS after elevated run; Final-F targeted validation 118/118
 npm run final-d:validate - PASS after elevated run; 66/66
 npm run final-e:validate - PASS after elevated run; 88/88
 npm run env:validate - PASS after elevated run

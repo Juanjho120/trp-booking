@@ -212,8 +212,10 @@ America/Guatemala business date, then earliest upcoming stay, then latest recent
 within 30 calendar days. Ties remain ambiguous and unlinked. ADMIN push titles may include
 `Reservation.guestName` after a server-side Reservation relation is attached, but must still exclude
 email subject/body/content, sender/recipient addresses, phone numbers, payment data, provider IDs and
-secrets. The Admin `Abrir Zoho Mail` action may use an Android/current-Chromium intent targeting
-`com.zoho.mail` with `https://mail.zoho.com/` fallback; non-Android clients use the web URL.
+secrets. Hosted Android validation showed Zoho Mail native launch is not reliable from the Admin PWA
+because Zoho does not expose a supported web/PWA deep-link contract TRP can depend on; the accepted
+handoff for all clients is the stable web URL `https://mail.zoho.com/`, with sender-address clipboard
+copy preserved as a separate bounded action.
 
 ## Android-Only PWA Scope
 

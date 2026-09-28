@@ -8,10 +8,6 @@ import {
   type PrismaClient,
 } from "@prisma/client";
 
-import {
-  buildZohoMailAndroidIntentUrl,
-  resolveZohoMailOpenUrlForUserAgent,
-} from "@/features/admin/components/admin-notifications-page";
 import { getZohoMailWebhookEnv } from "@/lib/env/server";
 import {
   createZohoMailWebhookSignature,
@@ -1736,31 +1732,13 @@ test("F.7 notification center exposes bounded authenticated email metadata only"
   }
 });
 
-test("F.7 Admin notification UI opens Zoho Mail with Android intent and bounded sender copy", () => {
-  const androidUserAgent =
-    "Mozilla/5.0 (Linux; Android 15; Pixel) AppleWebKit/537.36 Chrome/140.0 Mobile Safari/537.36";
-  const desktopUserAgent =
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140.0 Safari/537.36";
-  const androidIntent = resolveZohoMailOpenUrlForUserAgent(androidUserAgent);
-  const directIntent = buildZohoMailAndroidIntentUrl("https://mail.zoho.com/");
-
-  assert.equal(androidIntent, directIntent);
-  assert.equal(
-    resolveZohoMailOpenUrlForUserAgent(desktopUserAgent),
-    "https://mail.zoho.com/",
-  );
-  assert.equal(androidIntent.includes("package=com.zoho.mail"), true);
-  assert.equal(
-    androidIntent.includes(
-      "S.browser_fallback_url=https%3A%2F%2Fmail.zoho.com%2F",
-    ),
-    true,
-  );
-
+test("F.7 Admin notification UI opens Zoho Mail web URL with bounded sender copy", () => {
   for (const expected of [
     "siteConfig.correspondence.zohoMailWebUrl",
-    "resolveZohoMailOpenUrlForUserAgent(navigator.userAgent)",
     "openZohoMailForNotification",
+    "window.open(",
+    '"_blank"',
+    '"noopener,noreferrer"',
     "navigator.clipboard.writeText(notification.zohoEmail.fromAddress)",
     "copy.actions.openZohoMail",
     "copy.history.zohoEmail",
@@ -1770,6 +1748,11 @@ test("F.7 Admin notification UI opens Zoho Mail with Android intent and bounded 
   }
 
   for (const forbidden of [
+    "intent://",
+    "com.zoho.mail",
+    "buildZohoMailAndroidIntentUrl",
+    "resolveZohoMailOpenUrlForUserAgent",
+    "navigator.userAgent",
     "mail.zoho.com/mail/",
     "zohomail://",
     "notification.zohoEmail.subject)",
@@ -1780,7 +1763,6 @@ test("F.7 Admin notification UI opens Zoho Mail with Android intent and bounded 
     "bootstrap",
   ]) {
     expectExcludes(NOTIFICATIONS_VIEW, forbidden);
-    assert.equal(androidIntent.includes(forbidden), false);
   }
 
   expectIncludes(ES_MESSAGES, 'openZohoMail: "Abrir Zoho Mail"');
