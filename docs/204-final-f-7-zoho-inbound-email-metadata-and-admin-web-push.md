@@ -7,7 +7,7 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-F - Public WhatsApp Contact and Admin Notifications
 Subphase: Final-F.7 - Zoho incoming-email bounded metadata and GUEST_EMAIL_RECEIVED Admin Web Push
-Status: Implementation completed; Zoho Test webhook onboarding + Hosted inbound-email Web Push validation + owner acceptance pending
+Status: Implementation completed; Hosted inbound-email Web Push validation + owner acceptance pending
 Document date: 2026-09-25
 Implementation base head: f652ba1decaea98aaf63cb354c5297dd49db2d66
 Accepted architecture base: Final-F.R3 at be80af9b36f285c7669986e9c9b4d6676042f6f0
@@ -35,7 +35,7 @@ TRP into an email client.
 - first-request bootstrap using x-hook-secret plus ZOHO_MAIL_WEBHOOK_BOOTSTRAP_TOKEN, with optional signature verification when Zoho provides x-hook-signature during the initial Save/validation POST
 - encrypted persisted hook secret per TRP business environment
 - AES-256-GCM secret encryption bound with environment AAD
-- bounded Limited Data parsing for subject/from/to/received-or-sent time
+- bounded Limited Data parsing for subject/from/to/received-or-sent time, accepting but ignoring provider technical messageId metadata
 - fail-closed rejection for body/html/content/summary/attachments/full headers/CC/BCC/thread/folder/raw payload fields
 - safe forbidden-field category diagnostics for rejected full-content payloads, without raw keys or values
 - ZohoMailWebhookConfiguration persistence
@@ -80,8 +80,12 @@ optional generated AdminNotification relation
 createdAt
 ```
 
+TRP accepts but ignores provider technical messageId metadata when Zoho includes it in Limited Data.
+The provider message ID is not persisted, exposed, logged, returned, used for matching, used for Web
+Push, or used as the deduplication key.
+
 TRP does not store email bodies, HTML, content summaries, attachments, full headers, CC/BCC,
-raw payloads, provider responses, mailbox thread IDs, folder state, reply state, sent/drafts state,
+raw payloads, provider responses, provider message IDs, mailbox thread IDs, folder state, reply state, sent/drafts state,
 mailbox search, or mailbox retention data.
 
 ## Security Contract
@@ -153,35 +157,50 @@ such as `eviljuantzun.dev` or `juantzun.dev.attacker.example`.
 
 ## Hosted Test Payload-Shape Evidence
 
-New Hosted Test evidence confirmed the Zoho outgoing webhook is now configured as:
+Hosted Test evidence confirmed the Zoho outgoing webhook is configured as:
 
 ```text
 Entity: Mail
 Condition Type: No conditions. All incoming emails
+Limited Data List: ON
 Status: Enabled
 ```
 
-With that configuration, real incoming mail reliably triggered the webhook and Vercel recorded two
-real requests:
+With that configuration, real incoming mail reliably triggered the webhook. The latest decisive
+real delivery reached TRP and Vercel recorded:
 
 ```text
 POST /api/integrations/zoho-mail/webhook -> HTTP 422
-POST /api/integrations/zoho-mail/webhook -> HTTP 422
 ```
 
-Zoho also sent the owner its system-generated webhook delivery-failure warning. In the current F.7
-implementation, HTTP 422 maps specifically to `ZOHO_MAIL_FULL_CONTENT_PAYLOAD`, which proves the
-request has passed webhook triggering, bootstrap/registered-secret handling, signature verification,
-raw-body JSON parsing and reached the Limited Data payload-shape validator. The failure is therefore
-inside the bounded payload-shape validation path and still occurs before `ZohoInboundEmailEvent`,
-`AdminNotification`, `AdminPushDelivery` or Web Push delivery.
+The safe structural diagnostic emitted exactly:
 
-To identify provider payload-shape drift safely, F.7 now classifies rejected forbidden keys into a
-closed structural category set: `attachment`, `body`, `content`, `headers`, `html`, `message_id`,
-`folder`, `raw`, `summary`, `thread`, `cc`, `bcc` or `other_forbidden`. The diagnostic never retains
-or emits the original key name, field value, raw body, subject, sender, recipient, hook secret,
-signature, bootstrap token, request headers, provider response or message ID value. Runtime rejection
-remains unchanged: forbidden payloads still return HTTP 422 and are not persisted.
+```text
+[zoho-mail] webhook payload rejected { code: 'ZOHO_MAIL_FULL_CONTENT_PAYLOAD', fieldCategory: 'message_id' }
+```
+
+That proves the request passed webhook triggering, bootstrap/registered-secret handling, signature
+verification and raw-body JSON parsing, then failed only inside the bounded Limited Data
+payload-shape validator before `ZohoInboundEmailEvent`, `AdminNotification`, `AdminPushDelivery` or
+Web Push delivery.
+
+The provider behavior establishes that Zoho Mail may include technical `messageId` metadata in the
+real Mail Limited Data payload even though Zoho documentation describes Limited Data as Subject,
+From, To and time details. This provider message ID is technical metadata, not email body/content,
+HTML, attachments, headers, thread state or mailbox replication data.
+
+F.7 therefore now accepts keys that normalize to `messageid`, including `messageId`, `message_id`
+and `message-id`, while ignoring the value completely. TRP does not persist, expose, log, return,
+match on, push, serialize or use the provider message ID for deduplication. The existing SHA-256
+raw-body fingerprint remains the event idempotency mechanism and the bounded persistence model is
+unchanged.
+
+The safe diagnostic mechanism remains active for still-forbidden payload-shape drift. The closed
+forbidden structural category set is now: `attachment`, `body`, `content`, `headers`, `html`,
+`folder`, `raw`, `summary`, `thread`, `cc`, `bcc` or `other_forbidden`. Diagnostics never retain or
+emit original key names, field values, raw body, subject, sender, recipient, hook secret, signature,
+bootstrap token, request headers, provider response or provider message ID value. Runtime rejection
+for still-forbidden payloads remains unchanged: HTTP 422 and no persistence.
 
 ## Accepted Recipient And Sender Rules
 
@@ -376,6 +395,23 @@ vercel.json - PASS; { "crons": [] }
 git diff --check - PASS
 ```
 
+Executed during Hosted Test provider-message-id compatibility fix on 2026-09-28:
+
+```text
+git status --short --branch - PASS; starting branch main at c827f57989512a097daa9d9a69c40ba78b15e7ed
+git rev-parse HEAD - PASS; c827f57989512a097daa9d9a69c40ba78b15e7ed
+npx tsx --tsconfig tests/final-f/tsconfig.json tests/final-f/run.ts - PASS after elevated rerun; first sandbox run failed only with uv_os_get_passwd ENOMEM; Final-F targeted validation 115/115
+npm run final-d:validate - PASS after elevated run; 66/66
+npm run final-e:validate - PASS after elevated run; 88/88
+npm run env:validate - PASS after elevated run
+npm run db:validate - PASS; Prisma schema valid; Prisma 7 config deprecation warning only
+npm run db:generate - PASS; Prisma Client v6.19.3 generated
+npm run db:migrate:status - PASS after elevated run; 29 migrations found; database schema is up to date
+npm run lint - PASS after elevated run
+npm run build - PASS after elevated run; slow filesystem warning only; /api/integrations/zoho-mail/webhook remains dynamic
+vercel.json - PASS; { "crons": [] }
+git diff --check - PASS
+```
 ## Pending Hosted Test / Owner Acceptance
 
 Final-F.7 must not be marked accepted until the owner completes the Hosted Test flow:
@@ -423,7 +459,7 @@ Final-F.7 must not be marked accepted until the owner completes the Hosted Test 
 ## Next State
 
 ```text
-Final-F.7: Implementation completed; Zoho Test webhook onboarding + Hosted inbound-email Web Push validation + owner acceptance pending
+Final-F.7: implementation completed; Hosted inbound-email Web Push validation + owner acceptance pending
 Final-F.8: Not started
 Final-G/H: Not started
 Phase 13: Not started

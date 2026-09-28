@@ -69,6 +69,7 @@ const INBOUND_SERVICE = read("lib/zoho-mail/inbound-email.ts");
 const SECRET_CRYPTO = read("lib/zoho-mail/webhook-secret-crypto.ts");
 const SIGNATURE = read("lib/zoho-mail/webhook-signature.ts");
 const CENTER_SERVICE = read("lib/admin-notifications/center.ts");
+const OPERATIONAL_SERVICE = read("lib/admin-notifications/operational.ts");
 const TARGETS = read("lib/admin-notifications/targets.ts");
 const NOTIFICATIONS_VIEW = read(
   "features/admin/components/admin-notifications-page.tsx",
@@ -591,11 +592,18 @@ test("F.7 parses Limited Data metadata and rejects full-content payloads", () =>
 
   for (const forbidden of [
     { body: "full body" },
+    { mailBody: "full mail body" },
+    { messageBody: "full message body" },
     { html: "<p>full</p>" },
-    { cc: "copy@example.com" },
-    { fullHeaders: "raw headers" },
+    { content: "full content" },
+    { summary: "provider summary" },
     { attachments: [] },
+    { fullHeaders: "raw headers" },
+    { folderId: "folder-1" },
+    { rawPayload: "raw payload" },
     { threadId: "thread-1" },
+    { cc: "copy@example.com" },
+    { bcc: "blind@example.com" },
   ]) {
     assert.throws(
       () =>
@@ -613,6 +621,33 @@ test("F.7 parses Limited Data metadata and rejects full-content payloads", () =>
   expectIncludes(LIMITED_DATA, "ZOHO_MAIL_FULL_CONTENT_PAYLOAD");
 });
 
+test("F.7 accepts but ignores provider messageId metadata", () => {
+  const variants: ReadonlyArray<Record<string, unknown>> = [
+    { messageId: "provider-message-secret" },
+    { message_id: "provider-message-secret" },
+    { "message-id": "provider-message-secret" },
+  ];
+
+  for (const variant of variants) {
+    const parsed = parseZohoLimitedInboundEmailPayload(
+      createLimitedPayload(variant),
+    );
+    const serialized = JSON.stringify(parsed);
+
+    assert.deepEqual(parsed, {
+      fromAddress: "guest@example.com",
+      toAddresses: ["reservas@juantzun.dev"],
+      toAddress: "reservas@juantzun.dev",
+      subject: "Consulta de llegada",
+      receivedAt: new Date("2026-09-25T14:00:00.000Z"),
+    });
+    assert.equal(serialized.includes("provider-message-secret"), false);
+    assert.equal("messageId" in parsed, false);
+  }
+
+  expectExcludes(LIMITED_DATA, 'marker: "messageid"');
+  expectExcludes(LIMITED_DATA, 'category: "message_id"');
+});
 test("F.7 classifies forbidden Limited Data keys into safe structural categories", () => {
   const cases: ReadonlyArray<
     readonly [Record<string, unknown>, string, readonly string[]]
@@ -622,7 +657,6 @@ test("F.7 classifies forbidden Limited Data keys into safe structural categories
     [{ content: "secret content" }, "content", ["secret content"]],
     [{ fullHeaders: "secret headers" }, "headers", ["fullHeaders", "secret headers"]],
     [{ html: "<p>secret</p>" }, "html", ["<p>secret</p>"]],
-    [{ messageId: "provider-message-secret" }, "message_id", ["messageId", "provider-message-secret"]],
     [{ folderId: "folder-secret" }, "folder", ["folderId", "folder-secret"]],
     [{ rawPayload: "raw-secret" }, "raw", ["rawPayload", "raw-secret"]],
     [{ summary: "summary-secret" }, "summary", ["summary-secret"]],
@@ -1124,6 +1158,86 @@ test("F.7 creates one matched event, AdminNotification and immediate delivery fo
   );
 });
 
+
+test("F.7 processes provider messageId without persisting or exposing it", async () => {
+  const providerMessageId = "provider-message-id-that-must-not-persist";
+  const fake = createFakeZohoPrismaClient({
+    reservations: [
+      {
+        id: "reservation-1",
+        guestEmail: "GUEST@example.com",
+        property: { nameEs: "Bungalow Luna", nameEn: "Moon Bungalow" },
+      },
+    ],
+  });
+  const delivered: string[][] = [];
+  await bootstrapFakeWebhook(fake);
+  const rawBody = createLimitedRawBody({
+    messageId: providerMessageId,
+    to: "Provider Mailbox <mailbox@juantzun.dev>",
+  });
+  const outcome = await processZohoMailWebhook({
+    rawBody,
+    signatureHeader: createZohoMailWebhookSignature(rawBody, "zoho-hook-secret"),
+    source: baseEnv,
+    prismaClient: fake.prismaClient,
+    deliverAdminPush: async (notificationIds) => {
+      delivered.push([...notificationIds]);
+      return {
+        deliveryMode: "enabled",
+        requested: notificationIds.length,
+        remindersCreated: 0,
+        recovered: 0,
+        claimed: 0,
+        sent: 0,
+        failed: 0,
+        retryScheduled: 0,
+        skipped: 0,
+      };
+    },
+  });
+  const event = Array.from(fake.events.values())[0];
+  const notification = Array.from(fake.notifications.values())[0];
+  const persistedState = JSON.stringify({
+    events: Array.from(fake.events.values()),
+    notifications: Array.from(fake.notifications.values()),
+    deliveries: fake.deliveries,
+  });
+
+  assert.equal(outcome.status, "processed");
+  assert.deepEqual(delivered, [["notification-1"]]);
+  assert.equal(fake.events.size, 1);
+  assert.equal(fake.notifications.size, 1);
+  assert.equal(fake.deliveries.length, 1);
+  assert.deepEqual(Object.keys(event ?? {}).sort(), [
+    "eventFingerprint",
+    "fromAddress",
+    "id",
+    "receivedAt",
+    "reservationId",
+    "subject",
+    "toAddress",
+  ].sort());
+  assert.equal(event?.fromAddress, "guest@example.com");
+  assert.equal(event?.toAddress, "mailbox@juantzun.dev");
+  assert.equal(event?.subject, "Consulta de llegada");
+  assert.equal(event?.reservationId, "reservation-1");
+  assert.equal(notification?.type, AdminNotificationType.GUEST_EMAIL_RECEIVED);
+  assert.equal(notification?.reservationId, "reservation-1");
+  assert.equal(notification?.title.includes(providerMessageId), false);
+  assert.equal(notification?.body.includes(providerMessageId), false);
+  assert.equal(notification?.deduplicationKey.includes(providerMessageId), false);
+  assert.equal(notification?.deduplicationKey.startsWith("zoho-mail-inbound/"), true);
+  assert.equal(persistedState.includes(providerMessageId), false);
+  assert.equal(persistedState.includes("messageId"), false);
+  expectExcludes(ROUTE, "messageId");
+  expectIncludes(INBOUND_SERVICE, "fingerprintZohoMailLimitedDataRawBody(input.rawBody)");
+  expectExcludes(INBOUND_SERVICE, "messageId");
+  expectExcludes(CENTER_SERVICE, "messageId");
+  expectExcludes(OPERATIONAL_SERVICE, "messageId");
+  expectExcludes(SERVICE_WORKER, "messageId");
+});
+
 test("F.7 duplicate webhook reuses the same event and notification without duplicate deliveries", async () => {
   const fake = createFakeZohoPrismaClient();
   await bootstrapFakeWebhook(fake);
@@ -1316,6 +1430,7 @@ test("F.7 notification center exposes bounded authenticated email metadata only"
     "rawBody",
     "html",
     "attachments",
+    "messageId",
   ]) {
     expectExcludes(CENTER_SERVICE, forbidden);
   }
@@ -1355,6 +1470,7 @@ test("F.7 keeps targets shared and service-worker push payload privacy bounded",
     "subject",
     "receivedAt",
     "zoho",
+    "messageId",
   ]) {
     expectExcludes(SERVICE_WORKER, forbidden);
   }
@@ -1369,6 +1485,7 @@ test("F.7 runtime sources do not log webhook secrets, headers, raw payloads or e
     LIMITED_DATA,
     SECRET_CRYPTO,
     SIGNATURE,
+    OPERATIONAL_SERVICE,
   ]) {
     expectExcludes(source, "console.log");
     expectExcludes(source, "console.error");

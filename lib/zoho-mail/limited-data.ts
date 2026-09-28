@@ -6,7 +6,6 @@ export type ZohoLimitedDataForbiddenFieldCategory =
   | "content"
   | "headers"
   | "html"
-  | "message_id"
   | "folder"
   | "raw"
   | "summary"
@@ -31,7 +30,6 @@ const FORBIDDEN_KEY_CATEGORIES: ReadonlyArray<
   { marker: "headers", category: "headers" },
   { marker: "header", category: "headers" },
   { marker: "html", category: "html" },
-  { marker: "messageid", category: "message_id" },
   { marker: "folder", category: "folder" },
   { marker: "rawpayload", category: "raw" },
   { marker: "raw", category: "raw" },
