@@ -579,7 +579,7 @@ test("F.7 documents and validates server-only Zoho webhook environment variables
   );
 });
 
-test("F.7 docs require cleaning the bootstrap URL before removing the Vercel bootstrap variable", () => {
+test("F.7 docs record accepted bootstrap cleanup with inert residual query", () => {
   for (const source of [ENV_EXAMPLE, DOC_204, DOC_200]) {
     expectIncludes(
       source,
@@ -601,8 +601,16 @@ test("F.7 docs require cleaning the bootstrap URL before removing the Vercel boo
     "`x-hook-signature` even though normal deliveries are signed",
     "If Zoho provides `x-hook-signature` during bootstrap, TRP verifies it against the exact raw body",
     "After configuration persistence, `x-hook-signature` is strictly mandatory",
-    "Only after the clean URL is saved successfully should the owner remove",
-    "The persisted encrypted\n`x-hook-secret` then remains authoritative for normal requests.",
+    "owner removed `ZOHO_MAIL_WEBHOOK_BOOTSTRAP_TOKEN` from Vercel Test",
+    "`ZOHO_MAIL_WEBHOOK_ENCRYPTION_KEY` configured, and redeployed successfully",
+    "attempting to edit the saved callback URL to remove `?bootstrap=...` triggers another unsigned",
+    "accepted Test provider configuration may therefore retain the original `?bootstrap=<old-token>`",
+    "residual query value is inert",
+    "credential no longer exists in runtime",
+    "normal webhook authentication uses only the persisted",
+    "encrypted hook secret plus `x-hook-signature`",
+    "active runtime credential after cleanup",
+
     "Bootstrap query params cannot overwrite an existing persisted secret.",
     "A subsequently supplied x-hook-secret cannot overwrite the persisted encrypted secret.",
     "No secret-rotation flow exists in Final-F.7.",

@@ -7,16 +7,18 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-F - Public WhatsApp Contact and Admin Notifications
 Subphase: Final-F.7 - Zoho incoming-email bounded metadata and GUEST_EMAIL_RECEIVED Admin Web Push
-Status: Implementation completed; Hosted inbound-email Web Push validation + owner acceptance pending
-Document date: 2026-09-25
+Status: Completed and accepted on 2026-09-28
+Document date: 2026-09-28
 Implementation base head: f652ba1decaea98aaf63cb354c5297dd49db2d66
+Accepted feature head: 3d32a5f2320f81ef08387f82cdf9157202c8cf95
 Accepted architecture base: Final-F.R3 at be80af9b36f285c7669986e9c9b4d6676042f6f0
 Previous accepted subphase: Final-F.6 completed and accepted on 2026-09-25 at 13e9249f54899de0863cdd6ab8747337319df3e5
 Migration: 20260925210000_final_f_7_zoho_inbound_email_metadata
 Migration application: Applied to developer-owned Local/Test database on 2026-09-25
-Owner acceptance: Pending
-Hosted Test: Pending
-Final-F.8: Not started
+Owner acceptance: Completed on 2026-09-28
+Hosted Test: Completed and accepted
+Vercel: SUCCESS
+Final-F.8: Next / Not started
 Final-G/H: Not started
 Phase 13: Not started
 ```
@@ -113,16 +115,19 @@ mailbox search, or mailbox retention data.
 - The Admin push payload contains only safe title, safe body and internal targetPath.
 ```
 
-After the first Zoho registration POST returns HTTP 200 and the hook secret has been persisted,
-the owner must edit the Zoho outgoing webhook and replace the callback URL with the clean URL:
+After the first Zoho registration POST returned HTTP 200 and the hook secret was persisted, the
+owner removed `ZOHO_MAIL_WEBHOOK_BOOTSTRAP_TOKEN` from Vercel Test, kept
+`ZOHO_MAIL_WEBHOOK_ENCRYPTION_KEY` configured, and redeployed successfully. Real Zoho behavior showed
+that attempting to edit the saved callback URL to remove `?bootstrap=...` triggers another unsigned
+Save/validation request, which TRP correctly rejects once the webhook secret has already been
+registered.
 
-```text
-https://trp-booking.juantzun.dev/api/integrations/zoho-mail/webhook
-```
-
-Only after the clean URL is saved successfully should the owner remove
-`ZOHO_MAIL_WEBHOOK_BOOTSTRAP_TOKEN` from Vercel Test and redeploy. The persisted encrypted
-`x-hook-secret` then remains authoritative for normal requests.
+The accepted Test provider configuration may therefore retain the original `?bootstrap=<old-token>`
+query parameter in the Zoho callback URL. After bootstrap cleanup, that residual query value is inert:
+existing `ZohoMailWebhookConfiguration` prevents bootstrap provisioning, the bootstrap environment
+credential no longer exists in runtime, and normal webhook authentication uses only the persisted
+encrypted hook secret plus `x-hook-signature`. The residual URL token must not be described as an
+active runtime credential after cleanup. Final-F.7 does not introduce a secret-rotation flow.
 
 ## Hosted Test Bootstrap Evidence
 
@@ -138,6 +143,11 @@ does provide `x-hook-signature` during that bootstrap request, TRP still verifie
 exact raw body. After `ZohoMailWebhookConfiguration` exists for the environment, every registered
 webhook request must include a valid `x-hook-signature`; missing signatures remain HTTP 401 and
 invalid signatures remain HTTP 403.
+
+Final Hosted Test cleanup removed `ZOHO_MAIL_WEBHOOK_BOOTSTRAP_TOKEN` from Vercel Test after the
+encrypted hook secret existed, retained `ZOHO_MAIL_WEBHOOK_ENCRYPTION_KEY`, and redeployed
+successfully. Normal signed delivery continued with the persisted encrypted secret even though the
+Zoho saved callback URL may still contain the old inert `?bootstrap=...` query parameter.
 
 ## Hosted Test Recipient-Filtering Evidence
 
@@ -204,21 +214,48 @@ for still-forbidden payloads remains unchanged: HTTP 422 and no persistence.
 
 ## Hosted Test Delivery And UX Evidence
 
+Accepted Hosted Test Zoho configuration:
+
+```text
+Entity: Mail
+Condition Type: No conditions. All incoming emails
+Limited Data List: ON
+Status: Enabled
+```
+
+A real Zoho Limited Data delivery successfully reached TRP as:
+
+```text
+POST /api/integrations/zoho-mail/webhook -> HTTP 200
+```
+
 After the provider `messageId` compatibility fix, Hosted Test evidence confirmed a real unmatched
 external email flow succeeded end to end: Zoho delivered the Limited Data webhook, TRP accepted the
-bounded payload, created the `ZohoInboundEmailEvent`, created `GUEST_EMAIL_RECEIVED`, queued the
-Admin Web Push delivery immediately after commit, and left the notification target at
-`/admin/notifications` because no eligible Reservation was attached.
+bounded payload, created the `ZohoInboundEmailEvent`, created `GUEST_EMAIL_RECEIVED`, created
+`AdminPushDelivery`, delivered Web Push to an active ADMIN `AdminPushSubscription`, recorded delivery
+status `SENT`, and left the notification target at `/admin/notifications` because no eligible
+Reservation was attached.
+
+Observed real server timing showed the inbound event and push send occurred approximately one second
+apart. Initial `GUEST_EMAIL_RECEIVED` delivery is therefore immediate post-commit best effort and
+does not depend on cron. The later physical Android display delay belongs to the browser/Web
+Push/Android delivery layer, not to TRP scheduling.
 
 Hosted Test evidence also confirmed a real exact Reservation match flow succeeded: an incoming email
-whose parsed sender matched `Reservation.guestEmail` case-insensitively attached the Reservation,
-routed the notification to `/admin/reservations/{reservationId}`, and delivered the ADMIN push
-without persisting bodies, HTML, attachments, CC/BCC, full headers, raw payloads or provider message
-IDs.
+whose parsed sender matched `Reservation.guestEmail` case-insensitively attached the expected
+Reservation, routed the notification to `/admin/reservations/{reservationId}`, and delivered the
+ADMIN push without persisting bodies, HTML, attachments, CC/BCC, full headers, raw payloads or
+provider message IDs.
 
-The current hardening replaces the earlier unique-email-only match with the deterministic relevance
-ranking documented below. It also records the owner privacy-boundary revision allowing
-`Reservation.guestName` in ADMIN-only push titles.
+Hosted validation passed the deterministic CONFIRMED Reservation relevance strategy: current stay,
+then earliest upcoming stay, then most recent completed stay within 30 calendar days. A tie at the
+winning priority remains ambiguous and unlinked. Matching remains exact case-insensitive guest email
+only, and non-CONFIRMED statuses never auto-link.
+
+The final hardening records the owner privacy-boundary revision allowing `Reservation.guestName` in
+ADMIN-only push titles using the accepted `event type · guestName · property` shape. Email
+addresses, phones, payment data, email subject/body/content, provider IDs, tokens and secrets remain
+excluded.
 
 Hosted Android validation then tested the package-targeted web intent handoff for Zoho Mail. The
 real Android TRP Admin PWA did not reliably open the Zoho Mail native application and instead fell
@@ -489,26 +526,37 @@ vercel.json - PASS; { "crons": [] }
 git diff --check - PASS; CRLF/LF warnings only, no whitespace errors
 ```
 
-## Pending Hosted Test / Owner Acceptance
-
-Final-F.7 must not be marked accepted until the owner completes the Hosted Test flow:
+Executed during Final-F.7 acceptance/documentation closure on 2026-09-28:
 
 ```text
-- configure ZOHO_MAIL_WEBHOOK_ENCRYPTION_KEY in Vercel Test
-- configure temporary ZOHO_MAIL_WEBHOOK_BOOTSTRAP_TOKEN in Vercel Test
-- configure Zoho Mail outgoing webhook with Entity Mail, Limited Data List enabled and the temporary callback URL https://trp-booking.juantzun.dev/api/integrations/zoho-mail/webhook?bootstrap=<temporary-token>
-- complete first bootstrap request
-- after HTTP 200, replace the Zoho callback URL with https://trp-booking.juantzun.dev/api/integrations/zoho-mail/webhook
-- save the clean Zoho callback URL successfully
-- remove ZOHO_MAIL_WEBHOOK_BOOTSTRAP_TOKEN from Vercel Test and redeploy
-- send an external test email to an accepted correspondence recipient
-- confirm GUEST_EMAIL_RECEIVED Admin Web Push delivery
-- confirm notification-center bounded metadata
-- confirm matched/unmatched target behavior
-- confirm Zoho Mail opens for human follow-up
-- confirm no mailbox body/html/attachment/header data is persisted
-- explicit owner acceptance
+git status --short --branch - PASS; starting branch main at 3d32a5f2320f81ef08387f82cdf9157202c8cf95
+git rev-parse HEAD - PASS; 3d32a5f2320f81ef08387f82cdf9157202c8cf95
+npx tsx --tsconfig tests/final-f/tsconfig.json tests/final-f/run.ts - PASS after elevated rerun; first sandbox run failed with uv_os_get_passwd ENOMEM; Final-F targeted validation 118/118
+npm run final-d:validate - PASS after elevated rerun; first sandbox run failed with uv_os_get_passwd ENOMEM; 66/66
+npm run final-e:validate - PASS after elevated rerun; first sandbox run failed with uv_os_get_passwd ENOMEM; 88/88
+npm run env:validate - PASS after elevated rerun; first sandbox run failed with uv_os_get_passwd ENOMEM
+npm run db:validate - PASS; Prisma schema valid; Prisma 7 config deprecation warning only
+npm run db:migrate:status - PASS after elevated rerun; first sandbox run failed with Schema engine error; 29 migrations found; database schema is up to date
+npm run lint - PASS
+npm run build - PASS after elevated rerun; first sandbox run failed only on Google Fonts fetch; slow filesystem warning only
+vercel.json - PASS; { "crons": [] }
+git diff --check - PASS; CRLF/LF warnings only, no whitespace errors
 ```
+
+## Owner Acceptance
+
+Final-F.7 is completed and accepted by the owner on 2026-09-28 at accepted feature head:
+
+```text
+3d32a5f2320f81ef08387f82cdf9157202c8cf95
+```
+
+Accepted Hosted Test evidence includes successful real Zoho delivery, bounded Limited Data parsing
+with technical `messageId` ignored, unmatched and matched `GUEST_EMAIL_RECEIVED` notifications,
+`AdminPushDelivery` status `SENT`, immediate post-commit Web Push delivery independent from cron,
+deterministic Reservation relevance ranking, owner-approved ADMIN-only `guestName` push titles,
+stable web Zoho Mail handoff, Vercel SUCCESS for the accepted feature head, bootstrap-token removal
+from Vercel Test, and continued normal signed delivery using the persisted encrypted hook secret.
 
 ## Boundaries Preserved
 
@@ -536,8 +584,8 @@ Final-F.7 must not be marked accepted until the owner completes the Hosted Test 
 ## Next State
 
 ```text
-Final-F.7: implementation completed; Hosted inbound-email Web Push validation + owner acceptance pending
-Final-F.8: Not started
+Final-F.7: Completed and accepted on 2026-09-28 at 3d32a5f2320f81ef08387f82cdf9157202c8cf95
+Final-F.8: Next / Not started
 Final-G/H: Not started
 Phase 13: Not started
 ```

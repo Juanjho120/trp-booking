@@ -19,8 +19,8 @@ Owner acceptance: Completed on 2026-09-24
 Final-F.R4: Completed and accepted on 2026-09-25 at ae0db63efdabfa3bc952a8a2a71220de231ebc18
 Final-F.R5: Completed and accepted on 2026-09-25 at 88616acf46645ccc01cc475f20a868d7c18dbadf
 Final-F.6: Completed and accepted on 2026-09-25 at 13e9249f54899de0863cdd6ab8747337319df3e5
-Final-F.7: Implementation completed; Zoho Test webhook onboarding + Hosted inbound-email Web Push validation + owner acceptance pending
-Final-F.8: Not started
+Final-F.7: Completed and accepted on 2026-09-28 at 3d32a5f2320f81ef08387f82cdf9157202c8cf95
+Final-F.8: Next / Not started
 Final-G/H: Not started
 Phase 13: Not started
 ```
@@ -435,10 +435,10 @@ REVIEW_SUBMITTED
 - reminder scheduling
 — completed and accepted on 2026-09-25 at 13e9249f54899de0863cdd6ab8747337319df3e5
 
-Final-F.7 — Implementation completed; Zoho Test webhook onboarding + Hosted inbound-email Web Push validation + owner acceptance pending
+Final-F.7 — Completed and accepted on 2026-09-28 at 3d32a5f2320f81ef08387f82cdf9157202c8cf95
 Zoho incoming-email bounded metadata
 - GUEST_EMAIL_RECEIVED Admin Web Push
-- First Zoho registration temporarily uses the credential URL https://trp-booking.juantzun.dev/api/integrations/zoho-mail/webhook?bootstrap=<temporary-token>; after the first HTTP 200 persists the encrypted x-hook-secret, the owner must save the clean callback URL https://trp-booking.juantzun.dev/api/integrations/zoho-mail/webhook, remove ZOHO_MAIL_WEBHOOK_BOOTSTRAP_TOKEN from Vercel Test and redeploy. Existing configurations ignore later bootstrap params and x-hook-secret overwrite attempts; the persisted encrypted secret remains authoritative.
+- First Zoho registration temporarily used the credential URL https://trp-booking.juantzun.dev/api/integrations/zoho-mail/webhook?bootstrap=<temporary-token>. After the first HTTP 200 persisted the encrypted x-hook-secret, the owner removed ZOHO_MAIL_WEBHOOK_BOOTSTRAP_TOKEN from Vercel Test and redeployed while keeping ZOHO_MAIL_WEBHOOK_ENCRYPTION_KEY. Hosted Test showed Zoho's later attempt to save a clean callback URL triggers another unsigned validation request, so the accepted Test provider configuration may retain the old inert `?bootstrap=...` query. Existing configurations ignore later bootstrap params and x-hook-secret overwrite attempts; normal delivery uses only the persisted encrypted secret plus x-hook-signature.
 
 Final-F.8 —
 Android PWA/Web Push integrated regression
