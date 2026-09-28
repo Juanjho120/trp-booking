@@ -13,6 +13,7 @@
     "final-c:validate": "tsx --tsconfig tests/final-c/tsconfig.json tests/final-c/run.ts",
     "final-d:validate": "tsx --tsconfig tests/final-d/tsconfig.json tests/final-d/run.ts",
     "final-e:validate": "tsx --tsconfig tests/final-e/tsconfig.json tests/final-e/run.ts",
+    "final-f:validate": "tsx --tsconfig tests/final-f/tsconfig.json tests/final-f/run.ts",
     "env:validate": "tsx scripts/validate-env.ts",
     "email:contract:validate": "tsx scripts/validate-email-reply-to-contract.ts",
     "airbnb:import-policy:validate": "tsx scripts/validate-airbnb-ical-import-policy.ts",

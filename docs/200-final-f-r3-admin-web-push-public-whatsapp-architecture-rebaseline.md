@@ -20,7 +20,7 @@ Final-F.R4: Completed and accepted on 2026-09-25 at ae0db63efdabfa3bc952a8a2a712
 Final-F.R5: Completed and accepted on 2026-09-25 at 88616acf46645ccc01cc475f20a868d7c18dbadf
 Final-F.6: Completed and accepted on 2026-09-25 at 13e9249f54899de0863cdd6ab8747337319df3e5
 Final-F.7: Completed and accepted on 2026-09-28 at 3d32a5f2320f81ef08387f82cdf9157202c8cf95
-Final-F.8: Next / Not started
+Final-F.8: Implementation completed; Hosted integrated regression + explicit owner acceptance pending
 Final-G/H: Not started
 Phase 13: Not started
 ```
@@ -444,7 +444,7 @@ Final-F.8 —
 Android PWA/Web Push integrated regression
 - public WhatsApp contact acceptance
 - Final-F documentation closure
-— Not started
+— Implementation completed; Hosted integrated regression + explicit owner acceptance pending
 
 Final-G Performance Audit —
 unchanged / Not started
