@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { createSeoMetadata } from "@/config/seo";
-import { PropertyDetailPage } from "@/features/properties";
+import { PropertyDetailPage } from "@/features/properties/components/property-detail-page";
 import { getPublicAccommodationBySlug } from "@/lib/properties";
 import { esMessages } from "@/messages";
 

@@ -7,6 +7,12 @@ import type { AvailabilityBlockingRecord, DateOnlyString } from "@/types/availab
 import type { PublicAvailabilityCopy } from "@/features/availability/copy";
 
 const DEFAULT_VISIBLE_DAYS = 60;
+const calendarDateFormatter = new Intl.DateTimeFormat("es-GT", {
+  weekday: "short",
+  day: "2-digit",
+  month: "short",
+  timeZone: "UTC",
+});
 
 type AvailabilityCalendarDay = Readonly<{
   date: DateOnlyString;
@@ -62,12 +68,7 @@ function formatCalendarDate(date: DateOnlyString): string {
   const [year, month, day] = date.split("-").map(Number);
   const parsedDate = new Date(Date.UTC(year, month - 1, day));
 
-  return new Intl.DateTimeFormat("es-GT", {
-    weekday: "short",
-    day: "2-digit",
-    month: "short",
-    timeZone: "UTC",
-  }).format(parsedDate);
+  return calendarDateFormatter.format(parsedDate);
 }
 
 function buildRequestRange(visibleDays: number): Readonly<{
@@ -102,6 +103,39 @@ function getDayClassName(day: AvailabilityCalendarDay): string {
   }
 
   return "border-stone-300 bg-stone-100 text-stone-500";
+}
+
+function AvailabilityCalendarSkeleton({
+  loadingLabel,
+  visibleDays,
+}: Readonly<{
+  loadingLabel: string;
+  visibleDays: number;
+}>) {
+  return (
+    <div className="mt-6">
+      <p
+        className="rounded-2xl bg-stone-50 p-4 text-sm text-stone-600"
+        role="status"
+      >
+        {loadingLabel}
+      </p>
+      <div
+        aria-hidden="true"
+        className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4"
+      >
+        {Array.from({ length: visibleDays }, (_, index) => (
+          <div
+            className="min-h-20 animate-pulse rounded-2xl border border-stone-200 bg-stone-100/80 p-3"
+            key={index}
+          >
+            <div className="h-4 w-20 rounded-full bg-stone-200" />
+            <div className="mt-3 h-3 w-16 rounded-full bg-stone-200/80" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export function PublicAvailabilityCalendar({
@@ -198,7 +232,10 @@ export function PublicAvailabilityCalendar({
       </div>
 
       {loadState.status === "loading" ? (
-        <p className="mt-6 rounded-2xl bg-stone-50 p-4 text-sm text-stone-600">{copy.loading}</p>
+        <AvailabilityCalendarSkeleton
+          loadingLabel={copy.loading}
+          visibleDays={visibleDays}
+        />
       ) : null}
 
       {loadState.status === "error" ? (
@@ -231,16 +268,7 @@ export function PublicAvailabilityCalendar({
         <>
           <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {loadState.days.map((day) => (
-              <div
-                key={day.date}
-                className={`rounded-2xl border p-3 text-sm transition ${getDayClassName(day)}`}
-                aria-label={`${formatCalendarDate(day.date)} — ${
-                  day.available ? copy.available : copy.unavailable
-                }`}
-              >
-                <p className="font-semibold capitalize">{formatCalendarDate(day.date)}</p>
-                <p className="mt-1 text-xs">{day.available ? copy.available : copy.unavailable}</p>
-              </div>
+              <AvailabilityDayCard copy={copy} day={day} key={day.date} />
             ))}
           </div>
 
@@ -253,5 +281,29 @@ export function PublicAvailabilityCalendar({
         </>
       ) : null}
     </section>
+  );
+}
+
+function AvailabilityDayCard({
+  copy,
+  day,
+}: Readonly<{
+  copy: PublicAvailabilityCopy;
+  day: AvailabilityCalendarDay;
+}>) {
+  const formattedDate = formatCalendarDate(day.date);
+
+  return (
+    <div
+      aria-label={`${formattedDate} — ${
+        day.available ? copy.available : copy.unavailable
+      }`}
+      className={`min-h-20 rounded-2xl border p-3 text-sm transition ${getDayClassName(day)}`}
+    >
+      <p className="font-semibold capitalize">{formattedDate}</p>
+      <p className="mt-1 text-xs">
+        {day.available ? copy.available : copy.unavailable}
+      </p>
+    </div>
   );
 }

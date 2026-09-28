@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { createSeoMetadata } from "@/config/seo";
-import { AccommodationsPage } from "@/features/properties";
+import { AccommodationsPage } from "@/features/properties/components/accommodations-page";
 import { getPublicAccommodations } from "@/lib/properties";
 import { esMessages } from "@/messages";
 

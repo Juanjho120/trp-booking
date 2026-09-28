@@ -8,6 +8,7 @@ import {
   Search,
 } from "lucide-react";
 import {
+  useCallback,
   type ComponentType,
   type FormEvent,
   useEffect,
@@ -30,7 +31,6 @@ import {
 } from "@/components/ui/sheet";
 import { useLocale } from "@/features/i18n";
 import { scrollPaymentFormIntoViewportCenter } from "@/features/payments/components/payment-form-auto-scroll";
-import { TilopaySdkCheckout } from "@/features/payments/components/tilopay-sdk-checkout";
 import {
   getCountryOption,
   getCountryOptions,
@@ -50,6 +50,13 @@ type ReservationRequestFormProps = Readonly<{
   accommodationId: AccommodationId;
   maxGuests: number;
 }>;
+
+type TilopayCheckoutComponentProps = Readonly<{
+  reservationId: string;
+  onPaymentFormReady?: () => void;
+}>;
+
+type TilopayCheckoutComponent = ComponentType<TilopayCheckoutComponentProps>;
 
 type QuoteApiSuccessResponse = Readonly<{
   quote: ReservationQuote;
@@ -99,6 +106,21 @@ const countryFlagComponents = flagComponents as Record<
   string,
   ComponentType<FlagComponentProps>
 >;
+let tilopayCheckoutComponentPromise: Promise<TilopayCheckoutComponent> | null =
+  null;
+
+function loadTilopayCheckoutComponent(): Promise<TilopayCheckoutComponent> {
+  tilopayCheckoutComponentPromise ??= import(
+    "@/features/payments/components/tilopay-sdk-checkout"
+  )
+    .then((module) => module.TilopaySdkCheckout as TilopayCheckoutComponent)
+    .catch((error: unknown) => {
+      tilopayCheckoutComponentPromise = null;
+      throw error;
+    });
+
+  return tilopayCheckoutComponentPromise;
+}
 
 const dayPickerClassNames = {
   months: "grid gap-4",
@@ -354,12 +376,18 @@ export function ReservationRequestForm({
   const [status, setStatus] = useState<RequestStatus>("idle");
   const [holdStatus, setHoldStatus] = useState<RequestStatus>("idle");
   const [releaseStatus, setReleaseStatus] = useState<RequestStatus>("idle");
+  const [paymentCheckoutLoadStatus, setPaymentCheckoutLoadStatus] =
+    useState<RequestStatus>("idle");
   const [modifySheetOpen, setModifySheetOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [holdErrorMessage, setHoldErrorMessage] = useState<string | null>(null);
+  const [paymentCheckoutLoadError, setPaymentCheckoutLoadError] =
+    useState<string | null>(null);
   const [releaseErrorMessage, setReleaseErrorMessage] = useState<string | null>(
     null,
   );
+  const [PaymentCheckoutComponent, setPaymentCheckoutComponent] =
+    useState<TilopayCheckoutComponent | null>(null);
   const [blockedDatesReloadKey, setBlockedDatesReloadKey] = useState(0);
   const quoteSummaryRef = useRef<HTMLDivElement | null>(null);
   const quoteErrorRef = useRef<HTMLParagraphElement | null>(null);
@@ -394,6 +422,34 @@ export function ReservationRequestForm({
     return date;
   }, []);
   const formLocked = Boolean(pendingHold) || releaseStatus === "loading";
+  const preloadPaymentCheckout = useCallback(() => {
+    if (
+      PaymentCheckoutComponent ||
+      paymentCheckoutLoadStatus === "loading" ||
+      paymentCheckoutLoadStatus === "success"
+    ) {
+      return;
+    }
+
+    setPaymentCheckoutLoadStatus("loading");
+    setPaymentCheckoutLoadError(null);
+
+    loadTilopayCheckoutComponent()
+      .then((component) => {
+        setPaymentCheckoutComponent(() => component);
+        setPaymentCheckoutLoadStatus("success");
+      })
+      .catch(() => {
+        setPaymentCheckoutLoadStatus("error");
+        setPaymentCheckoutLoadError(
+          messages.payments.tilopaySdk.sessionError,
+        );
+      });
+  }, [
+    PaymentCheckoutComponent,
+    messages.payments.tilopaySdk.sessionError,
+    paymentCheckoutLoadStatus,
+  ]);
 
   useEffect(() => {
     let cancelled = false;
@@ -460,6 +516,12 @@ export function ReservationRequestForm({
     }
   }, [holdStatus, holdErrorMessage]);
 
+  useEffect(() => {
+    if (pendingHold && !PaymentCheckoutComponent) {
+      preloadPaymentCheckout();
+    }
+  }, [PaymentCheckoutComponent, pendingHold, preloadPaymentCheckout]);
+
   async function handleQuoteRequest(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -517,6 +579,7 @@ export function ReservationRequestForm({
 
     setHoldStatus("loading");
     setHoldErrorMessage(null);
+    preloadPaymentCheckout();
 
     try {
       const response = await fetch("/api/reservations/pending-hold", {
@@ -807,12 +870,21 @@ export function ReservationRequestForm({
 
       {pendingHold ? (
         <div className="scroll-mt-24" ref={paymentSectionRef}>
-          <TilopaySdkCheckout
-            onPaymentFormReady={() =>
-              scrollPaymentFormIntoViewportCenter(paymentSectionRef.current)
-            }
-            reservationId={pendingHold.reservationId}
-          />
+          {PaymentCheckoutComponent ? (
+            <PaymentCheckoutComponent
+              onPaymentFormReady={() =>
+                scrollPaymentFormIntoViewportCenter(paymentSectionRef.current)
+              }
+              reservationId={pendingHold.reservationId}
+            />
+          ) : (
+            <DeferredPaymentCheckoutFallback
+              errorMessage={paymentCheckoutLoadError}
+              loadingLabel={messages.payments.tilopaySdk.initializingPayment}
+              onRetry={preloadPaymentCheckout}
+              retryLabel={messages.payments.tilopaySdk.preparePayment}
+            />
+          )}
         </div>
       ) : null}
 
@@ -888,6 +960,40 @@ export function ReservationRequestForm({
         </SheetContent>
       </Sheet>
     </div>
+  );
+}
+
+function DeferredPaymentCheckoutFallback({
+  errorMessage,
+  loadingLabel,
+  onRetry,
+  retryLabel,
+}: Readonly<{
+  errorMessage: string | null;
+  loadingLabel: string;
+  onRetry: () => void;
+  retryLabel: string;
+}>) {
+  return (
+    <section className="space-y-4 rounded-3xl border border-primary/20 bg-card p-4 shadow-sm">
+      {errorMessage ? (
+        <>
+          <p className="rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm leading-6 text-destructive">
+            {errorMessage}
+          </p>
+          <Button className="w-full rounded-full" onClick={onRetry} type="button">
+            {retryLabel}
+          </Button>
+        </>
+      ) : (
+        <p
+          className="rounded-2xl border border-border/70 bg-muted/40 p-4 text-sm leading-6 text-muted-foreground"
+          role="status"
+        >
+          {loadingLabel}
+        </p>
+      )}
+    </section>
   );
 }
 
