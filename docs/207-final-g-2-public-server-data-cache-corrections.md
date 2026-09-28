@@ -7,14 +7,20 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-G — Performance audit and optimization
 Subphase: Final-G.2 — Public server/data/cache corrections
-Status: Implementation completed; Hosted performance validation + owner acceptance pending
+Status: Completed and accepted on 2026-09-28
 Document date: 2026-09-28
 Implementation base head: 2229d9dc02dd0f3fd19609aae02a911e1b403396
 Accepted G.1 baseline head: 1623389b028be1b0391a2afce6e7c28244ad0fbf
+Accepted feature head: ecafa2f95314fe485b1e1cc2d6372c40f076964a
+Hosted performance/evidence head: c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60
+Owner acceptance: Completed on 2026-09-28
+Hosted performance validation: Completed and accepted
+Hosted invalidation validation: Completed and accepted
+Vercel for accepted feature head: SUCCESS
 Final-G package: Active
 Final-G.1: Completed and accepted on 2026-09-28
-Final-G.2: Implementation completed; Hosted performance/invalidation validation + owner acceptance pending
-Final-G.3: Not started
+Final-G.2: Completed and accepted on 2026-09-28
+Final-G.3: Next / Not started
 Final-G.4: Not started
 Final-G.5: Not started
 Final-H: Not started
@@ -30,13 +36,23 @@ vercel.json remains {"crons":[]}
 G.2 implements the accepted G.1 corrections for stable public server/data caching only:
 
 ```text
-G1-C1 — stable public content was dynamic/no-store on every request.
-G1-C2 — accommodation detail repeated the same property read in metadata and page rendering.
-G1-O3 — published reviews paid dynamic DB/server cost between moderation changes.
+G1-C1 — Addressed and accepted by G.2.
+G1-C2 — Addressed and accepted by G.2.
+G1-O3 — Addressed and accepted by G.2.
 ```
 
 G.2 does not start G.3 client/hydration or image-path work, G.4 admin/query timing work, G.5 hosted
-comparison/Final-G closure, Final-H, or Phase 13. It does not mark G.2 accepted.
+comparison/Final-G closure, Final-H, or Phase 13.
+
+The remaining accepted G.1 findings are intentionally outside G.2:
+
+```text
+G1-C3 — /disponibilidad hydration/layout cost; belongs to G.3.
+G1-O1 — property-detail heavy client boundary; belongs to G.3.
+G1-O2 — accommodation listing broad client boundary; belongs to G.3.
+G1-O4 — home media/image payload; belongs to G.3.
+G1-O5 — admin client bundle / protected-route timing; belongs to G.4.
+```
 
 ## Accepted G.1 Baseline
 
@@ -50,9 +66,19 @@ Hosted G.1 median total response-time evidence:
 | `/resenas` | Dynamic `MISS`, `no-store` | ~975 ms |
 | `/disponibilidad` | Static/PRERENDER then HIT | ~91 ms |
 
-The G.2 implementation must be compared against this baseline only after Vercel deploys the G.2
-commit and the owner runs the canonical repeated-URL Hosted Test measurement. No Hosted after-value
-is recorded in this implementation commit.
+The G.2 Hosted performance validation preserved this G.1 baseline and accepted these median total
+response times:
+
+| Route | Accepted G.1 median total | Accepted G.2 Hosted median total | Accepted total-response improvement |
+| --- | ---: | ---: | ---: |
+| `/` | ~1593 ms | ~159 ms | ~90.0% |
+| `/alojamientos` | ~1255 ms | ~91 ms | ~92.8% |
+| `/alojamientos/refugio-completo` | ~2531 ms | ~181 ms | ~92.8% |
+| `/resenas` | ~975 ms | ~118 ms | ~87.9% |
+| `/disponibilidad` | ~91 ms | ~92 ms | No material improvement expected or claimed |
+
+The accepted G.2 requirement was at least 35% median server/header-time reduction where caching
+applied. G.2 exceeded that target substantially.
 
 ## Writer Inventory
 
@@ -127,14 +153,20 @@ G.2 does not cache:
 
 ```text
 /api/availability
+availability
 pending reservation holds
 Reservation blocking state
 lifecycle holds
 quote outputs dependent on requested dates/current pricing state
+date-sensitive quote results
+transactional pricing state
+Reservation state
 Tilopay state
 Payment/Refund state
 admin pages
+authenticated Admin pages
 admin notification center/Web Push state
+Web Push/notification state
 Zoho webhook state
 email processing
 Airbnb sync state
@@ -276,16 +308,66 @@ Header evidence also verifies the intended cache split:
 - `/disponibilidad` remains the accepted fast static shell with no G.2 caching change; its live availability APIs remain outside this hosted document timing.
 ```
 
-The Hosted performance measurement is complete. Owner-visible invalidation checks are still pending,
-so G.2 is not accepted yet.
-
-Required Hosted functional checks still pending:
+The accepted route/data-cache behavior is:
 
 ```text
-Property public content invalidates promptly after a successful Admin mutation.
-Public location invalidates promptly after a successful Admin mutation.
-Published reviews update promptly after publish/hide/republish moderation.
-/disponibilidad continues to reflect live blocking state/API behavior.
+`/` first observed -> PRERENDER; subsequent -> HIT.
+`/alojamientos` first observed -> PRERENDER; subsequent -> HIT.
+`/alojamientos/[slug]` remains route-level dynamic/no-store; stable property data is cached and repeated canonical requests fell to roughly 155-183 ms total.
+`/resenas` remains route-level dynamic/no-store because of search params/pagination; published-review data is cached and repeated canonical requests fell to roughly 104-124 ms total.
+`/disponibilidad` remains a static/prerendered shell plus live dynamic availability APIs; no stable-property cache is used for availability correctness.
+```
+
+The owner accepted the Hosted performance validation on 2026-09-28.
+
+## Hosted Invalidation Acceptance
+
+The owner completed the G.2 manual Hosted invalidation checks successfully.
+
+```text
+Property cache invalidation — PASS
+- A visible public accommodation field was changed through the accepted Admin workflow.
+- After successful save, the public accommodation route reflected the new value immediately.
+- The owner did not need to wait for the 300-second TTL.
+- This accepts the property mutation -> cache invalidation flow.
+
+Review cache invalidation — PASS
+- PUBLISHED -> HIDDEN made the review disappear promptly from /resenas.
+- HIDDEN -> PUBLISHED made the review reappear promptly on /resenas.
+- This accepts public review cache invalidation.
+
+Availability regression — PASS
+- /disponibilidad continued loading current/live availability normally after G.2.
+- The stable public-content cache did not freeze or replace dynamic availability state.
+
+Public location — covered by implementation/tests
+- No separate manual Hosted public-location mutation was required for G.2 owner acceptance.
+- The public-location invalidation contract remains covered by implementation and deterministic regression tests.
+```
+
+Accepted G.2 architecture is frozen as:
+
+```text
+Public property data:
+- raw Prisma readers remain injectable/testable;
+- runtime reads use unstable_cache;
+- 300-second revalidation is only a safety net;
+- successful Admin mutations explicitly invalidate;
+- environment scope is included in cache tags/keys;
+- `/`, `/alojamientos`, and detail stable property reads use this boundary.
+
+Detail request memoization:
+- metadata and page rendering share the cached slug loader through request-level React memoization;
+- G1-C2 is resolved.
+
+Public location:
+- stable public location settings use the public-location cache domain and explicit mutation invalidation.
+
+Published reviews:
+- pagination inputs remain part of cache identity;
+- public moderation eligibility remains preserved;
+- publish/hide/republish invalidates;
+- active-property public eligibility invalidation also invalidates public reviews.
 ```
 
 ## Targeted Regression Coverage
@@ -309,6 +391,8 @@ no G.3 client/hydration/image-path changes enter G.2
 
 ## Validation Ledger
 
+Implementation validation recorded before owner acceptance:
+
 The Windows host Node.js runtime requires the same temporary non-repository `NODE_OPTIONS` shim used
 in prior Final-G work so `tsx` can survive `node:os.userInfo()` returning `uv_os_get_passwd`.
 
@@ -329,14 +413,33 @@ npm run build — PASS outside sandbox; initial sandbox attempt failed fetching 
 git diff --check — PASS
 ```
 
+Acceptance closure validation on 2026-09-28:
+
+```text
+npx tsx --tsconfig tests/final-g/tsconfig.json tests/final-g/run.ts — PASS, 12/12
+npm run final-a:validate — PASS, 44/44
+npm run final-b:validate — PASS, 38/38
+npm run final-c:validate — PASS, 41/41
+npm run final-d:validate — PASS, 66/66
+npm run final-e:validate — PASS, 88/88
+npm run final-f:validate — PASS, 125/125
+npm run env:validate — PASS
+npm run db:validate — PASS
+npm run db:migrate:status — PASS outside sandbox; initial sandbox attempt returned a Prisma Schema engine error with no detail
+npm run lint — PASS
+npm run build — PASS outside sandbox; initial sandbox attempt failed fetching Google Fonts from fonts.googleapis.com
+git diff --check — PASS; Windows working-tree line-ending warning only
+```
+
 ## Next State
 
 ```text
 Final-F — Completed and accepted
 Final-G — Active
 Final-G.1 — Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf
-Final-G.2 — Implementation completed; Hosted performance/invalidation validation + owner acceptance pending
-Final-G.3 — Not started
+Final-G.2 — Completed and accepted on 2026-09-28 at ecafa2f95314fe485b1e1cc2d6372c40f076964a
+Final-G.2 Hosted evidence head — c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60
+Final-G.3 — Next / Not started
 Final-G.4 — Not started
 Final-G.5 — Not started
 Final-H — Not started

@@ -16,8 +16,8 @@ Vercel for accepted head: SUCCESS
 Final-F accepted feature head: 13f0e0cf6904e34155dd754230f320ca6c214141
 Final-G package: Active
 Final-G.1: Completed and accepted on 2026-09-28
-Final-G.2: Implementation completed; Hosted performance/invalidation validation + owner acceptance pending
-Final-G.3: Not started
+Final-G.2: Completed and accepted on 2026-09-28 at ecafa2f95314fe485b1e1cc2d6372c40f076964a; Hosted evidence head c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60
+Final-G.3: Next / Not started
 Final-G.4: Not started
 Final-G.5: Not started
 Final-H: Not started
@@ -548,8 +548,8 @@ Production-resource change.
 Final-F — Completed and accepted
 Final-G — Active
 Final-G.1 — Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf
-Final-G.2 — Implementation completed; Hosted performance/invalidation validation + owner acceptance pending
-Final-G.3 — Not started
+Final-G.2 — Completed and accepted on 2026-09-28 at ecafa2f95314fe485b1e1cc2d6372c40f076964a; Hosted evidence head c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60
+Final-G.3 — Next / Not started
 Final-G.4 — Not started
 Final-G.5 — Not started
 Final-H — Not started
