@@ -20,6 +20,7 @@ import {
 import {
   ZohoLimitedDataError,
   parseZohoLimitedInboundEmailPayload,
+  type ZohoLimitedDataForbiddenFieldCategory,
   type ZohoLimitedInboundEmail,
 } from "./limited-data";
 import {
@@ -76,6 +77,7 @@ export class ZohoMailWebhookError extends Error {
   constructor(
     readonly code: ZohoMailWebhookErrorCode,
     readonly status: number,
+    readonly fieldCategory?: ZohoLimitedDataForbiddenFieldCategory,
   ) {
     super(code);
     this.name = "ZohoMailWebhookError";
@@ -499,6 +501,7 @@ export async function processZohoMailWebhook(
       throw new ZohoMailWebhookError(
         error.code,
         error.code === "ZOHO_MAIL_FULL_CONTENT_PAYLOAD" ? 422 : 400,
+        error.fieldCategory,
       );
     }
 

@@ -53,6 +53,16 @@ export async function POST(request: Request) {
     return jsonResponse({ ok: true, status: outcome.status }, 200);
   } catch (error) {
     if (error instanceof ZohoMailWebhookError) {
+      if (
+        error.code === "ZOHO_MAIL_FULL_CONTENT_PAYLOAD" &&
+        error.fieldCategory
+      ) {
+        console.warn("[zoho-mail] webhook payload rejected", {
+          code: error.code,
+          fieldCategory: error.fieldCategory,
+        });
+      }
+
       return jsonResponse({ ok: false, error: { code: error.code } }, error.status);
     }
 

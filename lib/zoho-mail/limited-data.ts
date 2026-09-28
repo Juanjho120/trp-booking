@@ -1,23 +1,50 @@
 const EMAIL_PATTERN = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;
-const FORBIDDEN_KEY_MARKERS = [
-  "attachment",
-  "attachments",
-  "body",
-  "content",
-  "fullheaders",
-  "header",
-  "headers",
-  "html",
-  "mailbody",
-  "messageid",
-  "messagebody",
-  "folder",
-  "raw",
-  "rawpayload",
-  "summary",
-  "thread",
+
+export type ZohoLimitedDataForbiddenFieldCategory =
+  | "attachment"
+  | "body"
+  | "content"
+  | "headers"
+  | "html"
+  | "message_id"
+  | "folder"
+  | "raw"
+  | "summary"
+  | "thread"
+  | "cc"
+  | "bcc"
+  | "other_forbidden";
+
+const FORBIDDEN_KEY_CATEGORIES: ReadonlyArray<
+  Readonly<{
+    marker: string;
+    category: ZohoLimitedDataForbiddenFieldCategory;
+  }>
+> = [
+  { marker: "attachment", category: "attachment" },
+  { marker: "attachments", category: "attachment" },
+  { marker: "mailbody", category: "body" },
+  { marker: "messagebody", category: "body" },
+  { marker: "body", category: "body" },
+  { marker: "content", category: "content" },
+  { marker: "fullheaders", category: "headers" },
+  { marker: "headers", category: "headers" },
+  { marker: "header", category: "headers" },
+  { marker: "html", category: "html" },
+  { marker: "messageid", category: "message_id" },
+  { marker: "folder", category: "folder" },
+  { marker: "rawpayload", category: "raw" },
+  { marker: "raw", category: "raw" },
+  { marker: "summary", category: "summary" },
+  { marker: "thread", category: "thread" },
 ] as const;
-const FORBIDDEN_EXACT_KEYS = new Set(["bcc", "cc"]);
+const FORBIDDEN_EXACT_KEY_CATEGORIES = new Map<
+  string,
+  ZohoLimitedDataForbiddenFieldCategory
+>([
+  ["bcc", "bcc"],
+  ["cc", "cc"],
+]);
 const SUBJECT_KEYS = new Set([
   "subject",
   "mailsubject",
@@ -63,7 +90,10 @@ export type ZohoLimitedDataErrorCode =
   | "ZOHO_MAIL_LIMITED_DATA_MALFORMED";
 
 export class ZohoLimitedDataError extends Error {
-  constructor(readonly code: ZohoLimitedDataErrorCode) {
+  constructor(
+    readonly code: ZohoLimitedDataErrorCode,
+    readonly fieldCategory?: ZohoLimitedDataForbiddenFieldCategory,
+  ) {
     super(code);
     this.name = "ZohoLimitedDataError";
   }
@@ -75,6 +105,22 @@ function normalizePayloadKey(value: string): string {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function forbiddenFieldCategoryFor(
+  normalizedKey: string,
+): ZohoLimitedDataForbiddenFieldCategory | null {
+  const exactCategory = FORBIDDEN_EXACT_KEY_CATEGORIES.get(normalizedKey);
+
+  if (exactCategory) {
+    return exactCategory;
+  }
+
+  return (
+    FORBIDDEN_KEY_CATEGORIES.find(({ marker }) =>
+      normalizedKey.includes(marker),
+    )?.category ?? null
+  );
 }
 
 function assertNoFullContentKeys(value: unknown): void {
@@ -91,12 +137,13 @@ function assertNoFullContentKeys(value: unknown): void {
 
   for (const [key, child] of Object.entries(value)) {
     const normalizedKey = normalizePayloadKey(key);
+    const forbiddenCategory = forbiddenFieldCategoryFor(normalizedKey);
 
-    if (
-      FORBIDDEN_EXACT_KEYS.has(normalizedKey) ||
-      FORBIDDEN_KEY_MARKERS.some((marker) => normalizedKey.includes(marker))
-    ) {
-      throw new ZohoLimitedDataError("ZOHO_MAIL_FULL_CONTENT_PAYLOAD");
+    if (forbiddenCategory) {
+      throw new ZohoLimitedDataError(
+        "ZOHO_MAIL_FULL_CONTENT_PAYLOAD",
+        forbiddenCategory,
+      );
     }
 
     assertNoFullContentKeys(child);

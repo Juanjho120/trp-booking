@@ -37,6 +37,7 @@ TRP into an email client.
 - AES-256-GCM secret encryption bound with environment AAD
 - bounded Limited Data parsing for subject/from/to/received-or-sent time
 - fail-closed rejection for body/html/content/summary/attachments/full headers/CC/BCC/thread/folder/raw payload fields
+- safe forbidden-field category diagnostics for rejected full-content payloads, without raw keys or values
 - ZohoMailWebhookConfiguration persistence
 - ZohoInboundEmailEvent persistence with SHA-256 raw-payload fingerprint only
 - AdminNotificationType.GUEST_EMAIL_RECEIVED
@@ -103,6 +104,7 @@ mailbox search, or mailbox retention data.
 - No secret-rotation flow exists in Final-F.7.
 - Signatures are checked before JSON parsing.
 - The route never logs raw payloads, headers, hook secrets, signatures, bodies, attachments or provider responses.
+- For ZOHO_MAIL_FULL_CONTENT_PAYLOAD only, the route may emit one concise server-side warning containing only the error code and a closed safe forbidden-field category.
 - The persisted event fingerprint is SHA-256 of the verified exact raw Limited Data payload.
 - The Admin push payload contains only safe title, safe body and internal targetPath.
 ```
@@ -148,6 +150,38 @@ aliases as intended Zoho trigger/filter addresses, but TRP runtime acceptance no
 recipient email-domain matching for the active correspondence domain. It accepts `juantzun.dev` in
 Local/Test and `turefugioperfecto.com` in Production, case-insensitively, and rejects suffix tricks
 such as `eviljuantzun.dev` or `juantzun.dev.attacker.example`.
+
+## Hosted Test Payload-Shape Evidence
+
+New Hosted Test evidence confirmed the Zoho outgoing webhook is now configured as:
+
+```text
+Entity: Mail
+Condition Type: No conditions. All incoming emails
+Status: Enabled
+```
+
+With that configuration, real incoming mail reliably triggered the webhook and Vercel recorded two
+real requests:
+
+```text
+POST /api/integrations/zoho-mail/webhook -> HTTP 422
+POST /api/integrations/zoho-mail/webhook -> HTTP 422
+```
+
+Zoho also sent the owner its system-generated webhook delivery-failure warning. In the current F.7
+implementation, HTTP 422 maps specifically to `ZOHO_MAIL_FULL_CONTENT_PAYLOAD`, which proves the
+request has passed webhook triggering, bootstrap/registered-secret handling, signature verification,
+raw-body JSON parsing and reached the Limited Data payload-shape validator. The failure is therefore
+inside the bounded payload-shape validation path and still occurs before `ZohoInboundEmailEvent`,
+`AdminNotification`, `AdminPushDelivery` or Web Push delivery.
+
+To identify provider payload-shape drift safely, F.7 now classifies rejected forbidden keys into a
+closed structural category set: `attachment`, `body`, `content`, `headers`, `html`, `message_id`,
+`folder`, `raw`, `summary`, `thread`, `cc`, `bcc` or `other_forbidden`. The diagnostic never retains
+or emits the original key name, field value, raw body, subject, sender, recipient, hook secret,
+signature, bootstrap token, request headers, provider response or message ID value. Runtime rejection
+remains unchanged: forbidden payloads still return HTTP 422 and are not persisted.
 
 ## Accepted Recipient And Sender Rules
 
@@ -312,6 +346,24 @@ Executed during Hosted Test recipient-domain filtering hardening on 2026-09-25:
 git status --short --branch - PASS; starting branch main at cd602ee93a3c0b34c54b6a49ab013d9a6c32d1f0
 git rev-parse HEAD - PASS; cd602ee93a3c0b34c54b6a49ab013d9a6c32d1f0
 npx tsx --tsconfig tests/final-f/tsconfig.json tests/final-f/run.ts - PASS after elevated rerun; first sandbox run failed only with uv_os_get_passwd ENOMEM; Final-F targeted validation 109/109
+npm run final-d:validate - PASS after elevated run; 66/66
+npm run final-e:validate - PASS after elevated run; 88/88
+npm run env:validate - PASS after elevated run
+npm run db:validate - PASS; Prisma schema valid; Prisma 7 config deprecation warning only
+npm run db:generate - PASS; Prisma Client v6.19.3 generated
+npm run db:migrate:status - PASS after elevated rerun; first sandbox run failed with Schema engine error; 29 migrations found; database schema is up to date
+npm run lint - PASS
+npm run build - PASS after elevated rerun; first sandbox run failed only on Google Fonts fetch; /api/integrations/zoho-mail/webhook remains dynamic
+vercel.json - PASS; { "crons": [] }
+git diff --check - PASS
+```
+
+Executed during Hosted Test payload-shape diagnostic hardening on 2026-09-28:
+
+```text
+git status --short --branch - PASS; starting branch main at af8a2abbe88839a14a36e4cdcf078ae7d2293fda
+git rev-parse HEAD - PASS; af8a2abbe88839a14a36e4cdcf078ae7d2293fda
+npx tsx --tsconfig tests/final-f/tsconfig.json tests/final-f/run.ts - PASS after elevated rerun; first sandbox run failed only with uv_os_get_passwd ENOMEM; Final-F targeted validation 113/113
 npm run final-d:validate - PASS after elevated run; 66/66
 npm run final-e:validate - PASS after elevated run; 88/88
 npm run env:validate - PASS after elevated run

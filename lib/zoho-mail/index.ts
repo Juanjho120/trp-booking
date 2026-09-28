@@ -19,6 +19,7 @@ export {
 } from "./limited-data";
 export type {
   ZohoLimitedDataErrorCode,
+  ZohoLimitedDataForbiddenFieldCategory,
   ZohoLimitedInboundEmail,
 } from "./limited-data";
 export {

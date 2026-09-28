@@ -163,6 +163,44 @@ function createLimitedRawBody(
   });
 }
 
+function createLimitedPayload(
+  override: Record<string, unknown> = {},
+): Record<string, unknown> {
+  return {
+    subject: "Consulta de llegada",
+    from: "Guest Example <guest@example.com>",
+    to: ["Reservas <reservas@juantzun.dev>"],
+    receivedAt: "2026-09-25T14:00:00.000Z",
+    ...override,
+  };
+}
+
+function captureLimitedDataError(payload: unknown): ZohoLimitedDataError {
+  try {
+    parseZohoLimitedInboundEmailPayload(payload);
+  } catch (error) {
+    assert.ok(error instanceof ZohoLimitedDataError);
+
+    return error;
+  }
+
+  assert.fail("Expected ZohoLimitedDataError.");
+}
+
+function routeWarningBlock(): string {
+  const start = ROUTE.indexOf(
+    'console.warn("[zoho-mail] webhook payload rejected"',
+  );
+
+  assert.notEqual(start, -1);
+
+  const end = ROUTE.indexOf("      return jsonResponse", start);
+
+  assert.notEqual(end, -1);
+
+  return ROUTE.slice(start, end);
+}
+
 function createFakeZohoPrismaClient(
   input: Readonly<{
     reservations?: readonly FakeReservation[];
@@ -575,6 +613,154 @@ test("F.7 parses Limited Data metadata and rejects full-content payloads", () =>
   expectIncludes(LIMITED_DATA, "ZOHO_MAIL_FULL_CONTENT_PAYLOAD");
 });
 
+test("F.7 classifies forbidden Limited Data keys into safe structural categories", () => {
+  const cases: ReadonlyArray<
+    readonly [Record<string, unknown>, string, readonly string[]]
+  > = [
+    [{ attachments: ["secret-file"] }, "attachment", ["attachments", "secret-file"]],
+    [{ body: "secret body" }, "body", ["secret body"]],
+    [{ content: "secret content" }, "content", ["secret content"]],
+    [{ fullHeaders: "secret headers" }, "headers", ["fullHeaders", "secret headers"]],
+    [{ html: "<p>secret</p>" }, "html", ["<p>secret</p>"]],
+    [{ messageId: "provider-message-secret" }, "message_id", ["messageId", "provider-message-secret"]],
+    [{ folderId: "folder-secret" }, "folder", ["folderId", "folder-secret"]],
+    [{ rawPayload: "raw-secret" }, "raw", ["rawPayload", "raw-secret"]],
+    [{ summary: "summary-secret" }, "summary", ["summary-secret"]],
+    [{ threadId: "thread-secret" }, "thread", ["threadId", "thread-secret"]],
+    [{ cc: "copy@example.com" }, "cc", ["copy@example.com"]],
+    [{ bcc: "blind@example.com" }, "bcc", ["blind@example.com"]],
+  ];
+
+  for (const [override, fieldCategory, forbiddenFragments] of cases) {
+    const error = captureLimitedDataError(createLimitedPayload(override));
+    const diagnostic = JSON.stringify({
+      code: error.code,
+      fieldCategory: error.fieldCategory,
+    });
+
+    assert.equal(error.code, "ZOHO_MAIL_FULL_CONTENT_PAYLOAD");
+    assert.equal(error.fieldCategory, fieldCategory);
+    assert.equal(error.message, "ZOHO_MAIL_FULL_CONTENT_PAYLOAD");
+
+    for (const fragment of forbiddenFragments) {
+      assert.equal(diagnostic.includes(fragment), false);
+      assert.equal(error.message.includes(fragment), false);
+    }
+  }
+});
+
+test("F.7 catches nested forbidden Limited Data keys without emitting raw names or values", () => {
+  const payload = createLimitedPayload({
+    envelope: {
+      providerControlledBodyBlob: "nested body value",
+      original: {
+        from: "Nested Sender <nested@example.com>",
+      },
+    },
+  });
+  const error = captureLimitedDataError(payload);
+  const diagnostic = JSON.stringify({
+    code: error.code,
+    fieldCategory: error.fieldCategory,
+  });
+
+  assert.equal(error.code, "ZOHO_MAIL_FULL_CONTENT_PAYLOAD");
+  assert.equal(error.fieldCategory, "body");
+
+  for (const forbidden of [
+    "providerControlledBodyBlob",
+    "nested body value",
+    "nested@example.com",
+    "Guest Example",
+    "guest@example.com",
+    "Consulta de llegada",
+    JSON.stringify(payload),
+  ]) {
+    assert.equal(diagnostic.includes(forbidden), false);
+  }
+});
+
+test("F.7 registered full-content webhooks remain rejected with HTTP 422 and safe diagnostics only", async () => {
+  const fake = createFakeZohoPrismaClient();
+  await bootstrapFakeWebhook(fake);
+  const rawBody = createLimitedRawBody({
+    subject: "Sensitive Subject",
+    from: "Sensitive Sender <sensitive@example.com>",
+    to: "Private Recipient <private@juantzun.dev>",
+    body: "Sensitive body that must not be logged",
+  });
+  const signatureHeader = createZohoMailWebhookSignature(
+    rawBody,
+    "zoho-hook-secret",
+  );
+
+  await assert.rejects(
+    () =>
+      processZohoMailWebhook({
+        rawBody,
+        signatureHeader,
+        source: baseEnv,
+        prismaClient: fake.prismaClient,
+      }),
+    (error: unknown) => {
+      assert.ok(error instanceof ZohoMailWebhookError);
+      assert.equal(error.status, 422);
+      assert.equal(error.code, "ZOHO_MAIL_FULL_CONTENT_PAYLOAD");
+      assert.equal(error.fieldCategory, "body");
+      const diagnostic = JSON.stringify({
+        code: error.code,
+        fieldCategory: error.fieldCategory,
+      });
+
+      for (const forbidden of [
+        rawBody,
+        "Sensitive Subject",
+        "Sensitive Sender",
+        "sensitive@example.com",
+        "private@juantzun.dev",
+        "Sensitive body that must not be logged",
+        "zoho-hook-secret",
+        signatureHeader,
+        baseEnv.ZOHO_MAIL_WEBHOOK_BOOTSTRAP_TOKEN,
+      ]) {
+        assert.equal(diagnostic.includes(forbidden), false);
+      }
+
+      return true;
+    },
+  );
+  assert.equal(fake.events.size, 0);
+  assert.equal(fake.notifications.size, 0);
+  assert.equal(fake.deliveries.length, 0);
+  expectIncludes(ROUTE, "error.status");
+});
+
+test("F.7 route warning contains only code and safe forbidden-field category", () => {
+  const warningBlock = routeWarningBlock();
+
+  expectIncludes(ROUTE, "console.warn");
+  expectIncludes(warningBlock, "[zoho-mail] webhook payload rejected");
+  expectIncludes(warningBlock, "code: error.code");
+  expectIncludes(warningBlock, "fieldCategory: error.fieldCategory");
+
+  for (const forbidden of [
+    "rawBody",
+    "request.headers",
+    "hookSecret",
+    "signatureHeader",
+    "bootstrapTokenParam",
+    "subject",
+    "fromAddress",
+    "toAddress",
+    "body",
+    "html",
+    "content",
+    "attachments",
+    "messageId",
+  ]) {
+    expectExcludes(warningBlock, forbidden);
+  }
+});
 test("F.7 resolves accepted recipients by exact correspondence domain and ignores internal senders", () => {
   assert.deepEqual(getAcceptedZohoMailRecipientAddresses("test"), [
     "admin@juantzun.dev",
