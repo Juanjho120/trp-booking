@@ -7,7 +7,7 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-G — Performance audit and optimization
 Subphase: Final-G.3 — Client/hydration and image-path corrections
-Status: Implementation completed; Hosted Lighthouse/functional validation + owner acceptance pending
+Status: Implementation completed; Hosted functional validation + owner acceptance pending
 Document date: 2026-09-28
 Implementation base head: b190bb45275a72c8c0126ae646e5d3112255dccd
 Accepted G.1 baseline head: 1623389b028be1b0391a2afce6e7c28244ad0fbf
@@ -16,7 +16,7 @@ G.2 Hosted evidence head: c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60
 Final-G package: Active
 Final-G.1: Completed and accepted on 2026-09-28
 Final-G.2: Completed and accepted on 2026-09-28
-Final-G.3: Implementation completed; Hosted Lighthouse/functional validation + owner acceptance pending
+Final-G.3: Implementation completed; Hosted functional validation + owner acceptance pending
 Final-G.4: Not started
 Final-G.5: Not started
 Final-H: Not started
@@ -213,6 +213,124 @@ target:
 The `/disponibilidad` JS change is a deliberate small tradeoff for stable loading geometry and the
 accepted CLS correction path. Hosted Lighthouse desktop CLS validation remains pending.
 
+## Hosted Lighthouse Evidence After G.3
+
+Hosted target:
+
+```text
+https://trp-booking.juantzun.dev
+```
+
+Method:
+
+```text
+npx --yes lighthouse@latest
+Lighthouse version: 13.5.0
+Chrome: C:\Program Files\Google\Chrome\Application\chrome.exe
+Profiles: default mobile and --preset=desktop
+Routes: /, /alojamientos, /alojamientos/refugio-completo, /disponibilidad
+Raw JSON reports: %TEMP%\trp-final-g3-lighthouse\*.json
+Repository dependency changes: none
+```
+
+The raw Lighthouse JSON reports remain outside Git. Lighthouse remains lab evidence only; the
+performance score is recorded as contextual information only and is not the G.3 acceptance basis. No
+RUM or field INP data was collected, and no INP value is invented here.
+
+| Route | Profile | Score | FCP | LCP | CLS | TBT | Speed Index | Transfer | Requests | Unused JS | Main thread | JS execution |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `/` | mobile | 81 | 2100ms | 4706ms | 0.000 | 38ms | 2466ms | 664915 B | 30 | 103 KiB | 1251ms | 414ms |
+| `/` | desktop | 98 | 804ms | 1070ms | 0.000 | 5ms | 833ms | 1100855 B | 49 | 82 KiB | 465ms | 176ms |
+| `/alojamientos` | mobile | 85 | 1765ms | 4033ms | 0.000 | 110ms | 2741ms | 702111 B | 31 | 82 KiB | 1271ms | 524ms |
+| `/alojamientos` | desktop | 99 | 323ms | 963ms | 0.000 | 0ms | 461ms | 666838 B | 35 | 82 KiB | 275ms | 102ms |
+| `/alojamientos/refugio-completo` | mobile | 88 | 1392ms | 3533ms | 0.000 | 89ms | 4426ms | 771114 B | 37 | 179 KiB | 1677ms | 612ms |
+| `/alojamientos/refugio-completo` | desktop | 98 | 530ms | 1090ms | 0.000 | 1ms | 705ms | 789116 B | 39 | 179 KiB | 466ms | 183ms |
+| `/disponibilidad` | mobile | 82 | 1749ms | 3530ms | 0.000 | 286ms | 4036ms | 377154 B | 24 | 82 KiB | 1242ms | 450ms |
+| `/disponibilidad` | desktop | 100 | 400ms | 707ms | 0.000 | 0ms | 789ms | 381243 B | 24 | 82 KiB | 392ms | 85ms |
+
+### G.1 Comparison
+
+| Route/profile | G.1 baseline | G.3 hosted result | Result |
+| --- | --- | --- | --- |
+| `/` mobile LCP | ~3067ms | 4706ms | Regressed in this lab run. Not a G.3 hard target; do not chase without additional evidence. |
+| `/` mobile TBT | ~102ms | 38ms | Improved by about 63%. |
+| `/` mobile unused JS | ~91 KiB | 103 KiB | Slightly higher in Lighthouse diagnostics. |
+| `/alojamientos/refugio-completo` mobile LCP | ~2478ms | 3533ms | Regressed in this lab run. |
+| `/alojamientos/refugio-completo` mobile TBT | ~298ms | 89ms | Improved by about 70%. |
+| `/alojamientos/refugio-completo` mobile unused JS | ~218 KiB | 179 KiB | Improved by about 18%. |
+| `/alojamientos/refugio-completo` mobile main-thread work | ~2.4s | 1.677s | Improved by about 30%. |
+| `/disponibilidad` mobile LCP | ~3412ms | 3530ms | Effectively similar / slightly worse by about 3.5%. |
+| `/disponibilidad` mobile TBT | ~352ms | 286ms | Improved by about 19%. |
+| `/disponibilidad` desktop CLS | ~0.327 | 0.000 | PASS. Primary G.3 hard target `< 0.10` is met. |
+
+`/alojamientos` did not have an accepted G.1 Lighthouse baseline row, so the G.3 Lighthouse values
+are recorded as new contextual evidence only.
+
+### Hosted Lighthouse Assessment
+
+The primary G.3 hosted performance target passes:
+
+```text
+/disponibilidad desktop CLS: 0.000, below the < 0.10 target.
+```
+
+Mobile availability behavior is mixed but acceptable for this evidence pass: LCP is effectively in
+the same lab range as G.1 while TBT improves from ~352ms to 286ms. Detail mobile shows the intended
+JavaScript/main-thread improvement but a worse lab LCP in this single run. Because G.3 was explicitly
+not a task to chase Lighthouse by changing runtime behavior, no additional implementation change was
+made from these lab results.
+
+## Hosted Bundle And Manifest Evidence
+
+The accepted local build evidence remains the bundle evidence for G.3:
+
+| Route group | Post-G.2 baseline | G.3 local build | Change |
+| --- | ---: | ---: | ---: |
+| `/` | 311 kB | 303 kB | 2.6% lower |
+| `/alojamientos` | 479 kB | 311 kB | 35.1% lower |
+| `/alojamientos/[slug]` | 479 kB | 371 kB | 22.5% lower |
+| `/disponibilidad` | 213 kB | 214 kB | 0.5% higher |
+| `/resenas` | 312 kB | 219 kB | 29.8% lower |
+
+The current `.next/app-build-manifest.json` still shows that the property-detail initial route
+manifest does not include the deferred Tilopay payment-field chunk. The detail route's initial
+client chunk `c8c67909dbe80e05.js` references the async chunk `8209c5ba6f79410d.js`.
+
+Deferred Tilopay chunk evidence:
+
+```text
+Async chunk: static/chunks/8209c5ba6f79410d.js
+Size: 12575 bytes
+Contains: TilopaySdkCheckout, tlpy_cc_number, tlpy_cvv, window.Tilopay, TILOPAY_SDK_SCRIPT_LOAD_ERROR
+Absent from initial /alojamientos/[slug]/page manifest: yes
+```
+
+This code was moved out of the initial property-detail route cost; it was not removed.
+
+## Hosted G.2 Server-Performance Smoke After G.3
+
+Method:
+
+```text
+PowerShell/.NET HttpClient
+AllowAutoRedirect=false
+HttpCompletionOption.ResponseHeadersRead
+5 sequential GET samples per canonical route
+No cache-busting query parameters
+```
+
+| Route | Status | First observed total | Median header_ms | Median total_ms | Useful total range | Bytes | Cache evidence | G.2 accepted median reference | Smoke result |
+| --- | --- | ---: | ---: | ---: | --- | ---: | --- | ---: | --- |
+| `/` | 200 x5 | 535.2ms | 82.0ms | 97.7ms | 85.3-535.2ms | 95999 | `STALE`, age ~308-309 | ~159ms | No material regression; faster median. |
+| `/alojamientos` | 200 x5 | 87.8ms | 79.1ms | 87.9ms | 87.3-246.2ms | 71798 | mostly `STALE`, one `HIT` | ~91ms | No material regression. |
+| `/alojamientos/refugio-completo` | 200 x5 | 168.1ms | 118.7ms | 148.2ms | 128.6-174.8ms | 84441 | `MISS`, `no-store` | ~181ms | No material regression; faster median. |
+| `/resenas` | 200 x5 | 981.4ms | 121.9ms | 126.3ms | 115.3-981.4ms | 42098 | `MISS`, `no-store` | ~118ms | Median remains comparable; first sample outlier only. |
+| `/disponibilidad` | 200 x5 | 88.9ms | 80.3ms | 87.4ms | 86.4-90.4ms | 62162 | `HIT`, age ~166-168 | ~92ms document timing | No material regression; faster median. |
+
+Observed headers confirm G.2 cache behavior remains active for stable public pages and the static
+availability shell. No material server-performance regression was found, so no runtime investigation
+or optimization was started.
+
 ## Targeted Regression Coverage
 
 `tests/final-g` now covers the accepted G.2 cache contract plus G.3 client/hydration boundaries:
@@ -259,6 +377,13 @@ npm run build — PASS outside sandbox after the sandbox build failed only on bl
 git diff --check — PASS; Windows LF-to-CRLF working-copy warnings only.
 ```
 
+Hosted evidence documentation update validation:
+
+```text
+npx tsx --tsconfig tests/final-g/tsconfig.json tests/final-g/run.ts — PASS, 25/25.
+git diff --check — PASS; Windows LF-to-CRLF working-copy warning only for docs/208.
+```
+
 ## Hosted Acceptance Pending
 
 G.3 is not accepted yet.
@@ -266,8 +391,6 @@ G.3 is not accepted yet.
 Remaining Hosted/owner checks:
 
 ```text
-Run comparable Hosted Lighthouse checks for /disponibilidad, /alojamientos and /alojamientos/refugio-completo.
-Verify /disponibilidad desktop CLS target below 0.10.
 Verify booking form UX, pending-hold creation, checkout preload, Tilopay form rendering and payment handoff on Hosted Test.
 Verify ES/EN locale switching and persistence still work.
 Owner acceptance remains pending.
@@ -281,7 +404,7 @@ Final-G — Active
 Final-G.1 — Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf
 Final-G.2 — Completed and accepted on 2026-09-28 at ecafa2f95314fe485b1e1cc2d6372c40f076964a
 Final-G.2 Hosted evidence head — c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60
-Final-G.3 — Implementation completed; Hosted Lighthouse/functional validation + owner acceptance pending
+Final-G.3 — Implementation completed; Hosted functional validation + owner acceptance pending
 Final-G.4 — Not started
 Final-G.5 — Not started
 Final-H — Not started
