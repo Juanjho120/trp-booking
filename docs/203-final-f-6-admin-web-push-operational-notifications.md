@@ -61,14 +61,12 @@ or Phase 13.
 The lock-screen payload remains intentionally small:
 
 ```text
-title: localized event label + property name
+title: localized event label · guestName · property name
 body: localized "Tap/Toca para ver details" copy
 targetPath: internal Admin path only
 ```
 
-It does not include guest names, guest emails, guest phone numbers, review comments, payment
-amounts, tokens, PushSubscription endpoints, subscription keys, provider bodies, or VAPID private
-key material.
+It intentionally allows `Reservation.guestName` in ADMIN-only notification titles. It continues to exclude guest email, guest phone, review body/comment, payment/refund data, tokens, PushSubscription endpoints/keys, provider body/content, provider IDs/secrets, and VAPID private key material.
 
 `GUEST_EMAIL_RECEIVED` remains reserved for Final-F.7 and is not implemented by F.6.
 `GUEST_WHATSAPP_RECEIVED` remains permanently inactive because guest WhatsApp is outside the TRP
