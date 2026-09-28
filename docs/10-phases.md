@@ -20,11 +20,13 @@ Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — 
 Last completed and accepted package: Final-F — Public WhatsApp Contact and Admin Notifications — Completed and accepted on 2026-09-28 at 13f0e0cf6904e34155dd754230f320ca6c214141
 Final-E accepted feature head: 3843a6637300201bcb44b7ed235952afda02d880
 Current package: Final-G — Performance audit and optimization — Active
-Current subphase: Final-G.1 — Performance audit, reproducible baseline and evidence-based optimization strategy — In progress
+Current subphase: Final-G.2 — Public server/data/cache corrections — Next / Not started
+Final-G.1 status: Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf
 Final-G.1 record: docs/206-final-g-1-performance-audit-baseline-and-strategy.md
-Last accepted subphase: Final-F.8 — Android PWA/Web Push integrated regression, public WhatsApp contact acceptance and Final-F documentation closure — Completed and accepted on 2026-09-28 at 13f0e0cf6904e34155dd754230f320ca6c214141
+Last accepted subphase: Final-G.1 — Performance audit, reproducible baseline and evidence-based optimization strategy — Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf
 Current package: Final-G — Performance audit and optimization — Active
-Current subphase: Final-G.1 — Performance audit, reproducible baseline and evidence-based optimization strategy — In progress
+Current subphase: Final-G.2 — Public server/data/cache corrections — Next / Not started
+Final-G.1 status: Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf
 Final-G.1 record: docs/206-final-g-1-performance-audit-baseline-and-strategy.md
 Final-F.6 implementation base head: b328d3f3dff6e0fd19303dad225454bc9af4126f
 Final-F.6 implementation head: b9b2c8c26fbd3ace06ae67c66684b3d789604c35
@@ -1308,7 +1310,7 @@ Phase 12 explicitly excludes company-owned production account provisioning, prod
 
 ## Inter-Phase Work — Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 
-Status: **Active — Final-A, Final-B, Final-C, Final-D and Final-E are completed and accepted; Final-F is completed and accepted on 2026-09-28 at 13f0e0cf6904e34155dd754230f320ca6c214141 under accepted Final-F.R3 architecture rebaseline with Final-F.1 through Final-F.4 completed and accepted; Final-F.5 superseded before owner acceptance; Final-F.R1 completed and accepted historically on 2026-09-23 at 4c94db87ebd9df225944ce76c78f98462e4755d1 but superseded for future target decisions by R3; Final-F.R2 implementation completed but superseded before owner acceptance; Final-F.R3 completed and accepted on 2026-09-24 at be80af9b36f285c7669986e9c9b4d6676042f6f0; Final-F.R4 completed and accepted on 2026-09-25 at ae0db63efdabfa3bc952a8a2a71220de231ebc18; Final-F.R5 completed and accepted on 2026-09-25 at 88616acf46645ccc01cc475f20a868d7c18dbadf; Final-F.6 completed and accepted on 2026-09-25 at 13e9249f54899de0863cdd6ab8747337319df3e5; Final-F.7 completed and accepted on 2026-09-28 at 3d32a5f2320f81ef08387f82cdf9157202c8cf95; Final-F.8 completed and accepted on 2026-09-28 at 13f0e0cf6904e34155dd754230f320ca6c214141; Final-G is Active with Final-G.1 — Performance audit, reproducible baseline and evidence-based optimization strategy — In progress; Final-H remains Not started; Phase 13 remains Not started**
+Status: **Active — Final-A, Final-B, Final-C, Final-D and Final-E are completed and accepted; Final-F is completed and accepted on 2026-09-28 at 13f0e0cf6904e34155dd754230f320ca6c214141 under accepted Final-F.R3 architecture rebaseline with Final-F.1 through Final-F.4 completed and accepted; Final-F.5 superseded before owner acceptance; Final-F.R1 completed and accepted historically on 2026-09-23 at 4c94db87ebd9df225944ce76c78f98462e4755d1 but superseded for future target decisions by R3; Final-F.R2 implementation completed but superseded before owner acceptance; Final-F.R3 completed and accepted on 2026-09-24 at be80af9b36f285c7669986e9c9b4d6676042f6f0; Final-F.R4 completed and accepted on 2026-09-25 at ae0db63efdabfa3bc952a8a2a71220de231ebc18; Final-F.R5 completed and accepted on 2026-09-25 at 88616acf46645ccc01cc475f20a868d7c18dbadf; Final-F.6 completed and accepted on 2026-09-25 at 13e9249f54899de0863cdd6ab8747337319df3e5; Final-F.7 completed and accepted on 2026-09-28 at 3d32a5f2320f81ef08387f82cdf9157202c8cf95; Final-F.8 completed and accepted on 2026-09-28 at 13f0e0cf6904e34155dd754230f320ca6c214141; Final-G is Active with Final-G.1 — Performance audit, reproducible baseline and evidence-based optimization strategy — Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf; Final-G.2 is Next / Not started; Final-H remains Not started; Phase 13 remains Not started**
 
 Goal: Complete the final owner-approved feature, correctness, communication, pricing, and performance round before Production while preserving the accepted Test/Production ownership boundary.
 
@@ -1367,7 +1369,7 @@ Final-F — Public WhatsApp Contact and Admin Notifications — Completed and ac
   Final-F.6 — Admin Web Push operational notifications for RESERVATION_CONFIRMED, RESERVATION_CANCELLED, CHECK_IN_MINUS_48H, CHECK_OUT_MINUS_6H and REVIEW_SUBMITTED — Completed and accepted on 2026-09-25 at 13e9249f54899de0863cdd6ab8747337319df3e5
   Final-F.7 — Zoho incoming-email bounded metadata + GUEST_EMAIL_RECEIVED Admin Web Push — Completed and accepted on 2026-09-28 at 3d32a5f2320f81ef08387f82cdf9157202c8cf95
   Final-F.8 — Android PWA/Web Push integrated regression, public WhatsApp contact acceptance and Final-F documentation closure — Completed and accepted on 2026-09-28 at 13f0e0cf6904e34155dd754230f320ca6c214141
-  Final-G Performance audit and optimization — Active; Final-G.1 in progress; record: docs/206-final-g-1-performance-audit-baseline-and-strategy.md
+  Final-G Performance audit and optimization — Active; Final-G.1 completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf; Final-G.2 Next / Not started; record: docs/206-final-g-1-performance-audit-baseline-and-strategy.md
   Final-H Integrated regression and final improvement-track closure — Not started
 ```
 

@@ -7,12 +7,19 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-G — Performance audit and optimization
 Subphase: Final-G.1 — Performance audit, reproducible baseline and evidence-based optimization strategy
-Status: Audit and baseline completed; Hosted/manual evidence review + owner strategy acceptance pending
+Status: Completed and accepted on 2026-09-28
 Document date: 2026-09-28
 Implementation/audit base head: d92fd02d800dbc285d972afbfaf6b4fba359384b
+Accepted audit/baseline head: 1623389b028be1b0391a2afce6e7c28244ad0fbf
+Owner acceptance: Completed on 2026-09-28
+Vercel for accepted head: SUCCESS
 Final-F accepted feature head: 13f0e0cf6904e34155dd754230f320ca6c214141
 Final-G package: Active
-Final-G.1: Active
+Final-G.1: Completed and accepted on 2026-09-28
+Final-G.2: Next / Not started
+Final-G.3: Not started
+Final-G.4: Not started
+Final-G.5: Not started
 Final-H: Not started
 Phase 13: Not started
 Runtime feature changes: none
@@ -24,8 +31,10 @@ vercel.json remains {"crons":[]}
 ```
 
 G.1 establishes the factual performance baseline for the accepted Final-F application and defines
-the remaining evidence-driven Final-G sequence. It does not implement broad optimizations, does not
-start Final-H, and does not activate Phase 13.
+the remaining evidence-driven Final-G sequence. The owner accepted this audit/baseline on
+2026-09-28 at `1623389b028be1b0391a2afce6e7c28244ad0fbf`; this later documentation-only closure
+does not replace that accepted G.1 audit/baseline head. G.1 does not implement broad optimizations,
+does not start Final-H, and does not activate Phase 13.
 
 ## Historical Baseline Caveat
 
@@ -43,7 +52,8 @@ No quantitative route timing or Core Web Vitals artifact was found.
 ```
 
 No historical values were fabricated or reconstructed. The current accepted Final-F application at
-`d92fd02d800dbc285d972afbfaf6b4fba359384b` is therefore the formal Final-G pre-optimization
+`d92fd02d800dbc285d972afbfaf6b4fba359384b`, measured and accepted at
+`1623389b028be1b0391a2afce6e7c28244ad0fbf`, is therefore the formal Final-G pre-optimization
 baseline. Later Final-G comparisons must compare against this G.1 evidence unless the owner provides
 an older measurement artifact.
 
@@ -87,6 +97,8 @@ custom cache-busting query parameter used only for measurement identity
 The `header_ms` value is a response-header-time / TTFB-equivalent from this runner. It is not a
 browser Navigation Timing field and is not real-user data. First observed requests are reported as
 first observed only; no serverless cold start is claimed.
+
+This accepted hosted synthetic/server baseline is frozen for later Final-G comparison.
 
 ### Raw Samples
 
@@ -138,7 +150,9 @@ Lighthouse was run as an ephemeral CLI through `npx --yes lighthouse@latest`; no
 was added. Chrome was found at `C:\Program Files\Google\Chrome\Application\chrome.exe`. Raw JSON
 reports were saved under `%TEMP%\trp-final-g1-lighthouse-*.json` and were not committed.
 
-Lighthouse is lab evidence only. It is not RUM and does not provide real-user INP here.
+Lighthouse is lab evidence only. It is not RUM and does not provide real-user INP here. The owner
+accepted this lab baseline as G.1 evidence; field Web Vitals remain unavailable without accepted RUM
+or Speed Insights instrumentation.
 
 | Route | Profile | Score | FCP | LCP | CLS | TBT | Speed Index | Transfer | Requests |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -382,6 +396,9 @@ Do not export cookies, session tokens, request headers, guest-sensitive row data
 
 ### Confirmed Bottlenecks
 
+The owner accepted G1-C1, G1-C2, and G1-C3 as authoritative confirmed bottlenecks for subsequent
+Final-G work.
+
 | ID | Surface | Evidence | Bottleneck | User impact | Confidence | Candidate fix | Expected metric | Risk |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | G1-C1 | Public dynamic property/review pages | HTTP medians: `/` 1593ms total, `/alojamientos` 1255ms, `/resenas` 975ms; all `no-store`, `x-vercel-cache=MISS`. | Stable public content is served dynamically every request. | Slower first content on public pages. | Confirmed | Define correctness-safe cache/revalidate for property/location/review reads. | Median public TTFB/total response time. | Stale public content if invalidation is incomplete. |
@@ -389,6 +406,9 @@ Do not export cookies, session tokens, request headers, guest-sensitive row data
 | G1-C3 | `/disponibilidad` | HTTP median 90.6ms static HIT, but Lighthouse mobile score 80, LCP 3412ms, TBT 352ms, desktop CLS 0.327. | Client-side calendar hydration/layout after a fast shell. | Availability page feels slow despite fast HTML. | Confirmed | Stabilize calendar layout and reduce hydration/API waterfall. | LCP/TBT/CLS. | Availability correctness and active holds must remain live. |
 
 ### Optimization Opportunities
+
+The owner accepted G1-O1 through G1-O5 as evidence-ranked opportunities, with G1-O5 still requiring
+authenticated owner measurement before protected-route corrections.
 
 | ID | Surface | Evidence | Bottleneck | User impact | Confidence | Candidate fix | Expected metric | Risk |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -409,7 +429,7 @@ Do not export cookies, session tokens, request headers, guest-sensitive row data
 
 ## Proposed Remaining Final-G Sequence
 
-Final-G should remain small and evidence-driven:
+The owner accepted this remaining sequence. Final-G should remain small and evidence-driven:
 
 ```text
 Final-G.2 — Public server/data/cache corrections
@@ -433,7 +453,8 @@ Final-G.5 — Hosted comparison, permanent performance evidence and Final-G clos
   Risks: avoid marking performance accepted without owner review.
 ```
 
-Do not implement these subphases automatically.
+Do not implement these subphases automatically. Final-G.2 is next and remains Not started until it is
+explicitly requested.
 
 ## Performance Budgets And Acceptance Targets
 
@@ -502,6 +523,23 @@ npm run build — PASS outside sandbox; initial sandbox attempt failed fetching 
 git diff --check — PASS
 ```
 
+Acceptance closure validation on 2026-09-28:
+
+```text
+npm run final-a:validate — PASS, 44/44
+npm run final-b:validate — PASS, 38/38
+npm run final-c:validate — PASS, 41/41
+npm run final-d:validate — PASS, 66/66
+npm run final-e:validate — PASS, 88/88
+npm run final-f:validate — PASS, 125/125
+npm run env:validate — PASS
+npm run db:validate — PASS
+npm run db:migrate:status — PASS outside sandbox; initial sandbox attempt returned a Prisma Schema engine error with no detail
+npm run lint — PASS
+npm run build — PASS outside sandbox; initial sandbox attempt failed fetching Google Fonts
+git diff --check — PASS
+```
+
 G.1 added no runtime feature, schema, migration, dependency, environment variable, cron, or
 Production-resource change.
 
@@ -510,8 +548,11 @@ Production-resource change.
 ```text
 Final-F — Completed and accepted
 Final-G — Active
-Final-G.1 — Audit and baseline completed; Hosted/manual evidence review + owner strategy acceptance pending
-Final-G.2 — Not started
+Final-G.1 — Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf
+Final-G.2 — Next / Not started
+Final-G.3 — Not started
+Final-G.4 — Not started
+Final-G.5 — Not started
 Final-H — Not started
 Phase 13 — Not started
 ```
