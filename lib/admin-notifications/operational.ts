@@ -77,6 +77,7 @@ type AdminOperationalNotificationIntent = Readonly<{
 type AdminNotificationContext = Readonly<{
   reservationId: string | null;
   reviewId: string | null;
+  guestName: string;
   propertyNameEs: string;
   propertyNameEn: string;
 }>;
@@ -124,6 +125,7 @@ export type AdminPushProcessingSummary = Readonly<{
 
 const reservationNotificationContextSelect = {
   id: true,
+  guestName: true,
   property: {
     select: {
       nameEs: true,
@@ -160,15 +162,16 @@ function buildAdminNotificationCopy(
 ): Readonly<{ title: string; body: string }> {
   const locale = normalizeAdminNotificationLocale(input.source);
   const propertyName = propertyNameForLocale(input.context, locale);
+  const guestName = normalizeNotificationText(input.context.guestName, 80);
 
   if (locale === "en") {
     const title = {
-      RESERVATION_CONFIRMED: `Reservation confirmed · ${propertyName}`,
-      RESERVATION_CANCELLED: `Reservation cancelled · ${propertyName}`,
-      CHECK_IN_MINUS_48H: `Check-in in 48 hours · ${propertyName}`,
-      CHECK_OUT_MINUS_6H: `Check-out in 6 hours · ${propertyName}`,
-      REVIEW_SUBMITTED: `New review received · ${propertyName}`,
-      GUEST_EMAIL_RECEIVED: `New guest email · ${propertyName}`,
+      RESERVATION_CONFIRMED: `Reservation confirmed · ${guestName} · ${propertyName}`,
+      RESERVATION_CANCELLED: `Reservation cancelled · ${guestName} · ${propertyName}`,
+      CHECK_IN_MINUS_48H: `Check-in in 48 hours · ${guestName} · ${propertyName}`,
+      CHECK_OUT_MINUS_6H: `Check-out in 6 hours · ${guestName} · ${propertyName}`,
+      REVIEW_SUBMITTED: `New review received · ${guestName} · ${propertyName}`,
+      GUEST_EMAIL_RECEIVED: `New guest email · ${guestName} · ${propertyName}`,
     }[input.type];
 
     return {
@@ -181,12 +184,12 @@ function buildAdminNotificationCopy(
   }
 
   const title = {
-    RESERVATION_CONFIRMED: `Reservación confirmada · ${propertyName}`,
-    RESERVATION_CANCELLED: `Reservación cancelada · ${propertyName}`,
-    CHECK_IN_MINUS_48H: `Check-in en 48 horas · ${propertyName}`,
-    CHECK_OUT_MINUS_6H: `Check-out en 6 horas · ${propertyName}`,
-    REVIEW_SUBMITTED: `Nueva reseña recibida · ${propertyName}`,
-    GUEST_EMAIL_RECEIVED: `Nuevo correo de huésped · ${propertyName}`,
+    RESERVATION_CONFIRMED: `Reservación confirmada · ${guestName} · ${propertyName}`,
+    RESERVATION_CANCELLED: `Reservación cancelada · ${guestName} · ${propertyName}`,
+    CHECK_IN_MINUS_48H: `Check-in en 48 horas · ${guestName} · ${propertyName}`,
+    CHECK_OUT_MINUS_6H: `Check-out en 6 horas · ${guestName} · ${propertyName}`,
+    REVIEW_SUBMITTED: `Nueva reseña recibida · ${guestName} · ${propertyName}`,
+    GUEST_EMAIL_RECEIVED: `Nuevo correo de huésped · ${guestName} · ${propertyName}`,
   }[input.type];
 
   return {
@@ -451,6 +454,7 @@ export async function ensureReservationConfirmedAdminNotificationIntent(
     context: {
       reservationId: reservation.id,
       reviewId: null,
+      guestName: reservation.guestName,
       propertyNameEs: reservation.property.nameEs,
       propertyNameEn: reservation.property.nameEn,
     },
@@ -478,6 +482,7 @@ export async function ensureReservationCancelledAdminNotificationIntent(
     context: {
       reservationId: reservation.id,
       reviewId: null,
+      guestName: reservation.guestName,
       propertyNameEs: reservation.property.nameEs,
       propertyNameEn: reservation.property.nameEn,
     },
@@ -512,6 +517,7 @@ export async function ensureReviewSubmittedAdminNotificationIntent(
       reservationId: true,
       reservation: {
         select: {
+          guestName: true,
           property: {
             select: {
               nameEs: true,
@@ -533,6 +539,7 @@ export async function ensureReviewSubmittedAdminNotificationIntent(
     context: {
       reservationId: review.reservationId,
       reviewId: review.id,
+      guestName: review.reservation.guestName,
       propertyNameEs: review.reservation.property.nameEs,
       propertyNameEn: review.reservation.property.nameEn,
     },
@@ -574,6 +581,7 @@ async function ensureCheckInReminderIntent(
     context: {
       reservationId: reservation.id,
       reviewId: null,
+      guestName: reservation.guestName,
       propertyNameEs: reservation.property.nameEs,
       propertyNameEn: reservation.property.nameEn,
     },
@@ -617,6 +625,7 @@ async function ensureCheckOutReminderIntent(
     context: {
       reservationId: reservation.id,
       reviewId: null,
+      guestName: reservation.guestName,
       propertyNameEs: reservation.property.nameEs,
       propertyNameEn: reservation.property.nameEn,
     },

@@ -209,6 +209,25 @@ function safeAdminTargetPath(value: string): string {
   }
 }
 
+const ZOHO_MAIL_ANDROID_PACKAGE = "com.zoho.mail";
+
+export function buildZohoMailAndroidIntentUrl(
+  webUrl: string = siteConfig.correspondence.zohoMailWebUrl,
+): string {
+  const fallbackUrl = encodeURIComponent(webUrl);
+
+  return `intent://mail.zoho.com/#Intent;scheme=https;package=${ZOHO_MAIL_ANDROID_PACKAGE};S.browser_fallback_url=${fallbackUrl};end`;
+}
+
+export function resolveZohoMailOpenUrlForUserAgent(
+  userAgent: string,
+  webUrl: string = siteConfig.correspondence.zohoMailWebUrl,
+): string {
+  return /Android/i.test(userAgent)
+    ? buildZohoMailAndroidIntentUrl(webUrl)
+    : webUrl;
+}
+
 function formatNotificationTimestamp(value: string, locale: string): string {
   return new Intl.DateTimeFormat(locale === "en" ? "en-US" : "es-GT", {
     dateStyle: "medium",
@@ -605,7 +624,7 @@ export function AdminNotificationsPageView({
     setErrorMessage(null);
     setSuccessMessage(null);
     window.open(
-      siteConfig.correspondence.zohoMailWebUrl,
+      resolveZohoMailOpenUrlForUserAgent(navigator.userAgent),
       "_blank",
       "noopener,noreferrer",
     );

@@ -206,6 +206,15 @@ Review submitted targets:
 Zoho/admin-email contract. When an existing admin email has a CTA/link, Push must reuse the same
 destination resolver.
 
+Final-F.7 Hosted hardening records that Zoho inbound email matching remains exact-email-only but is
+ranked deterministically across eligible `CONFIRMED` Reservations: current stay for the TRP
+America/Guatemala business date, then earliest upcoming stay, then latest recent completed stay
+within 30 calendar days. Ties remain ambiguous and unlinked. ADMIN push titles may include
+`Reservation.guestName` after a server-side Reservation relation is attached, but must still exclude
+email subject/body/content, sender/recipient addresses, phone numbers, payment data, provider IDs and
+secrets. The Admin `Abrir Zoho Mail` action may use an Android/current-Chromium intent targeting
+`com.zoho.mail` with `https://mail.zoho.com/` fallback; non-Android clients use the web URL.
+
 ## Android-Only PWA Scope
 
 Final-F mobile/PWA acceptance targets only:

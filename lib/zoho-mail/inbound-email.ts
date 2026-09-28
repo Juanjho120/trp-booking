@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import {
   AdminNotificationType,
   AdminPushDeliveryStatus,
+  ReservationStatus,
   type Prisma,
   type PrismaClient,
 } from "@prisma/client";
@@ -61,9 +62,21 @@ type ZohoMailWebhookDeliver = typeof deliverAdminPushNotificationsBestEffort;
 
 type ReservationMatch = Readonly<{
   id: string;
+  guestName: string;
   propertyNameEs: string;
   propertyNameEn: string;
 }> | null;
+
+type ReservationMatchCandidate = Readonly<{
+  id: string;
+  guestName: string;
+  checkInDate: Date;
+  checkOutDate: Date;
+  property: Readonly<{
+    nameEs: string;
+    nameEn: string;
+  }>;
+}>;
 
 type AdminPushPersistenceClient = Pick<
   Prisma.TransactionClient,
@@ -72,6 +85,10 @@ type AdminPushPersistenceClient = Pick<
   | "adminPushSubscription"
   | "zohoInboundEmailEvent"
 >;
+
+const ZOHO_MAIL_RESERVATION_MATCH_CANDIDATE_BATCH_SIZE = 500;
+const ZOHO_MAIL_RESERVATION_RECENT_COMPLETED_DAYS = 30;
+const TRP_BUSINESS_TIME_ZONE = "America/Guatemala";
 
 export class ZohoMailWebhookError extends Error {
   constructor(
@@ -204,6 +221,131 @@ function verifyBootstrapSignatureIfPresent(
 function readAdminLocale(source: NodeJS.ProcessEnv): "es" | "en" {
   return source.EMAIL_ADMIN_LOCALE === "en" ? "en" : "es";
 }
+function readBusinessDateOnly(now: Date): `${number}-${number}-${number}` {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: TRP_BUSINESS_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(now);
+  const year = parts.find((part) => part.type === "year")?.value;
+  const month = parts.find((part) => part.type === "month")?.value;
+  const day = parts.find((part) => part.type === "day")?.value;
+
+  if (!year || !month || !day) {
+    throw new TypeError("Unable to resolve TRP business date.");
+  }
+
+  return `${year}-${month}-${day}` as `${number}-${number}-${number}`;
+}
+
+function dateOnlyFromUtcDate(value: Date): `${number}-${number}-${number}` {
+  return value.toISOString().slice(0, 10) as `${number}-${number}-${number}`;
+}
+
+function utcDateFromDateOnly(value: `${number}-${number}-${number}`): Date {
+  return new Date(`${value}T00:00:00.000Z`);
+}
+
+function addCalendarDays(
+  value: `${number}-${number}-${number}`,
+  days: number,
+): `${number}-${number}-${number}` {
+  const date = utcDateFromDateOnly(value);
+  date.setUTCDate(date.getUTCDate() + days);
+
+  return dateOnlyFromUtcDate(date);
+}
+
+function candidateToReservationMatch(
+  reservation: ReservationMatchCandidate,
+): Exclude<ReservationMatch, null> {
+  return {
+    id: reservation.id,
+    guestName: reservation.guestName,
+    propertyNameEs: reservation.property.nameEs,
+    propertyNameEn: reservation.property.nameEn,
+  };
+}
+
+function uniqueCandidateOrNull(
+  candidates: readonly ReservationMatchCandidate[],
+): ReservationMatch {
+  return candidates.length === 1
+    ? candidateToReservationMatch(candidates[0])
+    : null;
+}
+
+function selectReservationMatchByRelevance(
+  candidates: readonly ReservationMatchCandidate[],
+  businessToday: `${number}-${number}-${number}`,
+): ReservationMatch {
+  const currentStayCandidates = candidates.filter((reservation) => {
+    const checkInDate = dateOnlyFromUtcDate(reservation.checkInDate);
+    const checkOutDate = dateOnlyFromUtcDate(reservation.checkOutDate);
+
+    return checkInDate <= businessToday && checkOutDate >= businessToday;
+  });
+
+  if (currentStayCandidates.length > 0) {
+    return uniqueCandidateOrNull(currentStayCandidates);
+  }
+
+  const upcomingCandidates = candidates
+    .filter(
+      (reservation) =>
+        dateOnlyFromUtcDate(reservation.checkInDate) > businessToday,
+    )
+    .sort((left, right) =>
+      dateOnlyFromUtcDate(left.checkInDate).localeCompare(
+        dateOnlyFromUtcDate(right.checkInDate),
+      ),
+    );
+
+  if (upcomingCandidates.length > 0) {
+    const earliestCheckInDate = dateOnlyFromUtcDate(
+      upcomingCandidates[0].checkInDate,
+    );
+
+    return uniqueCandidateOrNull(
+      upcomingCandidates.filter(
+        (reservation) =>
+          dateOnlyFromUtcDate(reservation.checkInDate) === earliestCheckInDate,
+      ),
+    );
+  }
+
+  const recentCompletedStart = addCalendarDays(
+    businessToday,
+    -ZOHO_MAIL_RESERVATION_RECENT_COMPLETED_DAYS,
+  );
+  const recentCompletedCandidates = candidates
+    .filter((reservation) => {
+      const checkOutDate = dateOnlyFromUtcDate(reservation.checkOutDate);
+
+      return checkOutDate < businessToday && checkOutDate >= recentCompletedStart;
+    })
+    .sort((left, right) =>
+      dateOnlyFromUtcDate(right.checkOutDate).localeCompare(
+        dateOnlyFromUtcDate(left.checkOutDate),
+      ),
+    );
+
+  if (recentCompletedCandidates.length > 0) {
+    const latestCheckOutDate = dateOnlyFromUtcDate(
+      recentCompletedCandidates[0].checkOutDate,
+    );
+
+    return uniqueCandidateOrNull(
+      recentCompletedCandidates.filter(
+        (reservation) =>
+          dateOnlyFromUtcDate(reservation.checkOutDate) === latestCheckOutDate,
+      ),
+    );
+  }
+
+  return null;
+}
 
 function buildGuestEmailReceivedCopy(
   input: Readonly<{
@@ -216,7 +358,7 @@ function buildGuestEmailReceivedCopy(
   if (locale === "en") {
     return {
       title: input.reservationMatch
-        ? `New guest email · ${input.reservationMatch.propertyNameEn}`
+        ? `New guest email · ${input.reservationMatch.guestName} · ${input.reservationMatch.propertyNameEn}`
         : "New guest email",
       body: "Tap to review correspondence.",
     };
@@ -224,7 +366,7 @@ function buildGuestEmailReceivedCopy(
 
   return {
     title: input.reservationMatch
-      ? `Nuevo correo de huésped · ${input.reservationMatch.propertyNameEs}`
+      ? `Nuevo correo de huésped · ${input.reservationMatch.guestName} · ${input.reservationMatch.propertyNameEs}`
       : "Nuevo correo de huésped",
     body: "Toca para revisar la correspondencia.",
   };
@@ -237,18 +379,44 @@ function normalizeNotificationText(value: string, maximumLength: number): string
 async function findUniqueReservationForSender(
   prismaClient: PrismaClient,
   fromAddress: string,
+  now: Date,
 ): Promise<ReservationMatch> {
+  const businessToday = readBusinessDateOnly(now);
+  const recentCompletedStart = addCalendarDays(
+    businessToday,
+    -ZOHO_MAIL_RESERVATION_RECENT_COMPLETED_DAYS,
+  );
+
   const reservations = await prismaClient.reservation.findMany({
     where: {
+      status: ReservationStatus.CONFIRMED,
       guestEmail: {
         equals: fromAddress,
         mode: "insensitive",
       },
+      OR: [
+        {
+          checkInDate: { lte: utcDateFromDateOnly(businessToday) },
+          checkOutDate: { gte: utcDateFromDateOnly(businessToday) },
+        },
+        {
+          checkInDate: { gt: utcDateFromDateOnly(businessToday) },
+        },
+        {
+          checkOutDate: {
+            lt: utcDateFromDateOnly(businessToday),
+            gte: utcDateFromDateOnly(recentCompletedStart),
+          },
+        },
+      ],
     },
-    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-    take: 2,
+    orderBy: [{ checkInDate: "asc" }, { checkOutDate: "asc" }, { id: "asc" }],
+    take: ZOHO_MAIL_RESERVATION_MATCH_CANDIDATE_BATCH_SIZE,
     select: {
       id: true,
+      guestName: true,
+      checkInDate: true,
+      checkOutDate: true,
       property: {
         select: {
           nameEs: true,
@@ -258,15 +426,7 @@ async function findUniqueReservationForSender(
     },
   });
 
-  if (reservations.length !== 1) {
-    return null;
-  }
-
-  return {
-    id: reservations[0].id,
-    propertyNameEs: reservations[0].property.nameEs,
-    propertyNameEn: reservations[0].property.nameEn,
-  };
+  return selectReservationMatchByRelevance(reservations, businessToday);
 }
 
 async function ensureGuestEmailReceivedNotification(
@@ -452,6 +612,7 @@ export async function processZohoMailWebhook(
     source?: NodeJS.ProcessEnv;
     prismaClient?: PrismaClient;
     deliverAdminPush?: ZohoMailWebhookDeliver;
+    now?: Date;
   }>,
 ): Promise<ZohoMailWebhookOutcome> {
   const source = input.source ?? process.env;
@@ -533,6 +694,7 @@ export async function processZohoMailWebhook(
   const reservationMatch = await findUniqueReservationForSender(
     prismaClient,
     event.fromAddress,
+    input.now ?? new Date(),
   );
   const result = await prismaClient.$transaction((transaction) =>
     ensureGuestEmailReceivedNotification(transaction, {

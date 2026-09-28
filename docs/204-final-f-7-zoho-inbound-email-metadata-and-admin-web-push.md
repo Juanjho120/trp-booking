@@ -44,10 +44,10 @@ TRP into an email client.
 - idempotent zoho-mail-inbound/{sha256hex} deduplication key
 - active AdminPushDelivery rows for new GUEST_EMAIL_RECEIVED notifications
 - post-commit best-effort Web Push delivery using existing Admin Web Push pipeline
-- exact guest-email to Reservation.guestEmail matching, case-insensitive, unique-only
+- deterministic exact guest-email to Reservation.guestEmail matching, case-insensitive, ranked by confirmed current stay, earliest upcoming stay, then latest recent completed stay
 - safe target routing through resolveAdminNotificationTarget(...)
 - notification-center bounded metadata display for authenticated admins
-- secondary Open Zoho Mail action with best-effort sender-address clipboard copy
+- secondary Open Zoho Mail action with Android current-Chromium intent handoff, web fallback and best-effort sender-address clipboard copy
 ```
 
 ## Mailbox Boundary Preserved
@@ -202,6 +202,28 @@ emit original key names, field values, raw body, subject, sender, recipient, hoo
 bootstrap token, request headers, provider response or provider message ID value. Runtime rejection
 for still-forbidden payloads remains unchanged: HTTP 422 and no persistence.
 
+## Hosted Test Delivery And UX Evidence
+
+After the provider `messageId` compatibility fix, Hosted Test evidence confirmed a real unmatched
+external email flow succeeded end to end: Zoho delivered the Limited Data webhook, TRP accepted the
+bounded payload, created the `ZohoInboundEmailEvent`, created `GUEST_EMAIL_RECEIVED`, queued the
+Admin Web Push delivery immediately after commit, and left the notification target at
+`/admin/notifications` because no eligible Reservation was attached.
+
+Hosted Test evidence also confirmed a real exact Reservation match flow succeeded: an incoming email
+whose parsed sender matched `Reservation.guestEmail` case-insensitively attached the Reservation,
+routed the notification to `/admin/reservations/{reservationId}`, and delivered the ADMIN push
+without persisting bodies, HTML, attachments, CC/BCC, full headers, raw payloads or provider message
+IDs.
+
+The current hardening replaces the earlier unique-email-only match with the deterministic relevance
+ranking documented below. It also records the owner privacy-boundary revision allowing
+`Reservation.guestName` in ADMIN-only push titles, and changes the Admin notification-center
+`Abrir Zoho Mail` action on Android/current Chromium to attempt an Android intent for package
+`com.zoho.mail` with `https://mail.zoho.com/` as the browser fallback. Non-Android clients continue
+opening the web URL. The handoff URL never includes subject, sender, recipient, body, secrets,
+signatures or bootstrap values; sender-address copying remains the separate bounded clipboard action.
+
 ## Accepted Recipient And Sender Rules
 
 The documented public aliases remain the intended Zoho outgoing-webhook trigger/filter addresses:
@@ -249,16 +271,26 @@ correspondence domain are internal and return HTTP 200 ignored with the safe rea
 
 ## Reservation Matching And Targets
 
-Matching is intentionally narrow:
+Matching is intentionally narrow and deterministic:
 
 ```text
 fromAddress lowercased
 Reservation.guestEmail case-insensitive exact match
-exactly one matching Reservation -> reservationId attached
-zero or multiple matches -> no reservation link
+Reservation.status must be CONFIRMED
+TRP business date is evaluated in America/Guatemala
+priority 1: current stay, checkInDate <= businessToday <= checkOutDate
+priority 2: earliest upcoming stay, checkInDate > businessToday
+priority 3: latest recent completed stay, checkOutDate < businessToday and within the previous 30 calendar days
+exactly one candidate in the winning priority -> reservationId attached
+tie in the winning priority -> no reservation link
+zero eligible candidates -> no reservation link
 no subject/name/phone/body/fuzzy matching
 no manual linking
 ```
+
+The matcher never auto-links `PENDING_PAYMENT`, `CANCELLED`, `EXPIRED`, `BLOCKED`, `REFUNDED` or
+`PARTIALLY_REFUNDED` reservations. Provider message IDs, email subjects, sender display names,
+phone numbers and email bodies are not used for matching or deduplication.
 
 Targets:
 
@@ -272,17 +304,19 @@ no unique match -> /admin/notifications
 Safe push copy:
 
 ```text
-ES matched title: Nuevo correo de huésped · {property}
+ES matched title: Nuevo correo de huésped · {guestName} · {propertyNameEs}
 ES unmatched title: Nuevo correo de huésped
 ES body: Toca para revisar la correspondencia.
 
-EN matched title: New guest email · {property}
+EN matched title: New guest email · {guestName} · {propertyNameEn}
 EN unmatched title: New guest email
 EN body: Tap to review correspondence.
 ```
 
-The push copy does not include sender address, recipient address, subject, guest name, email body,
-thread data, tokens, payment/refund data or provider diagnostics.
+The owner-approved ADMIN lock-screen boundary permits `Reservation.guestName` in matched ADMIN push
+titles. The push copy still does not include sender address, recipient address, subject, email body,
+thread data, tokens, payment/refund data or provider diagnostics. `guestName` is not used for Zoho
+matching and is included only after the server has attached a Reservation relation.
 
 ## Persistence
 
@@ -412,6 +446,25 @@ npm run build - PASS after elevated run; slow filesystem warning only; /api/inte
 vercel.json - PASS; { "crons": [] }
 git diff --check - PASS
 ```
+
+Executed during Final-F.7/F.6 reservation-matching, ADMIN title and Android Zoho handoff hardening on 2026-09-28:
+
+```text
+git status --short --branch - PASS; starting branch main at 86f431e241c7136d96c4bcab10bba73288555b1e
+git rev-parse HEAD - PASS; 86f431e241c7136d96c4bcab10bba73288555b1e
+npx tsx --tsconfig tests/final-f/tsconfig.json tests/final-f/run.ts - PASS after elevated rerun; first sandbox run failed only with uv_os_get_passwd ENOMEM; Final-F targeted validation 118/118
+npm run final-d:validate - PASS after elevated run; 66/66
+npm run final-e:validate - PASS after elevated run; 88/88
+npm run env:validate - PASS after elevated run
+npm run db:validate - PASS after elevated run; Prisma schema valid; Prisma 7 config deprecation warning only
+npm run db:generate - PASS after elevated run; Prisma Client v6.19.3 generated
+npm run db:migrate:status - PASS after elevated run; 29 migrations found; database schema is up to date
+npm run lint - PASS after elevated run
+npm run build - PASS after elevated run; slow filesystem warning only; /api/integrations/zoho-mail/webhook remains dynamic
+vercel.json - PASS; { "crons": [] }
+git diff --check - PASS; CRLF/LF warnings only, no whitespace errors
+```
+
 ## Pending Hosted Test / Owner Acceptance
 
 Final-F.7 must not be marked accepted until the owner completes the Hosted Test flow:

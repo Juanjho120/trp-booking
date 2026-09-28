@@ -4,9 +4,14 @@ import path from "node:path";
 import {
   AdminNotificationType,
   AdminPushDeliveryStatus,
+  ReservationStatus,
   type PrismaClient,
 } from "@prisma/client";
 
+import {
+  buildZohoMailAndroidIntentUrl,
+  resolveZohoMailOpenUrlForUserAgent,
+} from "@/features/admin/components/admin-notifications-page";
 import { getZohoMailWebhookEnv } from "@/lib/env/server";
 import {
   createZohoMailWebhookSignature,
@@ -29,6 +34,7 @@ const ROOT = process.cwd();
 const MIGRATION_NAME =
   "20260925210000_final_f_7_zoho_inbound_email_metadata";
 const ZOHO_KEY = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+const MATCH_NOW = new Date("2026-09-25T18:00:00.000Z");
 
 function fromRoot(relativePath: string): string {
   return path.join(ROOT, relativePath);
@@ -124,11 +130,90 @@ const baseEnv = {
 type FakeReservation = {
   id: string;
   guestEmail: string;
+  guestName: string;
+  status: ReservationStatus;
+  checkInDate: Date;
+  checkOutDate: Date;
   property: {
     nameEs: string;
     nameEn: string;
   };
 };
+
+type FakeReservationInput = Readonly<{
+  id: string;
+  guestEmail?: string;
+  guestName?: string;
+  status?: ReservationStatus;
+  checkInDate?: string;
+  checkOutDate?: string;
+  propertyNameEs?: string;
+  propertyNameEn?: string;
+}>;
+
+type FakeReservationDateFilter = Readonly<{
+  gte?: Date;
+  lte?: Date;
+  gt?: Date;
+  lt?: Date;
+}>;
+
+type FakeReservationWhere = Readonly<{
+  status?: ReservationStatus;
+  guestEmail: Readonly<{ equals: string }>;
+  OR?: ReadonlyArray<
+    Readonly<{
+      checkInDate?: FakeReservationDateFilter;
+      checkOutDate?: FakeReservationDateFilter;
+    }>
+  >;
+}>;
+
+function createFakeReservation(input: FakeReservationInput): FakeReservation {
+  return {
+    id: input.id,
+    guestEmail: input.guestEmail ?? "guest@example.com",
+    guestName: input.guestName ?? "María López",
+    status: input.status ?? ReservationStatus.CONFIRMED,
+    checkInDate: new Date(`${input.checkInDate ?? "2026-09-24"}T00:00:00.000Z`),
+    checkOutDate: new Date(`${input.checkOutDate ?? "2026-09-26"}T00:00:00.000Z`),
+    property: {
+      nameEs: input.propertyNameEs ?? "Bungalow Luna",
+      nameEn: input.propertyNameEn ?? "Moon Bungalow",
+    },
+  };
+}
+
+function matchesDateFilter(value: Date, filter: FakeReservationDateFilter): boolean {
+  const timestamp = value.getTime();
+
+  return (
+    (filter.gte === undefined || timestamp >= filter.gte.getTime()) &&
+    (filter.lte === undefined || timestamp <= filter.lte.getTime()) &&
+    (filter.gt === undefined || timestamp > filter.gt.getTime()) &&
+    (filter.lt === undefined || timestamp < filter.lt.getTime())
+  );
+}
+
+function matchesReservationWhere(
+  reservation: FakeReservation,
+  where: FakeReservationWhere,
+): boolean {
+  const emailMatches =
+    reservation.guestEmail.toLowerCase() === where.guestEmail.equals.toLowerCase();
+  const statusMatches = !where.status || reservation.status === where.status;
+  const dateMatches =
+    !where.OR ||
+    where.OR.some(
+      (clause) =>
+        (!clause.checkInDate ||
+          matchesDateFilter(reservation.checkInDate, clause.checkInDate)) &&
+        (!clause.checkOutDate ||
+          matchesDateFilter(reservation.checkOutDate, clause.checkOutDate)),
+    );
+
+  return emailMatches && statusMatches && dateMatches;
+}
 
 type FakeZohoEvent = {
   id: string;
@@ -332,14 +417,16 @@ function createFakeZohoPrismaClient(
     },
     reservation: {
       async findMany(args: {
-        where: { guestEmail: { equals: string } };
+        where: FakeReservationWhere;
         take: number;
       }) {
         return reservations
-          .filter(
-            (reservation) =>
-              reservation.guestEmail.toLowerCase() ===
-              args.where.guestEmail.equals.toLowerCase(),
+          .filter((reservation) => matchesReservationWhere(reservation, args.where))
+          .sort(
+            (left, right) =>
+              left.checkInDate.getTime() - right.checkInDate.getTime() ||
+              left.checkOutDate.getTime() - right.checkOutDate.getTime() ||
+              left.id.localeCompare(right.id),
           )
           .slice(0, args.take);
       },
@@ -374,6 +461,35 @@ async function bootstrapFakeWebhook(
     source: baseEnv,
     prismaClient: fake.prismaClient,
   });
+}
+async function processRegisteredLimitedWebhook(
+  reservations: readonly FakeReservation[],
+  override: Record<string, unknown> = {},
+): Promise<
+  Readonly<{
+    fake: ReturnType<typeof createFakeZohoPrismaClient>;
+    outcome: Awaited<ReturnType<typeof processZohoMailWebhook>>;
+    event: FakeZohoEvent | undefined;
+    notification: FakeAdminNotification | undefined;
+  }>
+> {
+  const fake = createFakeZohoPrismaClient({ reservations });
+  await bootstrapFakeWebhook(fake);
+  const rawBody = createLimitedRawBody(override);
+  const outcome = await processZohoMailWebhook({
+    rawBody,
+    signatureHeader: createZohoMailWebhookSignature(rawBody, "zoho-hook-secret"),
+    source: baseEnv,
+    prismaClient: fake.prismaClient,
+    now: MATCH_NOW,
+  });
+
+  return {
+    fake,
+    outcome,
+    event: Array.from(fake.events.values())[0],
+    notification: Array.from(fake.notifications.values())[0],
+  };
 }
 
 test("F.7 adds only bounded Zoho inbound email persistence and the sixth AdminNotification type", () => {
@@ -1067,6 +1183,7 @@ test("F.7 existing configuration ignores later bootstrap tokens and x-hook-secre
     bootstrapTokenParam: baseEnv.ZOHO_MAIL_WEBHOOK_BOOTSTRAP_TOKEN,
     source: baseEnv,
     prismaClient: fake.prismaClient,
+    now: MATCH_NOW,
   });
 
   assert.equal(outcome.status, "processed");
@@ -1106,11 +1223,10 @@ test("F.7 processes registered webhooks after the bootstrap token is removed fro
 test("F.7 creates one matched event, AdminNotification and immediate delivery for provider-normalized mailbox recipients", async () => {
   const fake = createFakeZohoPrismaClient({
     reservations: [
-      {
+      createFakeReservation({
         id: "reservation-1",
         guestEmail: "GUEST@example.com",
-        property: { nameEs: "Bungalow Luna", nameEn: "Moon Bungalow" },
-      },
+      }),
     ],
   });
   const delivered: string[][] = [];
@@ -1124,6 +1240,7 @@ test("F.7 creates one matched event, AdminNotification and immediate delivery fo
     signatureHeader: createZohoMailWebhookSignature(rawBody, "zoho-hook-secret"),
     source: baseEnv,
     prismaClient: fake.prismaClient,
+    now: MATCH_NOW,
     deliverAdminPush: async (notificationIds) => {
       delivered.push([...notificationIds]);
       return {
@@ -1149,7 +1266,7 @@ test("F.7 creates one matched event, AdminNotification and immediate delivery fo
   assert.equal(notification?.type, AdminNotificationType.GUEST_EMAIL_RECEIVED);
   assert.equal(notification?.reservationId, "reservation-1");
   assert.equal(notification?.targetPath, "/admin/reservations/reservation-1");
-  assert.equal(notification?.title, "Nuevo correo de huésped · Bungalow Luna");
+  assert.equal(notification?.title, "Nuevo correo de huésped · María López · Bungalow Luna");
   assert.equal(notification?.body, "Toca para revisar la correspondencia.");
   assert.equal(notification?.title.includes("guest@example.com"), false);
   assert.equal(
@@ -1163,11 +1280,10 @@ test("F.7 processes provider messageId without persisting or exposing it", async
   const providerMessageId = "provider-message-id-that-must-not-persist";
   const fake = createFakeZohoPrismaClient({
     reservations: [
-      {
+      createFakeReservation({
         id: "reservation-1",
         guestEmail: "GUEST@example.com",
-        property: { nameEs: "Bungalow Luna", nameEn: "Moon Bungalow" },
-      },
+      }),
     ],
   });
   const delivered: string[][] = [];
@@ -1181,6 +1297,7 @@ test("F.7 processes provider messageId without persisting or exposing it", async
     signatureHeader: createZohoMailWebhookSignature(rawBody, "zoho-hook-secret"),
     source: baseEnv,
     prismaClient: fake.prismaClient,
+    now: MATCH_NOW,
     deliverAdminPush: async (notificationIds) => {
       delivered.push([...notificationIds]);
       return {
@@ -1252,12 +1369,15 @@ test("F.7 duplicate webhook reuses the same event and notification without dupli
     signatureHeader,
     source: baseEnv,
     prismaClient: fake.prismaClient,
+    now: MATCH_NOW,
   });
-  fake.reservations.push({
-    id: "reservation-after-first-delivery",
-    guestEmail: "guest@example.com",
-    property: { nameEs: "Bungalow Sol", nameEn: "Sun Bungalow" },
-  });
+  fake.reservations.push(
+    createFakeReservation({
+      id: "reservation-after-first-delivery",
+      propertyNameEs: "Bungalow Sol",
+      propertyNameEn: "Sun Bungalow",
+    }),
+  );
   const second = await processZohoMailWebhook({
     rawBody,
     signatureHeader,
@@ -1321,19 +1441,199 @@ test("F.7 ignores unsafe recipients and internal senders without creating notifi
   assert.equal(internalSender.deliveries.length, 0);
 });
 
+test("F.7 ranks exact confirmed reservation matches by current, upcoming and recent relevance", async () => {
+  const current = await processRegisteredLimitedWebhook([
+    createFakeReservation({
+      id: "future-reservation",
+      checkInDate: "2026-10-02",
+      checkOutDate: "2026-10-05",
+      propertyNameEs: "Bungalow Futuro",
+      propertyNameEn: "Future Bungalow",
+    }),
+    createFakeReservation({
+      id: "current-reservation",
+      guestEmail: "GUEST@example.com",
+      guestName: "Ana Current",
+      checkInDate: "2026-09-24",
+      checkOutDate: "2026-09-25",
+      propertyNameEs: "Bungalow Actual",
+      propertyNameEn: "Current Bungalow",
+    }),
+    createFakeReservation({
+      id: "recent-reservation",
+      checkInDate: "2026-09-12",
+      checkOutDate: "2026-09-20",
+      propertyNameEs: "Bungalow Reciente",
+      propertyNameEn: "Recent Bungalow",
+    }),
+    createFakeReservation({
+      id: "pending-current-reservation",
+      status: ReservationStatus.PENDING_PAYMENT,
+      checkInDate: "2026-09-24",
+      checkOutDate: "2026-09-25",
+    }),
+    createFakeReservation({
+      id: "different-email-reservation",
+      guestEmail: "guest+alias@example.com",
+      checkInDate: "2026-09-24",
+      checkOutDate: "2026-09-25",
+    }),
+  ]);
+
+  assert.equal(current.outcome.status, "processed");
+  assert.equal(current.event?.reservationId, "current-reservation");
+  assert.equal(
+    current.notification?.title,
+    "Nuevo correo de huésped · Ana Current · Bungalow Actual",
+  );
+
+  const upcoming = await processRegisteredLimitedWebhook([
+    createFakeReservation({
+      id: "later-upcoming-reservation",
+      checkInDate: "2026-10-02",
+      checkOutDate: "2026-10-05",
+    }),
+    createFakeReservation({
+      id: "earliest-upcoming-reservation",
+      guestName: "Ana Upcoming",
+      checkInDate: "2026-09-28",
+      checkOutDate: "2026-10-01",
+      propertyNameEs: "Bungalow Próximo",
+      propertyNameEn: "Upcoming Bungalow",
+    }),
+    createFakeReservation({
+      id: "recent-when-upcoming-exists",
+      checkInDate: "2026-09-10",
+      checkOutDate: "2026-09-20",
+    }),
+  ]);
+
+  assert.equal(upcoming.outcome.status, "processed");
+  assert.equal(upcoming.event?.reservationId, "earliest-upcoming-reservation");
+  assert.equal(
+    upcoming.notification?.title,
+    "Nuevo correo de huésped · Ana Upcoming · Bungalow Próximo",
+  );
+
+  const recent = await processRegisteredLimitedWebhook([
+    createFakeReservation({
+      id: "older-recent-reservation",
+      checkInDate: "2026-09-01",
+      checkOutDate: "2026-09-20",
+    }),
+    createFakeReservation({
+      id: "latest-recent-reservation",
+      guestName: "Ana Recent",
+      checkInDate: "2026-09-15",
+      checkOutDate: "2026-09-23",
+      propertyNameEs: "Bungalow Reciente",
+      propertyNameEn: "Recent Bungalow",
+    }),
+    createFakeReservation({
+      id: "too-old-reservation",
+      checkInDate: "2026-08-01",
+      checkOutDate: "2026-08-20",
+    }),
+  ]);
+
+  assert.equal(recent.outcome.status, "processed");
+  assert.equal(recent.event?.reservationId, "latest-recent-reservation");
+  assert.equal(
+    recent.notification?.title,
+    "Nuevo correo de huésped · Ana Recent · Bungalow Reciente",
+  );
+});
+
+test("F.7 treats tied reservation relevance candidates as ambiguous", async () => {
+  for (const reservations of [
+    [
+      createFakeReservation({ id: "current-a" }),
+      createFakeReservation({ id: "current-b" }),
+    ],
+    [
+      createFakeReservation({
+        id: "upcoming-a",
+        checkInDate: "2026-09-29",
+        checkOutDate: "2026-10-01",
+      }),
+      createFakeReservation({
+        id: "upcoming-b",
+        checkInDate: "2026-09-29",
+        checkOutDate: "2026-10-03",
+      }),
+    ],
+    [
+      createFakeReservation({
+        id: "recent-a",
+        checkInDate: "2026-09-10",
+        checkOutDate: "2026-09-22",
+      }),
+      createFakeReservation({
+        id: "recent-b",
+        checkInDate: "2026-09-12",
+        checkOutDate: "2026-09-22",
+      }),
+    ],
+  ]) {
+    const result = await processRegisteredLimitedWebhook(reservations);
+
+    assert.equal(result.outcome.status, "processed");
+    assert.equal(result.event?.reservationId, null);
+    assert.equal(result.notification?.reservationId, null);
+    assert.equal(result.notification?.targetPath, "/admin/notifications");
+  }
+});
+
+test("F.7 never auto-links non-confirmed statuses or non-exact email candidates", async () => {
+  const result = await processRegisteredLimitedWebhook([
+    createFakeReservation({
+      id: "pending-payment",
+      status: ReservationStatus.PENDING_PAYMENT,
+    }),
+    createFakeReservation({
+      id: "cancelled",
+      status: ReservationStatus.CANCELLED,
+    }),
+    createFakeReservation({
+      id: "expired",
+      status: ReservationStatus.EXPIRED,
+    }),
+    createFakeReservation({
+      id: "blocked",
+      status: ReservationStatus.BLOCKED,
+    }),
+    createFakeReservation({
+      id: "refunded",
+      status: ReservationStatus.REFUNDED,
+    }),
+    createFakeReservation({
+      id: "partially-refunded",
+      status: ReservationStatus.PARTIALLY_REFUNDED,
+    }),
+    createFakeReservation({
+      id: "confirmed-different-email",
+      guestEmail: "other@example.com",
+    }),
+  ]);
+
+  assert.equal(result.outcome.status, "processed");
+  assert.equal(result.event?.reservationId, null);
+  assert.equal(result.notification?.reservationId, null);
+  assert.equal(result.notification?.targetPath, "/admin/notifications");
+});
 test("F.7 processes ambiguous reservation matches without linking but keeps notification center target", async () => {
   const ambiguous = createFakeZohoPrismaClient({
     reservations: [
-      {
+      createFakeReservation({
         id: "reservation-a",
-        guestEmail: "guest@example.com",
-        property: { nameEs: "Uno", nameEn: "One" },
-      },
-      {
+        propertyNameEs: "Uno",
+        propertyNameEn: "One",
+      }),
+      createFakeReservation({
         id: "reservation-b",
-        guestEmail: "guest@example.com",
-        property: { nameEs: "Dos", nameEn: "Two" },
-      },
+        propertyNameEs: "Dos",
+        propertyNameEn: "Two",
+      }),
     ],
   });
   await bootstrapFakeWebhook(ambiguous);
@@ -1436,9 +1736,30 @@ test("F.7 notification center exposes bounded authenticated email metadata only"
   }
 });
 
-test("F.7 Admin notification UI opens Zoho Mail with best-effort sender copy and no deep links", () => {
+test("F.7 Admin notification UI opens Zoho Mail with Android intent and bounded sender copy", () => {
+  const androidUserAgent =
+    "Mozilla/5.0 (Linux; Android 15; Pixel) AppleWebKit/537.36 Chrome/140.0 Mobile Safari/537.36";
+  const desktopUserAgent =
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140.0 Safari/537.36";
+  const androidIntent = resolveZohoMailOpenUrlForUserAgent(androidUserAgent);
+  const directIntent = buildZohoMailAndroidIntentUrl("https://mail.zoho.com/");
+
+  assert.equal(androidIntent, directIntent);
+  assert.equal(
+    resolveZohoMailOpenUrlForUserAgent(desktopUserAgent),
+    "https://mail.zoho.com/",
+  );
+  assert.equal(androidIntent.includes("package=com.zoho.mail"), true);
+  assert.equal(
+    androidIntent.includes(
+      "S.browser_fallback_url=https%3A%2F%2Fmail.zoho.com%2F",
+    ),
+    true,
+  );
+
   for (const expected of [
     "siteConfig.correspondence.zohoMailWebUrl",
+    "resolveZohoMailOpenUrlForUserAgent(navigator.userAgent)",
     "openZohoMailForNotification",
     "navigator.clipboard.writeText(notification.zohoEmail.fromAddress)",
     "copy.actions.openZohoMail",
@@ -1448,10 +1769,22 @@ test("F.7 Admin notification UI opens Zoho Mail with best-effort sender copy and
     expectIncludes(NOTIFICATIONS_VIEW, expected);
   }
 
+  for (const forbidden of [
+    "mail.zoho.com/mail/",
+    "zohomail://",
+    "notification.zohoEmail.subject)",
+    "notification.zohoEmail.toAddress)",
+    "notification.zohoEmail.receivedAt)",
+    "hookSecret",
+    "signatureHeader",
+    "bootstrap",
+  ]) {
+    expectExcludes(NOTIFICATIONS_VIEW, forbidden);
+    assert.equal(androidIntent.includes(forbidden), false);
+  }
+
   expectIncludes(ES_MESSAGES, 'openZohoMail: "Abrir Zoho Mail"');
   expectIncludes(EN_MESSAGES, 'openZohoMail: "Open Zoho Mail"');
-  expectExcludes(NOTIFICATIONS_VIEW, "mail.zoho.com/mail/");
-  expectExcludes(NOTIFICATIONS_VIEW, "notification.zohoEmail.subject)");
 });
 
 test("F.7 keeps targets shared and service-worker push payload privacy bounded", () => {

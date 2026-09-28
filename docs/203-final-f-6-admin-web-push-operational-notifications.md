@@ -229,6 +229,20 @@ open target
 no complex inbox/workflow
 ```
 
+2026-09-28 owner privacy-boundary revision for ADMIN Web Push titles:
+
+```text
+RESERVATION_CONFIRMED -> Reservación confirmada / Reservation confirmed · {guestName} · {property}
+RESERVATION_CANCELLED -> Reservación cancelada / Reservation cancelled · {guestName} · {property}
+CHECK_IN_MINUS_48H -> Check-in en 48 horas / Check-in in 48 hours · {guestName} · {property}
+CHECK_OUT_MINUS_6H -> Check-out en 6 horas / Check-out in 6 hours · {guestName} · {property}
+REVIEW_SUBMITTED -> Nueva reseña recibida / New review received · {guestName} · {property}
+```
+
+`Reservation.guestName` is permitted only in ADMIN push titles and notification-center rows already
+protected by ADMIN authentication. F.6 push payloads still exclude guest email, phone, payment data,
+review body/comment text, tokens, provider secrets and provider response bodies.
+
 ## Cron Boundary
 
 Final-F.6 registers the internal cron job:
