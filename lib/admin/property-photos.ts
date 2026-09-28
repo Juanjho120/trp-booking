@@ -10,6 +10,7 @@ import {
 } from "@/lib/cloudinary";
 import { getCloudinaryEnv } from "@/lib/env/server";
 import { prisma } from "@/lib/db/prisma";
+import { revalidatePublicPropertiesCache } from "@/lib/public-cache";
 import type {
   AdminPropertyPhoto,
   AdminPropertyPhotoActor,
@@ -443,6 +444,7 @@ export async function finalizeAdminPropertyPhotoUpload(
 
   const resource = await getCloudinaryResource(input.publicId);
   let validatedResource: ReturnType<typeof validateCloudinaryResource>;
+  let didMutate = false;
 
   try {
     validatedResource = validateCloudinaryResource(resource, input.publicId);
@@ -503,6 +505,7 @@ export async function finalizeAdminPropertyPhotoUpload(
             },
           },
         });
+        didMutate = true;
       },
       {
         isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
@@ -513,6 +516,10 @@ export async function finalizeAdminPropertyPhotoUpload(
       validatedResource.publicId,
     );
     throw error;
+  }
+
+  if (didMutate) {
+    revalidatePublicPropertiesCache({ slug: property.slug });
   }
 
   const settings = await getAdminPropertyPhotoSettings(input.propertyId);
@@ -531,6 +538,7 @@ export async function updateAdminPropertyPhotoAltText(
   assertSupportedPropertyId(input.propertyId);
   const altTextEs = normalizeAltText(input.altTextEs);
   const altTextEn = normalizeAltText(input.altTextEn);
+  let didMutate = false;
 
   await prisma.$transaction(async (transaction) => {
     const adminActor = await resolveAdminActor(transaction, actor);
@@ -593,12 +601,17 @@ export async function updateAdminPropertyPhotoAltText(
         },
       },
     });
+    didMutate = true;
   });
 
   const settings = await getAdminPropertyPhotoSettings(input.propertyId);
 
   if (!settings) {
     throw new AdminPropertyPhotoError("PROPERTY_PHOTO_PROPERTY_NOT_FOUND");
+  }
+
+  if (didMutate) {
+    revalidatePublicPropertiesCache({ slug: settings.property.slug });
   }
 
   return settings;
@@ -609,6 +622,7 @@ export async function reorderAdminPropertyPhotos(
   actor: AdminPropertyPhotoActor,
 ): Promise<AdminPropertyPhotoSettings> {
   assertSupportedPropertyId(input.propertyId);
+  let didMutate = false;
 
   await prisma.$transaction(
     async (transaction) => {
@@ -651,6 +665,7 @@ export async function reorderAdminPropertyPhotos(
           },
         },
       });
+      didMutate = true;
     },
     {
       isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
@@ -663,6 +678,10 @@ export async function reorderAdminPropertyPhotos(
     throw new AdminPropertyPhotoError("PROPERTY_PHOTO_PROPERTY_NOT_FOUND");
   }
 
+  if (didMutate) {
+    revalidatePublicPropertiesCache({ slug: settings.property.slug });
+  }
+
   return settings;
 }
 
@@ -671,6 +690,7 @@ export async function setAdminPropertyPhotoCover(
   actor: AdminPropertyPhotoActor,
 ): Promise<AdminPropertyPhotoSettings> {
   assertSupportedPropertyId(input.propertyId);
+  let didMutate = false;
 
   await prisma.$transaction(
     async (transaction) => {
@@ -728,6 +748,7 @@ export async function setAdminPropertyPhotoCover(
           },
         },
       });
+      didMutate = true;
     },
     {
       isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
@@ -740,6 +761,10 @@ export async function setAdminPropertyPhotoCover(
     throw new AdminPropertyPhotoError("PROPERTY_PHOTO_PROPERTY_NOT_FOUND");
   }
 
+  if (didMutate) {
+    revalidatePublicPropertiesCache({ slug: settings.property.slug });
+  }
+
   return settings;
 }
 
@@ -748,6 +773,7 @@ export async function softDeleteAdminPropertyPhoto(
   actor: AdminPropertyPhotoActor,
 ): Promise<AdminPropertyPhotoSettings> {
   assertSupportedPropertyId(input.propertyId);
+  let didMutate = false;
 
   await prisma.$transaction(
     async (transaction) => {
@@ -832,6 +858,7 @@ export async function softDeleteAdminPropertyPhoto(
           },
         },
       });
+      didMutate = true;
     },
     {
       isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
@@ -842,6 +869,10 @@ export async function softDeleteAdminPropertyPhoto(
 
   if (!settings) {
     throw new AdminPropertyPhotoError("PROPERTY_PHOTO_PROPERTY_NOT_FOUND");
+  }
+
+  if (didMutate) {
+    revalidatePublicPropertiesCache({ slug: settings.property.slug });
   }
 
   return settings;

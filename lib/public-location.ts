@@ -1,4 +1,14 @@
+import { type PrismaClient } from "@prisma/client";
+import { unstable_cache } from "next/cache";
+
 import { prisma } from "@/lib/db/prisma";
+import {
+  getPublicCacheEnvironmentScope,
+  getPublicCacheKeyParts,
+  getPublicCacheTag,
+  PUBLIC_CACHE_DOMAINS,
+  PUBLIC_CACHE_REVALIDATE_SECONDS,
+} from "@/lib/public-cache";
 import {
   normalizePublicLocationMapEmbedUrl,
   PublicLocationMapUrlError,
@@ -7,8 +17,15 @@ import type { PublicLocationSettings } from "@/types/public-location";
 
 export const PUBLIC_LOCATION_SETTINGS_ID = "site";
 
-export async function getPublicLocationSettings(): Promise<PublicLocationSettings | null> {
-  const settings = await prisma.publicLocationSettings.findUnique({
+type PublicLocationQueryOptions = Readonly<{
+  prismaClient?: Pick<PrismaClient, "publicLocationSettings">;
+}>;
+
+export async function getPublicLocationSettingsRaw(
+  options: PublicLocationQueryOptions = {},
+): Promise<PublicLocationSettings | null> {
+  const prismaClient = options.prismaClient ?? prisma;
+  const settings = await prismaClient.publicLocationSettings.findUnique({
     where: { id: PUBLIC_LOCATION_SETTINGS_ID },
     select: {
       enabled: true,
@@ -44,4 +61,27 @@ export async function getPublicLocationSettings(): Promise<PublicLocationSetting
 
     throw error;
   }
+}
+
+const getCachedPublicLocationSettings = unstable_cache(
+  async (environmentScope: string) => {
+    void environmentScope;
+
+    return getPublicLocationSettingsRaw({ prismaClient: prisma });
+  },
+  [...getPublicCacheKeyParts(PUBLIC_CACHE_DOMAINS.location, "settings")],
+  {
+    revalidate: PUBLIC_CACHE_REVALIDATE_SECONDS,
+    tags: [getPublicCacheTag(PUBLIC_CACHE_DOMAINS.location)],
+  },
+);
+
+export async function getPublicLocationSettings(
+  options: PublicLocationQueryOptions = {},
+): Promise<PublicLocationSettings | null> {
+  if (options.prismaClient) {
+    return getPublicLocationSettingsRaw(options);
+  }
+
+  return getCachedPublicLocationSettings(getPublicCacheEnvironmentScope());
 }

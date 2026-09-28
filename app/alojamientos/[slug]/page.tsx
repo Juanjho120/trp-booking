@@ -6,7 +6,7 @@ import { PropertyDetailPage } from "@/features/properties";
 import { getPublicAccommodationBySlug } from "@/lib/properties";
 import { esMessages } from "@/messages";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 type PageProps = Readonly<{
   params: Promise<{

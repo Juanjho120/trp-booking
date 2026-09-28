@@ -1,7 +1,16 @@
 import { PropertyStatus, type Prisma, type PrismaClient } from "@prisma/client";
+import { unstable_cache } from "next/cache";
+import { cache } from "react";
 
 import { buildCloudinaryImageUrl } from "@/lib/cloudinary";
 import { prisma } from "@/lib/db/prisma";
+import {
+  getPublicCacheEnvironmentScope,
+  getPublicCacheKeyParts,
+  getPublicCacheTag,
+  PUBLIC_CACHE_DOMAINS,
+  PUBLIC_CACHE_REVALIDATE_SECONDS,
+} from "@/lib/public-cache";
 import type {
   Accommodation,
   AccommodationId,
@@ -382,7 +391,7 @@ function toAccommodation(property: PublicPropertyRecord): Accommodation {
   };
 }
 
-export async function getPublicAccommodations(
+export async function getPublicAccommodationsRaw(
   options: PublicAccommodationQueryOptions = {},
 ): Promise<readonly Accommodation[]> {
   assertServerSidePublicPropertyQuery();
@@ -401,7 +410,7 @@ export async function getPublicAccommodations(
     .map(toAccommodation);
 }
 
-export async function getPublicAccommodationById(
+export async function getPublicAccommodationByIdRaw(
   accommodationId: AccommodationId,
   options: PublicAccommodationQueryOptions = {},
 ): Promise<Accommodation | null> {
@@ -420,7 +429,7 @@ export async function getPublicAccommodationById(
   return property ? toAccommodation(property) : null;
 }
 
-export async function getPublicAccommodationBySlug(
+export async function getPublicAccommodationBySlugRaw(
   slug: string,
   options: PublicAccommodationQueryOptions = {},
 ): Promise<Accommodation | null> {
@@ -437,4 +446,88 @@ export async function getPublicAccommodationBySlug(
   });
 
   return property ? toAccommodation(property) : null;
+}
+
+const getCachedPublicAccommodations = unstable_cache(
+  async (environmentScope: string) => {
+    void environmentScope;
+
+    return getPublicAccommodationsRaw({ prismaClient: prisma });
+  },
+  [...getPublicCacheKeyParts(PUBLIC_CACHE_DOMAINS.properties, "list")],
+  {
+    revalidate: PUBLIC_CACHE_REVALIDATE_SECONDS,
+    tags: [getPublicCacheTag(PUBLIC_CACHE_DOMAINS.properties)],
+  },
+);
+
+const getCachedPublicAccommodationById = unstable_cache(
+  async (environmentScope: string, accommodationId: AccommodationId) => {
+    void environmentScope;
+
+    return getPublicAccommodationByIdRaw(accommodationId, {
+      prismaClient: prisma,
+    });
+  },
+  [...getPublicCacheKeyParts(PUBLIC_CACHE_DOMAINS.properties, "by-id")],
+  {
+    revalidate: PUBLIC_CACHE_REVALIDATE_SECONDS,
+    tags: [getPublicCacheTag(PUBLIC_CACHE_DOMAINS.properties)],
+  },
+);
+
+const getCachedPublicAccommodationBySlug = unstable_cache(
+  async (environmentScope: string, slug: string) => {
+    void environmentScope;
+
+    return getPublicAccommodationBySlugRaw(slug, { prismaClient: prisma });
+  },
+  [...getPublicCacheKeyParts(PUBLIC_CACHE_DOMAINS.properties, "by-slug")],
+  {
+    revalidate: PUBLIC_CACHE_REVALIDATE_SECONDS,
+    tags: [getPublicCacheTag(PUBLIC_CACHE_DOMAINS.properties)],
+  },
+);
+
+const getRequestMemoizedPublicAccommodationBySlug = cache(
+  async (slug: string) =>
+    getCachedPublicAccommodationBySlug(
+      getPublicCacheEnvironmentScope(),
+      slug,
+    ),
+);
+
+export async function getPublicAccommodations(
+  options: PublicAccommodationQueryOptions = {},
+): Promise<readonly Accommodation[]> {
+  if (options.prismaClient) {
+    return getPublicAccommodationsRaw(options);
+  }
+
+  return getCachedPublicAccommodations(getPublicCacheEnvironmentScope());
+}
+
+export async function getPublicAccommodationById(
+  accommodationId: AccommodationId,
+  options: PublicAccommodationQueryOptions = {},
+): Promise<Accommodation | null> {
+  if (options.prismaClient) {
+    return getPublicAccommodationByIdRaw(accommodationId, options);
+  }
+
+  return getCachedPublicAccommodationById(
+    getPublicCacheEnvironmentScope(),
+    accommodationId,
+  );
+}
+
+export async function getPublicAccommodationBySlug(
+  slug: string,
+  options: PublicAccommodationQueryOptions = {},
+): Promise<Accommodation | null> {
+  if (options.prismaClient) {
+    return getPublicAccommodationBySlugRaw(slug, options);
+  }
+
+  return getRequestMemoizedPublicAccommodationBySlug(slug);
 }

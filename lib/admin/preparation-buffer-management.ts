@@ -18,6 +18,7 @@ import {
   dateOnlyToUtcDate,
 } from "@/lib/availability/rules";
 import { prisma } from "@/lib/db/prisma";
+import { revalidatePublicPropertiesCache } from "@/lib/public-cache";
 import type { PreparationBufferPolicy } from "@/types/accommodation";
 import type {
   AdminPreparationBufferActor,
@@ -166,6 +167,7 @@ export async function updateAdminPreparationBufferSettings(
 ): Promise<AdminPreparationBufferSettings> {
   assertPreparationDays(input.preparationDaysBefore);
   assertPreparationDays(input.preparationDaysAfter);
+  let didMutate = false;
 
   if (!isAdminAccommodationId(input.propertyId)) {
     throw new AdminPreparationBufferError(
@@ -225,9 +227,16 @@ export async function updateAdminPreparationBufferSettings(
         },
       },
     });
+    didMutate = true;
   });
 
-  return getAdminPreparationBufferSettings();
+  const settings = await getAdminPreparationBufferSettings();
+
+  if (didMutate) {
+    revalidatePublicPropertiesCache();
+  }
+
+  return settings;
 }
 
 export async function unlockAdminPreparationBufferDay(

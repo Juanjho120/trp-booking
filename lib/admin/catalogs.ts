@@ -1,6 +1,7 @@
 import { Prisma, type PrismaClient } from "@prisma/client";
 
 import { prisma } from "@/lib/db/prisma";
+import { revalidatePublicPropertiesCache } from "@/lib/public-cache";
 import type {
   AdminCatalogActor,
   AdminCatalogAmenity,
@@ -299,7 +300,10 @@ export async function createAdminCatalogAmenity(
     });
   });
 
-  return getAdminCatalogSettings();
+  const settings = await getAdminCatalogSettings();
+  revalidatePublicPropertiesCache();
+
+  return settings;
 }
 
 export async function createAdminCatalogHouseRule(
@@ -361,7 +365,10 @@ export async function createAdminCatalogHouseRule(
     });
   });
 
-  return getAdminCatalogSettings();
+  const settings = await getAdminCatalogSettings();
+  revalidatePublicPropertiesCache();
+
+  return settings;
 }
 
 export async function updateAdminCatalogAmenity(
@@ -447,7 +454,10 @@ export async function updateAdminCatalogAmenity(
     });
   });
 
-  return getAdminCatalogSettings();
+  const settings = await getAdminCatalogSettings();
+  revalidatePublicPropertiesCache();
+
+  return settings;
 }
 
 export async function updateAdminCatalogHouseRule(
@@ -545,7 +555,10 @@ export async function updateAdminCatalogHouseRule(
     });
   });
 
-  return getAdminCatalogSettings();
+  const settings = await getAdminCatalogSettings();
+  revalidatePublicPropertiesCache();
+
+  return settings;
 }
 
 async function assertAmenityDeletionKeepsMinimumAssignments(
@@ -664,7 +677,10 @@ export async function softDeleteAdminCatalogAmenity(
     },
   );
 
-  return getAdminCatalogSettings();
+  const settings = await getAdminCatalogSettings();
+  revalidatePublicPropertiesCache();
+
+  return settings;
 }
 
 export async function softDeleteAdminCatalogHouseRule(
@@ -743,5 +759,8 @@ export async function softDeleteAdminCatalogHouseRule(
     },
   );
 
-  return getAdminCatalogSettings();
+  const settings = await getAdminCatalogSettings();
+  revalidatePublicPropertiesCache();
+
+  return settings;
 }

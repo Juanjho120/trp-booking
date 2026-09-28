@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { Prisma, type PrismaClient } from "@prisma/client";
 
 import { prisma } from "@/lib/db/prisma";
+import { revalidatePublicPropertiesCache } from "@/lib/public-cache";
 import type {
   AdminAmenityCatalogItem,
   AdminAmenityHouseRuleActor,
@@ -379,7 +380,10 @@ export async function updateAdminAmenityContent(
     });
   });
 
-  return getSettingsOrThrow(input.propertyId, prisma);
+  const settings = await getSettingsOrThrow(input.propertyId, prisma);
+  revalidatePublicPropertiesCache({ slug: settings.property.slug });
+
+  return settings;
 }
 
 export async function updateAdminHouseRuleContent(
@@ -486,7 +490,10 @@ export async function updateAdminHouseRuleContent(
     });
   });
 
-  return getSettingsOrThrow(input.propertyId, prisma);
+  const settings = await getSettingsOrThrow(input.propertyId, prisma);
+  revalidatePublicPropertiesCache({ slug: settings.property.slug });
+
+  return settings;
 }
 
 export async function updateAdminAmenityHouseRuleAssignments(
@@ -603,5 +610,8 @@ export async function updateAdminAmenityHouseRuleAssignments(
     },
   );
 
-  return getSettingsOrThrow(input.propertyId, prisma);
+  const settings = await getSettingsOrThrow(input.propertyId, prisma);
+  revalidatePublicPropertiesCache({ slug: settings.property.slug });
+
+  return settings;
 }

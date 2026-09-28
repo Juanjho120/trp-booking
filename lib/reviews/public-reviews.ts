@@ -4,14 +4,23 @@ import {
   type Prisma,
   type PrismaClient,
 } from "@prisma/client";
+import { unstable_cache } from "next/cache";
 
 import { prisma } from "@/lib/db/prisma";
+import {
+  getPublicCacheEnvironmentScope,
+  getPublicCacheKeyParts,
+  getPublicCacheTag,
+  PUBLIC_CACHE_DOMAINS,
+  PUBLIC_CACHE_REVALIDATE_SECONDS,
+} from "@/lib/public-cache";
 import type {
   PublicReviewItem,
   PublicReviewsPageData,
 } from "@/types/public-review";
 
-const PUBLIC_REVIEW_PAGE_SIZE = 12;
+export const PUBLIC_REVIEW_PAGE_SIZE = 12;
+const PUBLIC_REVIEW_MAX_PAGE_SIZE = 50;
 
 const publicReviewSelect = {
   rating: true,
@@ -43,6 +52,14 @@ function normalizePage(value: number | undefined): number {
   return Number.isInteger(value) && (value ?? 0) > 0 ? value! : 1;
 }
 
+function normalizePageSize(value: number | undefined): number {
+  if (!Number.isInteger(value) || (value ?? 0) <= 0) {
+    return PUBLIC_REVIEW_PAGE_SIZE;
+  }
+
+  return Math.min(value!, PUBLIC_REVIEW_MAX_PAGE_SIZE);
+}
+
 function toPublicReviewItem(row: PublicReviewRecord): PublicReviewItem {
   return {
     rating: row.rating,
@@ -57,14 +74,15 @@ function toPublicReviewItem(row: PublicReviewRecord): PublicReviewItem {
   };
 }
 
-export async function getPublishedReviews(
-  input: Readonly<{ page?: number }> = {},
+export async function getPublishedReviewsRaw(
+  input: Readonly<{ page?: number; pageSize?: number }> = {},
   options: Readonly<{ prismaClient?: PublicReviewPrismaClient }> = {},
 ): Promise<PublicReviewsPageData> {
   assertServerSidePublicReviewQuery();
 
   const prismaClient = options.prismaClient ?? prisma;
   const requestedPage = normalizePage(input.page);
+  const pageSize = normalizePageSize(input.pageSize);
   const where: Prisma.ReviewWhereInput = {
     moderationStatus: ReviewModerationStatus.PUBLISHED,
     property: {
@@ -73,13 +91,13 @@ export async function getPublishedReviews(
     },
   };
   const totalItems = await prismaClient.review.count({ where });
-  const totalPages = Math.max(1, Math.ceil(totalItems / PUBLIC_REVIEW_PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
   const page = Math.min(requestedPage, totalPages);
   const reviews = await prismaClient.review.findMany({
     where,
     orderBy: [{ submittedAt: "desc" }, { id: "desc" }],
-    skip: (page - 1) * PUBLIC_REVIEW_PAGE_SIZE,
-    take: PUBLIC_REVIEW_PAGE_SIZE,
+    skip: (page - 1) * pageSize,
+    take: pageSize,
     select: publicReviewSelect,
   });
 
@@ -87,10 +105,41 @@ export async function getPublishedReviews(
     generatedAt: new Date().toISOString(),
     pagination: {
       page,
-      pageSize: PUBLIC_REVIEW_PAGE_SIZE,
+      pageSize,
       totalItems,
       totalPages,
     },
     reviews: reviews.map(toPublicReviewItem),
   };
+}
+
+const getCachedPublishedReviews = unstable_cache(
+  async (environmentScope: string, page: number, pageSize: number) => {
+    void environmentScope;
+
+    return getPublishedReviewsRaw(
+      { page, pageSize },
+      { prismaClient: prisma },
+    );
+  },
+  [...getPublicCacheKeyParts(PUBLIC_CACHE_DOMAINS.reviews, "published")],
+  {
+    revalidate: PUBLIC_CACHE_REVALIDATE_SECONDS,
+    tags: [getPublicCacheTag(PUBLIC_CACHE_DOMAINS.reviews)],
+  },
+);
+
+export async function getPublishedReviews(
+  input: Readonly<{ page?: number; pageSize?: number }> = {},
+  options: Readonly<{ prismaClient?: PublicReviewPrismaClient }> = {},
+): Promise<PublicReviewsPageData> {
+  if (options.prismaClient) {
+    return getPublishedReviewsRaw(input, options);
+  }
+
+  return getCachedPublishedReviews(
+    getPublicCacheEnvironmentScope(),
+    normalizePage(input.page),
+    normalizePageSize(input.pageSize),
+  );
 }

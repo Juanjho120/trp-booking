@@ -2,6 +2,7 @@ import { Prisma, type PrismaClient } from "@prisma/client";
 
 import { resolveAdminActor } from "@/lib/admin/admin-actor";
 import { prisma } from "@/lib/db/prisma";
+import { revalidatePublicLocationCache } from "@/lib/public-cache";
 import { PUBLIC_LOCATION_SETTINGS_ID } from "@/lib/public-location";
 import {
   normalizePublicLocationMapEmbedUrl,
@@ -268,7 +269,7 @@ export async function updateAdminPublicLocation(
   const normalized = normalizeInput(input);
 
   try {
-    return await prisma.$transaction(
+    const result = await prisma.$transaction(
       async (transaction) => {
         const adminActor = await resolveAdminActor(transaction, actor);
         const current = await getSettings(transaction);
@@ -284,7 +285,10 @@ export async function updateAdminPublicLocation(
         const changedFields = getChangedFields(before, normalized);
 
         if (changedFields.length === 0) {
-          return toAdminSettings(current);
+          return {
+            changed: false,
+            settings: toAdminSettings(current),
+          };
         }
 
         const updatedAt = new Date();
@@ -347,10 +351,19 @@ export async function updateAdminPublicLocation(
           },
         });
 
-        return toAdminSettings(updated);
+        return {
+          changed: true,
+          settings: toAdminSettings(updated),
+        };
       },
       { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
     );
+
+    if (result.changed) {
+      revalidatePublicLocationCache();
+    }
+
+    return result.settings;
   } catch (error) {
     if (error instanceof AdminPublicLocationError) {
       throw error;

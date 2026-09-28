@@ -10,6 +10,7 @@ import {
 } from "@/lib/admin/accommodations";
 import { resolveAdminActor } from "@/lib/admin/admin-actor";
 import { prisma } from "@/lib/db/prisma";
+import { revalidatePublicReviewsCache } from "@/lib/public-cache";
 import type { AdminActor } from "@/types/admin";
 import {
   ADMIN_REVIEW_MODERATION_STATUSES,
@@ -197,6 +198,7 @@ export async function moderateAdminReview(
   const expectedUpdatedAt = parseExpectedUpdatedAt(input.expectedUpdatedAt);
   const now = options.now ?? new Date();
   const prismaClient = options.prismaClient ?? prisma;
+  const shouldRevalidatePublicCache = !options.prismaClient;
   const targetStatus = input.targetStatus as PrismaReviewModerationStatus;
 
   if (
@@ -208,7 +210,7 @@ export async function moderateAdminReview(
   }
 
   try {
-    return await prismaClient.$transaction(
+    const review = await prismaClient.$transaction(
       async (transaction) => {
         const adminActor = await resolveAdminActor(transaction, actor);
         const existing = await transaction.review.findUnique({
@@ -287,6 +289,12 @@ export async function moderateAdminReview(
       },
       { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
     );
+
+    if (shouldRevalidatePublicCache) {
+      revalidatePublicReviewsCache();
+    }
+
+    return review;
   } catch (error) {
     if (error instanceof AdminReviewError) {
       throw error;

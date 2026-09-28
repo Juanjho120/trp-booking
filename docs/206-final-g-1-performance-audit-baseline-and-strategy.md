@@ -16,7 +16,7 @@ Vercel for accepted head: SUCCESS
 Final-F accepted feature head: 13f0e0cf6904e34155dd754230f320ca6c214141
 Final-G package: Active
 Final-G.1: Completed and accepted on 2026-09-28
-Final-G.2: Next / Not started
+Final-G.2: Implementation completed; Hosted performance/invalidation validation + owner acceptance pending
 Final-G.3: Not started
 Final-G.4: Not started
 Final-G.5: Not started
@@ -453,8 +453,7 @@ Final-G.5 — Hosted comparison, permanent performance evidence and Final-G clos
   Risks: avoid marking performance accepted without owner review.
 ```
 
-Do not implement these subphases automatically. Final-G.2 is next and remains Not started until it is
-explicitly requested.
+Do not implement these subphases automatically. Final-G.2 was explicitly requested and implemented in docs/207. Do not implement Final-G.3 automatically.
 
 ## Performance Budgets And Acceptance Targets
 
@@ -549,7 +548,7 @@ Production-resource change.
 Final-F — Completed and accepted
 Final-G — Active
 Final-G.1 — Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf
-Final-G.2 — Next / Not started
+Final-G.2 — Implementation completed; Hosted performance/invalidation validation + owner acceptance pending
 Final-G.3 — Not started
 Final-G.4 — Not started
 Final-G.5 — Not started

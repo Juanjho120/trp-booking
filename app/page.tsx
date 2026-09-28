@@ -6,7 +6,7 @@ import { getPublicLocationSettings } from "@/lib/public-location";
 import { getPublicAccommodations } from "@/lib/properties";
 import { esMessages } from "@/messages";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export const metadata: Metadata = createSeoMetadata({
   title: esMessages.seo.home.title,

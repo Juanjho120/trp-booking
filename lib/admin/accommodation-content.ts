@@ -6,6 +6,7 @@ import {
   isAdminAccommodationId,
 } from "@/lib/admin/accommodations";
 import { prisma } from "@/lib/db/prisma";
+import { revalidatePublicPropertiesCache } from "@/lib/public-cache";
 import { normalizePropertyTimeValue } from "@/lib/time/property-time";
 import type {
   AdminAccommodationContentActor,
@@ -298,7 +299,7 @@ export async function updateAdminAccommodationContent(
 
   const normalizedContent = normalizeInput(input);
 
-  return prisma.$transaction(async (transaction) => {
+  const result = await prisma.$transaction(async (transaction) => {
     const adminActor = await resolveAdminActor(transaction, actor);
     const property = await transaction.property.findFirst({
       where: {
@@ -322,7 +323,10 @@ export async function updateAdminAccommodationContent(
     const changedFields = getChangedFields(before, normalizedContent);
 
     if (changedFields.length === 0) {
-      return toContentProperty(property);
+      return {
+        changed: false,
+        property: toContentProperty(property),
+      };
     }
 
     const updatedAt = new Date();
@@ -370,6 +374,15 @@ export async function updateAdminAccommodationContent(
       },
     });
 
-    return toContentProperty(updatedProperty);
+    return {
+      changed: true,
+      property: toContentProperty(updatedProperty),
+    };
   });
+
+  if (result.changed) {
+    revalidatePublicPropertiesCache({ slug: result.property.slug });
+  }
+
+  return result.property;
 }
