@@ -43,6 +43,7 @@ test("G.2 central public cache contract defines scoped domains, tags, paths and 
   assert.match(source, /revalidateTag\(getPublicCacheTag\(PUBLIC_CACHE_DOMAINS\.reviews\)\)/);
   assert.match(source, /revalidatePath\("\/"\)/);
   assert.match(source, /revalidatePath\("\/alojamientos"\)/);
+  assert.match(source, /revalidatePath\("\/disponibilidad"\)/);
   assert.match(source, /revalidatePath\("\/alojamientos\/\[slug\]", "page"\)/);
   assert.match(source, /revalidatePath\("\/resenas"\)/);
 });
@@ -90,6 +91,7 @@ test("G.2 public routes remove force-dynamic only on the audited cacheable publi
 
   assert.equal(existsSync(path.join(ROOT, "app/disponibilidad/page.tsx")), true);
   assert.doesNotMatch(readSource("app/disponibilidad/page.tsx"), /public-cache|unstable_cache/);
+  assert.match(readSource("app/disponibilidad/page.tsx"), /export const revalidate = 300/);
 });
 
 test("G.2 property content, photo, catalog, assignment and preparation mutations invalidate public properties", () => {

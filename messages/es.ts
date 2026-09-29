@@ -31,6 +31,11 @@ export const esMessages = {
       description:
         "Lee reseñas publicadas por huéspedes de reservas directas en Bungalows Tu Refugio Perfecto.",
     },
+    availability: {
+      title: "Disponibilidad | Tu Refugio Perfecto",
+      description:
+        "Consulta la disponibilidad de los alojamientos de Tu Refugio Perfecto y abre el alojamiento elegido para reservar directo.",
+    },
     notFoundAccommodation: {
       title: "Alojamiento no encontrado | Tu Refugio Perfecto",
       description:
@@ -54,6 +59,7 @@ export const esMessages = {
     items: [
       { label: "Inicio", href: "/" },
       { label: "Alojamientos", href: "/alojamientos" },
+      { label: "Disponibilidad", href: "/disponibilidad" },
       { label: "Reseñas", href: "/resenas" },
       { label: "Beneficios", href: "/#beneficios" },
       { label: "Ubicación", href: "/#ubicacion" },
@@ -71,7 +77,7 @@ export const esMessages = {
     rights: "Todos los derechos reservados.",
     poweredBy: "Direct booking website desarrollado con",
     note:
-      "Próximamente podrás consultar disponibilidad, reservar y pagar en línea desde este sitio.",
+      "Consulta disponibilidad, elige tu alojamiento y completa tu reserva directa desde el sitio.",
   },
   publicWhatsApp: {
     ariaLabel: "Contactar por WhatsApp",
@@ -199,6 +205,30 @@ export const esMessages = {
       highlightsTitle: "Detalles destacados",
       amenitiesTitle: "Amenidades",
       rulesTitle: "Reglas importantes",
+    },
+  },
+  availability: {
+    badge: "Disponibilidad",
+    title: "Consulta disponibilidad por alojamiento",
+    description:
+      "Elige un alojamiento para revisar los próximos días disponibles. Para reservar, abre el alojamiento y completa el flujo seguro de reserva directa.",
+    tabsLabel: "Alojamientos disponibles",
+    nightlyPricePrefix: "Desde",
+    nightlyPriceSuffix: "por noche",
+    maxGuestsPrefix: "Hasta",
+    viewAndBook: "Ver alojamiento y reservar",
+    calendar: {
+      title: "Calendario de disponibilidad",
+      loading: "Cargando disponibilidad...",
+      available: "Disponible",
+      unavailable: "No disponible",
+      unavailableSourcesLabel: "Motivos de bloqueo detectados",
+      errorTitle: "No pudimos cargar la disponibilidad",
+      retry: "Reintentar",
+      liveAvailabilityNotice:
+        "La disponibilidad se consulta en vivo y se vuelve a validar en el servidor antes de crear la reserva.",
+      emptyState: "No hay días para mostrar en este rango.",
+      nextWindowLabel: "Próximos días visibles",
     },
   },
   reservations: {

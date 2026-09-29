@@ -82,6 +82,11 @@ const CARD_INPUT_BASE_CLASS_NAME =
 const DEFAULT_FIELD_BORDER_CLASS_NAME = "border-border/70";
 const FLAGGED_FIELD_CLASS_NAME = "border-destructive ring-2 ring-destructive/20";
 const ACCEPTED_CARD_BRANDS = ["visa", "mastercard", "amex"] as const;
+const TILOPAY_SDK_SCRIPT_URL =
+  "https://app.tilopay.com/sdk/v2/sdk_tpay.min.js";
+const TILOPAY_SDK_ORIGIN = "https://app.tilopay.com";
+const TILOPAY_SDK_SCRIPT_SELECTOR = 'script[data-tilopay-sdk-v2="true"]';
+let tilopaySdkScriptLoadPromise: Promise<void> | null = null;
 
 function isTilopaySdkSessionSuccessResponse(
   payload: CreateTilopaySdkSessionApiResponse,
@@ -347,6 +352,29 @@ function toSdkPayload(value: unknown): Record<string, unknown> | null {
   return null;
 }
 
+function ensureTilopaySdkResourceHints(src: string = TILOPAY_SDK_SCRIPT_URL): void {
+  if (typeof document === "undefined") {
+    return;
+  }
+
+  if (!document.querySelector('link[data-tilopay-sdk-preconnect="true"]')) {
+    const preconnect = document.createElement("link");
+    preconnect.dataset.tilopaySdkPreconnect = "true";
+    preconnect.href = TILOPAY_SDK_ORIGIN;
+    preconnect.rel = "preconnect";
+    document.head.appendChild(preconnect);
+  }
+
+  if (!document.querySelector('link[data-tilopay-sdk-preload="true"]')) {
+    const preload = document.createElement("link");
+    preload.as = "script";
+    preload.dataset.tilopaySdkPreload = "true";
+    preload.href = src;
+    preload.rel = "preload";
+    document.head.appendChild(preload);
+  }
+}
+
 function loadTilopaySdkScript(src: string): Promise<void> {
   if (typeof window === "undefined") {
     return Promise.resolve();
@@ -356,24 +384,45 @@ function loadTilopaySdkScript(src: string): Promise<void> {
     return Promise.resolve();
   }
 
-  return new Promise((resolve, reject) => {
+  if (tilopaySdkScriptLoadPromise) {
+    return tilopaySdkScriptLoadPromise;
+  }
+
+  tilopaySdkScriptLoadPromise = new Promise((resolve, reject) => {
     const existingScript = document.querySelector<HTMLScriptElement>(
-      'script[data-tilopay-sdk-v2="true"]',
+      TILOPAY_SDK_SCRIPT_SELECTOR,
     );
     const script = existingScript ?? document.createElement("script");
 
-    script.addEventListener("load", () => resolve(), { once: true });
-    script.addEventListener("error", () => reject(new Error("TILOPAY_SDK_SCRIPT_LOAD_ERROR")), {
-      once: true,
-    });
+    script.addEventListener(
+      "load",
+      () => {
+        script.dataset.tilopaySdkLoaded = "true";
+        resolve();
+      },
+      { once: true },
+    );
+    script.addEventListener(
+      "error",
+      () => {
+        tilopaySdkScriptLoadPromise = null;
+        script.remove();
+        reject(new Error("TILOPAY_SDK_SCRIPT_LOAD_ERROR"));
+      },
+      {
+        once: true,
+      },
+    );
 
     if (!existingScript) {
       script.async = true;
       script.dataset.tilopaySdkV2 = "true";
-      script.src = `${src}?v=${Date.now()}`;
+      script.src = src;
       document.body.appendChild(script);
     }
   });
+
+  return tilopaySdkScriptLoadPromise;
 }
 
 export function TilopaySdkCheckout({
@@ -398,6 +447,10 @@ export function TilopaySdkCheckout({
   );
   const paymentFormReadyNotifiedRef = useRef(false);
   const paymentMethodSelectRef = useRef<HTMLSelectElement>(null);
+
+  useEffect(() => {
+    ensureTilopaySdkResourceHints();
+  }, []);
 
   useLayoutEffect(() => {
     if (status !== "ready" || !session || paymentFormReadyNotifiedRef.current) {

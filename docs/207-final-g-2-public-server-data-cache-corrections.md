@@ -175,6 +175,11 @@ Airbnb sync state
 `/disponibilidad` remains the accepted fast static shell with live dynamic availability API calls.
 G.3 owns client/hydration, availability calendar layout, image-path, and bundle corrections.
 
+2026-09-28 G.3 hardening note: `/disponibilidad` now consumes the stable public accommodation DTO
+for names, descriptions, public prices and slugs while keeping availability itself live. Therefore
+`revalidatePublicPropertiesCache()` also revalidates `/disponibilidad` after public property
+mutations.
+
 ## Runtime Files Changed
 
 ```text

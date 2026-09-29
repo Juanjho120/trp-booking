@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type { AccommodationId } from "@/types/accommodation";
 import type { AvailabilityBlockingRecord, DateOnlyString } from "@/types/availability";
-import type { PublicAvailabilityCopy } from "@/features/availability/copy";
 
 const DEFAULT_VISIBLE_DAYS = 60;
 const calendarDateFormatter = new Intl.DateTimeFormat("es-GT", {
@@ -48,8 +47,21 @@ type LoadState =
 
 type PublicAvailabilityCalendarProps = Readonly<{
   accommodationId: AccommodationId;
-  copy: PublicAvailabilityCopy;
+  copy: PublicAvailabilityCalendarCopy;
   visibleDays?: number;
+}>;
+
+export type PublicAvailabilityCalendarCopy = Readonly<{
+  title: string;
+  loading: string;
+  available: string;
+  unavailable: string;
+  unavailableSourcesLabel: string;
+  errorTitle: string;
+  retry: string;
+  liveAvailabilityNotice: string;
+  emptyState: string;
+  nextWindowLabel: string;
 }>;
 
 function toDateOnly(value: Date): DateOnlyString {
@@ -218,8 +230,8 @@ export function PublicAvailabilityCalendar({
         <p className="text-xs font-semibold uppercase tracking-[0.25em] text-stone-500">
           {copy.nextWindowLabel}
         </p>
-        <h2 className="text-2xl font-semibold text-stone-950">{copy.calendarTitle}</h2>
-        <p className="text-sm text-stone-600">{copy.checkoutDisabledNotice}</p>
+        <h2 className="text-2xl font-semibold text-stone-950">{copy.title}</h2>
+        <p className="text-sm text-stone-600">{copy.liveAvailabilityNotice}</p>
       </div>
 
       <div className="mt-5 flex flex-wrap gap-3 text-sm">
@@ -288,7 +300,7 @@ function AvailabilityDayCard({
   copy,
   day,
 }: Readonly<{
-  copy: PublicAvailabilityCopy;
+  copy: PublicAvailabilityCalendarCopy;
   day: AvailabilityCalendarDay;
 }>) {
   const formattedDate = formatCalendarDate(day.date);

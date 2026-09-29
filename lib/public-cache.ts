@@ -56,6 +56,7 @@ export function revalidatePublicPropertiesCache(
   revalidateTag(getPublicCacheTag(PUBLIC_CACHE_DOMAINS.properties));
   revalidatePath("/");
   revalidatePath("/alojamientos");
+  revalidatePath("/disponibilidad");
 
   if (input.slug) {
     revalidatePath(`/alojamientos/${input.slug}`);

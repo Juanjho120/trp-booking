@@ -7,7 +7,7 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-G — Performance audit and optimization
 Subphase: Final-G.3 — Client/hydration and image-path corrections
-Status: Implementation completed; Hosted functional validation + owner acceptance pending
+Status: Hardening implemented; Hosted owner revalidation + acceptance pending
 Document date: 2026-09-28
 Implementation base head: b190bb45275a72c8c0126ae646e5d3112255dccd
 Accepted G.1 baseline head: 1623389b028be1b0391a2afce6e7c28244ad0fbf
@@ -16,7 +16,7 @@ G.2 Hosted evidence head: c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60
 Final-G package: Active
 Final-G.1: Completed and accepted on 2026-09-28
 Final-G.2: Completed and accepted on 2026-09-28
-Final-G.3: Implementation completed; Hosted functional validation + owner acceptance pending
+Final-G.3: Hardening implemented; Hosted owner revalidation + acceptance pending
 Final-G.4: Not started
 Final-G.5: Not started
 Final-H: Not started
@@ -110,7 +110,7 @@ ReservationRequestForm initial graph
 ```
 
 The external Tilopay SDK lifecycle remains in `features/payments/components/tilopay-sdk-checkout.tsx`
-and is unchanged:
+and remains the shared checkout boundary for all runtime consumers:
 
 ```text
 session creation
@@ -120,6 +120,26 @@ payment preflight
 Tilopay.startPayment
 client telemetry
 retry/error handling
+```
+
+Runtime consumer inventory after the owner hardening pass:
+
+```text
+Initial reservation payment:
+  features/reservations/components/reservation-request-form.tsx
+  dynamically imports TilopaySdkCheckout after pending-hold creation starts.
+
+Payment retry:
+  features/payments/components/payment-retry-page.tsx
+  renders TilopaySdkCheckout directly for retry handoff.
+
+Additional/service-charge private payment:
+  features/payments/components/additional-charge-payment-page.tsx
+  renders TilopaySdkCheckout for GuestPaymentRequest ancillary collection.
+
+Lifecycle/date-change payment:
+  features/payments/components/lifecycle-adjustment-payment-page.tsx
+  renders TilopaySdkCheckout for approved lifecycle adjustment handoff.
 ```
 
 Local build-manifest evidence after the split:
@@ -156,6 +176,178 @@ Availability and active holds remain live dynamic data.
 
 `formatCalendarDate()` now uses one module-level `Intl.DateTimeFormat("es-GT", ...)` instance rather
 than constructing a formatter for every day card render.
+
+## Final-G.3 Hardening After Owner Hosted Findings
+
+Owner Hosted validation after the initial G.3 implementation found three guest-facing issues:
+
+```text
+H1 — /disponibilidad was not integrated into the public shell and rendered all three calendars.
+H2 — Tilopay card fields had a visible 5-6 second preparation delay on shared checkout surfaces.
+H3 — DayPicker was visible immediately, but /api/availability/blocked-dates took about 2 seconds.
+```
+
+This hardening pass is part of Final-G.3, not a new numbered subphase. Final-G.4, Final-G.5,
+Final-H and Phase 13 remain Not started.
+
+### Public /disponibilidad shell and tabs
+
+`/disponibilidad` now follows the normal public-site pattern:
+
+```text
+app/disponibilidad/page.tsx
+  -> getPublicAccommodations()
+  -> PublicAvailabilityPage
+  -> SiteHeader
+  -> localized main content
+  -> SiteFooter
+```
+
+The page now consumes the accepted G.2 cached public accommodation DTO for stable presentation data
+only: accommodation id, localized name, localized description, public price, public slug and guest
+capacity. Live availability remains outside the G.2 stable-content cache and still comes from
+`/api/availability`.
+
+Public navigation now includes:
+
+```text
+ES: Disponibilidad -> /disponibilidad
+EN: Availability -> /disponibilidad
+```
+
+Visible availability copy moved into `messages/es.ts` and `messages/en.ts`; the former
+feature-local `features/availability/copy.ts` file was removed. The page no longer says booking or
+payment is disabled. The footer note was also reconciled so the availability page shell does not
+reintroduce obsolete "coming soon" booking/payment wording.
+
+Tabs use the existing Radix/shadcn `Tabs` primitives. Only the active accommodation renders
+`PublicAvailabilityCalendar`, so initial load no longer mounts/fetches all three 60-day calendars.
+Each active tab shows a bounded summary plus the CTA:
+
+```text
+ES: Ver alojamiento y reservar
+EN: View accommodation and book
+Target: /alojamientos/{slug}
+```
+
+Because `/disponibilidad` now consumes stable public accommodation data, public property invalidation
+also revalidates `/disponibilidad` through `revalidatePublicPropertiesCache()`. The availability API
+itself remains force-dynamic/live.
+
+### Shared Tilopay initialization hardening
+
+The Tilopay SDK loader is hardened in the shared `TilopaySdkCheckout` boundary used by initial
+reservation, retry, additional-charge and lifecycle-adjustment checkout surfaces.
+
+The SDK script URL is now canonical:
+
+```text
+https://app.tilopay.com/sdk/v2/sdk_tpay.min.js
+```
+
+The previous random cache-busting URL (`?v=${Date.now()}`) was removed. No accepted Tilopay contract
+in the repository requires a random SDK query string, and randomizing the URL prevented normal browser
+reuse of the public SDK resource.
+
+When `TilopaySdkCheckout` mounts, it now adds safe resource hints only:
+
+```text
+preconnect: https://app.tilopay.com
+preload script: https://app.tilopay.com/sdk/v2/sdk_tpay.min.js
+```
+
+This does not call `Tilopay.Init`, does not call `/api/payments/tilopay/sdk-session`, does not create
+a Payment, and does not prepare a provider token before the accepted user action. The explicit
+`Prepare secure payment` flow remains authoritative.
+
+SDK loading now converges on one shared in-flight promise:
+
+```text
+window.Tilopay already available -> resolve immediately
+SDK currently loading -> reuse the same promise
+SDK failed to load -> clear the promise and remove the failed script tag so retry is possible
+SDK not loaded -> append one canonical script tag
+```
+
+Server-side SDK-session creation still validates payable state before provider token acquisition.
+After each branch has prepared a valid payable target, `ensurePaymentProviderReference(...)` and
+`requestTilopaySdkToken()` run concurrently because they are independent at that point:
+
+```text
+initial reservation branch: after createPaymentAttemptForPendingReservation + Payment lookup
+additional/service-charge branch: after prepareGuestPaymentRequestPayment
+lifecycle branch: after prepareLifecycleAdjustmentPayment
+```
+
+No token caching was added. The provider token lifetime was not assumed or guessed.
+
+Safe pre-hardening public SDK-resource measurement, without tokens or payment data:
+
+| URL | Samples | Status | Timing | Bytes |
+| --- | ---: | --- | --- | ---: |
+| canonical SDK URL | 3 | 200 | first 707.4ms; warm 367.0ms / 363.7ms | 42926 |
+| cache-busted SDK URL sample | 3 | 200 | 349.4ms / 373.9ms / 364.3ms | 42926 |
+
+The visible 5-6 second checkout delay could not be fully decomposed in repository-only validation
+because that requires valid Hosted Test handoffs for initial reservation, additional charge and retry
+payment. Those measurements remain in the owner Hosted revalidation checklist below.
+
+### Blocked-dates route optimization
+
+Before code changes, Hosted Test `blocked-dates` samples for the current visible month confirmed the
+owner-observed latency:
+
+| Accommodation | Samples | Status | Time range | Median-ish observation | Bytes |
+| --- | ---: | --- | ---: | ---: | ---: |
+| `black-white-apartment` | 3 | 200 | 1661.9-2179.6ms | about 1686.6ms | 251 |
+| `perfect-retreat-bungalow` | 3 | 200 | 1628.7-1724.4ms | about 1718.9ms | 150 |
+| `complete-retreat` | 3 | 200 | 1609.2-1803.5ms | about 1654.4ms | 246 |
+
+The route previously called `getAvailabilityBlockingRecords(...)` and then performed a separate
+Reservation query through `getReservationBlockedDates(...)`. Deterministic regression coverage now
+proves that `getAvailabilityBlockingRecords(...)` already emits the required direct reservation
+blocking records with:
+
+```text
+CONFIRMED direct reservations
+active PENDING_PAYMENT holds
+expired PENDING_PAYMENT exclusion
+checkout-date exclusivity
+preparation buffers
+complete-retreat blocking child accommodations
+child accommodation blocking complete-retreat
+CalendarBlock records
+LifecycleRequestHold records
+admin-unlocked preparation buffer suppression
+```
+
+`/api/availability/blocked-dates` now derives `blockedDates` from the already-fetched availability
+blocking records and removes the second Reservation DB round trip. Availability remains fully live:
+no long-lived cache, no ISR, no stale transactional state, no change to eager client fetch on mount
+or month change.
+
+Hosted post-deploy measurement is still pending because this commit has not yet deployed at the time
+of this documentation update.
+
+### Post-hardening local build evidence
+
+`npm run build` was rerun after the owner-finding hardening changes. The current local build keeps
+the accepted listing/detail bundle improvements within normal build-output variance:
+
+| Route group | Post-G.2 baseline | G.3 accepted feature build | G.3 hardening build | Hardening assessment |
+| --- | ---: | ---: | ---: | --- |
+| `/` | 311 kB | 303 kB | 304 kB | No material regression. |
+| `/alojamientos` | 479 kB | 311 kB | 312 kB | Still about 34.9% lower than Post-G.2. |
+| `/alojamientos/[slug]` | 479 kB | 371 kB | 372 kB | Still about 22.3% lower than Post-G.2. |
+| `/disponibilidad` | 213 kB | 214 kB | 311 kB | Intentional hardening tradeoff for the full public shell, tabs and localized page UX; CLS revalidation remains pending Hosted owner review. |
+| `/resenas` | 312 kB | 219 kB | 219 kB | No material regression. |
+| `/admin` and most admin pages | 561 kB | 550 kB | 552 kB | Incidental; G.4 not started. |
+| Shared by all | 228 kB | 220 kB | 230 kB | No material public target regression found. |
+
+The hardening request froze the accepted `/alojamientos` and `/alojamientos/[slug]` route-graph
+improvements and `/disponibilidad` desktop CLS target; it did not require keeping the orphaned
+availability page's smaller bundle after integrating the normal public shell. Hosted CLS and
+single-initial-calendar behavior still require post-deploy owner revalidation.
 
 ### DayPicker and country flags
 
@@ -347,6 +539,11 @@ Tilopay checkout is dynamically imported, preloaded during pending-hold creation
 Tilopay SDK session/preflight/telemetry/start-payment lifecycle remains intact.
 No blanket next/dynamic or ssr:false escape was added.
 Availability keeps the 60-day live API behavior while reserving loaded grid geometry during loading.
+Availability page uses SiteHeader/SiteFooter, public navigation ES/EN entries, centralized messages, tabs, one initial calendar and property-detail CTAs.
+Public property invalidation revalidates /disponibilidad when stable accommodation data changes.
+Tilopay uses the canonical SDK URL, no random Date.now cache-busting, safe preconnect/preload, shared in-flight loading and retry-after-failure.
+All runtime Tilopay checkout consumers remain on the shared component.
+Blocked-dates derives from availability records without a second Reservation query and preserves reservation, dependency, CalendarBlock, lifecycle-hold and preparation-buffer semantics.
 Availability date formatting uses one stable formatter instead of per-day construction.
 DayPicker and country-flag static choice is documented.
 Next Image/Cloudinary loader architecture is intentionally unchanged.
@@ -361,7 +558,7 @@ used in prior Final-G work so `tsx` can survive `node:os.userInfo()` returning
 outside-sandbox execution used by G.1/G.2.
 
 ```text
-npx tsx --tsconfig tests/final-g/tsconfig.json tests/final-g/run.ts — PASS, 25/25.
+npx tsx --tsconfig tests/final-g/tsconfig.json tests/final-g/run.ts — PASS, 31/31.
 npm run final-a:validate — PASS, 44/44.
 npm run final-b:validate — PASS, 38/38.
 npm run final-c:validate — PASS, 41/41.
@@ -384,6 +581,12 @@ npx tsx --tsconfig tests/final-g/tsconfig.json tests/final-g/run.ts — PASS, 25
 git diff --check — PASS; Windows LF-to-CRLF working-copy warning only for docs/208.
 ```
 
+Final-G.3 hardening validation:
+
+```text
+npx tsx --tsconfig tests/final-g/tsconfig.json tests/final-g/run.ts — PASS, 31/31 using the temporary non-repository NODE_OPTIONS shim for the Windows Node/tsx os.userInfo issue.
+```
+
 ## Hosted Acceptance Pending
 
 G.3 is not accepted yet.
@@ -391,7 +594,41 @@ G.3 is not accepted yet.
 Remaining Hosted/owner checks:
 
 ```text
-Verify booking form UX, pending-hold creation, checkout preload, Tilopay form rendering and payment handoff on Hosted Test.
+Availability page:
+- /disponibilidad appears in public navigation.
+- Header and footer match the public website.
+- ES -> EN -> ES works and reload preserves selected locale through the existing localStorage behavior.
+- All three accommodation tabs exist.
+- Only the active accommodation calendar is visible.
+- Switching tabs works.
+- Page is materially shorter vertically.
+- Property details/prices are correct.
+- CTA opens the correct accommodation detail page.
+- Live availability remains correct.
+- No major layout jump returns.
+
+DayPicker / blocked dates:
+- First opening remains immediate.
+- Blocked nights arrive materially faster after deployment.
+- Blocked nights are correct.
+- Changing month remains correct.
+- No selectable blocked-date regression appears.
+
+Tilopay:
+- Initial reservation payment.
+- Additional/service-charge payment.
+- Retry payment.
+- Lifecycle adjustment if a safe Test case exists.
+- Prepare secure payment no longer has the previous typical 5-6 second visible delay.
+- Card fields render correctly.
+- Visa/Mastercard/Amex UI remains.
+- No real charge is required merely for hardening validation.
+
+Post-deploy evidence still needed:
+- /disponibilidad desktop Lighthouse CLS < 0.10.
+- Initial /disponibilidad page load issues only one availability API request for the active tab.
+- Repeat blocked-dates benchmark and compare before/after median.
+- Repeat Tilopay staged timings per surface.
 Verify ES/EN locale switching and persistence still work.
 Owner acceptance remains pending.
 ```
@@ -404,7 +641,7 @@ Final-G — Active
 Final-G.1 — Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf
 Final-G.2 — Completed and accepted on 2026-09-28 at ecafa2f95314fe485b1e1cc2d6372c40f076964a
 Final-G.2 Hosted evidence head — c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60
-Final-G.3 — Implementation completed; Hosted functional validation + owner acceptance pending
+Final-G.3 — Hardening implemented; Hosted owner revalidation + acceptance pending
 Final-G.4 — Not started
 Final-G.5 — Not started
 Final-H — Not started

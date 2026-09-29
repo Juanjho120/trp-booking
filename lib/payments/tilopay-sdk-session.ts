@@ -267,11 +267,13 @@ async function createLifecycleAdjustmentTilopaySdkSession(
   const existingPaymentAttempt = Boolean(
     prepared.payment.providerReference,
   );
-  const providerReference = await ensurePaymentProviderReference(
-    prepared.payment.id,
-    prepared.payment.providerReference,
-  );
-  const token = await requestTilopaySdkToken();
+  const [providerReference, token] = await Promise.all([
+    ensurePaymentProviderReference(
+      prepared.payment.id,
+      prepared.payment.providerReference,
+    ),
+    requestTilopaySdkToken(),
+  ]);
   const env = getTilopayEnv();
   const returnData = buildReturnData({
     locale: input.locale,
@@ -333,11 +335,13 @@ async function createGuestPaymentRequestTilopaySdkSession(
 
   const amount = toQuoteAmount(prepared.payment.amount);
   const existingPaymentAttempt = Boolean(prepared.payment.providerReference);
-  const providerReference = await ensurePaymentProviderReference(
-    prepared.payment.id,
-    prepared.payment.providerReference,
-  );
-  const token = await requestTilopaySdkToken();
+  const [providerReference, token] = await Promise.all([
+    ensurePaymentProviderReference(
+      prepared.payment.id,
+      prepared.payment.providerReference,
+    ),
+    requestTilopaySdkToken(),
+  ]);
   const env = getTilopayEnv();
   const returnData = buildReturnData({
     locale: input.locale,
@@ -423,11 +427,13 @@ export async function createTilopaySdkSession(
     );
   }
 
-  const providerReference = await ensurePaymentProviderReference(
-    payment.id,
-    payment.providerReference,
-  );
-  const token = await requestTilopaySdkToken();
+  const [providerReference, token] = await Promise.all([
+    ensurePaymentProviderReference(
+      payment.id,
+      payment.providerReference,
+    ),
+    requestTilopaySdkToken(),
+  ]);
   const env = getTilopayEnv();
   const returnData = buildReturnData({
     locale: input.locale,

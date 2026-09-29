@@ -125,12 +125,94 @@ test("G.3 preserves the Tilopay SDK session, preflight, telemetry and start-paym
   const checkout = readSource("features/payments/components/tilopay-sdk-checkout.tsx");
 
   assert.match(checkout, /loadTilopaySdkScript/);
+  assert.match(checkout, /https:\/\/app\.tilopay\.com\/sdk\/v2\/sdk_tpay\.min\.js/);
+  assert.doesNotMatch(checkout, /Date\.now\(\)/);
+  assert.doesNotMatch(checkout, /\?v=/);
+  assert.match(checkout, /let tilopaySdkScriptLoadPromise: Promise<void> \| null = null/);
+  assert.match(checkout, /if \(tilopaySdkScriptLoadPromise\) \{/);
+  assert.match(checkout, /tilopaySdkScriptLoadPromise = null/);
+  assert.match(checkout, /ensureTilopaySdkResourceHints/);
+  assert.match(checkout, /rel = "preconnect"/);
+  assert.match(checkout, /rel = "preload"/);
   assert.match(checkout, /\/api\/payments\/tilopay\/sdk-session/);
   assert.match(checkout, /\/api\/payments\/tilopay\/preflight/);
   assert.match(checkout, /\/api\/payments\/tilopay\/sdk-client-events/);
   assert.match(checkout, /window\.Tilopay\.Init/);
   assert.match(checkout, /window\.Tilopay\.startPayment/);
   assert.match(checkout, /onPaymentFormReady\?\.\(\)/);
+});
+
+test("G.3 hardens the public availability page with the shared shell, tabs and centralized copy", () => {
+  const route = readSource("app/disponibilidad/page.tsx");
+  const page = readSource(
+    "features/availability/components/public-availability-page.tsx",
+  );
+  const calendar = readSource(
+    "features/availability/components/public-availability-calendar.tsx",
+  );
+  const esMessages = readSource("messages/es.ts");
+  const enMessages = readSource("messages/en.ts");
+  const index = readSource("features/availability/index.ts");
+
+  assert.match(route, /getPublicAccommodations\(\)/);
+  assert.match(page, /<SiteHeader \/>/);
+  assert.match(page, /<SiteFooter \/>/);
+  assert.match(page, /<Tabs/);
+  assert.match(page, /<TabsList/);
+  assert.match(page, /<TabsTrigger/);
+  assert.match(page, /<TabsContent/);
+  assert.equal(countMatches(page, /<PublicAvailabilityCalendar/g), 1);
+  assert.match(page, /activeAccommodationId/);
+  assert.match(page, /href=\{`\/alojamientos\/\$\{activeAccommodation\.slug\[locale\]\}`\}/);
+  assert.match(esMessages, /\{ label: "Disponibilidad", href: "\/disponibilidad" \}/);
+  assert.match(enMessages, /\{ label: "Availability", href: "\/disponibilidad" \}/);
+  assert.match(esMessages, /availability: \{/);
+  assert.match(enMessages, /availability: \{/);
+  assert.match(esMessages, /Ver alojamiento y reservar/);
+  assert.match(enMessages, /View accommodation and book/);
+  assert.doesNotMatch(page, /publicAvailabilityCopy|Próximamente|coming soon|not enabled|no están habilitados/i);
+  assert.doesNotMatch(calendar, /checkoutDisabledNotice|calendarTitle/);
+  assert.doesNotMatch(index, /copy/);
+  assert.equal(existsSync(path.join(ROOT, "features/availability/copy.ts")), false);
+});
+
+test("G.3 keeps Tilopay preload side-effect-free and parallelizes only after payable-state preparation", () => {
+  const checkout = readSource("features/payments/components/tilopay-sdk-checkout.tsx");
+  const session = readSource("lib/payments/tilopay-sdk-session.ts");
+  const preloadIndex = checkout.indexOf("function ensureTilopaySdkResourceHints");
+  const initIndex = checkout.indexOf("window.Tilopay.Init");
+  const sessionEndpointIndex = checkout.indexOf('"/api/payments/tilopay/sdk-session"');
+
+  assert.ok(preloadIndex >= 0);
+  assert.ok(initIndex > preloadIndex);
+  assert.ok(sessionEndpointIndex > preloadIndex);
+  assert.doesNotMatch(
+    checkout.slice(preloadIndex, checkout.indexOf("function loadTilopaySdkScript")),
+    /Tilopay\.Init|fetch\("/,
+  );
+  assert.match(session, /Promise\.all\(\[\s*ensurePaymentProviderReference/s);
+  assert.match(
+    session,
+    /async function createGuestPaymentRequestTilopaySdkSession[\s\S]*prepared = await prepareGuestPaymentRequestPayment[\s\S]*Promise\.all\(\[/,
+  );
+  assert.match(
+    session,
+    /export async function createTilopaySdkSession[\s\S]*paymentAttempt = await createPaymentAttemptForPendingReservation\(input\)[\s\S]*Promise\.all\(\[/,
+  );
+});
+
+test("G.3 inventory keeps every runtime Tilopay checkout consumer on the shared component", () => {
+  const consumers = readExistingSources([
+    "features/reservations/components/reservation-request-form.tsx",
+    "features/payments/components/payment-retry-page.tsx",
+    "features/payments/components/additional-charge-payment-page.tsx",
+    "features/payments/components/lifecycle-adjustment-payment-page.tsx",
+  ]);
+
+  assert.match(consumers, /features\/payments\/components\/tilopay-sdk-checkout/);
+  assert.match(consumers, /PaymentCheckoutComponent/);
+  assert.match(consumers, /<TilopaySdkCheckout/);
+  assert.doesNotMatch(consumers, /sdk_tpay\.min\.js\?v=/);
 });
 
 test("G.3 keeps the booking form immediately visible and avoids blanket client-only dynamic escapes", () => {

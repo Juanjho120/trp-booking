@@ -31,6 +31,11 @@ export const enMessages = {
       description:
         "Read published reviews from direct-booking guests at Bungalows Tu Refugio Perfecto.",
     },
+    availability: {
+      title: "Availability | Tu Refugio Perfecto",
+      description:
+        "Check availability for Tu Refugio Perfecto accommodations and open your selected accommodation to book direct.",
+    },
     notFoundAccommodation: {
       title: "Accommodation not found | Tu Refugio Perfecto",
       description:
@@ -54,6 +59,7 @@ export const enMessages = {
     items: [
       { label: "Home", href: "/" },
       { label: "Accommodations", href: "/alojamientos" },
+      { label: "Availability", href: "/disponibilidad" },
       { label: "Reviews", href: "/resenas" },
       { label: "Benefits", href: "/#beneficios" },
       { label: "Location", href: "/#ubicacion" },
@@ -71,7 +77,7 @@ export const enMessages = {
     rights: "All rights reserved.",
     poweredBy: "Direct booking website powered by",
     note:
-      "Soon you will be able to check availability, book, and pay online from this website.",
+      "Check availability, choose your accommodation, and complete your direct booking from the website.",
   },
   publicWhatsApp: {
     ariaLabel: "Contact us on WhatsApp",
@@ -199,6 +205,30 @@ export const enMessages = {
       highlightsTitle: "Highlights",
       amenitiesTitle: "Amenities",
       rulesTitle: "Important rules",
+    },
+  },
+  availability: {
+    badge: "Availability",
+    title: "Check availability by accommodation",
+    description:
+      "Choose an accommodation to review upcoming available dates. To book, open the accommodation and complete the secure direct-booking flow.",
+    tabsLabel: "Available accommodations",
+    nightlyPricePrefix: "From",
+    nightlyPriceSuffix: "per night",
+    maxGuestsPrefix: "Up to",
+    viewAndBook: "View accommodation and book",
+    calendar: {
+      title: "Availability calendar",
+      loading: "Loading availability...",
+      available: "Available",
+      unavailable: "Unavailable",
+      unavailableSourcesLabel: "Detected blocking reasons",
+      errorTitle: "Availability could not be loaded",
+      retry: "Retry",
+      liveAvailabilityNotice:
+        "Availability is checked live and revalidated on the server before creating the reservation.",
+      emptyState: "There are no days to show in this range.",
+      nextWindowLabel: "Upcoming visible days",
     },
   },
   reservations: {
