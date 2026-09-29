@@ -313,11 +313,11 @@ Final-D.7 — Completed and accepted on 2026-09-18
 Final-D — Completed and accepted on 2026-09-18
 Accepted feature head — fd75663bb28be8a95b15c341eaa51f74e521241b
 Permanent Final-D regression — npm run final-d:validate, 66/66 PASS
-Final-E — Reservation reviews and post-checkout invitation — Next / Not started
-Final-F — Not started
-Final-G — Not started
-Final-H — Not started
+Final-E — Completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880
+Final-F — Completed and accepted on 2026-09-28 at 13f0e0cf6904e34155dd754230f320ca6c214141
+Final-G — Completed and accepted on 2026-09-28 at be8445a2c73a710e451da608fd9e669f8f412ab3
+Final-H — Integrated regression/evidence completed; owner acceptance pending
 Phase 13 — Not started
 ```
 
-Final-E must not begin automatically.
+Phase 13 must not begin automatically.

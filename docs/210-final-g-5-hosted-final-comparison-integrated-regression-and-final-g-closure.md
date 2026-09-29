@@ -39,7 +39,7 @@ Final-G.2 — Completed and accepted on 2026-09-28
 Final-G.3 — Completed and accepted on 2026-09-28
 Final-G.4 — Completed and accepted on 2026-09-28
 Final-G.5 — Completed and accepted on 2026-09-28 at be8445a2c73a710e451da608fd9e669f8f412ab3
-Final-H — Next / Not started
+Final-H — Integrated regression/evidence completed; owner acceptance pending
 Phase 13 — Not started
 
 Runtime feature changes: none
@@ -507,7 +507,7 @@ dependency, environment, scheduler or Production-resource change was introduced 
 Final-H — Integrated final improvement-track regression and pre-Production closure
 ```
 
-Final-H is Next / Not started until explicitly requested.
+Final-H has since been explicitly requested. Its integrated regression/evidence is completed, and owner acceptance remains pending.
 
 ## Next State
 
@@ -520,6 +520,6 @@ Final-G.2 — Completed and accepted
 Final-G.3 — Completed and accepted
 Final-G.4 — Completed and accepted
 Final-G.5 — Completed and accepted on 2026-09-28 at be8445a2c73a710e451da608fd9e669f8f412ab3
-Final-H — Next / Not started
+Final-H — Integrated regression/evidence completed; owner acceptance pending
 Phase 13 — Not started
 ```

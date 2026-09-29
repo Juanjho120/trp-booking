@@ -24,8 +24,8 @@ No migration changes
 No dependency changes
 No Production resources
 vercel.json remains {"crons":[]}
-Final-G: Next / Not started
-Final-H: Not started
+Final-G: Completed and accepted on 2026-09-28 at be8445a2c73a710e451da608fd9e669f8f412ab3
+Final-H: Integrated regression/evidence completed; owner acceptance pending
 Phase 13: Not started
 ```
 
@@ -298,7 +298,7 @@ Final-C — Completed and accepted
 Final-D — Completed and accepted
 Final-E — Completed and accepted
 Final-F — Completed and accepted on 2026-09-28 at 13f0e0cf6904e34155dd754230f320ca6c214141
-Final-G — Next / Not started
-Final-H — Not started
+Final-G — Completed and accepted on 2026-09-28 at be8445a2c73a710e451da608fd9e669f8f412ab3
+Final-H — Integrated regression/evidence completed; owner acceptance pending
 Phase 13 — Not started
 ```
