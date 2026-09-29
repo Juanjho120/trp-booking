@@ -385,6 +385,9 @@ Final-H carries these Phase-13 tasks forward. Do not perform these actions in Fi
 - Production Tilopay credentials;
 - public WhatsApp Business App number/contact;
 - Production cron activation from the six-job registry above;
+- Production Node runtime satisfying Node >=20.9.0. This lower bound is required by the accepted
+  sharp@0.35.4 security floor; configure and verify the Production Vercel Node runtime before
+  Production build/deployment, and do not downgrade sharp merely to support an older Node runtime;
 - Production secrets and key rotation.
 ```
 
@@ -653,7 +656,8 @@ Phase 13. Test remains with zero Vercel crons.
 ### Production carry-forwards
 
 The Phase-13 checklist above is complete enough to start Phase-13 planning only after explicit owner
-acceptance.
+acceptance. It includes verifying that the company-owned Production Vercel runtime satisfies
+Node >=20.9.0 for the accepted sharp@0.35.4 security floor before Production build/deployment.
 
 ### Known accepted caveats
 
@@ -663,6 +667,7 @@ acceptance.
 - iOS Web Push deferred;
 - provider/network/serverless variance;
 - Production scheduler recurrence evidence belongs to Phase 13;
+- Production Node runtime verification for Node >=20.9.0 belongs to Phase 13;
 - Production backup/restore rehearsal belongs to Phase 13;
 - Production CSP finalization belongs to Phase 13 once domains/providers are final.
 ```

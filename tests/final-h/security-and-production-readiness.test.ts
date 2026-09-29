@@ -61,6 +61,10 @@ test("Production carry-forward inventory remains documentation-only before Phase
     "company-owned Cloudinary",
     "company Google/Auth identity",
     "Production DNS",
+    "Production Node runtime",
+    "Node >=20.9.0",
+    "sharp@0.35.4",
+    "do not downgrade sharp",
   ]) {
     assert.ok(finalH.includes(expected), `docs/211 should carry forward ${expected}`);
   }
