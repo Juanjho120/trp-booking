@@ -10,7 +10,7 @@ import {
   MailOpen,
   Send,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   Accordion,
@@ -113,6 +113,33 @@ export function resolveAdminNotificationsActiveTab({
   }
 
   return selectedTab ?? resolveAdminNotificationsDefaultTab(deviceState);
+}
+
+export function shouldAutoScrollAdminNotification({
+  activeTab,
+  displayMode,
+  hasScrolledToInitialNotification,
+  initialNotificationId,
+  isMobileViewport,
+  openNotificationId,
+  targetElementAvailable,
+}: Readonly<{
+  activeTab: AdminNotificationsTab;
+  displayMode: AdminNotificationsDisplayMode;
+  hasScrolledToInitialNotification: boolean;
+  initialNotificationId: string | null;
+  isMobileViewport: boolean;
+  openNotificationId: string | undefined;
+  targetElementAvailable: boolean;
+}>): boolean {
+  return (
+    activeTab === "notifications" &&
+    initialNotificationId !== null &&
+    openNotificationId === initialNotificationId &&
+    targetElementAvailable &&
+    !hasScrolledToInitialNotification &&
+    (isMobileViewport || displayMode === "standalone")
+  );
 }
 
 function hasApiError(payload: unknown): payload is ApiErrorResponse {
@@ -298,8 +325,11 @@ export function AdminNotificationsPageView({
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [selectedTab, setSelectedTab] = useState<AdminNotificationsTab | null>(
-    null,
+    initialNotificationId ? "notifications" : null,
   );
+  const notificationElementRefs = useRef(new Map<string, HTMLDivElement>());
+  const initialNotificationScrollFrameRef = useRef<number | null>(null);
+  const hasScrolledToInitialNotificationRef = useRef(false);
 
   const supported = serviceWorkerState !== "unsupported";
   const configured = config?.configured === true;
@@ -725,6 +755,82 @@ export function AdminNotificationsPageView({
     configurationNavigationVisible: showConfigurationNavigation,
   });
 
+  const registerNotificationElement = useCallback(
+    (notificationId: string, element: HTMLDivElement | null) => {
+      if (element) {
+        notificationElementRefs.current.set(notificationId, element);
+        return;
+      }
+
+      notificationElementRefs.current.delete(notificationId);
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (!initialNotificationId) {
+      return;
+    }
+
+    const targetElement =
+      notificationElementRefs.current.get(initialNotificationId) ?? null;
+
+    if (
+      !shouldAutoScrollAdminNotification({
+        activeTab,
+        displayMode,
+        hasScrolledToInitialNotification:
+          hasScrolledToInitialNotificationRef.current,
+        initialNotificationId,
+        isMobileViewport,
+        openNotificationId,
+        targetElementAvailable: targetElement !== null,
+      })
+    ) {
+      return;
+    }
+
+    const targetNotificationId = initialNotificationId;
+    const reducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
+    const scrollFrame = window.requestAnimationFrame(() => {
+      const layoutFrame = window.requestAnimationFrame(() => {
+        initialNotificationScrollFrameRef.current = null;
+        const currentTarget =
+          notificationElementRefs.current.get(targetNotificationId);
+
+        if (!currentTarget) {
+          return;
+        }
+
+        currentTarget.scrollIntoView({
+          block: "start",
+          behavior: reducedMotion ? "auto" : "smooth",
+        });
+        hasScrolledToInitialNotificationRef.current = true;
+      });
+
+      initialNotificationScrollFrameRef.current = layoutFrame;
+    });
+
+    initialNotificationScrollFrameRef.current = scrollFrame;
+
+    return () => {
+      if (initialNotificationScrollFrameRef.current !== null) {
+        window.cancelAnimationFrame(initialNotificationScrollFrameRef.current);
+        initialNotificationScrollFrameRef.current = null;
+      }
+    };
+  }, [
+    activeTab,
+    displayMode,
+    initialNotificationId,
+    isMobileViewport,
+    openNotificationId,
+  ]);
+
   const notificationsPanel = (
     <Card className="border-border/70 bg-card shadow-sm">
       <CardContent className="grid gap-5 p-5">
@@ -762,8 +868,11 @@ export function AdminNotificationsPageView({
 
               return (
                 <AccordionItem
-                  className="rounded-lg border border-border/70 bg-background"
+                  className="scroll-mt-20 rounded-lg border border-border/70 bg-background"
                   key={notification.id}
+                  ref={(element) =>
+                    registerNotificationElement(notification.id, element)
+                  }
                   value={notification.id}
                 >
                   <AccordionTrigger className="rounded-lg px-4 py-3 data-[state=open]:rounded-b-none">

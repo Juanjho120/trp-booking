@@ -596,7 +596,7 @@ test("I.1 registers the roadmap, validation script, and F.7 forward note", () =>
   expectIncludes(doc212, "Accepted Final-I.1 head: 9a15f349c1104671f5555d1988caa56756e5ff0c");
   expectIncludes(doc212, "Final-I.2 status: Completed and accepted on 2026-09-29");
   expectIncludes(doc212, "Accepted Final-I.2 head: 6451cb705d972c83a771a9ff39f6da80d130cf58");
-  expectIncludes(doc212, "Final-I.3 status: Implementation completed; Hosted owner validation + acceptance pending");
+  expectIncludes(doc212, "Final-I.3 status: Implementation completed; final Hosted owner validation + acceptance pending");
   expectIncludes(doc212, "Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials");
   expectIncludes(doc212, "Phase 13 status: Blocked / Not started until Final-I closes");
   expectIncludes(doc204, "Final-I.1 forward hardening note");

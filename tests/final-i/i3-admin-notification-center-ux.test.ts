@@ -16,6 +16,7 @@ import {
 } from "@/lib/admin-notifications/center-routing";
 import {
   resolveAdminNotificationsActiveTab,
+  shouldAutoScrollAdminNotification,
   type AdminNotificationsDeviceState,
 } from "@/features/admin/components/admin-notifications-page";
 import type { AdminActor } from "@/types/admin";
@@ -309,6 +310,70 @@ test("I.3 responsive helper hides configuration on desktop browser and preserves
   );
 });
 
+test("I.3 auto-scroll helper scopes mobile/PWA deep-link scrolling to the initial notification", () => {
+  const base = {
+    activeTab: "notifications" as const,
+    displayMode: "browser" as const,
+    hasScrolledToInitialNotification: false,
+    initialNotificationId: "notification_targeted",
+    isMobileViewport: true,
+    openNotificationId: "notification_targeted",
+    targetElementAvailable: true,
+  };
+
+  assert.equal(shouldAutoScrollAdminNotification(base), true);
+  assert.equal(
+    shouldAutoScrollAdminNotification({
+      ...base,
+      openNotificationId: "notification_other",
+    }),
+    false,
+  );
+  assert.equal(
+    shouldAutoScrollAdminNotification({
+      ...base,
+      isMobileViewport: false,
+    }),
+    false,
+  );
+  assert.equal(
+    shouldAutoScrollAdminNotification({
+      ...base,
+      displayMode: "standalone",
+      isMobileViewport: false,
+    }),
+    true,
+  );
+  assert.equal(
+    shouldAutoScrollAdminNotification({
+      ...base,
+      targetElementAvailable: false,
+    }),
+    false,
+  );
+  assert.equal(
+    shouldAutoScrollAdminNotification({
+      ...base,
+      initialNotificationId: null,
+    }),
+    false,
+  );
+  assert.equal(
+    shouldAutoScrollAdminNotification({
+      ...base,
+      hasScrolledToInitialNotification: true,
+    }),
+    false,
+  );
+  assert.equal(
+    shouldAutoScrollAdminNotification({
+      ...base,
+      activeTab: "configuration",
+    }),
+    false,
+  );
+});
+
 test("I.3 notification-center query selection opens only existing visible items", () => {
   const notifications = [{ id: "notification_a" }, { id: "notification_b" }];
 
@@ -398,6 +463,18 @@ test("I.3 page and view wire safe query parsing, desktop simplification and sing
     "collapsible",
     "value={openNotificationId}",
     "setOpenNotificationId(value || undefined)",
+    "initialNotificationId ? \"notifications\" : null",
+    "notificationElementRefs.current.get(initialNotificationId)",
+    "ref={(element) =>",
+    "registerNotificationElement(notification.id, element)",
+    "scroll-mt-20",
+    "window.matchMedia(",
+    "(prefers-reduced-motion: reduce)",
+    "window.requestAnimationFrame(() =>",
+    "scrollIntoView({",
+    "block: \"start\"",
+    "behavior: reducedMotion ? \"auto\" : \"smooth\"",
+    "hasScrolledToInitialNotificationRef.current = true",
     "<AccordionTrigger",
     "copy.history.unread",
     "copy.history.read",
@@ -419,6 +496,15 @@ test("I.3 page and view wire safe query parsing, desktop simplification and sing
   );
   expectIncludes(accordionChange, "setOpenNotificationId");
   expectExcludes(accordionChange, "markNotificationRead");
+
+  const deepLinkScrollEffect = NOTIFICATIONS_VIEW.slice(
+    NOTIFICATIONS_VIEW.indexOf(
+      "const targetNotificationId = initialNotificationId;",
+    ),
+    NOTIFICATIONS_VIEW.indexOf("const notificationsPanel = ("),
+  );
+  expectIncludes(deepLinkScrollEffect, "scrollIntoView({");
+  expectExcludes(deepLinkScrollEffect, "markNotificationRead");
 });
 
 test("I.3 push payload carries bounded notificationId while preserving targetPath for the Open action", () => {

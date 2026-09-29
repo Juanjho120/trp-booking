@@ -15,7 +15,7 @@ Final-I.1 status: Completed and accepted on 2026-09-29
 Accepted Final-I.1 head: 9a15f349c1104671f5555d1988caa56756e5ff0c
 Final-I.2 status: Completed and accepted on 2026-09-29
 Accepted Final-I.2 head: 6451cb705d972c83a771a9ff39f6da80d130cf58
-Final-I.3 status: Implementation completed; Hosted owner validation + acceptance pending
+Final-I.3 status: Implementation completed; final Hosted owner validation + acceptance pending
 Final-I.4 status: Next / Not started
 Final-I.5 status: Not started
 Final-I.6 status: Not started
@@ -25,7 +25,7 @@ Final-I.9 status: Not started
 Phase 13 status: Blocked / Not started until Final-I closes
 ```
 
-Final-I is an owner-requested pre-Production addendum registered after the accepted Final-H closure. It does not rewrite the historical acceptance of Phase 12, Final-A through Final-H, or the complete Post-Phase-12 / Pre-Phase-13 Final Improvement Track at `6922cf27e31e63fde071c0d0a810b141e44b9f90`. Final-I.1 is completed and accepted at its feature head `9a15f349c1104671f5555d1988caa56756e5ff0c`, and Final-I.2 is completed and accepted at `6451cb705d972c83a771a9ff39f6da80d130cf58`; this I.3 implementation does not replace those accepted heads. Final-I.3 implementation is completed with Hosted owner validation and explicit acceptance still pending. Phase 13 remains not started and is blocked until Final-I closes and receives owner acceptance.
+Final-I is an owner-requested pre-Production addendum registered after the accepted Final-H closure. It does not rewrite the historical acceptance of Phase 12, Final-A through Final-H, or the complete Post-Phase-12 / Pre-Phase-13 Final Improvement Track at `6922cf27e31e63fde071c0d0a810b141e44b9f90`. Final-I.1 is completed and accepted at its feature head `9a15f349c1104671f5555d1988caa56756e5ff0c`, and Final-I.2 is completed and accepted at `6451cb705d972c83a771a9ff39f6da80d130cf58`; this I.3 implementation does not replace those accepted heads. Final-I.3 implementation is completed with initial Hosted owner validation passed functionally; final Hosted owner validation and explicit acceptance remain pending for the mobile/PWA deep-link auto-scroll refinement. Phase 13 remains not started and is blocked until Final-I closes and receives owner acceptance.
 
 ## Subphase Structure
 
@@ -166,9 +166,9 @@ Phase 11.4
 
 Final-I.2 reviewed each stale candidate for reachability before removing it. Unused localization fields were removed only after confirming no remaining code references. Reachable negative-date-difference admin copy was rewritten to describe the implemented refund workflow instead of a future subphase.
 
-## Final-I.3 Implementation Scope - Hosted Owner Validation Pending
+## Final-I.3 Implementation Scope - Final Hosted Owner Validation Pending
 
-Final-I.3 implementation is completed. Hosted owner validation and explicit acceptance remain pending; Final-I.4 is the next subphase and is not started.
+Final-I.3 implementation is completed. Initial Hosted owner validation passed functionally across desktop browser, Android Chrome browser, Android standalone PWA, and Push deep-link behavior. Final Hosted owner validation and explicit acceptance remain pending for the mobile/PWA deep-link auto-scroll refinement; Final-I.4 is the next subphase and is not started.
 
 Implemented presentation behavior:
 
@@ -212,6 +212,11 @@ Implemented Push/deep-link contract:
 - service-worker notification clicks route to /admin/notifications?notification=<notificationId> when the identifier is valid
 - invalid or missing notificationId falls back to /admin/notifications
 - notificationId is treated only as an opaque identifier, never as a path or URL
+- mobile browser and standalone PWA valid initial deep-links keep the Notifications tab active and auto-scroll once to the expanded target accordion header
+- the deep-link scroll accounts for the sticky Admin header with scroll margin so the read/unread badge, timestamp, title, and expanded content are immediately visible
+- desktop browser deep-links, unknown/malformed identifiers, and manual accordion changes do not request forced scrolling
+- auto-scroll uses notification element refs plus reduced-motion-aware `scrollIntoView`; no CSS selector is built from raw query input
+- scroll/open continues to have no read-state side effect; Mark as read remains explicit
 - no guest email, phone, payment data, email body/content, provider IDs, tokens, secrets, or push endpoint/key material is added to the Push payload
 ```
 
@@ -308,6 +313,14 @@ Final-I.3 implementation validation:
 - npm run build - PASS; Next slow filesystem warning only
 - npm audit --omit=dev - PASS, 0 vulnerabilities
 - git diff --check - PASS; Windows CRLF normalization warnings only
+Final-I.3 mobile/PWA deep-link auto-scroll refinement validation:
+- npm run final-i:validate - PASS, 23/23; initial sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM before the escalated rerun passed
+- npm run final-f:validate - PASS, 125/125
+- npm run final-h:validate - PASS, 20/20
+- npm run lint - PASS
+- npm run build - PASS; Next slow filesystem warning only
+- npm audit --omit=dev - PASS, 0 vulnerabilities
+- git diff --check - PASS; Windows CRLF normalization warnings only
 ```
 
 ## Final-I.1 Hosted Owner Validation Completed
@@ -322,6 +335,22 @@ Owner Hosted validation completed and owner acceptance was explicit. The owner v
 - Android Web Push delivery still works for genuine external email.
 - /admin/notifications history still records the genuine external email notification.
 ```
+
+## Final-I.3 Hosted Owner Functional Validation Progress
+
+Initial owner Hosted validation passed functionally before final acceptance for:
+
+```text
+- desktop browser notification-center simplification
+- Android Chrome browser notification-center behavior
+- Android standalone PWA notification-center behavior
+- Push deep-link routing to the correct notification
+- correct accordion expansion
+- read state remaining unchanged
+- Open action continuing to use the business targetPath
+```
+
+The remaining owner-observed mobile/PWA UX refinement is addressed in this hardening pass: a valid `/admin/notifications?notification=<notificationId>` Push deep-link now scrolls once to the expanded target accordion header after layout settles, with sticky Admin header spacing. Final Hosted owner validation and explicit acceptance remain pending. Final-I.4 is Next / Not started.
 
 ## Final-I.2 Hosted Owner Visual Validation Completed
 
@@ -351,4 +380,4 @@ Admin cancellation:
 - cancellation/refund separation explained as current behavior
 ```
 
-Final-I.1 is completed and accepted on 2026-09-29 at accepted head `9a15f349c1104671f5555d1988caa56756e5ff0c`. Final-I.2 is completed and accepted on 2026-09-29 at accepted head `6451cb705d972c83a771a9ff39f6da80d130cf58`. Final-I.3 implementation is completed with Hosted owner validation + acceptance pending. Final-I.4 is Next / Not started.
+Final-I.1 is completed and accepted on 2026-09-29 at accepted head `9a15f349c1104671f5555d1988caa56756e5ff0c`. Final-I.2 is completed and accepted on 2026-09-29 at accepted head `6451cb705d972c83a771a9ff39f6da80d130cf58`. Final-I.3 implementation is completed with final Hosted owner validation + acceptance pending. Final-I.4 is Next / Not started.
