@@ -18,8 +18,8 @@ Final-G package: Active
 Final-G.1: Completed and accepted on 2026-09-28
 Final-G.2: Completed and accepted on 2026-09-28 at ecafa2f95314fe485b1e1cc2d6372c40f076964a; Hosted evidence head c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60
 Final-G.3: Completed and accepted on 2026-09-28 at e3bcc9709a355b2ce0c6284461f0f4249ad60a5e
-Final-G.4: Implementation completed; Hosted owner validation + acceptance pending
-Final-G.5: Not started
+Final-G.4: Completed and accepted on 2026-09-28 at 7090701b2dc37f4cbd6490f250984b6db9d53a58
+Final-G.5: Next / Not started
 Final-H: Not started
 Phase 13: Not started
 Runtime feature changes: none
@@ -407,8 +407,8 @@ Final-G work.
 
 ### Optimization Opportunities
 
-The owner accepted G1-O1 through G1-O5 as evidence-ranked opportunities, with G1-O5 still requiring
-authenticated owner measurement before protected-route corrections.
+The owner accepted G1-O1 through G1-O5 as evidence-ranked opportunities. G1-O5 is now addressed and
+accepted by Final-G.4.
 
 | ID | Surface | Evidence | Bottleneck | User impact | Confidence | Candidate fix | Expected metric | Risk |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -416,7 +416,7 @@ authenticated owner measurement before protected-route corrections.
 | G1-O2 | Accommodation listing page | Entire page is client; first-load 479 kB. | Listing content mostly static but hydrates as a full client page. | Extra JS for browsing accommodations. | Strong evidence | Server-render listing cards with smaller locale/client islands. | First Load JS, mobile main-thread. | ES/EN copy behavior must remain correct. |
 | G1-O3 | Reviews page | Sequential count then findMany; entire page client; dynamic no-store. | Stable published reviews pay DB and hydration cost every request. | Slower public social-proof page. | Strong evidence | Cache/revalidate published review listing after moderation; consider safe count/list parallelization. | TTFB and JS execution. | Moderation must invalidate promptly. |
 | G1-O4 | Home images/payload | Lighthouse desktop transfer about 1,067 KiB; multiple `_next/image` Cloudinary card images. | Media payload plus dynamic HTML. | LCP and transfer on landing. | Strong evidence | After server/cache fixes, compare image sizing/direct Cloudinary loader versus current Next Image. | LCP and transferred bytes. | Avoid losing responsive image behavior. |
-| G1-O5 | Admin client bundle | Build reports 561 kB first-load for admin pages. | Broad shared admin client graph. | Admin pages may feel heavy on Android PWA. | Suspected / needs authenticated measurement | Owner DevTools timing, then split route-specific admin components if needed. | Admin JS bytes, long tasks. | Avoid breaking protected admin workflows. |
+| G1-O5 | Admin client bundle | Build reports 561 kB first-load for admin pages; G.4 confirmed broad route-entry barrel coupling and corrected it. | Broad shared admin client graph. | Admin pages may feel heavy on Android PWA. | Addressed and accepted by Final-G.4 | Direct route-entry Admin imports plus query timing audit; no unsafe stale query optimization. | Admin JS bytes, long tasks, query medians. | Protected Admin auth and workflows preserved. |
 
 ### Non-Issues / Not First Targets
 
@@ -429,8 +429,10 @@ authenticated owner measurement before protected-route corrections.
 
 2026-09-28 closure note: Final-G.3 completed and accepted G1-C3, G1-O1, G1-O2 and G1-O4 at
 `e3bcc9709a355b2ce0c6284461f0f4249ad60a5e`. No image-loader architecture change was justified by
-the accepted evidence, so the Next Image + Cloudinary boundary remains in place. G1-O5 remains the
-G.4 admin/protected-route measurement and correction scope.
+the accepted evidence, so the Next Image + Cloudinary boundary remains in place. Final-G.4 completed
+and accepted G1-O5 at `7090701b2dc37f4cbd6490f250984b6db9d53a58`: broad Admin bundle coupling was
+confirmed and corrected, Admin query timing was measured, and no unsafe/stale query optimization was
+justified. All accepted G.1 findings owned by G.2, G.3 and G.4 are resolved.
 
 ## Proposed Remaining Final-G Sequence
 
@@ -555,8 +557,8 @@ Final-G — Active
 Final-G.1 — Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf
 Final-G.2 — Completed and accepted on 2026-09-28 at ecafa2f95314fe485b1e1cc2d6372c40f076964a; Hosted evidence head c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60
 Final-G.3 — Completed and accepted on 2026-09-28 at e3bcc9709a355b2ce0c6284461f0f4249ad60a5e
-Final-G.4 — Implementation completed; Hosted owner validation + acceptance pending
-Final-G.5 — Not started
+Final-G.4 — Completed and accepted on 2026-09-28 at 7090701b2dc37f4cbd6490f250984b6db9d53a58
+Final-G.5 — Next / Not started
 Final-H — Not started
 Phase 13 — Not started
 ```

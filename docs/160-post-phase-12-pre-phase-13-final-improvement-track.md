@@ -5,7 +5,7 @@
 ```text
 Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
-Status: Active — Final-A, Final-B, Final-C, Final-D and Final-E completed and accepted; Final-F is completed and accepted on 2026-09-28 at 13f0e0cf6904e34155dd754230f320ca6c214141 under accepted Final-F.R3 architecture rebaseline; Final-F.1 through Final-F.4 are completed and accepted; Final-F.5 Twilio-based implementation is completed at 551199a3e562be7c7fd9861760c3e38cafbf0b15 but superseded before owner acceptance by R1; Final-F.R1 is completed and accepted historically on 2026-09-23 at 4c94db87ebd9df225944ce76c78f98462e4755d1 but superseded for future target decisions by R3; Final-F.R2 implementation is completed but superseded before owner acceptance by R3; Final-F.R3 is completed and accepted on 2026-09-24 at be80af9b36f285c7669986e9c9b4d6676042f6f0; Final-F.R4 is completed and accepted on 2026-09-25 at ae0db63efdabfa3bc952a8a2a71220de231ebc18; Final-F.R5 is completed and accepted on 2026-09-25 at 88616acf46645ccc01cc475f20a868d7c18dbadf; Final-F.6 is completed and accepted on 2026-09-25 at 13e9249f54899de0863cdd6ab8747337319df3e5; Final-F.7 is completed and accepted on 2026-09-28 at 3d32a5f2320f81ef08387f82cdf9157202c8cf95; Final-F.8 completed and accepted on 2026-09-28 at 13f0e0cf6904e34155dd754230f320ca6c214141; Final-G is Active with Final-G.1 — Performance audit, reproducible baseline and evidence-based optimization strategy — Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf; Final-G.2 is completed and accepted on 2026-09-28 at accepted feature head ecafa2f95314fe485b1e1cc2d6372c40f076964a, with Hosted evidence head c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60; Final-G.3 is completed and accepted on 2026-09-28 at e3bcc9709a355b2ce0c6284461f0f4249ad60a5e; Final-G.4 — Implementation completed; Hosted owner validation + acceptance pending; Final-G.5 remains Not started; Final-H remains Not started; Phase 13 remains Not started
+Status: Active — Final-A, Final-B, Final-C, Final-D and Final-E completed and accepted; Final-F is completed and accepted on 2026-09-28 at 13f0e0cf6904e34155dd754230f320ca6c214141 under accepted Final-F.R3 architecture rebaseline; Final-F.1 through Final-F.4 are completed and accepted; Final-F.5 Twilio-based implementation is completed at 551199a3e562be7c7fd9861760c3e38cafbf0b15 but superseded before owner acceptance by R1; Final-F.R1 is completed and accepted historically on 2026-09-23 at 4c94db87ebd9df225944ce76c78f98462e4755d1 but superseded for future target decisions by R3; Final-F.R2 implementation is completed but superseded before owner acceptance by R3; Final-F.R3 is completed and accepted on 2026-09-24 at be80af9b36f285c7669986e9c9b4d6676042f6f0; Final-F.R4 is completed and accepted on 2026-09-25 at ae0db63efdabfa3bc952a8a2a71220de231ebc18; Final-F.R5 is completed and accepted on 2026-09-25 at 88616acf46645ccc01cc475f20a868d7c18dbadf; Final-F.6 is completed and accepted on 2026-09-25 at 13e9249f54899de0863cdd6ab8747337319df3e5; Final-F.7 is completed and accepted on 2026-09-28 at 3d32a5f2320f81ef08387f82cdf9157202c8cf95; Final-F.8 completed and accepted on 2026-09-28 at 13f0e0cf6904e34155dd754230f320ca6c214141; Final-G is Active with Final-G.1 — Performance audit, reproducible baseline and evidence-based optimization strategy — Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf; Final-G.2 is completed and accepted on 2026-09-28 at accepted feature head ecafa2f95314fe485b1e1cc2d6372c40f076964a, with Hosted evidence head c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60; Final-G.3 is completed and accepted on 2026-09-28 at e3bcc9709a355b2ce0c6284461f0f4249ad60a5e; Final-G.4 — Completed and accepted on 2026-09-28 at 7090701b2dc37f4cbd6490f250984b6db9d53a58; Final-G.5 — Next / Not started; Final-H remains Not started; Phase 13 remains Not started
 Registration date: 2026-08-11
 Registration base head: dac105088d2c46be05a900abed3dfe83e608e964
 Previous gate: Phase 12 — Completed and accepted
@@ -758,7 +758,7 @@ Final-F.1 record: docs/193-final-f-1-twilio-whatsapp-staff-alert-strategy-onboar
 Final-F.2: Completed and accepted on 2026-09-22 at 03861cb2d5daef7cca8bb759d16a0ef050d86b41
 Final-F.2 implementation base: ba47dc9f22f4d61a01c13066f84e15ae8ad549f7
 Final-F.2 record: docs/194-final-f-2-twilio-sandbox-provider-foundation-webhook-signature-validation-and-test-onboarding.md
-Final-G: Active — Final-G.1 completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf; Final-G.2 completed and accepted on 2026-09-28 at ecafa2f95314fe485b1e1cc2d6372c40f076964a; Hosted evidence head c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60; Final-G.3 completed and accepted on 2026-09-28 at e3bcc9709a355b2ce0c6284461f0f4249ad60a5e; Final-G.4 — Implementation completed; Hosted owner validation + acceptance pending; Final-G.5 Not started; records: docs/206-final-g-1-performance-audit-baseline-and-strategy.md; docs/207-final-g-2-public-server-data-cache-corrections.md; docs/208-final-g-3-client-hydration-and-image-path-corrections.md; docs/209-final-g-4-admin-query-timing-and-protected-route-corrections.md
+Final-G: Active — Final-G.1 completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf; Final-G.2 completed and accepted on 2026-09-28 at ecafa2f95314fe485b1e1cc2d6372c40f076964a; Hosted evidence head c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60; Final-G.3 completed and accepted on 2026-09-28 at e3bcc9709a355b2ce0c6284461f0f4249ad60a5e; Final-G.4 — Completed and accepted on 2026-09-28 at 7090701b2dc37f4cbd6490f250984b6db9d53a58; Final-G.5 — Next / Not started; records: docs/206-final-g-1-performance-audit-baseline-and-strategy.md; docs/207-final-g-2-public-server-data-cache-corrections.md; docs/208-final-g-3-client-hydration-and-image-path-corrections.md; docs/209-final-g-4-admin-query-timing-and-protected-route-corrections.md
 Final-H: Not started
 Phase 13: Not started
 ```
@@ -1004,7 +1004,7 @@ Final-F.R5 — Android Admin PWA/Web Push foundation — Completed and accepted 
 Final-F.6 — Admin Web Push operational notifications for RESERVATION_CONFIRMED, RESERVATION_CANCELLED, CHECK_IN_MINUS_48H, CHECK_OUT_MINUS_6H and REVIEW_SUBMITTED — Completed and accepted on 2026-09-25 at 13e9249f54899de0863cdd6ab8747337319df3e5; record: docs/203-final-f-6-admin-web-push-operational-notifications.md
 Final-F.7 — Zoho incoming-email bounded metadata + GUEST_EMAIL_RECEIVED Admin Web Push — Completed and accepted on 2026-09-28 at 3d32a5f2320f81ef08387f82cdf9157202c8cf95
 Final-F.8 — Android PWA/Web Push integrated regression, public WhatsApp contact acceptance and Final-F documentation closure — Completed and accepted on 2026-09-28 at 13f0e0cf6904e34155dd754230f320ca6c214141
-Final-G: Active — Final-G.1 completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf; Final-G.2 completed and accepted on 2026-09-28 at ecafa2f95314fe485b1e1cc2d6372c40f076964a; Hosted evidence head c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60; Final-G.3 completed and accepted on 2026-09-28 at e3bcc9709a355b2ce0c6284461f0f4249ad60a5e; Final-G.4 — Implementation completed; Hosted owner validation + acceptance pending; Final-G.5 Not started; records: docs/206-final-g-1-performance-audit-baseline-and-strategy.md; docs/207-final-g-2-public-server-data-cache-corrections.md; docs/208-final-g-3-client-hydration-and-image-path-corrections.md; docs/209-final-g-4-admin-query-timing-and-protected-route-corrections.md
+Final-G: Active — Final-G.1 completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf; Final-G.2 completed and accepted on 2026-09-28 at ecafa2f95314fe485b1e1cc2d6372c40f076964a; Hosted evidence head c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60; Final-G.3 completed and accepted on 2026-09-28 at e3bcc9709a355b2ce0c6284461f0f4249ad60a5e; Final-G.4 — Completed and accepted on 2026-09-28 at 7090701b2dc37f4cbd6490f250984b6db9d53a58; Final-G.5 — Next / Not started; records: docs/206-final-g-1-performance-audit-baseline-and-strategy.md; docs/207-final-g-2-public-server-data-cache-corrections.md; docs/208-final-g-3-client-hydration-and-image-path-corrections.md; docs/209-final-g-4-admin-query-timing-and-protected-route-corrections.md
 Final-H: Not started
 Phase 13: Not started
 ```
@@ -1274,7 +1274,7 @@ Test continues with zero Vercel scheduler registrations until Phase 13.
 Phase 13 may be planned only when:
 
 ```text
-Final-A through Final-G are completed and accepted
+Final-A through Final-F are completed and accepted; Final-G is Active with Final-G.5 — Next / Not started
 Final-H integrated regression passes
 documentation is reconciled
 Production carry-forwards are updated
@@ -1306,16 +1306,16 @@ Phase 12 — Completed and accepted
 Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
 Last completed package — Final-F Public WhatsApp Contact and Admin Notifications — Completed and accepted on 2026-09-28 at 13f0e0cf6904e34155dd754230f320ca6c214141
 Current package — Final-G Performance audit and optimization — Active
-Current subphase — Final-G.4 Admin/query timing and targeted protected-route corrections — Implementation completed; Hosted owner validation + acceptance pending
+Current subphase — Final-G.5 Hosted comparison, permanent performance evidence and Final-G closure — Next / Not started
 Final-G.1 status — Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf
 Final-G.1 record — docs/206-final-g-1-performance-audit-baseline-and-strategy.md
 Final-G.2 status — Completed and accepted on 2026-09-28
 Final-G.2 accepted feature head — ecafa2f95314fe485b1e1cc2d6372c40f076964a
 Final-G.2 Hosted evidence head — c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60
 Final-G.2 record — docs/207-final-g-2-public-server-data-cache-corrections.md
-Last accepted subphase — Final-G.3 Client/hydration and image-path corrections — Completed and accepted on 2026-09-28 at e3bcc9709a355b2ce0c6284461f0f4249ad60a5e
+Last accepted subphase — Final-G.4 Admin/query timing and targeted protected-route corrections — Completed and accepted on 2026-09-28 at 7090701b2dc37f4cbd6490f250984b6db9d53a58
 Current package — Final-G Performance audit and optimization — Active
-Current subphase — Final-G.4 Admin/query timing and targeted protected-route corrections — Implementation completed; Hosted owner validation + acceptance pending
+Current subphase — Final-G.5 Hosted comparison, permanent performance evidence and Final-G closure — Next / Not started
 Final-G.1 status — Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf
 Final-G.1 record — docs/206-final-g-1-performance-audit-baseline-and-strategy.md
 Final-G.2 status — Completed and accepted on 2026-09-28
@@ -1424,16 +1424,16 @@ Final-B.6 record — docs/172-final-b-6-integrated-acceptance-regression-and-doc
 Last completed package — Final-F Public WhatsApp Contact and Admin Notifications — Completed and accepted on 2026-09-28 at 13f0e0cf6904e34155dd754230f320ca6c214141
 Previous accepted pre-rebaseline implementation subphase — Final-F.4 Guest inbound WhatsApp, safe Reservation matching and protected admin inbox — completed and accepted on 2026-09-22 at 7912b233f5cc8b8aa726f17aeb30eaa7d15ae291
 Current package — Final-G Performance audit and optimization — Active
-Current subphase — Final-G.4 Admin/query timing and targeted protected-route corrections — Implementation completed; Hosted owner validation + acceptance pending
+Current subphase — Final-G.5 Hosted comparison, permanent performance evidence and Final-G closure — Next / Not started
 Final-G.1 status — Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf
 Final-G.1 record — docs/206-final-g-1-performance-audit-baseline-and-strategy.md
 Final-G.2 status — Completed and accepted on 2026-09-28
 Final-G.2 accepted feature head — ecafa2f95314fe485b1e1cc2d6372c40f076964a
 Final-G.2 Hosted evidence head — c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60
 Final-G.2 record — docs/207-final-g-2-public-server-data-cache-corrections.md
-Last accepted subphase — Final-G.3 Client/hydration and image-path corrections — Completed and accepted on 2026-09-28 at e3bcc9709a355b2ce0c6284461f0f4249ad60a5e
+Last accepted subphase — Final-G.4 Admin/query timing and targeted protected-route corrections — Completed and accepted on 2026-09-28 at 7090701b2dc37f4cbd6490f250984b6db9d53a58
 Current package — Final-G Performance audit and optimization — Active
-Current subphase — Final-G.4 Admin/query timing and targeted protected-route corrections — Implementation completed; Hosted owner validation + acceptance pending
+Current subphase — Final-G.5 Hosted comparison, permanent performance evidence and Final-G closure — Next / Not started
 Final-G.1 status — Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf
 Final-G.1 record — docs/206-final-g-1-performance-audit-baseline-and-strategy.md
 Final-G.2 status — Completed and accepted on 2026-09-28
@@ -1502,7 +1502,7 @@ Final-F.R5 — Android Admin PWA/Web Push foundation — Completed and accepted 
 Final-F.6 — Admin Web Push operational notifications for RESERVATION_CONFIRMED, RESERVATION_CANCELLED, CHECK_IN_MINUS_48H, CHECK_OUT_MINUS_6H and REVIEW_SUBMITTED — Completed and accepted on 2026-09-25 at 13e9249f54899de0863cdd6ab8747337319df3e5; record: docs/203-final-f-6-admin-web-push-operational-notifications.md
 Final-F.7 — Zoho incoming-email bounded metadata + GUEST_EMAIL_RECEIVED Admin Web Push — Completed and accepted on 2026-09-28 at 3d32a5f2320f81ef08387f82cdf9157202c8cf95
 Final-F.8 — Android PWA/Web Push integrated regression, public WhatsApp contact acceptance and Final-F documentation closure — Completed and accepted on 2026-09-28 at 13f0e0cf6904e34155dd754230f320ca6c214141
-Final-G — Active; Final-G.1 completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf; Final-G.2 completed and accepted on 2026-09-28 at ecafa2f95314fe485b1e1cc2d6372c40f076964a; Hosted evidence head c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60; Final-G.3 completed and accepted on 2026-09-28 at e3bcc9709a355b2ce0c6284461f0f4249ad60a5e; Final-G.4 — Implementation completed; Hosted owner validation + acceptance pending; Final-G.5 Not started; records: docs/206-final-g-1-performance-audit-baseline-and-strategy.md; docs/207-final-g-2-public-server-data-cache-corrections.md; docs/208-final-g-3-client-hydration-and-image-path-corrections.md; docs/209-final-g-4-admin-query-timing-and-protected-route-corrections.md
+Final-G — Active; Final-G.1 completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf; Final-G.2 completed and accepted on 2026-09-28 at ecafa2f95314fe485b1e1cc2d6372c40f076964a; Hosted evidence head c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60; Final-G.3 completed and accepted on 2026-09-28 at e3bcc9709a355b2ce0c6284461f0f4249ad60a5e; Final-G.4 — Completed and accepted on 2026-09-28 at 7090701b2dc37f4cbd6490f250984b6db9d53a58; Final-G.5 — Next / Not started; records: docs/206-final-g-1-performance-audit-baseline-and-strategy.md; docs/207-final-g-2-public-server-data-cache-corrections.md; docs/208-final-g-3-client-hydration-and-image-path-corrections.md; docs/209-final-g-4-admin-query-timing-and-protected-route-corrections.md
 Final-H — Not started
 Phase 13 — Not started
 ```

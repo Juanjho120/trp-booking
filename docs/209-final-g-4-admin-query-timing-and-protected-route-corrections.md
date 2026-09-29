@@ -7,9 +7,10 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-G — Performance audit and optimization
 Subphase: Final-G.4 — Admin/query timing and targeted protected-route corrections
-Status: Implementation completed; Hosted owner validation + acceptance pending
+Status: Completed and accepted
 Document date: 2026-09-28
 Implementation base head: 3b65f145c17fc3fb2789c43eb3144214d1c01ec8
+Accepted G.4 feature head: 7090701b2dc37f4cbd6490f250984b6db9d53a58
 Accepted G.1 baseline head: 1623389b028be1b0391a2afce6e7c28244ad0fbf
 Accepted G.2 feature head: ecafa2f95314fe485b1e1cc2d6372c40f076964a
 G.2 Hosted evidence head: c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60
@@ -18,8 +19,8 @@ Final-G package: Active
 Final-G.1: Completed and accepted on 2026-09-28
 Final-G.2: Completed and accepted on 2026-09-28
 Final-G.3: Completed and accepted on 2026-09-28 at e3bcc9709a355b2ce0c6284461f0f4249ad60a5e
-Final-G.4: Implementation completed; Hosted owner validation + acceptance pending
-Final-G.5: Not started
+Final-G.4: Completed and accepted on 2026-09-28 at 7090701b2dc37f4cbd6490f250984b6db9d53a58
+Final-G.5: Next / Not started
 Final-H: Not started
 Phase 13: Not started
 Schema changes: none
@@ -31,8 +32,28 @@ vercel.json remains {"crons":[]}
 ```
 
 G.4 implements the protected Admin route bundle correction and records the query-timing audit requested
-after the accepted G.3 client/hydration work. It does not mark G.4 accepted, does not start G.5, and
-does not start Final-H or Phase 13.
+after the accepted G.3 client/hydration work. The owner explicitly accepted Final-G.4 on 2026-09-28
+after the Vercel deployment for `7090701b2dc37f4cbd6490f250984b6db9d53a58` succeeded.
+This closure does not start G.5, Final-H or Phase 13.
+
+## Accepted Closure Summary
+
+Final-G.4 is completed and accepted with the following outcome:
+
+```text
+Final-G.4 — Completed and accepted on 2026-09-28
+Accepted feature head: 7090701b2dc37f4cbd6490f250984b6db9d53a58
+Implementation base: 3b65f145c17fc3fb2789c43eb3144214d1c01ec8
+Implementation record: docs/209-final-g-4-admin-query-timing-and-protected-route-corrections.md
+Vercel status for accepted head: SUCCESS
+Owner acceptance: Final-G.4 is approved.
+```
+
+The broad route-entry barrels were confirmed as the major avoidable Admin client-bundle coupling.
+The accepted correction keeps Admin information architecture and behavior unchanged while moving
+Admin route entrypoints to direct `features/admin/components/...` imports and direct `lib/admin/...`
+imports where appropriate. `AdminShell` remains client-side and unchanged in behavior, and the barrels
+themselves remain available to non-route consumers.
 
 ## Scope Implemented
 
@@ -110,8 +131,9 @@ completed successfully.
 | /admin/cron-jobs | 552 kB | 329 kB | -40.4% |
 
 The simple protected routes exceed the primary client target. `/admin/catalogs` remains heavier because
-its own catalog management component graph is legitimately larger, but it no longer inherits the full
+its own catalog-management client graph is legitimately larger, but it no longer inherits the full
 552 kB broad-barrel graph and remains route-specific rather than globally shared across all Admin pages.
+No artificial lazy-loading was introduced solely to force the 20% target.
 
 Post-change shared-by-all output was about 221 kB. Representative route-manifest evidence:
 
@@ -169,6 +191,20 @@ connection/provider warm-up and is not labeled as a serverless cold start.
 
 No query runtime change was made from this audit because the relevant readers already used the safe
 parallelization/clamping structure available without weakening protected-data freshness or correctness.
+This no-change query result is part of the accepted evidence-driven G.4 outcome:
+
+```text
+Dashboard summary median: about 498.6 ms.
+Reservations default page median: about 511.4 ms.
+Calendar black-white September 2026 median: about 645.9 ms.
+```
+
+Dashboard summary reads were already parallelized with `Promise.all`, the bounded arrivals query already
+uses `take: 5`, and stale caching is not appropriate for protected Admin operational data. Reservations
+must count before safe page clamping, and the list query legitimately depends on the resolved safe page
+while preserving pagination and filter semantics. Calendar reads remain correctness-dependent across
+multiple phases, availability internals already parallelize safe reads, and no evidence justified
+duplicating availability logic, adding speculative indexes, or adding stale cache.
 
 ## Validation Ledger
 
@@ -196,7 +232,8 @@ engine while reaching the Supabase pooler from the restricted sandbox. The same 
 network permission. The sandboxed build attempts were blocked only by Google Fonts network access; the
 network-enabled build completed successfully.
 
-G.4 remains pending Hosted owner validation and explicit acceptance.
+This validation state is accepted for Final-G.4 closure. No schema, migration, dependency,
+environment-variable, Production resource, or scheduler change was introduced.
 
 ## Boundary Confirmation
 
@@ -204,14 +241,43 @@ G.4 preserves:
 
 ```text
 - ADMIN_ROLE protected Admin layout boundary.
+- auth().
 - OAuth/session Admin access path.
 - middleware /admin/:path* protection.
+- ADMIN-only server session actor.
 - Admin API authorization and same-origin mutation protection.
+- protected Admin APIs and private Admin data boundaries.
 - Admin reservations, payments, reviews, notifications, calendar, accommodations, location, catalogs and cron behavior.
 - accepted Final-A through Final-F behavior.
+- Final-F Admin Web Push, service worker, notification subscriptions, notification center, device registration, PWA installation, notification configuration, and operational notification classes.
 - accepted Final-G.2 public cache architecture.
 - accepted Final-G.3 public client/hydration architecture.
+- public i18n architecture, /disponibilidad behavior, public bundle splitting, booking form, DayPicker, Tilopay hardening, and image delivery architecture.
 - vercel.json {"crons":[]}.
 ```
 
 G.4 does not implement Final-G.5, Final-H, or Phase 13.
+
+## Final-G.5 Prepared Scope
+
+Final-G.5 is the remaining Final-G package closure phase and remains Next / Not started. Its scope is
+evidence and closure, not broad new optimization:
+
+```text
+- Hosted final comparison.
+- Permanent performance evidence.
+- Cross-check accepted G.1 baseline vs final G.2/G.3/G.4 state.
+- Final-G integrated regression.
+- Final-G documentation closure.
+```
+
+Expected comparison areas:
+
+```text
+Public: /, /alojamientos, representative /alojamientos/[slug], /disponibilidad, /resenas.
+Admin: final build First Load JS for representative Admin routes, authenticated owner UX evidence from accepted G.4, and no auth bypass.
+```
+
+G.5 should preserve G.2 server/cache improvements, G.3 public bundle improvements, `/disponibilidad`
+CLS correction, blocked-dates hardening, Tilopay hardening, and G.4 Admin bundle reductions. Final-H
+and Phase 13 remain Not started until G.5 is completed and explicitly accepted.
