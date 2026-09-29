@@ -34,6 +34,8 @@ On 2026-09-29, after Final-F.7 acceptance, the owner registered Final-I and iden
 
 Suppressed internal sender events are ignored before reservation matching, `ZohoInboundEmailEvent`, `AdminNotification`, `AdminPushDelivery`, and Web Push delivery. External guest replies, recipient-domain checks, signature verification, Limited Data parsing, and SHA-256 raw-body idempotency remain unchanged.
 
+Final-I.1 is completed and accepted on 2026-09-29 at `9a15f349c1104671f5555d1988caa56756e5ff0c`. Hosted owner validation confirmed that a TRP-generated reservation/admin email reached Zoho without creating a false `GUEST_EMAIL_RECEIVED` Web Push or notification-center row, while a genuine external email still created `GUEST_EMAIL_RECEIVED`, delivered Android Web Push, and appeared in `/admin/notifications`.
+
 ## Implemented Scope
 
 ```text

@@ -592,7 +592,9 @@ test("I.1 registers the roadmap, validation script, and F.7 forward note", () =>
     "tsx --tsconfig tests/final-i/tsconfig.json tests/final-i/run.ts",
   );
   assert.deepEqual(vercel.crons, []);
-  expectIncludes(doc212, "Final-I.1 status: Implementation completed; Hosted owner validation + acceptance pending");
+  expectIncludes(doc212, "Final-I.1 status: Completed and accepted on 2026-09-29");
+  expectIncludes(doc212, "Accepted Final-I.1 head: 9a15f349c1104671f5555d1988caa56756e5ff0c");
+  expectIncludes(doc212, "Final-I.2 status: Next / Not started");
   expectIncludes(doc212, "Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials");
   expectIncludes(doc212, "Phase 13 status: Blocked / Not started until Final-I closes");
   expectIncludes(doc204, "Final-I.1 forward hardening note");

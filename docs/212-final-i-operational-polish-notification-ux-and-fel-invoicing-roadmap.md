@@ -11,8 +11,9 @@ Registration date: 2026-09-29
 Registration base head: 950ff5e6948fb2a74cda03f81efdb7c676b33c73
 Historical accepted Final-H head: 6922cf27e31e63fde071c0d0a810b141e44b9f90
 Historical accepted complete-track head: 6922cf27e31e63fde071c0d0a810b141e44b9f90
-Final-I.1 status: Implementation completed; Hosted owner validation + acceptance pending
-Final-I.2 status: Not started
+Final-I.1 status: Completed and accepted on 2026-09-29
+Accepted Final-I.1 head: 9a15f349c1104671f5555d1988caa56756e5ff0c
+Final-I.2 status: Next / Not started
 Final-I.3 status: Not started
 Final-I.4 status: Not started
 Final-I.5 status: Not started
@@ -23,7 +24,7 @@ Final-I.9 status: Not started
 Phase 13 status: Blocked / Not started until Final-I closes
 ```
 
-Final-I is an owner-requested pre-Production addendum registered after the accepted Final-H closure. It does not rewrite the historical acceptance of Phase 12, Final-A through Final-H, or the complete Post-Phase-12 / Pre-Phase-13 Final Improvement Track at `6922cf27e31e63fde071c0d0a810b141e44b9f90`. Phase 13 remains not started and is blocked until Final-I closes and receives owner acceptance.
+Final-I is an owner-requested pre-Production addendum registered after the accepted Final-H closure. It does not rewrite the historical acceptance of Phase 12, Final-A through Final-H, or the complete Post-Phase-12 / Pre-Phase-13 Final Improvement Track at `6922cf27e31e63fde071c0d0a810b141e44b9f90`. Final-I.1 is completed and accepted at its feature head `9a15f349c1104671f5555d1988caa56756e5ff0c`; this documentation closure does not replace that accepted head. Phase 13 remains not started and is blocked until Final-I closes and receives owner acceptance.
 
 ## Subphase Structure
 
@@ -41,7 +42,7 @@ Final-I.9 - Integrated A-I regression, Hosted acceptance and renewed pre-Phase-1
 
 Final-I.7 is blocked until the owner provides official INFILE technical documentation and Test credentials. No INFILE transport, authentication, certification, cancellation, credit-note, retry, contingency, PDF, or XML behavior may be invented before that contract is frozen.
 
-## Final-I.1 Implemented Scope
+## Final-I.1 Accepted Scope And Hosted Validation
 
 Final-I.1 corrects the Zoho inbound-email notification loop where a TRP-generated transactional email delivered from the active Resend sending domain to the Zoho admin mailbox could re-enter through the Zoho webhook and be classified as `GUEST_EMAIL_RECEIVED`.
 
@@ -76,9 +77,78 @@ Internal sender suppression happens after webhook signature verification and Lim
 
 Final-I.1 preserves external guest replies, accepted recipient-domain checks, signature verification, SHA-256 raw-body fingerprint idempotency, and reservation matching. It does not classify Reply-To; only the actual provider `fromAddress` determines internal suppression.
 
+Owner Hosted validation passed on 2026-09-29 and explicitly accepted Final-I.1 at:
+
+```text
+9a15f349c1104671f5555d1988caa56756e5ff0c
+```
+
+Accepted Hosted evidence:
+
+```text
+A. TRP-generated reservation/admin email
+- normal operational notification/email occurred
+- Zoho received the TRP-generated email
+- no false GUEST_EMAIL_RECEIVED Web Push was created
+- no false notification-center row was created
+
+B. Genuine external email
+- Zoho webhook processed the external incoming email
+- GUEST_EMAIL_RECEIVED was created
+- Android Web Push was delivered
+- the notification appeared in /admin/notifications
+```
+
+The external flow remains:
+
+```text
+external guest email
+-> Zoho Limited Data webhook
+-> GUEST_EMAIL_RECEIVED
+-> Reservation matching when eligible
+-> AdminNotification
+-> AdminPushDelivery
+-> Android Web Push
+-> /admin/notifications history
+```
+
 ## Future Subphase Decisions
 
-Final-I.2 will remove obsolete future-phase/public-admin copy that no longer matches the accepted state, including the home black `Próximamente booking online` card and admin/accommodations copy such as `Los cambios se aplican a reservas confirmadas...`. Legitimate time text such as `Próximas llegadas` must remain.
+Final-I.2 is the next subphase and remains Not started. Its accepted scope is legacy/future-phase UI and copy cleanup only. It will remove obsolete public/admin user-visible copy that incorrectly describes completed functionality as an upcoming phase, next phase, next subphase, coming soon, future implementation, or similar roadmap language.
+
+Known accepted Final-I.2 scope:
+
+```text
+- remove the final black Home card "Próximamente booking online"
+- remove the admin/accommodations preparation-buffer note "Los cambios se aplican a reservas confirmadas, holds activos, disponibilidad pública y futuros feeds..."
+- systematically remove stale public/admin user-visible roadmap copy for completed functionality
+```
+
+Legitimate temporal copy must remain, including:
+
+```text
+Próximas llegadas
+reservas próximas
+upcoming arrivals
+upcoming reservations
+```
+
+Known stale candidates for Final-I.2 review include:
+
+```text
+Próximamente integraremos disponibilidad, pagos seguros con Tilopay y sincronización con Airbnb.
+Pagos seguros con Tilopay en la fase de booking
+Próximamente booking online
+Las próximas fases agregarán calendario, reservas directas, pagos y sincronización con Airbnb.
+El calendario de disponibilidad y el pago en línea se agregarán en próximas fases.
+En esta fase todavía no se crea una reservación ni se inicia pago.
+Crear hold de reserva en la siguiente fase
+El pago directo se integrará en la siguiente subfase
+Subfase 8.4...
+La diferencia negativa requiere la integración de reembolso de la siguiente subfase...
+```
+
+Final-I.2 must review whether each string is reachable/user-visible before removing it. It must not delete localization fields blindly when still referenced by code. If a stale key becomes unused after UI cleanup, remove it safely from both ES and EN copy.
 
 Final-I.3 will simplify the desktop admin notification center to recent notifications only, with no tabs and no Configuration view. Mobile browser and standalone PWA retain Notifications + Configuration. Notification details use a single accordion with one item open at a time. Push clicks route to `/admin/notifications?notification=<id>` and auto-expand the target notification. The internal Open action keeps the existing `targetPath` behavior.
 
@@ -149,13 +219,21 @@ npm run lint - PASS
 npm run build - PASS
 npm audit --omit=dev - PASS, 0 vulnerabilities
 git diff --check - PASS
+Vercel - SUCCESS
+Hosted owner validation - PASS
 ```
 
-## Hosted Owner Validation Pending
+## Hosted Owner Validation Completed
 
-Owner Hosted validation remains pending for Final-I.1. Suggested owner checks after Test deployment succeeds:
+Owner Hosted validation completed and owner acceptance was explicit. The owner validated:
 
 ```text
-A. Send a real external guest email to the accepted Zoho admin mailbox and confirm one GUEST_EMAIL_RECEIVED notification is created.
-B. Trigger a TRP-origin transactional email from the active sending domain to the Zoho admin mailbox and confirm the webhook returns ignored/internal_sender with no ZohoInboundEmailEvent, AdminNotification, AdminPushDelivery, or Web Push notification.
+- TRP-generated reservation/admin email still delivers normal operational email.
+- Zoho receives the TRP-generated email without creating a false GUEST_EMAIL_RECEIVED push.
+- Zoho receives the TRP-generated email without creating a false notification-center row.
+- Genuine external email still creates GUEST_EMAIL_RECEIVED.
+- Android Web Push delivery still works for genuine external email.
+- /admin/notifications history still records the genuine external email notification.
 ```
+
+Final-I.1 is completed and accepted on 2026-09-29 at accepted head `9a15f349c1104671f5555d1988caa56756e5ff0c`. Final-I.2 is Next / Not started.

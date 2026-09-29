@@ -1272,20 +1272,19 @@ Test continues with zero Vercel scheduler registrations until Phase 13.
 
 ## Phase 13 gate after Final-H
 
-Phase 13 prerequisites are now satisfied:
+Phase 13 prerequisites from Final-H were satisfied, but Final-I is now active:
 
 ```text
 Final-A through Final-G are completed and accepted
 Final-H integrated regression passed
 documentation is reconciled
 Production carry-forwards are updated
-no applicable blocker remains open
+no applicable Final-H blocker remains open
 the owner explicitly accepted Final-H
 the owner explicitly accepted this Final Improvement Track
 ```
 
-Phase 13 is eligible to be planned only when explicitly requested by the owner. It remains Next / Not
-started.
+Phase 13 is Blocked / Not started until Final-I closes. It becomes eligible to be planned only when explicitly requested by the owner after Final-I acceptance.
 
 Phase 13 still owns:
 
@@ -1313,8 +1312,9 @@ Last completed package — Final-H Integrated final improvement-track regression
 Accepted Final-H head — 6922cf27e31e63fde071c0d0a810b141e44b9f90
 Accepted complete-track head — 6922cf27e31e63fde071c0d0a810b141e44b9f90
 Final-I — Operational Polish, Notification UX & FEL Invoicing — Active; registration date 2026-09-29; registration base 950ff5e6948fb2a74cda03f81efdb7c676b33c73
-Final-I.1 — Zoho internal-email suppression and notification-loop correction — Implementation completed; Hosted owner validation + acceptance pending
-Final-I.2-Final-I.6 — Not started
+Final-I.1 — Zoho internal-email suppression and notification-loop correction — Completed and accepted on 2026-09-29 at 9a15f349c1104671f5555d1988caa56756e5ff0c
+Final-I.2 — Legacy/future-phase UI and copy cleanup — Next / Not started
+Final-I.3-Final-I.6 — Not started
 Final-I.7 — Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8-Final-I.9 — Not started
 Final-I record — docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md
