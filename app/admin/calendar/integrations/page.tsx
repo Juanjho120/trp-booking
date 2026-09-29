@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
-import { AdminCalendarIntegrationsPage } from "@/features/admin";
-import { getAdminExternalCalendarIntegrationsPage } from "@/lib/admin";
+import { AdminCalendarIntegrationsPage } from "@/features/admin/components/admin-calendar-integrations-page";
+import { getAdminExternalCalendarIntegrationsPage } from "@/lib/admin/external-calendar-integrations";
 import { esMessages } from "@/messages";
 
 export const dynamic = "force-dynamic";

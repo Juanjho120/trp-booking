@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
-import { AdminPaymentsPageView } from "@/features/admin";
-import { getAdminPaymentsPage } from "@/lib/admin";
+import { AdminPaymentsPageView } from "@/features/admin/components/admin-payments-page";
+import { getAdminPaymentsPage } from "@/lib/admin/payments";
 import { esMessages } from "@/messages";
 import type { AdminPaymentsView } from "@/types/admin-payments";
 

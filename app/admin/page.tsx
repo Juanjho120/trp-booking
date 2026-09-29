@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
-import { AdminDashboardPage } from "@/features/admin";
-import { getAdminDashboardSummary } from "@/lib/admin";
+import { AdminDashboardPage } from "@/features/admin/components/admin-dashboard-page";
+import { getAdminDashboardSummary } from "@/lib/admin/dashboard";
 import { esMessages } from "@/messages";
 
 export const dynamic = "force-dynamic";

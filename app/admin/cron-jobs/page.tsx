@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
-import { AdminCronJobsPage } from "@/features/admin";
-import { getAdminCronJobsPage } from "@/lib/admin";
+import { AdminCronJobsPage } from "@/features/admin/components/admin-cron-jobs-page";
+import { getAdminCronJobsPage } from "@/lib/admin/cron-jobs";
 import { esMessages } from "@/messages";
 
 export const dynamic = "force-dynamic";

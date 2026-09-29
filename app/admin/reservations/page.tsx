@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
-import { AdminReservationsPageView } from "@/features/admin";
-import { getAdminReservationsPage } from "@/lib/admin";
+import { AdminReservationsPageView } from "@/features/admin/components/admin-reservations-page";
+import { getAdminReservationsPage } from "@/lib/admin/reservations";
 import { esMessages } from "@/messages";
 
 type AdminReservationsPageProps = Readonly<{

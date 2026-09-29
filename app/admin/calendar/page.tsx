@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 
-import { AdminPropertyCalendarView } from "@/features/admin";
+import { AdminPropertyCalendarView } from "@/features/admin/components/admin-property-calendar";
 import {
   adminAccommodationIds,
-  getAdminPropertyCalendar,
   isAdminAccommodationId,
-} from "@/lib/admin";
+} from "@/lib/admin/accommodations";
+import { getAdminPropertyCalendar } from "@/lib/admin/property-calendar";
 import { dateOnlyFromDate } from "@/lib/availability/rules";
 import { esMessages } from "@/messages";
 

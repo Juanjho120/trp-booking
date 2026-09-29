@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
-import { AdminReviewsPageView } from "@/features/admin";
-import { getAdminReviewsPage } from "@/lib/admin";
+import { AdminReviewsPageView } from "@/features/admin/components/admin-reviews-page";
+import { getAdminReviewsPage } from "@/lib/admin/reviews";
 import { esMessages } from "@/messages";
 
 type AdminReviewsPageProps = Readonly<{

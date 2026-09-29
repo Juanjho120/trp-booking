@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
-import { AdminPublicLocationPage } from "@/features/admin";
-import { getAdminPublicLocationPage } from "@/lib/admin";
+import { AdminPublicLocationPage } from "@/features/admin/components/admin-public-location-page";
+import { getAdminPublicLocationPage } from "@/lib/admin/public-location";
 import { esMessages } from "@/messages";
 
 export const dynamic = "force-dynamic";

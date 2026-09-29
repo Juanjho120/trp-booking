@@ -18,7 +18,7 @@ Final-G package: Active
 Final-G.1: Completed and accepted on 2026-09-28
 Final-G.2: Completed and accepted on 2026-09-28 at ecafa2f95314fe485b1e1cc2d6372c40f076964a; Hosted evidence head c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60
 Final-G.3: Completed and accepted on 2026-09-28 at e3bcc9709a355b2ce0c6284461f0f4249ad60a5e
-Final-G.4: Next / Not started
+Final-G.4: Implementation completed; Hosted owner validation + acceptance pending
 Final-G.5: Not started
 Final-H: Not started
 Phase 13: Not started
@@ -458,7 +458,7 @@ Final-G.5 — Hosted comparison, permanent performance evidence and Final-G clos
   Risks: avoid marking performance accepted without owner review.
 ```
 
-Do not implement these subphases automatically. Final-G.2 was explicitly requested and implemented in docs/207. Final-G.3 was explicitly requested and implemented in docs/208. Do not implement Final-G.4 automatically.
+Do not implement these subphases automatically. Final-G.2 was explicitly requested and implemented in docs/207. Final-G.3 was explicitly requested and implemented in docs/208. Final-G.4 was explicitly requested and implemented in docs/209. Do not implement Final-G.5 automatically.
 
 ## Performance Budgets And Acceptance Targets
 
@@ -555,7 +555,7 @@ Final-G — Active
 Final-G.1 — Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf
 Final-G.2 — Completed and accepted on 2026-09-28 at ecafa2f95314fe485b1e1cc2d6372c40f076964a; Hosted evidence head c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60
 Final-G.3 — Completed and accepted on 2026-09-28 at e3bcc9709a355b2ce0c6284461f0f4249ad60a5e
-Final-G.4 — Next / Not started
+Final-G.4 — Implementation completed; Hosted owner validation + acceptance pending
 Final-G.5 — Not started
 Final-H — Not started
 Phase 13 — Not started

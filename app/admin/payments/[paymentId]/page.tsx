@@ -1,14 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import {
-  AdminPaymentDetailPage,
-  AdminPaymentSubmissionAttemptHistory,
-} from "@/features/admin";
-import {
-  getAdminPaymentDetail,
-  getAdminPaymentSubmissionAttemptsForPayment,
-} from "@/lib/admin";
+import { AdminPaymentDetailPage } from "@/features/admin/components/admin-payment-detail-page";
+import { AdminPaymentSubmissionAttemptHistory } from "@/features/admin/components/admin-payment-submission-attempt-history";
+import { getAdminPaymentDetail } from "@/lib/admin/payment-detail";
+import { getAdminPaymentSubmissionAttemptsForPayment } from "@/lib/admin/payment-submission-attempts";
 import { esMessages } from "@/messages";
 
 type AdminPaymentDetailRouteProps = Readonly<{

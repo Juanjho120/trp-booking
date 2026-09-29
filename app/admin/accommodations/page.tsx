@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
 
-import { AdminAccommodationManagement } from "@/features/admin";
-import {
-  getAdminAccommodationContentSettings,
-  getAdminPreparationBufferSettings,
-} from "@/lib/admin";
+import { AdminAccommodationManagement } from "@/features/admin/components/admin-accommodation-management";
+import { getAdminAccommodationContentSettings } from "@/lib/admin/accommodation-content";
+import { getAdminPreparationBufferSettings } from "@/lib/admin/preparation-buffer-management";
 import { esMessages } from "@/messages";
 
 export const dynamic = "force-dynamic";

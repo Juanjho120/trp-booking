@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { AdminArrivalInstructionsEditor } from "@/features/admin";
-import { getAdminArrivalInstructionsByPropertyId } from "@/lib/admin";
+import { AdminArrivalInstructionsEditor } from "@/features/admin/components/admin-arrival-instructions-editor";
+import { getAdminArrivalInstructionsByPropertyId } from "@/lib/admin/arrival-instructions";
 import { esMessages } from "@/messages";
 
 type AdminArrivalInstructionsRouteProps = Readonly<{

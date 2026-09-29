@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { auth } from "@/auth";
-import { AdminShell } from "@/features/admin";
+import { AdminShell } from "@/features/admin/components/admin-shell";
 import { ADMIN_ROLE } from "@/lib/auth/admin-access";
 import { esMessages } from "@/messages";
 

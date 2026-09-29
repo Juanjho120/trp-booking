@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { AdminAmenitiesHouseRulesManager } from "@/features/admin";
-import { getAdminAmenityHouseRuleSettings } from "@/lib/admin";
+import { AdminAmenitiesHouseRulesManager } from "@/features/admin/components/admin-amenities-house-rules-manager";
+import { getAdminAmenityHouseRuleSettings } from "@/lib/admin/amenities-house-rules";
 import { esMessages } from "@/messages";
 
 export const dynamic = "force-dynamic";

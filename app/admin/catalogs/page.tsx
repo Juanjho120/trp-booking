@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
-import { AdminCatalogManager } from "@/features/admin";
-import { getAdminCatalogSettings } from "@/lib/admin";
+import { AdminCatalogManager } from "@/features/admin/components/admin-catalog-manager";
+import { getAdminCatalogSettings } from "@/lib/admin/catalogs";
 import { esMessages } from "@/messages";
 import type { AdminCatalogTab } from "@/types/admin-catalogs";
 

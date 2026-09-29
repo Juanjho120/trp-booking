@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { AdminAccommodationContentEditor } from "@/features/admin";
-import { getAdminAccommodationContentById } from "@/lib/admin";
+import { AdminAccommodationContentEditor } from "@/features/admin/components/admin-accommodation-content-editor";
+import { getAdminAccommodationContentById } from "@/lib/admin/accommodation-content";
 import { esMessages } from "@/messages";
 
 export const dynamic = "force-dynamic";

@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { AdminReservationDetailPage } from "@/features/admin";
-import {
-  getAdminPaymentSubmissionAttemptsForReservation,
-  getAdminReservationDetail,
-} from "@/lib/admin";
+import { AdminReservationDetailPage } from "@/features/admin/components/admin-reservation-detail-page";
+import { getAdminPaymentSubmissionAttemptsForReservation } from "@/lib/admin/payment-submission-attempts";
+import { getAdminReservationDetail } from "@/lib/admin/reservation-detail";
 import { esMessages } from "@/messages";
 import type { AdminReservationDetailData } from "@/types/admin-reservation-detail";
 

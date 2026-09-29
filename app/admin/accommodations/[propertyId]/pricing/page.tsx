@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { AdminPricingManager } from "@/features/admin";
-import { getAdminPricingSettings } from "@/lib/admin";
+import { AdminPricingManager } from "@/features/admin/components/admin-pricing-manager";
+import { getAdminPricingSettings } from "@/lib/admin/pricing";
 import { esMessages } from "@/messages";
 
 export const dynamic = "force-dynamic";

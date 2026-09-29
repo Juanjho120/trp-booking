@@ -2,6 +2,7 @@ import "./public-cache-corrections.test";
 import "./client-hydration-corrections.test";
 import "./blocked-dates-hardening.test";
 import "./tilopay-token-warmup.test";
+import "./admin-protected-route-corrections.test";
 
 import { runFinalGTests } from "./harness";
 

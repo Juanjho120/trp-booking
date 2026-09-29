@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { AdminPropertyPhotoManager } from "@/features/admin";
-import { getAdminPropertyPhotoSettings } from "@/lib/admin";
+import { AdminPropertyPhotoManager } from "@/features/admin/components/admin-property-photo-manager";
+import { getAdminPropertyPhotoSettings } from "@/lib/admin/property-photos";
 import { esMessages } from "@/messages";
 
 export const dynamic = "force-dynamic";
