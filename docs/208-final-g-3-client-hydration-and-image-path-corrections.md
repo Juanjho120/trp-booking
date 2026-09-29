@@ -23,8 +23,8 @@ Final-G package: Active
 Final-G.1: Completed and accepted on 2026-09-28
 Final-G.2: Completed and accepted on 2026-09-28
 Final-G.3: Completed and accepted on 2026-09-28 at e3bcc9709a355b2ce0c6284461f0f4249ad60a5e
-Final-G.4: Not started; Next when explicitly requested
-Final-G.5: Not started
+Final-G.4: Completed and accepted on 2026-09-28 at 7090701b2dc37f4cbd6490f250984b6db9d53a58
+Final-G.5: Implementation/evidence completed; owner acceptance pending
 Final-H: Not started
 Phase 13: Not started
 Schema changes: none
@@ -244,7 +244,8 @@ H2 — Tilopay card fields had a visible 5-6 second preparation delay on shared 
 H3 — DayPicker was visible immediately, but /api/availability/blocked-dates took about 2 seconds.
 ```
 
-This hardening pass is part of Final-G.3, not a new numbered subphase. Final-G.4, Final-G.5,
+This hardening pass is part of Final-G.3, not a new numbered subphase. Final-G.4 later completed
+and was accepted; Final-G.5 implementation/evidence is completed with owner acceptance pending.
 Final-H and Phase 13 remain Not started.
 
 ### Public /disponibilidad shell and tabs
@@ -869,8 +870,8 @@ Final-G.1 — Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6
 Final-G.2 — Completed and accepted on 2026-09-28 at ecafa2f95314fe485b1e1cc2d6372c40f076964a
 Final-G.2 Hosted evidence head — c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60
 Final-G.3 — Completed and accepted on 2026-09-28 at e3bcc9709a355b2ce0c6284461f0f4249ad60a5e
-Final-G.4 — Next / Not started
-Final-G.5 — Not started
+Final-G.4 — Completed and accepted on 2026-09-28 at 7090701b2dc37f4cbd6490f250984b6db9d53a58
+Final-G.5 — Implementation/evidence completed; owner acceptance pending
 Final-H — Not started
 Phase 13 — Not started
 ```

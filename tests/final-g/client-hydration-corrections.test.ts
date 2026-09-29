@@ -281,14 +281,14 @@ test("G.3 keeps the accepted Next Image Cloudinary path unless stronger evidence
   assert.match(record, /No image loader architecture change/);
 });
 
-test("G.3 leaves admin performance work, Vercel crons and later subphases untouched", () => {
+test("G.3 record preserves admin/crons boundaries while tracking later accepted work", () => {
   const record = readSource(
     "docs/208-final-g-3-client-hydration-and-image-path-corrections.md",
   );
 
   assert.match(record, /Admin runtime behavior: unchanged/);
-  assert.match(record, /Final-G\.4: Not started/);
-  assert.match(record, /Final-G\.5: Not started/);
+  assert.match(record, /Final-G\.4: Completed and accepted on 2026-09-28/);
+  assert.match(record, /Final-G\.5: Implementation\/evidence completed; owner acceptance pending/);
   assert.match(record, /Phase 13: Not started/);
   assert.match(readSource("vercel.json"), /"crons": \[\]/);
 });

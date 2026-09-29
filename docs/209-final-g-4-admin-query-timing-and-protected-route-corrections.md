@@ -20,7 +20,7 @@ Final-G.1: Completed and accepted on 2026-09-28
 Final-G.2: Completed and accepted on 2026-09-28
 Final-G.3: Completed and accepted on 2026-09-28 at e3bcc9709a355b2ce0c6284461f0f4249ad60a5e
 Final-G.4: Completed and accepted on 2026-09-28 at 7090701b2dc37f4cbd6490f250984b6db9d53a58
-Final-G.5: Next / Not started
+Final-G.5: Implementation/evidence completed; owner acceptance pending
 Final-H: Not started
 Phase 13: Not started
 Schema changes: none
@@ -256,11 +256,11 @@ G.4 preserves:
 - vercel.json {"crons":[]}.
 ```
 
-G.4 does not implement Final-G.5, Final-H, or Phase 13.
+G.4 did not implement Final-G.5, Final-H, or Phase 13. Final-G.5 was later explicitly requested as evidence/documentation closure in docs/210.
 
 ## Final-G.5 Prepared Scope
 
-Final-G.5 is the remaining Final-G package closure phase and remains Next / Not started. Its scope is
+Final-G.5 was explicitly requested as the Final-G package evidence/documentation closure phase and is now implementation/evidence completed with owner acceptance pending. Its scope is
 evidence and closure, not broad new optimization:
 
 ```text
