@@ -7,17 +7,23 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-G — Performance audit and optimization
 Subphase: Final-G.3 — Client/hydration and image-path corrections
-Status: Hardening implemented; Hosted owner revalidation + acceptance pending
+Status: Completed and accepted
 Document date: 2026-09-28
 Implementation base head: b190bb45275a72c8c0126ae646e5d3112255dccd
 Accepted G.1 baseline head: 1623389b028be1b0391a2afce6e7c28244ad0fbf
 Accepted G.2 feature head: ecafa2f95314fe485b1e1cc2d6372c40f076964a
 G.2 Hosted evidence head: c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60
+Initial G.3 implementation head: 7d4c78bc848cdd6479519f368b290f9a733fa160
+Initial G.3 Hosted evidence head: 85ebc0e98042a586752f88a369ba7e24ad11969f
+G.3 public availability / Tilopay / blocked-dates hardening head: 545262c91a54a6755209d777c3ef90193c0a9d61
+G.3 hardening Hosted evidence head: f8ad17860da776e084efb5e72688d031bdc67a78
+Accepted final G.3 head: e3bcc9709a355b2ce0c6284461f0f4249ad60a5e
+Owner acceptance: Completed on 2026-09-28
 Final-G package: Active
 Final-G.1: Completed and accepted on 2026-09-28
 Final-G.2: Completed and accepted on 2026-09-28
-Final-G.3: Hardening implemented; Hosted owner revalidation + acceptance pending
-Final-G.4: Not started
+Final-G.3: Completed and accepted on 2026-09-28 at e3bcc9709a355b2ce0c6284461f0f4249ad60a5e
+Final-G.4: Not started; Next when explicitly requested
 Final-G.5: Not started
 Final-H: Not started
 Phase 13: Not started
@@ -30,7 +36,7 @@ Admin runtime behavior: unchanged
 vercel.json remains {"crons":[]}
 ```
 
-G.3 addresses the accepted G.1 findings owned by the client/hydration and image-path subphase:
+G.3 completed and accepted the G.1 findings owned by the client/hydration and image-path subphase:
 
 ```text
 G1-C3 — /disponibilidad hydration/layout cost.
@@ -39,8 +45,59 @@ G1-O2 — accommodation listing broad client boundary.
 G1-O4 — home media/image payload investigation.
 ```
 
-G.3 does not start G.4 admin/query timing, G.5 hosted comparison/Final-G closure, Final-H, or
-Phase 13.
+G.3 closure does not start G.4 admin/query timing, G.5 hosted comparison/Final-G closure,
+Final-H, or Phase 13.
+
+## Accepted Closure Summary
+
+Owner acceptance was explicitly recorded on 2026-09-28 after the implemented G.3 sequence and Hosted
+revalidation. The accepted G.3 outcome is:
+
+```text
+Public route bundle:
+- /alojamientos: 479 kB -> about 312 kB, about 35% reduction.
+- /alojamientos/[slug]: 479 kB -> about 372 kB, about 22% reduction.
+- /resenas: 312 kB -> about 219 kB.
+- /: no material regression.
+
+Property detail:
+- listing/detail graph split accepted.
+- reservation form remains directly usable on the property detail page.
+- DayPicker and country flags remain static imports by accepted design.
+- Tilopay checkout React code moved out of the initial detail route cost and remains deferred.
+- no i18n redesign and no wholesale Server Component conversion.
+
+Availability:
+- /disponibilidad is in the public shell with SiteHeader and SiteFooter.
+- existing ES/EN locale architecture remains intact.
+- public nav link, tabs, and one initially mounted active calendar are accepted.
+- live 60-day availability remains preserved outside stale public caching.
+- stable public accommodation cached data is used only for bounded presentation context.
+- CTA routes to the property detail page.
+- desktop CLS improved from the G.1 baseline around 0.327 to 0.000.
+
+Blocked dates:
+- DayPicker remains immediate.
+- duplicate Reservation DB query was removed from blocked-dates.
+- blocked-date semantics are preserved.
+- Hosted median improved about 16%-20%.
+- remaining latency is dynamic origin work and is not hidden behind stale transactional caching.
+
+Tilopay:
+- canonical SDK URL is used without Date.now cache busting.
+- preconnect/preload and a shared client SDK promise are accepted.
+- SDK-load failure retry remains supported.
+- server work is parallelized only after payable-state validation.
+- server-side SDK-token cache uses a 90-second safety margin, defensive expires_in parsing and one in-flight refresh per server instance.
+- no token persistence, browser state, DB, KV or Redis was introduced.
+- intent warm-up runs after pending hold, valid retry, payable additional charge and payable lifecycle adjustment eligibility.
+- warm-up is best effort and payment correctness remains independent of warm-up success.
+- per-instance serverless cache does not guarantee a globally hot token across all Vercel instances.
+```
+
+G.3 also preserves the G.2 boundary: public stable-content caching was not weakened, while live
+transactional state remains uncached for availability, pending holds, reservation blocking, lifecycle
+holds, payments, refunds and Tilopay state.
 
 ## Frozen Safety Boundary
 
@@ -755,11 +812,12 @@ npm run build — PASS outside sandbox after the sandbox build failed only on bl
 git diff --check — PASS; Windows LF-to-CRLF working-copy warnings only.
 ```
 
-## Hosted Acceptance Pending
+## Hosted Acceptance Completed
 
-G.3 is not accepted yet.
+Final-G.3 is completed and accepted. Owner acceptance was explicitly recorded on 2026-09-28 for the
+final G.3 head `e3bcc9709a355b2ce0c6284461f0f4249ad60a5e`.
 
-Remaining Hosted/owner checks:
+Accepted Hosted/owner evidence:
 
 ```text
 Availability page:
@@ -792,14 +850,14 @@ Tilopay:
 - Visa/Mastercard/Amex UI remains.
 - No real charge is required merely for hardening validation.
 
-Post-deploy evidence still needed:
-- Repeat Tilopay staged timings per surface.
-Post-deploy evidence already collected:
+Post-deploy evidence:
 - /disponibilidad desktop Lighthouse CLS remained 0.000.
 - Initial /disponibilidad page load issued one availability API request for the active tab.
 - blocked-dates benchmark was repeated and compared before/after; median improved about 15.9%-19.5%, below the aspirational 50% target, with remaining dynamic origin latency documented.
-Verify ES/EN locale switching and persistence still work.
-Owner acceptance remains pending.
+- owner revalidation found payment preparation sufficiently faster and accepted.
+- G.3 does not claim a maximum Tilopay initialization time because the cache is per server instance.
+- ES/EN locale switching and persistence remain under the frozen client-side locale boundary.
+- Owner acceptance completed.
 ```
 
 ## Next State
@@ -810,8 +868,8 @@ Final-G — Active
 Final-G.1 — Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf
 Final-G.2 — Completed and accepted on 2026-09-28 at ecafa2f95314fe485b1e1cc2d6372c40f076964a
 Final-G.2 Hosted evidence head — c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60
-Final-G.3 — Hardening implemented; Hosted owner revalidation + acceptance pending
-Final-G.4 — Not started
+Final-G.3 — Completed and accepted on 2026-09-28 at e3bcc9709a355b2ce0c6284461f0f4249ad60a5e
+Final-G.4 — Next / Not started
 Final-G.5 — Not started
 Final-H — Not started
 Phase 13 — Not started

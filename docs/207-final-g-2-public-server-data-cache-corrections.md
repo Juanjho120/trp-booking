@@ -20,8 +20,8 @@ Vercel for accepted feature head: SUCCESS
 Final-G package: Active
 Final-G.1: Completed and accepted on 2026-09-28
 Final-G.2: Completed and accepted on 2026-09-28
-Final-G.3: Implementation completed; Hosted Lighthouse/functional validation + owner acceptance pending
-Final-G.4: Not started
+Final-G.3: Completed and accepted on 2026-09-28 at e3bcc9709a355b2ce0c6284461f0f4249ad60a5e
+Final-G.4: Next / Not started
 Final-G.5: Not started
 Final-H: Not started
 Phase 13: Not started
@@ -44,7 +44,8 @@ G1-O3 — Addressed and accepted by G.2.
 G.2 does not start G.3 client/hydration or image-path work, G.4 admin/query timing work, G.5 hosted
 comparison/Final-G closure, Final-H, or Phase 13.
 
-The remaining accepted G.1 findings are intentionally outside G.2:
+The following accepted G.1 findings were intentionally outside G.2. Final-G.3 later completed and
+accepted G1-C3, G1-O1, G1-O2 and G1-O4; G1-O5 remains the G.4 admin/protected-route scope:
 
 ```text
 G1-C3 — /disponibilidad hydration/layout cost; belongs to G.3.
@@ -173,7 +174,8 @@ Airbnb sync state
 ```
 
 `/disponibilidad` remains the accepted fast static shell with live dynamic availability API calls.
-G.3 owns client/hydration, availability calendar layout, image-path, and bundle corrections.
+G.3 later completed and accepted the client/hydration, availability calendar layout, image-path and
+bundle correction scope.
 
 2026-09-28 G.3 hardening note: `/disponibilidad` now consumes the stable public accommodation DTO
 for names, descriptions, public prices and slugs while keeping availability itself live. Therefore
@@ -444,8 +446,8 @@ Final-G — Active
 Final-G.1 — Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf
 Final-G.2 — Completed and accepted on 2026-09-28 at ecafa2f95314fe485b1e1cc2d6372c40f076964a
 Final-G.2 Hosted evidence head — c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60
-Final-G.3 — Implementation completed; Hosted Lighthouse/functional validation + owner acceptance pending
-Final-G.4 — Not started
+Final-G.3 — Completed and accepted on 2026-09-28 at e3bcc9709a355b2ce0c6284461f0f4249ad60a5e
+Final-G.4 — Next / Not started
 Final-G.5 — Not started
 Final-H — Not started
 Phase 13 — Not started

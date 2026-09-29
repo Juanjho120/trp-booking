@@ -17,8 +17,8 @@ Final-F accepted feature head: 13f0e0cf6904e34155dd754230f320ca6c214141
 Final-G package: Active
 Final-G.1: Completed and accepted on 2026-09-28
 Final-G.2: Completed and accepted on 2026-09-28 at ecafa2f95314fe485b1e1cc2d6372c40f076964a; Hosted evidence head c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60
-Final-G.3: Implementation completed; Hosted Lighthouse/functional validation + owner acceptance pending
-Final-G.4: Not started
+Final-G.3: Completed and accepted on 2026-09-28 at e3bcc9709a355b2ce0c6284461f0f4249ad60a5e
+Final-G.4: Next / Not started
 Final-G.5: Not started
 Final-H: Not started
 Phase 13: Not started
@@ -427,6 +427,11 @@ authenticated owner measurement before protected-route corrections.
 | Availability DB indexes | Existing property/date indexes cover the observed overlap query shape. | First investigate repeated calls/waterfall and client behavior. |
 | Admin bypass automation | Admin routes require OAuth and protected sessions. | No auth bypass; use owner manual measurement checklist. |
 
+2026-09-28 closure note: Final-G.3 completed and accepted G1-C3, G1-O1, G1-O2 and G1-O4 at
+`e3bcc9709a355b2ce0c6284461f0f4249ad60a5e`. No image-loader architecture change was justified by
+the accepted evidence, so the Next Image + Cloudinary boundary remains in place. G1-O5 remains the
+G.4 admin/protected-route measurement and correction scope.
+
 ## Proposed Remaining Final-G Sequence
 
 The owner accepted this remaining sequence. Final-G should remain small and evidence-driven:
@@ -549,8 +554,8 @@ Final-F — Completed and accepted
 Final-G — Active
 Final-G.1 — Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf
 Final-G.2 — Completed and accepted on 2026-09-28 at ecafa2f95314fe485b1e1cc2d6372c40f076964a; Hosted evidence head c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60
-Final-G.3 — Implementation completed; Hosted Lighthouse/functional validation + owner acceptance pending
-Final-G.4 — Not started
+Final-G.3 — Completed and accepted on 2026-09-28 at e3bcc9709a355b2ce0c6284461f0f4249ad60a5e
+Final-G.4 — Next / Not started
 Final-G.5 — Not started
 Final-H — Not started
 Phase 13 — Not started
