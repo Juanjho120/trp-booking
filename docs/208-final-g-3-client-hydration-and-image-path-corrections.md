@@ -19,13 +19,13 @@ G.3 public availability / Tilopay / blocked-dates hardening head: 545262c91a54a6
 G.3 hardening Hosted evidence head: f8ad17860da776e084efb5e72688d031bdc67a78
 Accepted final G.3 head: e3bcc9709a355b2ce0c6284461f0f4249ad60a5e
 Owner acceptance: Completed on 2026-09-28
-Final-G package: Active
+Final-G package: Completed and accepted on 2026-09-28
 Final-G.1: Completed and accepted on 2026-09-28
 Final-G.2: Completed and accepted on 2026-09-28
 Final-G.3: Completed and accepted on 2026-09-28 at e3bcc9709a355b2ce0c6284461f0f4249ad60a5e
 Final-G.4: Completed and accepted on 2026-09-28 at 7090701b2dc37f4cbd6490f250984b6db9d53a58
-Final-G.5: Implementation/evidence completed; owner acceptance pending
-Final-H: Not started
+Final-G.5: Completed and accepted on 2026-09-28 at be8445a2c73a710e451da608fd9e669f8f412ab3
+Final-H: Next / Not started
 Phase 13: Not started
 Schema changes: none
 Migration changes: none
@@ -245,8 +245,8 @@ H3 — DayPicker was visible immediately, but /api/availability/blocked-dates to
 ```
 
 This hardening pass is part of Final-G.3, not a new numbered subphase. Final-G.4 later completed
-and was accepted; Final-G.5 implementation/evidence is completed with owner acceptance pending.
-Final-H and Phase 13 remain Not started.
+and was accepted; Final-G.5 is completed and accepted on 2026-09-28 at be8445a2c73a710e451da608fd9e669f8f412ab3.
+Final-H is Next / Not started; Phase 13 remains Not started.
 
 ### Public /disponibilidad shell and tabs
 
@@ -865,13 +865,13 @@ Post-deploy evidence:
 
 ```text
 Final-F — Completed and accepted
-Final-G — Active
+Final-G — Completed and accepted on 2026-09-28 at be8445a2c73a710e451da608fd9e669f8f412ab3
 Final-G.1 — Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf
 Final-G.2 — Completed and accepted on 2026-09-28 at ecafa2f95314fe485b1e1cc2d6372c40f076964a
 Final-G.2 Hosted evidence head — c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60
 Final-G.3 — Completed and accepted on 2026-09-28 at e3bcc9709a355b2ce0c6284461f0f4249ad60a5e
 Final-G.4 — Completed and accepted on 2026-09-28 at 7090701b2dc37f4cbd6490f250984b6db9d53a58
-Final-G.5 — Implementation/evidence completed; owner acceptance pending
-Final-H — Not started
+Final-G.5 — Completed and accepted on 2026-09-28 at be8445a2c73a710e451da608fd9e669f8f412ab3
+Final-H — Next / Not started
 Phase 13 — Not started
 ```

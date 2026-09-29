@@ -14,13 +14,13 @@ Accepted audit/baseline head: 1623389b028be1b0391a2afce6e7c28244ad0fbf
 Owner acceptance: Completed on 2026-09-28
 Vercel for accepted head: SUCCESS
 Final-F accepted feature head: 13f0e0cf6904e34155dd754230f320ca6c214141
-Final-G package: Active
+Final-G package: Completed and accepted on 2026-09-28
 Final-G.1: Completed and accepted on 2026-09-28
 Final-G.2: Completed and accepted on 2026-09-28 at ecafa2f95314fe485b1e1cc2d6372c40f076964a; Hosted evidence head c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60
 Final-G.3: Completed and accepted on 2026-09-28 at e3bcc9709a355b2ce0c6284461f0f4249ad60a5e
 Final-G.4: Completed and accepted on 2026-09-28 at 7090701b2dc37f4cbd6490f250984b6db9d53a58
-Final-G.5: Implementation/evidence completed; owner acceptance pending
-Final-H: Not started
+Final-G.5: Completed and accepted on 2026-09-28 at be8445a2c73a710e451da608fd9e669f8f412ab3
+Final-H: Next / Not started
 Phase 13: Not started
 Runtime feature changes: none
 Schema changes: none
@@ -401,9 +401,9 @@ Final-G work.
 
 | ID | Surface | Evidence | Bottleneck | User impact | Confidence | Candidate fix | Expected metric | Risk |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| G1-C1 | Public dynamic property/review pages | HTTP medians: `/` 1593ms total, `/alojamientos` 1255ms, `/resenas` 975ms; all `no-store`, `x-vercel-cache=MISS`. | Stable public content is served dynamically every request. | Slower first content on public pages. | Confirmed | Define correctness-safe cache/revalidate for property/location/review reads. | Median public TTFB/total response time. | Stale public content if invalidation is incomplete. |
-| G1-C2 | Accommodation detail | Source shows `getPublicAccommodationBySlug()` in both `generateMetadata()` and page render. | Duplicate stable property read in one request. | Detail route TTFB and total response time are higher than necessary. | Confirmed | Per-request memoization/cache or shared route loader; preserve 404/metadata behavior. | Detail median TTFB and outlier reduction. | Metadata/page data mismatch if implemented carelessly. |
-| G1-C3 | `/disponibilidad` | HTTP median 90.6ms static HIT, but Lighthouse mobile score 80, LCP 3412ms, TBT 352ms, desktop CLS 0.327. | Client-side calendar hydration/layout after a fast shell. | Availability page feels slow despite fast HTML. | Confirmed | Stabilize calendar layout and reduce hydration/API waterfall. | LCP/TBT/CLS. | Availability correctness and active holds must remain live. |
+| G1-C1 | Public dynamic property/review pages | HTTP medians: `/` 1593ms total, `/alojamientos` 1255ms, `/resenas` 975ms; all `no-store`, `x-vercel-cache=MISS`. | Stable public content is served dynamically every request. | Slower first content on public pages. | Accepted through Final-G.2 | Completed by correctness-safe cache/revalidation for property/location/review reads. | Median public TTFB/total response time. | Stale public content if invalidation is incomplete. |
+| G1-C2 | Accommodation detail | Source shows `getPublicAccommodationBySlug()` in both `generateMetadata()` and page render. | Duplicate stable property read in one request. | Detail route TTFB and total response time are higher than necessary. | Accepted through Final-G.2 | Completed by shared detail route loading/request memoization while preserving 404/metadata behavior. | Detail median TTFB and outlier reduction. | Metadata/page data mismatch if implemented carelessly. |
+| G1-C3 | `/disponibilidad` | HTTP median 90.6ms static HIT, but Lighthouse mobile score 80, LCP 3412ms, TBT 352ms, desktop CLS 0.327. | Client-side calendar hydration/layout after a fast shell. | Availability page feels slow despite fast HTML. | Accepted through Final-G.3 | Completed by stabilizing calendar layout and reducing initial availability waterfall to one active calendar. | LCP/TBT/CLS. | Availability correctness and active holds must remain live. |
 
 ### Optimization Opportunities
 
@@ -412,10 +412,10 @@ accepted by Final-G.4.
 
 | ID | Surface | Evidence | Bottleneck | User impact | Confidence | Candidate fix | Expected metric | Risk |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| G1-O1 | Property detail client bundle | Build first-load 479 kB; Lighthouse detail unused JS 218 KiB; form statically imports DayPicker, phone flags and Tilopay checkout. | Large hydration boundary and heavy libraries on detail route. | Slower mobile interaction readiness. | Strong evidence | Split static detail from gallery/form islands; lazy-load Tilopay checkout only after pending hold. | First Load JS, TBT, JS execution. | Booking/payment flow must remain unchanged. |
-| G1-O2 | Accommodation listing page | Entire page is client; first-load 479 kB. | Listing content mostly static but hydrates as a full client page. | Extra JS for browsing accommodations. | Strong evidence | Server-render listing cards with smaller locale/client islands. | First Load JS, mobile main-thread. | ES/EN copy behavior must remain correct. |
-| G1-O3 | Reviews page | Sequential count then findMany; entire page client; dynamic no-store. | Stable published reviews pay DB and hydration cost every request. | Slower public social-proof page. | Strong evidence | Cache/revalidate published review listing after moderation; consider safe count/list parallelization. | TTFB and JS execution. | Moderation must invalidate promptly. |
-| G1-O4 | Home images/payload | Lighthouse desktop transfer about 1,067 KiB; multiple `_next/image` Cloudinary card images. | Media payload plus dynamic HTML. | LCP and transfer on landing. | Strong evidence | After server/cache fixes, compare image sizing/direct Cloudinary loader versus current Next Image. | LCP and transferred bytes. | Avoid losing responsive image behavior. |
+| G1-O1 | Property detail client bundle | Build first-load 479 kB; Lighthouse detail unused JS 218 KiB; form statically imports DayPicker, phone flags and Tilopay checkout. | Large hydration boundary and heavy libraries on detail route. | Slower mobile interaction readiness. | Accepted through Final-G.3 | Completed by detail graph split and lazy Tilopay checkout after pending hold. | First Load JS, TBT, JS execution. | Booking/payment flow must remain unchanged. |
+| G1-O2 | Accommodation listing page | Entire page is client; first-load 479 kB. | Listing content mostly static but hydrates as a full client page. | Extra JS for browsing accommodations. | Accepted through Final-G.3 | Completed by the accepted listing/detail graph split with localized public behavior preserved. | First Load JS, mobile main-thread. | ES/EN copy behavior must remain correct. |
+| G1-O3 | Reviews page | Sequential count then findMany; entire page client; dynamic no-store. | Stable published reviews pay DB and hydration cost every request. | Slower public social-proof page. | Accepted through Final-G.2 | Completed by cached published-review data path with moderation invalidation. | TTFB and JS execution. | Moderation must invalidate promptly. |
+| G1-O4 | Home images/payload | Lighthouse desktop transfer about 1,067 KiB; multiple `_next/image` Cloudinary card images. | Media payload plus dynamic HTML. | LCP and transfer on landing. | Accepted through Final-G.3 | Closed by evidence-based decision to preserve Next Image + Cloudinary and avoid a custom loader. | LCP and transferred bytes. | Avoid losing responsive image behavior. |
 | G1-O5 | Admin client bundle | Build reports 561 kB first-load for admin pages; G.4 confirmed broad route-entry barrel coupling and corrected it. | Broad shared admin client graph. | Admin pages may feel heavy on Android PWA. | Addressed and accepted by Final-G.4 | Direct route-entry Admin imports plus query timing audit; no unsafe stale query optimization. | Admin JS bytes, long tasks, query medians. | Protected Admin auth and workflows preserved. |
 
 ### Non-Issues / Not First Targets
@@ -434,9 +434,10 @@ and accepted G1-O5 at `7090701b2dc37f4cbd6490f250984b6db9d53a58`: broad Admin bu
 confirmed and corrected, Admin query timing was measured, and no unsafe/stale query optimization was
 justified. All accepted G.1 findings owned by G.2, G.3 and G.4 are resolved.
 
-## Proposed Remaining Final-G Sequence
+## Accepted Final-G Sequence
 
-The owner accepted this remaining sequence. Final-G should remain small and evidence-driven:
+The owner accepted this evidence-driven sequence. All Final-G subphases are now completed and
+accepted:
 
 ```text
 Final-G.2 — Public server/data/cache corrections
@@ -457,7 +458,7 @@ Final-G.4 — Admin/query timing and targeted protected-route corrections
 Final-G.5 — Hosted comparison, permanent performance evidence and Final-G closure
   Re-runs G.1 HTTP/Lighthouse/admin checklist after accepted changes.
   Expected metrics: documented before/after deltas; no Final-A/B/C/D/E/F regression.
-  Risks: avoid marking performance accepted without owner review.
+  Closure: completed by docs/210 with integrated validation, owner acceptance and Final-G package closure.
 ```
 
 Do not implement these subphases automatically. Final-G.2 was explicitly requested and implemented in docs/207. Final-G.3 was explicitly requested and implemented in docs/208. Final-G.4 was explicitly requested and implemented in docs/209. Final-G.5 was explicitly requested and implemented as evidence/documentation closure in docs/210. Do not start Final-H automatically.
@@ -553,12 +554,12 @@ Production-resource change.
 
 ```text
 Final-F — Completed and accepted
-Final-G — Active
+Final-G — Completed and accepted on 2026-09-28 at be8445a2c73a710e451da608fd9e669f8f412ab3
 Final-G.1 — Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf
 Final-G.2 — Completed and accepted on 2026-09-28 at ecafa2f95314fe485b1e1cc2d6372c40f076964a; Hosted evidence head c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60
 Final-G.3 — Completed and accepted on 2026-09-28 at e3bcc9709a355b2ce0c6284461f0f4249ad60a5e
 Final-G.4 — Completed and accepted on 2026-09-28 at 7090701b2dc37f4cbd6490f250984b6db9d53a58
-Final-G.5 — Implementation/evidence completed; owner acceptance pending
-Final-H — Not started
+Final-G.5 — Completed and accepted on 2026-09-28 at be8445a2c73a710e451da608fd9e669f8f412ab3
+Final-H — Next / Not started
 Phase 13 — Not started
 ```

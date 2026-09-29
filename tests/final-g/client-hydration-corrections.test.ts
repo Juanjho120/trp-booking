@@ -288,7 +288,7 @@ test("G.3 record preserves admin/crons boundaries while tracking later accepted 
 
   assert.match(record, /Admin runtime behavior: unchanged/);
   assert.match(record, /Final-G\.4: Completed and accepted on 2026-09-28/);
-  assert.match(record, /Final-G\.5: Implementation\/evidence completed; owner acceptance pending/);
+  assert.match(record, /Final-G\.5: Completed and accepted on 2026-09-28/);
   assert.match(record, /Phase 13: Not started/);
   assert.match(readSource("vercel.json"), /"crons": \[\]/);
 });

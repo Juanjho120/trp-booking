@@ -6,7 +6,7 @@
 Project: TRP Booking
 Package: Final-G — Performance audit and optimization
 Subphase: Final-G.5 — Hosted final comparison, permanent performance evidence and Final-G closure
-Status: Implementation/evidence completed; owner acceptance pending
+Status: Completed and accepted
 Document date: 2026-09-29
 
 Implementation/evidence base head:
@@ -27,13 +27,19 @@ e3bcc9709a355b2ce0c6284461f0f4249ad60a5e
 Accepted G.4 head:
 7090701b2dc37f4cbd6490f250984b6db9d53a58
 
-Final-G package: Active
+Accepted G.5 evidence/gate head:
+be8445a2c73a710e451da608fd9e669f8f412ab3
+
+Accepted Final-G package head:
+be8445a2c73a710e451da608fd9e669f8f412ab3
+
+Final-G package: Completed and accepted on 2026-09-28
 Final-G.1 — Completed and accepted on 2026-09-28
 Final-G.2 — Completed and accepted on 2026-09-28
 Final-G.3 — Completed and accepted on 2026-09-28
 Final-G.4 — Completed and accepted on 2026-09-28
-Final-G.5 — Implementation/evidence completed; owner acceptance pending
-Final-H — Not started
+Final-G.5 — Completed and accepted on 2026-09-28 at be8445a2c73a710e451da608fd9e669f8f412ab3
+Final-H — Next / Not started
 Phase 13 — Not started
 
 Runtime feature changes: none
@@ -45,9 +51,13 @@ Production resources: none
 vercel.json remains {"crons":[]}
 ```
 
+Final-G.5 received explicit owner acceptance: `Final-G.5 is approved.` Because G.1 through G.4 were
+already completed and accepted, Final-G is now formally completed and accepted. This documentation
+closure commit is later than the accepted evidence/gate head and does not replace
+`be8445a2c73a710e451da608fd9e669f8f412ab3` as the accepted Final-G package head.
+
 G.5 is an evidence, integrated-regression and documentation-closure subphase. It does not reopen the
-accepted G.2, G.3 or G.4 architecture; it does not start Final-H or Phase 13; and it does not mark
-Final-G completed before owner acceptance.
+accepted G.2, G.3 or G.4 architecture; it does not start Final-H or Phase 13.
 
 ## Frozen Architecture Carried Forward
 
@@ -375,17 +385,17 @@ No auth bypass was added.
 These are evidence-based non-changes, not omissions:
 
 ```text
-- No new framework.
-- No broad Server Component/i18n rewrite.
+- No framework migration.
+- No broad i18n/Server Component rewrite.
 - No /es or /en route tree.
-- No custom image loader.
+- No custom Cloudinary loader.
 - No speculative availability DB indexes.
 - No stale Admin operational cache.
-- No global Redis/KV Tilopay token store.
+- No Redis/KV Tilopay token store.
 - No RUM/Speed Insights instrumentation.
 - No auth bypass.
-- No new scheduler.
-- No Production provisioning.
+- No Production scheduler.
+- No Phase-13 provisioning.
 ```
 
 ## Environment Boundary Confirmation
@@ -419,7 +429,8 @@ The targeted suite remains 48/48. No tests were added merely to inflate the coun
 
 ## Validation Ledger
 
-This ledger is finalized after G.5 documentation and permanent gate wiring:
+This accepted integrated regression ledger is finalized for the G.5 evidence/gate head
+`be8445a2c73a710e451da608fd9e669f8f412ab3`:
 
 ```text
 npm run final-g:validate — PASS, 48/48.
@@ -487,7 +498,7 @@ Admin bundle:
 
 ### Regression status
 
-Final-A through Final-G gates must pass before owner acceptance. No runtime, schema, migration,
+Final-A through Final-G gates passed before owner acceptance. No runtime, schema, migration,
 dependency, environment, scheduler or Production-resource change was introduced in G.5.
 
 ### Next step
@@ -496,18 +507,19 @@ dependency, environment, scheduler or Production-resource change was introduced 
 Final-H — Integrated final improvement-track regression and pre-Production closure
 ```
 
-Final-H remains Not started until explicitly requested.
+Final-H is Next / Not started until explicitly requested.
 
 ## Next State
 
 ```text
 Final-F — Completed and accepted
-Final-G — Active
+Final-G — Completed and accepted on 2026-09-28
+Final-G accepted package head — be8445a2c73a710e451da608fd9e669f8f412ab3
 Final-G.1 — Completed and accepted
 Final-G.2 — Completed and accepted
 Final-G.3 — Completed and accepted
 Final-G.4 — Completed and accepted
-Final-G.5 — Implementation/evidence completed; owner acceptance pending
-Final-H — Not started
+Final-G.5 — Completed and accepted on 2026-09-28 at be8445a2c73a710e451da608fd9e669f8f412ab3
+Final-H — Next / Not started
 Phase 13 — Not started
 ```
