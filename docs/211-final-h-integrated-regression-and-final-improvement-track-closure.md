@@ -7,7 +7,7 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-H — Integrated regression and final improvement-track closure
 Status: Integrated regression/evidence completed; owner acceptance pending
-Document date: 2026-09-28
+Document date: 2026-09-29
 
 Implementation/evidence base: 3c1b3e24e0a835928615e015840e708a310a182a
 
@@ -28,7 +28,7 @@ Phase 13: Not started
 Runtime feature changes: none expected for Final-H evidence work
 Schema changes: none
 Migration changes: none
-Dependency changes: none
+Dependency changes: scoped dependency security hardening; Hosted deployment/smoke evidence pending for the hardening commit
 Environment variable changes: none
 Production resources: none
 Test scheduler: remains {"crons":[]}
@@ -430,14 +430,76 @@ Security review categories for Final-H:
 ### Blockers before Phase 13
 
 ```text
-npm audit --omit=dev completed on 2026-09-28 and exits 1 with 7 production audit findings:
-1 critical and 6 high. Reported affected packages are next@15.5.23, sharp, postcss,
-nanoid and deepmerge-ts through Prisma configuration dependencies.
+No active dependency/security blocker remains after the 2026-09-29 scoped dependency hardening
+and local/Test validation listed below.
 
-This is a dependency/security blocker before Final-H owner acceptance and before Phase 13
-planning unless remediated by a scoped dependency update or otherwise re-triaged with accepted
-evidence. No npm audit fix --force or broad dependency rewrite was performed in this evidence
-commit.
+The original pre-hardening dependency audit blocker is preserved under "Resolved during Final-H
+hardening" and must not be erased from the record. Final-H still requires owner acceptance before
+the package and complete improvement track can close.
+```
+
+### Resolved during Final-H hardening
+
+Pre-hardening audit:
+
+```text
+npm audit --omit=dev completed on 2026-09-29 against starting head
+8dab9ae8690d357e112d164cfdf292831d8a9205 and exited 1 with the previously recorded
+production blocker summary:
+1 critical
+6 high
+```
+
+Bounded advisory table from the pre-fix audit:
+
+| Package | Advisory | Severity | Affected range | Installed version / dependency path | Direct | Patched version / action |
+| --- | --- | --- | --- | --- | --- | --- |
+| `next` | Unauthenticated RCE on Windows-hosted servers | critical | `>=13.4.0 <15.5.24` | `next@15.5.23` at root | Yes | `next@15.5.26` |
+| `next` | Unauthenticated RCE in Image Optimization API when AVIF files are used | critical | `>=10.0.0 <15.5.24` | `next@15.5.23` at root | Yes | `next@15.5.26` |
+| `next` | Next bundled `postcss` advisory | critical | `9.3.4-canary.0 - 16.3.0-preview.10` | `next@15.5.23` at root | Yes | `next@15.5.26` plus `postcss@8.5.23` override |
+| `next` | Next optional `sharp` advisory | critical | `9.3.4-canary.0 - 16.3.0-preview.10` | `next@15.5.23` at root | Yes | `next@15.5.26` plus `sharp@0.35.4` override |
+| `sharp` | Inherited libvips vulnerabilities | high | `<0.35.0` | `sharp@0.34.5` under `next` optional dependency | Transitive | `sharp@0.35.4` override |
+| `sharp` | Inherited libheif vulnerabilities | high | `<0.35.4` | `sharp@0.34.5` under `next` optional dependency | Transitive | `sharp@0.35.4` override |
+| `postcss` | CSS stringify `</style>` escaping issue | moderate | `<8.5.10` | `next/node_modules/postcss@8.4.31`; top-level `postcss@8.5.21` | Transitive | `postcss@8.5.23` override |
+| `postcss` | Source map arbitrary file read / information disclosure | high | `<=8.5.11` | `next/node_modules/postcss@8.4.31`; top-level `postcss@8.5.21` | Transitive | `postcss@8.5.23` override |
+| `postcss` | Incomplete fix follow-up for source-map issue | moderate | `<=8.5.22` | `next/node_modules/postcss@8.4.31`; top-level `postcss@8.5.21` | Transitive | `postcss@8.5.23` override |
+| `postcss` | Previous source-map auto-loading path traversal | high | `<=8.5.17` | `next/node_modules/postcss@8.4.31`; top-level `postcss@8.5.21` | Transitive | `postcss@8.5.23` override |
+| `nanoid` | Custom generators can loop indefinitely when size is zero | high | `<3.3.18` | `nanoid@3.3.16` under `postcss` | Transitive | `nanoid@3.3.18` override |
+| `prisma` | Prisma config dependency advisory | high | `6.13.0-dev.1 - 8.1.0-dev.4` | `prisma@6.19.3` | Yes | No Prisma major upgrade; targeted `@prisma/config > deepmerge-ts` override |
+| `@prisma/config` | DeepmergeTS recursive object stack exhaustion | high | `6.13.0-dev.1 - 8.1.0-dev.4` | `@prisma/config@6.19.3` under `prisma` | Transitive | `deepmerge-ts@8.0.2` override |
+| `deepmerge-ts` | Stack exhaustion when merging recursive object graphs | high | `<8.0.0` | `deepmerge-ts@7.1.5` under `@prisma/config` | Transitive | `deepmerge-ts@8.0.2` override |
+
+Applied dependency changes:
+
+```text
+next: 15.5.23 -> 15.5.26
+eslint-config-next: 15.5.23 -> 15.5.26
+sharp: 0.34.5 -> 0.35.4 via a narrow npm override
+postcss: 8.4.31 / 8.5.21 -> 8.5.23 via a narrow npm override
+nanoid: 3.3.16 -> 3.3.18 via a narrow npm override
+@prisma/config > deepmerge-ts: 7.1.5 -> 8.0.2 via a targeted npm override
+prisma and @prisma/client remain 6.19.3
+React remains unchanged
+No npm audit fix --force, Next major upgrade or Prisma major upgrade was performed
+```
+
+Resolved dependency tree:
+
+```text
+npm ls next — next@15.5.26; next-auth@5.0.0-beta.32 dedupes to next@15.5.26
+npm ls sharp — sharp@0.35.4 overridden under next@15.5.26
+npm ls postcss — all resolved instances are postcss@8.5.23
+npm ls nanoid — nanoid@3.3.18 under postcss@8.5.23
+npm ls deepmerge-ts — deepmerge-ts@8.0.2 under @prisma/config@6.19.3
+npm ls prisma @prisma/client @prisma/config — prisma@6.19.3 and @prisma/client@6.19.3 remain; @prisma/config@6.19.3 uses the targeted override
+```
+
+Post-hardening audit:
+
+```text
+npm audit --omit=dev — PASS after elevated registry access; found 0 vulnerabilities.
+The sandboxed audit attempt failed because the npm audit endpoint/cache could not be reached or
+written from the restricted environment; it did not report a vulnerability.
 ```
 
 ### Phase-13 carry-forward
@@ -461,9 +523,8 @@ commit.
 - Web Push VAPID private key material and PushSubscription endpoint/key data remain server/database data.
 ```
 
-No dependency is blindly upgraded in Final-H solely because of a non-blocking audit finding.
-The current audit result is not treated as non-blocking; it is recorded above as a blocker to
-resolve before Final-H acceptance / Phase 13.
+No dependency was blindly upgraded in Final-H. The remediated blocker used exact patch-line Next
+alignment and narrow npm overrides for vulnerable transitive packages.
 
 ## Validation Ledger
 
@@ -487,9 +548,15 @@ npm run db:migrate:status — PASS after elevated network/database access; 29 mi
 npm run lint — PASS.
 npm run build — PASS after elevated network access for Google Fonts. The sandboxed attempt failed
   only because Inter and Geist Mono could not be fetched from fonts.googleapis.com.
-npm audit --omit=dev — FAIL, exits 1 with 7 production audit findings:
-  1 critical and 6 high. This is recorded as a blocker before Final-H acceptance / Phase 13.
+npm audit --omit=dev — PASS after elevated registry access; found 0 vulnerabilities.
+npm ls next — PASS; next@15.5.26.
+npm ls sharp — PASS; sharp@0.35.4 overridden under next.
+npm ls postcss — PASS; all resolved instances are postcss@8.5.23.
+npm ls nanoid — PASS; nanoid@3.3.18.
+npm ls deepmerge-ts — PASS; deepmerge-ts@8.0.2 under @prisma/config.
+npm ls prisma @prisma/client @prisma/config — PASS; Prisma remains 6.19.3.
 git diff --check — PASS; Windows LF-to-CRLF working-copy warnings only, no whitespace errors.
+Vercel deployment and Hosted smoke for the hardening commit — pending post-push.
 ```
 
 Expected accepted counts before Final-H-specific checks:
@@ -547,7 +614,8 @@ Permanent A-G gates plus the focused Final-H gate passed:
 Final-A 44/44; Final-B 38/38; Final-C 41/41; Final-D 66/66; Final-E 88/88;
 Final-F 125/125; Final-G 48/48; Final-H 20/20.
 
-Dependency audit remains a blocker before owner acceptance.
+Dependency audit blocker is resolved by scoped Final-H hardening; owner acceptance remains pending.
+Hosted deployment and safe Hosted smoke for the hardening commit remain pending until after push.
 ```
 
 ### Hosted Test state
@@ -561,8 +629,7 @@ Owner-accepted Hosted evidence from Final-A through Final-G remains carried forw
 ### Security state
 
 ```text
-An npm audit dependency/security blocker remains open before Final-H owner acceptance and
-Phase 13 planning.
+No npm audit dependency/security blocker remains open after the scoped hardening pass.
 Phase-13 security carry-forwards remain documented rather than executed in Final-H.
 ```
 
@@ -581,7 +648,7 @@ acceptance.
 ```text
 - no Production resources yet;
 - no field/RUM performance data;
-- npm audit dependency/security remediation remains pending before Final-H acceptance;
+- Hosted deployment and safe smoke for the hardening commit remain pending before Final-H acceptance;
 - iOS Web Push deferred;
 - provider/network/serverless variance;
 - Production scheduler recurrence evidence belongs to Phase 13;
