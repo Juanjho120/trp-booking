@@ -1338,7 +1338,7 @@ export const esMessages = {
           rejectDescription:
             "La solicitud quedará rechazada y la reserva continuará confirmada sin modificar fechas, disponibilidad ni pagos.",
           approveWarning:
-            "Esta acción no procesa ni promete un reembolso. El monto mostrado es el resultado estándar de la política y se autorizará o conciliará por separado en Phase 11.4.",
+            "La cancelación no procesa automáticamente un reembolso. El monto mostrado es el resultado estándar de la política; cualquier reembolso se autoriza y procesa por separado desde el flujo de reembolsos.",
           rejectWarning:
             "El historial de la solicitud y la decisión se conservará para auditoría.",
         },

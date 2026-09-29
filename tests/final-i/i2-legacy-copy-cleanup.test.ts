@@ -39,7 +39,10 @@ function assertNoStaleCopy(source: string, locale: "es" | "en"): void {
     /siguiente fase/i,
     /next subphase/i,
     /siguiente subfase/i,
+    /\bPhase\s+\d+(?:\.\d+)*\b/i,
+    /\bFase\s+\d+(?:\.\d+)*\b/i,
     /Phase 8\.3/i,
+    /Phase 11\.4/i,
     /Subfase 8\.4/i,
     /booking phase/i,
     /fase de booking/i,
@@ -122,6 +125,8 @@ test("I.2 keeps current direct-booking copy and removes stale roadmap language",
 
   assert.match(esText, /Pr[óo]ximas llegadas/);
   assert.match(enText, /Upcoming arrivals/);
+  assert.match(esText, /Pr[óo]ximo intento/);
+  assert.match(enText, /Next attempt/);
   assert.match(
     esText,
     /Consulta disponibilidad, reserva directamente y completa pagos seguros con Tilopay\./,

@@ -123,6 +123,7 @@ Implemented Final-I.2 scope:
 - removed the admin/accommodations preparation-buffer note "Los cambios se aplican a reservas confirmadas, holds activos, disponibilidad pública y futuros feeds..."
 - rewrote stale Home hero, Home benefit/trust, reservation request, pending-hold, date-mutation negative-difference, and admin photo deletion copy to current behavior
 - removed stale unused localization keys for property-detail booking-coming-soon, request hold-disabled, and phase-boundary notes
+- reworded the final stale cancellation approval warning that still referenced `Phase 11.4`, preserving the accepted boundary that reservation cancellation does not automatically create or process a Refund
 - preserved legitimate temporal copy such as "Próximas llegadas" and "Upcoming arrivals"
 - added focused Final-I.2 tests under `tests/final-i`
 ```
@@ -149,6 +150,7 @@ Crear hold de reserva en la siguiente fase
 El pago directo se integrará en la siguiente subfase
 Subfase 8.4...
 La diferencia negativa requiere la integración de reembolso de la siguiente subfase...
+Phase 11.4
 ```
 
 Final-I.2 reviewed each stale candidate for reachability before removing it. Unused localization fields were removed only after confirming no remaining code references. Reachable negative-date-difference admin copy was rewritten to describe the implemented refund workflow instead of a future subphase.

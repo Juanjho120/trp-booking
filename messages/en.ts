@@ -1336,7 +1336,7 @@ export const enMessages = {
           rejectDescription:
             "The request will be rejected, and the reservation will remain confirmed without changing dates, availability, or payments.",
           approveWarning:
-            "This action does not process or promise a refund. The displayed amount is the standard policy outcome and will be authorized or reconciled separately in Phase 11.4.",
+            "Cancellation does not automatically process a refund. The displayed amount is the standard policy outcome; any refund is authorized and processed separately through the refund workflow.",
           rejectWarning:
             "The request and decision history will be preserved for auditing.",
         },
