@@ -326,8 +326,78 @@ blocking records and removes the second Reservation DB round trip. Availability 
 no long-lived cache, no ISR, no stale transactional state, no change to eager client fetch on mount
 or month change.
 
-Hosted post-deploy measurement is still pending because this commit has not yet deployed at the time
-of this documentation update.
+### Hosted post-deploy evidence after Vercel SUCCESS
+
+Vercel reported SUCCESS for the hardening implementation head:
+
+```text
+545262c91a54a6755209d777c3ef90193c0a9d61
+fix(final-g): harden G.3 public payment and availability UX
+```
+
+Availability page desktop Lighthouse was rerun against:
+
+```text
+https://trp-booking.juantzun.dev/disponibilidad
+```
+
+Raw JSON report location was temporary and outside Git:
+
+```text
+%TEMP%\trp-final-g3-hardening-disponibilidad-desktop.json
+```
+
+| Route | Profile | Score | FCP | LCP | CLS | TBT | Speed Index | Transfer | Requests | Initial `/api/availability` requests |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `/disponibilidad` | desktop | 95 | 537.7ms | 1111.2ms | 0.000 | 0ms | 1891.9ms | 570496 B | 34 | 1 |
+
+The single initial availability request was for the active first tab only:
+
+```text
+/api/availability?accommodationId=black-white-apartment&startDate=2026-09-29&endDate=2026-11-28
+```
+
+The hard G.3 CLS boundary remains satisfied:
+
+```text
+/disponibilidad desktop CLS: 0.000, below the < 0.10 target.
+```
+
+Blocked-dates Hosted benchmark was repeated with the same canonical September 2026 request window
+used before the hardening:
+
+```text
+GET /api/availability/blocked-dates?accommodationId={id}&startDate=2026-09-01&endDate=2026-10-01
+5 sequential samples per accommodation
+No cache-busting query parameters
+```
+
+| Accommodation | Status | First total | Median header | Median total | Useful total range | Bytes | Cache evidence | Pre-hardening median-ish observation | Median reduction |
+| --- | --- | ---: | ---: | ---: | --- | ---: | --- | ---: | ---: |
+| `black-white-apartment` | 200 x5 | 2569.6ms | 1386.7ms | 1387.0ms | 1374.4-2569.6ms | 251 | `MISS`; `max-age=0` | about 1686.6ms | about 17.8% |
+| `perfect-retreat-bungalow` | 200 x5 | 1382.3ms | 1383.1ms | 1383.2ms | 1373.9-1479.1ms | 150 | `MISS`; `max-age=0` | about 1718.9ms | about 19.5% |
+| `complete-retreat` | 200 x5 | 1398.6ms | 1391.2ms | 1391.3ms | 1383.0-1500.2ms | 246 | `MISS`; `max-age=0` | about 1654.4ms | about 15.9% |
+
+The duplicate Reservation query removal produced a measurable improvement, but the aspirational
+50% response-time reduction was not met on Hosted Test. A safe header-only diagnostic sample showed
+the remaining path is still dynamic origin work:
+
+```text
+x-vercel-cache: MISS
+cache-control: public, must-revalidate, max-age=0
+server-timing: cfCacheStatus;desc="DYNAMIC",cfEdge;dur=19,cfOrigin;dur=1413
+```
+
+`getAvailabilityBlockingRecords(...)` already performs the remaining Reservation, CalendarBlock and
+LifecycleRequestHold reads concurrently after resolving the needed property/preparation mapping.
+Further reduction would require a separate evidence-backed design for stable property/preparation
+metadata caching or database/provider-side latency work; this hardening pass does not cache live
+transactional availability.
+
+Hosted Tilopay staged timing could not be completed from repository automation because valid Hosted
+Test checkout handoffs are required for initial reservation, additional-charge and retry-payment
+surfaces. The shared code hardening is implemented and covered deterministically; owner Hosted
+revalidation remains responsible for the actual payment-surface timing checklist.
 
 ### Post-hardening local build evidence
 
@@ -625,10 +695,11 @@ Tilopay:
 - No real charge is required merely for hardening validation.
 
 Post-deploy evidence still needed:
-- /disponibilidad desktop Lighthouse CLS < 0.10.
-- Initial /disponibilidad page load issues only one availability API request for the active tab.
-- Repeat blocked-dates benchmark and compare before/after median.
 - Repeat Tilopay staged timings per surface.
+Post-deploy evidence already collected:
+- /disponibilidad desktop Lighthouse CLS remained 0.000.
+- Initial /disponibilidad page load issued one availability API request for the active tab.
+- blocked-dates benchmark was repeated and compared before/after; median improved about 15.9%-19.5%, below the aspirational 50% target, with remaining dynamic origin latency documented.
 Verify ES/EN locale switching and persistence still work.
 Owner acceptance remains pending.
 ```
