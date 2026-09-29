@@ -153,9 +153,6 @@ export async function buildAdditionalChargePaymentRequiredEmail(
       </EmailSection>
       <div style={FOOTER_STYLE}>
         <EmailButton href={view.paymentUrl}>{copy.actionLabel}</EmailButton>
-        <EmailParagraph>
-          {copy.actionFallback} {view.paymentUrl}
-        </EmailParagraph>
       </div>
       <div style={FOOTER_STYLE}>
         <EmailParagraph>

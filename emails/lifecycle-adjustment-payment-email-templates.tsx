@@ -1,3 +1,5 @@
+import React from "react";
+
 import {
   EmailButton,
   EmailDetailRow,
@@ -44,6 +46,7 @@ async function renderDocument(input: Readonly<{
   actionUrl?: string;
   actionLabel?: string;
   actionFallback?: string;
+  showVisibleActionFallback?: boolean;
   closing?: string;
 }>): Promise<TransactionalEmailContent> {
   const html = await renderEmailDocument(
@@ -78,7 +81,7 @@ async function renderDocument(input: Readonly<{
       {input.actionUrl && input.actionLabel ? (
         <div style={FOOTER_STYLE}>
           <EmailButton href={input.actionUrl}>{input.actionLabel}</EmailButton>
-          {input.actionFallback ? (
+          {input.showVisibleActionFallback && input.actionFallback ? (
             <EmailParagraph>
               {input.actionFallback} {input.actionUrl}
             </EmailParagraph>
@@ -147,6 +150,7 @@ async function buildGuestPaymentRequiredEmail(
     actionUrl: view.paymentUrl,
     actionLabel: copy.actionLabel,
     actionFallback: copy.actionFallback,
+    showVisibleActionFallback: false,
     closing: `${copy.securityNote} ${copy.supportDescription} ${view.supportEmail}`,
   });
 }
@@ -201,6 +205,7 @@ async function buildAdminDeliveryStatusEmail(
     actionUrl: view.adminReservationUrl,
     actionLabel: messages.adminNewReservation.actionLabel,
     actionFallback: messages.adminNewReservation.actionFallback,
+    showVisibleActionFallback: true,
   });
 }
 

@@ -23,8 +23,9 @@ Final-I.2 status: Completed and accepted on 2026-09-29
 Accepted Final-I.2 head: 6451cb705d972c83a771a9ff39f6da80d130cf58
 Final-I.3 status: Completed and accepted on 2026-09-29
 Accepted Final-I.3 head: 8c5a9186e392f35bdbc998f463c5c3c6cd0be295
-Final-I.4 status: Next / Not started
-Final-I.5-Final-I.6 status: Not started
+Final-I.4 status: Implementation completed; Hosted owner validation + acceptance pending
+Final-I.5 status: Next / Not started
+Final-I.6 status: Not started
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8-Final-I.9 status: Not started
 Final-I record: docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md
@@ -50,8 +51,9 @@ Final-I.2 status: Completed and accepted on 2026-09-29
 Accepted Final-I.2 head: 6451cb705d972c83a771a9ff39f6da80d130cf58
 Final-I.3 status: Completed and accepted on 2026-09-29
 Accepted Final-I.3 head: 8c5a9186e392f35bdbc998f463c5c3c6cd0be295
-Final-I.4 status: Next / Not started
-Final-I.5-Final-I.6 status: Not started
+Final-I.4 status: Implementation completed; Hosted owner validation + acceptance pending
+Final-I.5 status: Next / Not started
+Final-I.6 status: Not started
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8-Final-I.9 status: Not started
 Final-I record: docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md
@@ -239,8 +241,9 @@ Final-I.2 status: Completed and accepted on 2026-09-29
 Accepted Final-I.2 head: 6451cb705d972c83a771a9ff39f6da80d130cf58
 Final-I.3 status: Completed and accepted on 2026-09-29
 Accepted Final-I.3 head: 8c5a9186e392f35bdbc998f463c5c3c6cd0be295
-Final-I.4 status: Next / Not started
-Final-I.5-Final-I.6 status: Not started
+Final-I.4 status: Implementation completed; Hosted owner validation + acceptance pending
+Final-I.5 status: Next / Not started
+Final-I.6 status: Not started
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8-Final-I.9 status: Not started
 Final-I record: docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md
@@ -266,8 +269,9 @@ Final-I.2 status: Completed and accepted on 2026-09-29
 Accepted Final-I.2 head: 6451cb705d972c83a771a9ff39f6da80d130cf58
 Final-I.3 status: Completed and accepted on 2026-09-29
 Accepted Final-I.3 head: 8c5a9186e392f35bdbc998f463c5c3c6cd0be295
-Final-I.4 status: Next / Not started
-Final-I.5-Final-I.6 status: Not started
+Final-I.4 status: Implementation completed; Hosted owner validation + acceptance pending
+Final-I.5 status: Next / Not started
+Final-I.6 status: Not started
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8-Final-I.9 status: Not started
 Final-I record: docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md
@@ -1360,7 +1364,7 @@ Final-F — Public WhatsApp Contact and Admin Notifications — Completed and ac
   Final-F.8 — Android PWA/Web Push integrated regression, public WhatsApp contact acceptance and Final-F documentation closure — Completed and accepted on 2026-09-28 at 13f0e0cf6904e34155dd754230f320ca6c214141
   Final-G Performance audit and optimization — Completed and accepted on 2026-09-28 at be8445a2c73a710e451da608fd9e669f8f412ab3; Final-G.1 completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf; Final-G.2 completed and accepted on 2026-09-28 at ecafa2f95314fe485b1e1cc2d6372c40f076964a; Hosted evidence head c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60; Final-G.3 completed and accepted on 2026-09-28 at e3bcc9709a355b2ce0c6284461f0f4249ad60a5e; Final-G.4 — Completed and accepted on 2026-09-28 at 7090701b2dc37f4cbd6490f250984b6db9d53a58; Final-G.5 — Completed and accepted on 2026-09-28 at be8445a2c73a710e451da608fd9e669f8f412ab3; records: docs/206-final-g-1-performance-audit-baseline-and-strategy.md; docs/207-final-g-2-public-server-data-cache-corrections.md; docs/208-final-g-3-client-hydration-and-image-path-corrections.md; docs/209-final-g-4-admin-query-timing-and-protected-route-corrections.md; docs/210-final-g-5-hosted-final-comparison-integrated-regression-and-final-g-closure.md
   Final-H Integrated regression and final improvement-track closure — Completed and accepted on 2026-09-29 at 6922cf27e31e63fde071c0d0a810b141e44b9f90
-Final-I — Active; Final-I.1 completed and accepted on 2026-09-29 at 9a15f349c1104671f5555d1988caa56756e5ff0c; Final-I.2 completed and accepted on 2026-09-29 at 6451cb705d972c83a771a9ff39f6da80d130cf58; Final-I.3 completed and accepted on 2026-09-29 at accepted head 8c5a9186e392f35bdbc998f463c5c3c6cd0be295; Final-I.4 Next / Not started
+Final-I — Active; Final-I.1 completed and accepted on 2026-09-29 at 9a15f349c1104671f5555d1988caa56756e5ff0c; Final-I.2 completed and accepted on 2026-09-29 at 6451cb705d972c83a771a9ff39f6da80d130cf58; Final-I.3 completed and accepted on 2026-09-29 at accepted head 8c5a9186e392f35bdbc998f463c5c3c6cd0be295; Final-I.4 implementation completed; Hosted owner validation + acceptance pending
 Phase 13 — Blocked / Not started until Final-I closes
 ```
 
@@ -1831,6 +1835,30 @@ messages/es.ts
 messages/en.ts
 ```
 
+## 2026-09-29 — Final-I.4 Implementation Completed; Hosted Owner Validation Pending
+
+```text
+Package: Final-I — Operational Polish, Notification UX & FEL Invoicing
+Registration base: 950ff5e6948fb2a74cda03f81efdb7c676b33c73
+Subphase: Final-I.4 — Guest-facing email visible-URL cleanup
+Starting head: 9da7e54171afa4735b3b676c6b7f9df191a132fa
+Status: Implementation completed; Hosted owner validation + acceptance pending
+Final-I.1: Completed and accepted on 2026-09-29 at 9a15f349c1104671f5555d1988caa56756e5ff0c
+Final-I.2: Completed and accepted on 2026-09-29 at 6451cb705d972c83a771a9ff39f6da80d130cf58
+Final-I.3: Completed and accepted on 2026-09-29 at 8c5a9186e392f35bdbc998f463c5c3c6cd0be295
+Final-I.5: Next / Not started
+Final-I.6: Not started
+Final-I.7: Blocked pending official INFILE technical documentation + Test credentials
+Final-I.8-Final-I.9: Not started
+Phase 13: Blocked / Not started until Final-I closes
+Record: docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md
+```
+
+Final-I.4 removes long raw action URLs from visible guest-facing HTML email body copy while preserving CTA button destinations and labeled text/plain URLs. Guest-facing cleanup covers arrival instructions map links, review invitation private links, additional-charge payment links, and lifecycle date-change/stay-extension payment links.
+
+Admin/internal visible fallback URLs remain intentionally preserved for additional-charge Admin emails and lifecycle adjustment Admin delivery-status emails. Reservation-confirmed email remains a no-action-url control. No CTA destination, token, expiry behavior, routing, recipient, subject, delivery retry, schema, migration, dependency, environment variable, scheduler, Production resource, FEL, Final-I.5+, or Phase 13 behavior was introduced.
+
+Validation executed for I.4: `npm run final-i:validate` PASS 29/29, `npm run final-f:validate` PASS 125/125, `npm run final-h:validate` PASS 20/20, `npm run env:validate` PASS, `npm run db:validate` PASS, `npm run db:generate` PASS, `npm run db:migrate:status` PASS with 29 migrations and schema up to date, `npm run lint` PASS, `npm run build` PASS, `npm audit --omit=dev` PASS with 0 vulnerabilities, and `git diff --check` PASS. Sandbox-limited first attempts for tsx/env, `db:migrate:status`, audit, and build were rerun outside the sandbox as recorded in docs/212.
 ## 2026-09-29 — Final-I.3 Completed and Accepted
 
 ```text
@@ -1841,8 +1869,8 @@ Status: Completed and accepted on 2026-09-29
 Final-I.1: Completed and accepted on 2026-09-29 at 9a15f349c1104671f5555d1988caa56756e5ff0c
 Final-I.2: Completed and accepted on 2026-09-29 at 6451cb705d972c83a771a9ff39f6da80d130cf58
 Accepted Final-I.3 head: 8c5a9186e392f35bdbc998f463c5c3c6cd0be295
-Final-I.4: Next / Not started
-Final-I.5-Final-I.6: Not started
+Forward scope after I.3 closure: Final-I.4 guest-facing email visible-URL cleanup (historical planning note; current I.4 status is tracked in the current status blocks)
+Final-I.5-Final-I.6: Not started at I.3 closure
 Final-I.7: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8-Final-I.9: Not started
 Phase 13: Blocked / Not started until Final-I closes
@@ -1859,9 +1887,7 @@ Owner Hosted validation completed on 2026-09-29 and owner acceptance was explici
 
 Validation executed for I.3: `npm run final-i:validate` PASS 22/22, `npm run final-f:validate` PASS 125/125, `npm run final-h:validate` PASS 20/20, `npm run env:validate` PASS, `npm run db:validate` PASS, `npm run db:generate` PASS, `npm run db:migrate:status` PASS with 29 migrations and schema up to date, `npm run lint` PASS, `npm run build` PASS, `npm audit --omit=dev` PASS with 0 vulnerabilities. The accepted mobile/PWA scroll-refinement validation later recorded `npm run final-i:validate` PASS 23/23. This documentation-only closure preserves that accepted evidence and runs only the closure-specific documentation gates.
 
-Final-I.4 is prepared as the next subphase and is not started. Its planned scope is guest-facing HTML email visible-URL cleanup: remove long raw action URLs from visible HTML body copy while preserving CTA button destinations and preserving labeled URLs in text/plain email.
-
-No schema, migration, dependency, environment, scheduler, Production, FEL, Final-I.4+, Final-G/H reopening, or Phase 13 work was introduced.
+At the I.3 closure, Final-I.4 was prepared as the next scoped guest-facing email visible-URL cleanup. No schema, migration, dependency, environment, scheduler, Production, FEL, Final-I.4+, Final-G/H reopening, or Phase 13 work was introduced by Final-I.3.
 ## 2026-09-29 — Final-I.2 Completed and Accepted
 
 ```text
@@ -1872,8 +1898,9 @@ Status: Completed and accepted on 2026-09-29
 Accepted Final-I.1 head: 9a15f349c1104671f5555d1988caa56756e5ff0c
 Final-I.2: Completed and accepted on 2026-09-29 at 6451cb705d972c83a771a9ff39f6da80d130cf58
 Final-I.3: Completed and accepted on 2026-09-29 at 8c5a9186e392f35bdbc998f463c5c3c6cd0be295
-Final-I.4: Next / Not started
-Final-I.5-Final-I.6: Not started
+Final-I.4: Implementation completed; Hosted owner validation + acceptance pending
+Final-I.5: Next / Not started
+Final-I.6: Not started
 Final-I.7: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8-Final-I.9: Not started
 Phase 13: Blocked / Not started until Final-I closes
@@ -1882,4 +1909,4 @@ Record: docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-ro
 
 Final-I.1 suppresses Zoho inbound notifications for TRP-origin email sent from the exact active correspondence domain or exact active transactional sending domain. The webhook still verifies signatures, parses Limited Data, preserves accepted recipient filtering, and processes external guest replies normally. Owner Hosted validation confirmed that TRP-generated reservation/admin email does not create a false `GUEST_EMAIL_RECEIVED` push or notification-center row, while genuine external email still creates `GUEST_EMAIL_RECEIVED`, delivers Android Web Push, and appears in `/admin/notifications`.
 
-Final-I.2 removes stale public/admin future-phase UI copy without changing schema, migrations, dependencies, environment variables, scheduler configuration, Production resources, notification accordion behavior, or guest email URL behavior. The final black Home CTA and unused component/localization keys were removed; Home hero/benefit/trust copy now reflects current direct booking and Tilopay behavior; property-detail, reservation-request, pending-hold, negative-date-difference, preparation-buffer, admin-photo deletion, and the remaining Phase 11.4 cancellation warning no longer describe completed behavior as a future phase. Focused Final-I tests now cover the cleanup and preserve legitimate temporal copy such as "Próximas llegadas" / "Upcoming arrivals" and "Próximo intento" / "Next attempt". Owner visual validation passed on 2026-09-29 for Home, public reservation flow, admin accommodations, and admin cancellation copy; Final-I.3 is completed and accepted on 2026-09-29 at accepted head 8c5a9186e392f35bdbc998f463c5c3c6cd0be295; Final-I.4 is next and not started.
+Final-I.2 removes stale public/admin future-phase UI copy without changing schema, migrations, dependencies, environment variables, scheduler configuration, Production resources, notification accordion behavior, or guest email URL behavior. The final black Home CTA and unused component/localization keys were removed; Home hero/benefit/trust copy now reflects current direct booking and Tilopay behavior; property-detail, reservation-request, pending-hold, negative-date-difference, preparation-buffer, admin-photo deletion, and the remaining Phase 11.4 cancellation warning no longer describe completed behavior as a future phase. Focused Final-I tests now cover the cleanup and preserve legitimate temporal copy such as "Próximas llegadas" / "Upcoming arrivals" and "Próximo intento" / "Next attempt". Owner visual validation passed on 2026-09-29 for Home, public reservation flow, admin accommodations, and admin cancellation copy; Final-I.3 is completed and accepted on 2026-09-29 at accepted head 8c5a9186e392f35bdbc998f463c5c3c6cd0be295; Final-I.4 implementation is completed; Hosted owner validation + acceptance pending.

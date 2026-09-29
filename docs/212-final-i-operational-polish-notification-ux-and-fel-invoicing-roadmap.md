@@ -17,8 +17,8 @@ Final-I.2 status: Completed and accepted on 2026-09-29
 Accepted Final-I.2 head: 6451cb705d972c83a771a9ff39f6da80d130cf58
 Final-I.3 status: Completed and accepted on 2026-09-29
 Accepted Final-I.3 head: 8c5a9186e392f35bdbc998f463c5c3c6cd0be295
-Final-I.4 status: Next / Not started
-Final-I.5 status: Not started
+Final-I.4 status: Implementation completed; Hosted owner validation + acceptance pending
+Final-I.5 status: Next / Not started
 Final-I.6 status: Not started
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started
@@ -26,7 +26,7 @@ Final-I.9 status: Not started
 Phase 13 status: Blocked / Not started until Final-I closes
 ```
 
-Final-I is an owner-requested pre-Production addendum registered after the accepted Final-H closure. It does not rewrite the historical acceptance of Phase 12, Final-A through Final-H, or the complete Post-Phase-12 / Pre-Phase-13 Final Improvement Track at `6922cf27e31e63fde071c0d0a810b141e44b9f90`. Final-I.1 is completed and accepted at its feature head `9a15f349c1104671f5555d1988caa56756e5ff0c`, and Final-I.2 is completed and accepted at `6451cb705d972c83a771a9ff39f6da80d130cf58`; Final-I.3 is completed and accepted on 2026-09-29 at accepted head `8c5a9186e392f35bdbc998f463c5c3c6cd0be295` after Hosted owner validation of the desktop, Android mobile browser, Android standalone PWA, Push deep-link, and final mobile/PWA auto-scroll refinement. This documentation-only closure does not replace the accepted Final-I.3 feature head. Phase 13 remains not started and is blocked until Final-I closes and receives owner acceptance.
+Final-I is an owner-requested pre-Production addendum registered after the accepted Final-H closure. It does not rewrite the historical acceptance of Phase 12, Final-A through Final-H, or the complete Post-Phase-12 / Pre-Phase-13 Final Improvement Track at `6922cf27e31e63fde071c0d0a810b141e44b9f90`. Final-I.1 is completed and accepted at its feature head `9a15f349c1104671f5555d1988caa56756e5ff0c`, and Final-I.2 is completed and accepted at `6451cb705d972c83a771a9ff39f6da80d130cf58`; Final-I.3 is completed and accepted on 2026-09-29 at accepted head `8c5a9186e392f35bdbc998f463c5c3c6cd0be295` after Hosted owner validation of the desktop, Android mobile browser, Android standalone PWA, Push deep-link, and final mobile/PWA auto-scroll refinement. Final-I.4 implementation is completed with Hosted owner validation and acceptance pending. Phase 13 remains not started and is blocked until Final-I closes and receives owner acceptance.
 
 ## Subphase Structure
 
@@ -169,7 +169,7 @@ Final-I.2 reviewed each stale candidate for reachability before removing it. Unu
 
 ## Final-I.3 Accepted Scope And Hosted Validation
 
-Final-I.3 is completed and accepted on 2026-09-29 at accepted feature head `8c5a9186e392f35bdbc998f463c5c3c6cd0be295`. Final Hosted owner validation passed across desktop browser, Android Chrome browser, Android standalone PWA, Push deep-link behavior, and the final mobile/PWA deep-link auto-scroll refinement. Final-I.4 is the next subphase and is not started.
+Final-I.3 is completed and accepted on 2026-09-29 at accepted feature head `8c5a9186e392f35bdbc998f463c5c3c6cd0be295`. Final Hosted owner validation passed across desktop browser, Android Chrome browser, Android standalone PWA, Push deep-link behavior, and the final mobile/PWA deep-link auto-scroll refinement. Final-I.4 implementation is completed; Hosted owner validation and acceptance remain pending.
 
 Accepted responsive behavior:
 
@@ -238,15 +238,32 @@ Accepted targeted retrieval contract:
 - no public notification lookup endpoint was introduced
 ```
 
-## Final-I.4 Prepared Scope - Not Started
+## Final-I.4 Implementation Scope - Hosted Owner Validation Pending
 
-Final-I.4 will remove long raw URLs visibly printed inside guest-facing HTML email bodies because they cause mobile email clients to zoom/reflow poorly. CTA buttons must remain, and text/plain email must keep labeled URLs because plaintext clients have no styled button.
+Final-I.4 removes long raw action URLs visibly printed inside guest-facing HTML email bodies because those URLs can cause mobile email clients to zoom/reflow poorly. CTA buttons remain the HTML action surface, and text/plain email keeps labeled URLs because plaintext clients have no styled button.
 
-Final-I.4 must audit guest-facing templates under `emails/**` and `lib/email/**`, including reservation confirmation, arrival instructions, review invitation, additional-charge payment, lifecycle adjustment payment, payment/retry links, private guest-facing reservation/payment URLs, and any other currently sent guest-facing email. Admin/internal emails should be audited but not broadened unless a shared guest component requires a clean split.
+Implemented guest-facing cleanup:
 
-Final-I.4 is presentation-only. It must preserve React Email, `@react-email/render`, `EmailLayout`, `EmailButton`, `EmailParagraph`, localization architecture, CTA `href` values, payment/reservation/review tokens, guest access URLs, expiry behavior, routing, recipients, subjects, and the email notification retry pipeline. No schema, migration, dependency, environment, scheduler, API, Production resource, FEL implementation, or Phase 13 work is expected.
+```text
+- Arrival instructions: map CTA href preserved; visible raw map URL removed from the HTML body.
+- Review invitation: review CTA href preserved; visible raw private review URL removed from the HTML body.
+- Additional-charge payment request: payment CTA href preserved; visible raw private payment URL removed from the guest HTML body.
+- Lifecycle date-change and stay-extension payment requests: payment CTA href preserved; visible raw private payment URL removed from the guest HTML body.
+```
 
-Final-I.4 tests should distinguish URL presence in HTML `href` attributes from forbidden visible text nodes, and should verify for Spanish and English that HTML CTA destinations are preserved, visible raw action URLs are absent, plaintext URLs remain visible, rendering does not throw, brand layout remains, and no CTA destination changes.
+Preserved behavior:
+
+```text
+- HTML CTA `href` destinations remain unchanged.
+- Text/plain email continues to include labeled action URLs for plaintext clients.
+- Payment, reservation, review, and map URLs/tokens remain unchanged.
+- Expiry behavior, routing, recipients, subjects, delivery/retry pipeline, React Email, `@react-email/render`, `EmailLayout`, `EmailButton`, localization architecture, and brand layout remain unchanged.
+- Admin/internal visible URL fallbacks remain available, including additional-charge Admin reservation links and lifecycle adjustment Admin delivery-status emails.
+```
+
+The email audit covered `emails/**` and `lib/email/**`. Reservation-confirmed email remains a no-action-url control. Final-I.4 is presentation-only and introduced no schema, migration, dependency, environment, scheduler, API, Production resource, FEL implementation, or Phase 13 work.
+
+Final-I.4 tests distinguish URL presence in HTML `href` attributes from forbidden visible text nodes, verify Spanish and English guest emails, preserve plaintext URLs, and include Admin regression coverage for shared templates where visible fallback URLs are still intentional.
 
 Final-I.5 through Final-I.8 define FEL direction without inventing provider specifics:
 
@@ -293,9 +310,9 @@ Unresolved FEL/INFILE questions remain carried forward:
 
 ```text
 - Phase 13 remains blocked / not started until Final-I closes.
-- No Production provider account, credential, DNS cutover, payment credential, database, media account, WhatsApp sender, FEL account, or public go-live is introduced by Final-I.1, Final-I.2, or Final-I.3.
-- No schema, migration, dependency, environment variable, scheduler, AdminNotificationType, Production, Final-I.4+, FEL, Final-G/H reopening, or Phase 13 work is part of Final-I.3.
-- Final-I.4 is prepared only as the next scope and is not started by this closure.
+- No Production provider account, credential, DNS cutover, payment credential, database, media account, WhatsApp sender, FEL account, or public go-live is introduced by Final-I.1 through Final-I.4.
+- No schema, migration, dependency, environment variable, scheduler, AdminNotificationType, Production, Final-I.5+, FEL, Final-G/H reopening, or Phase 13 work is part of Final-I.4.
+- Final-I.5 is the next subphase and remains Not started until explicitly requested.
 - Existing Final-F.7 Zoho webhook signature verification, bootstrap behavior, Limited Data parsing, bounded persistence, notification-center serialization, and immediate Web Push delivery remain preserved.
 - `vercel.json` remains `{ "crons": [] }`.
 ```
@@ -339,6 +356,18 @@ Final-I.3 mobile/PWA deep-link auto-scroll refinement validation:
 Final-I.3 documentation closure validation:
 - npm run final-i:validate - PASS, 23/23; initial sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM before the escalated rerun passed
 - git diff --check - PASS; Windows CRLF normalization warnings only
+Final-I.4 implementation validation:
+- npm run final-i:validate - PASS, 29/29; initial sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM before the escalated rerun passed
+- npm run final-f:validate - PASS, 125/125
+- npm run final-h:validate - PASS, 20/20
+- npm run env:validate - PASS; initial sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM before the escalated rerun passed
+- npm run db:validate - PASS; Prisma package.json#prisma deprecation warning only
+- npm run db:generate - PASS; Prisma package.json#prisma deprecation warning and Prisma major-version update notice only
+- npm run db:migrate:status - PASS, 29 migrations, database schema is up to date; initial sandbox run returned Schema engine error before the escalated rerun passed
+- npm run lint - PASS
+- npm run build - PASS; initial sandbox run failed to fetch Google Fonts for next/font before the escalated rerun passed; Next slow filesystem warning only
+- npm audit --omit=dev - PASS, 0 vulnerabilities; initial sandbox run could not reach the audit endpoint/cache before the escalated rerun passed
+- git diff --check - PASS
 ```
 
 ## Final-I.1 Hosted Owner Validation Completed
@@ -395,7 +424,7 @@ Final mobile/PWA scroll refinement:
 - later manual accordion changes do not trigger forced scrolling
 ```
 
-Final-I.4 is Next / Not started.
+Final-I.4 implementation is completed; Hosted owner validation + acceptance pending.
 
 ## Final-I.2 Hosted Owner Visual Validation Completed
 
@@ -425,4 +454,4 @@ Admin cancellation:
 - cancellation/refund separation explained as current behavior
 ```
 
-Final-I.1 is completed and accepted on 2026-09-29 at accepted head `9a15f349c1104671f5555d1988caa56756e5ff0c`. Final-I.2 is completed and accepted on 2026-09-29 at accepted head `6451cb705d972c83a771a9ff39f6da80d130cf58`. Final-I.3 is completed and accepted on 2026-09-29 at accepted head `8c5a9186e392f35bdbc998f463c5c3c6cd0be295`. Final-I.4 is Next / Not started.
+Final-I.1 is completed and accepted on 2026-09-29 at accepted head `9a15f349c1104671f5555d1988caa56756e5ff0c`. Final-I.2 is completed and accepted on 2026-09-29 at accepted head `6451cb705d972c83a771a9ff39f6da80d130cf58`. Final-I.3 is completed and accepted on 2026-09-29 at accepted head `8c5a9186e392f35bdbc998f463c5c3c6cd0be295`. Final-I.4 implementation is completed; Hosted owner validation + acceptance pending.

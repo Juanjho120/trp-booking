@@ -1,3 +1,5 @@
+import React from "react";
+
 import {
   EmailButton,
   EmailDetailRow,
@@ -62,9 +64,6 @@ export async function buildReviewInvitationEmail(
       <EmailButton href={view.reviewUrl}>
         {messages.reviewInvitation.actionLabel}
       </EmailButton>
-      <EmailParagraph>
-        {messages.reviewInvitation.actionFallback} {view.reviewUrl}
-      </EmailParagraph>
 
       <EmailSuccessNote>
         {messages.reviewInvitation.securityNote}

@@ -1,3 +1,5 @@
+import React from "react";
+
 import {
   EmailButton,
   EmailDetailRow,
@@ -112,9 +114,6 @@ export async function buildArrivalInstructionsEmail(
             <EmailButton href={view.mapUrl}>
               {messages.arrivalInstructions.mapActionLabel}
             </EmailButton>
-            <EmailParagraph>
-              {messages.arrivalInstructions.mapActionFallback} {view.mapUrl}
-            </EmailParagraph>
           </>
         ) : null}
       </EmailSection>

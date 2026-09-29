@@ -1317,8 +1317,9 @@ Final-I.2 — Legacy/future-phase UI and copy cleanup — Completed and accepted
 Final-I.2 accepted head — 6451cb705d972c83a771a9ff39f6da80d130cf58
 Final-I.3 — Admin notification-center desktop simplification + single accordion + Push deep-link — Completed and accepted on 2026-09-29
 Final-I.3 accepted head — 8c5a9186e392f35bdbc998f463c5c3c6cd0be295
-Final-I.4 — Next / Not started
-Final-I.5-Final-I.6 — Not started
+Final-I.4 — Guest-facing email visible-URL cleanup — Implementation completed; Hosted owner validation + acceptance pending
+Final-I.5 — Next / Not started
+Final-I.6 — Not started
 Final-I.7 — Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8-Final-I.9 — Not started
 Final-I record — docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md
