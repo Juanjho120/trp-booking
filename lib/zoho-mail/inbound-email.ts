@@ -113,6 +113,12 @@ function correspondenceDomainFor(trpEnvironment: TrpEnvironment): string {
     : environmentConfig.test.correspondenceDomain;
 }
 
+function sendingDomainFor(trpEnvironment: TrpEnvironment): string {
+  return trpEnvironment === "production"
+    ? environmentConfig.production.sendingDomain
+    : environmentConfig.test.sendingDomain;
+}
+
 function emailDomainFor(address: string): string {
   const parts = address.trim().toLowerCase().split("@");
 
@@ -137,6 +143,15 @@ export function getAcceptedZohoMailRecipientAddresses(
   ];
 }
 
+export function getInternalZohoMailSenderDomains(
+  trpEnvironment: TrpEnvironment,
+): readonly string[] {
+  return [
+    correspondenceDomainFor(trpEnvironment),
+    sendingDomainFor(trpEnvironment),
+  ];
+}
+
 export function isAcceptedZohoMailRecipient(
   input: Readonly<{
     toAddresses: readonly string[];
@@ -158,10 +173,11 @@ export function isInternalZohoMailSender(
     trpEnvironment: TrpEnvironment;
   }>,
 ): boolean {
-  const domain = getAcceptedZohoMailRecipientDomain(input.trpEnvironment);
   const senderDomain = emailDomainFor(input.fromAddress);
 
-  return senderDomain === domain;
+  return getInternalZohoMailSenderDomains(input.trpEnvironment).includes(
+    senderDomain,
+  );
 }
 
 export function fingerprintZohoMailLimitedDataRawBody(rawBody: string): string {

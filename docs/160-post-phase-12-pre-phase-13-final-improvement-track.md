@@ -5,13 +5,13 @@
 ```text
 Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
-Status: Completed and accepted on 2026-09-29 — Final-A, Final-B, Final-C, Final-D and Final-E completed and accepted; Final-F is completed and accepted on 2026-09-28 at 13f0e0cf6904e34155dd754230f320ca6c214141 under accepted Final-F.R3 architecture rebaseline; Final-F.1 through Final-F.4 are completed and accepted; Final-F.5 Twilio-based implementation is completed at 551199a3e562be7c7fd9861760c3e38cafbf0b15 but superseded before owner acceptance by R1; Final-F.R1 is completed and accepted historically on 2026-09-23 at 4c94db87ebd9df225944ce76c78f98462e4755d1 but superseded for future target decisions by R3; Final-F.R2 implementation is completed but superseded before owner acceptance by R3; Final-F.R3 is completed and accepted on 2026-09-24 at be80af9b36f285c7669986e9c9b4d6676042f6f0; Final-F.R4 is completed and accepted on 2026-09-25 at ae0db63efdabfa3bc952a8a2a71220de231ebc18; Final-F.R5 is completed and accepted on 2026-09-25 at 88616acf46645ccc01cc475f20a868d7c18dbadf; Final-F.6 is completed and accepted on 2026-09-25 at 13e9249f54899de0863cdd6ab8747337319df3e5; Final-F.7 is completed and accepted on 2026-09-28 at 3d32a5f2320f81ef08387f82cdf9157202c8cf95; Final-F.8 completed and accepted on 2026-09-28 at 13f0e0cf6904e34155dd754230f320ca6c214141; Final-G is completed and accepted on 2026-09-28 at accepted package head be8445a2c73a710e451da608fd9e669f8f412ab3 with Final-G.1 — Performance audit, reproducible baseline and evidence-based optimization strategy — Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf; Final-G.2 is completed and accepted on 2026-09-28 at accepted feature head ecafa2f95314fe485b1e1cc2d6372c40f076964a, with Hosted evidence head c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60; Final-G.3 is completed and accepted on 2026-09-28 at e3bcc9709a355b2ce0c6284461f0f4249ad60a5e; Final-G.4 — Completed and accepted on 2026-09-28 at 7090701b2dc37f4cbd6490f250984b6db9d53a58; Final-G.5 — Completed and accepted on 2026-09-28 at be8445a2c73a710e451da608fd9e669f8f412ab3; Final-H and the complete Final Improvement Track are completed and accepted on 2026-09-29 at 6922cf27e31e63fde071c0d0a810b141e44b9f90; Phase 13 is Next / Not started
+Status: Completed and accepted on 2026-09-29 — Final-A, Final-B, Final-C, Final-D and Final-E completed and accepted; Final-F is completed and accepted on 2026-09-28 at 13f0e0cf6904e34155dd754230f320ca6c214141 under accepted Final-F.R3 architecture rebaseline; Final-F.1 through Final-F.4 are completed and accepted; Final-F.5 Twilio-based implementation is completed at 551199a3e562be7c7fd9861760c3e38cafbf0b15 but superseded before owner acceptance by R1; Final-F.R1 is completed and accepted historically on 2026-09-23 at 4c94db87ebd9df225944ce76c78f98462e4755d1 but superseded for future target decisions by R3; Final-F.R2 implementation is completed but superseded before owner acceptance by R3; Final-F.R3 is completed and accepted on 2026-09-24 at be80af9b36f285c7669986e9c9b4d6676042f6f0; Final-F.R4 is completed and accepted on 2026-09-25 at ae0db63efdabfa3bc952a8a2a71220de231ebc18; Final-F.R5 is completed and accepted on 2026-09-25 at 88616acf46645ccc01cc475f20a868d7c18dbadf; Final-F.6 is completed and accepted on 2026-09-25 at 13e9249f54899de0863cdd6ab8747337319df3e5; Final-F.7 is completed and accepted on 2026-09-28 at 3d32a5f2320f81ef08387f82cdf9157202c8cf95; Final-F.8 completed and accepted on 2026-09-28 at 13f0e0cf6904e34155dd754230f320ca6c214141; Final-G is completed and accepted on 2026-09-28 at accepted package head be8445a2c73a710e451da608fd9e669f8f412ab3 with Final-G.1 — Performance audit, reproducible baseline and evidence-based optimization strategy — Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf; Final-G.2 is completed and accepted on 2026-09-28 at accepted feature head ecafa2f95314fe485b1e1cc2d6372c40f076964a, with Hosted evidence head c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60; Final-G.3 is completed and accepted on 2026-09-28 at e3bcc9709a355b2ce0c6284461f0f4249ad60a5e; Final-G.4 — Completed and accepted on 2026-09-28 at 7090701b2dc37f4cbd6490f250984b6db9d53a58; Final-G.5 — Completed and accepted on 2026-09-28 at be8445a2c73a710e451da608fd9e669f8f412ab3; Final-H and the complete Final Improvement Track are completed and accepted on 2026-09-29 at 6922cf27e31e63fde071c0d0a810b141e44b9f90; Final-I addendum registered on 2026-09-29 at 950ff5e6948fb2a74cda03f81efdb7c676b33c73 and is Active; Phase 13 is Blocked / Not started until Final-I closes
 Registration date: 2026-08-11
 Registration base head: dac105088d2c46be05a900abed3dfe83e608e964
 Previous gate: Phase 12 — Completed and accepted
 Previous authoritative closure: docs/159-phase-12.10-phase-12-validation-and-closure.md
-Next numbered phase: Phase 13 — Production Infrastructure, Deployment & Go-Live — Next / Not started
-Phase 13 activation: eligible to be planned only when explicitly requested; Phase 13 remains Next / Not started
+Next numbered phase: Phase 13 — Production Infrastructure, Deployment & Go-Live — Blocked / Not started until Final-I closes
+Phase 13 activation: blocked until Final-I closes and is accepted; Phase 13 remains Not started
 ```
 
 ## Purpose
@@ -19,7 +19,7 @@ Phase 13 activation: eligible to be planned only when explicitly requested; Phas
 Complete one final owner-approved improvement round before Production without reopening Phase 12
 and without silently starting Phase 13.
 
-The track addresses seven owner-requested areas:
+The accepted Final-A through Final-H track addressed seven owner-requested areas. The Final-I addendum adds operational polish, notification UX, and FEL invoicing preparation before Phase 13:
 
 ```text
 1. Admin-managed Airbnb iCal configuration and TRP outbound feed copy/rotation.
@@ -38,7 +38,7 @@ before new pricing and charge behavior is added.
 
 ```text
 - Phase 12 remains closed.
-- Phase 13 remains Next / Not started.
+- Phase 13 remains Blocked / Not started until Final-I closes.
 - Test remains TRP_ENVIRONMENT=test.
 - Test Vercel scheduler registration remains disabled.
 - No Production provider account, credential, DNS cutover, payment credential, database,
@@ -63,6 +63,7 @@ Final-E — Reservation reviews and post-checkout invitation
 Final-F — Public WhatsApp Contact and Admin Notifications
 Final-G — Performance audit and optimization
 Final-H — Integrated regression and final improvement-track closure
+Final-I — Operational Polish, Notification UX & FEL Invoicing
 ```
 
 The order is intentional:
@@ -74,7 +75,7 @@ Final-B is operationally independent and can follow the financial correction saf
 Final-E reuses the existing reservation/email/cron foundation.
 Final-F introduces public guest communication through direct WhatsApp Business App contact and internal ADMIN operational notifications through existing email plus Android Web Push.
 Final-G optimizes the final feature set instead of optimizing an intermediate state.
-Final-H is the last gate before Phase 13 may be planned.
+Final-H was the accepted closure gate. Final-I is now the active owner-requested addendum before Phase 13 may be planned.
 ```
 
 ## Cross-Track Performance Baseline
@@ -1311,6 +1312,12 @@ Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Completed and accepted 
 Last completed package — Final-H Integrated final improvement-track regression and pre-Production closure — Completed and accepted on 2026-09-29 at 6922cf27e31e63fde071c0d0a810b141e44b9f90
 Accepted Final-H head — 6922cf27e31e63fde071c0d0a810b141e44b9f90
 Accepted complete-track head — 6922cf27e31e63fde071c0d0a810b141e44b9f90
+Final-I — Operational Polish, Notification UX & FEL Invoicing — Active; registration date 2026-09-29; registration base 950ff5e6948fb2a74cda03f81efdb7c676b33c73
+Final-I.1 — Zoho internal-email suppression and notification-loop correction — Implementation completed; Hosted owner validation + acceptance pending
+Final-I.2-Final-I.6 — Not started
+Final-I.7 — Blocked pending official INFILE technical documentation + Test credentials
+Final-I.8-Final-I.9 — Not started
+Final-I record — docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md
 Previous completed package — Final-G Performance audit and optimization — Completed and accepted on 2026-09-28 at be8445a2c73a710e451da608fd9e669f8f412ab3
 Previous accepted subphase — Final-G.5 Hosted comparison, permanent performance evidence and Final-G closure — Completed and accepted on 2026-09-28 at be8445a2c73a710e451da608fd9e669f8f412ab3
 Final-G.1 status — Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf
@@ -1510,7 +1517,7 @@ Final-F.7 — Zoho incoming-email bounded metadata + GUEST_EMAIL_RECEIVED Admin 
 Final-F.8 — Android PWA/Web Push integrated regression, public WhatsApp contact acceptance and Final-F documentation closure — Completed and accepted on 2026-09-28 at 13f0e0cf6904e34155dd754230f320ca6c214141
 Final-G — Completed and accepted on 2026-09-28 at be8445a2c73a710e451da608fd9e669f8f412ab3; Final-G.1 completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf; Final-G.2 completed and accepted on 2026-09-28 at ecafa2f95314fe485b1e1cc2d6372c40f076964a; Hosted evidence head c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60; Final-G.3 completed and accepted on 2026-09-28 at e3bcc9709a355b2ce0c6284461f0f4249ad60a5e; Final-G.4 — Completed and accepted on 2026-09-28 at 7090701b2dc37f4cbd6490f250984b6db9d53a58; Final-G.5 — Completed and accepted on 2026-09-28 at be8445a2c73a710e451da608fd9e669f8f412ab3; records: docs/206-final-g-1-performance-audit-baseline-and-strategy.md; docs/207-final-g-2-public-server-data-cache-corrections.md; docs/208-final-g-3-client-hydration-and-image-path-corrections.md; docs/209-final-g-4-admin-query-timing-and-protected-route-corrections.md; docs/210-final-g-5-hosted-final-comparison-integrated-regression-and-final-g-closure.md
 Final-H — Completed and accepted on 2026-09-29 at 6922cf27e31e63fde071c0d0a810b141e44b9f90
-Phase 13 — Next / Not started
+Phase 13 — Blocked / Not started until Final-I closes
 ```
 
 ## Working Rule for This Track

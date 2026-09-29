@@ -21,7 +21,7 @@ The stable test domain is:
 trp-booking.juantzun.dev
 ```
 
-As of 2026-09-29, Phase 12 — Test Deployment & External Integration Validation — is completed and accepted. The stable HTTPS Test deployment at `trp-booking.juantzun.dev` remains `TRP_ENVIRONMENT=test` on the developer-owned stack with zero Vercel scheduler registrations. The Post-Phase-12 / Pre-Phase-13 Final Improvement Track is completed and accepted on 2026-09-29: Final-A — reservation financial correctness and effective stay value — is completed and accepted, including its 44/44 integrated regression gate; Final-B — admin external-calendar integrations — is completed and accepted at `1fe06de8c55ab1563999b2db1d210bfc9a82c613`, including its permanent 38/38 regression gate and controlled three-property Hosted Test acceptance; Final-C — pricing rules: seasonal and length-of-stay — is completed and accepted on 2026-08-28 at accepted feature head `dca50f51abe1836d3b678b762693219143b12099`, including its permanent 41/41 Final-C regression gate, three-property pricing isolation, public/pending-reservation pricing integration, DATE_CHANGE/STAY_EXTENSION integration, accepted pricing evidence, and final admin/public/email pricing UX refinements. Final-D — additional charges and guest payment requests — is completed and accepted on 2026-09-18 at accepted feature head `fd75663bb28be8a95b15c341eaa51f74e521241b`, including the permanent `npm run final-d:validate` regression gate accepted at 66/66. Final-E — Reservation reviews and post-checkout invitation — is completed and accepted on 2026-09-21 at `3843a6637300201bcb44b7ed235952afda02d880`, including `npm run final-e:validate` at 88/88 accepted. Final-F — Public WhatsApp Contact and Admin Notifications — is completed and accepted on 2026-09-28 at 13f0e0cf6904e34155dd754230f320ca6c214141 under the accepted Final-F.R3 architecture rebaseline: Final-F.1 through Final-F.4 remain completed and accepted historical work; Final-F.5 Twilio-based implementation remains superseded before owner acceptance by Final-F Architecture Revision R1; Final-F.R1 — 360dialog + Meta Coexistence architecture revision — remains completed and accepted historical architecture work at `4c94db87ebd9df225944ce76c78f98462e4755d1` but is superseded for future target decisions by R3; Final-F.R2 implementation completed at `4e5d7dee3444dfbb427468a1c2ebbf6a94b70e5c` with hardening at `26e197c851e6305b848eb9da76ae1a89912500c5`, but was superseded before owner acceptance by Final-F.R3; Final-F.R3 — Admin Web Push + public WhatsApp architecture rebaseline — is completed and accepted on 2026-09-24 at `be80af9b36f285c7669986e9c9b4d6676042f6f0`; Vercel for that accepted head was SUCCESS. Final-F.R4 — WhatsApp backend/provider decommission, provider/schema cleanup and public floating WhatsApp contact — is completed and accepted on 2026-09-25 at `ae0db63efdabfa3bc952a8a2a71220de231ebc18`; Vercel and owner Hosted Test passed. Final-F.R5 is completed and accepted on 2026-09-25 at 88616acf46645ccc01cc475f20a868d7c18dbadf. Final-F.6 is completed and accepted on 2026-09-25 at `13e9249f54899de0863cdd6ab8747337319df3e5`. Final-F.7 is completed and accepted on 2026-09-28 at 3d32a5f2320f81ef08387f82cdf9157202c8cf95; Final-F.8 completed and accepted on 2026-09-28 at 13f0e0cf6904e34155dd754230f320ca6c214141. Final-G is completed and accepted on 2026-09-28 at accepted package head be8445a2c73a710e451da608fd9e669f8f412ab3 with Final-G.1 — Performance audit, reproducible baseline and evidence-based optimization strategy — Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf; Final-G.2 is completed and accepted on 2026-09-28 at accepted feature head ecafa2f95314fe485b1e1cc2d6372c40f076964a, with Hosted evidence head c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60; Final-G.3 is completed and accepted on 2026-09-28 at e3bcc9709a355b2ce0c6284461f0f4249ad60a5e; Final-G.4 — Completed and accepted on 2026-09-28 at 7090701b2dc37f4cbd6490f250984b6db9d53a58; Final-G.5 — Completed and accepted on 2026-09-28 at be8445a2c73a710e451da608fd9e669f8f412ab3; Final-H and the complete Final Improvement Track are completed and accepted on 2026-09-29 at 6922cf27e31e63fde071c0d0a810b141e44b9f90. Phase 13 — Production Infrastructure, Deployment & Go-Live — is Next / Not started and must not begin until explicitly requested.
+As of 2026-09-29, Phase 12 — Test Deployment & External Integration Validation — is completed and accepted. The stable HTTPS Test deployment at `trp-booking.juantzun.dev` remains `TRP_ENVIRONMENT=test` on the developer-owned stack with zero Vercel scheduler registrations. The Post-Phase-12 / Pre-Phase-13 Final Improvement Track is completed and accepted on 2026-09-29: Final-A — reservation financial correctness and effective stay value — is completed and accepted, including its 44/44 integrated regression gate; Final-B — admin external-calendar integrations — is completed and accepted at `1fe06de8c55ab1563999b2db1d210bfc9a82c613`, including its permanent 38/38 regression gate and controlled three-property Hosted Test acceptance; Final-C — pricing rules: seasonal and length-of-stay — is completed and accepted on 2026-08-28 at accepted feature head `dca50f51abe1836d3b678b762693219143b12099`, including its permanent 41/41 Final-C regression gate, three-property pricing isolation, public/pending-reservation pricing integration, DATE_CHANGE/STAY_EXTENSION integration, accepted pricing evidence, and final admin/public/email pricing UX refinements. Final-D — additional charges and guest payment requests — is completed and accepted on 2026-09-18 at accepted feature head `fd75663bb28be8a95b15c341eaa51f74e521241b`, including the permanent `npm run final-d:validate` regression gate accepted at 66/66. Final-E — Reservation reviews and post-checkout invitation — is completed and accepted on 2026-09-21 at `3843a6637300201bcb44b7ed235952afda02d880`, including `npm run final-e:validate` at 88/88 accepted. Final-F — Public WhatsApp Contact and Admin Notifications — is completed and accepted on 2026-09-28 at 13f0e0cf6904e34155dd754230f320ca6c214141 under the accepted Final-F.R3 architecture rebaseline: Final-F.1 through Final-F.4 remain completed and accepted historical work; Final-F.5 Twilio-based implementation remains superseded before owner acceptance by Final-F Architecture Revision R1; Final-F.R1 — 360dialog + Meta Coexistence architecture revision — remains completed and accepted historical architecture work at `4c94db87ebd9df225944ce76c78f98462e4755d1` but is superseded for future target decisions by R3; Final-F.R2 implementation completed at `4e5d7dee3444dfbb427468a1c2ebbf6a94b70e5c` with hardening at `26e197c851e6305b848eb9da76ae1a89912500c5`, but was superseded before owner acceptance by Final-F.R3; Final-F.R3 — Admin Web Push + public WhatsApp architecture rebaseline — is completed and accepted on 2026-09-24 at `be80af9b36f285c7669986e9c9b4d6676042f6f0`; Vercel for that accepted head was SUCCESS. Final-F.R4 — WhatsApp backend/provider decommission, provider/schema cleanup and public floating WhatsApp contact — is completed and accepted on 2026-09-25 at `ae0db63efdabfa3bc952a8a2a71220de231ebc18`; Vercel and owner Hosted Test passed. Final-F.R5 is completed and accepted on 2026-09-25 at 88616acf46645ccc01cc475f20a868d7c18dbadf. Final-F.6 is completed and accepted on 2026-09-25 at `13e9249f54899de0863cdd6ab8747337319df3e5`. Final-F.7 is completed and accepted on 2026-09-28 at 3d32a5f2320f81ef08387f82cdf9157202c8cf95; Final-F.8 completed and accepted on 2026-09-28 at 13f0e0cf6904e34155dd754230f320ca6c214141. Final-G is completed and accepted on 2026-09-28 at accepted package head be8445a2c73a710e451da608fd9e669f8f412ab3 with Final-G.1 — Performance audit, reproducible baseline and evidence-based optimization strategy — Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf; Final-G.2 is completed and accepted on 2026-09-28 at accepted feature head ecafa2f95314fe485b1e1cc2d6372c40f076964a, with Hosted evidence head c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60; Final-G.3 is completed and accepted on 2026-09-28 at e3bcc9709a355b2ce0c6284461f0f4249ad60a5e; Final-G.4 — Completed and accepted on 2026-09-28 at 7090701b2dc37f4cbd6490f250984b6db9d53a58; Final-G.5 — Completed and accepted on 2026-09-28 at be8445a2c73a710e451da608fd9e669f8f412ab3; Final-H and the complete Final Improvement Track are completed and accepted on 2026-09-29 at 6922cf27e31e63fde071c0d0a810b141e44b9f90. Phase 13 — Production Infrastructure, Deployment & Go-Live — was next after the accepted Final-H closure, but is now Blocked / Not started until the owner-requested Final-I addendum closes.
 
 ## Environment Strategy
 
@@ -73,6 +73,8 @@ TRP_ENVIRONMENT=production
 
 `VERCEL_ENV` remains deployment metadata and must not be used as the only signal for the TRP business environment. The accepted Test site uses the stable domain while remaining `TRP_ENVIRONMENT=test`; a Vercel production deployment target does not make it the TRP Production environment. A documented target URL must never be treated as proof of deployment without explicit validation.
 
+
+Current addendum: Final-I — Operational Polish, Notification UX & FEL Invoicing — is Active as of 2026-09-29 at registration base `950ff5e6948fb2a74cda03f81efdb7c676b33c73`. Final-I.1 implementation is completed with Hosted owner validation + acceptance pending. Final-I.2 through Final-I.6 are Not started; Final-I.7 is Blocked pending official INFILE technical documentation + Test credentials; Final-I.8 and Final-I.9 are Not started. Phase 13 remains Blocked / Not started until Final-I closes.
 Detailed environment ownership, domain, provider-reuse, recipient-routing, and Phase 12/13 separation rules are documented in `docs/89-test-and-production-environment-strategy.md` and `docs/136-phase-12.1-test-deployment-and-environment-strategy.md`.
 
 ## Purpose
@@ -501,7 +503,7 @@ docs/189-final-e-4-review-invitation-scheduling-cron-and-email-delivery.md
 ```text
 Current phase state: Phase 12 — Test Deployment & External Integration Validation — Completed and accepted on 2026-08-11
 Current numbered phase: none active
-Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Completed and accepted on 2026-09-29
+Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Completed and accepted on 2026-09-29; Final-I addendum Active
 Last completed and accepted package: Final-H — Integrated final improvement-track regression and pre-Production closure — Completed and accepted on 2026-09-29 at 6922cf27e31e63fde071c0d0a810b141e44b9f90
 Final-G accepted package head: be8445a2c73a710e451da608fd9e669f8f412ab3
 Permanent Final-G regression gate: npm run final-g:validate — 48/48 accepted.
@@ -510,7 +512,13 @@ Last completed and accepted package: Final-H — Integrated final improvement-tr
 Final-H status: Completed and accepted on 2026-09-29 at 6922cf27e31e63fde071c0d0a810b141e44b9f90
 Accepted Final-H head: 6922cf27e31e63fde071c0d0a810b141e44b9f90
 Accepted complete-track head: 6922cf27e31e63fde071c0d0a810b141e44b9f90
-Phase 13 status: Next / Not started
+Final-I package: Operational Polish, Notification UX & FEL Invoicing — Active; registration date 2026-09-29; registration base 950ff5e6948fb2a74cda03f81efdb7c676b33c73
+Final-I.1 status: Implementation completed; Hosted owner validation + acceptance pending
+Final-I.2-Final-I.6 status: Not started
+Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
+Final-I.8-Final-I.9 status: Not started
+Final-I record: docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md
+Phase 13 status: Blocked / Not started until Final-I closes
 Final-G.1 status: Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf
 Final-G.1 record: docs/206-final-g-1-performance-audit-baseline-and-strategy.md
 Final-G.2 status: Completed and accepted on 2026-09-28
@@ -525,7 +533,13 @@ Last completed and accepted package: Final-H — Integrated final improvement-tr
 Final-H status: Completed and accepted on 2026-09-29 at 6922cf27e31e63fde071c0d0a810b141e44b9f90
 Accepted Final-H head: 6922cf27e31e63fde071c0d0a810b141e44b9f90
 Accepted complete-track head: 6922cf27e31e63fde071c0d0a810b141e44b9f90
-Phase 13 status: Next / Not started
+Final-I package: Operational Polish, Notification UX & FEL Invoicing — Active; registration date 2026-09-29; registration base 950ff5e6948fb2a74cda03f81efdb7c676b33c73
+Final-I.1 status: Implementation completed; Hosted owner validation + acceptance pending
+Final-I.2-Final-I.6 status: Not started
+Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
+Final-I.8-Final-I.9 status: Not started
+Final-I record: docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md
+Phase 13 status: Blocked / Not started until Final-I closes
 Final-G.1 status: Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf
 Final-G.1 record: docs/206-final-g-1-performance-audit-baseline-and-strategy.md
 Final-G.2 status: Completed and accepted on 2026-09-28
@@ -676,7 +690,13 @@ Last completed and accepted package: Final-H — Integrated final improvement-tr
 Final-H status: Completed and accepted on 2026-09-29 at 6922cf27e31e63fde071c0d0a810b141e44b9f90
 Accepted Final-H head: 6922cf27e31e63fde071c0d0a810b141e44b9f90
 Accepted complete-track head: 6922cf27e31e63fde071c0d0a810b141e44b9f90
-Phase 13 status: Next / Not started
+Final-I package: Operational Polish, Notification UX & FEL Invoicing — Active; registration date 2026-09-29; registration base 950ff5e6948fb2a74cda03f81efdb7c676b33c73
+Final-I.1 status: Implementation completed; Hosted owner validation + acceptance pending
+Final-I.2-Final-I.6 status: Not started
+Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
+Final-I.8-Final-I.9 status: Not started
+Final-I record: docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md
+Phase 13 status: Blocked / Not started until Final-I closes
 Final-G.1 status: Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf
 Final-G.1 record: docs/206-final-g-1-performance-audit-baseline-and-strategy.md
 Final-G.2 status: Completed and accepted on 2026-09-28
@@ -691,7 +711,13 @@ Last completed and accepted package: Final-H — Integrated final improvement-tr
 Final-H status: Completed and accepted on 2026-09-29 at 6922cf27e31e63fde071c0d0a810b141e44b9f90
 Accepted Final-H head: 6922cf27e31e63fde071c0d0a810b141e44b9f90
 Accepted complete-track head: 6922cf27e31e63fde071c0d0a810b141e44b9f90
-Phase 13 status: Next / Not started
+Final-I package: Operational Polish, Notification UX & FEL Invoicing — Active; registration date 2026-09-29; registration base 950ff5e6948fb2a74cda03f81efdb7c676b33c73
+Final-I.1 status: Implementation completed; Hosted owner validation + acceptance pending
+Final-I.2-Final-I.6 status: Not started
+Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
+Final-I.8-Final-I.9 status: Not started
+Final-I record: docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md
+Phase 13 status: Blocked / Not started until Final-I closes
 Final-G.1 status: Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf
 Final-G.1 record: docs/206-final-g-1-performance-audit-baseline-and-strategy.md
 Final-G.2 status: Completed and accepted on 2026-09-28
@@ -802,7 +828,7 @@ Phase 12 status: Completed and accepted on 2026-08-11
 Vercel cron registration: intentionally disabled in Test; the Test project may remain on Hobby. Phase 13 owns production-only scheduler activation and recurrence validation through environment-aware Vercel configuration
 Test deployment status: stable HTTPS domain `trp-booking.juantzun.dev` is attached and operational
 Test domain target: https://trp-booking.juantzun.dev
-Phase 13: Production Infrastructure, Deployment & Go-Live — Next / Not started; Production planning/activation requires an explicit owner request
+Phase 13: Production Infrastructure, Deployment & Go-Live — Blocked / Not started until Final-I closes; Production planning/activation requires an explicit owner request after Final-I acceptance
 Pre-Phase-12 Improvement Track status: Completed and accepted — Packages A, B, C, E, and F accepted; Package D remains deferred outside the current gate
 Package F closure: docs/135-pre-phase-12-package-f-integrated-acceptance-closure.md
 ```

@@ -16,7 +16,7 @@ Deferred — Intentionally postponed.
 ```text
 Current phase state: Phase 12 — Test Deployment & External Integration Validation — Completed and accepted on 2026-08-11
 Current numbered phase: none active
-Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Completed and accepted on 2026-09-29
+Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Completed and accepted on 2026-09-29; Final-I addendum Active
 Last completed and accepted package: Final-H — Integrated final improvement-track regression and pre-Production closure — Completed and accepted on 2026-09-29 at 6922cf27e31e63fde071c0d0a810b141e44b9f90
 Final-G accepted package head: be8445a2c73a710e451da608fd9e669f8f412ab3
 Permanent Final-G regression gate: npm run final-g:validate — 48/48 accepted.
@@ -25,7 +25,13 @@ Last completed and accepted package: Final-H — Integrated final improvement-tr
 Final-H status: Completed and accepted on 2026-09-29 at 6922cf27e31e63fde071c0d0a810b141e44b9f90
 Accepted Final-H head: 6922cf27e31e63fde071c0d0a810b141e44b9f90
 Accepted complete-track head: 6922cf27e31e63fde071c0d0a810b141e44b9f90
-Phase 13 status: Next / Not started
+Final-I package: Operational Polish, Notification UX & FEL Invoicing — Active; registration date 2026-09-29; registration base 950ff5e6948fb2a74cda03f81efdb7c676b33c73
+Final-I.1 status: Implementation completed; Hosted owner validation + acceptance pending
+Final-I.2-Final-I.6 status: Not started
+Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
+Final-I.8-Final-I.9 status: Not started
+Final-I record: docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md
+Phase 13 status: Blocked / Not started until Final-I closes
 Final-G.1 status: Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf
 Final-G.1 record: docs/206-final-g-1-performance-audit-baseline-and-strategy.md
 Final-G.2 status: Completed and accepted on 2026-09-28
@@ -40,7 +46,13 @@ Last completed and accepted package: Final-H — Integrated final improvement-tr
 Final-H status: Completed and accepted on 2026-09-29 at 6922cf27e31e63fde071c0d0a810b141e44b9f90
 Accepted Final-H head: 6922cf27e31e63fde071c0d0a810b141e44b9f90
 Accepted complete-track head: 6922cf27e31e63fde071c0d0a810b141e44b9f90
-Phase 13 status: Next / Not started
+Final-I package: Operational Polish, Notification UX & FEL Invoicing — Active; registration date 2026-09-29; registration base 950ff5e6948fb2a74cda03f81efdb7c676b33c73
+Final-I.1 status: Implementation completed; Hosted owner validation + acceptance pending
+Final-I.2-Final-I.6 status: Not started
+Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
+Final-I.8-Final-I.9 status: Not started
+Final-I record: docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md
+Phase 13 status: Blocked / Not started until Final-I closes
 Final-G.1 status: Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf
 Final-G.1 record: docs/206-final-g-1-performance-audit-baseline-and-strategy.md
 Final-G.2 status: Completed and accepted on 2026-09-28
@@ -270,7 +282,7 @@ Phase 12.10 status: Completed and accepted on 2026-08-11 — Phase 12 validation
 Phase 12.10 validated repository head: ebe28579872cbc2414573ef852b15139a2501551
 Phase 12 closure: docs/159-phase-12.10-phase-12-validation-and-closure.md
 Current work: Final-H — Integrated final improvement-track regression and pre-Production closure — Completed and accepted on 2026-09-29 at 6922cf27e31e63fde071c0d0a810b141e44b9f90; the complete Final Improvement Track is completed and accepted on 2026-09-29 at 6922cf27e31e63fde071c0d0a810b141e44b9f90. Phase 13 is eligible to be planned only when explicitly requested and remains Next / Not started.
-Next planned numbered phase: Phase 13 — Production Infrastructure, Deployment & Go-Live — Next / Not started
+Next planned numbered phase: Phase 13 — Production Infrastructure, Deployment & Go-Live — Blocked / Not started until Final-I closes
 Pre-Phase-12 Improvement Track status: Completed and accepted — Packages A, B, C, E, and F accepted; Package D remains deferred outside the current gate
 Pre-Phase-12 Improvement Track registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
 Pre-Phase-12 Improvement Track plan: docs/121-pre-phase-12-improvement-track.md

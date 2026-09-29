@@ -21,18 +21,19 @@ const permanentFinalScripts = [
   "final-f:validate",
   "final-g:validate",
   "final-h:validate",
+  "final-i:validate",
 ] as const;
 
-const authoritativeTrackers = [
+const activeTrackers = [
   "AGENTS.md",
   "README.md",
   "docs/10-phases.md",
   "docs/11-progress-log.md",
   "docs/160-post-phase-12-pre-phase-13-final-improvement-track.md",
-  "docs/211-final-h-integrated-regression-and-final-improvement-track-closure.md",
+  "docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md",
 ] as const;
 
-test("all permanent Final-A through Final-H validation scripts are registered", () => {
+test("all permanent Final-A through Final-I validation scripts are registered", () => {
   const packageJson = parseJsonFile<PackageJson>("package.json");
 
   for (const scriptName of permanentFinalScripts) {
@@ -42,6 +43,10 @@ test("all permanent Final-A through Final-H validation scripts are registered", 
   assert.equal(
     packageJson.scripts["final-h:validate"],
     "tsx --tsconfig tests/final-h/tsconfig.json tests/final-h/run.ts",
+  );
+  assert.equal(
+    packageJson.scripts["final-i:validate"],
+    "tsx --tsconfig tests/final-i/tsconfig.json tests/final-i/run.ts",
   );
 });
 
@@ -63,8 +68,8 @@ test("Final-H record exists and preserves the accepted Final-G package head", ()
   );
 });
 
-test("authoritative trackers show Final-H accepted and Phase 13 not started", () => {
-  for (const relativePath of authoritativeTrackers) {
+test("active trackers show Final-H accepted, Final-I active, and Phase 13 blocked", () => {
+  for (const relativePath of activeTrackers) {
     const content = readRepoFile(relativePath);
 
     assert.ok(
@@ -73,12 +78,21 @@ test("authoritative trackers show Final-H accepted and Phase 13 not started", ()
       ) ||
         content.includes(
           "Final-H status: Completed and accepted on 2026-09-29",
+        ) ||
+        content.includes(
+          "Historical accepted Final-H head: 6922cf27e31e63fde071c0d0a810b141e44b9f90",
         ),
       `${relativePath} should show Final-H accepted`,
     );
     assert.ok(
-      content.includes("Phase 13") && content.includes("Next / Not started"),
-      `${relativePath} should keep Phase 13 not started`,
+      content.includes("Final-I") &&
+        content.includes("Operational Polish, Notification UX & FEL Invoicing"),
+      `${relativePath} should register Final-I`,
+    );
+    assert.ok(
+      content.includes("Phase 13") &&
+        content.includes("Blocked / Not started until Final-I closes"),
+      `${relativePath} should keep Phase 13 blocked and not started`,
     );
   }
 });
@@ -108,6 +122,6 @@ test("Final-H documentation records owner acceptance without starting Phase 13",
     content.includes("Phase 13 is eligible to be planned only when explicitly requested") &&
       content.includes("Phase 13 remains") &&
       content.includes("Next / Not started"),
-    "Phase 13 should be eligible only on explicit request and remain not started",
+    "Historical Final-H record should preserve the original Phase 13 next/not-started closure state",
   );
 });

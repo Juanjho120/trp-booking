@@ -8,14 +8,14 @@ This file defines the working rules for TRP Booking.
 - Internal project name: `TRP Booking`.
 - Public brand: `Tu Refugio Perfecto` / `Bungalows Tu Refugio Perfecto`.
 - Official production domain: `turefugioperfecto.com`.
-- Stable Test domain: `trp-booking.juantzun.dev`; the Vercel Test deployment, Phase 12 acceptance, and the Post-Phase-12 / Pre-Phase-13 Final Improvement Track are completed and accepted. Phase 13 is Next / Not started.
+- Stable Test domain: `trp-booking.juantzun.dev`; the Vercel Test deployment, Phase 12 acceptance, and the Post-Phase-12 / Pre-Phase-13 Final Improvement Track are completed and accepted. Final-I is an active pre-Production addendum, so Phase 13 is Blocked / Not started until Final-I closes.
 - This project is a direct booking website, not a PMS.
 - TAMIAS remains the PMS / internal operations system.
 
 ## Current Active Work
 
 - Phase 12 is completed and accepted.
-- The Post-Phase-12 / Pre-Phase-13 Final Improvement Track is completed and accepted on 2026-09-29.
+- The Post-Phase-12 / Pre-Phase-13 Final Improvement Track is completed and accepted on 2026-09-29. Final-I is a registered pre-Production addendum on top of that accepted closure.
 - Final-A, Final-B, and Final-C are completed and accepted.
 - Final-D is completed and accepted on 2026-09-18.
 - Final-D.1 is completed and accepted.
@@ -41,6 +41,14 @@ This file defines the working rules for TRP Booking.
 - Final-H Production runtime carry-forward head: `6922cf27e31e63fde071c0d0a810b141e44b9f90`.
 - Final-H accepted head: `6922cf27e31e63fde071c0d0a810b141e44b9f90`.
 - Complete Final Improvement Track accepted head: `6922cf27e31e63fde071c0d0a810b141e44b9f90`.
+- Final-I — Operational Polish, Notification UX & FEL Invoicing — Active; registration date 2026-09-29; registration base `950ff5e6948fb2a74cda03f81efdb7c676b33c73`.
+- Final-I.1 — Zoho internal-email suppression and notification-loop correction — Implementation completed; Hosted owner validation + acceptance pending.
+- Final-I.2 through Final-I.6 are Not started.
+- Final-I.7 is Blocked pending official INFILE technical documentation + Test credentials.
+- Final-I.8 and Final-I.9 are Not started.
+- Final-I record: `docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md`.
+- Final-I targeted regression gate: `npm run final-i:validate`.
+- Phase 13 is Blocked / Not started until Final-I closes and is explicitly accepted.
 - Final-H implementation/evidence record: `docs/211-final-h-integrated-regression-and-final-improvement-track-closure.md`.
 - Final-H targeted regression gate: `npm run final-h:validate`.
 - Final-G.1 status: Completed and accepted on 2026-09-28 at `1623389b028be1b0391a2afce6e7c28244ad0fbf`.
@@ -244,15 +252,16 @@ npm run final-e:validate
 npm run final-f:validate
 npm run final-g:validate
 npm run final-h:validate
+npm run final-i:validate
 ```
 
-Final-D.7 introduced the consolidated Final-D regression gate. Final-E.7 introduced the consolidated Final-E regression gate and it is accepted at 88/88. Final-F.8 introduced the consolidated Final-F regression gate and it is accepted at 125/125. Final-H introduced the focused cross-package closure gate `npm run final-h:validate`; Final-H is completed and accepted on 2026-09-29. For any future Final-F or later continuation, run the relevant existing regression commands plus targeted tests/checks introduced or affected by the active subphase, together with the database/lint/build/diff checks required by the active record.
+Final-D.7 introduced the consolidated Final-D regression gate. Final-E.7 introduced the consolidated Final-E regression gate and it is accepted at 88/88. Final-F.8 introduced the consolidated Final-F regression gate and it is accepted at 125/125. Final-H introduced the focused cross-package closure gate `npm run final-h:validate`; Final-H is completed and accepted on 2026-09-29. Final-I.1 introduces `npm run final-i:validate` for the active addendum. For any future Final-F or later continuation, run the relevant existing regression commands plus targeted tests/checks introduced or affected by the active subphase, together with the database/lint/build/diff checks required by the active record.
 
 ## Phase and Progress Tracking
 
 - `docs/10-phases.md` is the official phase plan.
 - `docs/11-progress-log.md` is the official progress tracker.
-- `docs/160-post-phase-12-pre-phase-13-final-improvement-track.md` is the authoritative plan for the current Final-A through Final-H inter-phase track.
+- `docs/160-post-phase-12-pre-phase-13-final-improvement-track.md` is the authoritative plan for the accepted Final-A through Final-H inter-phase track plus the active Final-I addendum.
 - `docs/179-final-d-1-additional-charge-payment-request-strategy-and-financial-isolation-contract.md` is the frozen Final-D behavioral/financial contract unless explicitly re-accepted after a documented change.
 - `docs/181-final-d-3-admin-charge-management-and-payment-request-creation.md` is the Final-D.3 implementation/acceptance record.
 - `docs/182-final-d-4-private-guest-payment-link-and-tilopay-collection.md` is the Final-D.4 implementation/acceptance record.
@@ -283,6 +292,7 @@ Final-D.7 introduced the consolidated Final-D regression gate. Final-E.7 introdu
 - `docs/207-final-g-2-public-server-data-cache-corrections.md` is the Final-G.2 public server/data/cache corrections implementation and acceptance record; Final-G.2 is completed and accepted on 2026-09-28 at accepted feature head `ecafa2f95314fe485b1e1cc2d6372c40f076964a`, with Hosted evidence head `c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60`.
 - `docs/208-final-g-3-client-hydration-and-image-path-corrections.md` is the Final-G.3 client/hydration and image-path corrections implementation record; Final-G.3 is completed and accepted on 2026-09-28 at `e3bcc9709a355b2ce0c6284461f0f4249ad60a5e`.
 - `docs/211-final-h-integrated-regression-and-final-improvement-track-closure.md` is the Final-H integrated regression/security hardening/evidence and acceptance record; Final-H and the complete Final Improvement Track are completed and accepted on 2026-09-29 at `6922cf27e31e63fde071c0d0a810b141e44b9f90`.
+- `docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md` is the active Final-I addendum roadmap and Final-I.1 implementation record; Final-I.1 implementation is completed with Hosted owner validation + acceptance pending.
 - For revised Final-F decisions, `docs/200-final-f-r3-admin-web-push-public-whatsapp-architecture-rebaseline.md` overrides conflicting future-facing provider-specific guidance in `docs/193-final-f-1-twilio-whatsapp-staff-alert-strategy-onboarding-and-security-contract.md`, `docs/194-final-f-2-twilio-sandbox-provider-foundation-webhook-signature-validation-and-test-onboarding.md`, `docs/198-final-f-architecture-revision-360dialog-coexistence.md`, and `docs/199-final-f-r2-360dialog-provider-foundation-and-developer-test-coexistence-onboarding.md`.
 - Any completed phase or subphase must be reflected in the progress tracker before moving to a new major phase or subphase.
 - When migrating to a new conversation or agent, use `AGENTS.md`, `README.md`, `docs/10-phases.md`, and `docs/11-progress-log.md` as the minimum continuity context. For Final Improvement Track continuity, also review `docs/160-post-phase-12-pre-phase-13-final-improvement-track.md` and `docs/211-final-h-integrated-regression-and-final-improvement-track-closure.md`.
@@ -338,7 +348,7 @@ At minimum, preserve these frozen boundaries:
 - Final-F.R3 defines six target ADMIN operational notification classes. Final-F.6 implements the first five: `RESERVATION_CONFIRMED`, `RESERVATION_CANCELLED`, `CHECK_IN_MINUS_48H`, `CHECK_OUT_MINUS_6H`, and `REVIEW_SUBMITTED`. Final-F.7 implements `GUEST_EMAIL_RECEIVED` with bounded Zoho Limited Data metadata, webhook-secret encryption, idempotent event fingerprints, safe targets, immediate Web Push delivery, and completed owner acceptance.
 - `GUEST_WHATSAPP_RECEIVED` remains permanently removed/inactive because guest WhatsApp is outside the TRP backend.
 - Zoho remains the human mailbox; TRP may ingest only bounded inbound-email event metadata for ADMIN notifications and must not persist email body, HTML, attachments, full headers, raw payloads, mailbox search, inbox, sent, drafts, human replies, spam filtering, or retention data.
-- Final-F.R1 is completed and accepted on 2026-09-23 at `4c94db87ebd9df225944ce76c78f98462e4755d1` and remains historical accepted work. Final-F.R2 implementation is completed but superseded before owner acceptance by Final-F.R3 architecture rebaseline. Final-F.R3 is completed and accepted on 2026-09-24 at `be80af9b36f285c7669986e9c9b4d6676042f6f0`. Final-F.R4 is completed and accepted on 2026-09-25 at ae0db63efdabfa3bc952a8a2a71220de231ebc18; Final-F.R5 is completed and accepted on 2026-09-25 at `88616acf46645ccc01cc475f20a868d7c18dbadf`; Final-F.6 is completed and accepted on 2026-09-25 at `13e9249f54899de0863cdd6ab8747337319df3e5`; Final-F.7 is completed and accepted on 2026-09-28 at `3d32a5f2320f81ef08387f82cdf9157202c8cf95`. Final-F.8 and Final-F are completed and accepted on 2026-09-28 at `13f0e0cf6904e34155dd754230f320ca6c214141`; Final-G is completed and accepted on 2026-09-28 at accepted package head be8445a2c73a710e451da608fd9e669f8f412ab3 with Final-G.1 — Performance audit, reproducible baseline and evidence-based optimization strategy — Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf; Final-G.2 — Public server/data/cache corrections — Completed and accepted on 2026-09-28 at accepted feature head ecafa2f95314fe485b1e1cc2d6372c40f076964a, with Hosted evidence head c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60; Final-G.3 is completed and accepted on 2026-09-28 at e3bcc9709a355b2ce0c6284461f0f4249ad60a5e; Final-G.4 — Completed and accepted on 2026-09-28 at 7090701b2dc37f4cbd6490f250984b6db9d53a58; Final-G.5 — Completed and accepted on 2026-09-28 at be8445a2c73a710e451da608fd9e669f8f412ab3; Final-H plus Phase 13 must not begin automatically.
+- Final-F.R1 is completed and accepted on 2026-09-23 at `4c94db87ebd9df225944ce76c78f98462e4755d1` and remains historical accepted work. Final-F.R2 implementation is completed but superseded before owner acceptance by Final-F.R3 architecture rebaseline. Final-F.R3 is completed and accepted on 2026-09-24 at `be80af9b36f285c7669986e9c9b4d6676042f6f0`. Final-F.R4 is completed and accepted on 2026-09-25 at ae0db63efdabfa3bc952a8a2a71220de231ebc18; Final-F.R5 is completed and accepted on 2026-09-25 at `88616acf46645ccc01cc475f20a868d7c18dbadf`; Final-F.6 is completed and accepted on 2026-09-25 at `13e9249f54899de0863cdd6ab8747337319df3e5`; Final-F.7 is completed and accepted on 2026-09-28 at `3d32a5f2320f81ef08387f82cdf9157202c8cf95`. Final-F.8 and Final-F are completed and accepted on 2026-09-28 at `13f0e0cf6904e34155dd754230f320ca6c214141`; Final-G is completed and accepted on 2026-09-28 at accepted package head be8445a2c73a710e451da608fd9e669f8f412ab3 with Final-G.1 — Performance audit, reproducible baseline and evidence-based optimization strategy — Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf; Final-G.2 — Public server/data/cache corrections — Completed and accepted on 2026-09-28 at accepted feature head ecafa2f95314fe485b1e1cc2d6372c40f076964a, with Hosted evidence head c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60; Final-G.3 is completed and accepted on 2026-09-28 at e3bcc9709a355b2ce0c6284461f0f4249ad60a5e; Final-G.4 — Completed and accepted on 2026-09-28 at 7090701b2dc37f4cbd6490f250984b6db9d53a58; Final-G.5 — Completed and accepted on 2026-09-28 at be8445a2c73a710e451da608fd9e669f8f412ab3; Final-H is completed and accepted; Final-I is active; Phase 13 must not begin automatically and remains Blocked / Not started until Final-I closes.
 ```
 
 ## UI and Design System Rules

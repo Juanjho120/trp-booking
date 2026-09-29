@@ -4,6 +4,7 @@ export {
   fingerprintZohoMailLimitedDataRawBody,
   getAcceptedZohoMailRecipientAddresses,
   getAcceptedZohoMailRecipientDomain,
+  getInternalZohoMailSenderDomains,
   isAcceptedZohoMailRecipient,
   isInternalZohoMailSender,
   processZohoMailWebhook,

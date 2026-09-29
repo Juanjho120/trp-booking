@@ -19,14 +19,20 @@ Owner acceptance: Completed on 2026-09-28
 Hosted Test: Completed and accepted
 Vercel: SUCCESS
 Final-F.8: Completed and accepted on 2026-09-28 at 13f0e0cf6904e34155dd754230f320ca6c214141
-Final-G: Next / Not started
-Final-H: Not started
-Phase 13: Not started
+Final-G: Completed and accepted on 2026-09-28 at be8445a2c73a710e451da608fd9e669f8f412ab3
+Final-H: Completed and accepted on 2026-09-29 at 6922cf27e31e63fde071c0d0a810b141e44b9f90
+Phase 13: Not started historically after Final-F.7; currently Blocked / Not started until Final-I closes
 ```
 
 Final-F.7 implements only bounded Zoho Mail incoming-email event metadata and
 `GUEST_EMAIL_RECEIVED` ADMIN Web Push. It keeps Zoho Mail as the human mailbox and does not turn
 TRP into an email client.
+
+## Final-I.1 forward hardening note
+
+On 2026-09-29, after Final-F.7 acceptance, the owner registered Final-I and identified a Zoho notification loop: TRP-origin transactional email delivered from the active sending domain to the Zoho admin mailbox could re-enter through the webhook and be classified as `GUEST_EMAIL_RECEIVED`. Final-I.1 preserves the accepted F.7 webhook architecture and expands internal-sender suppression to exact case-insensitive domains from `environmentConfig`: the active correspondence domain and the active transactional sending domain.
+
+Suppressed internal sender events are ignored before reservation matching, `ZohoInboundEmailEvent`, `AdminNotification`, `AdminPushDelivery`, and Web Push delivery. External guest replies, recipient-domain checks, signature verification, Limited Data parsing, and SHA-256 raw-body idempotency remain unchanged.
 
 ## Implemented Scope
 
@@ -587,7 +593,7 @@ from Vercel Test, and continued normal signed delivery using the persisted encry
 ```text
 Final-F.7: Completed and accepted on 2026-09-28 at 3d32a5f2320f81ef08387f82cdf9157202c8cf95
 Final-F.8: Completed and accepted on 2026-09-28 at 13f0e0cf6904e34155dd754230f320ca6c214141
-Final-G: Next / Not started
-Final-H: Not started
-Phase 13: Not started
+Final-G: Completed and accepted on 2026-09-28 at be8445a2c73a710e451da608fd9e669f8f412ab3
+Final-H: Completed and accepted on 2026-09-29 at 6922cf27e31e63fde071c0d0a810b141e44b9f90
+Phase 13: Not started historically after Final-F.7; currently Blocked / Not started until Final-I closes
 ```

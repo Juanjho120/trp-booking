@@ -7,7 +7,7 @@ This document is the official progress tracker for TRP Booking. Update it whenev
 ```text
 Current phase state: Phase 12 — Test Deployment & External Integration Validation — Completed and accepted on 2026-08-11
 Current numbered phase: none active
-Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Completed and accepted on 2026-09-29
+Current work boundary: Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Completed and accepted on 2026-09-29; Final-I addendum Active
 Last completed and accepted package: Final-H — Integrated final improvement-track regression and pre-Production closure — Completed and accepted on 2026-09-29 at 6922cf27e31e63fde071c0d0a810b141e44b9f90
 Final-G accepted package head: be8445a2c73a710e451da608fd9e669f8f412ab3
 Permanent Final-G regression gate: npm run final-g:validate — 48/48 accepted.
@@ -16,7 +16,13 @@ Last completed and accepted package: Final-H — Integrated final improvement-tr
 Final-H status: Completed and accepted on 2026-09-29 at 6922cf27e31e63fde071c0d0a810b141e44b9f90
 Accepted Final-H head: 6922cf27e31e63fde071c0d0a810b141e44b9f90
 Accepted complete-track head: 6922cf27e31e63fde071c0d0a810b141e44b9f90
-Phase 13 status: Next / Not started
+Final-I package: Operational Polish, Notification UX & FEL Invoicing — Active; registration date 2026-09-29; registration base 950ff5e6948fb2a74cda03f81efdb7c676b33c73
+Final-I.1 status: Implementation completed; Hosted owner validation + acceptance pending
+Final-I.2-Final-I.6 status: Not started
+Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
+Final-I.8-Final-I.9 status: Not started
+Final-I record: docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md
+Phase 13 status: Blocked / Not started until Final-I closes
 Final-G.1 status: Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf
 Final-G.1 record: docs/206-final-g-1-performance-audit-baseline-and-strategy.md
 Final-G.2 status: Completed and accepted on 2026-09-28
@@ -31,7 +37,13 @@ Last completed and accepted package: Final-H — Integrated final improvement-tr
 Final-H status: Completed and accepted on 2026-09-29 at 6922cf27e31e63fde071c0d0a810b141e44b9f90
 Accepted Final-H head: 6922cf27e31e63fde071c0d0a810b141e44b9f90
 Accepted complete-track head: 6922cf27e31e63fde071c0d0a810b141e44b9f90
-Phase 13 status: Next / Not started
+Final-I package: Operational Polish, Notification UX & FEL Invoicing — Active; registration date 2026-09-29; registration base 950ff5e6948fb2a74cda03f81efdb7c676b33c73
+Final-I.1 status: Implementation completed; Hosted owner validation + acceptance pending
+Final-I.2-Final-I.6 status: Not started
+Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
+Final-I.8-Final-I.9 status: Not started
+Final-I record: docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md
+Phase 13 status: Blocked / Not started until Final-I closes
 Final-G.1 status: Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf
 Final-G.1 record: docs/206-final-g-1-performance-audit-baseline-and-strategy.md
 Final-G.2 status: Completed and accepted on 2026-09-28
@@ -208,7 +220,13 @@ Last completed and accepted package: Final-H — Integrated final improvement-tr
 Final-H status: Completed and accepted on 2026-09-29 at 6922cf27e31e63fde071c0d0a810b141e44b9f90
 Accepted Final-H head: 6922cf27e31e63fde071c0d0a810b141e44b9f90
 Accepted complete-track head: 6922cf27e31e63fde071c0d0a810b141e44b9f90
-Phase 13 status: Next / Not started
+Final-I package: Operational Polish, Notification UX & FEL Invoicing — Active; registration date 2026-09-29; registration base 950ff5e6948fb2a74cda03f81efdb7c676b33c73
+Final-I.1 status: Implementation completed; Hosted owner validation + acceptance pending
+Final-I.2-Final-I.6 status: Not started
+Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
+Final-I.8-Final-I.9 status: Not started
+Final-I record: docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md
+Phase 13 status: Blocked / Not started until Final-I closes
 Final-G.1 status: Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf
 Final-G.1 record: docs/206-final-g-1-performance-audit-baseline-and-strategy.md
 Final-G.2 status: Completed and accepted on 2026-09-28
@@ -223,7 +241,13 @@ Last completed and accepted package: Final-H — Integrated final improvement-tr
 Final-H status: Completed and accepted on 2026-09-29 at 6922cf27e31e63fde071c0d0a810b141e44b9f90
 Accepted Final-H head: 6922cf27e31e63fde071c0d0a810b141e44b9f90
 Accepted complete-track head: 6922cf27e31e63fde071c0d0a810b141e44b9f90
-Phase 13 status: Next / Not started
+Final-I package: Operational Polish, Notification UX & FEL Invoicing — Active; registration date 2026-09-29; registration base 950ff5e6948fb2a74cda03f81efdb7c676b33c73
+Final-I.1 status: Implementation completed; Hosted owner validation + acceptance pending
+Final-I.2-Final-I.6 status: Not started
+Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
+Final-I.8-Final-I.9 status: Not started
+Final-I record: docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md
+Phase 13 status: Blocked / Not started until Final-I closes
 Final-G.1 status: Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf
 Final-G.1 record: docs/206-final-g-1-performance-audit-baseline-and-strategy.md
 Final-G.2 status: Completed and accepted on 2026-09-28
@@ -436,7 +460,7 @@ Final-F.5 status: Twilio-based implementation completed at 551199a3e562be7c7fd98
 Final-G status: Completed and accepted on 2026-09-28 at be8445a2c73a710e451da608fd9e669f8f412ab3 — Final-G.1 performance audit, reproducible baseline and evidence-based optimization strategy completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf; Final-G.2 completed and accepted on 2026-09-28 at ecafa2f95314fe485b1e1cc2d6372c40f076964a; Hosted evidence head c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60; Final-G.3 completed and accepted on 2026-09-28 at e3bcc9709a355b2ce0c6284461f0f4249ad60a5e; Final-G.4 — Completed and accepted on 2026-09-28 at 7090701b2dc37f4cbd6490f250984b6db9d53a58; Final-G.5 — Completed and accepted on 2026-09-28 at be8445a2c73a710e451da608fd9e669f8f412ab3; records: docs/206-final-g-1-performance-audit-baseline-and-strategy.md; docs/207-final-g-2-public-server-data-cache-corrections.md; docs/208-final-g-3-client-hydration-and-image-path-corrections.md; docs/209-final-g-4-admin-query-timing-and-protected-route-corrections.md; docs/210-final-g-5-hosted-final-comparison-integrated-regression-and-final-g-closure.md
 Final-H status: Completed and accepted on 2026-09-29 at 6922cf27e31e63fde071c0d0a810b141e44b9f90 — Integrated regression and final improvement-track closure
 Final Improvement Track plan: docs/160-post-phase-12-pre-phase-13-final-improvement-track.md
-Phase 13 status: Next / Not started — Production Infrastructure, Deployment & Go-Live is eligible for planning only when explicitly requested
+Phase 13 status: Blocked / Not started until Final-I closes — Production Infrastructure, Deployment & Go-Live is eligible for planning only when explicitly requested
 Pre-Phase-12 Improvement Track status: Completed and accepted — Packages A, B, C, E, and F accepted; Package D remains deferred outside the current gate
 Pre-Phase-12 Improvement Track registration base: 992bf4ae465576a275a31e9ca3c5ca9ab3414500
 Pre-Phase-12 Improvement Track plan: docs/121-pre-phase-12-improvement-track.md
@@ -1312,7 +1336,8 @@ Final-F — Public WhatsApp Contact and Admin Notifications — Completed and ac
   Final-F.8 — Android PWA/Web Push integrated regression, public WhatsApp contact acceptance and Final-F documentation closure — Completed and accepted on 2026-09-28 at 13f0e0cf6904e34155dd754230f320ca6c214141
   Final-G Performance audit and optimization — Completed and accepted on 2026-09-28 at be8445a2c73a710e451da608fd9e669f8f412ab3; Final-G.1 completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf; Final-G.2 completed and accepted on 2026-09-28 at ecafa2f95314fe485b1e1cc2d6372c40f076964a; Hosted evidence head c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60; Final-G.3 completed and accepted on 2026-09-28 at e3bcc9709a355b2ce0c6284461f0f4249ad60a5e; Final-G.4 — Completed and accepted on 2026-09-28 at 7090701b2dc37f4cbd6490f250984b6db9d53a58; Final-G.5 — Completed and accepted on 2026-09-28 at be8445a2c73a710e451da608fd9e669f8f412ab3; records: docs/206-final-g-1-performance-audit-baseline-and-strategy.md; docs/207-final-g-2-public-server-data-cache-corrections.md; docs/208-final-g-3-client-hydration-and-image-path-corrections.md; docs/209-final-g-4-admin-query-timing-and-protected-route-corrections.md; docs/210-final-g-5-hosted-final-comparison-integrated-regression-and-final-g-closure.md
   Final-H Integrated regression and final improvement-track closure — Completed and accepted on 2026-09-29 at 6922cf27e31e63fde071c0d0a810b141e44b9f90
-Phase 13 — Next / Not started
+Final-I — Active; Final-I.1 implementation completed; Hosted owner validation + acceptance pending
+Phase 13 — Blocked / Not started until Final-I closes
 ```
 
 Track rules recorded at registration:
@@ -1781,3 +1806,19 @@ lib/env/server.ts
 messages/es.ts
 messages/en.ts
 ```
+
+## 2026-09-29 — Final-I.1 Implementation Completed; Hosted Owner Validation Pending
+
+```text
+Package: Final-I — Operational Polish, Notification UX & FEL Invoicing
+Registration base: 950ff5e6948fb2a74cda03f81efdb7c676b33c73
+Subphase: Final-I.1 — Zoho internal-email suppression and notification-loop correction
+Status: Implementation completed; Hosted owner validation + acceptance pending
+Final-I.2-Final-I.6: Not started
+Final-I.7: Blocked pending official INFILE technical documentation + Test credentials
+Final-I.8-Final-I.9: Not started
+Phase 13: Blocked / Not started until Final-I closes
+Record: docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md
+```
+
+Final-I.1 suppresses Zoho inbound notifications for TRP-origin email sent from the exact active correspondence domain or exact active transactional sending domain. The webhook still verifies signatures, parses Limited Data, preserves accepted recipient filtering, and processes external guest replies normally.
