@@ -6,10 +6,11 @@
 Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-H — Integrated regression and final improvement-track closure
-Status: Integrated regression/evidence completed; owner acceptance pending
+Status: Integrated regression/security hardening/evidence completed; owner acceptance pending
 Document date: 2026-09-29
 
 Implementation/evidence base: 3c1b3e24e0a835928615e015840e708a310a182a
+Final-H security hardening dependency head: badbda7831a16986c0471b455b4b0124b15e5268
 
 Final-G accepted package head: be8445a2c73a710e451da608fd9e669f8f412ab3
 
@@ -20,7 +21,7 @@ Final-D: Completed and accepted
 Final-E: Completed and accepted
 Final-F: Completed and accepted
 Final-G: Completed and accepted on 2026-09-28
-Final-H status: Integrated regression/evidence completed; owner acceptance pending
+Final-H status: Integrated regression/security hardening/evidence completed; owner acceptance pending
 
 Post-Phase-12 / Pre-Phase-13 Final Improvement Track: Active
 Phase 13: Not started
@@ -28,7 +29,7 @@ Phase 13: Not started
 Runtime feature changes: none expected for Final-H evidence work
 Schema changes: none
 Migration changes: none
-Dependency changes: scoped dependency security hardening; Hosted deployment/smoke evidence pending for the hardening commit
+Dependency changes: scoped dependency security hardening
 Environment variable changes: none
 Production resources: none
 Test scheduler: remains {"crons":[]}
@@ -556,7 +557,16 @@ npm ls nanoid — PASS; nanoid@3.3.18.
 npm ls deepmerge-ts — PASS; deepmerge-ts@8.0.2 under @prisma/config.
 npm ls prisma @prisma/client @prisma/config — PASS; Prisma remains 6.19.3.
 git diff --check — PASS; Windows LF-to-CRLF working-copy warnings only, no whitespace errors.
-Vercel deployment and Hosted smoke for the hardening commit — pending post-push.
+Vercel GitHub combined status for badbda7831a16986c0471b455b4b0124b15e5268 — SUCCESS.
+Hosted smoke for badbda7831a16986c0471b455b4b0124b15e5268 — PASS:
+  / — HTTP 200, x-vercel-cache PRERENDER.
+  /alojamientos — HTTP 200, x-vercel-cache PRERENDER.
+  /alojamientos/refugio-completo — HTTP 200, x-vercel-cache MISS and no-store/private.
+  /disponibilidad — HTTP 200, x-vercel-cache PRERENDER.
+  /resenas — HTTP 200, x-vercel-cache MISS and no-store/private.
+  /admin — HTTP 307 to /api/auth/signin with callbackUrl, preserving the authentication boundary.
+  /sw.js — HTTP 200, application/javascript, no-store.
+  representative /_next/image Cloudinary image — HTTP 200, image/png, x-vercel-cache HIT.
 ```
 
 Expected accepted counts before Final-H-specific checks:
@@ -615,14 +625,16 @@ Final-A 44/44; Final-B 38/38; Final-C 41/41; Final-D 66/66; Final-E 88/88;
 Final-F 125/125; Final-G 48/48; Final-H 20/20.
 
 Dependency audit blocker is resolved by scoped Final-H hardening; owner acceptance remains pending.
-Hosted deployment and safe Hosted smoke for the hardening commit remain pending until after push.
+Vercel deployment and safe Hosted smoke for the hardening commit passed.
 ```
 
 ### Hosted Test state
 
 ```text
 Public non-destructive smoke is healthy for /, /alojamientos, /alojamientos/refugio-completo,
-/disponibilidad and /resenas: all sampled requests returned HTTP 200.
+/disponibilidad and /resenas: all sampled requests returned HTTP 200. The /admin authentication
+boundary returned HTTP 307 to sign-in, /sw.js returned HTTP 200 no-store JavaScript, and a
+representative Next Image / Cloudinary image returned HTTP 200.
 Owner-accepted Hosted evidence from Final-A through Final-G remains carried forward.
 ```
 
@@ -648,7 +660,6 @@ acceptance.
 ```text
 - no Production resources yet;
 - no field/RUM performance data;
-- Hosted deployment and safe smoke for the hardening commit remain pending before Final-H acceptance;
 - iOS Web Push deferred;
 - provider/network/serverless variance;
 - Production scheduler recurrence evidence belongs to Phase 13;
@@ -692,7 +703,7 @@ Final-D — Completed and accepted
 Final-E — Completed and accepted
 Final-F — Completed and accepted
 Final-G — Completed and accepted
-Final-H — Integrated regression/evidence completed; owner acceptance pending
+Final-H — Integrated regression/security hardening/evidence completed; owner acceptance pending
 Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
 Phase 13 — Not started
 ```

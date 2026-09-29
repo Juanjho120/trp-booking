@@ -59,7 +59,7 @@ test("Final-H record exists and preserves the accepted Final-G package head", ()
   );
   assertFileContains(
     "docs/211-final-h-integrated-regression-and-final-improvement-track-closure.md",
-    "Final-H status: Integrated regression/evidence completed; owner acceptance pending",
+    "Final-H status: Integrated regression/security hardening/evidence completed; owner acceptance pending",
   );
 });
 
@@ -69,10 +69,10 @@ test("authoritative trackers show Final-H evidence pending owner acceptance and 
 
     assert.ok(
       content.includes(
-        "Final-H — Integrated regression/evidence completed; owner acceptance pending",
+        "Final-H — Integrated regression/security hardening/evidence completed; owner acceptance pending",
       ) ||
         content.includes(
-          "Final-H status: Integrated regression/evidence completed; owner acceptance pending",
+          "Final-H status: Integrated regression/security hardening/evidence completed; owner acceptance pending",
         ),
       `${relativePath} should show Final-H evidence complete but not accepted`,
     );
