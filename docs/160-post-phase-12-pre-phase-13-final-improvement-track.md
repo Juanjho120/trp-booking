@@ -1313,7 +1313,8 @@ Accepted Final-H head — 6922cf27e31e63fde071c0d0a810b141e44b9f90
 Accepted complete-track head — 6922cf27e31e63fde071c0d0a810b141e44b9f90
 Final-I — Operational Polish, Notification UX & FEL Invoicing — Active; registration date 2026-09-29; registration base 950ff5e6948fb2a74cda03f81efdb7c676b33c73
 Final-I.1 — Zoho internal-email suppression and notification-loop correction — Completed and accepted on 2026-09-29 at 9a15f349c1104671f5555d1988caa56756e5ff0c
-Final-I.2 — Legacy/future-phase UI and copy cleanup — Implementation completed; owner acceptance pending
+Final-I.2 — Legacy/future-phase UI and copy cleanup — Completed and accepted on 2026-09-29 at 6451cb705d972c83a771a9ff39f6da80d130cf58
+Final-I.2 accepted head — 6451cb705d972c83a771a9ff39f6da80d130cf58
 Final-I.3 — Admin notification-center desktop simplification + single accordion + Push deep-link — Next / Not started
 Final-I.4-Final-I.6 — Not started
 Final-I.7 — Blocked pending official INFILE technical documentation + Test credentials

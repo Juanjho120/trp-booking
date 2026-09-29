@@ -13,7 +13,8 @@ Historical accepted Final-H head: 6922cf27e31e63fde071c0d0a810b141e44b9f90
 Historical accepted complete-track head: 6922cf27e31e63fde071c0d0a810b141e44b9f90
 Final-I.1 status: Completed and accepted on 2026-09-29
 Accepted Final-I.1 head: 9a15f349c1104671f5555d1988caa56756e5ff0c
-Final-I.2 status: Implementation completed; owner acceptance pending
+Final-I.2 status: Completed and accepted on 2026-09-29
+Accepted Final-I.2 head: 6451cb705d972c83a771a9ff39f6da80d130cf58
 Final-I.3 status: Next / Not started
 Final-I.4 status: Not started
 Final-I.5 status: Not started
@@ -114,17 +115,25 @@ external guest email
 
 ## Future Subphase Decisions
 
-Final-I.2 implementation is completed and owner acceptance remains pending. Its accepted scope is legacy/future-phase UI and copy cleanup only. It removes obsolete public/admin user-visible copy that incorrectly described completed functionality as an upcoming phase, next phase, next subphase, coming soon, future implementation, or similar roadmap language.
+Final-I.2 is completed and accepted on 2026-09-29 at accepted head `6451cb705d972c83a771a9ff39f6da80d130cf58`. Its accepted scope is legacy/future-phase UI and copy cleanup only. It removes obsolete public/admin user-visible copy that incorrectly described completed functionality as an upcoming phase, next phase, next subphase, coming soon, future implementation, or similar roadmap language.
 
 Implemented Final-I.2 scope:
 
 ```text
-- removed the final black Home card "Próximamente booking online" and its unused component/localization keys
-- removed the admin/accommodations preparation-buffer note "Los cambios se aplican a reservas confirmadas, holds activos, disponibilidad pública y futuros feeds..."
+- removed the final black Home "Próximamente booking online" CTA section
+- removed its unused component and bilingual localization keys
+- removed the admin/accommodations settingsImpact informational block
+- removed stale unused property-detail future-booking copy
+- removed stale Phase 8 request/pending-hold localization keys
 - rewrote stale Home hero, Home benefit/trust, reservation request, pending-hold, date-mutation negative-difference, and admin photo deletion copy to current behavior
+- rewrote current reservation-request copy to current booking behavior
+- rewrote pending-hold copy to current payment behavior
+- rewrote stale negative-adjustment/refund roadmap copy to current implemented behavior
+- rewrote photo-deletion copy to remove subphase language
 - removed stale unused localization keys for property-detail booking-coming-soon, request hold-disabled, and phase-boundary notes
 - reworded the final stale cancellation approval warning that still referenced `Phase 11.4`, preserving the accepted boundary that reservation cancellation does not automatically create or process a Refund
-- preserved legitimate temporal copy such as "Próximas llegadas" and "Upcoming arrivals"
+- removed the remaining visible Phase 11.4 cancellation warning
+- preserved legitimate temporal copy such as "Próximas llegadas" / "Upcoming arrivals" and "Próximo intento" / "Next attempt"
 - added focused Final-I.2 tests under `tests/final-i`
 ```
 
@@ -135,6 +144,8 @@ Próximas llegadas
 reservas próximas
 upcoming arrivals
 upcoming reservations
+Próximo intento
+Next attempt
 ```
 
 Stale candidates reviewed and removed or rewritten from user-facing ES/EN copy:
@@ -155,7 +166,81 @@ Phase 11.4
 
 Final-I.2 reviewed each stale candidate for reachability before removing it. Unused localization fields were removed only after confirming no remaining code references. Reachable negative-date-difference admin copy was rewritten to describe the implemented refund workflow instead of a future subphase.
 
-Final-I.3 will simplify the desktop admin notification center to recent notifications only, with no tabs and no Configuration view. Mobile browser and standalone PWA retain Notifications + Configuration. Notification details use a single accordion with one item open at a time. Push clicks route to `/admin/notifications?notification=<id>` and auto-expand the target notification. The internal Open action keeps the existing `targetPath` behavior.
+## Final-I.3 Prepared Scope - Not Started
+
+Final-I.3 is prepared as the next subphase but is not implemented by this I.2 acceptance closure commit.
+
+Accepted design decisions:
+
+```text
+Desktop browser:
+- /admin/notifications shows only "Notificaciones recientes".
+- Do not show navigation tabs.
+- Do not show the Configuration surface.
+- The page behaves as a notification history/center only.
+
+Mobile browser:
+- retain Notifications + Configuration tabs.
+- Configuration remains available for initial Android/PWA setup.
+
+Standalone Android PWA:
+- retain Notifications + Configuration tabs.
+
+iOS/iPadOS:
+- Deferred.
+```
+
+Accordion contract:
+
+```text
+- each notification is an accordion item
+- collapsed state uses compact vertical space
+- only one notification can be open at any time
+- opening another notification closes the previous one
+- optionally allow the currently open notification to collapse
+- recommended semantics: Accordion type="single" collapsible
+```
+
+Collapsed notification rows must preserve at minimum:
+
+```text
+- read/unread indicator
+- notification title
+- timestamp
+```
+
+Expanded content retains the full bounded details and existing actions, including mark read, Open target, Open Zoho Mail, bounded email metadata, and reservation/review-related details.
+
+Push-click contract:
+
+```text
+- Android system notification click opens /admin/notifications?notification=<notificationId>
+- notification center auto-expands that exact notification when available
+- Push click target is distinct from AdminNotification.targetPath
+- stored AdminNotification.targetPath remains unchanged
+- the expanded Open action continues using the existing targetPath
+- push payload may include only the minimum bounded identifier needed for center routing, preferably notificationId
+```
+
+Query parameter safety:
+
+```text
+- ?notification=<id> is treated only as an opaque notification identifier
+- never use it as a URL
+- do not inject it into HTML
+- malformed, unknown, or unavailable IDs must not error
+- if targeted notification retrieval is needed, prefer a bounded page-data/API adjustment without schema change
+```
+
+Read-state and responsive boundaries:
+
+```text
+- opening a notification accordion must not automatically mark it read unless current UX already defines that behavior
+- push click must not silently alter read state merely by navigation
+- desktop/mobile behavior must use CSS or a bounded media-query helper, not user-agent parsing unless no better option exists
+- fresh Android Chrome before PWA installation must still expose Install Android, Enable notifications, subscription registration, test notification, and device status
+- existing Configuration cards/order from Final-F.6 remain unchanged
+```
 
 Final-I.4 will remove visible raw/fallback URLs from guest-facing HTML email bodies while preserving CTA buttons. Plaintext email continues to include a labeled URL for non-HTML clients.
 
@@ -224,11 +309,11 @@ Final-I.2 implementation validation:
 - npm run build - PASS; Next slow filesystem warning only
 - npm audit --omit=dev - PASS, 0 vulnerabilities
 - git diff --check - PASS; Windows CRLF normalization warnings only
-- Vercel / Hosted smoke - pending after push
-- Hosted owner validation - pending for Final-I.2
+- Vercel - SUCCESS
+- Hosted/owner visual validation - PASS
 ```
 
-## Hosted Owner Validation Completed
+## Final-I.1 Hosted Owner Validation Completed
 
 Owner Hosted validation completed and owner acceptance was explicit. The owner validated:
 
@@ -241,4 +326,32 @@ Owner Hosted validation completed and owner acceptance was explicit. The owner v
 - /admin/notifications history still records the genuine external email notification.
 ```
 
-Final-I.1 is completed and accepted on 2026-09-29 at accepted head `9a15f349c1104671f5555d1988caa56756e5ff0c`. Final-I.2 implementation is completed and owner acceptance remains pending. Final-I.3 is Next / Not started.
+## Final-I.2 Hosted Owner Visual Validation Completed
+
+Owner Hosted visual validation completed and owner acceptance was explicit on 2026-09-29. The accepted Final-I.2 implementation head remains:
+
+```text
+6451cb705d972c83a771a9ff39f6da80d130cf58
+```
+
+This documentation-only closure commit does not replace that accepted Final-I.2 feature head.
+
+Owner visual validation passed for:
+
+```text
+Home:
+- final black coming-soon card removed
+- Hero no longer describes availability/payment as future work
+
+Public reservation flow:
+- no Phase 8 / next phase / next subphase roadmap language
+
+Admin accommodations:
+- no settingsImpact card/note
+
+Admin cancellation:
+- no Phase 11.4 reference
+- cancellation/refund separation explained as current behavior
+```
+
+Final-I.1 is completed and accepted on 2026-09-29 at accepted head `9a15f349c1104671f5555d1988caa56756e5ff0c`. Final-I.2 is completed and accepted on 2026-09-29 at accepted head `6451cb705d972c83a771a9ff39f6da80d130cf58`. Final-I.3 is Next / Not started.

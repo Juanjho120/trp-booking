@@ -28,7 +28,8 @@ Accepted complete-track head: 6922cf27e31e63fde071c0d0a810b141e44b9f90
 Final-I package: Operational Polish, Notification UX & FEL Invoicing — Active; registration date 2026-09-29; registration base 950ff5e6948fb2a74cda03f81efdb7c676b33c73
 Final-I.1 status: Completed and accepted on 2026-09-29
 Accepted Final-I.1 head: 9a15f349c1104671f5555d1988caa56756e5ff0c
-Final-I.2 status: Implementation completed; owner acceptance pending
+Final-I.2 status: Completed and accepted on 2026-09-29
+Accepted Final-I.2 head: 6451cb705d972c83a771a9ff39f6da80d130cf58
 Final-I.3 status: Next / Not started
 Final-I.4-Final-I.6 status: Not started
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
@@ -52,7 +53,8 @@ Accepted complete-track head: 6922cf27e31e63fde071c0d0a810b141e44b9f90
 Final-I package: Operational Polish, Notification UX & FEL Invoicing — Active; registration date 2026-09-29; registration base 950ff5e6948fb2a74cda03f81efdb7c676b33c73
 Final-I.1 status: Completed and accepted on 2026-09-29
 Accepted Final-I.1 head: 9a15f349c1104671f5555d1988caa56756e5ff0c
-Final-I.2 status: Implementation completed; owner acceptance pending
+Final-I.2 status: Completed and accepted on 2026-09-29
+Accepted Final-I.2 head: 6451cb705d972c83a771a9ff39f6da80d130cf58
 Final-I.3 status: Next / Not started
 Final-I.4-Final-I.6 status: Not started
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
