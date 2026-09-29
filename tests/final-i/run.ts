@@ -1,4 +1,5 @@
 import "./i1-zoho-internal-sender-suppression.test";
+import "./i2-legacy-copy-cleanup.test";
 
 import { runFinalITests } from "./harness";
 

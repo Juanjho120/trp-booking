@@ -5,7 +5,6 @@ import type { PublicLocationSettings } from "@/types/public-location";
 import { AccommodationShowcase } from "./accommodation-showcase";
 import { DirectBookingBenefits } from "./direct-booking-benefits";
 import { HeroSection } from "./hero-section";
-import { HomepageCtaSection } from "./homepage-cta-section";
 import { LocationPreviewSection } from "./location-preview-section";
 import { TrustSection } from "./trust-section";
 
@@ -28,7 +27,6 @@ export function HomePage({ accommodations, publicLocation }: HomePageProps) {
         <DirectBookingBenefits />
         <LocationPreviewSection publicLocation={publicLocation} />
         <TrustSection />
-        <HomepageCtaSection />
       </main>
       <SiteFooter />
     </div>

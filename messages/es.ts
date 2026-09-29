@@ -99,7 +99,7 @@ export const esMessages = {
         eyebrow: "Direct Booking",
         title: "Reserva directo, evita intermediarios y recibe confirmación por correo.",
         description:
-          "Próximamente integraremos disponibilidad, pagos seguros con Tilopay y sincronización con Airbnb.",
+          "Consulta disponibilidad, reserva directamente y completa pagos seguros con Tilopay.",
       },
     },
     accommodations: {
@@ -136,7 +136,7 @@ export const esMessages = {
         {
           title: "Confirmación por correo",
           description:
-            "Cuando el booking esté activo, cada reserva confirmada enviará detalles importantes e instrucciones de llegada.",
+            "Cada reserva confirmada envía detalles importantes e instrucciones de llegada por correo.",
         },
       ],
     },
@@ -164,14 +164,8 @@ export const esMessages = {
         "Fotos reales de los alojamientos",
         "Reglas y políticas visibles antes de reservar",
         "Correos oficiales del dominio turefugioperfecto.com.gt",
-        "Pagos seguros con Tilopay en la fase de booking",
+        "Pagos seguros con Tilopay",
       ],
-    },
-    cta: {
-      badge: "Próximamente booking online",
-      title: "Explora los alojamientos antes de elegir tus fechas.",
-      description:
-        "La base pública ya presenta los espacios disponibles. Las próximas fases agregarán calendario, reservas directas, pagos y sincronización con Airbnb.",
     },
   },
   properties: {
@@ -199,8 +193,6 @@ export const esMessages = {
       preparationBufferBefore: "día(s) antes",
       preparationBufferAfter: "día(s) después",
       reserveCta: "Reservar este alojamiento",
-      reserveComingSoon:
-        "El calendario de disponibilidad y el pago en línea se agregarán en próximas fases.",
       galleryTitle: "Galería",
       highlightsTitle: "Detalles destacados",
       amenitiesTitle: "Amenidades",
@@ -235,7 +227,7 @@ export const esMessages = {
     request: {
       title: "Solicita tu reserva directa",
       description:
-        "Completa tus fechas y datos principales para calcular una cotización segura desde el servidor. En esta fase todavía no se crea una reservación ni se inicia pago.",
+        "Completa tus fechas y datos principales para consultar disponibilidad, calcular el total y continuar con tu reserva directa.",
       fields: {
         checkInDate: "Fecha de entrada",
         checkOutDate: "Fecha de salida",
@@ -270,9 +262,6 @@ export const esMessages = {
       },
       nonBindingQuoteNote:
         "Esta cotización es informativa. La disponibilidad y el total se recalcularán en el servidor antes de crear el hold de pago.",
-      createHoldDisabled: "Crear hold de reserva en la siguiente fase",
-      phaseBoundaryNote:
-        "Phase 8.3 solo captura datos y calcula cotización. No guarda reservaciones, no bloquea fechas y no procesa pagos.",
       pricingBreakdown: {
         title: "Detalle del precio por noche",
         description:
@@ -327,9 +316,7 @@ export const esMessages = {
       total: "Total",
       pendingPayment: "Pendiente de pago",
       paymentPendingNote:
-        "Tu reserva quedó apartada temporalmente. El pago directo se integrará en la siguiente subfase; por ahora este hold expira automáticamente.",
-      phaseBoundaryNote:
-        "Subfase 8.4 crea una reserva pendiente por 15 minutos. Todavía no confirma pago, no envía correos y no crea bloques manuales de calendario.",
+        "Tu reservación quedó apartada temporalmente mientras completas el pago. El hold expira automáticamente si el pago no se completa dentro del tiempo indicado.",
     },
   },
   reviews: {
@@ -1565,7 +1552,7 @@ export const esMessages = {
           rejectDescription:
             "El rechazo cierra esta solicitud sin cambiar la reservación ni crear movimientos financieros.",
           approvalBoundary:
-            "Una diferencia positiva crea un hold independiente de 60 minutos y un pago exacto; las fechas se aplican automáticamente después de validar el pago. Una diferencia cero se completa dentro de esta aprobación. La diferencia negativa permanece reservada para la integración de reembolso de 11.5.5.",
+            "Una diferencia positiva crea un hold independiente de 60 minutos y un pago exacto; las fechas se aplican automáticamente después de validar el pago. Una diferencia cero se completa dentro de esta aprobación. Una diferencia negativa se completa mediante el flujo de reembolso de la estadía ya implementado.",
           rejectionBoundary:
             "El rechazo conserva las fechas, precios, estado Confirmado, pagos y disponibilidad actuales.",
         },
@@ -1645,7 +1632,7 @@ export const esMessages = {
           ADMIN_DATE_MUTATION_HOLD_NOT_ACTIVE:
             "El hold de las fechas solicitadas ya no está activo o no coincide con la solicitud.",
           ADMIN_DATE_MUTATION_NEGATIVE_COMPLETION_DEFERRED:
-            "La diferencia negativa requiere la integración de reembolso de la siguiente subfase antes de completar las fechas.",
+            "La diferencia negativa requiere un reembolso aprobado y conciliado antes de completar las fechas.",
           ADMIN_DATE_MUTATION_COMPLETION_CONFLICT:
             "La finalización ya fue procesada con un estado diferente. Recarga la reservación antes de continuar.",
           ADMIN_DATE_MUTATION_UNEXPECTED_ERROR:
@@ -3063,7 +3050,7 @@ export const esMessages = {
         deleteDialog: {
           title: "Eliminar fotografía",
           description:
-            "La fotografía dejará de mostrarse en el sitio público. El registro se conservará para auditoría y esta acción no eliminará el archivo de Cloudinary en esta subfase.",
+            "La fotografía dejará de mostrarse en el sitio público. El registro se conservará para auditoría y esta acción no eliminará el archivo de Cloudinary.",
         },
         errors: {
           ADMIN_UNAUTHORIZED: "Tu sesión no tiene autorización administrativa.",
@@ -3151,8 +3138,6 @@ export const esMessages = {
         },
         notes: {
           allowedRange: "Valores permitidos: de 0 a 30 días.",
-          settingsImpact:
-            "Los cambios se aplican a reservas confirmadas, holds activos, disponibilidad pública y futuros feeds iCal. Los desbloqueos individuales se administran desde Calendario.",
         },
         success: {
           settingsSaved: "La configuración de preparación se guardó correctamente.",

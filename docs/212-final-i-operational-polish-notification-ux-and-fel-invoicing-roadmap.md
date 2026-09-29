@@ -13,8 +13,8 @@ Historical accepted Final-H head: 6922cf27e31e63fde071c0d0a810b141e44b9f90
 Historical accepted complete-track head: 6922cf27e31e63fde071c0d0a810b141e44b9f90
 Final-I.1 status: Completed and accepted on 2026-09-29
 Accepted Final-I.1 head: 9a15f349c1104671f5555d1988caa56756e5ff0c
-Final-I.2 status: Next / Not started
-Final-I.3 status: Not started
+Final-I.2 status: Implementation completed; owner acceptance pending
+Final-I.3 status: Next / Not started
 Final-I.4 status: Not started
 Final-I.5 status: Not started
 Final-I.6 status: Not started
@@ -114,14 +114,17 @@ external guest email
 
 ## Future Subphase Decisions
 
-Final-I.2 is the next subphase and remains Not started. Its accepted scope is legacy/future-phase UI and copy cleanup only. It will remove obsolete public/admin user-visible copy that incorrectly describes completed functionality as an upcoming phase, next phase, next subphase, coming soon, future implementation, or similar roadmap language.
+Final-I.2 implementation is completed and owner acceptance remains pending. Its accepted scope is legacy/future-phase UI and copy cleanup only. It removes obsolete public/admin user-visible copy that incorrectly described completed functionality as an upcoming phase, next phase, next subphase, coming soon, future implementation, or similar roadmap language.
 
-Known accepted Final-I.2 scope:
+Implemented Final-I.2 scope:
 
 ```text
-- remove the final black Home card "Próximamente booking online"
-- remove the admin/accommodations preparation-buffer note "Los cambios se aplican a reservas confirmadas, holds activos, disponibilidad pública y futuros feeds..."
-- systematically remove stale public/admin user-visible roadmap copy for completed functionality
+- removed the final black Home card "Próximamente booking online" and its unused component/localization keys
+- removed the admin/accommodations preparation-buffer note "Los cambios se aplican a reservas confirmadas, holds activos, disponibilidad pública y futuros feeds..."
+- rewrote stale Home hero, Home benefit/trust, reservation request, pending-hold, date-mutation negative-difference, and admin photo deletion copy to current behavior
+- removed stale unused localization keys for property-detail booking-coming-soon, request hold-disabled, and phase-boundary notes
+- preserved legitimate temporal copy such as "Próximas llegadas" and "Upcoming arrivals"
+- added focused Final-I.2 tests under `tests/final-i`
 ```
 
 Legitimate temporal copy must remain, including:
@@ -133,7 +136,7 @@ upcoming arrivals
 upcoming reservations
 ```
 
-Known stale candidates for Final-I.2 review include:
+Stale candidates reviewed and removed or rewritten from user-facing ES/EN copy:
 
 ```text
 Próximamente integraremos disponibilidad, pagos seguros con Tilopay y sincronización con Airbnb.
@@ -148,7 +151,7 @@ Subfase 8.4...
 La diferencia negativa requiere la integración de reembolso de la siguiente subfase...
 ```
 
-Final-I.2 must review whether each string is reachable/user-visible before removing it. It must not delete localization fields blindly when still referenced by code. If a stale key becomes unused after UI cleanup, remove it safely from both ES and EN copy.
+Final-I.2 reviewed each stale candidate for reachability before removing it. Unused localization fields were removed only after confirming no remaining code references. Reachable negative-date-difference admin copy was rewritten to describe the implemented refund workflow instead of a future subphase.
 
 Final-I.3 will simplify the desktop admin notification center to recent notifications only, with no tabs and no Configuration view. Mobile browser and standalone PWA retain Notifications + Configuration. Notification details use a single accordion with one item open at a time. Push clicks route to `/admin/notifications?notification=<id>` and auto-expand the target notification. The internal Open action keeps the existing `targetPath` behavior.
 
@@ -199,8 +202,8 @@ Unresolved FEL/INFILE questions remain carried forward:
 
 ```text
 - Phase 13 remains blocked / not started until Final-I closes.
-- No Production provider account, credential, DNS cutover, payment credential, database, media account, WhatsApp sender, FEL account, or public go-live is introduced by Final-I.1.
-- No schema, migration, dependency, environment variable, scheduler, AdminNotificationType, Production, Final-I.2+, FEL, Final-G/H reopening, or Phase 13 work is part of Final-I.1.
+- No Production provider account, credential, DNS cutover, payment credential, database, media account, WhatsApp sender, FEL account, or public go-live is introduced by Final-I.1 or Final-I.2.
+- No schema, migration, dependency, environment variable, scheduler, AdminNotificationType, Production, Final-I.3+, FEL, Final-G/H reopening, or Phase 13 work is part of Final-I.2.
 - Existing Final-F.7 Zoho webhook signature verification, bootstrap behavior, Limited Data parsing, bounded persistence, notification-center serialization, and Web Push delivery remain preserved.
 - `vercel.json` remains `{ "crons": [] }`.
 ```
@@ -208,19 +211,19 @@ Unresolved FEL/INFILE questions remain carried forward:
 ## Validation Ledger
 
 ```text
-npm run final-i:validate - PASS, 8/8
-npm run final-f:validate - PASS, 125/125
-npm run final-h:validate - PASS, 20/20
-npm run env:validate - PASS
-npm run db:validate - PASS
-npm run db:generate - PASS
-npm run db:migrate:status - PASS, database schema is up to date
-npm run lint - PASS
-npm run build - PASS
-npm audit --omit=dev - PASS, 0 vulnerabilities
-git diff --check - PASS
-Vercel - SUCCESS
-Hosted owner validation - PASS
+Final-I.2 implementation validation:
+- npm run final-i:validate - PASS, 12/12
+- npm run final-h:validate - PASS, 20/20
+- npm run env:validate - PASS
+- npm run db:validate - PASS; Prisma package.json#prisma deprecation warning only
+- npm run db:generate - PASS; Prisma package.json#prisma deprecation warning only
+- npm run db:migrate:status - PASS, 29 migrations, database schema is up to date
+- npm run lint - PASS
+- npm run build - PASS; Next slow filesystem warning only
+- npm audit --omit=dev - PASS, 0 vulnerabilities
+- git diff --check - PASS; Windows CRLF normalization warnings only
+- Vercel / Hosted smoke - pending after push
+- Hosted owner validation - pending for Final-I.2
 ```
 
 ## Hosted Owner Validation Completed
@@ -236,4 +239,4 @@ Owner Hosted validation completed and owner acceptance was explicit. The owner v
 - /admin/notifications history still records the genuine external email notification.
 ```
 
-Final-I.1 is completed and accepted on 2026-09-29 at accepted head `9a15f349c1104671f5555d1988caa56756e5ff0c`. Final-I.2 is Next / Not started.
+Final-I.1 is completed and accepted on 2026-09-29 at accepted head `9a15f349c1104671f5555d1988caa56756e5ff0c`. Final-I.2 implementation is completed and owner acceptance remains pending. Final-I.3 is Next / Not started.

@@ -99,7 +99,7 @@ export const enMessages = {
         eyebrow: "Direct Booking",
         title: "Book direct, avoid intermediaries, and receive confirmation by email.",
         description:
-          "Availability, secure Tilopay payments, and Airbnb synchronization will be added in upcoming phases.",
+          "Check availability, book directly, and complete secure payments with Tilopay.",
       },
     },
     accommodations: {
@@ -136,7 +136,7 @@ export const enMessages = {
         {
           title: "Email confirmation",
           description:
-            "When booking is active, every confirmed reservation will send important details and arrival instructions.",
+            "Every confirmed reservation sends important details and arrival instructions by email.",
         },
       ],
     },
@@ -164,14 +164,8 @@ export const enMessages = {
         "Real photos of the accommodations",
         "Rules and policies visible before booking",
         "Official emails from the turefugioperfecto.com.gt domain",
-        "Secure Tilopay payments in the booking phase",
+        "Secure Tilopay payments",
       ],
-    },
-    cta: {
-      badge: "Online booking coming soon",
-      title: "Explore the accommodations before choosing your dates.",
-      description:
-        "The public foundation already presents the available spaces. Upcoming phases will add availability, direct booking, payments, and Airbnb synchronization.",
     },
   },
   properties: {
@@ -199,8 +193,6 @@ export const enMessages = {
       preparationBufferBefore: "day(s) before",
       preparationBufferAfter: "day(s) after",
       reserveCta: "Book this accommodation",
-      reserveComingSoon:
-        "The availability calendar and online payment will be added in upcoming phases.",
       galleryTitle: "Gallery",
       highlightsTitle: "Highlights",
       amenitiesTitle: "Amenities",
@@ -235,7 +227,7 @@ export const enMessages = {
     request: {
       title: "Request your direct reservation",
       description:
-        "Enter your dates and main guest details to calculate a server-side quote. This phase does not create a reservation or start payment yet.",
+        "Enter your dates and main guest details to check availability, calculate the total, and continue with your direct reservation.",
       fields: {
         checkInDate: "Check-in date",
         checkOutDate: "Check-out date",
@@ -270,9 +262,6 @@ export const enMessages = {
       },
       nonBindingQuoteNote:
         "This quote is informational. Availability and totals will be recalculated on the server before creating the payment hold.",
-      createHoldDisabled: "Create reservation hold in the next phase",
-      phaseBoundaryNote:
-        "Phase 8.3 only collects details and calculates a quote. It does not save reservations, block dates, or process payments.",
       pricingBreakdown: {
         title: "Nightly price breakdown",
         description:
@@ -327,9 +316,7 @@ export const enMessages = {
       total: "Total",
       pendingPayment: "Pending payment",
       paymentPendingNote:
-        "Your reservation was temporarily held. Direct payment will be added in the next subphase; for now this hold expires automatically.",
-      phaseBoundaryNote:
-        "Subphase 8.4 creates a pending reservation for 15 minutes. It still does not confirm payment, send emails, or create manual calendar blocks.",
+        "Your reservation is temporarily held while you complete payment. The hold expires automatically if payment is not completed within the displayed time.",
     },
   },
   reviews: {
@@ -1562,7 +1549,7 @@ export const enMessages = {
           rejectDescription:
             "Rejection closes this request without changing the reservation or creating financial movements.",
           approvalBoundary:
-            "A positive difference creates an independent 60-minute hold and an exact payment; dates are applied automatically after the payment is validated. A zero difference completes inside this approval. The negative branch remains reserved for the 11.5.5 refund integration.",
+            "A positive difference creates an independent 60-minute hold and an exact payment; dates are applied automatically after the payment is validated. A zero difference completes inside this approval. A negative difference is completed through the implemented stay-refund workflow.",
           rejectionBoundary:
             "Rejection preserves the current dates, prices, Confirmed status, payments, and availability.",
         },
@@ -1642,7 +1629,7 @@ export const enMessages = {
           ADMIN_DATE_MUTATION_HOLD_NOT_ACTIVE:
             "The requested-date hold is no longer active or does not match the request.",
           ADMIN_DATE_MUTATION_NEGATIVE_COMPLETION_DEFERRED:
-            "The negative difference requires the next subphase's refund integration before dates can be completed.",
+            "The negative difference requires an approved and reconciled refund before dates can be completed.",
           ADMIN_DATE_MUTATION_COMPLETION_CONFLICT:
             "Completion was already processed with a different state. Reload the reservation before continuing.",
           ADMIN_DATE_MUTATION_UNEXPECTED_ERROR:
@@ -3059,7 +3046,7 @@ export const enMessages = {
         deleteDialog: {
           title: "Delete photo",
           description:
-            "The photo will stop appearing on the public website. The record will remain for auditing, and this subphase will not delete the Cloudinary asset.",
+            "The photo will stop appearing on the public website. The record will remain for auditing, and this action will not delete the Cloudinary asset.",
         },
         errors: {
           ADMIN_UNAUTHORIZED: "Your session does not have admin access.",
@@ -3147,8 +3134,6 @@ export const enMessages = {
         },
         notes: {
           allowedRange: "Allowed values: 0 through 30 days.",
-          settingsImpact:
-            "Changes apply to confirmed reservations, active holds, public availability, and future iCal feeds. Individual unlocks are managed from Calendar.",
         },
         success: {
           settingsSaved: "Preparation settings were saved successfully.",

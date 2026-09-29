@@ -44,8 +44,9 @@ This file defines the working rules for TRP Booking.
 - Final-I — Operational Polish, Notification UX & FEL Invoicing — Active; registration date 2026-09-29; registration base `950ff5e6948fb2a74cda03f81efdb7c676b33c73`.
 - Final-I.1 — Zoho internal-email suppression and notification-loop correction — Completed and accepted on 2026-09-29 at `9a15f349c1104671f5555d1988caa56756e5ff0c`.
 - Final-I.1 accepted head: `9a15f349c1104671f5555d1988caa56756e5ff0c`.
-- Final-I.2 — Legacy/future-phase UI and copy cleanup — Next / Not started.
-- Final-I.3 through Final-I.6 are Not started.
+- Final-I.2 — Legacy/future-phase UI and copy cleanup — Implementation completed; owner acceptance pending.
+- Final-I.3 — Admin notification-center desktop simplification + single accordion + Push deep-link — Next / Not started.
+- Final-I.4 through Final-I.6 are Not started.
 - Final-I.7 is Blocked pending official INFILE technical documentation + Test credentials.
 - Final-I.8 and Final-I.9 are Not started.
 - Final-I record: `docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md`.
@@ -294,7 +295,7 @@ Final-D.7 introduced the consolidated Final-D regression gate. Final-E.7 introdu
 - `docs/207-final-g-2-public-server-data-cache-corrections.md` is the Final-G.2 public server/data/cache corrections implementation and acceptance record; Final-G.2 is completed and accepted on 2026-09-28 at accepted feature head `ecafa2f95314fe485b1e1cc2d6372c40f076964a`, with Hosted evidence head `c09d8d04e0e49a1fdcc8bd2dd5aaeb96e350ed60`.
 - `docs/208-final-g-3-client-hydration-and-image-path-corrections.md` is the Final-G.3 client/hydration and image-path corrections implementation record; Final-G.3 is completed and accepted on 2026-09-28 at `e3bcc9709a355b2ce0c6284461f0f4249ad60a5e`.
 - `docs/211-final-h-integrated-regression-and-final-improvement-track-closure.md` is the Final-H integrated regression/security hardening/evidence and acceptance record; Final-H and the complete Final Improvement Track are completed and accepted on 2026-09-29 at `6922cf27e31e63fde071c0d0a810b141e44b9f90`.
-- `docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md` is the active Final-I addendum roadmap and Final-I.1 implementation/acceptance record; Final-I.1 is completed and accepted on 2026-09-29 at `9a15f349c1104671f5555d1988caa56756e5ff0c`, and Final-I.2 is Next / Not started.
+- `docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md` is the active Final-I addendum roadmap and Final-I.1 implementation/acceptance record; Final-I.1 is completed and accepted on 2026-09-29 at `9a15f349c1104671f5555d1988caa56756e5ff0c`, Final-I.2 implementation is completed with owner acceptance pending, and Final-I.3 is Next / Not started.
 - For revised Final-F decisions, `docs/200-final-f-r3-admin-web-push-public-whatsapp-architecture-rebaseline.md` overrides conflicting future-facing provider-specific guidance in `docs/193-final-f-1-twilio-whatsapp-staff-alert-strategy-onboarding-and-security-contract.md`, `docs/194-final-f-2-twilio-sandbox-provider-foundation-webhook-signature-validation-and-test-onboarding.md`, `docs/198-final-f-architecture-revision-360dialog-coexistence.md`, and `docs/199-final-f-r2-360dialog-provider-foundation-and-developer-test-coexistence-onboarding.md`.
 - Any completed phase or subphase must be reflected in the progress tracker before moving to a new major phase or subphase.
 - When migrating to a new conversation or agent, use `AGENTS.md`, `README.md`, `docs/10-phases.md`, and `docs/11-progress-log.md` as the minimum continuity context. For Final Improvement Track continuity, also review `docs/160-post-phase-12-pre-phase-13-final-improvement-track.md` and `docs/211-final-h-integrated-regression-and-final-improvement-track-closure.md`.

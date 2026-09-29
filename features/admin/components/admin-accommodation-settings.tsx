@@ -244,9 +244,6 @@ export function AdminAccommodationSettings({
         })}
       </div>
 
-      <div className="mt-6 rounded-2xl border border-border bg-muted/30 p-4 text-sm leading-6 text-muted-foreground">
-        {copy.notes.settingsImpact}
-      </div>
     </>
   );
 }
