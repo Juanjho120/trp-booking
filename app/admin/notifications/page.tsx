@@ -2,7 +2,11 @@ import type { Metadata } from "next";
 
 import { AdminNotificationsPageView } from "@/features/admin/components/admin-notifications-page";
 import { getAdminSessionActor } from "@/lib/admin/session";
-import { getAdminNotificationCenter } from "@/lib/admin-notifications";
+import {
+  getAdminNotificationCenter,
+  normalizeAdminNotificationId,
+  resolveAdminNotificationInitialOpenId,
+} from "@/lib/admin-notifications";
 import { esMessages } from "@/messages";
 
 export const dynamic = "force-dynamic";
@@ -15,9 +19,33 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function AdminNotificationsPage() {
-  const actor = await getAdminSessionActor();
-  const notificationCenter = await getAdminNotificationCenter(actor);
+type AdminNotificationsPageProps = Readonly<{
+  searchParams?: Promise<{
+    notification?: string | string[];
+  }>;
+}>;
 
-  return <AdminNotificationsPageView notificationCenter={notificationCenter} />;
+export default async function AdminNotificationsPage({
+  searchParams,
+}: AdminNotificationsPageProps) {
+  const actor = await getAdminSessionActor();
+  const params = searchParams ? await searchParams : {};
+  const rawNotificationId = Array.isArray(params.notification)
+    ? params.notification[0]
+    : params.notification;
+  const requestedNotificationId = normalizeAdminNotificationId(rawNotificationId);
+  const notificationCenter = await getAdminNotificationCenter(actor, {
+    requestedNotificationId,
+  });
+  const initialNotificationId = resolveAdminNotificationInitialOpenId({
+    requestedNotificationId,
+    notifications: notificationCenter.notifications,
+  });
+
+  return (
+    <AdminNotificationsPageView
+      initialNotificationId={initialNotificationId}
+      notificationCenter={notificationCenter}
+    />
+  );
 }

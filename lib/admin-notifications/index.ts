@@ -9,6 +9,16 @@ export type {
   AdminNotificationCenterItem,
 } from "./center";
 export {
+  ADMIN_NOTIFICATION_CENTER_PATH,
+  ADMIN_NOTIFICATION_MOBILE_MEDIA_QUERY,
+  buildAdminNotificationCenterDeepLink,
+  mergeTargetedAdminNotification,
+  normalizeAdminNotificationId,
+  resolveAdminNotificationInitialOpenId,
+  shouldShowAdminNotificationConfiguration,
+} from "./center-routing";
+export type { AdminNotificationsDisplayMode } from "./center-routing";
+export {
   calculateNextAdminPushDeliveryAttemptAt,
   deliverAdminPushNotificationsBestEffort,
   ensureDueAdminOperationalReminders,

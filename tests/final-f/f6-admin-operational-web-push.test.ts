@@ -527,7 +527,16 @@ test("F.6 /admin/notifications preserves R5 device UX and adds safe recent histo
   expectIncludes(NOTIFICATIONS_VIEW, "notificationCenter");
   expectIncludes(NOTIFICATIONS_VIEW, "recentNotifications");
   expectIncludes(NOTIFICATIONS_VIEW, "copy.history.title");
+  for (const expected of [
+    "Accordion,",
+    "AccordionContent,",
+    "AccordionItem,",
+    "AccordionTrigger,",
+  ]) {
+    expectIncludes(NOTIFICATIONS_VIEW, expected);
+  }
   expectIncludes(NOTIFICATIONS_VIEW, "Tabs, TabsContent, TabsList, TabsTrigger");
+  expectIncludes(NOTIFICATIONS_VIEW, "showConfigurationNavigation ? (");
   expectIncludes(NOTIFICATIONS_VIEW, '<TabsList className="grid w-full grid-cols-2');
   expectIncludes(NOTIFICATIONS_VIEW, '<TabsTrigger className="min-h-10" value="notifications">');
   expectIncludes(NOTIFICATIONS_VIEW, '<TabsTrigger className="min-h-10" value="configuration">');
@@ -559,23 +568,25 @@ test("F.6 localized copy covers history, cron labels and mark-read errors", () =
   expectIncludes(EN_MESSAGES, 'configuration: "Configuration"');
 });
 
-test("F.6 /admin/notifications source keeps tab content isolated", () => {
-  const notificationsTabIndex = NOTIFICATIONS_VIEW.indexOf(
-    '<TabsContent className="mt-6" value="notifications">',
+test("F.6 /admin/notifications source keeps history and configuration isolated", () => {
+  const notificationsPanelIndex = NOTIFICATIONS_VIEW.indexOf(
+    "const notificationsPanel = (",
   );
-  const configurationTabIndex = NOTIFICATIONS_VIEW.indexOf(
-    '<TabsContent className="mt-6" value="configuration">',
+  const configurationPanelIndex = NOTIFICATIONS_VIEW.indexOf(
+    "const configurationPanel = (",
   );
+  const tabsIndex = NOTIFICATIONS_VIEW.indexOf("showConfigurationNavigation ? (");
   const historyIndex = NOTIFICATIONS_VIEW.indexOf("copy.history.title");
   const installIndex = NOTIFICATIONS_VIEW.indexOf("copy.install.title");
   const deviceIndex = NOTIFICATIONS_VIEW.indexOf("copy.device.title");
   const statusGridIndex = NOTIFICATIONS_VIEW.indexOf("statusItems.map");
 
-  assert.ok(notificationsTabIndex >= 0);
-  assert.ok(configurationTabIndex > notificationsTabIndex);
-  assert.ok(historyIndex > notificationsTabIndex);
-  assert.ok(historyIndex < configurationTabIndex);
-  assert.ok(installIndex > configurationTabIndex);
+  assert.ok(notificationsPanelIndex >= 0);
+  assert.ok(configurationPanelIndex > notificationsPanelIndex);
+  assert.ok(tabsIndex > configurationPanelIndex);
+  assert.ok(historyIndex > notificationsPanelIndex);
+  assert.ok(historyIndex < configurationPanelIndex);
+  assert.ok(installIndex > configurationPanelIndex);
   assert.ok(deviceIndex > installIndex);
   assert.ok(statusGridIndex > deviceIndex);
 });

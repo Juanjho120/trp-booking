@@ -1176,6 +1176,7 @@ async function deliverClaimedAdminPushNotification(
       JSON.stringify({
         title: input.claim.notification.title,
         body: input.claim.notification.body,
+        notificationId: input.claim.notification.id,
         targetPath: coerceAdminNotificationTargetPath(
           input.claim.notification.targetPath,
         ),

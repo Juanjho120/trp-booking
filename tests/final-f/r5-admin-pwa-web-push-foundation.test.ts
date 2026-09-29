@@ -454,7 +454,7 @@ test("F.R5 UI handles expired test-push responses by attempting local browser un
   const expiredBlock = sourceBlock(
     sendTestBlock,
     'code === "ADMIN_PUSH_SUBSCRIPTION_EXPIRED"',
-    "setErrorMessage(\n        resolveError(code),",
+    "setErrorMessage(resolveError(code));",
   );
 
   expectIncludes(expiredBlock, "navigator.serviceWorker.ready");
@@ -471,7 +471,7 @@ test("F.R5 expired test-push cleanup refreshes device state without issuing anot
   const expiredBlock = sourceBlock(
     sendTestBlock,
     'code === "ADMIN_PUSH_SUBSCRIPTION_EXPIRED"',
-    "setErrorMessage(\n        resolveError(code),",
+    "setErrorMessage(resolveError(code));",
   );
 
   const unsubscribeIndex = expiredBlock.indexOf("subscription.unsubscribe()");

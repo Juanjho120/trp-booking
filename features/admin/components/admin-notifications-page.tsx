@@ -12,6 +12,12 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -22,6 +28,11 @@ import type {
   AdminNotificationCenterData,
   AdminNotificationCenterItem,
 } from "@/lib/admin";
+import {
+  ADMIN_NOTIFICATION_MOBILE_MEDIA_QUERY,
+  shouldShowAdminNotificationConfiguration,
+  type AdminNotificationsDisplayMode,
+} from "@/lib/admin-notifications/center-routing";
 
 import { AdminPageHeader } from "./admin-page-header";
 import { AdminSnackbar } from "./admin-snackbar";
@@ -71,7 +82,7 @@ export type AdminNotificationsDeviceState = Readonly<{
   serviceWorkerState: ServiceWorkerState;
   subscriptionState: SubscriptionState;
   serverRegistrationState: ServerRegistrationState;
-  displayMode: "browser" | "standalone";
+  displayMode: AdminNotificationsDisplayMode;
 }>;
 
 export function resolveAdminNotificationsDefaultTab(
@@ -91,10 +102,16 @@ export function resolveAdminNotificationsDefaultTab(
 export function resolveAdminNotificationsActiveTab({
   selectedTab,
   deviceState,
+  configurationNavigationVisible = true,
 }: Readonly<{
   selectedTab: AdminNotificationsTab | null;
   deviceState: AdminNotificationsDeviceState;
+  configurationNavigationVisible?: boolean;
 }>): AdminNotificationsTab {
+  if (!configurationNavigationVisible) {
+    return "notifications";
+  }
+
   return selectedTab ?? resolveAdminNotificationsDefaultTab(deviceState);
 }
 
@@ -176,7 +193,7 @@ function isWebPushSupported(): boolean {
   );
 }
 
-function getDisplayMode(): "browser" | "standalone" {
+function getDisplayMode(): AdminNotificationsDisplayMode {
   return window.matchMedia("(display-mode: standalone)").matches
     ? "standalone"
     : "browser";
@@ -209,7 +226,6 @@ function safeAdminTargetPath(value: string): string {
   }
 }
 
-
 function formatNotificationTimestamp(value: string, locale: string): string {
   return new Intl.DateTimeFormat(locale === "en" ? "en-US" : "es-GT", {
     dateStyle: "medium",
@@ -240,8 +256,10 @@ function copyTextWithSelection(value: string): boolean {
 }
 
 export function AdminNotificationsPageView({
+  initialNotificationId = null,
   notificationCenter,
 }: Readonly<{
+  initialNotificationId?: string | null;
   notificationCenter: AdminNotificationCenterData;
 }>) {
   const { locale, messages } = useLocale();
@@ -252,6 +270,9 @@ export function AdminNotificationsPageView({
   const [unreadCount, setUnreadCount] = useState(
     notificationCenter.unreadCount,
   );
+  const [openNotificationId, setOpenNotificationId] = useState<
+    string | undefined
+  >(initialNotificationId ?? undefined);
   const [config, setConfig] = useState<PushConfig | null>(null);
   const [serviceWorkerState, setServiceWorkerState] =
     useState<ServiceWorkerState>("checking");
@@ -262,9 +283,10 @@ export function AdminNotificationsPageView({
   const [permission, setPermission] = useState<
     NotificationPermission | "unsupported"
   >("default");
-  const [displayMode, setDisplayMode] = useState<"browser" | "standalone">(
+  const [displayMode, setDisplayMode] = useState<AdminNotificationsDisplayMode>(
     "browser",
   );
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
   const [currentSubscription, setCurrentSubscription] =
     useState<PushSubscription | null>(null);
   const [busyAction, setBusyAction] = useState<
@@ -394,12 +416,18 @@ export function AdminNotificationsPageView({
     void refreshCurrentDevice();
 
     const displayModeQuery = window.matchMedia("(display-mode: standalone)");
+    const viewportQuery = window.matchMedia(ADMIN_NOTIFICATION_MOBILE_MEDIA_QUERY);
     const onDisplayModeChange = () => setDisplayMode(getDisplayMode());
+    const onViewportChange = () => setIsMobileViewport(viewportQuery.matches);
+
+    onViewportChange();
     displayModeQuery.addEventListener("change", onDisplayModeChange);
+    viewportQuery.addEventListener("change", onViewportChange);
 
     return () => {
       active = false;
       displayModeQuery.removeEventListener("change", onDisplayModeChange);
+      viewportQuery.removeEventListener("change", onViewportChange);
     };
   }, [refreshCurrentDevice, resolveError]);
 
@@ -543,9 +571,7 @@ export function AdminNotificationsPageView({
         return;
       }
 
-      setErrorMessage(
-        resolveError(code),
-      );
+      setErrorMessage(resolveError(code));
       await refreshCurrentDevice();
     } finally {
       setBusyAction(null);
@@ -680,18 +706,273 @@ export function AdminNotificationsPageView({
       supported,
     ],
   );
+  const showConfigurationNavigation = shouldShowAdminNotificationConfiguration({
+    isMobileViewport,
+    displayMode,
+  });
+  const deviceState: AdminNotificationsDeviceState = {
+    supported,
+    configured,
+    permission,
+    serviceWorkerState,
+    subscriptionState,
+    serverRegistrationState,
+    displayMode,
+  };
   const activeTab = resolveAdminNotificationsActiveTab({
     selectedTab,
-    deviceState: {
-      supported,
-      configured,
-      permission,
-      serviceWorkerState,
-      subscriptionState,
-      serverRegistrationState,
-      displayMode,
-    },
+    deviceState,
+    configurationNavigationVisible: showConfigurationNavigation,
   });
+
+  const notificationsPanel = (
+    <Card className="border-border/70 bg-card shadow-sm">
+      <CardContent className="grid gap-5 p-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex flex-col gap-2">
+            <h2 className="text-lg font-semibold tracking-tight">
+              {copy.history.title}
+            </h2>
+            <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
+              {copy.history.description}
+            </p>
+          </div>
+          <Badge variant={unreadCount > 0 ? "secondary" : "outline"}>
+            {copy.history.unreadCount.replace("{count}", String(unreadCount))}
+          </Badge>
+        </div>
+
+        {recentNotifications.length === 0 ? (
+          <div className="flex items-center gap-3 rounded-lg border border-dashed border-border/70 p-4 text-sm text-muted-foreground">
+            <Inbox aria-hidden="true" className="size-4 shrink-0" />
+            <span>{copy.history.empty}</span>
+          </div>
+        ) : (
+          <Accordion
+            className="grid gap-3"
+            collapsible
+            onValueChange={(value) => {
+              setOpenNotificationId(value || undefined);
+            }}
+            type="single"
+            value={openNotificationId}
+          >
+            {recentNotifications.map((notification) => {
+              const read = notification.readAt !== null;
+
+              return (
+                <AccordionItem
+                  className="rounded-lg border border-border/70 bg-background"
+                  key={notification.id}
+                  value={notification.id}
+                >
+                  <AccordionTrigger className="rounded-lg px-4 py-3 data-[state=open]:rounded-b-none">
+                    <span className="grid min-w-0 gap-2">
+                      <span className="flex flex-wrap items-center gap-2">
+                        <Badge variant={read ? "outline" : "secondary"}>
+                          {read ? copy.history.read : copy.history.unread}
+                        </Badge>
+                        <time className="text-xs text-muted-foreground">
+                          {formatNotificationTimestamp(
+                            notification.createdAt,
+                            locale,
+                          )}
+                        </time>
+                      </span>
+                      <span className="truncate text-sm font-semibold text-foreground">
+                        {notification.title}
+                      </span>
+                    </span>
+                  </AccordionTrigger>
+                  <AccordionContent className="grid gap-3 px-4 pb-4">
+                    <p className="text-sm leading-6 text-muted-foreground">
+                      {notification.body}
+                    </p>
+
+                    {notification.zohoEmail ? (
+                      <dl className="grid gap-2 rounded-md border border-border/60 bg-muted/30 p-3 text-xs sm:grid-cols-2">
+                        <div className="min-w-0">
+                          <dt className="font-medium text-muted-foreground">
+                            {copy.history.zohoEmail.from}
+                          </dt>
+                          <dd className="mt-1 break-all text-foreground">
+                            {notification.zohoEmail.fromAddress}
+                          </dd>
+                        </div>
+                        <div className="min-w-0">
+                          <dt className="font-medium text-muted-foreground">
+                            {copy.history.zohoEmail.to}
+                          </dt>
+                          <dd className="mt-1 break-all text-foreground">
+                            {notification.zohoEmail.toAddress}
+                          </dd>
+                        </div>
+                        <div className="min-w-0">
+                          <dt className="font-medium text-muted-foreground">
+                            {copy.history.zohoEmail.subject}
+                          </dt>
+                          <dd className="mt-1 break-words text-foreground">
+                            {notification.zohoEmail.subject ||
+                              copy.history.zohoEmail.emptySubject}
+                          </dd>
+                        </div>
+                        <div className="min-w-0">
+                          <dt className="font-medium text-muted-foreground">
+                            {copy.history.zohoEmail.receivedAt}
+                          </dt>
+                          <dd className="mt-1 text-foreground">
+                            {formatNotificationTimestamp(
+                              notification.zohoEmail.receivedAt,
+                              locale,
+                            )}
+                          </dd>
+                        </div>
+                        <div className="min-w-0 sm:col-span-2">
+                          <dt className="font-medium text-muted-foreground">
+                            {copy.history.zohoEmail.reservationMatch}
+                          </dt>
+                          <dd className="mt-1 text-foreground">
+                            {notification.zohoEmail.reservationMatched
+                              ? copy.history.zohoEmail.matched
+                              : copy.history.zohoEmail.unmatched}
+                          </dd>
+                        </div>
+                      </dl>
+                    ) : null}
+
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Button asChild size="sm" variant="outline">
+                        <a href={safeAdminTargetPath(notification.targetPath)}>
+                          <ExternalLink aria-hidden="true" />
+                          {copy.actions.open}
+                        </a>
+                      </Button>
+                      {notification.zohoEmail ? (
+                        <Button
+                          onClick={() =>
+                            void openZohoMailForNotification(notification)
+                          }
+                          size="sm"
+                          type="button"
+                          variant="secondary"
+                        >
+                          <MailOpen aria-hidden="true" />
+                          {copy.actions.openZohoMail}
+                        </Button>
+                      ) : null}
+                      {!read ? (
+                        <Button
+                          disabled={busyNotificationId === notification.id}
+                          onClick={() => void markNotificationRead(notification)}
+                          size="sm"
+                          type="button"
+                          variant="secondary"
+                        >
+                          <CheckCheck aria-hidden="true" />
+                          {busyNotificationId === notification.id
+                            ? copy.actions.working
+                            : copy.actions.markRead}
+                        </Button>
+                      ) : null}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              );
+            })}
+          </Accordion>
+        )}
+      </CardContent>
+    </Card>
+  );
+
+  const configurationPanel = (
+    <section className="grid gap-4" aria-label={copy.status.ariaLabel}>
+      <Card className="border-border/70 bg-card shadow-sm">
+        <CardContent className="grid gap-3 p-5">
+          <div className="flex items-center gap-2">
+            <Download aria-hidden="true" className="size-4 text-primary" />
+            <h2 className="text-lg font-semibold tracking-tight">
+              {copy.install.title}
+            </h2>
+          </div>
+          {displayMode === "standalone" ? (
+            <p className="text-sm leading-6 text-muted-foreground">
+              {copy.install.installed}
+            </p>
+          ) : (
+            <p className="text-sm leading-6 text-muted-foreground">
+              {copy.install.instructions}
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card className="border-border/70 bg-card shadow-sm">
+        <CardContent className="grid gap-5 p-5">
+          <div className="flex flex-col gap-2">
+            <h2 className="text-lg font-semibold tracking-tight">
+              {copy.device.title}
+            </h2>
+            <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
+              {copy.device.description}
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <Button
+              disabled={!canEnable}
+              onClick={() => void enableNotifications()}
+              type="button"
+            >
+              <Bell aria-hidden="true" />
+              {busyAction === "enable" ? copy.actions.working : copy.actions.enable}
+            </Button>
+            <Button
+              disabled={!canDisable}
+              onClick={() => void disableNotifications()}
+              type="button"
+              variant="outline"
+            >
+              <BellOff aria-hidden="true" />
+              {busyAction === "disable"
+                ? copy.actions.working
+                : copy.actions.disable}
+            </Button>
+            <Button
+              disabled={!canTest}
+              onClick={() => void sendTestNotification()}
+              type="button"
+              variant="secondary"
+            >
+              <Send aria-hidden="true" />
+              {busyAction === "test" ? copy.actions.working : copy.actions.test}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        {statusItems.map((item) => (
+          <div
+            className="rounded-2xl border border-border/70 bg-background p-4 shadow-sm"
+            key={item.label}
+          >
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <p className="text-sm font-medium text-muted-foreground">
+                {item.label}
+              </p>
+              <Badge variant={item.ok ? "secondary" : "outline"}>
+                {item.ok ? copy.values.ok : copy.values.needsAttention}
+              </Badge>
+            </div>
+            <p className="text-base font-semibold text-foreground">
+              {item.value}
+            </p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
 
   return (
     <>
@@ -701,270 +982,36 @@ export function AdminNotificationsPageView({
         title={copy.title}
       />
 
-      <Tabs
-        className="mt-6"
-        onValueChange={(value) => {
-          if (value === "notifications" || value === "configuration") {
-            setSelectedTab(value);
-          }
-        }}
-        value={activeTab}
-      >
-        <TabsList className="grid w-full grid-cols-2 sm:w-fit">
-          <TabsTrigger className="min-h-10" value="notifications">
-            {copy.tabs.notifications}
-          </TabsTrigger>
-          <TabsTrigger className="min-h-10" value="configuration">
-            {copy.tabs.configuration}
-          </TabsTrigger>
-        </TabsList>
+      {showConfigurationNavigation ? (
+        <Tabs
+          className="mt-6"
+          onValueChange={(value) => {
+            if (value === "notifications" || value === "configuration") {
+              setSelectedTab(value);
+            }
+          }}
+          value={activeTab}
+        >
+          <TabsList className="grid w-full grid-cols-2 sm:w-fit">
+            <TabsTrigger className="min-h-10" value="notifications">
+              {copy.tabs.notifications}
+            </TabsTrigger>
+            <TabsTrigger className="min-h-10" value="configuration">
+              {copy.tabs.configuration}
+            </TabsTrigger>
+          </TabsList>
 
-        <TabsContent className="mt-6" value="notifications">
-          <Card className="border-border/70 bg-card shadow-sm">
-            <CardContent className="grid gap-5 p-5">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div className="flex flex-col gap-2">
-                  <h2 className="text-lg font-semibold tracking-tight">
-                    {copy.history.title}
-                  </h2>
-                  <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
-                    {copy.history.description}
-                  </p>
-                </div>
-                <Badge variant={unreadCount > 0 ? "secondary" : "outline"}>
-                  {copy.history.unreadCount.replace(
-                    "{count}",
-                    String(unreadCount),
-                  )}
-                </Badge>
-              </div>
+          <TabsContent className="mt-6" value="notifications">
+            {notificationsPanel}
+          </TabsContent>
 
-              {recentNotifications.length === 0 ? (
-                <div className="flex items-center gap-3 rounded-lg border border-dashed border-border/70 p-4 text-sm text-muted-foreground">
-                  <Inbox aria-hidden="true" className="size-4 shrink-0" />
-                  <span>{copy.history.empty}</span>
-                </div>
-              ) : (
-                <div className="grid gap-3">
-                  {recentNotifications.map((notification) => {
-                    const read = notification.readAt !== null;
-
-                    return (
-                      <article
-                        className="grid gap-3 rounded-lg border border-border/70 bg-background p-4 sm:grid-cols-[minmax(0,1fr)_auto]"
-                        key={notification.id}
-                      >
-                        <div className="grid gap-2">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <Badge variant={read ? "outline" : "secondary"}>
-                              {read ? copy.history.read : copy.history.unread}
-                            </Badge>
-                            <time className="text-xs text-muted-foreground">
-                              {formatNotificationTimestamp(
-                                notification.createdAt,
-                                locale,
-                              )}
-                            </time>
-                          </div>
-                          <div className="grid gap-1">
-                            <h3 className="text-sm font-semibold text-foreground">
-                              {notification.title}
-                            </h3>
-                            <p className="text-sm leading-6 text-muted-foreground">
-                              {notification.body}
-                            </p>
-                          </div>
-                          {notification.zohoEmail ? (
-                            <dl className="grid gap-2 rounded-md border border-border/60 bg-muted/30 p-3 text-xs sm:grid-cols-2">
-                              <div className="min-w-0">
-                                <dt className="font-medium text-muted-foreground">
-                                  {copy.history.zohoEmail.from}
-                                </dt>
-                                <dd className="mt-1 break-all text-foreground">
-                                  {notification.zohoEmail.fromAddress}
-                                </dd>
-                              </div>
-                              <div className="min-w-0">
-                                <dt className="font-medium text-muted-foreground">
-                                  {copy.history.zohoEmail.to}
-                                </dt>
-                                <dd className="mt-1 break-all text-foreground">
-                                  {notification.zohoEmail.toAddress}
-                                </dd>
-                              </div>
-                              <div className="min-w-0">
-                                <dt className="font-medium text-muted-foreground">
-                                  {copy.history.zohoEmail.subject}
-                                </dt>
-                                <dd className="mt-1 break-words text-foreground">
-                                  {notification.zohoEmail.subject ||
-                                    copy.history.zohoEmail.emptySubject}
-                                </dd>
-                              </div>
-                              <div className="min-w-0">
-                                <dt className="font-medium text-muted-foreground">
-                                  {copy.history.zohoEmail.receivedAt}
-                                </dt>
-                                <dd className="mt-1 text-foreground">
-                                  {formatNotificationTimestamp(
-                                    notification.zohoEmail.receivedAt,
-                                    locale,
-                                  )}
-                                </dd>
-                              </div>
-                              <div className="min-w-0 sm:col-span-2">
-                                <dt className="font-medium text-muted-foreground">
-                                  {copy.history.zohoEmail.reservationMatch}
-                                </dt>
-                                <dd className="mt-1 text-foreground">
-                                  {notification.zohoEmail.reservationMatched
-                                    ? copy.history.zohoEmail.matched
-                                    : copy.history.zohoEmail.unmatched}
-                                </dd>
-                              </div>
-                            </dl>
-                          ) : null}
-                        </div>
-
-                        <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-                          <Button asChild size="sm" variant="outline">
-                            <a href={safeAdminTargetPath(notification.targetPath)}>
-                              <ExternalLink aria-hidden="true" />
-                              {copy.actions.open}
-                            </a>
-                          </Button>
-                          {notification.zohoEmail ? (
-                            <Button
-                              onClick={() =>
-                                void openZohoMailForNotification(notification)
-                              }
-                              size="sm"
-                              type="button"
-                              variant="secondary"
-                            >
-                              <MailOpen aria-hidden="true" />
-                              {copy.actions.openZohoMail}
-                            </Button>
-                          ) : null}
-                          {!read ? (
-                            <Button
-                              disabled={busyNotificationId === notification.id}
-                              onClick={() =>
-                                void markNotificationRead(notification)
-                              }
-                              size="sm"
-                              type="button"
-                              variant="secondary"
-                            >
-                              <CheckCheck aria-hidden="true" />
-                              {busyNotificationId === notification.id
-                                ? copy.actions.working
-                                : copy.actions.markRead}
-                            </Button>
-                          ) : null}
-                        </div>
-                      </article>
-                    );
-                  })}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent className="mt-6" value="configuration">
-          <section className="grid gap-4" aria-label={copy.status.ariaLabel}>
-            <Card className="border-border/70 bg-card shadow-sm">
-              <CardContent className="grid gap-3 p-5">
-                <div className="flex items-center gap-2">
-                  <Download aria-hidden="true" className="size-4 text-primary" />
-                  <h2 className="text-lg font-semibold tracking-tight">
-                    {copy.install.title}
-                  </h2>
-                </div>
-                {displayMode === "standalone" ? (
-                  <p className="text-sm leading-6 text-muted-foreground">
-                    {copy.install.installed}
-                  </p>
-                ) : (
-                  <p className="text-sm leading-6 text-muted-foreground">
-                    {copy.install.instructions}
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card className="border-border/70 bg-card shadow-sm">
-              <CardContent className="grid gap-5 p-5">
-                <div className="flex flex-col gap-2">
-                  <h2 className="text-lg font-semibold tracking-tight">
-                    {copy.device.title}
-                  </h2>
-                  <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
-                    {copy.device.description}
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    disabled={!canEnable}
-                    onClick={() => void enableNotifications()}
-                    type="button"
-                  >
-                    <Bell aria-hidden="true" />
-                    {busyAction === "enable"
-                      ? copy.actions.working
-                      : copy.actions.enable}
-                  </Button>
-                  <Button
-                    disabled={!canDisable}
-                    onClick={() => void disableNotifications()}
-                    type="button"
-                    variant="outline"
-                  >
-                    <BellOff aria-hidden="true" />
-                    {busyAction === "disable"
-                      ? copy.actions.working
-                      : copy.actions.disable}
-                  </Button>
-                  <Button
-                    disabled={!canTest}
-                    onClick={() => void sendTestNotification()}
-                    type="button"
-                    variant="secondary"
-                  >
-                    <Send aria-hidden="true" />
-                    {busyAction === "test"
-                      ? copy.actions.working
-                      : copy.actions.test}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-              {statusItems.map((item) => (
-                <div
-                  className="rounded-2xl border border-border/70 bg-background p-4 shadow-sm"
-                  key={item.label}
-                >
-                  <div className="mb-3 flex items-center justify-between gap-3">
-                    <p className="text-sm font-medium text-muted-foreground">
-                      {item.label}
-                    </p>
-                    <Badge variant={item.ok ? "secondary" : "outline"}>
-                      {item.ok ? copy.values.ok : copy.values.needsAttention}
-                    </Badge>
-                  </div>
-                  <p className="text-base font-semibold text-foreground">
-                    {item.value}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </section>
-        </TabsContent>
-      </Tabs>
+          <TabsContent className="mt-6" value="configuration">
+            {configurationPanel}
+          </TabsContent>
+        </Tabs>
+      ) : (
+        <div className="mt-6">{notificationsPanel}</div>
+      )}
 
       <AdminSnackbar
         closeLabel={copy.actions.dismiss}

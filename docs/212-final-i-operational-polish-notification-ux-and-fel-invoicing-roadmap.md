@@ -15,8 +15,8 @@ Final-I.1 status: Completed and accepted on 2026-09-29
 Accepted Final-I.1 head: 9a15f349c1104671f5555d1988caa56756e5ff0c
 Final-I.2 status: Completed and accepted on 2026-09-29
 Accepted Final-I.2 head: 6451cb705d972c83a771a9ff39f6da80d130cf58
-Final-I.3 status: Next / Not started
-Final-I.4 status: Not started
+Final-I.3 status: Implementation completed; Hosted owner validation + acceptance pending
+Final-I.4 status: Next / Not started
 Final-I.5 status: Not started
 Final-I.6 status: Not started
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
@@ -25,7 +25,7 @@ Final-I.9 status: Not started
 Phase 13 status: Blocked / Not started until Final-I closes
 ```
 
-Final-I is an owner-requested pre-Production addendum registered after the accepted Final-H closure. It does not rewrite the historical acceptance of Phase 12, Final-A through Final-H, or the complete Post-Phase-12 / Pre-Phase-13 Final Improvement Track at `6922cf27e31e63fde071c0d0a810b141e44b9f90`. Final-I.1 is completed and accepted at its feature head `9a15f349c1104671f5555d1988caa56756e5ff0c`; this documentation closure does not replace that accepted head. Phase 13 remains not started and is blocked until Final-I closes and receives owner acceptance.
+Final-I is an owner-requested pre-Production addendum registered after the accepted Final-H closure. It does not rewrite the historical acceptance of Phase 12, Final-A through Final-H, or the complete Post-Phase-12 / Pre-Phase-13 Final Improvement Track at `6922cf27e31e63fde071c0d0a810b141e44b9f90`. Final-I.1 is completed and accepted at its feature head `9a15f349c1104671f5555d1988caa56756e5ff0c`, and Final-I.2 is completed and accepted at `6451cb705d972c83a771a9ff39f6da80d130cf58`; this I.3 implementation does not replace those accepted heads. Final-I.3 implementation is completed with Hosted owner validation and explicit acceptance still pending. Phase 13 remains not started and is blocked until Final-I closes and receives owner acceptance.
 
 ## Subphase Structure
 
@@ -166,80 +166,65 @@ Phase 11.4
 
 Final-I.2 reviewed each stale candidate for reachability before removing it. Unused localization fields were removed only after confirming no remaining code references. Reachable negative-date-difference admin copy was rewritten to describe the implemented refund workflow instead of a future subphase.
 
-## Final-I.3 Prepared Scope - Not Started
+## Final-I.3 Implementation Scope - Hosted Owner Validation Pending
 
-Final-I.3 is prepared as the next subphase but is not implemented by this I.2 acceptance closure commit.
+Final-I.3 implementation is completed. Hosted owner validation and explicit acceptance remain pending; Final-I.4 is the next subphase and is not started.
 
-Accepted design decisions:
+Implemented presentation behavior:
 
 ```text
 Desktop browser:
-- /admin/notifications shows only "Notificaciones recientes".
-- Do not show navigation tabs.
-- Do not show the Configuration surface.
-- The page behaves as a notification history/center only.
+- /admin/notifications renders only the Recent notifications / Notificaciones recientes history surface.
+- Tabs navigation is not rendered.
+- Configuration content is not rendered.
+- The page behaves as a notification center/history only.
 
 Mobile browser:
-- retain Notifications + Configuration tabs.
+- Notifications + Configuration tabs remain available.
 - Configuration remains available for initial Android/PWA setup.
 
 Standalone Android PWA:
-- retain Notifications + Configuration tabs.
+- Notifications + Configuration tabs remain available.
 
-iOS/iPadOS:
-- Deferred.
+Responsive breakpoint:
+- the mobile viewport helper uses `(max-width: 767px)`, matching Tailwind's `md` boundary.
+- `display-mode: standalone` always keeps Configuration available even outside the mobile viewport.
+- no user-agent parsing is used.
 ```
 
-Accordion contract:
+Implemented accordion contract:
 
 ```text
-- each notification is an accordion item
-- collapsed state uses compact vertical space
-- only one notification can be open at any time
-- opening another notification closes the previous one
-- optionally allow the currently open notification to collapse
-- recommended semantics: Accordion type="single" collapsible
+- notification rows use the existing Accordion component
+- Accordion uses type="single" and collapsible
+- only one notification can be expanded at a time
+- the open notification can be collapsed
+- collapsed headers show read/unread state, title, and timestamp
+- expanded content preserves body, bounded Zoho metadata, target Open action, Open Zoho Mail when applicable, and explicit Mark as read when unread
+- opening/closing an accordion item does not mark the notification read
 ```
 
-Collapsed notification rows must preserve at minimum:
+Implemented Push/deep-link contract:
 
 ```text
-- read/unread indicator
-- notification title
-- timestamp
+- Web Push payload now carries a bounded notificationId in addition to the existing targetPath
+- targetPath remains the business target used by the in-page Open action
+- service-worker notification clicks route to /admin/notifications?notification=<notificationId> when the identifier is valid
+- invalid or missing notificationId falls back to /admin/notifications
+- notificationId is treated only as an opaque identifier, never as a path or URL
+- no guest email, phone, payment data, email body/content, provider IDs, tokens, secrets, or push endpoint/key material is added to the Push payload
 ```
 
-Expanded content retains the full bounded details and existing actions, including mark read, Open target, Open Zoho Mail, bounded email metadata, and reservation/review-related details.
-
-Push-click contract:
+Implemented data-loading contract:
 
 ```text
-- Android system notification click opens /admin/notifications?notification=<notificationId>
-- notification center auto-expands that exact notification when available
-- Push click target is distinct from AdminNotification.targetPath
-- stored AdminNotification.targetPath remains unchanged
-- the expanded Open action continues using the existing targetPath
-- push payload may include only the minimum bounded identifier needed for center routing, preferably notificationId
-```
-
-Query parameter safety:
-
-```text
-- ?notification=<id> is treated only as an opaque notification identifier
-- never use it as a URL
-- do not inject it into HTML
-- malformed, unknown, or unavailable IDs must not error
-- if targeted notification retrieval is needed, prefer a bounded page-data/API adjustment without schema change
-```
-
-Read-state and responsive boundaries:
-
-```text
-- opening a notification accordion must not automatically mark it read unless current UX already defines that behavior
-- push click must not silently alter read state merely by navigation
-- desktop/mobile behavior must use CSS or a bounded media-query helper, not user-agent parsing unless no better option exists
-- fresh Android Chrome before PWA installation must still expose Install Android, Enable notifications, subscription registration, test notification, and device status
-- existing Configuration cards/order from Final-F.6 remain unchanged
+- /admin/notifications parses ?notification=<id> with a bounded helper
+- malformed query values are ignored safely
+- unknown/unavailable IDs produce normal notification-center display without error
+- valid IDs outside the recent list can be fetched with one bounded ADMIN-authenticated lookup
+- the targeted notification is merged into the normal recent list without duplicates
+- default recent-history query remains bounded
+- no public notification lookup endpoint was introduced
 ```
 
 Final-I.4 will remove visible raw/fallback URLs from guest-facing HTML email bodies while preserving CTA buttons. Plaintext email continues to include a labeled URL for non-HTML clients.
@@ -289,9 +274,9 @@ Unresolved FEL/INFILE questions remain carried forward:
 
 ```text
 - Phase 13 remains blocked / not started until Final-I closes.
-- No Production provider account, credential, DNS cutover, payment credential, database, media account, WhatsApp sender, FEL account, or public go-live is introduced by Final-I.1 or Final-I.2.
-- No schema, migration, dependency, environment variable, scheduler, AdminNotificationType, Production, Final-I.3+, FEL, Final-G/H reopening, or Phase 13 work is part of Final-I.2.
-- Existing Final-F.7 Zoho webhook signature verification, bootstrap behavior, Limited Data parsing, bounded persistence, notification-center serialization, and Web Push delivery remain preserved.
+- No Production provider account, credential, DNS cutover, payment credential, database, media account, WhatsApp sender, FEL account, or public go-live is introduced by Final-I.1, Final-I.2, or Final-I.3.
+- No schema, migration, dependency, environment variable, scheduler, AdminNotificationType, Production, Final-I.4+, FEL, Final-G/H reopening, or Phase 13 work is part of Final-I.3.
+- Existing Final-F.7 Zoho webhook signature verification, bootstrap behavior, Limited Data parsing, bounded persistence, notification-center serialization, and immediate Web Push delivery remain preserved.
 - `vercel.json` remains `{ "crons": [] }`.
 ```
 
@@ -311,6 +296,18 @@ Final-I.2 implementation validation:
 - git diff --check - PASS; Windows CRLF normalization warnings only
 - Vercel - SUCCESS
 - Hosted/owner visual validation - PASS
+Final-I.3 implementation validation:
+- npm run final-i:validate - PASS, 22/22
+- npm run final-f:validate - PASS, 125/125
+- npm run final-h:validate - PASS, 20/20
+- npm run env:validate - PASS
+- npm run db:validate - PASS; Prisma package.json#prisma deprecation warning only
+- npm run db:generate - PASS; Prisma package.json#prisma deprecation warning only
+- npm run db:migrate:status - PASS, 29 migrations, database schema is up to date
+- npm run lint - PASS
+- npm run build - PASS; Next slow filesystem warning only
+- npm audit --omit=dev - PASS, 0 vulnerabilities
+- git diff --check - PASS; Windows CRLF normalization warnings only
 ```
 
 ## Final-I.1 Hosted Owner Validation Completed
@@ -354,4 +351,4 @@ Admin cancellation:
 - cancellation/refund separation explained as current behavior
 ```
 
-Final-I.1 is completed and accepted on 2026-09-29 at accepted head `9a15f349c1104671f5555d1988caa56756e5ff0c`. Final-I.2 is completed and accepted on 2026-09-29 at accepted head `6451cb705d972c83a771a9ff39f6da80d130cf58`. Final-I.3 is Next / Not started.
+Final-I.1 is completed and accepted on 2026-09-29 at accepted head `9a15f349c1104671f5555d1988caa56756e5ff0c`. Final-I.2 is completed and accepted on 2026-09-29 at accepted head `6451cb705d972c83a771a9ff39f6da80d130cf58`. Final-I.3 implementation is completed with Hosted owner validation + acceptance pending. Final-I.4 is Next / Not started.

@@ -1,9 +1,13 @@
-import type { AdminNotificationType, PrismaClient } from "@prisma/client";
+import type { AdminNotificationType, Prisma, PrismaClient } from "@prisma/client";
 
 import { prisma } from "@/lib/db/prisma";
 import type { AdminActor } from "@/types/admin";
 
 import { resolveAdminActor } from "@/lib/admin/admin-actor";
+import {
+  mergeTargetedAdminNotification,
+  normalizeAdminNotificationId,
+} from "./center-routing";
 import { coerceAdminNotificationTargetPath } from "./targets";
 
 type AdminNotificationCenterActor = Readonly<{
@@ -53,23 +57,34 @@ export class AdminNotificationCenterError extends Error {
   }
 }
 
+const adminNotificationCenterSelect = {
+  id: true,
+  type: true,
+  title: true,
+  body: true,
+  targetPath: true,
+  createdAt: true,
+  reservationId: true,
+  zohoInboundEmailEvent: {
+    select: {
+      fromAddress: true,
+      toAddress: true,
+      subject: true,
+      receivedAt: true,
+    },
+  },
+  reads: {
+    select: { readAt: true },
+    take: 1,
+  },
+} satisfies Prisma.AdminNotificationSelect;
+
+type AdminNotificationCenterRecord = Prisma.AdminNotificationGetPayload<{
+  select: typeof adminNotificationCenterSelect;
+}>;
+
 function serializeNotification(
-  notification: Readonly<{
-    id: string;
-    type: AdminNotificationType;
-    title: string;
-    body: string;
-    targetPath: string;
-    createdAt: Date;
-    reservationId?: string | null;
-    zohoInboundEmailEvent?: {
-      fromAddress: string;
-      toAddress: string;
-      subject: string;
-      receivedAt: Date;
-    } | null;
-    reads: readonly { readAt: Date }[];
-  }>,
+  notification: AdminNotificationCenterRecord,
 ): AdminNotificationCenterItem {
   const zohoEmail =
     notification.type === "GUEST_EMAIL_RECEIVED" &&
@@ -98,6 +113,7 @@ function serializeNotification(
 export async function getAdminNotificationCenter(
   actor: AdminActor | null,
   input: Readonly<{
+    requestedNotificationId?: string | null;
     prismaClient?: PrismaClient;
     resolveActor?: AdminNotificationCenterActorResolver;
   }> = {},
@@ -112,33 +128,28 @@ export async function getAdminNotificationCenter(
     ((client: PrismaClient, adminActor: AdminActor) =>
       resolveAdminActor(client, adminActor));
   const user = await resolveActor(prismaClient, actor);
-  const [notifications, unreadCount] = await Promise.all([
+  const requestedNotificationId = normalizeAdminNotificationId(
+    input.requestedNotificationId,
+  );
+  const selectWithReads = {
+    ...adminNotificationCenterSelect,
+    reads: {
+      ...adminNotificationCenterSelect.reads,
+      where: { userId: user.id },
+    },
+  } satisfies Prisma.AdminNotificationSelect;
+  const [notifications, targetedNotification, unreadCount] = await Promise.all([
     prismaClient.adminNotification.findMany({
       orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       take: 50,
-      select: {
-        id: true,
-        type: true,
-        title: true,
-        body: true,
-        targetPath: true,
-        createdAt: true,
-        reservationId: true,
-        zohoInboundEmailEvent: {
-          select: {
-            fromAddress: true,
-            toAddress: true,
-            subject: true,
-            receivedAt: true,
-          },
-        },
-        reads: {
-          where: { userId: user.id },
-          select: { readAt: true },
-          take: 1,
-        },
-      },
+      select: selectWithReads,
     }),
+    requestedNotificationId
+      ? prismaClient.adminNotification.findUnique({
+          where: { id: requestedNotificationId },
+          select: selectWithReads,
+        })
+      : Promise.resolve(null),
     prismaClient.adminNotification.count({
       where: {
         reads: {
@@ -149,7 +160,10 @@ export async function getAdminNotificationCenter(
   ]);
 
   return {
-    notifications: notifications.map(serializeNotification),
+    notifications: mergeTargetedAdminNotification(
+      notifications.map(serializeNotification),
+      targetedNotification ? serializeNotification(targetedNotification) : null,
+    ),
     unreadCount,
   };
 }

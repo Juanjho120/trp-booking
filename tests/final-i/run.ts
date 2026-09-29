@@ -1,5 +1,6 @@
 import "./i1-zoho-internal-sender-suppression.test";
 import "./i2-legacy-copy-cleanup.test";
+import "./i3-admin-notification-center-ux.test";
 
 import { runFinalITests } from "./harness";
 

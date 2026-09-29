@@ -1,5 +1,6 @@
 const DEFAULT_TARGET_PATH = "/admin/notifications";
 const ADMIN_PATH_PATTERN = /^\/admin(?:\/|$)/;
+const ADMIN_NOTIFICATION_ID_PATTERN = /^[A-Za-z0-9_-]{1,160}$/;
 
 function sanitizeText(value, fallback, maxLength) {
   if (typeof value !== "string") {
@@ -12,6 +13,16 @@ function sanitizeText(value, fallback, maxLength) {
   }
 
   return trimmed.slice(0, maxLength);
+}
+
+function sanitizeNotificationId(value) {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const trimmed = value.trim();
+
+  return ADMIN_NOTIFICATION_ID_PATTERN.test(trimmed) ? trimmed : null;
 }
 
 function sanitizeTargetPath(value) {
@@ -41,6 +52,17 @@ function sanitizeTargetPath(value) {
   return `${parsed.pathname}${parsed.search}${parsed.hash}`;
 }
 
+function buildNotificationCenterUrl(notificationId) {
+  const targetUrl = new URL(DEFAULT_TARGET_PATH, self.location.origin);
+  const sanitizedNotificationId = sanitizeNotificationId(notificationId);
+
+  if (sanitizedNotificationId) {
+    targetUrl.searchParams.set("notification", sanitizedNotificationId);
+  }
+
+  return targetUrl.href;
+}
+
 function parsePushPayload(event) {
   if (!event.data) {
     return {};
@@ -60,12 +82,13 @@ self.addEventListener("push", (event) => {
       const payload = parsePushPayload(event);
       const title = sanitizeText(payload.title, "TRP Admin", 80);
       const body = sanitizeText(payload.body, "", 180);
+      const notificationId = sanitizeNotificationId(payload.notificationId);
       const targetPath = sanitizeTargetPath(payload.targetPath);
 
       await self.registration.showNotification(title, {
         body,
         icon: "/brand/favicon-192.png",
-        data: { targetPath },
+        data: { notificationId, targetPath },
       });
     })(),
   );
@@ -76,8 +99,9 @@ self.addEventListener("notificationclick", (event) => {
 
   event.waitUntil(
     (async () => {
-      const targetPath = sanitizeTargetPath(event.notification.data?.targetPath);
-      const targetUrl = new URL(targetPath, self.location.origin).href;
+      const targetUrl = buildNotificationCenterUrl(
+        event.notification.data?.notificationId,
+      );
       const windowClients = await self.clients.matchAll({
         type: "window",
         includeUncontrolled: true,
