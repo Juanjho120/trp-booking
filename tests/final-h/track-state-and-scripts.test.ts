@@ -51,7 +51,7 @@ test("Final-H record exists and preserves the accepted Final-G package head", ()
   );
   assertFileContains(
     "docs/211-final-h-integrated-regression-and-final-improvement-track-closure.md",
-    "Implementation/evidence base: 3c1b3e24e0a835928615e015840e708a310a182a",
+    "Final-H implementation/evidence base: 3c1b3e24e0a835928615e015840e708a310a182a",
   );
   assertFileContains(
     "docs/211-final-h-integrated-regression-and-final-improvement-track-closure.md",
@@ -59,48 +59,55 @@ test("Final-H record exists and preserves the accepted Final-G package head", ()
   );
   assertFileContains(
     "docs/211-final-h-integrated-regression-and-final-improvement-track-closure.md",
-    "Final-H status: Integrated regression/security hardening/evidence completed; owner acceptance pending",
+    "Final-H status: Completed and accepted on 2026-09-29",
   );
 });
 
-test("authoritative trackers show Final-H evidence pending owner acceptance and Phase 13 not started", () => {
+test("authoritative trackers show Final-H accepted and Phase 13 not started", () => {
   for (const relativePath of authoritativeTrackers) {
     const content = readRepoFile(relativePath);
 
     assert.ok(
       content.includes(
-        "Final-H — Integrated regression/security hardening/evidence completed; owner acceptance pending",
+        "Final-H — Completed and accepted on 2026-09-29 at 6922cf27e31e63fde071c0d0a810b141e44b9f90",
       ) ||
         content.includes(
-          "Final-H status: Integrated regression/security hardening/evidence completed; owner acceptance pending",
+          "Final-H status: Completed and accepted on 2026-09-29",
         ),
-      `${relativePath} should show Final-H evidence complete but not accepted`,
+      `${relativePath} should show Final-H accepted`,
     );
     assert.ok(
-      content.includes("Phase 13") && content.includes("Not started"),
+      content.includes("Phase 13") && content.includes("Next / Not started"),
       `${relativePath} should keep Phase 13 not started`,
     );
   }
 });
 
-test("Final-H documentation does not self-accept the package or complete the full track", () => {
+test("Final-H documentation records owner acceptance without starting Phase 13", () => {
   const content = readRepoFile(
     "docs/211-final-h-integrated-regression-and-final-improvement-track-closure.md",
   );
 
-  assert.equal(
-    /Final-H[^\n]*Completed and accepted/i.test(content),
-    false,
-    "Final-H must not be marked accepted before owner approval",
-  );
-  assert.equal(
-    /Final Improvement Track[^\n]*Completed and accepted/i.test(content),
-    false,
-    "The full Final Improvement Track must not be marked accepted before owner approval",
+  assert.ok(
+    content.includes(
+      "Accepted Final-H head: 6922cf27e31e63fde071c0d0a810b141e44b9f90",
+    ) &&
+      content.includes(
+        "Accepted complete-track head: 6922cf27e31e63fde071c0d0a810b141e44b9f90",
+      ),
+    "Final-H and complete-track accepted heads should remain the owner-accepted head",
   );
   assert.ok(
-    content.includes("owner explicitly accepts Final-H") &&
-      content.includes("owner explicitly accepts the complete Final Improvement Track"),
-    "Phase 13 gate should require explicit owner acceptance",
+    content.includes("Final-H approved.") &&
+      content.includes(
+        "Complete Post-Phase-12 / Pre-Phase-13 Final Improvement Track approved.",
+      ),
+    "Owner acceptance should be recorded for Final-H and the complete track",
+  );
+  assert.ok(
+    content.includes("Phase 13 is eligible to be planned only when explicitly requested") &&
+      content.includes("Phase 13 remains") &&
+      content.includes("Next / Not started"),
+    "Phase 13 should be eligible only on explicit request and remain not started",
   );
 });

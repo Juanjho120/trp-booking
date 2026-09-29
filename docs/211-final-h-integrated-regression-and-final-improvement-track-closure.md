@@ -6,11 +6,16 @@
 Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track
 Package: Final-H — Integrated regression and final improvement-track closure
-Status: Integrated regression/security hardening/evidence completed; owner acceptance pending
+Status: Completed and accepted
 Document date: 2026-09-29
 
-Implementation/evidence base: 3c1b3e24e0a835928615e015840e708a310a182a
-Final-H security hardening dependency head: badbda7831a16986c0471b455b4b0124b15e5268
+Final-H implementation/evidence base: 3c1b3e24e0a835928615e015840e708a310a182a
+Integrated regression/evidence head: 8dab9ae8690d357e112d164cfdf292831d8a9205
+Dependency security hardening head: badbda7831a16986c0471b455b4b0124b15e5268
+Hosted hardening evidence head: 200d6b0be49b10ad89e9f82a53bf6bd46d999e6c
+Final Production runtime carry-forward head: 6922cf27e31e63fde071c0d0a810b141e44b9f90
+Accepted Final-H head: 6922cf27e31e63fde071c0d0a810b141e44b9f90
+Accepted complete-track head: 6922cf27e31e63fde071c0d0a810b141e44b9f90
 
 Final-G accepted package head: be8445a2c73a710e451da608fd9e669f8f412ab3
 
@@ -21,26 +26,27 @@ Final-D: Completed and accepted
 Final-E: Completed and accepted
 Final-F: Completed and accepted
 Final-G: Completed and accepted on 2026-09-28
-Final-H status: Integrated regression/security hardening/evidence completed; owner acceptance pending
+Final-H status: Completed and accepted on 2026-09-29
 
-Post-Phase-12 / Pre-Phase-13 Final Improvement Track: Active
-Phase 13: Not started
+Post-Phase-12 / Pre-Phase-13 Final Improvement Track: Completed and accepted on 2026-09-29
+Phase 13: Next / Not started
 
 Runtime feature changes: none expected for Final-H evidence work
 Schema changes: none
 Migration changes: none
-Dependency changes: scoped dependency security hardening
+Dependency changes: scoped dependency security hardening already completed before acceptance
 Environment variable changes: none
 Production resources: none
 Test scheduler: remains {"crons":[]}
 ```
 
-Final-H is the final evidence and regression gate before Phase 13 may be planned. It does not start
-Phase 13, does not provision Production resources, does not self-accept Final-H, and does not mark
-the complete Final Improvement Track accepted. Owner approval remains required for:
+Final-H is the final evidence and regression gate before Phase 13 may be planned. It did not start
+Phase 13, did not provision Production resources, and is now owner-accepted together with the
+complete Final Improvement Track. The documentation-only closure commit after this record must not
+replace the accepted Final-H head or accepted complete-track head:
 
 ```text
-Final-H and complete Final Improvement Track
+Final-H and complete Final Improvement Track accepted at 6922cf27e31e63fde071c0d0a810b141e44b9f90
 ```
 
 ## Scope
@@ -56,7 +62,7 @@ Final-H is primarily evidence, regression and reconciliation work:
 - run safe Hosted Test public smoke;
 - run security/dependency review without blind upgrades;
 - reconcile current-state documentation;
-- prepare the owner acceptance package.
+- record the owner acceptance package.
 ```
 
 No product feature, schema, migration, broad architecture change, scheduler activation or
@@ -81,8 +87,9 @@ Final-H adds only cross-package closure checks that are not already adequately c
 ```text
 - permanent scripts A-H exist;
 - accepted package heads/statuses are reconciled;
-- Final-H is evidence-complete but owner acceptance remains pending;
-- Phase 13 remains Not started;
+- Final-H is completed and accepted on 2026-09-29;
+- the complete Final Improvement Track is completed and accepted on 2026-09-29;
+- Phase 13 remains Next / Not started;
 - vercel.json remains {"crons":[]};
 - six Production scheduler jobs are inventoried;
 - superseded WhatsApp backend/provider route files remain absent;
@@ -438,8 +445,8 @@ No active dependency/security blocker remains after the 2026-09-29 scoped depend
 and local/Test validation listed below.
 
 The original pre-hardening dependency audit blocker is preserved under "Resolved during Final-H
-hardening" and must not be erased from the record. Final-H still requires owner acceptance before
-the package and complete improvement track can close.
+hardening" and must not be erased from the record. Owner acceptance is now recorded for Final-H
+and the complete improvement track, while Phase 13 remains Next / Not started.
 ```
 
 ### Resolved during Final-H hardening
@@ -587,7 +594,7 @@ Final-G — 48/48
 Final-H targeted gate:
 
 ```text
-npm run final-h:validate — expected focused cross-package closure invariants only.
+npm run final-h:validate — focused cross-package closure invariants.
 ```
 
 ## Hosted Test Smoke
@@ -617,7 +624,10 @@ No destructive Hosted flow is required for Final-H unless a new unresolved issue
 ```text
 Final-A through Final-G are completed and accepted.
 Final-G accepted package head: be8445a2c73a710e451da608fd9e669f8f412ab3.
-Final-H is not accepted yet.
+Final-H is completed and accepted on 2026-09-29.
+Accepted Final-H head: 6922cf27e31e63fde071c0d0a810b141e44b9f90.
+Complete Final Improvement Track is completed and accepted on 2026-09-29.
+Accepted complete-track head: 6922cf27e31e63fde071c0d0a810b141e44b9f90.
 ```
 
 ### Final-H integrated regression
@@ -627,7 +637,7 @@ Permanent A-G gates plus the focused Final-H gate passed:
 Final-A 44/44; Final-B 38/38; Final-C 41/41; Final-D 66/66; Final-E 88/88;
 Final-F 125/125; Final-G 48/48; Final-H 20/20.
 
-Dependency audit blocker is resolved by scoped Final-H hardening; owner acceptance remains pending.
+Dependency audit blocker is resolved by scoped Final-H hardening before owner acceptance.
 Vercel deployment and safe Hosted smoke for the hardening commit passed.
 ```
 
@@ -672,30 +682,34 @@ Node >=20.9.0 for the accepted sharp@0.35.4 security floor before Production bui
 - Production CSP finalization belongs to Phase 13 once domains/providers are final.
 ```
 
-### Decision required
+### Owner acceptance
 
-Owner approval of:
+Owner approval recorded on 2026-09-29:
 
 ```text
-Final-H and complete Final Improvement Track
+Final-H approved.
+Complete Post-Phase-12 / Pre-Phase-13 Final Improvement Track approved.
 ```
 
-Do not self-accept.
+The documentation-only closure commit after accepted head
+6922cf27e31e63fde071c0d0a810b141e44b9f90 does not replace the accepted Final-H or complete-track
+head.
 
 ## Phase 13 Gate
 
-Phase 13 cannot start until:
+Phase 13 prerequisites are satisfied:
 
 ```text
-Final-H integrated regression passes
+Final-H integrated regression passed
 documentation is reconciled
 Production carry-forwards are complete
 no applicable blocker remains open
-owner explicitly accepts Final-H
-owner explicitly accepts the complete Final Improvement Track
+owner explicitly accepted Final-H
+owner explicitly accepted the complete Final Improvement Track
 ```
 
-Only after that may Phase 13 be planned or started.
+Phase 13 is eligible to be planned only when explicitly requested by the owner. Phase 13 remains
+Next / Not started, and this closure does not provision Production resources.
 
 ## Next State
 
@@ -708,7 +722,8 @@ Final-D — Completed and accepted
 Final-E — Completed and accepted
 Final-F — Completed and accepted
 Final-G — Completed and accepted
-Final-H — Integrated regression/security hardening/evidence completed; owner acceptance pending
-Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Active
-Phase 13 — Not started
+Final-H — Completed and accepted on 2026-09-29 at 6922cf27e31e63fde071c0d0a810b141e44b9f90
+Post-Phase-12 / Pre-Phase-13 Final Improvement Track — Completed and accepted on 2026-09-29
+Accepted track head: 6922cf27e31e63fde071c0d0a810b141e44b9f90
+Phase 13 — Next / Not started
 ```

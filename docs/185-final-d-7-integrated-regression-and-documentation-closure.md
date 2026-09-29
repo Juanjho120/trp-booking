@@ -15,7 +15,7 @@ Previous accepted subphase: Final-D.6 — Completed and accepted on 2026-09-18 a
 Final-D owner acceptance: Completed on 2026-09-18
 Final-E: Next / Not started
 Final-F/G/H: Not started
-Phase 13: Not started
+Phase 13: Next / Not started
 ```
 
 ## Purpose
@@ -316,8 +316,8 @@ Permanent Final-D regression — npm run final-d:validate, 66/66 PASS
 Final-E — Completed and accepted on 2026-09-21 at 3843a6637300201bcb44b7ed235952afda02d880
 Final-F — Completed and accepted on 2026-09-28 at 13f0e0cf6904e34155dd754230f320ca6c214141
 Final-G — Completed and accepted on 2026-09-28 at be8445a2c73a710e451da608fd9e669f8f412ab3
-Final-H — Integrated regression/evidence completed; owner acceptance pending
-Phase 13 — Not started
+Final-H — Completed and accepted on 2026-09-29 at 6922cf27e31e63fde071c0d0a810b141e44b9f90
+Phase 13 — Next / Not started
 ```
 
 Phase 13 must not begin automatically.

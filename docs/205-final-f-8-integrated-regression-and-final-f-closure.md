@@ -25,8 +25,8 @@ No dependency changes
 No Production resources
 vercel.json remains {"crons":[]}
 Final-G: Completed and accepted on 2026-09-28 at be8445a2c73a710e451da608fd9e669f8f412ab3
-Final-H: Integrated regression/evidence completed; owner acceptance pending
-Phase 13: Not started
+Final-H: Completed and accepted on 2026-09-29 at 6922cf27e31e63fde071c0d0a810b141e44b9f90
+Phase 13: Next / Not started
 ```
 
 Final-F.8 is completed and accepted. It closes the Final-F package without changing the accepted
@@ -256,8 +256,8 @@ This closure performs no Production work. The accepted boundary remains:
 - vercel.json remains {"crons":[]}
 ```
 
-Phase 13 remains blocked until Final-H completes and the complete Final Improvement Track receives
-explicit owner acceptance.
+Phase 13 is eligible to be planned only when explicitly requested after Final-H and the complete
+Final Improvement Track were accepted on 2026-09-29.
 
 ## Validation Ledger
 
@@ -299,6 +299,6 @@ Final-D — Completed and accepted
 Final-E — Completed and accepted
 Final-F — Completed and accepted on 2026-09-28 at 13f0e0cf6904e34155dd754230f320ca6c214141
 Final-G — Completed and accepted on 2026-09-28 at be8445a2c73a710e451da608fd9e669f8f412ab3
-Final-H — Integrated regression/evidence completed; owner acceptance pending
-Phase 13 — Not started
+Final-H — Completed and accepted on 2026-09-29 at 6922cf27e31e63fde071c0d0a810b141e44b9f90
+Phase 13 — Next / Not started
 ```
