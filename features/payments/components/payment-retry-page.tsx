@@ -7,6 +7,7 @@ import { SiteFooter, SiteHeader } from "@/components/layout";
 import { useLocale } from "@/features/i18n";
 import { scrollPaymentFormIntoViewportCenter } from "@/features/payments/components/payment-form-auto-scroll";
 import { TilopaySdkCheckout } from "@/features/payments/components/tilopay-sdk-checkout";
+import { useTilopaySdkTokenWarmup } from "@/features/payments/lib/tilopay-sdk-token-warmup";
 import type { TilopayRetryPaymentIssue } from "@/types/tilopay-retry-payment";
 
 type PaymentRetryPageProps = Readonly<{
@@ -21,6 +22,7 @@ export function PaymentRetryPage({
   const { messages } = useLocale();
   const copy = messages.payments.retry.page;
   const paymentSectionRef = useRef<HTMLDivElement>(null);
+  useTilopaySdkTokenWarmup(Boolean(reservationId));
 
   return (
     <div className="min-h-screen bg-background text-foreground">

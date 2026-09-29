@@ -271,7 +271,7 @@ SDK not loaded -> append one canonical script tag
 
 Server-side SDK-session creation still validates payable state before provider token acquisition.
 After each branch has prepared a valid payable target, `ensurePaymentProviderReference(...)` and
-`requestTilopaySdkToken()` run concurrently because they are independent at that point:
+`getTilopaySdkSessionToken()` run concurrently because they are independent at that point:
 
 ```text
 initial reservation branch: after createPaymentAttemptForPendingReservation + Payment lookup
@@ -279,7 +279,82 @@ additional/service-charge branch: after prepareGuestPaymentRequestPayment
 lifecycle branch: after prepareLifecycleAdjustmentPayment
 ```
 
-No token caching was added. The provider token lifetime was not assumed or guessed.
+### Final-G.3 Tilopay SDK token cache + intent-based warm-up micro-hardening
+
+This micro-hardening remains part of Final-G.3; it does not create Final-G.3.1 and does not start
+G.4/G.5/Final-H/Phase 13.
+
+Provider guidance referenced:
+
+```text
+https://tilopay.com/en/developers/api/autenticacion
+https://tilopay.com/en/developers/sdk/reference/init
+```
+
+Tilopay documents `POST /api/v1/loginSdk` as the SDK-token source for `Tilopay.Init()`. Its
+authentication page states that the response carries `expires_in`, that the exact lifetime should be
+read from that response, and that SDK tokens should be cached server-side and renewed on expiry.
+
+TRP now implements that contract in a dedicated server module:
+
+```text
+lib/payments/tilopay-sdk-token-cache.ts
+```
+
+Cache rules:
+
+```text
+Storage: module memory only, per server instance.
+Persistence: none.
+Browser state: none.
+Logs: none.
+Safety margin: 90 seconds before provider expiry.
+Refresh dedupe: one shared in-flight provider login promise per server instance.
+Serverless boundary: each warm instance may hold its own token cache; no KV/Redis/global scheduler was introduced.
+```
+
+The expiry parser intentionally handles the shapes observed/allowed for `expires_in` without moving
+provider assumptions to the browser:
+
+```text
+number seconds: 3600
+numeric string seconds: "3600"
+provider datetime string: YYYY-MM-DD HH:mm:ss, interpreted as UTC for conservative cache expiry
+unparseable/missing expiry: return the fresh token to the current caller but do not cache it
+```
+
+The token remains scoped to the server session response path. It is never persisted, logged, stored
+in browser state, returned from the warm-up endpoint, or exposed outside the existing
+`Tilopay.Init()` session payload required by the SDK checkout.
+
+The new warm-up endpoint is intentionally side-effect-free:
+
+```text
+POST /api/payments/tilopay/warmup
+Cache-Control: no-store, max-age=0
+Returns: safe readiness/source metadata only, never a token.
+Does not read a request body.
+Does not create Payment, PaymentAttempt, Reservation, providerReference, preflight, Init, or startPayment state.
+```
+
+Client warm-up is best-effort and non-blocking. It has no toasts, retries, token state, or UI
+dependency. It is triggered only after a payable surface exists:
+
+```text
+Initial reservation: after pendingHold exists, following successful pending-hold creation.
+Payment retry: only when reservationId exists.
+Additional/service charge: only when payable is true and the private payment token is present.
+Lifecycle adjustment: only when the lifecycle handoff is actually payable.
+```
+
+No warm-up runs for expired, paid, cancelled, invalid, completed, unavailable or missing-token
+surfaces. The existing external SDK hardening remains unchanged: canonical SDK URL, no random
+Date.now cache-busting, preconnect/preload, shared browser SDK load promise, retry after script
+failure, and no external `Tilopay.Init()` before a server SDK session exists.
+
+Hosted cold/warm checkout timing remains pending because valid Hosted Test payment handoffs are
+required for comparable staged measurements. Repository validation now covers the cache behavior,
+warm-up endpoint safety, and all four client warm-up gates deterministically.
 
 Safe pre-hardening public SDK-resource measurement, without tokens or payment data:
 
@@ -613,6 +688,10 @@ Availability page uses SiteHeader/SiteFooter, public navigation ES/EN entries, c
 Public property invalidation revalidates /disponibilidad when stable accommodation data changes.
 Tilopay uses the canonical SDK URL, no random Date.now cache-busting, safe preconnect/preload, shared in-flight loading and retry-after-failure.
 All runtime Tilopay checkout consumers remain on the shared component.
+Tilopay SDK-token cache parses numeric, numeric-string, datetime and invalid expiry shapes with a 90-second server-only safety margin.
+Tilopay SDK-token refreshes are reused from module memory, deduplicated while in flight and retried safely after provider failures.
+The Tilopay warm-up endpoint returns no token, uses no-store, and creates no payment/reservation/preflight/provider side effects.
+Initial reservation, retry, additional-charge and lifecycle checkout surfaces warm only after their payable-intent gates are satisfied.
 Blocked-dates derives from availability records without a second Reservation query and preserves reservation, dependency, CalendarBlock, lifecycle-hold and preparation-buffer semantics.
 Availability date formatting uses one stable formatter instead of per-day construction.
 DayPicker and country-flag static choice is documented.
@@ -655,6 +734,25 @@ Final-G.3 hardening validation:
 
 ```text
 npx tsx --tsconfig tests/final-g/tsconfig.json tests/final-g/run.ts — PASS, 31/31 using the temporary non-repository NODE_OPTIONS shim for the Windows Node/tsx os.userInfo issue.
+```
+
+Final-G.3 Tilopay SDK-token cache + warm-up micro-hardening validation:
+
+```text
+npx tsx --tsconfig tests/final-g/tsconfig.json tests/final-g/run.ts — PASS, 42/42 using the temporary non-repository NODE_OPTIONS shim for the Windows Node/tsx os.userInfo issue.
+npm run final-a:validate — PASS, 44/44 using the temporary non-repository NODE_OPTIONS shim.
+npm run final-b:validate — PASS, 38/38 using the temporary non-repository NODE_OPTIONS shim.
+npm run final-c:validate — PASS, 41/41 using the temporary non-repository NODE_OPTIONS shim.
+npm run final-d:validate — PASS, 66/66 using the temporary non-repository NODE_OPTIONS shim.
+npm run final-e:validate — PASS, 88/88 using the temporary non-repository NODE_OPTIONS shim.
+npm run final-f:validate — PASS, 125/125 using the temporary non-repository NODE_OPTIONS shim.
+npm run env:validate — PASS using the temporary non-repository NODE_OPTIONS shim.
+npm run db:validate — PASS; Prisma reported the existing package.json#prisma deprecation warning.
+npm run db:generate — PASS; Prisma reported the existing package.json#prisma deprecation warning.
+npm run db:migrate:status — PASS outside sandbox after the sandbox schema-engine run failed without detail; 29 migrations found and database schema is up to date.
+npm run lint — PASS.
+npm run build — PASS outside sandbox after the sandbox build failed only on blocked Google Fonts fetches; the warm-up API route appears in the production route table.
+git diff --check — PASS; Windows LF-to-CRLF working-copy warnings only.
 ```
 
 ## Hosted Acceptance Pending

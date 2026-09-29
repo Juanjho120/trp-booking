@@ -14,6 +14,10 @@ import {
   createPaymentAttemptForPendingReservation,
   PaymentAttemptCreationError,
 } from "@/lib/payments/payment-attempts";
+import {
+  getCachedTilopaySdkToken,
+  TilopaySdkTokenCacheError,
+} from "@/lib/payments/tilopay-sdk-token-cache";
 import type { ReservationQuoteAmount } from "@/types/reservation-quote";
 import type {
   CreateTilopaySdkSessionInput,
@@ -22,7 +26,6 @@ import type {
   TilopaySdkSessionErrorCode,
 } from "@/types/tilopay-sdk-session";
 
-const TILOPAY_API_BASE_URL = "https://app.tilopay.com/api/v1";
 const TILOPAY_SDK_SCRIPT_URL =
   "https://app.tilopay.com/sdk/v2/sdk_tpay.min.js";
 
@@ -45,59 +48,15 @@ export class TilopaySdkSessionError extends Error {
   }
 }
 
-type JsonRecord = Record<string, unknown>;
-
-function isJsonRecord(value: unknown): value is JsonRecord {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function getAccessToken(payload: unknown): string {
-  if (!isJsonRecord(payload) || typeof payload.access_token !== "string") {
-    throw new TilopaySdkSessionError("TILOPAY_SDK_TOKEN_UNAVAILABLE");
-  }
-
-  const accessToken = payload.access_token.trim();
-
-  if (!accessToken) {
-    throw new TilopaySdkSessionError("TILOPAY_SDK_TOKEN_UNAVAILABLE");
-  }
-
-  return accessToken;
-}
-
-async function requestTilopaySdkToken(): Promise<string> {
-  const env = getTilopayEnv();
-  let response: Response;
-
+async function getTilopaySdkSessionToken(): Promise<string> {
   try {
-    response = await fetch(`${TILOPAY_API_BASE_URL}/loginSdk`, {
-      body: JSON.stringify({
-        apiuser: env.TILOPAY_API_USER,
-        password: env.TILOPAY_API_PASSWORD,
-        key: env.TILOPAY_API_KEY,
-      }),
-      headers: {
-        accept: "application/json",
-        "content-type": "application/json",
-      },
-      method: "POST",
-    });
-  } catch {
-    throw new TilopaySdkSessionError("TILOPAY_SDK_TOKEN_UNAVAILABLE");
-  }
-
-  if (!response.ok) {
-    throw new TilopaySdkSessionError("TILOPAY_SDK_TOKEN_UNAVAILABLE");
-  }
-
-  try {
-    return getAccessToken((await response.json()) as unknown);
+    return await getCachedTilopaySdkToken();
   } catch (error) {
-    if (error instanceof TilopaySdkSessionError) {
-      throw error;
+    if (error instanceof TilopaySdkTokenCacheError) {
+      throw new TilopaySdkSessionError("TILOPAY_SDK_TOKEN_UNAVAILABLE");
     }
 
-    throw new TilopaySdkSessionError("TILOPAY_SDK_TOKEN_UNAVAILABLE");
+    throw error;
   }
 }
 
@@ -272,7 +231,7 @@ async function createLifecycleAdjustmentTilopaySdkSession(
       prepared.payment.id,
       prepared.payment.providerReference,
     ),
-    requestTilopaySdkToken(),
+    getTilopaySdkSessionToken(),
   ]);
   const env = getTilopayEnv();
   const returnData = buildReturnData({
@@ -340,7 +299,7 @@ async function createGuestPaymentRequestTilopaySdkSession(
       prepared.payment.id,
       prepared.payment.providerReference,
     ),
-    requestTilopaySdkToken(),
+    getTilopaySdkSessionToken(),
   ]);
   const env = getTilopayEnv();
   const returnData = buildReturnData({
@@ -432,7 +391,7 @@ export async function createTilopaySdkSession(
       payment.id,
       payment.providerReference,
     ),
-    requestTilopaySdkToken(),
+    getTilopaySdkSessionToken(),
   ]);
   const env = getTilopayEnv();
   const returnData = buildReturnData({

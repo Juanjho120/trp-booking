@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { useLocale } from "@/features/i18n";
 import { scrollPaymentFormIntoViewportCenter } from "@/features/payments/components/payment-form-auto-scroll";
 import { TilopaySdkCheckout } from "@/features/payments/components/tilopay-sdk-checkout";
+import { useTilopaySdkTokenWarmup } from "@/features/payments/lib/tilopay-sdk-token-warmup";
 import type {
   LifecycleAdjustmentHandoffErrorCode,
   LifecycleAdjustmentHandoffSummary,
@@ -90,6 +91,10 @@ export function LifecycleAdjustmentPaymentPage({
     summary?.paymentStatus === "APPROVED" ||
     paymentResult === "approved";
   const errorMessage = errorCode ? copy.errors[errorCode] : null;
+  const lifecyclePayable = Boolean(
+    summary?.payable && !approved && !errorMessage,
+  );
+  useTilopaySdkTokenWarmup(lifecyclePayable);
   const requestTypeLabel = summary
     ? copy.requestTypes[summary.requestType]
     : null;
@@ -183,7 +188,7 @@ export function LifecycleAdjustmentPaymentPage({
                 ) : null}
               </div>
 
-              {!approved && !errorMessage && summary.payable ? (
+              {lifecyclePayable ? (
                 <div className="scroll-mt-24" ref={paymentSectionRef}>
                   <TilopaySdkCheckout
                     initialIssue={initialIssue}

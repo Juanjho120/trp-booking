@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { useLocale } from "@/features/i18n";
 import { scrollPaymentFormIntoViewportCenter } from "@/features/payments/components/payment-form-auto-scroll";
 import { TilopaySdkCheckout } from "@/features/payments/components/tilopay-sdk-checkout";
+import { useTilopaySdkTokenWarmup } from "@/features/payments/lib/tilopay-sdk-token-warmup";
 import type {
   GuestPaymentRequestPaymentErrorCode,
   GuestPaymentRequestPaymentSummary,
@@ -90,6 +91,7 @@ export function AdditionalChargePaymentPage({
   const payable = Boolean(
     summary?.payable && paymentToken && !paid && !expired && !cancelled,
   );
+  useTilopaySdkTokenWarmup(payable);
   const title = errorMessage
     ? copy.unavailableTitle
     : paid
