@@ -15,7 +15,8 @@ Final-I.1 status: Completed and accepted on 2026-09-29
 Accepted Final-I.1 head: 9a15f349c1104671f5555d1988caa56756e5ff0c
 Final-I.2 status: Completed and accepted on 2026-09-29
 Accepted Final-I.2 head: 6451cb705d972c83a771a9ff39f6da80d130cf58
-Final-I.3 status: Implementation completed; final Hosted owner validation + acceptance pending
+Final-I.3 status: Completed and accepted on 2026-09-29
+Accepted Final-I.3 head: 8c5a9186e392f35bdbc998f463c5c3c6cd0be295
 Final-I.4 status: Next / Not started
 Final-I.5 status: Not started
 Final-I.6 status: Not started
@@ -25,7 +26,7 @@ Final-I.9 status: Not started
 Phase 13 status: Blocked / Not started until Final-I closes
 ```
 
-Final-I is an owner-requested pre-Production addendum registered after the accepted Final-H closure. It does not rewrite the historical acceptance of Phase 12, Final-A through Final-H, or the complete Post-Phase-12 / Pre-Phase-13 Final Improvement Track at `6922cf27e31e63fde071c0d0a810b141e44b9f90`. Final-I.1 is completed and accepted at its feature head `9a15f349c1104671f5555d1988caa56756e5ff0c`, and Final-I.2 is completed and accepted at `6451cb705d972c83a771a9ff39f6da80d130cf58`; this I.3 implementation does not replace those accepted heads. Final-I.3 implementation is completed with initial Hosted owner validation passed functionally; final Hosted owner validation and explicit acceptance remain pending for the mobile/PWA deep-link auto-scroll refinement. Phase 13 remains not started and is blocked until Final-I closes and receives owner acceptance.
+Final-I is an owner-requested pre-Production addendum registered after the accepted Final-H closure. It does not rewrite the historical acceptance of Phase 12, Final-A through Final-H, or the complete Post-Phase-12 / Pre-Phase-13 Final Improvement Track at `6922cf27e31e63fde071c0d0a810b141e44b9f90`. Final-I.1 is completed and accepted at its feature head `9a15f349c1104671f5555d1988caa56756e5ff0c`, and Final-I.2 is completed and accepted at `6451cb705d972c83a771a9ff39f6da80d130cf58`; Final-I.3 is completed and accepted on 2026-09-29 at accepted head `8c5a9186e392f35bdbc998f463c5c3c6cd0be295` after Hosted owner validation of the desktop, Android mobile browser, Android standalone PWA, Push deep-link, and final mobile/PWA auto-scroll refinement. This documentation-only closure does not replace the accepted Final-I.3 feature head. Phase 13 remains not started and is blocked until Final-I closes and receives owner acceptance.
 
 ## Subphase Structure
 
@@ -166,11 +167,11 @@ Phase 11.4
 
 Final-I.2 reviewed each stale candidate for reachability before removing it. Unused localization fields were removed only after confirming no remaining code references. Reachable negative-date-difference admin copy was rewritten to describe the implemented refund workflow instead of a future subphase.
 
-## Final-I.3 Implementation Scope - Final Hosted Owner Validation Pending
+## Final-I.3 Accepted Scope And Hosted Validation
 
-Final-I.3 implementation is completed. Initial Hosted owner validation passed functionally across desktop browser, Android Chrome browser, Android standalone PWA, and Push deep-link behavior. Final Hosted owner validation and explicit acceptance remain pending for the mobile/PWA deep-link auto-scroll refinement; Final-I.4 is the next subphase and is not started.
+Final-I.3 is completed and accepted on 2026-09-29 at accepted feature head `8c5a9186e392f35bdbc998f463c5c3c6cd0be295`. Final Hosted owner validation passed across desktop browser, Android Chrome browser, Android standalone PWA, Push deep-link behavior, and the final mobile/PWA deep-link auto-scroll refinement. Final-I.4 is the next subphase and is not started.
 
-Implemented presentation behavior:
+Accepted responsive behavior:
 
 ```text
 Desktop browser:
@@ -186,13 +187,16 @@ Mobile browser:
 Standalone Android PWA:
 - Notifications + Configuration tabs remain available.
 
+iOS/iPadOS:
+- remains Deferred.
+
 Responsive breakpoint:
 - the mobile viewport helper uses `(max-width: 767px)`, matching Tailwind's `md` boundary.
 - `display-mode: standalone` always keeps Configuration available even outside the mobile viewport.
 - no user-agent parsing is used.
 ```
 
-Implemented accordion contract:
+Accepted accordion contract:
 
 ```text
 - notification rows use the existing Accordion component
@@ -204,23 +208,25 @@ Implemented accordion contract:
 - opening/closing an accordion item does not mark the notification read
 ```
 
-Implemented Push/deep-link contract:
+Accepted Push/deep-link contract:
 
 ```text
 - Web Push payload now carries a bounded notificationId in addition to the existing targetPath
 - targetPath remains the business target used by the in-page Open action
+- Push navigation deep-link is separate from AdminNotification.targetPath
+- AdminNotification.targetPath remains the business destination for the internal Open action and stored target paths are not rewritten
 - service-worker notification clicks route to /admin/notifications?notification=<notificationId> when the identifier is valid
 - invalid or missing notificationId falls back to /admin/notifications
 - notificationId is treated only as an opaque identifier, never as a path or URL
 - mobile browser and standalone PWA valid initial deep-links keep the Notifications tab active and auto-scroll once to the expanded target accordion header
 - the deep-link scroll accounts for the sticky Admin header with scroll margin so the read/unread badge, timestamp, title, and expanded content are immediately visible
 - desktop browser deep-links, unknown/malformed identifiers, and manual accordion changes do not request forced scrolling
-- auto-scroll uses notification element refs plus reduced-motion-aware `scrollIntoView`; no CSS selector is built from raw query input
+- auto-scroll uses a one-time guard, `scroll-mt-20`, two `requestAnimationFrame` layout-settling frames, `scrollIntoView` with `block="start"`, and smooth scrolling unless `prefers-reduced-motion` is active; no CSS selector is built from raw query input
 - scroll/open continues to have no read-state side effect; Mark as read remains explicit
 - no guest email, phone, payment data, email body/content, provider IDs, tokens, secrets, or push endpoint/key material is added to the Push payload
 ```
 
-Implemented data-loading contract:
+Accepted targeted retrieval contract:
 
 ```text
 - /admin/notifications parses ?notification=<id> with a bounded helper
@@ -232,7 +238,15 @@ Implemented data-loading contract:
 - no public notification lookup endpoint was introduced
 ```
 
-Final-I.4 will remove visible raw/fallback URLs from guest-facing HTML email bodies while preserving CTA buttons. Plaintext email continues to include a labeled URL for non-HTML clients.
+## Final-I.4 Prepared Scope - Not Started
+
+Final-I.4 will remove long raw URLs visibly printed inside guest-facing HTML email bodies because they cause mobile email clients to zoom/reflow poorly. CTA buttons must remain, and text/plain email must keep labeled URLs because plaintext clients have no styled button.
+
+Final-I.4 must audit guest-facing templates under `emails/**` and `lib/email/**`, including reservation confirmation, arrival instructions, review invitation, additional-charge payment, lifecycle adjustment payment, payment/retry links, private guest-facing reservation/payment URLs, and any other currently sent guest-facing email. Admin/internal emails should be audited but not broadened unless a shared guest component requires a clean split.
+
+Final-I.4 is presentation-only. It must preserve React Email, `@react-email/render`, `EmailLayout`, `EmailButton`, `EmailParagraph`, localization architecture, CTA `href` values, payment/reservation/review tokens, guest access URLs, expiry behavior, routing, recipients, subjects, and the email notification retry pipeline. No schema, migration, dependency, environment, scheduler, API, Production resource, FEL implementation, or Phase 13 work is expected.
+
+Final-I.4 tests should distinguish URL presence in HTML `href` attributes from forbidden visible text nodes, and should verify for Spanish and English that HTML CTA destinations are preserved, visible raw action URLs are absent, plaintext URLs remain visible, rendering does not throw, brand layout remains, and no CTA destination changes.
 
 Final-I.5 through Final-I.8 define FEL direction without inventing provider specifics:
 
@@ -281,6 +295,7 @@ Unresolved FEL/INFILE questions remain carried forward:
 - Phase 13 remains blocked / not started until Final-I closes.
 - No Production provider account, credential, DNS cutover, payment credential, database, media account, WhatsApp sender, FEL account, or public go-live is introduced by Final-I.1, Final-I.2, or Final-I.3.
 - No schema, migration, dependency, environment variable, scheduler, AdminNotificationType, Production, Final-I.4+, FEL, Final-G/H reopening, or Phase 13 work is part of Final-I.3.
+- Final-I.4 is prepared only as the next scope and is not started by this closure.
 - Existing Final-F.7 Zoho webhook signature verification, bootstrap behavior, Limited Data parsing, bounded persistence, notification-center serialization, and immediate Web Push delivery remain preserved.
 - `vercel.json` remains `{ "crons": [] }`.
 ```
@@ -321,6 +336,9 @@ Final-I.3 mobile/PWA deep-link auto-scroll refinement validation:
 - npm run build - PASS; Next slow filesystem warning only
 - npm audit --omit=dev - PASS, 0 vulnerabilities
 - git diff --check - PASS; Windows CRLF normalization warnings only
+Final-I.3 documentation closure validation:
+- npm run final-i:validate - PASS, 23/23; initial sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM before the escalated rerun passed
+- git diff --check - PASS; Windows CRLF normalization warnings only
 ```
 
 ## Final-I.1 Hosted Owner Validation Completed
@@ -336,21 +354,48 @@ Owner Hosted validation completed and owner acceptance was explicit. The owner v
 - /admin/notifications history still records the genuine external email notification.
 ```
 
-## Final-I.3 Hosted Owner Functional Validation Progress
+## Final-I.3 Hosted Owner Functional Validation Completed
 
-Initial owner Hosted validation passed functionally before final acceptance for:
+Owner Hosted validation completed on 2026-09-29 and owner acceptance was explicit. The accepted Final-I.3 implementation head remains:
 
 ```text
-- desktop browser notification-center simplification
-- Android Chrome browser notification-center behavior
-- Android standalone PWA notification-center behavior
-- Push deep-link routing to the correct notification
-- correct accordion expansion
-- read state remaining unchanged
-- Open action continuing to use the business targetPath
+8c5a9186e392f35bdbc998f463c5c3c6cd0be295
 ```
 
-The remaining owner-observed mobile/PWA UX refinement is addressed in this hardening pass: a valid `/admin/notifications?notification=<notificationId>` Push deep-link now scrolls once to the expanded target accordion header after layout settles, with sticky Admin header spacing. Final Hosted owner validation and explicit acceptance remain pending. Final-I.4 is Next / Not started.
+This documentation-only closure commit does not replace that accepted Final-I.3 feature head.
+
+Owner Hosted validation passed for:
+
+```text
+Desktop web:
+- no tabs
+- no Configuration
+- recent notifications visible
+- accordion single-open behavior correct
+
+Android Chrome browser:
+- Notifications + Configuration tabs preserved
+- Configuration remains accessible
+- accordion works
+
+Android standalone PWA:
+- Notifications + Configuration tabs preserved
+- accordion works
+
+Push deep-link:
+- newly generated notification opens TRP Admin
+- exact notification accordion expands
+- notification remains unread until explicit action
+- Open action uses original business targetPath
+
+Final mobile/PWA scroll refinement:
+- Push opens exact notification
+- target accordion header is immediately visible below sticky Admin header
+- expanded content appears below it
+- later manual accordion changes do not trigger forced scrolling
+```
+
+Final-I.4 is Next / Not started.
 
 ## Final-I.2 Hosted Owner Visual Validation Completed
 
@@ -380,4 +425,4 @@ Admin cancellation:
 - cancellation/refund separation explained as current behavior
 ```
 
-Final-I.1 is completed and accepted on 2026-09-29 at accepted head `9a15f349c1104671f5555d1988caa56756e5ff0c`. Final-I.2 is completed and accepted on 2026-09-29 at accepted head `6451cb705d972c83a771a9ff39f6da80d130cf58`. Final-I.3 implementation is completed with final Hosted owner validation + acceptance pending. Final-I.4 is Next / Not started.
+Final-I.1 is completed and accepted on 2026-09-29 at accepted head `9a15f349c1104671f5555d1988caa56756e5ff0c`. Final-I.2 is completed and accepted on 2026-09-29 at accepted head `6451cb705d972c83a771a9ff39f6da80d130cf58`. Final-I.3 is completed and accepted on 2026-09-29 at accepted head `8c5a9186e392f35bdbc998f463c5c3c6cd0be295`. Final-I.4 is Next / Not started.
