@@ -19,15 +19,16 @@ Final-I.3 status: Completed and accepted on 2026-09-29
 Accepted Final-I.3 head: 8c5a9186e392f35bdbc998f463c5c3c6cd0be295
 Final-I.4 status: Completed and accepted on 2026-09-30
 Accepted Final-I.4 head: 8e2d7d56a8e81a860833b05f4a28cba8a517bad4
-Final-I.5 status: Next / Not started
-Final-I.6 status: Not started
+Final-I.5 status: Implementation completed; owner architecture acceptance pending
+Final-I.5 implementation record: docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md
+Final-I.6 status: Next / Not started
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started
 Final-I.9 status: Not started
 Phase 13 status: Blocked / Not started until Final-I closes
 ```
 
-Final-I is an owner-requested pre-Production addendum registered after the accepted Final-H closure. It does not rewrite the historical acceptance of Phase 12, Final-A through Final-H, or the complete Post-Phase-12 / Pre-Phase-13 Final Improvement Track at `6922cf27e31e63fde071c0d0a810b141e44b9f90`. Final-I.1 is completed and accepted at its feature head `9a15f349c1104671f5555d1988caa56756e5ff0c`, and Final-I.2 is completed and accepted at `6451cb705d972c83a771a9ff39f6da80d130cf58`; Final-I.3 is completed and accepted on 2026-09-29 at accepted head `8c5a9186e392f35bdbc998f463c5c3c6cd0be295` after Hosted owner validation of the desktop, Android mobile browser, Android standalone PWA, Push deep-link, and final mobile/PWA auto-scroll refinement. Final-I.4 is completed and accepted on 2026-09-30 at accepted feature head `8e2d7d56a8e81a860833b05f4a28cba8a517bad4` after Hosted/mobile owner validation of representative guest emails. This documentation-only closure does not replace `8e2d7d56a8e81a860833b05f4a28cba8a517bad4` as the accepted Final-I.4 feature head. Phase 13 remains not started and is blocked until Final-I closes and receives owner acceptance.
+Final-I is an owner-requested pre-Production addendum registered after the accepted Final-H closure. It does not rewrite the historical acceptance of Phase 12, Final-A through Final-H, or the complete Post-Phase-12 / Pre-Phase-13 Final Improvement Track at `6922cf27e31e63fde071c0d0a810b141e44b9f90`. Final-I.1 is completed and accepted at its feature head `9a15f349c1104671f5555d1988caa56756e5ff0c`, and Final-I.2 is completed and accepted at `6451cb705d972c83a771a9ff39f6da80d130cf58`; Final-I.3 is completed and accepted on 2026-09-29 at accepted head `8c5a9186e392f35bdbc998f463c5c3c6cd0be295` after Hosted owner validation of the desktop, Android mobile browser, Android standalone PWA, Push deep-link, and final mobile/PWA auto-scroll refinement. Final-I.4 is completed and accepted on 2026-09-30 at accepted feature head `8e2d7d56a8e81a860833b05f4a28cba8a517bad4` after Hosted/mobile owner validation of representative guest emails. Final-I.5 implementation is completed as the provider-independent FEL fiscal domain contract in `docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md`; owner architecture acceptance remains pending. Phase 13 remains not started and is blocked until Final-I closes and receives owner acceptance.
 
 ## Subphase Structure
 
@@ -355,13 +356,13 @@ PASS
 
 Owner acceptance was explicit on 2026-09-30. Vercel for the accepted feature head was SUCCESS.
 
-## Final-I.5 Prepared Scope - Not Started
+## Final-I.5 Implementation Completed - Owner Architecture Acceptance Pending
 
-Final-I.5 - FEL/INFILE fiscal/domain contract and architecture - is the next subphase and remains Not started until explicitly requested. This closure prepares the scope only; it does not implement Final-I.5.
+Final-I.5 - FEL/INFILE fiscal/domain contract and architecture - is implemented as `docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md`. Owner architecture acceptance is still pending.
 
-Final-I.5 is an architecture/contract subphase. Its purpose is to freeze the TRP Booking fiscal domain model and provider-independent FEL architecture before implementing persistence or calling INFILE. Provider transport remains deferred to Final-I.7.
+Final-I.5 remains an architecture/contract subphase only. It freezes the TRP Booking fiscal domain model and provider-independent FEL architecture before implementing persistence or calling INFILE. Provider transport remains deferred to Final-I.7.
 
-Final-I.5 must not invent undocumented INFILE endpoints, authentication, payloads, headers, cancellation APIs, credit-note APIs, PDF/XML endpoints, idempotency semantics, retry semantics, response fields, status lookup behavior, or duplicate-handling semantics.
+Final-I.5 does not invent undocumented INFILE endpoints, authentication, payloads, headers, cancellation APIs, credit-note APIs, PDF/XML endpoints, idempotency semantics, retry semantics, response fields, status lookup behavior, or duplicate-handling semantics.
 
 Owner business goal:
 
@@ -409,7 +410,7 @@ REJECTED
 RETRY_PENDING
 ```
 
-Final-I.5 may refine exact names, but must preserve the lifecycle distinction. Cancellation is an operation/state on the original certified DTE, not a negative invoice.
+Final-I.5 freezes this lifecycle distinction in `docs/213`: cancellation is an operation/state on the original certified DTE, not a negative invoice.
 
 Document-type architecture must support at minimum the conceptual distinction between:
 
@@ -443,7 +444,7 @@ Invoice source-of-truth principle:
 - Once a DTE is certified, the fiscal representation must remain historically reproducible.
 ```
 
-Double-counting prevention is mandatory. Final-I.5 must document the relationship between `Reservation.total` and `AdditionalCharge` / `GuestPaymentRequestItem` before any persistence implementation. It must not naively invoice `Reservation.total + all AdditionalCharges` without proving which amounts are already included.
+Double-counting prevention is mandatory. Final-I.5 documents the relationship between `Reservation.total` and `AdditionalCharge` / `GuestPaymentRequestItem` before any persistence implementation. Future FEL implementation must not naively invoice `Reservation.total + all AdditionalCharges` without proving which amounts are already included.
 
 Candidate conceptual entities for later Final-I.6 implementation, not to be created during this closure:
 
@@ -498,7 +499,7 @@ FelCreditAllocation:
 - maps a credit note or fiscal adjustment back to original fiscal lines/documents and relevant financial/refund sources
 ```
 
-Names remain conceptual until Final-I.5 freezes the contract. This closure must not modify Prisma.
+Names remain conceptual for Final-I.6 implementation planning. Final-I.5 freezes the provider-independent contract without modifying Prisma.
 
 Invoice eligibility:
 
@@ -506,7 +507,7 @@ Invoice eligibility:
 - Owner preference: Admin creates invoices for stays after checkout.
 - Treat after checkout as the current TRP application eligibility rule.
 - Do not claim Guatemala law requires this exact timing unless verified separately.
-- Final-I.5 must distinguish TRP business eligibility rules from legal/provider requirements.
+- Final-I.5 distinguishes TRP business eligibility rules from legal/provider requirements.
 ```
 
 Later Final-I.6 Admin workflow concept:
@@ -596,7 +597,7 @@ No retries, cron, scheduler, provider call, schema, or migration are introduced 
 
 Final-I.7 remains blocked until the owner provides official INFILE Postman/OpenAPI/Swagger/integration manual plus Test credentials.
 
-Final-I.5 expected deliverable when explicitly started:
+Final-I.5 implemented deliverable:
 
 ```text
 architecture/domain documentation
@@ -630,15 +631,15 @@ What exactly will I.6 implement?
 What exactly remains deferred to I.7?
 ```
 
-Final-I.6, Final-I.8, and Final-I.9 remain Not started. Final-I.7 remains Blocked pending official INFILE technical documentation and Test credentials.
+Final-I.6 is Next / Not started. Final-I.8 and Final-I.9 remain Not started. Final-I.7 remains Blocked pending official INFILE technical documentation and Test credentials.
 
 ## Boundaries
 
 ```text
 - Phase 13 remains blocked / not started until Final-I closes.
-- No Production provider account, credential, DNS cutover, payment credential, database, media account, WhatsApp sender, FEL account, or public go-live is introduced by Final-I.1 through Final-I.4.
-- No schema, migration, dependency, environment variable, scheduler, AdminNotificationType, Production, FEL runtime, Final-I.5 implementation, Final-G/H reopening, or Phase 13 work is part of this Final-I.4 acceptance closure.
-- Final-I.5 is the next subphase and remains Not started until explicitly requested; this closure only prepares its architecture scope.
+- No Production provider account, credential, DNS cutover, payment credential, database, media account, WhatsApp sender, FEL account, or public go-live is introduced by Final-I.1 through Final-I.5.
+- No schema, migration, dependency, environment variable, scheduler, AdminNotificationType, Production, FEL runtime, Final-I.6 implementation, Final-I.7 provider integration, Final-G/H reopening, or Phase 13 work is part of Final-I.5.
+- Final-I.6 is the next subphase and remains Not started until explicitly requested; Final-I.5 only freezes the provider-independent architecture scope.
 - Existing Final-F.7 Zoho webhook signature verification, bootstrap behavior, Limited Data parsing, bounded persistence, notification-center serialization, and immediate Web Push delivery remain preserved.
 - `vercel.json` remains `{ "crons": [] }`.
 ```
@@ -700,6 +701,17 @@ Final-I.4 implementation validation:
 Final-I.4 documentation acceptance closure validation:
 - npm run final-i:validate - PASS, 29/29; initial sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM before the escalated rerun passed
 - git diff --check - PASS; Windows CRLF normalization warnings only
+Final-I.5 implementation validation:
+- npm run final-i:validate - PASS, 35/35; initial sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM before the escalated rerun passed
+- npm run final-h:validate - PASS, 20/20; initial sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM before the escalated rerun passed
+- npm run env:validate - PASS; initial sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM before the escalated rerun passed
+- npm run db:validate - PASS; Prisma package.json#prisma deprecation warning only
+- npm run db:generate - PASS; Prisma package.json#prisma deprecation warning only
+- npm run db:migrate:status - PASS, 29 migrations, database schema is up to date; initial sandbox run returned Schema engine error before the escalated rerun passed
+- npm run lint - PASS
+- npm run build - PASS; initial sandbox run failed to fetch Google Fonts for next/font before the escalated rerun passed; Next slow filesystem warning only
+- npm audit --omit=dev - PASS, 0 vulnerabilities; initial sandbox run could not reach the audit endpoint/cache before the escalated rerun passed
+- git diff --check - PASS
 ```
 
 ## Final-I.1 Hosted Owner Validation Completed

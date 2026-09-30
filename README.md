@@ -74,7 +74,7 @@ TRP_ENVIRONMENT=production
 `VERCEL_ENV` remains deployment metadata and must not be used as the only signal for the TRP business environment. The accepted Test site uses the stable domain while remaining `TRP_ENVIRONMENT=test`; a Vercel production deployment target does not make it the TRP Production environment. A documented target URL must never be treated as proof of deployment without explicit validation.
 
 
-Current addendum: Final-I — Operational Polish, Notification UX & FEL Invoicing — is Active as of 2026-09-29 at registration base `950ff5e6948fb2a74cda03f81efdb7c676b33c73`. Final-I.1 is completed and accepted on 2026-09-29 at accepted head `9a15f349c1104671f5555d1988caa56756e5ff0c`. Final-I.2 is completed and accepted on 2026-09-29 at accepted head `6451cb705d972c83a771a9ff39f6da80d130cf58`; Final-I.3 is completed and accepted on 2026-09-29 at accepted head `8c5a9186e392f35bdbc998f463c5c3c6cd0be295`; Final-I.4 is completed and accepted on 2026-09-30 at accepted head 8e2d7d56a8e81a860833b05f4a28cba8a517bad4; Final-I.5 is Next / Not started; Final-I.6 is Not started; Final-I.7 is Blocked pending official INFILE technical documentation + Test credentials; Final-I.8 and Final-I.9 are Not started. Phase 13 remains Blocked / Not started until Final-I closes.
+Current addendum: Final-I — Operational Polish, Notification UX & FEL Invoicing — is Active as of 2026-09-29 at registration base `950ff5e6948fb2a74cda03f81efdb7c676b33c73`. Final-I.1 is completed and accepted on 2026-09-29 at accepted head `9a15f349c1104671f5555d1988caa56756e5ff0c`. Final-I.2 is completed and accepted on 2026-09-29 at accepted head `6451cb705d972c83a771a9ff39f6da80d130cf58`; Final-I.3 is completed and accepted on 2026-09-29 at accepted head `8c5a9186e392f35bdbc998f463c5c3c6cd0be295`; Final-I.4 is completed and accepted on 2026-09-30 at accepted head 8e2d7d56a8e81a860833b05f4a28cba8a517bad4; Final-I.5 implementation is completed with owner architecture acceptance pending; Final-I.6 is Next / Not started; Final-I.7 is Blocked pending official INFILE technical documentation + Test credentials; Final-I.8 and Final-I.9 are Not started. Phase 13 remains Blocked / Not started until Final-I closes.
 Detailed environment ownership, domain, provider-reuse, recipient-routing, and Phase 12/13 separation rules are documented in `docs/89-test-and-production-environment-strategy.md` and `docs/136-phase-12.1-test-deployment-and-environment-strategy.md`.
 
 ## Purpose
@@ -521,8 +521,9 @@ Final-I.3 status: Completed and accepted on 2026-09-29
 Accepted Final-I.3 head: 8c5a9186e392f35bdbc998f463c5c3c6cd0be295
 Final-I.4 status: Completed and accepted on 2026-09-30
 Accepted Final-I.4 head: 8e2d7d56a8e81a860833b05f4a28cba8a517bad4
-Final-I.5 status: Next / Not started
-Final-I.6 status: Not started
+Final-I.5 status: Implementation completed; owner architecture acceptance pending
+Final-I.5 implementation record: docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md
+Final-I.6 status: Next / Not started
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8-Final-I.9 status: Not started
 Final-I record: docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md
@@ -550,8 +551,9 @@ Final-I.3 status: Completed and accepted on 2026-09-29
 Accepted Final-I.3 head: 8c5a9186e392f35bdbc998f463c5c3c6cd0be295
 Final-I.4 status: Completed and accepted on 2026-09-30
 Accepted Final-I.4 head: 8e2d7d56a8e81a860833b05f4a28cba8a517bad4
-Final-I.5 status: Next / Not started
-Final-I.6 status: Not started
+Final-I.5 status: Implementation completed; owner architecture acceptance pending
+Final-I.5 implementation record: docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md
+Final-I.6 status: Next / Not started
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8-Final-I.9 status: Not started
 Final-I record: docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md
@@ -715,8 +717,9 @@ Final-I.3 status: Completed and accepted on 2026-09-29
 Accepted Final-I.3 head: 8c5a9186e392f35bdbc998f463c5c3c6cd0be295
 Final-I.4 status: Completed and accepted on 2026-09-30
 Accepted Final-I.4 head: 8e2d7d56a8e81a860833b05f4a28cba8a517bad4
-Final-I.5 status: Next / Not started
-Final-I.6 status: Not started
+Final-I.5 status: Implementation completed; owner architecture acceptance pending
+Final-I.5 implementation record: docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md
+Final-I.6 status: Next / Not started
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8-Final-I.9 status: Not started
 Final-I record: docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md
@@ -744,8 +747,9 @@ Final-I.3 status: Completed and accepted on 2026-09-29
 Accepted Final-I.3 head: 8c5a9186e392f35bdbc998f463c5c3c6cd0be295
 Final-I.4 status: Completed and accepted on 2026-09-30
 Accepted Final-I.4 head: 8e2d7d56a8e81a860833b05f4a28cba8a517bad4
-Final-I.5 status: Next / Not started
-Final-I.6 status: Not started
+Final-I.5 status: Implementation completed; owner architecture acceptance pending
+Final-I.5 implementation record: docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md
+Final-I.6 status: Next / Not started
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8-Final-I.9 status: Not started
 Final-I record: docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md

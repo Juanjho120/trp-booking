@@ -1,0 +1,210 @@
+import assert from "node:assert/strict";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import path from "node:path";
+
+import { listCronJobDefinitions } from "@/lib/cron/registry";
+
+import { test } from "./harness";
+
+const ROOT = process.cwd();
+const I5_RECORD =
+  "docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md";
+
+const EXPECTED_CRON_JOBS = [
+  ["SYNC_AIRBNB_CALENDARS", "sync-airbnb-calendars", "*/30 * * * *"],
+  [
+    "EXPIRE_PENDING_RESERVATION_HOLDS",
+    "expire-pending-reservation-holds",
+    "*/5 * * * *",
+  ],
+  ["PROCESS_EMAIL_NOTIFICATIONS", "process-email-notifications", "*/5 * * * *"],
+  [
+    "SCHEDULE_ARRIVAL_INSTRUCTIONS",
+    "schedule-arrival-instructions",
+    "*/30 * * * *",
+  ],
+  [
+    "SCHEDULE_REVIEW_INVITATIONS",
+    "schedule-review-invitations",
+    "*/30 * * * *",
+  ],
+  [
+    "PROCESS_ADMIN_PUSH_NOTIFICATIONS",
+    "process-admin-push-notifications",
+    "*/5 * * * *",
+  ],
+] as const;
+
+function read(relativePath: string): string {
+  return readFileSync(path.join(ROOT, relativePath), "utf8");
+}
+
+function readRecord(): string {
+  return read(I5_RECORD);
+}
+
+function expectIncludes(source: string, expected: string): void {
+  assert.ok(
+    source.includes(expected),
+    `Expected ${I5_RECORD} to include: ${expected}`,
+  );
+}
+
+test("I.5 freezes the payment versus fiscal-line source-of-truth contract", () => {
+  const record = readRecord();
+
+  expectIncludes(record, "PAYMENT != FISCAL LINE");
+  expectIncludes(
+    record,
+    "INITIAL_RESERVATION Payment.amount must not be added on top of Reservation.total.",
+  );
+  expectIncludes(
+    record,
+    "LIFECYCLE_ADJUSTMENT Payment.amount must not become a separate fiscal service line",
+  );
+  expectIncludes(
+    record,
+    "ADDITIONAL_CHARGE Payment.amount is settlement evidence for immutable GuestPaymentRequestItem snapshots",
+  );
+  expectIncludes(record, "final current commercial state");
+  expectIncludes(record, "GuestPaymentRequestItem");
+  expectIncludes(record, "invoiceCommercialGross");
+  expectIncludes(record, "USD 445");
+});
+
+test("I.5 freezes additional-charge, refund and credit-note separation", () => {
+  const record = readRecord();
+
+  expectIncludes(record, "AdditionalCharge identity");
+  expectIncludes(record, "GuestPaymentRequestItem immutable snapshot");
+  expectIncludes(record, "approved refund allocations");
+  expectIncludes(record, "refund happened BEFORE FEL certification");
+  expectIncludes(record, "refund happened AFTER FEL certification");
+  expectIncludes(record, "Credit Note != Refund");
+  expectIncludes(record, "Refund != Credit Note");
+  expectIncludes(
+    record,
+    "Reservation cancellation != Payment refund != FEL DTE cancellation != Credit Note",
+  );
+});
+
+test("I.5 freezes receiver, document-type and multi-reservation boundaries", () => {
+  const record = readRecord();
+
+  expectIncludes(record, "fiscal receiver != booking guest");
+  expectIncludes(record, "Reservation guest != fiscal receiver");
+  expectIncludes(record, "receiverTaxIdentifierType");
+  expectIncludes(record, "Consumidor Final");
+  expectIncludes(record, "Q2,500");
+  expectIncludes(record, "SMALL_TAXPAYER_INVOICE");
+  expectIncludes(record, "CREDIT_NOTE");
+  expectIncludes(record, "one document -> multiple reservations");
+  expectIncludes(record, "FelDocument 1 --- N FelDocumentReservation");
+  expectIncludes(record, "same intended fiscal receiver");
+});
+
+test("I.5 documents provider-independent persistence and INFILE blocking", () => {
+  const record = readRecord();
+
+  for (const modelName of [
+    "FelDocument",
+    "FelDocumentReservation",
+    "FelLineItem",
+    "FelLineSource",
+    "FelProviderAttempt",
+    "FelCreditAllocation",
+  ]) {
+    expectIncludes(record, modelName);
+  }
+
+  expectIncludes(record, "FelProviderAdapter");
+  expectIncludes(record, "timeout after request != safe to resubmit");
+  expectIncludes(record, "Do not silently convert USD to GTQ.");
+  expectIncludes(record, "individual/grouped extras");
+  expectIncludes(record, "Grouping must preserve provenance.");
+  expectIncludes(record, "After `CERTIFIED`, freeze:");
+  expectIncludes(record, "Final-I.6 can proceed with provider-independent persistence/UI");
+  expectIncludes(
+    record,
+    "Final-I.7 remains blocked until the owner provides official INFILE technical documentation and Test credentials.",
+  );
+  expectIncludes(record, "Domain Relationship Diagram");
+  expectIncludes(record, "Fiscal State Machine Diagram");
+  expectIncludes(record, "Provider Boundary Diagram");
+});
+
+test("I.5 leaves Prisma, migrations, cron and Vercel scheduler state untouched", () => {
+  const schema = read("prisma/schema.prisma");
+
+  for (const modelName of [
+    "FelDocument",
+    "FelDocumentReservation",
+    "FelLineItem",
+    "FelLineSource",
+    "FelProviderAttempt",
+    "FelCreditAllocation",
+  ]) {
+    assert.doesNotMatch(
+      schema,
+      new RegExp(`\\bmodel\\s+${modelName}\\b`),
+      `${modelName} must not be implemented during I.5`,
+    );
+  }
+
+  assert.doesNotMatch(schema, /\bPROCESS_FEL_DOCUMENTS\b/);
+  assert.equal(
+    existsSync(path.join(ROOT, "app", "admin", "fel")),
+    false,
+    "Admin FEL UI must not be implemented during I.5",
+  );
+
+  const migrations = readdirSync(path.join(ROOT, "prisma", "migrations"));
+  assert.equal(
+    migrations.some((name) => /final[_-]?i[_-]?5|fel/i.test(name)),
+    false,
+    "I.5 must not add a FEL migration",
+  );
+
+  assert.deepEqual(JSON.parse(read("vercel.json")), { crons: [] });
+
+  const definitions = listCronJobDefinitions();
+
+  assert.deepEqual(
+    definitions.map((definition) => [
+      definition.key,
+      definition.slug,
+      definition.schedule,
+    ]),
+    EXPECTED_CRON_JOBS,
+  );
+});
+
+test("I.5 tracker state keeps I.6 next and Phase 13 blocked", () => {
+  const record = readRecord();
+  const finalIRoadmap = read(
+    "docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md",
+  );
+
+  expectIncludes(
+    record,
+    "Status: Implementation completed; owner architecture acceptance pending",
+  );
+  expectIncludes(record, "Final-I.6 status: Next / Not started");
+  expectIncludes(record, "Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials");
+  expectIncludes(record, "Phase 13 status: Blocked / Not started until Final-I closes");
+
+  assert.ok(
+    finalIRoadmap.includes(
+      "Final-I.5 status: Implementation completed; owner architecture acceptance pending",
+    ),
+    "docs/212 must expose I.5 as implemented but pending owner architecture acceptance",
+  );
+  assert.ok(
+    finalIRoadmap.includes("Final-I.6 status: Next / Not started"),
+    "docs/212 must keep I.6 as the next unstarted subphase",
+  );
+  assert.ok(
+    finalIRoadmap.includes("Phase 13 status: Blocked / Not started until Final-I closes"),
+    "docs/212 must keep Phase 13 blocked",
+  );
+});

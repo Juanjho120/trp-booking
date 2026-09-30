@@ -25,8 +25,9 @@ Final-I.3 status: Completed and accepted on 2026-09-29
 Accepted Final-I.3 head: 8c5a9186e392f35bdbc998f463c5c3c6cd0be295
 Final-I.4 status: Completed and accepted on 2026-09-30
 Accepted Final-I.4 head: 8e2d7d56a8e81a860833b05f4a28cba8a517bad4
-Final-I.5 status: Next / Not started
-Final-I.6 status: Not started
+Final-I.5 status: Implementation completed; owner architecture acceptance pending
+Final-I.5 implementation record: docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md
+Final-I.6 status: Next / Not started
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8-Final-I.9 status: Not started
 Final-I record: docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md
@@ -54,8 +55,9 @@ Final-I.3 status: Completed and accepted on 2026-09-29
 Accepted Final-I.3 head: 8c5a9186e392f35bdbc998f463c5c3c6cd0be295
 Final-I.4 status: Completed and accepted on 2026-09-30
 Accepted Final-I.4 head: 8e2d7d56a8e81a860833b05f4a28cba8a517bad4
-Final-I.5 status: Next / Not started
-Final-I.6 status: Not started
+Final-I.5 status: Implementation completed; owner architecture acceptance pending
+Final-I.5 implementation record: docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md
+Final-I.6 status: Next / Not started
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8-Final-I.9 status: Not started
 Final-I record: docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md
@@ -245,8 +247,9 @@ Final-I.3 status: Completed and accepted on 2026-09-29
 Accepted Final-I.3 head: 8c5a9186e392f35bdbc998f463c5c3c6cd0be295
 Final-I.4 status: Completed and accepted on 2026-09-30
 Accepted Final-I.4 head: 8e2d7d56a8e81a860833b05f4a28cba8a517bad4
-Final-I.5 status: Next / Not started
-Final-I.6 status: Not started
+Final-I.5 status: Implementation completed; owner architecture acceptance pending
+Final-I.5 implementation record: docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md
+Final-I.6 status: Next / Not started
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8-Final-I.9 status: Not started
 Final-I record: docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md
@@ -274,8 +277,9 @@ Final-I.3 status: Completed and accepted on 2026-09-29
 Accepted Final-I.3 head: 8c5a9186e392f35bdbc998f463c5c3c6cd0be295
 Final-I.4 status: Completed and accepted on 2026-09-30
 Accepted Final-I.4 head: 8e2d7d56a8e81a860833b05f4a28cba8a517bad4
-Final-I.5 status: Next / Not started
-Final-I.6 status: Not started
+Final-I.5 status: Implementation completed; owner architecture acceptance pending
+Final-I.5 implementation record: docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md
+Final-I.6 status: Next / Not started
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8-Final-I.9 status: Not started
 Final-I record: docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md
@@ -1866,6 +1870,31 @@ Admin/internal visible fallback URLs remain intentionally preserved for addition
 Validation executed for I.4: `npm run final-i:validate` PASS 29/29, `npm run final-f:validate` PASS 125/125, `npm run final-h:validate` PASS 20/20, `npm run env:validate` PASS, `npm run db:validate` PASS, `npm run db:generate` PASS, `npm run db:migrate:status` PASS with 29 migrations and schema up to date, `npm run lint` PASS, `npm run build` PASS, `npm audit --omit=dev` PASS with 0 vulnerabilities, and `git diff --check` PASS. Sandbox-limited first attempts for tsx/env, `db:migrate:status`, audit, and build were rerun outside the sandbox as recorded in docs/212.
 
 Final-I.5 is prepared only as the next architecture/domain-contract subphase for FEL/INFILE. It remains Not started; no Prisma schema, FEL models, INFILE transport, provider integration, Final-I.6, or Phase 13 work was started in this closure.
+
+## 2026-09-30 — Final-I.5 FEL Fiscal Domain Contract Implemented
+
+```text
+Package: Final-I — Operational Polish, Notification UX & FEL Invoicing
+Registration base: 950ff5e6948fb2a74cda03f81efdb7c676b33c73
+Subphase: Final-I.5 — FEL/INFILE fiscal domain contract and architecture
+Starting head: 999b6c0eb60d30e5b289d46996e9b1ab4602ba96
+Status: Implementation completed; owner architecture acceptance pending
+Record: docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md
+Final-I.1: Completed and accepted on 2026-09-29 at 9a15f349c1104671f5555d1988caa56756e5ff0c
+Final-I.2: Completed and accepted on 2026-09-29 at 6451cb705d972c83a771a9ff39f6da80d130cf58
+Final-I.3: Completed and accepted on 2026-09-29 at 8c5a9186e392f35bdbc998f463c5c3c6cd0be295
+Final-I.4: Completed and accepted on 2026-09-30 at 8e2d7d56a8e81a860833b05f4a28cba8a517bad4
+Final-I.6: Next / Not started
+Final-I.7: Blocked pending official INFILE technical documentation + Test credentials
+Final-I.8-Final-I.9: Not started
+Phase 13: Blocked / Not started until Final-I closes
+```
+
+Final-I.5 freezes the provider-independent FEL fiscal domain contract before any persistence or provider implementation. It documents the verified external FEL baseline, the INFILE documentation/credential block, the current TRP financial-domain audit, the `PAYMENT != FISCAL LINE` rule, lodging and additional-charge source-of-truth rules, anti-double-counting safeguards, receiver identity separation, one-document/multiple-reservation provenance, document/cancellation/Credit Note boundaries, the proposed Final-I.6 persistence model, provider-adapter boundary, timeout/idempotency safety requirements, currency open questions, and Mermaid diagrams for the domain relationship, fiscal state machine, and provider boundary.
+
+No Prisma schema, migration, Admin FEL UI, INFILE transport, environment variable, scheduler, Production resource, Final-I.6 implementation, Final-I.7 provider integration, Final-I.8+, or Phase 13 work was introduced. Final-I.6 is the next subphase and remains Not started. Final-I.7 remains blocked pending official INFILE technical documentation and Test credentials.
+
+Validation executed for I.5: `npm run final-i:validate` PASS 35/35 after a sandbox-only `tsx` startup failure (`uv_os_get_passwd ENOMEM`) was rerun outside the sandbox; `npm run final-h:validate` PASS 20/20 after the same sandbox-only `tsx` startup failure was rerun outside the sandbox; `npm run env:validate` PASS after the same sandbox-only `tsx` startup failure was rerun outside the sandbox; `npm run db:validate` PASS with Prisma `package.json#prisma` deprecation warning only; `npm run db:generate` PASS with Prisma `package.json#prisma` deprecation warning only; `npm run db:migrate:status` PASS with 29 migrations and database schema up to date after the sandbox run returned Schema engine error; `npm run lint` PASS; `npm run build` PASS after the sandbox run failed to fetch Google Fonts for `next/font`; `npm audit --omit=dev` PASS with 0 vulnerabilities after the sandbox run could not reach the audit endpoint/cache; and `git diff --check` PASS.
 ## 2026-09-29 — Final-I.3 Completed and Accepted
 
 ```text
