@@ -145,10 +145,34 @@ test("I.5 separates provenance evidence from exclusive commercial source consump
   expectIncludes(record, "SETTLEMENT_EVIDENCE");
   expectIncludes(record, "REFUND_EVIDENCE");
   expectIncludes(record, "LIFECYCLE_EVIDENCE");
-  expectIncludes(record, "Payment does not contribute fiscal amount");
+  expectIncludes(record, "Payment evidence contributes zero additional fiscal amount.");
   expectIncludes(
     record,
-    "Only `FelLineSource` rows whose role is `AMOUNT_SOURCE` may contribute",
+    "FelCommercialSourceAllocation.amountSnapshot",
+  );
+  expectIncludes(
+    record,
+    "FelCommercialSourceAllocation.currencySnapshot",
+  );
+  expectIncludes(
+    record,
+    "These are the only canonical commercial source amounts used to construct fiscal line totals.",
+  );
+  expectIncludes(
+    record,
+    "FelLineSource rows are never summed to compute:",
+  );
+  expectIncludes(
+    record,
+    "It does not create a second monetary source of truth.",
+  );
+  expectIncludes(
+    record,
+    "FelLineItem.amount\n=\nsum(\n  FelCommercialSourceAllocation.amountSnapshot",
+  );
+  expectIncludes(
+    record,
+    "FelDocument commercial total\n=\nsum(FelLineItem.amount)",
   );
   expectIncludes(record, "FelCommercialSourceAllocation");
   expectIncludes(record, "reservationId UNIQUE when non-null");
@@ -168,6 +192,28 @@ test("I.5 separates provenance evidence from exclusive commercial source consump
   expectIncludes(
     record,
     "Unique constraints / allocation ownership prevent duplicate fiscal consumption.",
+  );
+  expectIncludes(
+    record,
+    "grouping presentation derives from allocations\nnot from provenance arithmetic",
+  );
+  expectIncludes(
+    record,
+    "release eligible provisional allocations\nre-read current eligible commercial sources\ncreate fresh allocation snapshots\nrebuild fiscal lines from allocations\nrebuild provenance/evidence",
+  );
+  expectIncludes(
+    record,
+    "FelCommercialSourceAllocation.amountSnapshot\nFelCommercialSourceAllocation.currencySnapshot\nFelLineItem.amount\nFelDocument totals",
+  );
+  expectIncludes(record, "no arithmetic over FelLineSource");
+  expectIncludes(
+    record,
+    "sum allocations per line == line.amount\n  sum lines == document total",
+  );
+  assert.doesNotMatch(
+    record,
+    /\bsourceAmount\b|\bsourceCurrency\b|sum\(AMOUNT_SOURCE\.sourceAmount\)/,
+    "FelLineSource must not retain authoritative amount/currency fields",
   );
 });
 

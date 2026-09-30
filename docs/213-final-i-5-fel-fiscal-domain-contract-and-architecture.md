@@ -301,6 +301,58 @@ must be produced from frozen fiscal lines, not independently recalculated later.
 sum(FelLineItem.amount) == FelDocument frozen total
 ```
 
+Do not independently recompute document totals from `Reservation`, `Payment`, `AdditionalCharge`, or `FelLineSource` after the draft snapshot has been built.
+
+```text
+FelDocument commercial total
+=
+sum(FelLineItem.amount)
+```
+
+subject only to later accepted fiscal tax/currency/rounding rules.
+
+## Canonical Commercial Amount Source
+
+Final-I.5 freezes one canonical commercial amount source for future FEL draft composition:
+
+```text
+FelCommercialSourceAllocation.amountSnapshot
+FelCommercialSourceAllocation.currencySnapshot
+```
+
+These are the only canonical commercial source amounts used to construct fiscal line totals.
+
+```text
+FelCommercialSourceAllocation
+=
+exclusive source ownership
++
+canonical immutable commercial amount snapshot
+```
+
+For current commercial-currency draft composition:
+
+```text
+FelLineItem.amount
+=
+sum(
+  FelCommercialSourceAllocation.amountSnapshot
+  linked to this FelLineItem
+)
+```
+
+subject only to later accepted:
+
+```text
+currency conversion
+tax treatment
+rounding
+```
+
+rules.
+
+`FelLineItem.amount` is built from allocation snapshots. `FelDocument` totals are built from persisted line amounts. No later implicit recalculation from mutable business tables is allowed.
+
 ## Fiscal Provenance vs Commercial Source Consumption
 
 Final-I.5 freezes two separate concepts:
@@ -345,14 +397,29 @@ REFUND_EVIDENCE
 LIFECYCLE_EVIDENCE
 ```
 
-Only `FelLineSource` rows whose role is `AMOUNT_SOURCE` may contribute to the commercial source amount represented by a fiscal line. Supporting evidence must never be summed into:
+FelLineSource rows are never summed to compute:
 
 ```text
 FelLineItem.amount
+or
 FelDocument.total
 ```
 
-Payment does not contribute fiscal amount unless a later accepted fiscal model explicitly reclassifies a source as an `AMOUNT_SOURCE`. The accepted I.5 model does not do that.
+This applies even when:
+
+```text
+sourceRole = AMOUNT_SOURCE
+```
+
+`AMOUNT_SOURCE` means:
+
+```text
+this evidence row identifies/explains the commercial source represented by an allocation
+```
+
+It does not create a second monetary source of truth.
+
+Payment evidence contributes zero additional fiscal amount.
 
 ### Lodging Role Rules
 
@@ -379,7 +446,7 @@ ReservationLifecycleRequest
 -> contributes 0 additional fiscal amount
 ```
 
-For lodging, the fiscal line has exactly one Reservation `AMOUNT_SOURCE`.
+For lodging, the fiscal line has exactly one Reservation allocation. The Reservation `AMOUNT_SOURCE` provenance row explains that allocation and is not arithmetic input.
 
 ### Additional-Charge Role Rules
 
@@ -415,17 +482,17 @@ Refund / AdditionalChargeRefundAllocation
 -> reconciliation rules remain separate
 ```
 
-For an individual extra, the fiscal line has exactly one `GuestPaymentRequestItem` `AMOUNT_SOURCE`.
+For an individual extra, the fiscal line has exactly one `GuestPaymentRequestItem` allocation. The `GuestPaymentRequestItem` `AMOUNT_SOURCE` provenance row explains that allocation and is not arithmetic input.
 
-For grouped extras, the fiscal line has multiple `GuestPaymentRequestItem` `AMOUNT_SOURCE` rows:
+For grouped extras, the fiscal line has multiple `GuestPaymentRequestItem` allocations:
 
 ```text
 FelLineItem.amount
 =
-sum(AMOUNT_SOURCE.sourceAmount)
+sum(FelCommercialSourceAllocation.amountSnapshot)
 ```
 
-subject only to later frozen currency/tax/rounding rules. Settlement/refund/lifecycle evidence is excluded from that sum.
+subject only to later frozen currency/tax/rounding rules. Settlement/refund/lifecycle evidence and all `FelLineSource` rows are excluded from that sum.
 
 ## Anti-Double-Counting Example
 
@@ -767,8 +834,6 @@ FelLineSource:
   sourceType
   sourceId
   sourceRole
-  sourceAmount
-  sourceCurrency
   sourceSnapshotJson
   createdAt
 ```
@@ -796,6 +861,8 @@ LIFECYCLE_EVIDENCE
 
 This typed-source architecture avoids seven nullable foreign keys on one row while avoiding JSON-only provenance. Final-I.6 should prefer a relational `FelLineSource` mapping with indexes over `sourceType/sourceId` and `felLineItemId` for evidence lookup performance only; `sourceSnapshotJson` stores bounded immutable evidence only when the source row itself is mutable or insufficient for fiscal reproduction.
 
+`FelLineSource` deliberately has no mandatory independent amount/currency columns. Supporting monetary evidence may live inside `sourceSnapshotJson` when useful for audit/reproduction, but that diagnostic/audit metadata is never arithmetic input.
+
 `FelLineSource` does not provide exclusive source ownership:
 
 ```text
@@ -812,6 +879,8 @@ Indexes over `sourceType/sourceId` improve lookup performance, but indexes do no
 FelCommercialSourceAllocation
 =
 exclusive commercial amount-source ownership
++
+canonical immutable commercial amount snapshot
 ```
 
 It is separate from `FelLineSource`:
@@ -839,6 +908,8 @@ FelCommercialSourceAllocation:
 
   createdAt
 ```
+
+`amountSnapshot` and `currencySnapshot` are the canonical commercial amount/currency copied into the draft for that source. Future line totals must be derived from these allocation snapshots, not from `FelLineSource`, mutable `Reservation`, mutable `AdditionalCharge`, `Payment`, `Refund`, or provider evidence rows.
 
 Relations:
 
@@ -958,10 +1029,27 @@ FelCommercialSourceAllocation
 
 plus any supporting `FelLineSource` evidence.
 
+Then:
+
+```text
+FelLineItem.amount
+=
+40 + 25 + 20
+=
+85
+```
+
+The corresponding `FelLineSource` rows may explain all underlying records but cannot alter the `85`.
+
 ```text
 grouping changes presentation
 NOT consumption identity
 NOT provenance
+```
+
+```text
+grouping presentation derives from allocations
+not from provenance arithmetic
 ```
 
 Individual extra example:
@@ -976,6 +1064,14 @@ FelCommercialSourceAllocation
   amountSnapshot = 40
 ```
 
+Then:
+
+```text
+FelLineItem.amount
+=
+allocation.amountSnapshot
+```
+
 The associated `AdditionalCharge`, `Payment`, `Refund`, and `AdditionalChargeRefundAllocation` rows may be represented as supporting `FelLineSource` evidence, not additional commercial allocations.
 
 Lodging example:
@@ -988,6 +1084,14 @@ FelLineItem
 FelCommercialSourceAllocation
   Reservation X
   amountSnapshot = frozen Reservation.total
+```
+
+Then:
+
+```text
+FelLineItem.amount
+=
+that allocation.amountSnapshot
 ```
 
 Initial and lifecycle payments can be linked as evidence but cannot create additional allocation rows.
@@ -1092,6 +1196,58 @@ with relevant Refund/reconciliation evidence. Creating a Credit Note must NOT de
 
 DTE cancellation must not automatically make the original commercial source available for a second unrelated invoice unless a later explicit fiscal rule says so.
 
+## Allocation And Provenance Correspondence
+
+Every canonical allocation should have corresponding provenance sufficient to explain it:
+
+```text
+Reservation allocation
+-> at least one Reservation AMOUNT_SOURCE provenance row
+
+GuestPaymentRequestItem allocation
+-> at least one GPRI AMOUNT_SOURCE provenance row
+```
+
+But:
+
+```text
+allocation amount is authoritative
+
+provenance role is explanatory
+```
+
+Do not create two authoritative amount stores.
+
+## Snapshot Consistency At Draft Creation
+
+When Final-I.6 creates a draft transactionally, it must copy commercial source amounts exactly once into allocation snapshots.
+
+For lodging:
+
+```text
+Reservation.total
+-> copied once into
+FelCommercialSourceAllocation.amountSnapshot
+```
+
+For extras:
+
+```text
+GuestPaymentRequestItem.amountSnapshot
+-> copied once into
+FelCommercialSourceAllocation.amountSnapshot
+```
+
+Then build:
+
+```text
+FelLineItem.amount
+```
+
+from those allocation snapshots.
+
+Do not later read mutable source records to recalculate the saved draft implicitly.
+
 ## Draft Editing Rules
 
 Before certification, `DRAFT` may allow:
@@ -1114,6 +1270,18 @@ continue with existing frozen draft snapshot
 
 Do not let mutable reservations silently alter a saved `DRAFT`.
 
+When Admin explicitly chooses `Rebuild draft from current commercial sources`, the operation should transactionally:
+
+```text
+release eligible provisional allocations
+re-read current eligible commercial sources
+create fresh allocation snapshots
+rebuild fiscal lines from allocations
+rebuild provenance/evidence
+```
+
+Do not patch individual amounts in place in a way that can leave allocation/line totals inconsistent.
+
 When a `DRAFT` includes a commercial source, `FelCommercialSourceAllocation` is created transactionally so two concurrent Admin drafts cannot silently claim the same source.
 
 If a source is removed from a mutable `DRAFT`, its allocation may be deleted/released transactionally provided the document has never been certified. A discarded draft may release its provisional allocations.
@@ -1132,6 +1300,10 @@ reservation snapshots
 line items
 line-source allocations
 commercial source allocations
+FelCommercialSourceAllocation.amountSnapshot
+FelCommercialSourceAllocation.currencySnapshot
+FelLineItem.amount
+FelDocument totals
 currency
 totals
 certification identifiers
@@ -1139,6 +1311,8 @@ certification timestamps
 ```
 
 Corrections after certification must happen through fiscal operations such as cancellation or Credit Note when allowed by the later provider/accounting contract. Never edit a certified invoice in place.
+
+After certification, no fiscal amount may be recalculated from mutable business tables. `FelLineSource` evidence may also be immutable as accepted history, but it remains provenance and never becomes an arithmetic source.
 
 ## Provider Adapter Boundary
 
@@ -1213,11 +1387,13 @@ Exact requirements are unresolved. Final-I.5 does not add these fields to Prisma
 flowchart TD
   R[Reservation] --> FCSA[FelCommercialSourceAllocation]
   GPRI[GuestPaymentRequestItem] --> FCSA
-  FCSA --> FLI[FelLineItem]
+  FCSA --> AMT[canonical amountSnapshot]
+  AMT --> FLI[FelLineItem]
 
   R --> FDR[FelDocumentReservation]
   FDR --> FD[FelDocument]
   FD --> FLI[FelLineItem]
+  FLI --> FDT[FelDocument total]
 
   FLI --> FLS[FelLineSource]
 
@@ -1229,7 +1405,7 @@ flowchart TD
   RLR[ReservationLifecycleRequest] --> FLS
 
   FCSA -. exclusive commercial consumption .-> FLI
-  FLS -. provenance and evidence only .-> FLI
+  FLS -. provenance and evidence only, no totals .-> FLI
 ```
 
 ## Fiscal State Machine Diagram
@@ -1332,6 +1508,12 @@ Expected Final-I.6 scope:
 - source release for mutable discarded drafts
 - permanent consumption after certification
 - line-source role semantics
+- line amounts derived exclusively from allocation snapshots
+- document totals derived exclusively from persisted line amounts
+- no arithmetic over FelLineSource
+- transactional consistency checks:
+  sum allocations per line == line.amount
+  sum lines == document total
 - Admin /admin/fel route
 - eligible-reservation search/select
 - one/multiple reservation draft creation

@@ -30,6 +30,8 @@ Phase 13 status: Blocked / Not started until Final-I closes
 
 Final-I is an owner-requested pre-Production addendum registered after the accepted Final-H closure. It does not rewrite the historical acceptance of Phase 12, Final-A through Final-H, or the complete Post-Phase-12 / Pre-Phase-13 Final Improvement Track at `6922cf27e31e63fde071c0d0a810b141e44b9f90`. Final-I.1 is completed and accepted at its feature head `9a15f349c1104671f5555d1988caa56756e5ff0c`, and Final-I.2 is completed and accepted at `6451cb705d972c83a771a9ff39f6da80d130cf58`; Final-I.3 is completed and accepted on 2026-09-29 at accepted head `8c5a9186e392f35bdbc998f463c5c3c6cd0be295` after Hosted owner validation of the desktop, Android mobile browser, Android standalone PWA, Push deep-link, and final mobile/PWA auto-scroll refinement. Final-I.4 is completed and accepted on 2026-09-30 at accepted feature head `8e2d7d56a8e81a860833b05f4a28cba8a517bad4` after Hosted/mobile owner validation of representative guest emails. Final-I.5 implementation is completed as the provider-independent FEL fiscal domain contract in `docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md`; owner architecture acceptance remains pending. Phase 13 remains not started and is blocked until Final-I closes and receives owner acceptance.
 
+Final-I.5 canonical amount-source hardening freezes `FelCommercialSourceAllocation.amountSnapshot` and `FelCommercialSourceAllocation.currencySnapshot` as the only canonical commercial amount source for future draft line totals. `FelLineSource` is frozen as provenance/evidence only: its rows are never summed to compute `FelLineItem.amount` or `FelDocument` totals, including when `sourceRole = AMOUNT_SOURCE`. Conceptual mandatory `FelLineSource.sourceAmount` / `sourceCurrency` fields were removed from the I.5 persistence contract to avoid two divergent monetary sources of truth; any supporting monetary evidence belongs only inside `sourceSnapshotJson` as non-authoritative audit/reproduction metadata.
+
 ## Subphase Structure
 
 ```text
@@ -722,6 +724,17 @@ Final-I.5 source-consumption hardening validation:
 - npm run lint - PASS
 - npm run build - PASS; initial sandbox run failed to fetch Google Fonts for next/font before the escalated rerun passed; Next slow filesystem warning only
 - npm audit --omit=dev - PASS, 0 vulnerabilities; initial sandbox run could not reach the audit endpoint/cache before the escalated rerun passed
+- git diff --check - PASS
+Final-I.5 canonical amount-source hardening validation:
+- npm run final-i:validate - PASS, 36/36; executed outside the sandbox after the known sandbox-only tsx startup failure mode
+- npm run final-h:validate - PASS, 20/20; executed outside the sandbox after the known sandbox-only tsx startup failure mode
+- npm run env:validate - PASS; executed outside the sandbox after the known sandbox-only tsx startup failure mode
+- npm run db:validate - PASS; Prisma package.json#prisma deprecation warning only
+- npm run db:generate - PASS; Prisma package.json#prisma deprecation warning only
+- npm run db:migrate:status - PASS, 29 migrations, database schema is up to date
+- npm run lint - PASS
+- npm run build - PASS; Next slow filesystem warning only
+- npm audit --omit=dev - PASS, 0 vulnerabilities
 - git diff --check - PASS
 ```
 
