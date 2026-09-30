@@ -19,8 +19,9 @@ Final-I.3 status: Completed and accepted on 2026-09-29
 Accepted Final-I.3 head: 8c5a9186e392f35bdbc998f463c5c3c6cd0be295
 Final-I.4 status: Completed and accepted on 2026-09-30
 Accepted Final-I.4 head: 8e2d7d56a8e81a860833b05f4a28cba8a517bad4
-Final-I.5 status: Implementation completed; owner architecture acceptance pending
-Final-I.5 implementation record: docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md
+Final-I.5 status: Completed and accepted on 2026-09-30
+Accepted Final-I.5 head: fde3ae06427af1f8905e6f7589263c199f918553
+Final-I.5 implementation and acceptance record: docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md
 Final-I.6 status: Next / Not started
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started
@@ -28,7 +29,7 @@ Final-I.9 status: Not started
 Phase 13 status: Blocked / Not started until Final-I closes
 ```
 
-Final-I is an owner-requested pre-Production addendum registered after the accepted Final-H closure. It does not rewrite the historical acceptance of Phase 12, Final-A through Final-H, or the complete Post-Phase-12 / Pre-Phase-13 Final Improvement Track at `6922cf27e31e63fde071c0d0a810b141e44b9f90`. Final-I.1 is completed and accepted at its feature head `9a15f349c1104671f5555d1988caa56756e5ff0c`, and Final-I.2 is completed and accepted at `6451cb705d972c83a771a9ff39f6da80d130cf58`; Final-I.3 is completed and accepted on 2026-09-29 at accepted head `8c5a9186e392f35bdbc998f463c5c3c6cd0be295` after Hosted owner validation of the desktop, Android mobile browser, Android standalone PWA, Push deep-link, and final mobile/PWA auto-scroll refinement. Final-I.4 is completed and accepted on 2026-09-30 at accepted feature head `8e2d7d56a8e81a860833b05f4a28cba8a517bad4` after Hosted/mobile owner validation of representative guest emails. Final-I.5 implementation is completed as the provider-independent FEL fiscal domain contract in `docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md`; owner architecture acceptance remains pending. Phase 13 remains not started and is blocked until Final-I closes and receives owner acceptance.
+Final-I is an owner-requested pre-Production addendum registered after the accepted Final-H closure. It does not rewrite the historical acceptance of Phase 12, Final-A through Final-H, or the complete Post-Phase-12 / Pre-Phase-13 Final Improvement Track at `6922cf27e31e63fde071c0d0a810b141e44b9f90`. Final-I.1 is completed and accepted at its feature head `9a15f349c1104671f5555d1988caa56756e5ff0c`, and Final-I.2 is completed and accepted at `6451cb705d972c83a771a9ff39f6da80d130cf58`; Final-I.3 is completed and accepted on 2026-09-29 at accepted head `8c5a9186e392f35bdbc998f463c5c3c6cd0be295` after Hosted owner validation of the desktop, Android mobile browser, Android standalone PWA, Push deep-link, and final mobile/PWA auto-scroll refinement. Final-I.4 is completed and accepted on 2026-09-30 at accepted feature head `8e2d7d56a8e81a860833b05f4a28cba8a517bad4` after Hosted/mobile owner validation of representative guest emails. Final-I.5 is completed and accepted on 2026-09-30 at accepted head `fde3ae06427af1f8905e6f7589263c199f918553`; the provider-independent FEL fiscal domain contract remains recorded in `docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md`. Phase 13 remains not started and is blocked until Final-I closes and receives owner acceptance.
 
 Final-I.5 canonical amount-source hardening freezes `FelCommercialSourceAllocation.amountSnapshot` and `FelCommercialSourceAllocation.currencySnapshot` as the only canonical commercial amount source for future draft line totals. `FelLineSource` is frozen as provenance/evidence only: its rows are never summed to compute `FelLineItem.amount` or `FelDocument` totals, including when `sourceRole = AMOUNT_SOURCE`. Conceptual mandatory `FelLineSource.sourceAmount` / `sourceCurrency` fields were removed from the I.5 persistence contract to avoid two divergent monetary sources of truth; any supporting monetary evidence belongs only inside `sourceSnapshotJson` as non-authoritative audit/reproduction metadata.
 
@@ -358,9 +359,9 @@ PASS
 
 Owner acceptance was explicit on 2026-09-30. Vercel for the accepted feature head was SUCCESS.
 
-## Final-I.5 Implementation Completed - Owner Architecture Acceptance Pending
+## Final-I.5 Completed And Accepted - Final-I.6 Prepared
 
-Final-I.5 - FEL/INFILE fiscal/domain contract and architecture - is implemented as `docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md`. Owner architecture acceptance is still pending.
+Final-I.5 - FEL/INFILE fiscal/domain contract and architecture - is completed and accepted on 2026-09-30 at accepted head `fde3ae06427af1f8905e6f7589263c199f918553`. Its provider-independent architecture contract remains implemented as `docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md`.
 
 Final-I.5 remains an architecture/contract subphase only. It freezes the TRP Booking fiscal domain model and provider-independent FEL architecture before implementing persistence or calling INFILE. Provider transport remains deferred to Final-I.7.
 
@@ -633,6 +634,66 @@ What exactly will I.6 implement?
 What exactly remains deferred to I.7?
 ```
 
+Owner architecture acceptance was explicit on 2026-09-30. Accepted Final-I.5 architecture head:
+
+```text
+fde3ae06427af1f8905e6f7589263c199f918553
+```
+
+The documentation-only acceptance closure commit must not replace that accepted feature/architecture head.
+
+Final-I.5 accepted architecture preserves:
+
+```text
+PAYMENT != FISCAL LINE
+
+Reservation / GuestPaymentRequestItem
+-> FelCommercialSourceAllocation.amountSnapshot
+-> FelLineItem.amount
+-> FelDocument.total
+
+FelLineSource
+= provenance / evidence only
+= never arithmetic input
+
+FelCommercialSourceAllocation
+= exclusive commercial source ownership
++ canonical immutable commercial amount snapshot
+```
+
+## Final-I.6 Prepared Scope
+
+Final-I.6 remains provider-independent and is not started by this closure. Expected future I.6 scope:
+
+```text
+Prisma FEL persistence
+migration
+
+FelDocument
+FelDocumentReservation
+FelLineItem
+FelLineSource
+FelCommercialSourceAllocation
+FelProviderAttempt
+FelCreditAllocation
+
+DB unique source-consumption constraints
+XOR CHECK constraint
+transactional draft source claiming/release
+Admin /admin/fel
+eligible reservation selection
+one/multiple reservation drafts
+fiscal receiver form
+individual/grouped extras
+draft preview
+immutable allocation snapshots
+line totals from allocations
+document totals from persisted lines
+draft history/status
+```
+
+Final-I.6 must work without INFILE credentials, transport, certification endpoint, cancellation endpoint, Credit Note endpoint, PDF/XML API, provider idempotency, provider retry/status lookup, FEL cron registration, or Production resources. Certification controls remain unavailable/disabled until Final-I.7 unblocks.
+
 Final-I.6 is Next / Not started. Final-I.8 and Final-I.9 remain Not started. Final-I.7 remains Blocked pending official INFILE technical documentation and Test credentials.
 
 ## Boundaries
@@ -735,6 +796,11 @@ Final-I.5 canonical amount-source hardening validation:
 - npm run lint - PASS
 - npm run build - PASS; Next slow filesystem warning only
 - npm audit --omit=dev - PASS, 0 vulnerabilities
+- git diff --check - PASS
+Final-I.5 documentation acceptance closure validation:
+- Vercel - SUCCESS for accepted head fde3ae06427af1f8905e6f7589263c199f918553
+- Owner architecture acceptance - PASS on 2026-09-30
+- npm run final-i:validate - PASS, 36/36
 - git diff --check - PASS
 ```
 

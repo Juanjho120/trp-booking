@@ -272,17 +272,24 @@ test("I.5 tracker state keeps I.6 next and Phase 13 blocked", () => {
 
   expectIncludes(
     record,
-    "Status: Implementation completed; owner architecture acceptance pending",
+    "Status: Completed and accepted on 2026-09-30",
   );
+  expectIncludes(record, "Accepted Final-I.5 head: fde3ae06427af1f8905e6f7589263c199f918553");
   expectIncludes(record, "Final-I.6 status: Next / Not started");
   expectIncludes(record, "Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials");
   expectIncludes(record, "Phase 13 status: Blocked / Not started until Final-I closes");
 
   assert.ok(
     finalIRoadmap.includes(
-      "Final-I.5 status: Implementation completed; owner architecture acceptance pending",
+      "Final-I.5 status: Completed and accepted on 2026-09-30",
     ),
-    "docs/212 must expose I.5 as implemented but pending owner architecture acceptance",
+    "docs/212 must expose I.5 as completed and accepted",
+  );
+  assert.ok(
+    finalIRoadmap.includes(
+      "Accepted Final-I.5 head: fde3ae06427af1f8905e6f7589263c199f918553",
+    ),
+    "docs/212 must expose the accepted I.5 feature head",
   );
   assert.ok(
     finalIRoadmap.includes("Final-I.6 status: Next / Not started"),

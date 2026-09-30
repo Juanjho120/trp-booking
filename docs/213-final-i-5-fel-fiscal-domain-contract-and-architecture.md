@@ -6,7 +6,8 @@
 Project: TRP Booking
 Track: Final-I - Operational Polish, Notification UX & FEL Invoicing
 Subphase: Final-I.5 - FEL/INFILE fiscal domain contract and architecture
-Status: Implementation completed; owner architecture acceptance pending
+Status: Completed and accepted on 2026-09-30
+Accepted Final-I.5 head: fde3ae06427af1f8905e6f7589263c199f918553
 Implementation base head: 999b6c0eb60d30e5b289d46996e9b1ab4602ba96
 Final-I.1 status: Completed and accepted on 2026-09-29
 Final-I.2 status: Completed and accepted on 2026-09-29
@@ -20,6 +21,26 @@ Phase 13 status: Blocked / Not started until Final-I closes
 ```
 
 Final-I.5 is an architecture and domain-contract subphase. It does not modify `prisma/schema.prisma`, does not create migrations, does not create Admin FEL UI, does not call INFILE, does not add environment variables, and does not add a FEL cron. Final-I.6 remains the next implementation subphase and is not started by this record.
+
+## Owner Architecture Acceptance
+
+Final-I.5 received explicit owner architecture acceptance on 2026-09-30. The accepted Final-I.5 feature/architecture head is:
+
+```text
+fde3ae06427af1f8905e6f7589263c199f918553
+```
+
+The documentation-only closure commit that records this acceptance must not replace that accepted feature/architecture head.
+
+Accepted closure evidence:
+
+```text
+Vercel — SUCCESS for fde3ae06427af1f8905e6f7589263c199f918553
+Owner architecture acceptance — PASS
+Final-I.6 — Next / Not started
+Final-I.7 — Blocked pending official INFILE technical documentation + Test credentials
+Phase 13 — Blocked / Not started
+```
 
 ## Verified External FEL Baseline
 
@@ -1557,17 +1578,23 @@ No UI is built during Final-I.5.
 ## Final-I.5 Validation Ledger
 
 ```text
-Implementation validation to execute:
-- npm run final-i:validate
-- npm run final-h:validate
-- npm run env:validate
-- npm run db:validate
-- npm run db:generate
-- npm run db:migrate:status
-- npm run lint
-- npm run build
-- npm audit --omit=dev
-- git diff --check
+Accepted Final-I.5 architecture evidence:
+- npm run final-i:validate - PASS, 36/36
+- npm run final-h:validate - PASS, 20/20
+- npm run env:validate - PASS
+- npm run db:validate - PASS
+- npm run db:generate - PASS
+- npm run db:migrate:status - PASS, 29 migrations, database schema is up to date
+- npm run lint - PASS
+- npm run build - PASS
+- npm audit --omit=dev - PASS, 0 vulnerabilities
+- git diff --check - PASS
+- Vercel - SUCCESS for fde3ae06427af1f8905e6f7589263c199f918553
+- Owner architecture acceptance - PASS on 2026-09-30
+
+Documentation acceptance closure validation:
+- npm run final-i:validate - PASS, 36/36
+- git diff --check - PASS
 ```
 
-Final validation results are recorded in `docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md` and `docs/11-progress-log.md` when this subphase commit is finalized.
+Final-I.6 remains Next / Not started. Final-I.7 remains blocked pending official INFILE technical documentation and Test credentials.

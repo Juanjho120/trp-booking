@@ -602,11 +602,12 @@ test("I.1 registers the roadmap, validation script, and F.7 forward note", () =>
   expectIncludes(doc212, "Accepted Final-I.4 head: 8e2d7d56a8e81a860833b05f4a28cba8a517bad4");
   expectIncludes(
     doc212,
-    "Final-I.5 status: Implementation completed; owner architecture acceptance pending",
+    "Final-I.5 status: Completed and accepted on 2026-09-30",
   );
+  expectIncludes(doc212, "Accepted Final-I.5 head: fde3ae06427af1f8905e6f7589263c199f918553");
   expectIncludes(
     doc212,
-    "Final-I.5 implementation record: docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md",
+    "Final-I.5 implementation and acceptance record: docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md",
   );
   expectIncludes(doc212, "Final-I.6 status: Next / Not started");
   expectIncludes(doc212, "Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials");

@@ -1319,8 +1319,9 @@ Final-I.3 — Admin notification-center desktop simplification + single accordio
 Final-I.3 accepted head — 8c5a9186e392f35bdbc998f463c5c3c6cd0be295
 Final-I.4 — Guest-facing email visible-URL cleanup — Completed and accepted on 2026-09-30
 Final-I.4 accepted head — 8e2d7d56a8e81a860833b05f4a28cba8a517bad4
-Final-I.5 — FEL/INFILE fiscal domain contract and architecture — Implementation completed; owner architecture acceptance pending
-Final-I.5 record — docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md
+Final-I.5 — FEL/INFILE fiscal domain contract and architecture — Completed and accepted on 2026-09-30 at fde3ae06427af1f8905e6f7589263c199f918553
+Final-I.5 accepted head — fde3ae06427af1f8905e6f7589263c199f918553
+Final-I.5 implementation and acceptance record — docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md
 Final-I.6 — Next / Not started
 Final-I.7 — Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8-Final-I.9 — Not started
