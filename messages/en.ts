@@ -617,6 +617,7 @@ export const enMessages = {
         dashboard: "Overview",
         reservations: "Reservations",
         payments: "Payments",
+        fel: "Invoicing",
         calendar: "Calendar",
         accommodations: "Accommodations",
         location: "Public location",
@@ -2584,6 +2585,132 @@ export const enMessages = {
       empty: {
         noPayments: "No payments match these filters.",
         noEvents: "No SDK events match these filters.",
+      },
+    },
+    felPage: {
+      seoTitle: "FEL Invoicing | Admin | Tu Refugio Perfecto",
+      badge: "FEL",
+      title: "Fiscal drafts",
+      description:
+        "Prepare fiscal drafts from closed commercial sources, with an independent receiver, immutable snapshots, and no certifier submission.",
+      tabs: {
+        ariaLabel: "FEL invoicing sections",
+        newInvoice: "New invoice",
+        history: "Drafts and history",
+      },
+      sections: {
+        reservations: "Eligible reservations",
+        receiver: "Fiscal receiver",
+        preview: "Draft preview",
+        history: "Draft history",
+        savedSnapshot: "Saved snapshot",
+      },
+      fields: {
+        receiverName: "Receiver name",
+        receiverIdentifierType: "Identifier type",
+        receiverIdentifier: "Identifier",
+        receiverAddress: "Optional address",
+        receiverEmail: "Optional email",
+        receiverCountry: "Optional country",
+        groupExtras: "Group services and additional charges in one line",
+      },
+      identifierTypes: {
+        CONSUMIDOR_FINAL: "Consumer Final",
+        NIT: "NIT",
+        CUI: "CUI",
+        PASSPORT_FOREIGN: "Passport / foreign identifier",
+        OTHER: "Other",
+      },
+      labels: {
+        selected: "Selected",
+        selectable: "Select",
+        currencyMismatch: "Currency mismatch",
+        nights: "nights",
+        stayTotal: "Stay",
+        extras: "Extras",
+        line: "Line",
+        description: "Description",
+        amount: "Amount",
+        total: "Total",
+        reservations: "Reservations",
+        lines: "Lines",
+        createdAt: "Created",
+        unavailable: "Unavailable",
+      },
+      preview: {
+        lodgingPrefix: "Reservation",
+        groupedExtrasLine: "Services and additional charges",
+      },
+      actions: {
+        save: "Save draft",
+        saving: "Saving...",
+        openEdit: "Open / Edit",
+        updateReceiver: "Update receiver",
+        rebuild: "Rebuild from current commercial data",
+        discard: "Discard draft",
+      },
+      statuses: {
+        DRAFT: "Draft",
+        READY: "Ready",
+        SUBMITTING: "Submitting",
+        CERTIFIED: "Certified",
+        REJECTED: "Rejected",
+        RETRY_PENDING: "Retry pending",
+        CANCELLATION_PENDING: "Cancellation pending",
+        CANCELLED: "Cancelled",
+        CANCELLATION_FAILED: "Cancellation failed",
+      },
+      notes: {
+        noProviderCertification:
+          "This module saves a fiscal draft. FEL certification and final certifier validation belong to the later integration.",
+        savedSnapshot:
+          "These values are the saved draft snapshot. They are not refreshed automatically when opened.",
+      },
+      feedback: {
+        saved: "The fiscal draft was saved.",
+        updated: "The draft fiscal receiver was updated.",
+        rebuilt: "The draft was rebuilt from current commercial sources.",
+        discarded: "The draft was discarded and its sources were released.",
+      },
+      empty: {
+        noEligibleReservations:
+          "There are no confirmed reservations with checkout completed and no fiscal blockers.",
+        preview: "Select at least one eligible reservation to prepare the preview.",
+        history: "No FEL documents have been recorded yet.",
+      },
+      pagination: {
+        page: "Page",
+        of: "of",
+        previous: "Previous",
+        next: "Next",
+        results: "documents",
+      },
+      errors: {
+        ADMIN_UNAUTHORIZED: "Your session is not authorized for administration.",
+        ADMIN_FEL_ORIGIN_INVALID:
+          "The request did not come from the authorized admin origin.",
+        INVALID_ADMIN_FEL_REQUEST:
+          "Review the selection, receiver, and grouping before saving.",
+        ADMIN_FEL_DOCUMENT_NOT_FOUND:
+          "We could not find the selected fiscal draft.",
+        ADMIN_FEL_DRAFT_NOT_EDITABLE:
+          "This document is no longer an editable draft.",
+        ADMIN_FEL_RESERVATION_NOT_ELIGIBLE:
+          "A selected reservation is no longer eligible for a fiscal draft.",
+        ADMIN_FEL_CHECKOUT_NOT_REACHED:
+          "A selected reservation has not reached checkout time yet.",
+        ADMIN_FEL_INVALID_CHECKOUT_TIME:
+          "A selected reservation does not have a valid checkout time.",
+        ADMIN_FEL_LIFECYCLE_UNRESOLVED:
+          "A selected reservation has an unresolved lifecycle change.",
+        ADMIN_FEL_FISCAL_RECONCILIATION_REQUIRED:
+          "A selected reservation requires fiscal reconciliation because of a refund or adjustment.",
+        ADMIN_FEL_CURRENCY_MISMATCH:
+          "Every reservation and charge in the draft must use the same currency.",
+        ADMIN_FEL_SOURCE_ALREADY_ALLOCATED:
+          "A selected commercial source is already claimed by another FEL document.",
+        ADMIN_FEL_UNEXPECTED_ERROR:
+          "We could not process the fiscal draft. Please try again.",
       },
     },
     catalogs: {

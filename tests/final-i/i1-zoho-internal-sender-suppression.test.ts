@@ -609,7 +609,14 @@ test("I.1 registers the roadmap, validation script, and F.7 forward note", () =>
     doc212,
     "Final-I.5 implementation and acceptance record: docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md",
   );
-  expectIncludes(doc212, "Final-I.6 status: Next / Not started");
+  expectIncludes(
+    doc212,
+    "Final-I.6 status: Implementation completed; Hosted owner validation + acceptance pending",
+  );
+  expectIncludes(
+    doc212,
+    "Final-I.6 implementation record: docs/214-final-i-6-fel-persistence-admin-draft-module.md",
+  );
   expectIncludes(doc212, "Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials");
   expectIncludes(doc212, "Phase 13 status: Blocked / Not started until Final-I closes");
   expectIncludes(doc204, "Final-I.1 forward hardening note");

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import path from "node:path";
 
 import { listCronJobDefinitions } from "@/lib/cron/registry";
@@ -217,39 +217,20 @@ test("I.5 separates provenance evidence from exclusive commercial source consump
   );
 });
 
-test("I.5 leaves Prisma, migrations, cron and Vercel scheduler state untouched", () => {
+test("I.5 historical record leaves Prisma, migrations, UI, cron and scheduler work to I.6+", () => {
+  const record = readRecord();
   const schema = read("prisma/schema.prisma");
 
-  for (const modelName of [
-    "FelDocument",
-    "FelDocumentReservation",
-    "FelLineItem",
-    "FelLineSource",
-    "FelCommercialSourceAllocation",
-    "FelProviderAttempt",
-    "FelCreditAllocation",
-  ]) {
-    assert.doesNotMatch(
-      schema,
-      new RegExp(`\\bmodel\\s+${modelName}\\b`),
-      `${modelName} must not be implemented during I.5`,
-    );
-  }
+  expectIncludes(
+    record,
+    "It does not modify `prisma/schema.prisma`, does not create migrations, does not create Admin FEL UI, does not call INFILE, does not add environment variables, and does not add a FEL cron.",
+  );
+  expectIncludes(
+    record,
+    "Final-I.6 can proceed with provider-independent persistence/UI",
+  );
 
   assert.doesNotMatch(schema, /\bPROCESS_FEL_DOCUMENTS\b/);
-  assert.equal(
-    existsSync(path.join(ROOT, "app", "admin", "fel")),
-    false,
-    "Admin FEL UI must not be implemented during I.5",
-  );
-
-  const migrations = readdirSync(path.join(ROOT, "prisma", "migrations"));
-  assert.equal(
-    migrations.some((name) => /final[_-]?i[_-]?5|fel/i.test(name)),
-    false,
-    "I.5 must not add a FEL migration",
-  );
-
   assert.deepEqual(JSON.parse(read("vercel.json")), { crons: [] });
 
   const definitions = listCronJobDefinitions();
@@ -275,7 +256,14 @@ test("I.5 tracker state keeps I.6 next and Phase 13 blocked", () => {
     "Status: Completed and accepted on 2026-09-30",
   );
   expectIncludes(record, "Accepted Final-I.5 head: fde3ae06427af1f8905e6f7589263c199f918553");
-  expectIncludes(record, "Final-I.6 status: Next / Not started");
+  expectIncludes(
+    record,
+    "Final-I.6 status: Implementation completed; Hosted owner validation + acceptance pending",
+  );
+  expectIncludes(
+    record,
+    "Final-I.6 implementation record: docs/214-final-i-6-fel-persistence-admin-draft-module.md",
+  );
   expectIncludes(record, "Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials");
   expectIncludes(record, "Phase 13 status: Blocked / Not started until Final-I closes");
 
@@ -292,8 +280,10 @@ test("I.5 tracker state keeps I.6 next and Phase 13 blocked", () => {
     "docs/212 must expose the accepted I.5 feature head",
   );
   assert.ok(
-    finalIRoadmap.includes("Final-I.6 status: Next / Not started"),
-    "docs/212 must keep I.6 as the next unstarted subphase",
+    finalIRoadmap.includes(
+      "Final-I.6 status: Implementation completed; Hosted owner validation + acceptance pending",
+    ),
+    "docs/212 must expose I.6 implementation as completed pending owner acceptance",
   );
   assert.ok(
     finalIRoadmap.includes("Phase 13 status: Blocked / Not started until Final-I closes"),

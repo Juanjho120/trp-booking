@@ -291,6 +291,56 @@ enum GuestPaymentRequestStatus {
   @@map("guest_payment_request_status")
 }
 
+enum FelDocumentType {
+  SMALL_TAXPAYER_INVOICE
+  CREDIT_NOTE
+
+  @@map("fel_document_type")
+}
+
+enum FelDocumentStatus {
+  DRAFT
+  READY
+  SUBMITTING
+  CERTIFIED
+  REJECTED
+  RETRY_PENDING
+  CANCELLATION_PENDING
+  CANCELLED
+  CANCELLATION_FAILED
+
+  @@map("fel_document_status")
+}
+
+enum FelLineKind {
+  LODGING
+  ADDITIONAL_CHARGE
+  GROUPED_ADDITIONAL_CHARGES
+
+  @@map("fel_line_kind")
+}
+
+enum FelLineSourceType {
+  RESERVATION
+  ADDITIONAL_CHARGE
+  GUEST_PAYMENT_REQUEST_ITEM
+  PAYMENT
+  REFUND
+  ADDITIONAL_CHARGE_REFUND_ALLOCATION
+  RESERVATION_LIFECYCLE_REQUEST
+
+  @@map("fel_line_source_type")
+}
+
+enum FelLineSourceRole {
+  AMOUNT_SOURCE
+  SETTLEMENT_EVIDENCE
+  REFUND_EVIDENCE
+  LIFECYCLE_EVIDENCE
+
+  @@map("fel_line_source_role")
+}
+
 enum ReviewInvitationStatus {
   ACTIVE
   CONSUMED
@@ -401,6 +451,7 @@ model User {
   adminPushSubscriptions      AdminPushSubscription[]       @relation("AdminPushSubscriptionUser")
   adminNotificationReads      AdminNotificationRead[]       @relation("AdminNotificationReadUser")
   cronJobExecutions           CronJobExecution[]            @relation("CronJobExecutionAdminActor")
+  createdFelDocuments         FelDocument[]                 @relation("FelDocumentCreatedByAdmin")
   auditLogs                   AdminAuditLog[]
 
   @@map("users")
@@ -457,6 +508,7 @@ model Property {
   arrivalInstructions      PropertyArrivalInstructions?
   lifecycleRequestHolds    LifecycleRequestHold[]
   reviews                  Review[]
+  felDocumentReservations  FelDocumentReservation[]
 
   @@index([status])
   @@index([deletedAt])
@@ -646,7 +698,7 @@ model Reservation {
   createdAt           DateTime          @default(now()) @map("created_at")
   updatedAt           DateTime          @updatedAt @map("updated_at")
 
-  property                  Property                      @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  property                  Property                        @relation(fields: [propertyId], references: [id], onDelete: Restrict)
   guests                    ReservationGuest[]
   payments                  Payment[]
   paymentClientEvents       PaymentClientEvent[]
@@ -660,6 +712,8 @@ model Reservation {
   review                    Review?
   adminNotifications        AdminNotification[]
   zohoInboundEmailEvents    ZohoInboundEmailEvent[]
+  felDocumentReservations   FelDocumentReservation[]
+  felCommercialAllocations  FelCommercialSourceAllocation[]
 
   @@index([propertyId, checkInDate, checkOutDate])
   @@index([status])
@@ -745,12 +799,195 @@ model GuestPaymentRequestItem {
   currencySnapshot    String                   @default("USD") @map("currency_snapshot") @db.VarChar(3)
   createdAt           DateTime                 @default(now()) @map("created_at")
 
-  paymentRequest   GuestPaymentRequest @relation(fields: [paymentRequestId], references: [id], onDelete: Restrict)
-  additionalCharge AdditionalCharge    @relation(fields: [additionalChargeId], references: [id], onDelete: Restrict)
+  paymentRequest   GuestPaymentRequest            @relation(fields: [paymentRequestId], references: [id], onDelete: Restrict)
+  additionalCharge AdditionalCharge               @relation(fields: [additionalChargeId], references: [id], onDelete: Restrict)
+  felAllocation    FelCommercialSourceAllocation?
 
   @@unique([paymentRequestId, additionalChargeId], map: "guest_payment_request_items_request_charge_key")
   @@index([additionalChargeId])
   @@map("guest_payment_request_items")
+}
+
+model FelDocument {
+  id                     String            @id @default(cuid())
+  documentType           FelDocumentType   @default(SMALL_TAXPAYER_INVOICE) @map("document_type")
+  status                 FelDocumentStatus @default(DRAFT)
+  commercialCurrency     String            @map("commercial_currency") @db.VarChar(3)
+  receiverName           String            @map("receiver_name") @db.VarChar(160)
+  receiverIdentifierType String            @map("receiver_identifier_type") @db.VarChar(60)
+  receiverIdentifier     String?           @map("receiver_identifier") @db.VarChar(80)
+  receiverAddress        String?           @map("receiver_address") @db.Text
+  receiverEmail          String?           @map("receiver_email") @db.VarChar(254)
+  receiverCountry        String?           @map("receiver_country") @db.VarChar(100)
+  total                  Decimal           @db.Decimal(10, 2)
+  groupExtras            Boolean           @default(false) @map("group_extras")
+  originalDocumentId     String?           @map("original_document_id")
+  certificationUuid      String?           @map("certification_uuid") @db.VarChar(160)
+  series                 String?           @db.VarChar(80)
+  number                 String?           @db.VarChar(80)
+  certifiedAt            DateTime?         @map("certified_at")
+  cancelledAt            DateTime?         @map("cancelled_at")
+  createdByAdminId       String            @map("created_by_admin_id")
+  createdAt              DateTime          @default(now()) @map("created_at")
+  updatedAt              DateTime          @updatedAt @map("updated_at")
+
+  createdByAdmin        User                            @relation("FelDocumentCreatedByAdmin", fields: [createdByAdminId], references: [id], onDelete: Restrict)
+  originalDocument      FelDocument?                    @relation("FelDocumentOriginal", fields: [originalDocumentId], references: [id], onDelete: Restrict)
+  creditDocuments       FelDocument[]                   @relation("FelDocumentOriginal")
+  reservations          FelDocumentReservation[]
+  lineItems             FelLineItem[]
+  commercialAllocations FelCommercialSourceAllocation[]
+  providerAttempts      FelProviderAttempt[]
+  creditAllocations     FelCreditAllocation[]           @relation("FelCreditDocumentAllocations")
+  originalCredits       FelCreditAllocation[]           @relation("FelOriginalDocumentAllocations")
+
+  @@index([status, createdAt])
+  @@index([documentType])
+  @@index([createdByAdminId])
+  @@index([originalDocumentId])
+  @@map("fel_documents")
+}
+
+model FelDocumentReservation {
+  id                           String   @id @default(cuid())
+  felDocumentId                String   @map("fel_document_id")
+  reservationId                String   @map("reservation_id")
+  propertyId                   String   @map("property_id")
+  propertyNameSnapshot         String   @map("property_name_snapshot") @db.VarChar(200)
+  checkInDate                  DateTime @map("check_in_date") @db.Date
+  checkOutDate                 DateTime @map("check_out_date") @db.Date
+  guestCount                   Int      @map("guest_count")
+  subtotalSnapshot             Decimal  @map("subtotal_snapshot") @db.Decimal(10, 2)
+  cleaningFeeSnapshot          Decimal  @map("cleaning_fee_snapshot") @db.Decimal(10, 2)
+  taxesSnapshot                Decimal  @map("taxes_snapshot") @db.Decimal(10, 2)
+  discountsSnapshot            Decimal  @map("discounts_snapshot") @db.Decimal(10, 2)
+  totalSnapshot                Decimal  @map("total_snapshot") @db.Decimal(10, 2)
+  currencySnapshot             String   @map("currency_snapshot") @db.VarChar(3)
+  pricingSnapshot              Json?    @map("pricing_snapshot")
+  reservationUpdatedAtSnapshot DateTime @map("reservation_updated_at_snapshot")
+  createdAt                    DateTime @default(now()) @map("created_at")
+
+  felDocument FelDocument @relation(fields: [felDocumentId], references: [id], onDelete: Cascade)
+  reservation Reservation @relation(fields: [reservationId], references: [id], onDelete: Restrict)
+  property    Property    @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+
+  @@unique([felDocumentId, reservationId], map: "fel_document_reservations_document_reservation_key")
+  @@index([reservationId])
+  @@index([propertyId])
+  @@map("fel_document_reservations")
+}
+
+model FelLineItem {
+  id            String      @id @default(cuid())
+  felDocumentId String      @map("fel_document_id")
+  lineNumber    Int         @map("line_number")
+  kind          FelLineKind
+  description   String      @db.Text
+  quantity      Decimal     @db.Decimal(10, 2)
+  unitPrice     Decimal     @map("unit_price") @db.Decimal(10, 2)
+  amount        Decimal     @db.Decimal(10, 2)
+  currency      String      @db.VarChar(3)
+  createdAt     DateTime    @default(now()) @map("created_at")
+
+  felDocument           FelDocument                     @relation(fields: [felDocumentId], references: [id], onDelete: Cascade)
+  sources               FelLineSource[]
+  commercialAllocations FelCommercialSourceAllocation[] @relation("FelLineItemCommercialAllocations")
+  creditAllocations     FelCreditAllocation[]           @relation("FelOriginalLineItemCreditAllocations")
+
+  @@unique([felDocumentId, lineNumber], map: "fel_line_items_document_line_number_key")
+  @@unique([id, felDocumentId], map: "fel_line_items_id_document_id_key")
+  @@index([felDocumentId])
+  @@map("fel_line_items")
+}
+
+model FelLineSource {
+  id                 String            @id @default(cuid())
+  felLineItemId      String            @map("fel_line_item_id")
+  sourceType         FelLineSourceType @map("source_type")
+  sourceId           String            @map("source_id") @db.VarChar(160)
+  sourceRole         FelLineSourceRole @map("source_role")
+  sourceSnapshotJson Json?             @map("source_snapshot_json")
+  createdAt          DateTime          @default(now()) @map("created_at")
+
+  felLineItem FelLineItem @relation(fields: [felLineItemId], references: [id], onDelete: Cascade)
+
+  @@unique([felLineItemId, sourceType, sourceId, sourceRole], map: "fel_line_sources_line_source_role_key")
+  @@index([sourceType, sourceId])
+  @@index([felLineItemId])
+  @@map("fel_line_sources")
+}
+
+model FelCommercialSourceAllocation {
+  id                        String   @id @default(cuid())
+  felDocumentId             String   @map("fel_document_id")
+  felLineItemId             String   @map("fel_line_item_id")
+  reservationId             String?  @unique(map: "fel_commercial_source_allocations_reservation_id_key") @map("reservation_id")
+  guestPaymentRequestItemId String?  @unique(map: "fel_commercial_source_allocations_gpri_id_key") @map("guest_payment_request_item_id")
+  amountSnapshot            Decimal  @map("amount_snapshot") @db.Decimal(10, 2)
+  currencySnapshot          String   @map("currency_snapshot") @db.VarChar(3)
+  createdAt                 DateTime @default(now()) @map("created_at")
+
+  felDocument             FelDocument              @relation(fields: [felDocumentId], references: [id], onDelete: Cascade)
+  felLineItem             FelLineItem              @relation("FelLineItemCommercialAllocations", fields: [felLineItemId, felDocumentId], references: [id, felDocumentId], onDelete: Cascade)
+  reservation             Reservation?             @relation(fields: [reservationId], references: [id], onDelete: Restrict)
+  guestPaymentRequestItem GuestPaymentRequestItem? @relation(fields: [guestPaymentRequestItemId], references: [id], onDelete: Restrict)
+
+  @@index([felDocumentId])
+  @@index([felLineItemId])
+  @@map("fel_commercial_source_allocations")
+}
+
+model FelProviderAttempt {
+  id                  String    @id @default(cuid())
+  felDocumentId       String    @map("fel_document_id")
+  operation           String    @db.VarChar(80)
+  attemptNumber       Int       @map("attempt_number")
+  status              String    @db.VarChar(80)
+  requestFingerprint  String?   @map("request_fingerprint") @db.VarChar(160)
+  providerReference   String?   @map("provider_reference") @db.VarChar(160)
+  errorClassification String?   @map("error_classification") @db.VarChar(120)
+  errorCode           String?   @map("error_code") @db.VarChar(120)
+  errorMessage        String?   @map("error_message") @db.Text
+  responseMetadata    Json?     @map("response_metadata")
+  startedAt           DateTime? @map("started_at")
+  finishedAt          DateTime? @map("finished_at")
+  createdAt           DateTime  @default(now()) @map("created_at")
+
+  felDocument FelDocument @relation(fields: [felDocumentId], references: [id], onDelete: Cascade)
+
+  @@unique([felDocumentId, operation, attemptNumber], map: "fel_provider_attempts_document_operation_attempt_key")
+  @@index([felDocumentId, operation])
+  @@index([status])
+  @@map("fel_provider_attempts")
+}
+
+model FelCreditAllocation {
+  id                                 String   @id @default(cuid())
+  creditDocumentId                   String   @map("credit_document_id")
+  originalDocumentId                 String   @map("original_document_id")
+  originalLineItemId                 String   @map("original_line_item_id")
+  refundId                           String?  @map("refund_id")
+  additionalChargeRefundAllocationId String?  @map("additional_charge_refund_allocation_id")
+  lifecycleRequestId                 String?  @map("lifecycle_request_id")
+  amountSnapshot                     Decimal? @map("amount_snapshot") @db.Decimal(10, 2)
+  currencySnapshot                   String?  @map("currency_snapshot") @db.VarChar(3)
+  sourceSnapshotJson                 Json?    @map("source_snapshot_json")
+  createdAt                          DateTime @default(now()) @map("created_at")
+
+  creditDocument                   FelDocument                       @relation("FelCreditDocumentAllocations", fields: [creditDocumentId], references: [id], onDelete: Cascade)
+  originalDocument                 FelDocument                       @relation("FelOriginalDocumentAllocations", fields: [originalDocumentId], references: [id], onDelete: Restrict)
+  originalLineItem                 FelLineItem                       @relation("FelOriginalLineItemCreditAllocations", fields: [originalLineItemId], references: [id], onDelete: Restrict)
+  refund                           Refund?                           @relation(fields: [refundId], references: [id], onDelete: SetNull)
+  additionalChargeRefundAllocation AdditionalChargeRefundAllocation? @relation(fields: [additionalChargeRefundAllocationId], references: [id], onDelete: SetNull)
+  lifecycleRequest                 ReservationLifecycleRequest?      @relation(fields: [lifecycleRequestId], references: [id], onDelete: SetNull)
+
+  @@index([creditDocumentId])
+  @@index([originalDocumentId])
+  @@index([originalLineItemId])
+  @@index([refundId])
+  @@index([additionalChargeRefundAllocationId])
+  @@index([lifecycleRequestId])
+  @@map("fel_credit_allocations")
 }
 
 model ReviewInvitation {
@@ -944,6 +1181,7 @@ model Refund {
   requestedByAdmin            User?                              @relation("RefundRequestedByAdmin", fields: [requestedByAdminId], references: [id], onDelete: SetNull)
   emailNotifications          EmailNotification[]
   additionalChargeAllocations AdditionalChargeRefundAllocation[]
+  felCreditAllocations        FelCreditAllocation[]
 
   @@index([paymentId])
   @@index([lifecycleRequestId])
@@ -961,8 +1199,9 @@ model AdditionalChargeRefundAllocation {
   allocatedAmount    Decimal  @map("allocated_amount") @db.Decimal(10, 2)
   createdAt          DateTime @default(now()) @map("created_at")
 
-  refund           Refund           @relation(fields: [refundId], references: [id], onDelete: Restrict)
-  additionalCharge AdditionalCharge @relation(fields: [additionalChargeId], references: [id], onDelete: Restrict)
+  refund               Refund                @relation(fields: [refundId], references: [id], onDelete: Restrict)
+  additionalCharge     AdditionalCharge      @relation(fields: [additionalChargeId], references: [id], onDelete: Restrict)
+  felCreditAllocations FelCreditAllocation[]
 
   @@unique([refundId, additionalChargeId], map: "additional_charge_refund_allocations_refund_charge_key")
   @@index([additionalChargeId])
@@ -1041,14 +1280,15 @@ model ReservationLifecycleRequest {
   createdAt                    DateTime  @default(now()) @map("created_at")
   updatedAt                    DateTime  @updatedAt @map("updated_at")
 
-  reservation        Reservation           @relation(fields: [reservationId], references: [id], onDelete: Restrict)
-  sourcePayment      Payment?              @relation("LifecycleSourcePayment", fields: [sourcePaymentId], references: [id], onDelete: Restrict)
-  createdByAdmin     User                  @relation("LifecycleRequestCreatedByAdmin", fields: [createdByAdminId], references: [id], onDelete: Restrict)
-  reviewedByAdmin    User?                 @relation("LifecycleRequestReviewedByAdmin", fields: [reviewedByAdminId], references: [id], onDelete: SetNull)
-  adjustmentPayments Payment[]             @relation("LifecycleAdjustmentPayments")
-  refunds            Refund[]
-  hold               LifecycleRequestHold?
-  emailNotifications EmailNotification[]
+  reservation          Reservation           @relation(fields: [reservationId], references: [id], onDelete: Restrict)
+  sourcePayment        Payment?              @relation("LifecycleSourcePayment", fields: [sourcePaymentId], references: [id], onDelete: Restrict)
+  createdByAdmin       User                  @relation("LifecycleRequestCreatedByAdmin", fields: [createdByAdminId], references: [id], onDelete: Restrict)
+  reviewedByAdmin      User?                 @relation("LifecycleRequestReviewedByAdmin", fields: [reviewedByAdminId], references: [id], onDelete: SetNull)
+  adjustmentPayments   Payment[]             @relation("LifecycleAdjustmentPayments")
+  refunds              Refund[]
+  hold                 LifecycleRequestHold?
+  emailNotifications   EmailNotification[]
+  felCreditAllocations FelCreditAllocation[]
 
   @@index([reservationId, status])
   @@index([requestType, status])

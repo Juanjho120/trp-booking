@@ -16,6 +16,7 @@ import {
   LogOut,
   MapPinned,
   Menu,
+  ReceiptText,
   Star,
   TimerReset,
 } from "lucide-react";
@@ -50,6 +51,11 @@ const navigationItems = [
     href: "/admin/payments",
     key: "payments",
     icon: CreditCard,
+  },
+  {
+    href: "/admin/fel",
+    key: "fel",
+    icon: ReceiptText,
   },
   {
     href: "/admin/reviews",

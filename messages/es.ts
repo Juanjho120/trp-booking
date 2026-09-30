@@ -617,6 +617,7 @@ export const esMessages = {
         dashboard: "Resumen",
         reservations: "Reservas",
         payments: "Pagos",
+        fel: "Facturación",
         calendar: "Calendario",
         accommodations: "Alojamientos",
         location: "Ubicación pública",
@@ -2588,6 +2589,132 @@ export const esMessages = {
       empty: {
         noPayments: "No encontramos pagos con estos filtros.",
         noEvents: "No encontramos eventos SDK con estos filtros.",
+      },
+    },
+    felPage: {
+      seoTitle: "Facturación FEL | Admin | Tu Refugio Perfecto",
+      badge: "FEL",
+      title: "Borradores fiscales",
+      description:
+        "Prepara borradores fiscales desde fuentes comerciales cerradas, con receptor independiente, snapshots inmutables y sin enviar datos a certificador.",
+      tabs: {
+        ariaLabel: "Secciones de facturación FEL",
+        newInvoice: "Nueva factura",
+        history: "Borradores e historial",
+      },
+      sections: {
+        reservations: "Reservas elegibles",
+        receiver: "Receptor fiscal",
+        preview: "Vista previa del borrador",
+        history: "Historial de borradores",
+        savedSnapshot: "Snapshot guardado",
+      },
+      fields: {
+        receiverName: "Nombre del receptor",
+        receiverIdentifierType: "Tipo de identificación",
+        receiverIdentifier: "Identificación",
+        receiverAddress: "Dirección opcional",
+        receiverEmail: "Correo opcional",
+        receiverCountry: "País opcional",
+        groupExtras: "Agrupar servicios y cargos adicionales en una sola línea",
+      },
+      identifierTypes: {
+        CONSUMIDOR_FINAL: "Consumidor Final",
+        NIT: "NIT",
+        CUI: "CUI",
+        PASSPORT_FOREIGN: "Pasaporte / identificación extranjera",
+        OTHER: "Otro",
+      },
+      labels: {
+        selected: "Seleccionada",
+        selectable: "Seleccionar",
+        currencyMismatch: "Moneda incompatible",
+        nights: "noches",
+        stayTotal: "Estadía",
+        extras: "Extras",
+        line: "Línea",
+        description: "Descripción",
+        amount: "Monto",
+        total: "Total",
+        reservations: "Reservas",
+        lines: "Líneas",
+        createdAt: "Creado",
+        unavailable: "No disponible",
+      },
+      preview: {
+        lodgingPrefix: "Reservación",
+        groupedExtrasLine: "Servicios y cargos adicionales",
+      },
+      actions: {
+        save: "Guardar borrador",
+        saving: "Guardando...",
+        openEdit: "Abrir / Editar",
+        updateReceiver: "Actualizar receptor",
+        rebuild: "Reconstruir desde datos comerciales actuales",
+        discard: "Descartar borrador",
+      },
+      statuses: {
+        DRAFT: "Borrador",
+        READY: "Listo",
+        SUBMITTING: "Enviando",
+        CERTIFIED: "Certificado",
+        REJECTED: "Rechazado",
+        RETRY_PENDING: "Reintento pendiente",
+        CANCELLATION_PENDING: "Anulación pendiente",
+        CANCELLED: "Anulado",
+        CANCELLATION_FAILED: "Anulación fallida",
+      },
+      notes: {
+        noProviderCertification:
+          "Este módulo guarda un borrador fiscal. La certificación FEL y la validación final con certificador pertenecen a la integración posterior.",
+        savedSnapshot:
+          "Estos valores son el snapshot guardado del borrador. No se actualizan automáticamente al abrirlo.",
+      },
+      feedback: {
+        saved: "El borrador fiscal quedó guardado.",
+        updated: "El receptor fiscal del borrador se actualizó.",
+        rebuilt: "El borrador se reconstruyó desde las fuentes comerciales actuales.",
+        discarded: "El borrador fue descartado y sus fuentes quedaron liberadas.",
+      },
+      empty: {
+        noEligibleReservations:
+          "No hay reservas confirmadas con checkout completado y sin bloqueos fiscales.",
+        preview: "Selecciona al menos una reserva elegible para preparar la vista previa.",
+        history: "Todavía no hay documentos FEL registrados.",
+      },
+      pagination: {
+        page: "Página",
+        of: "de",
+        previous: "Anterior",
+        next: "Siguiente",
+        results: "documentos",
+      },
+      errors: {
+        ADMIN_UNAUTHORIZED: "Tu sesión no tiene autorización administrativa.",
+        ADMIN_FEL_ORIGIN_INVALID:
+          "La solicitud no proviene del origen administrativo autorizado.",
+        INVALID_ADMIN_FEL_REQUEST:
+          "Revisa la selección, receptor y agrupación antes de guardar.",
+        ADMIN_FEL_DOCUMENT_NOT_FOUND:
+          "No encontramos el borrador fiscal seleccionado.",
+        ADMIN_FEL_DRAFT_NOT_EDITABLE:
+          "Este documento ya no es un borrador editable.",
+        ADMIN_FEL_RESERVATION_NOT_ELIGIBLE:
+          "Una reserva seleccionada ya no es elegible para borrador fiscal.",
+        ADMIN_FEL_CHECKOUT_NOT_REACHED:
+          "Una reserva seleccionada todavía no alcanzó su hora de checkout.",
+        ADMIN_FEL_INVALID_CHECKOUT_TIME:
+          "Una reserva seleccionada no tiene una hora de checkout válida.",
+        ADMIN_FEL_LIFECYCLE_UNRESOLVED:
+          "Una reserva seleccionada tiene un cambio de ciclo de vida sin resolver.",
+        ADMIN_FEL_FISCAL_RECONCILIATION_REQUIRED:
+          "Una reserva seleccionada requiere conciliación fiscal por reembolso o ajuste.",
+        ADMIN_FEL_CURRENCY_MISMATCH:
+          "Todas las reservas y cargos del borrador deben usar la misma moneda.",
+        ADMIN_FEL_SOURCE_ALREADY_ALLOCATED:
+          "Una fuente comercial seleccionada ya está reclamada por otro documento FEL.",
+        ADMIN_FEL_UNEXPECTED_ERROR:
+          "No pudimos procesar el borrador fiscal. Inténtalo nuevamente.",
       },
     },
     catalogs: {

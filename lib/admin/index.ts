@@ -63,6 +63,19 @@ export {
   getAdminAdditionalChargeManagement,
   updateAdminAdditionalCharge,
 } from "./additional-charges";
+export {
+  AdminFelError,
+  buildAdminFelDraftPreview,
+  calculateFelCheckoutAt,
+  createAdminFelDraft,
+  discardAdminFelDraft,
+  getAdminFelDraft,
+  getAdminFelPage,
+  hasUnresolvedFelLifecycleMutation,
+  rebuildAdminFelDraft,
+  runAdminFelTransactionWithRetry,
+  updateAdminFelDraftReceiver,
+} from "./fel";
 export { getAdminDashboardSummary } from "./dashboard";
 export {
   adminPushEndpointInputSchema,
