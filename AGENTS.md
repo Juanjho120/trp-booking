@@ -264,9 +264,10 @@ npm run final-f:validate
 npm run final-g:validate
 npm run final-h:validate
 npm run final-i:validate
+npm run final-i:db:validate
 ```
 
-Final-D.7 introduced the consolidated Final-D regression gate. Final-E.7 introduced the consolidated Final-E regression gate and it is accepted at 88/88. Final-F.8 introduced the consolidated Final-F regression gate and it is accepted at 125/125. Final-H introduced the focused cross-package closure gate `npm run final-h:validate`; Final-H is completed and accepted on 2026-09-29. Final-I.1 introduces `npm run final-i:validate` for the active addendum. For any future Final-F or later continuation, run the relevant existing regression commands plus targeted tests/checks introduced or affected by the active subphase, together with the database/lint/build/diff checks required by the active record.
+Final-D.7 introduced the consolidated Final-D regression gate. Final-E.7 introduced the consolidated Final-E regression gate and it is accepted at 88/88. Final-F.8 introduced the consolidated Final-F regression gate and it is accepted at 125/125. Final-H introduced the focused cross-package closure gate `npm run final-h:validate`; Final-H is completed and accepted on 2026-09-29. Final-I.1 introduces `npm run final-i:validate` for the active addendum. Final-I.6 hardening introduces `npm run final-i:db:validate` as an explicit Test-only DB-backed integration gate that must fail closed unless `TRP_ENVIRONMENT=test`. For any future Final-F or later continuation, run the relevant existing regression commands plus targeted tests/checks introduced or affected by the active subphase, together with the database/lint/build/diff checks required by the active record.
 
 ## Phase and Progress Tracking
 

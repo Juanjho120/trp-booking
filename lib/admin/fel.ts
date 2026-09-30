@@ -29,6 +29,7 @@ import type {
   AdminFelPageData,
   CreateAdminFelDraftInput,
   DiscardAdminFelDraftInput,
+  PreviewAdminFelDraftInput,
   RebuildAdminFelDraftInput,
   UpdateAdminFelDraftReceiverInput,
 } from "@/types/admin-fel";
@@ -40,6 +41,8 @@ const ADMIN_FEL_PAGE_SIZE = 20;
 const ADMIN_FEL_MAX_RESERVATIONS_PER_DRAFT = 20;
 const ADMIN_FEL_TRANSACTION_MAX_ATTEMPTS = 3;
 const ADMIN_FEL_TRANSACTION_RETRY_DELAY_MS = 75;
+const ADMIN_FEL_TRANSACTION_MAX_WAIT_MS = 10_000;
+const ADMIN_FEL_TRANSACTION_TIMEOUT_MS = 20_000;
 const GUATEMALA_UTC_OFFSET_HOURS = 6;
 const RECEIVER_NAME_MAX_LENGTH = 160;
 const RECEIVER_IDENTIFIER_MAX_LENGTH = 80;
@@ -348,6 +351,8 @@ export async function runAdminFelTransactionWithRetry<T>(
     try {
       return await prisma.$transaction(operation, {
         isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+        maxWait: ADMIN_FEL_TRANSACTION_MAX_WAIT_MS,
+        timeout: ADMIN_FEL_TRANSACTION_TIMEOUT_MS,
       });
     } catch (error) {
       if (
@@ -538,6 +543,30 @@ function normalizeReservationIds(reservationIds: readonly string[]): string[] {
   return normalized;
 }
 
+function normalizeOptionalDocumentId(value: string | null | undefined): string | null {
+  const normalized = value?.trim() ?? "";
+
+  return normalized.length > 0 ? normalized : null;
+}
+
+function isFelCommercialSourceAvailable(
+  allocations: readonly Readonly<{ felDocumentId?: string | null }>[],
+  editingDocumentId?: string | null,
+): boolean {
+  if (allocations.length === 0) {
+    return true;
+  }
+
+  const ownerDocumentId = normalizeOptionalDocumentId(editingDocumentId);
+
+  return (
+    ownerDocumentId !== null &&
+    allocations.every(
+      (allocation) => allocation.felDocumentId === ownerDocumentId,
+    )
+  );
+}
+
 function isUnresolvedLifecycleStatus(
   status: ReservationLifecycleRequestStatus,
 ): boolean {
@@ -598,6 +627,7 @@ export function evaluateAdminFelReservationEligibility(
       property: Pick<AdminFelReservationRecord["property"], "checkOutTime">;
     },
   now: Date = new Date(),
+  options: Readonly<{ editingDocumentId?: string | null }> = {},
 ):
   | Readonly<{ eligible: true; checkoutAt: Date; currency: string }>
   | Readonly<{ eligible: false; reason: AdminFelErrorCode }> {
@@ -634,7 +664,12 @@ export function evaluateAdminFelReservationEligibility(
     };
   }
 
-  if (record.felCommercialAllocations.length > 0) {
+  if (
+    !isFelCommercialSourceAvailable(
+      record.felCommercialAllocations,
+      options.editingDocumentId,
+    )
+  ) {
     return { eligible: false, reason: "ADMIN_FEL_SOURCE_ALREADY_ALLOCATED" };
   }
 
@@ -659,13 +694,17 @@ function isEligibleExtra(charge: AdminFelReservationRecord["additionalCharges"][
 
 function toEligibleExtra(
   item: AdminFelReservationRecord["additionalCharges"][number]["paymentRequestItems"][number],
+  editingDocumentId?: string | null,
 ): AdminFelDraftSourceExtra | null {
   const payment = item.paymentRequest.payment;
   const currency = normalizeCurrency(item.currencySnapshot);
 
   if (
     !currency ||
-    item.felAllocation ||
+    !isFelCommercialSourceAvailable(
+      item.felAllocation ? [item.felAllocation] : [],
+      editingDocumentId,
+    ) ||
     item.paymentRequest.status !== GuestPaymentRequestStatus.PAID ||
     !payment ||
     payment.purpose !== PaymentPurpose.ADDITIONAL_CHARGE ||
@@ -696,6 +735,7 @@ function toEligibleExtra(
 function toDraftSourceReservation(
   record: AdminFelReservationRecord,
   checkoutAt: Date,
+  editingDocumentId?: string | null,
 ): AdminFelDraftSourceReservation {
   const checkInDate = toDateOnlyString(record.checkInDate);
   const checkOutDate = toDateOnlyString(record.checkOutDate);
@@ -707,7 +747,11 @@ function toDraftSourceReservation(
 
   const extras = record.additionalCharges
     .filter(isEligibleExtra)
-    .flatMap((charge) => charge.paymentRequestItems.map(toEligibleExtra))
+    .flatMap((charge) =>
+      charge.paymentRequestItems.map((item) =>
+        toEligibleExtra(item, editingDocumentId),
+      ),
+    )
     .filter((extra): extra is AdminFelDraftSourceExtra => Boolean(extra))
     .sort(
       (left, right) =>
@@ -1078,6 +1122,10 @@ export function buildAdminFelDraftPreview(
     groupExtras: input.groupExtras,
   });
 
+  return toDraftPreview(composition);
+}
+
+function toDraftPreview(composition: FelDraftComposition): AdminFelDraftPreview {
   return {
     documentType: composition.documentType,
     status: "DRAFT",
@@ -1146,15 +1194,18 @@ async function loadReservationRecords(
 function recordsToDraftSources(
   records: readonly AdminFelReservationRecord[],
   now: Date,
+  editingDocumentId?: string | null,
 ): AdminFelDraftSourceReservation[] {
   return records.map((record) => {
-    const eligibility = evaluateAdminFelReservationEligibility(record, now);
+    const eligibility = evaluateAdminFelReservationEligibility(record, now, {
+      editingDocumentId,
+    });
 
     if (!eligibility.eligible) {
       throw new AdminFelError(eligibility.reason);
     }
 
-    return toDraftSourceReservation(record, eligibility.checkoutAt);
+    return toDraftSourceReservation(record, eligibility.checkoutAt, editingDocumentId);
   });
 }
 
@@ -1368,6 +1419,52 @@ function ensureDraftEditable(status: FelDocumentStatus): void {
   if (status !== FelDocumentStatus.DRAFT) {
     throw new AdminFelError("ADMIN_FEL_DRAFT_NOT_EDITABLE");
   }
+}
+
+export async function previewAdminFelDraft(
+  input: PreviewAdminFelDraftInput,
+): Promise<AdminFelDraftPreview> {
+  const reservationIds = normalizeReservationIds(input.reservationIds);
+  const receiver = normalizeReceiverInput(input);
+  const editingDocumentId = normalizeOptionalDocumentId(input.editingDocumentId);
+
+  return prisma.$transaction(
+    async (transaction) => {
+      if (editingDocumentId) {
+        const document = await transaction.felDocument.findUnique({
+          where: { id: editingDocumentId },
+          select: {
+            id: true,
+            status: true,
+          },
+        });
+
+        if (!document) {
+          throw new AdminFelError("ADMIN_FEL_DOCUMENT_NOT_FOUND");
+        }
+
+        ensureDraftEditable(document.status);
+      }
+
+      const records = await loadReservationRecords(transaction, reservationIds);
+      const composition = buildFelDraftComposition({
+        reservations: recordsToDraftSources(
+          records,
+          new Date(),
+          editingDocumentId,
+        ),
+        receiver,
+        groupExtras: Boolean(input.groupExtras),
+      });
+
+      return toDraftPreview(composition);
+    },
+    {
+      isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+      maxWait: ADMIN_FEL_TRANSACTION_MAX_WAIT_MS,
+      timeout: ADMIN_FEL_TRANSACTION_TIMEOUT_MS,
+    },
+  );
 }
 
 export async function getAdminFelPage(

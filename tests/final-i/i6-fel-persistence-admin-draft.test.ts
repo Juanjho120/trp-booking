@@ -311,6 +311,26 @@ test("I.6 eligibility uses confirmed checkout time, lifecycle blockers, refund b
     }),
     "ADMIN_FEL_SOURCE_ALREADY_ALLOCATED",
   );
+  assert.equal(
+    evaluateAdminFelReservationEligibility(
+      reservationEligibilityRecord({
+        felCommercialAllocations: [
+          { id: "allocation-a", felDocumentId: "fel-draft-a" },
+        ],
+      }) as never,
+      now,
+      { editingDocumentId: "fel-draft-a" },
+    ).eligible,
+    true,
+  );
+  assert.equal(
+    ineligibleReason({
+      felCommercialAllocations: [
+        { id: "allocation-a", felDocumentId: "fel-draft-other" },
+      ],
+    }),
+    "ADMIN_FEL_SOURCE_ALREADY_ALLOCATED",
+  );
 });
 
 test("I.6 lifecycle helper uses actual enum statuses and treats terminal states as historical", () => {
@@ -436,6 +456,7 @@ test("I.6 service and UI avoid sensitive token, raw payload, push and card persi
   const ui = read("features/admin/components/admin-fel-page.tsx");
   const routes = [
     "app/api/admin/fel/drafts/route.ts",
+    "app/api/admin/fel/preview/route.ts",
     "app/api/admin/fel/drafts/[documentId]/route.ts",
     "app/api/admin/fel/drafts/[documentId]/rebuild/route.ts",
   ]
@@ -462,6 +483,7 @@ test("I.6 Admin surface exists with nav, localization parity and no provider act
   assert.match(page, /robots:\s*{\s*index: false,\s*follow: false,/s);
   assert.match(component, /selectedReservationIds/);
   assert.match(component, /groupExtras/);
+  assert.match(component, /refreshPreviewForState/);
   assert.match(component, /saveDraft/);
   assert.match(component, /rebuildDraft/);
   assert.match(component, /discardDraft/);
@@ -473,9 +495,27 @@ test("I.6 Admin surface exists with nav, localization parity and no provider act
   );
 });
 
+test("I.6 server-authoritative preview route backs draft editing", () => {
+  const service = read("lib/admin/fel.ts");
+  const component = read("features/admin/components/admin-fel-page.tsx");
+  const route = read("app/api/admin/fel/preview/route.ts");
+
+  assert.match(service, /export async function previewAdminFelDraft/);
+  assert.match(service, /recordsToDraftSources\(\s*records,\s*new Date\(\),\s*editingDocumentId/s);
+  assert.match(route, /previewAdminFelDraft/);
+  assert.match(route, /adminApiSuccessResponse\(\{\s*preview\s*\}\)/);
+  assert.match(component, /\/api\/admin\/fel\/preview/);
+  assert.match(component, /previewIsFresh/);
+  assert.match(component, /!previewIsFresh/);
+  assert.match(component, /editingDocumentId\s*===\s*selectedDocument\.id/);
+  assert.match(component, /setActiveTab\("new"\)/);
+  assert.doesNotMatch(component, /centsFromMoney|moneyFromCents|previewLines/);
+});
+
 test("I.6 APIs use admin session, same-origin protection and bounded FEL error codes", () => {
   const routes = [
     "app/api/admin/fel/drafts/route.ts",
+    "app/api/admin/fel/preview/route.ts",
     "app/api/admin/fel/drafts/[documentId]/route.ts",
     "app/api/admin/fel/drafts/[documentId]/rebuild/route.ts",
   ];

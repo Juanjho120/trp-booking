@@ -105,6 +105,7 @@ Final-I.6 adds `lib/admin/fel.ts` with provider-independent operations:
 ```text
 getAdminFelPage
 getAdminFelDraft
+previewAdminFelDraft
 createAdminFelDraft
 rebuildAdminFelDraft
 updateAdminFelDraftReceiver
@@ -112,13 +113,15 @@ discardAdminFelDraft
 runAdminFelTransactionWithRetry
 ```
 
-Mutations use `Prisma.TransactionIsolationLevel.Serializable` with bounded retry for Prisma `P2034`, following the accepted Admin financial transaction pattern. Source-allocation unique conflicts are translated to `ADMIN_FEL_SOURCE_ALREADY_ALLOCATED` without leaking Prisma details.
+Mutations use `Prisma.TransactionIsolationLevel.Serializable` with explicit bounded wait/timeout settings and bounded retry for Prisma `P2034`, following the accepted Admin financial transaction pattern. Source-allocation unique conflicts are translated to `ADMIN_FEL_SOURCE_ALREADY_ALLOCATED` without leaking Prisma details.
 
 Draft creation transactionally resolves the Admin actor, normalizes receiver input, re-reads selected Reservations, re-checks eligibility, claims source allocations, persists snapshots/lines/provenance, validates arithmetic, and records `FEL_DRAFT_CREATED` in `AdminAuditLog`.
 
 Draft rebuild verifies the document is still `DRAFT`, releases provisional allocations inside the same serializable transaction, re-reads current commercial sources, rebuilds snapshots/lines/provenance, recalculates totals from allocations, and records `FEL_DRAFT_REBUILT`. A failed rebuild rolls back without leaving the draft partially modified.
 
 Draft discard only applies to `DRAFT`, deletes/releases the draft graph by relational cascade, and records `FEL_DRAFT_DISCARDED`.
+
+`previewAdminFelDraft` is a server-authoritative, provider-independent read operation. It normalizes the same inputs as draft creation, optionally verifies an `editingDocumentId` is still `DRAFT`, reuses the same eligibility and `buildFelDraftComposition(...)` domain logic, and performs no writes. Existing source allocations remain unavailable for new drafts; only allocations owned by the same edited draft may be treated as available for preview/rebuild. Allocations owned by another document still return `ADMIN_FEL_SOURCE_ALREADY_ALLOCATED`.
 
 ## Eligibility
 
@@ -136,6 +139,8 @@ currency is present and compatible with the draft
 ```
 
 I.6 deliberately excludes `PENDING_PAYMENT`, `EXPIRED`, `BLOCKED`, `CANCELLED`, `REFUNDED`, and `PARTIALLY_REFUNDED`. It treats lifecycle statuses `PENDING_REVIEW`, `APPROVED`, and `AWAITING_ADJUSTMENT_PAYMENT` as unresolved; terminal/historical statuses remain evidence only. Refund statuses `PENDING`, `PROCESSING`, `APPROVED`, and `MANUAL` are active fiscal reconciliation blockers; `FAILED` is not.
+
+For editing an existing `DRAFT`, the same-draft preview/rebuild path may include Reservations and `GuestPaymentRequestItem` extras already allocated to that same `FelDocument`. This does not make allocated sources globally eligible: sources allocated to any other document remain blocked.
 
 Additional-charge sources are eligible only through `GuestPaymentRequestItem` snapshots when:
 
@@ -156,6 +161,7 @@ Final-I.6 adds:
 
 ```text
 /admin/fel
+POST   /api/admin/fel/preview
 POST   /api/admin/fel/drafts
 PATCH  /api/admin/fel/drafts/[documentId]
 DELETE /api/admin/fel/drafts/[documentId]
@@ -172,6 +178,8 @@ Borradores e historial / Drafts and history
 ```
 
 The module supports eligible reservation selection, one/multiple reservation drafts, fiscal receiver input, individual/grouped extras, preview, save draft, open/edit, rebuild from current commercial data, and discard. It does not expose certification, INFILE, cancellation, Credit Note, XML, or PDF actions.
+
+The editable preview is now server-authoritative through `POST /api/admin/fel/preview`. Client-side arithmetic is not the fiscal source of truth. The UI distinguishes the saved draft snapshot from "Vista previa desde datos comerciales actuales" / "Preview from current commercial data", marks previews stale when reservation selection, receiver input, grouping mode, or edited document context changes, and disables save/rebuild until a fresh server preview exists for the current inputs.
 
 Visible copy is centralized in `messages/es.ts` and `messages/en.ts`.
 
@@ -219,10 +227,23 @@ no FEL cron/scheduler registration
 documentation status continuity
 ```
 
+Final-I.6 hardening adds the explicit DB-backed validation gate:
+
+```text
+npm run final-i:db:validate
+```
+
+That suite runs only when `TRP_ENVIRONMENT=test`, uses uniquely namespaced fixtures and targeted cleanup, and executes real Prisma/PostgreSQL service calls for draft creation, grouped and individual extras, duplicate source conflicts, the PostgreSQL XOR CHECK, failed rebuild rollback, discard source release, non-DRAFT edit rejection, and same-draft preview ownership.
+
+## I.7 Carry-Forward
+
+Before Final-I.7 creates any `FelCreditAllocation`, the provider-integration implementation must strengthen the guarantee that `originalLineItemId` belongs to `originalDocumentId`, preferably with a composite database relationship analogous to `FelCommercialSourceAllocation -> FelLineItem(id, felDocumentId)`. Future credit allocation must not be able to cite an unrelated original document/line pair. This is an I.7 prerequisite and does not require a new I.6 migration.
+
 ## Validation Ledger
 
 ```text
-npm run final-i:validate - PASS, 47/47; initial sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM before the escalated rerun passed
+npm run final-i:validate - PASS, 48/48; initial sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM before the escalated rerun passed
+npm run final-i:db:validate - PASS, 9/9 with TRP_ENVIRONMENT=test; direct local-environment run failed closed because TRP_ENVIRONMENT was local
 npm run final-f:validate - PASS, 125/125
 npm run final-h:validate - PASS, 20/20
 npm run env:validate - PASS; initial sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM before the escalated rerun passed

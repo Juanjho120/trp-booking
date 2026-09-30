@@ -2601,7 +2601,7 @@ export const enMessages = {
       sections: {
         reservations: "Eligible reservations",
         receiver: "Fiscal receiver",
-        preview: "Draft preview",
+        preview: "Preview from current commercial data",
         history: "Draft history",
         savedSnapshot: "Saved snapshot",
       },
@@ -2636,12 +2636,21 @@ export const enMessages = {
         lines: "Lines",
         createdAt: "Created",
         unavailable: "Unavailable",
+        documentType: "Document type",
+        status: "Status",
+        currency: "Currency",
+        receiver: "Receiver",
+        previewFresh: "Preview current",
+        previewStale: "Preview stale",
+        savedDraftSource: "Saved draft source",
       },
       preview: {
         lodgingPrefix: "Reservation",
         groupedExtrasLine: "Services and additional charges",
       },
       actions: {
+        refreshPreview: "Refresh preview",
+        loadingPreview: "Refreshing...",
         save: "Save draft",
         saving: "Saving...",
         openEdit: "Open / Edit",
@@ -2663,10 +2672,14 @@ export const enMessages = {
       notes: {
         noProviderCertification:
           "This module saves a fiscal draft. FEL certification and final certifier validation belong to the later integration.",
+        previewStale:
+          "Refresh the preview before saving or rebuilding so the server can validate the commercial sources.",
         savedSnapshot:
           "These values are the saved draft snapshot. They are not refreshed automatically when opened.",
       },
       feedback: {
+        previewRefreshed:
+          "The fiscal preview was refreshed from current commercial sources.",
         saved: "The fiscal draft was saved.",
         updated: "The draft fiscal receiver was updated.",
         rebuilt: "The draft was rebuilt from current commercial sources.",

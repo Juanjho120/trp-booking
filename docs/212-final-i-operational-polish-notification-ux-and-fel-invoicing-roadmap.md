@@ -686,7 +686,8 @@ eligible reservation selection
 one/multiple reservation drafts
 fiscal receiver form
 individual/grouped extras
-draft preview
+server-authoritative draft preview
+same-draft edit/rebuild source ownership
 immutable allocation snapshots
 line totals from allocations
 document totals from persisted lines
@@ -696,6 +697,10 @@ draft history/edit/rebuild/discard
 Final-I.6 works without INFILE credentials, transport, certification endpoint, cancellation endpoint, Credit Note endpoint, PDF/XML API, provider idempotency, provider retry/status lookup, FEL cron registration, or Production resources. Certification controls remain unavailable until Final-I.7 unblocks.
 
 Final-I.6 implementation record: `docs/214-final-i-6-fel-persistence-admin-draft-module.md`.
+
+Final-I.6 hardening added `npm run final-i:db:validate` as an explicit DB-backed Test-only integration gate. It verifies real Prisma/PostgreSQL draft creation, allocation uniqueness, XOR enforcement, rollback safety, discard source release, non-DRAFT edit rejection, and same-draft preview ownership with targeted fixture cleanup.
+
+Final-I.7 carry-forward: before any `FelCreditAllocation` is created by provider integration, the implementation must ensure `originalLineItemId` belongs to `originalDocumentId`, preferably through a composite database relationship. I.6 does not add a second migration for this deferred provider-integration prerequisite.
 
 Final-I.6 is Implementation completed; Hosted owner validation + acceptance pending. Final-I.8 and Final-I.9 remain Not started. Final-I.7 remains Blocked pending official INFILE technical documentation and Test credentials.
 
@@ -806,7 +811,8 @@ Final-I.5 documentation acceptance closure validation:
 - npm run final-i:validate - PASS, 36/36
 - git diff --check - PASS
 Final-I.6 implementation validation:
-- npm run final-i:validate - PASS, 47/47; initial sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM before the escalated rerun passed
+- npm run final-i:validate - PASS, 48/48; initial sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM before the escalated rerun passed
+- npm run final-i:db:validate - PASS, 9/9 with TRP_ENVIRONMENT=test; direct local-environment run failed closed because TRP_ENVIRONMENT was local
 - npm run final-f:validate - PASS, 125/125
 - npm run final-h:validate - PASS, 20/20
 - npm run env:validate - PASS; initial sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM before the escalated rerun passed

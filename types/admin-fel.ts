@@ -170,6 +170,11 @@ export type CreateAdminFelDraftInput = AdminFelReceiverInput &
     groupExtras: boolean;
   }>;
 
+export type PreviewAdminFelDraftInput = CreateAdminFelDraftInput &
+  Readonly<{
+    editingDocumentId?: string | null;
+  }>;
+
 export type RebuildAdminFelDraftInput = Readonly<{
   documentId: string;
   reservationIds: readonly string[];

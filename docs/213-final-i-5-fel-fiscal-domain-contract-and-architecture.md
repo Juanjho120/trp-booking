@@ -1157,6 +1157,8 @@ AdditionalChargeRefundAllocation
 ReservationLifecycleRequest
 ```
 
+Final-I.6 hardening carry-forward for Final-I.7: before any provider integration creates `FelCreditAllocation`, TRP must strengthen `originalLineItemId belongs to originalDocumentId`, preferably with a composite database relationship analogous to the accepted `FelCommercialSourceAllocation -> FelLineItem(id, felDocumentId)` boundary. A future Credit Note allocation must not be able to cite an unrelated original document/line pair.
+
 ## Invoice Eligibility
 
 Current TRP product rule:
@@ -1512,6 +1514,7 @@ Final-I.7 remains blocked by:
 - idempotency
 - cancellation
 - Credit Note provider operation
+- FelCreditAllocation original-document/original-line integrity
 - PDF/XML retrieval
 - retry/reconciliation semantics
 ```

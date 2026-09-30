@@ -2605,7 +2605,7 @@ export const esMessages = {
       sections: {
         reservations: "Reservas elegibles",
         receiver: "Receptor fiscal",
-        preview: "Vista previa del borrador",
+        preview: "Vista previa desde datos comerciales actuales",
         history: "Historial de borradores",
         savedSnapshot: "Snapshot guardado",
       },
@@ -2640,12 +2640,21 @@ export const esMessages = {
         lines: "Líneas",
         createdAt: "Creado",
         unavailable: "No disponible",
+        documentType: "Tipo de documento",
+        status: "Estado",
+        currency: "Moneda",
+        receiver: "Receptor",
+        previewFresh: "Vista previa actualizada",
+        previewStale: "Vista previa desactualizada",
+        savedDraftSource: "Fuente del borrador guardado",
       },
       preview: {
         lodgingPrefix: "Reservación",
         groupedExtrasLine: "Servicios y cargos adicionales",
       },
       actions: {
+        refreshPreview: "Actualizar vista previa",
+        loadingPreview: "Actualizando...",
         save: "Guardar borrador",
         saving: "Guardando...",
         openEdit: "Abrir / Editar",
@@ -2667,10 +2676,14 @@ export const esMessages = {
       notes: {
         noProviderCertification:
           "Este módulo guarda un borrador fiscal. La certificación FEL y la validación final con certificador pertenecen a la integración posterior.",
+        previewStale:
+          "Actualiza la vista previa antes de guardar o reconstruir para validar las fuentes comerciales en el servidor.",
         savedSnapshot:
           "Estos valores son el snapshot guardado del borrador. No se actualizan automáticamente al abrirlo.",
       },
       feedback: {
+        previewRefreshed:
+          "La vista previa fiscal se actualizó desde las fuentes comerciales actuales.",
         saved: "El borrador fiscal quedó guardado.",
         updated: "El receptor fiscal del borrador se actualizó.",
         rebuilt: "El borrador se reconstruyó desde las fuentes comerciales actuales.",

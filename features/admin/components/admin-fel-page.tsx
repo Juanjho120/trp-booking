@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocale } from "@/features/i18n";
 import type {
   AdminFelDocumentDetail,
-  AdminFelEligibleReservation,
+  AdminFelDraftPreview,
   AdminFelErrorCode,
   AdminFelPageData,
   AdminFelReceiverIdentifierType,
@@ -24,6 +24,10 @@ import { AdminSnackbar } from "./admin-snackbar";
 type FelMutationResponse =
   | Readonly<{ document: AdminFelDocumentDetail }>
   | Readonly<{ discardedDocumentId: string }>
+  | Readonly<{ error: { code: AdminFelErrorCode | string } }>;
+
+type FelPreviewResponse =
+  | Readonly<{ preview: AdminFelDraftPreview }>
   | Readonly<{ error: { code: AdminFelErrorCode | string } }>;
 
 type ReceiverState = Readonly<{
@@ -44,8 +48,27 @@ const initialReceiverState: ReceiverState = {
   receiverCountry: "",
 };
 
+type ReservationChoice = Readonly<{
+  id: string;
+  guestName: string;
+  propertyName: string;
+  checkInDate: string;
+  checkOutDate: string;
+  nights: number;
+  total: string;
+  currency: string;
+  eligibleExtraCount: number;
+  eligibleExtraTotal: string;
+}>;
+
 function isErrorResponse(
   response: FelMutationResponse,
+): response is { error: { code: string } } {
+  return "error" in response;
+}
+
+function isPreviewErrorResponse(
+  response: FelPreviewResponse,
 ): response is { error: { code: string } } {
   return "error" in response;
 }
@@ -54,17 +77,113 @@ function getIntlLocale(locale: Locale): string {
   return locale === "en" ? "en-US" : "es-GT";
 }
 
-function centsFromMoney(value: string): number {
-  const [whole, fraction = ""] = value.split(".");
-  return Number(whole) * 100 + Number(fraction.padEnd(2, "0").slice(0, 2));
-}
-
-function moneyFromCents(value: number): string {
-  return (value / 100).toFixed(2);
-}
-
 function formatMoney(amount: string, currency: string): string {
   return `${currency} ${amount}`;
+}
+
+function normalizeReceiverForPayload(receiver: ReceiverState) {
+  return {
+    receiverName: receiver.receiverName,
+    receiverIdentifierType: receiver.receiverIdentifierType,
+    receiverIdentifier:
+      receiver.receiverIdentifier.trim() === ""
+        ? null
+        : receiver.receiverIdentifier,
+    receiverAddress:
+      receiver.receiverAddress.trim() === "" ? null : receiver.receiverAddress,
+    receiverEmail:
+      receiver.receiverEmail.trim() === "" ? null : receiver.receiverEmail,
+    receiverCountry:
+      receiver.receiverCountry.trim() === "" ? null : receiver.receiverCountry,
+  };
+}
+
+function buildPayloadFromState(
+  reservationIds: readonly string[],
+  receiver: ReceiverState,
+  groupExtras: boolean,
+) {
+  return {
+    reservationIds,
+    groupExtras,
+    ...normalizeReceiverForPayload(receiver),
+  };
+}
+
+function buildPreviewPayloadFromState(
+  reservationIds: readonly string[],
+  receiver: ReceiverState,
+  groupExtras: boolean,
+  editingDocumentId: string | null,
+) {
+  return {
+    ...buildPayloadFromState(reservationIds, receiver, groupExtras),
+    editingDocumentId,
+  };
+}
+
+function buildPreviewSignature(
+  reservationIds: readonly string[],
+  receiver: ReceiverState,
+  groupExtras: boolean,
+  editingDocumentId: string | null,
+): string {
+  return JSON.stringify(
+    buildPreviewPayloadFromState(
+      reservationIds,
+      receiver,
+      groupExtras,
+      editingDocumentId,
+    ),
+  );
+}
+
+function receiverStateFromDocument(document: AdminFelDocumentDetail): ReceiverState {
+  return {
+    receiverName: document.receiverName,
+    receiverIdentifierType:
+      document.receiverIdentifierType as AdminFelReceiverIdentifierType,
+    receiverIdentifier: document.receiverIdentifier ?? "",
+    receiverAddress: document.receiverAddress ?? "",
+    receiverEmail: document.receiverEmail ?? "",
+    receiverCountry: document.receiverCountry ?? "",
+  };
+}
+
+function previewFromDocument(
+  document: AdminFelDocumentDetail,
+): AdminFelDraftPreview {
+  return {
+    documentType: document.documentType,
+    status: "DRAFT",
+    commercialCurrency: document.commercialCurrency,
+    receiver: {
+      receiverName: document.receiverName,
+      receiverIdentifierType:
+        document.receiverIdentifierType as AdminFelReceiverIdentifierType,
+      receiverIdentifier: document.receiverIdentifier,
+      receiverAddress: document.receiverAddress,
+      receiverEmail: document.receiverEmail,
+      receiverCountry: document.receiverCountry,
+    },
+    groupExtras: document.groupExtras,
+    reservationIds: document.reservations.map(
+      (reservation) => reservation.reservationId,
+    ),
+    lines: document.lines,
+    total: document.total,
+  };
+}
+
+function nightsBetween(checkInDate: string, checkOutDate: string): number {
+  const checkIn = Date.parse(`${checkInDate}T00:00:00.000Z`);
+  const checkOut = Date.parse(`${checkOutDate}T00:00:00.000Z`);
+
+  if (!Number.isFinite(checkIn) || !Number.isFinite(checkOut)) {
+    return 0;
+  }
+
+  return Math.max(0, Math.round((checkOut - checkIn) / 86_400_000));
 }
 
 function documentUrl(page: number): string {
@@ -78,71 +197,98 @@ export function AdminFelPageView({
   const { locale, messages } = useLocale();
   const copy = messages.admin.felPage;
   const intlLocale = getIntlLocale(locale);
+  const [activeTab, setActiveTab] = useState("new");
   const [selectedReservationIds, setSelectedReservationIds] = useState<string[]>(
     [],
   );
   const [receiver, setReceiver] =
     useState<ReceiverState>(initialReceiverState);
   const [groupExtras, setGroupExtras] = useState(false);
+  const [editingDocumentId, setEditingDocumentId] = useState<string | null>(
+    null,
+  );
+  const [draftPreview, setDraftPreview] =
+    useState<AdminFelDraftPreview | null>(null);
+  const [draftPreviewSignature, setDraftPreviewSignature] = useState<
+    string | null
+  >(null);
   const [selectedDocument, setSelectedDocument] =
     useState<AdminFelDocumentDetail | null>(data.documents[0] ?? null);
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const selectedReservations = useMemo(
-    () =>
-      data.eligibleReservations.filter((reservation) =>
-        selectedReservationIds.includes(reservation.id),
-      ),
-    [data.eligibleReservations, selectedReservationIds],
-  );
-  const selectedCurrency = selectedReservations[0]?.currency ?? null;
+  const reservationChoices = useMemo<ReservationChoice[]>(() => {
+    const choices = data.eligibleReservations.map((reservation) => ({
+      id: reservation.id,
+      guestName: reservation.guestName,
+      propertyName: reservation.property.nameEs,
+      checkInDate: reservation.checkInDate,
+      checkOutDate: reservation.checkOutDate,
+      nights: reservation.nights,
+      total: reservation.total,
+      currency: reservation.currency,
+      eligibleExtraCount: reservation.eligibleExtraCount,
+      eligibleExtraTotal: reservation.eligibleExtraTotal,
+    }));
+    const seenIds = new Set(choices.map((reservation) => reservation.id));
+
+    if (selectedDocument && editingDocumentId === selectedDocument.id) {
+      for (const reservation of selectedDocument.reservations) {
+        if (seenIds.has(reservation.reservationId)) {
+          continue;
+        }
+
+        seenIds.add(reservation.reservationId);
+        choices.push({
+          id: reservation.reservationId,
+          guestName: copy.labels.savedDraftSource,
+          propertyName: reservation.propertyName,
+          checkInDate: reservation.checkInDate,
+          checkOutDate: reservation.checkOutDate,
+          nights: nightsBetween(reservation.checkInDate, reservation.checkOutDate),
+          total: reservation.total,
+          currency: reservation.currency,
+          eligibleExtraCount: 0,
+          eligibleExtraTotal: "0.00",
+        });
+      }
+    }
+
+    return choices;
+  }, [
+    copy.labels.savedDraftSource,
+    data.eligibleReservations,
+    editingDocumentId,
+    selectedDocument,
+  ]);
+  const selectedCurrency =
+    reservationChoices.find((reservation) =>
+      selectedReservationIds.includes(reservation.id),
+    )?.currency ?? null;
   const incompatibleReservationIds = useMemo(() => {
     if (!selectedCurrency) return new Set<string>();
 
     return new Set(
-      data.eligibleReservations
+      reservationChoices
         .filter((reservation) => reservation.currency !== selectedCurrency)
         .map((reservation) => reservation.id),
     );
-  }, [data.eligibleReservations, selectedCurrency]);
-  const previewLines = useMemo(() => {
-    const lodgingLines = selectedReservations.map((reservation) => ({
-      key: `lodging-${reservation.id}`,
-      description: reservation.lodgingDescription,
-      amount: reservation.total,
-      currency: reservation.currency,
-    }));
-
-    const extras = selectedReservations.flatMap((reservation) =>
-      reservation.extras.map((extra) => ({
-        key: extra.guestPaymentRequestItemId,
-        description: extra.description,
-        amount: extra.amount,
-        currency: extra.currency,
-      })),
-    );
-
-    if (groupExtras && extras.length > 0 && selectedCurrency) {
-      return [
-        ...lodgingLines,
-        {
-          key: "grouped-extras",
-          description: copy.preview.groupedExtrasLine,
-          amount: moneyFromCents(
-            extras.reduce((total, extra) => total + centsFromMoney(extra.amount), 0),
-          ),
-          currency: selectedCurrency,
-        },
-      ];
-    }
-
-    return [...lodgingLines, ...extras];
-  }, [copy.preview, groupExtras, selectedCurrency, selectedReservations]);
-  const previewTotal = moneyFromCents(
-    previewLines.reduce((total, line) => total + centsFromMoney(line.amount), 0),
+  }, [reservationChoices, selectedCurrency]);
+  const currentPreviewSignature = useMemo(
+    () =>
+      buildPreviewSignature(
+        selectedReservationIds,
+        receiver,
+        groupExtras,
+        editingDocumentId,
+      ),
+    [editingDocumentId, groupExtras, receiver, selectedReservationIds],
   );
+  const previewIsFresh =
+    draftPreview !== null && draftPreviewSignature === currentPreviewSignature;
+  const previewIsStale =
+    draftPreview !== null && draftPreviewSignature !== currentPreviewSignature;
 
   function formatDateTime(value: string): string {
     return new Intl.DateTimeFormat(intlLocale, {
@@ -166,38 +312,107 @@ export function AdminFelPageView({
   }
 
   function buildPayload() {
-    return {
-      reservationIds: selectedReservationIds,
-      groupExtras,
-      ...receiver,
-      receiverIdentifier:
-        receiver.receiverIdentifier.trim() === ""
-          ? null
-          : receiver.receiverIdentifier,
-      receiverAddress:
-        receiver.receiverAddress.trim() === "" ? null : receiver.receiverAddress,
-      receiverEmail:
-        receiver.receiverEmail.trim() === "" ? null : receiver.receiverEmail,
-      receiverCountry:
-        receiver.receiverCountry.trim() === "" ? null : receiver.receiverCountry,
-    };
+    return buildPayloadFromState(selectedReservationIds, receiver, groupExtras);
   }
 
   function loadDocumentForEdit(document: AdminFelDocumentDetail): void {
-    setSelectedDocument(document);
-    setSelectedReservationIds(
-      document.reservations.map((reservation) => reservation.reservationId),
+    const reservationIds = document.reservations.map(
+      (reservation) => reservation.reservationId,
     );
+    const nextReceiver = receiverStateFromDocument(document);
+
+    setSelectedDocument(document);
+    setEditingDocumentId(document.id);
+    setActiveTab("new");
+    setSelectedReservationIds(reservationIds);
     setGroupExtras(document.groupExtras);
-    setReceiver({
-      receiverName: document.receiverName,
-      receiverIdentifierType:
-        document.receiverIdentifierType as AdminFelReceiverIdentifierType,
-      receiverIdentifier: document.receiverIdentifier ?? "",
-      receiverAddress: document.receiverAddress ?? "",
-      receiverEmail: document.receiverEmail ?? "",
-      receiverCountry: document.receiverCountry ?? "",
-    });
+    setReceiver(nextReceiver);
+    void refreshPreviewForState(
+      reservationIds,
+      nextReceiver,
+      document.groupExtras,
+      document.id,
+    );
+  }
+
+  function acceptDocumentSnapshot(document: AdminFelDocumentDetail): void {
+    const reservationIds = document.reservations.map(
+      (reservation) => reservation.reservationId,
+    );
+    const nextReceiver = receiverStateFromDocument(document);
+
+    setSelectedDocument(document);
+    setEditingDocumentId(document.id);
+    setSelectedReservationIds(reservationIds);
+    setGroupExtras(document.groupExtras);
+    setReceiver(nextReceiver);
+    setDraftPreview(previewFromDocument(document));
+    setDraftPreviewSignature(
+      buildPreviewSignature(
+        reservationIds,
+        nextReceiver,
+        document.groupExtras,
+        document.id,
+      ),
+    );
+  }
+
+  async function refreshPreviewForState(
+    reservationIds = selectedReservationIds,
+    nextReceiver = receiver,
+    nextGroupExtras = groupExtras,
+    nextEditingDocumentId = editingDocumentId,
+  ): Promise<void> {
+    setBusyAction("preview");
+    resetMessages();
+
+    const body = buildPreviewPayloadFromState(
+      reservationIds,
+      nextReceiver,
+      nextGroupExtras,
+      nextEditingDocumentId,
+    );
+    const signature = buildPreviewSignature(
+      reservationIds,
+      nextReceiver,
+      nextGroupExtras,
+      nextEditingDocumentId,
+    );
+
+    try {
+      const response = await fetch("/api/admin/fel/preview", {
+        method: "POST",
+        headers: {
+          accept: "application/json",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+      const payload = (await response.json()) as FelPreviewResponse;
+
+      if (!("preview" in payload)) {
+        const code = isPreviewErrorResponse(payload)
+          ? payload.error.code
+          : "ADMIN_FEL_UNEXPECTED_ERROR";
+        setErrorMessage(resolveError(code));
+        router.refresh();
+        return;
+      }
+
+      if (!response.ok) {
+        setErrorMessage(resolveError("ADMIN_FEL_UNEXPECTED_ERROR"));
+        router.refresh();
+        return;
+      }
+
+      setDraftPreview(payload.preview);
+      setDraftPreviewSignature(signature);
+      setSuccessMessage(copy.feedback.previewRefreshed);
+    } catch {
+      setErrorMessage(copy.errors.ADMIN_FEL_UNEXPECTED_ERROR);
+    } finally {
+      setBusyAction(null);
+    }
   }
 
   async function submitMutation(
@@ -238,6 +453,12 @@ export function AdminFelPageView({
       }
 
       setSelectedDocument(null);
+      setEditingDocumentId(null);
+      setSelectedReservationIds([]);
+      setReceiver(initialReceiverState);
+      setGroupExtras(false);
+      setDraftPreview(null);
+      setDraftPreviewSignature(null);
       return null;
     } catch {
       setErrorMessage(copy.errors.ADMIN_FEL_UNEXPECTED_ERROR);
@@ -248,7 +469,7 @@ export function AdminFelPageView({
   }
 
   async function saveDraft(): Promise<void> {
-    await submitMutation(
+    const document = await submitMutation(
       "save",
       "/api/admin/fel/drafts",
       {
@@ -257,12 +478,16 @@ export function AdminFelPageView({
       },
       copy.feedback.saved,
     );
+
+    if (document) {
+      acceptDocumentSnapshot(document);
+    }
   }
 
   async function updateReceiver(): Promise<void> {
     if (!selectedDocument) return;
 
-    await submitMutation(
+    const document = await submitMutation(
       "update",
       `/api/admin/fel/drafts/${encodeURIComponent(selectedDocument.id)}`,
       {
@@ -271,12 +496,16 @@ export function AdminFelPageView({
       },
       copy.feedback.updated,
     );
+
+    if (document) {
+      acceptDocumentSnapshot(document);
+    }
   }
 
   async function rebuildDraft(): Promise<void> {
     if (!selectedDocument) return;
 
-    await submitMutation(
+    const document = await submitMutation(
       "rebuild",
       `/api/admin/fel/drafts/${encodeURIComponent(selectedDocument.id)}/rebuild`,
       {
@@ -288,6 +517,10 @@ export function AdminFelPageView({
       },
       copy.feedback.rebuilt,
     );
+
+    if (document) {
+      acceptDocumentSnapshot(document);
+    }
   }
 
   async function discardDraft(): Promise<void> {
@@ -303,7 +536,7 @@ export function AdminFelPageView({
     );
   }
 
-  function toggleReservation(reservation: AdminFelEligibleReservation): void {
+  function toggleReservation(reservation: ReservationChoice): void {
     if (
       !selectedReservationIds.includes(reservation.id) &&
       incompatibleReservationIds.has(reservation.id)
@@ -327,7 +560,7 @@ export function AdminFelPageView({
         title={copy.title}
       />
 
-      <Tabs className="grid gap-6" defaultValue="new">
+      <Tabs className="grid gap-6" onValueChange={setActiveTab} value={activeTab}>
         <TabsList aria-label={copy.tabs.ariaLabel}>
           <TabsTrigger value="new">{copy.tabs.newInvoice}</TabsTrigger>
           <TabsTrigger value="history">{copy.tabs.history}</TabsTrigger>
@@ -340,12 +573,12 @@ export function AdminFelPageView({
                 <CardTitle>{copy.sections.reservations}</CardTitle>
               </CardHeader>
               <CardContent className="grid gap-3">
-                {data.eligibleReservations.length === 0 ? (
+                {reservationChoices.length === 0 ? (
                   <p className="text-sm text-muted-foreground">
                     {copy.empty.noEligibleReservations}
                   </p>
                 ) : (
-                  data.eligibleReservations.map((reservation) => {
+                  reservationChoices.map((reservation) => {
                     const selected = selectedReservationIds.includes(reservation.id);
                     const incompatible =
                       !selected && incompatibleReservationIds.has(reservation.id);
@@ -372,7 +605,7 @@ export function AdminFelPageView({
                           ) : null}
                         </span>
                         <span className="text-muted-foreground">
-                          {reservation.property.nameEs} · {reservation.checkInDate} -{" "}
+                          {reservation.propertyName} · {reservation.checkInDate} -{" "}
                           {reservation.checkOutDate} · {reservation.nights}{" "}
                           {copy.labels.nights}
                         </span>
@@ -503,52 +736,100 @@ export function AdminFelPageView({
               <CardTitle>{copy.sections.preview}</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-4">
-              {previewLines.length === 0 ? (
+              <div className="flex flex-wrap items-center gap-3">
+                <Button
+                  disabled={
+                    busyAction !== null ||
+                    selectedReservationIds.length === 0 ||
+                    receiver.receiverName.trim() === ""
+                  }
+                  onClick={() => void refreshPreviewForState()}
+                  type="button"
+                  variant="outline"
+                >
+                  <RefreshCw aria-hidden="true" />
+                  {busyAction === "preview"
+                    ? copy.actions.loadingPreview
+                    : copy.actions.refreshPreview}
+                </Button>
+                {previewIsFresh ? (
+                  <Badge variant="secondary">{copy.labels.previewFresh}</Badge>
+                ) : null}
+                {previewIsStale ? (
+                  <Badge variant="destructive">{copy.labels.previewStale}</Badge>
+                ) : null}
+              </div>
+              {previewIsStale ? (
+                <p className="text-sm text-muted-foreground">
+                  {copy.notes.previewStale}
+                </p>
+              ) : null}
+              {draftPreview === null ? (
                 <p className="text-sm text-muted-foreground">
                   {copy.empty.preview}
                 </p>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full min-w-[42rem] text-left text-sm">
-                    <thead className="text-xs uppercase text-muted-foreground">
-                      <tr>
-                        <th className="py-2 pr-4">{copy.labels.line}</th>
-                        <th className="py-2 pr-4">{copy.labels.description}</th>
-                        <th className="py-2 pr-4 text-right">{copy.labels.amount}</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border/70">
-                      {previewLines.map((line, index) => (
-                        <tr key={line.key}>
-                          <td className="py-2 pr-4">{index + 1}</td>
-                          <td className="py-2 pr-4">{line.description}</td>
-                          <td className="py-2 pr-4 text-right">
-                            {formatMoney(line.amount, line.currency)}
+                <>
+                  <div className="grid gap-1 rounded-lg border border-border/70 p-3 text-sm text-muted-foreground sm:grid-cols-2 xl:grid-cols-4">
+                    <span>
+                      {copy.labels.documentType}: {draftPreview.documentType}
+                    </span>
+                    <span>
+                      {copy.labels.status}: {copy.statuses[draftPreview.status]}
+                    </span>
+                    <span>
+                      {copy.labels.currency}: {draftPreview.commercialCurrency}
+                    </span>
+                    <span>
+                      {copy.labels.receiver}: {draftPreview.receiver.receiverName}
+                    </span>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[42rem] text-left text-sm">
+                      <thead className="text-xs uppercase text-muted-foreground">
+                        <tr>
+                          <th className="py-2 pr-4">{copy.labels.line}</th>
+                          <th className="py-2 pr-4">{copy.labels.description}</th>
+                          <th className="py-2 pr-4 text-right">
+                            {copy.labels.amount}
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border/70">
+                        {draftPreview.lines.map((line) => (
+                          <tr key={`${line.kind}-${line.lineNumber}`}>
+                            <td className="py-2 pr-4">{line.lineNumber}</td>
+                            <td className="py-2 pr-4">{line.description}</td>
+                            <td className="py-2 pr-4 text-right">
+                              {formatMoney(line.amount, line.currency)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      <tfoot>
+                        <tr className="font-semibold">
+                          <td className="py-3 pr-4" colSpan={2}>
+                            {copy.labels.total}
+                          </td>
+                          <td className="py-3 pr-4 text-right">
+                            {formatMoney(
+                              draftPreview.total,
+                              draftPreview.commercialCurrency,
+                            )}
                           </td>
                         </tr>
-                      ))}
-                    </tbody>
-                    <tfoot>
-                      <tr className="font-semibold">
-                        <td className="py-3 pr-4" colSpan={2}>
-                          {copy.labels.total}
-                        </td>
-                        <td className="py-3 pr-4 text-right">
-                          {selectedCurrency
-                            ? formatMoney(previewTotal, selectedCurrency)
-                            : copy.labels.unavailable}
-                        </td>
-                      </tr>
-                    </tfoot>
-                  </table>
-                </div>
+                      </tfoot>
+                    </table>
+                  </div>
+                </>
               )}
               <div className="flex flex-wrap gap-3">
                 <Button
                   disabled={
                     busyAction !== null ||
                     selectedReservationIds.length === 0 ||
-                    receiver.receiverName.trim() === ""
+                    receiver.receiverName.trim() === "" ||
+                    !previewIsFresh
                   }
                   onClick={() => void saveDraft()}
                   type="button"
@@ -567,7 +848,11 @@ export function AdminFelPageView({
                       {copy.actions.updateReceiver}
                     </Button>
                     <Button
-                      disabled={busyAction !== null || selectedReservationIds.length === 0}
+                      disabled={
+                        busyAction !== null ||
+                        selectedReservationIds.length === 0 ||
+                        !previewIsFresh
+                      }
                       onClick={() => void rebuildDraft()}
                       type="button"
                       variant="secondary"
@@ -589,6 +874,30 @@ export function AdminFelPageView({
               </div>
             </CardContent>
           </Card>
+
+          {selectedDocument && editingDocumentId === selectedDocument.id ? (
+            <Card className="border-border/70 shadow-sm">
+              <CardHeader>
+                <CardTitle>{copy.sections.savedSnapshot}</CardTitle>
+              </CardHeader>
+              <CardContent className="grid gap-3 text-sm">
+                <p className="text-muted-foreground">
+                  {copy.notes.savedSnapshot}
+                </p>
+                {selectedDocument.lines.map((line) => (
+                  <div
+                    className="flex items-center justify-between gap-4 rounded-lg border border-border/70 p-3"
+                    key={`${selectedDocument.id}-editor-${line.lineNumber}`}
+                  >
+                    <span>{line.description}</span>
+                    <span className="font-medium">
+                      {formatMoney(line.amount, line.currency)}
+                    </span>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          ) : null}
         </TabsContent>
 
         <TabsContent className="grid gap-6" value="history">
