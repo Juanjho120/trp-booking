@@ -301,6 +301,132 @@ must be produced from frozen fiscal lines, not independently recalculated later.
 sum(FelLineItem.amount) == FelDocument frozen total
 ```
 
+## Fiscal Provenance vs Commercial Source Consumption
+
+Final-I.5 freezes two separate concepts:
+
+```text
+Fiscal line provenance/evidence
+
+Fiscal commercial-source consumption
+```
+
+They are related but not interchangeable.
+
+`FelLineSource` exists to answer:
+
+```text
+Why does this fiscal line exist?
+Which commercial/payment/refund/lifecycle records support it?
+```
+
+It must not be treated as the authoritative duplicate-invoice prevention mechanism.
+
+```text
+FelLineSource != fiscal source consumption lock
+```
+
+A polymorphic `sourceType` / `sourceId` mapping cannot provide database foreign-key integrity to every source table and cannot by itself guarantee that the same commercial amount source is not invoiced twice. Indexes improve lookup performance. Indexes do not prevent duplicate consumption. Unique constraints / allocation ownership prevent duplicate fiscal consumption.
+
+## FelLineSource Role Semantics And Amount Invariant
+
+`FelLineSource` must distinguish amount-producing commercial sources from supporting settlement/refund/lifecycle evidence through:
+
+```text
+sourceRole
+```
+
+Provider-independent conceptual roles:
+
+```text
+AMOUNT_SOURCE
+SETTLEMENT_EVIDENCE
+REFUND_EVIDENCE
+LIFECYCLE_EVIDENCE
+```
+
+Only `FelLineSource` rows whose role is `AMOUNT_SOURCE` may contribute to the commercial source amount represented by a fiscal line. Supporting evidence must never be summed into:
+
+```text
+FelLineItem.amount
+FelDocument.total
+```
+
+Payment does not contribute fiscal amount unless a later accepted fiscal model explicitly reclassifies a source as an `AMOUNT_SOURCE`. The accepted I.5 model does not do that.
+
+### Lodging Role Rules
+
+```text
+Reservation frozen commercial snapshot
+-> AMOUNT_SOURCE
+```
+
+```text
+INITIAL_RESERVATION Payment
+-> SETTLEMENT_EVIDENCE
+-> contributes 0 additional fiscal amount
+```
+
+```text
+LIFECYCLE_ADJUSTMENT Payment
+-> SETTLEMENT_EVIDENCE
+-> contributes 0 additional fiscal amount
+```
+
+```text
+ReservationLifecycleRequest
+-> LIFECYCLE_EVIDENCE
+-> contributes 0 additional fiscal amount
+```
+
+For lodging, the fiscal line has exactly one Reservation `AMOUNT_SOURCE`.
+
+### Additional-Charge Role Rules
+
+Canonical amount source:
+
+```text
+GuestPaymentRequestItem immutable snapshot
+-> AMOUNT_SOURCE
+```
+
+Related identity/provenance:
+
+```text
+AdditionalCharge
+-> provenance / identity evidence
+-> not a second amount contribution
+```
+
+Associated settlement:
+
+```text
+ADDITIONAL_CHARGE Payment
+-> SETTLEMENT_EVIDENCE
+-> not a second amount contribution
+```
+
+Refund/reconciliation evidence:
+
+```text
+Refund / AdditionalChargeRefundAllocation
+-> REFUND_EVIDENCE
+-> not blindly added or subtracted from the fiscal line
+-> reconciliation rules remain separate
+```
+
+For an individual extra, the fiscal line has exactly one `GuestPaymentRequestItem` `AMOUNT_SOURCE`.
+
+For grouped extras, the fiscal line has multiple `GuestPaymentRequestItem` `AMOUNT_SOURCE` rows:
+
+```text
+FelLineItem.amount
+=
+sum(AMOUNT_SOURCE.sourceAmount)
+```
+
+subject only to later frozen currency/tax/rounding rules. Settlement/refund/lifecycle evidence is excluded from that sum.
+
 ## Anti-Double-Counting Example
 
 Scenario:
@@ -485,6 +611,15 @@ ReservationLifecycleRequest
 
 Do not automatically create a Credit Note from every Refund.
 
+Credit Note does not release original source consumption:
+
+```text
+Credit Note does NOT consume the original Reservation or GuestPaymentRequestItem again.
+Credit Note must NOT delete/release the original FelCommercialSourceAllocation.
+```
+
+Credit Notes adjust certified fiscal documents/lines through `FelCreditAllocation` and relevant payment/refund/reconciliation evidence; they do not make the original commercial source available for a second unrelated normal invoice.
+
 ## Cancellation Relationship
 
 ```text
@@ -511,6 +646,7 @@ FelDocument
 FelDocumentReservation
 FelLineItem
 FelLineSource
+FelCommercialSourceAllocation
 FelProviderAttempt
 FelCreditAllocation
 ```
@@ -620,7 +756,7 @@ Do not invent SAT item codes.
 
 ### FelLineSource
 
-Every fiscal line must remain traceable to the commercial records that produced it.
+Every fiscal line must remain traceable to the records that explain it. `FelLineSource` is the complete provenance/evidence graph, not the exclusive commercial amount-source ownership model.
 
 Chosen design:
 
@@ -630,6 +766,7 @@ FelLineSource:
   felLineItemId
   sourceType
   sourceId
+  sourceRole
   sourceAmount
   sourceCurrency
   sourceSnapshotJson
@@ -648,7 +785,115 @@ ADDITIONAL_CHARGE_REFUND_ALLOCATION
 RESERVATION_LIFECYCLE_REQUEST
 ```
 
-This typed-source architecture avoids seven nullable foreign keys on one row while avoiding JSON-only provenance. Final-I.6 should prefer a relational `FelLineSource` mapping with indexes over `sourceType/sourceId` and `felLineItemId`; `sourceSnapshotJson` stores bounded immutable evidence only when the source row itself is mutable or insufficient for fiscal reproduction.
+`sourceRole` is also a closed TRP enum concept:
+
+```text
+AMOUNT_SOURCE
+SETTLEMENT_EVIDENCE
+REFUND_EVIDENCE
+LIFECYCLE_EVIDENCE
+```
+
+This typed-source architecture avoids seven nullable foreign keys on one row while avoiding JSON-only provenance. Final-I.6 should prefer a relational `FelLineSource` mapping with indexes over `sourceType/sourceId` and `felLineItemId` for evidence lookup performance only; `sourceSnapshotJson` stores bounded immutable evidence only when the source row itself is mutable or insufficient for fiscal reproduction.
+
+`FelLineSource` does not provide exclusive source ownership:
+
+```text
+FelLineSource != fiscal source consumption lock
+```
+
+Indexes over `sourceType/sourceId` improve lookup performance, but indexes do not prevent duplicate consumption. Unique constraints / allocation ownership prevent duplicate fiscal consumption.
+
+### FelCommercialSourceAllocation
+
+`FelCommercialSourceAllocation` is the exclusive commercial amount-source ownership model.
+
+```text
+FelCommercialSourceAllocation
+=
+exclusive commercial amount-source ownership
+```
+
+It is separate from `FelLineSource`:
+
+```text
+FelLineSource
+=
+complete provenance/evidence graph
+```
+
+Proposed conceptual structure:
+
+```text
+FelCommercialSourceAllocation:
+  id
+
+  felDocumentId
+  felLineItemId
+
+  reservationId?
+  guestPaymentRequestItemId?
+
+  amountSnapshot
+  currencySnapshot
+
+  createdAt
+```
+
+Relations:
+
+```text
+felDocumentId -> FelDocument
+felLineItemId -> FelLineItem
+
+reservationId -> Reservation
+guestPaymentRequestItemId -> GuestPaymentRequestItem
+```
+
+Exactly one canonical commercial source must be present:
+
+```text
+reservationId XOR guestPaymentRequestItemId
+```
+
+This model deliberately covers only the commercial amount sources currently accepted by I.5:
+
+```text
+Reservation lodging
+GuestPaymentRequestItem extra
+```
+
+Do not put `Payment`, `Refund`, `AdditionalChargeRefundAllocation`, `ReservationLifecycleRequest`, or other supporting evidence into this consumption table. Those remain `FelLineSource` evidence.
+
+Final-I.6 must enforce:
+
+```text
+reservationId UNIQUE when non-null
+
+guestPaymentRequestItemId UNIQUE when non-null
+
+exactly one canonical commercial source
+
+exactly one of reservationId or guestPaymentRequestItemId is non-null
+```
+
+Because PostgreSQL permits multiple NULL values in a normal unique constraint, these two nullable unique columns allow the XOR model while preventing the same actual commercial source from being allocated twice. The XOR invariant should be enforced at database/application level; preferred later implementation is a PostgreSQL CHECK constraint if Prisma cannot express the XOR directly. The migration may need explicit SQL for this CHECK.
+
+This gives actual DB-level protection against:
+
+```text
+same Reservation lodging
+-> invoice A
+-> invoice B
+```
+
+and:
+
+```text
+same GuestPaymentRequestItem
+-> invoice A
+-> invoice B
+```
 
 ### Grouping Extra Charges
 
@@ -691,6 +936,61 @@ refund allocations
 ```
 
 because of grouping. A grouped line must have multiple `FelLineSource` rows, one per original commercial source.
+
+Grouped extras preserve multiple allocations.
+
+Future grouped persistence example:
+
+```text
+FelLineItem
+  "Servicios y cargos adicionales"
+  amount = 85
+
+FelCommercialSourceAllocation
+  GuestPaymentRequestItem transport -> 40
+
+FelCommercialSourceAllocation
+  GuestPaymentRequestItem damage -> 25
+
+FelCommercialSourceAllocation
+  GuestPaymentRequestItem late checkout -> 20
+```
+
+plus any supporting `FelLineSource` evidence.
+
+```text
+grouping changes presentation
+NOT consumption identity
+NOT provenance
+```
+
+Individual extra example:
+
+```text
+FelLineItem
+  "Transporte (Desde Antigua a Panajachel)"
+  amount = 40
+
+FelCommercialSourceAllocation
+  GuestPaymentRequestItem X
+  amountSnapshot = 40
+```
+
+The associated `AdditionalCharge`, `Payment`, `Refund`, and `AdditionalChargeRefundAllocation` rows may be represented as supporting `FelLineSource` evidence, not additional commercial allocations.
+
+Lodging example:
+
+```text
+FelLineItem
+  "Reservacion del 15 al 16 de Agosto (1 noche)"
+  amount = frozen Reservation.total
+
+FelCommercialSourceAllocation
+  Reservation X
+  amountSnapshot = frozen Reservation.total
+```
+
+Initial and lifecycle payments can be linked as evidence but cannot create additional allocation rows.
 
 ### FelProviderAttempt
 
@@ -756,16 +1056,41 @@ Architecture should consider at minimum:
 
 ## Prevent Duplicate Invoicing
 
-TRP needs fiscal source consumption/allocation rather than a simple `reservation.invoiceId`.
+TRP needs commercial-source allocation ownership rather than a simple `reservation.invoiceId` or a polymorphic evidence index.
 
 Rules:
 
 ```text
-- A reservation lodging snapshot can be fiscally consumed only according to source allocation rules.
-- An additional-charge snapshot must not be assigned twice to unrelated certified fiscal documents.
+- A reservation lodging snapshot can be fiscally consumed only through one active/permanent FelCommercialSourceAllocation.
+- A GuestPaymentRequestItem extra snapshot can be fiscally consumed only through one active/permanent FelCommercialSourceAllocation.
 - A Credit Note may reference certified fiscal lines without making the original commercial source available for duplicate invoicing.
-- `FelLineSource` is the provenance and consumption boundary for source allocation.
+- FelLineSource is provenance/evidence only.
+- FelCommercialSourceAllocation is the duplicate-invoice prevention boundary.
 ```
+
+Database-enforceable constraints required for Final-I.6:
+
+```text
+reservationId UNIQUE when non-null
+
+guestPaymentRequestItemId UNIQUE when non-null
+
+reservationId XOR guestPaymentRequestItemId
+```
+
+Indexes improve lookup performance. Unique constraints / allocation ownership prevent duplicate fiscal consumption. An ordinary index over `sourceType/sourceId` does not prevent duplicate consumption.
+
+Credit Note does NOT consume the original Reservation or GuestPaymentRequestItem again. Instead:
+
+```text
+Credit Note
+-> FelCreditAllocation
+-> original certified FelDocument / FelLineItem
+```
+
+with relevant Refund/reconciliation evidence. Creating a Credit Note must NOT delete/release the original `FelCommercialSourceAllocation`.
+
+DTE cancellation must not automatically make the original commercial source available for a second unrelated invoice unless a later explicit fiscal rule says so.
 
 ## Draft Editing Rules
 
@@ -789,6 +1114,14 @@ continue with existing frozen draft snapshot
 
 Do not let mutable reservations silently alter a saved `DRAFT`.
 
+When a `DRAFT` includes a commercial source, `FelCommercialSourceAllocation` is created transactionally so two concurrent Admin drafts cannot silently claim the same source.
+
+If a source is removed from a mutable `DRAFT`, its allocation may be deleted/released transactionally provided the document has never been certified. A discarded draft may release its provisional allocations.
+
+When a document becomes immutable/certified, its allocations are permanent and must never be deleted merely to make the source invoiceable again.
+
+Draft creation/update must use transactional locking/recheck around canonical sources to avoid race conditions between concurrent Admin actions.
+
 ## Certified Immutability
 
 After `CERTIFIED`, freeze:
@@ -798,6 +1131,7 @@ receiver snapshot
 reservation snapshots
 line items
 line-source allocations
+commercial source allocations
 currency
 totals
 certification identifiers
@@ -877,16 +1211,25 @@ Exact requirements are unresolved. Final-I.5 does not add these fields to Prisma
 
 ```mermaid
 flowchart TD
-  R[Reservation] --> FDR[FelDocumentReservation]
+  R[Reservation] --> FCSA[FelCommercialSourceAllocation]
+  GPRI[GuestPaymentRequestItem] --> FCSA
+  FCSA --> FLI[FelLineItem]
+
+  R --> FDR[FelDocumentReservation]
   FDR --> FD[FelDocument]
   FD --> FLI[FelLineItem]
+
   FLI --> FLS[FelLineSource]
+
   AC[AdditionalCharge] --> FLS
-  GPRI[GuestPaymentRequestItem] --> FLS
+  GPRI --> FLS
   P[Payment settlement evidence] --> FLS
   RF[Refund] --> FLS
   ACRA[AdditionalChargeRefundAllocation] --> FLS
   RLR[ReservationLifecycleRequest] --> FLS
+
+  FCSA -. exclusive commercial consumption .-> FLI
+  FLS -. provenance and evidence only .-> FLI
 ```
 
 ## Fiscal State Machine Diagram
@@ -952,7 +1295,7 @@ Final-I.6 can proceed with provider-independent persistence/UI if:
 ```text
 - domain entities are frozen
 - snapshot model is frozen
-- source allocation is frozen
+- commercial-source allocation is frozen
 - draft lifecycle is frozen
 - receiver model is sufficiently generic
 - unresolved provider fields are nullable/deferred
@@ -982,6 +1325,13 @@ Expected Final-I.6 scope:
 ```text
 - Prisma FEL persistence
 - migration
+- FelCommercialSourceAllocation persistence
+- DB unique constraints
+- XOR CHECK constraint
+- transactional source claiming
+- source release for mutable discarded drafts
+- permanent consumption after certification
+- line-source role semantics
 - Admin /admin/fel route
 - eligible-reservation search/select
 - one/multiple reservation draft creation

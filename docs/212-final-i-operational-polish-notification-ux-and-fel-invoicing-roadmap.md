@@ -712,6 +712,17 @@ Final-I.5 implementation validation:
 - npm run build - PASS; initial sandbox run failed to fetch Google Fonts for next/font before the escalated rerun passed; Next slow filesystem warning only
 - npm audit --omit=dev - PASS, 0 vulnerabilities; initial sandbox run could not reach the audit endpoint/cache before the escalated rerun passed
 - git diff --check - PASS
+Final-I.5 source-consumption hardening validation:
+- npm run final-i:validate - PASS, 36/36; initial sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM before the escalated rerun passed
+- npm run final-h:validate - PASS, 20/20; initial sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM before the escalated rerun passed
+- npm run env:validate - PASS; initial sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM before the escalated rerun passed
+- npm run db:validate - PASS; Prisma package.json#prisma deprecation warning only
+- npm run db:generate - PASS; Prisma package.json#prisma deprecation warning only
+- npm run db:migrate:status - PASS, 29 migrations, database schema is up to date; initial sandbox run returned Schema engine error before the escalated rerun passed
+- npm run lint - PASS
+- npm run build - PASS; initial sandbox run failed to fetch Google Fonts for next/font before the escalated rerun passed; Next slow filesystem warning only
+- npm audit --omit=dev - PASS, 0 vulnerabilities; initial sandbox run could not reach the audit endpoint/cache before the escalated rerun passed
+- git diff --check - PASS
 ```
 
 ## Final-I.1 Hosted Owner Validation Completed

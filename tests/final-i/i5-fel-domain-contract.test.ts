@@ -111,6 +111,7 @@ test("I.5 documents provider-independent persistence and INFILE blocking", () =>
     "FelDocumentReservation",
     "FelLineItem",
     "FelLineSource",
+    "FelCommercialSourceAllocation",
     "FelProviderAttempt",
     "FelCreditAllocation",
   ]) {
@@ -133,6 +134,43 @@ test("I.5 documents provider-independent persistence and INFILE blocking", () =>
   expectIncludes(record, "Provider Boundary Diagram");
 });
 
+test("I.5 separates provenance evidence from exclusive commercial source consumption", () => {
+  const record = readRecord();
+
+  expectIncludes(record, "Fiscal line provenance/evidence");
+  expectIncludes(record, "Fiscal commercial-source consumption");
+  expectIncludes(record, "FelLineSource != fiscal source consumption lock");
+  expectIncludes(record, "sourceRole");
+  expectIncludes(record, "AMOUNT_SOURCE");
+  expectIncludes(record, "SETTLEMENT_EVIDENCE");
+  expectIncludes(record, "REFUND_EVIDENCE");
+  expectIncludes(record, "LIFECYCLE_EVIDENCE");
+  expectIncludes(record, "Payment does not contribute fiscal amount");
+  expectIncludes(
+    record,
+    "Only `FelLineSource` rows whose role is `AMOUNT_SOURCE` may contribute",
+  );
+  expectIncludes(record, "FelCommercialSourceAllocation");
+  expectIncludes(record, "reservationId UNIQUE when non-null");
+  expectIncludes(record, "guestPaymentRequestItemId UNIQUE when non-null");
+  expectIncludes(record, "reservationId XOR guestPaymentRequestItemId");
+  expectIncludes(record, "exactly one canonical commercial source");
+  expectIncludes(record, "Grouped extras preserve multiple allocations.");
+  expectIncludes(
+    record,
+    "Credit Note does NOT consume the original Reservation or GuestPaymentRequestItem again.",
+  );
+  expectIncludes(
+    record,
+    "Credit Note must NOT delete/release the original FelCommercialSourceAllocation.",
+  );
+  expectIncludes(record, "Indexes do not prevent duplicate consumption.");
+  expectIncludes(
+    record,
+    "Unique constraints / allocation ownership prevent duplicate fiscal consumption.",
+  );
+});
+
 test("I.5 leaves Prisma, migrations, cron and Vercel scheduler state untouched", () => {
   const schema = read("prisma/schema.prisma");
 
@@ -141,6 +179,7 @@ test("I.5 leaves Prisma, migrations, cron and Vercel scheduler state untouched",
     "FelDocumentReservation",
     "FelLineItem",
     "FelLineSource",
+    "FelCommercialSourceAllocation",
     "FelProviderAttempt",
     "FelCreditAllocation",
   ]) {
