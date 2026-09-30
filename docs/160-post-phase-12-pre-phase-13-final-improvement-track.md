@@ -1317,7 +1317,8 @@ Final-I.2 — Legacy/future-phase UI and copy cleanup — Completed and accepted
 Final-I.2 accepted head — 6451cb705d972c83a771a9ff39f6da80d130cf58
 Final-I.3 — Admin notification-center desktop simplification + single accordion + Push deep-link — Completed and accepted on 2026-09-29
 Final-I.3 accepted head — 8c5a9186e392f35bdbc998f463c5c3c6cd0be295
-Final-I.4 — Guest-facing email visible-URL cleanup — Implementation completed; Hosted owner validation + acceptance pending
+Final-I.4 — Guest-facing email visible-URL cleanup — Completed and accepted on 2026-09-30
+Final-I.4 accepted head — 8e2d7d56a8e81a860833b05f4a28cba8a517bad4
 Final-I.5 — Next / Not started
 Final-I.6 — Not started
 Final-I.7 — Blocked pending official INFILE technical documentation + Test credentials

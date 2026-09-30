@@ -17,7 +17,8 @@ Final-I.2 status: Completed and accepted on 2026-09-29
 Accepted Final-I.2 head: 6451cb705d972c83a771a9ff39f6da80d130cf58
 Final-I.3 status: Completed and accepted on 2026-09-29
 Accepted Final-I.3 head: 8c5a9186e392f35bdbc998f463c5c3c6cd0be295
-Final-I.4 status: Implementation completed; Hosted owner validation + acceptance pending
+Final-I.4 status: Completed and accepted on 2026-09-30
+Accepted Final-I.4 head: 8e2d7d56a8e81a860833b05f4a28cba8a517bad4
 Final-I.5 status: Next / Not started
 Final-I.6 status: Not started
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
@@ -26,7 +27,7 @@ Final-I.9 status: Not started
 Phase 13 status: Blocked / Not started until Final-I closes
 ```
 
-Final-I is an owner-requested pre-Production addendum registered after the accepted Final-H closure. It does not rewrite the historical acceptance of Phase 12, Final-A through Final-H, or the complete Post-Phase-12 / Pre-Phase-13 Final Improvement Track at `6922cf27e31e63fde071c0d0a810b141e44b9f90`. Final-I.1 is completed and accepted at its feature head `9a15f349c1104671f5555d1988caa56756e5ff0c`, and Final-I.2 is completed and accepted at `6451cb705d972c83a771a9ff39f6da80d130cf58`; Final-I.3 is completed and accepted on 2026-09-29 at accepted head `8c5a9186e392f35bdbc998f463c5c3c6cd0be295` after Hosted owner validation of the desktop, Android mobile browser, Android standalone PWA, Push deep-link, and final mobile/PWA auto-scroll refinement. Final-I.4 implementation is completed with Hosted owner validation and acceptance pending. Phase 13 remains not started and is blocked until Final-I closes and receives owner acceptance.
+Final-I is an owner-requested pre-Production addendum registered after the accepted Final-H closure. It does not rewrite the historical acceptance of Phase 12, Final-A through Final-H, or the complete Post-Phase-12 / Pre-Phase-13 Final Improvement Track at `6922cf27e31e63fde071c0d0a810b141e44b9f90`. Final-I.1 is completed and accepted at its feature head `9a15f349c1104671f5555d1988caa56756e5ff0c`, and Final-I.2 is completed and accepted at `6451cb705d972c83a771a9ff39f6da80d130cf58`; Final-I.3 is completed and accepted on 2026-09-29 at accepted head `8c5a9186e392f35bdbc998f463c5c3c6cd0be295` after Hosted owner validation of the desktop, Android mobile browser, Android standalone PWA, Push deep-link, and final mobile/PWA auto-scroll refinement. Final-I.4 is completed and accepted on 2026-09-30 at accepted feature head `8e2d7d56a8e81a860833b05f4a28cba8a517bad4` after Hosted/mobile owner validation of representative guest emails. This documentation-only closure does not replace `8e2d7d56a8e81a860833b05f4a28cba8a517bad4` as the accepted Final-I.4 feature head. Phase 13 remains not started and is blocked until Final-I closes and receives owner acceptance.
 
 ## Subphase Structure
 
@@ -169,7 +170,7 @@ Final-I.2 reviewed each stale candidate for reachability before removing it. Unu
 
 ## Final-I.3 Accepted Scope And Hosted Validation
 
-Final-I.3 is completed and accepted on 2026-09-29 at accepted feature head `8c5a9186e392f35bdbc998f463c5c3c6cd0be295`. Final Hosted owner validation passed across desktop browser, Android Chrome browser, Android standalone PWA, Push deep-link behavior, and the final mobile/PWA deep-link auto-scroll refinement. Final-I.4 implementation is completed; Hosted owner validation and acceptance remain pending.
+Final-I.3 is completed and accepted on 2026-09-29 at accepted feature head `8c5a9186e392f35bdbc998f463c5c3c6cd0be295`. Final Hosted owner validation passed across desktop browser, Android Chrome browser, Android standalone PWA, Push deep-link behavior, and the final mobile/PWA deep-link auto-scroll refinement. Final-I.4 is completed and accepted on 2026-09-30 at accepted head `8e2d7d56a8e81a860833b05f4a28cba8a517bad4`.
 
 Accepted responsive behavior:
 
@@ -238,81 +239,406 @@ Accepted targeted retrieval contract:
 - no public notification lookup endpoint was introduced
 ```
 
-## Final-I.4 Implementation Scope - Hosted Owner Validation Pending
+## Final-I.4 Accepted Scope And Hosted/Mobile Validation
 
-Final-I.4 removes long raw action URLs visibly printed inside guest-facing HTML email bodies because those URLs can cause mobile email clients to zoom/reflow poorly. CTA buttons remain the HTML action surface, and text/plain email keeps labeled URLs because plaintext clients have no styled button.
-
-Implemented guest-facing cleanup:
+Final-I.4 is completed and accepted on 2026-09-30. The accepted Final-I.4 feature head is:
 
 ```text
-- Arrival instructions: map CTA href preserved; visible raw map URL removed from the HTML body.
-- Review invitation: review CTA href preserved; visible raw private review URL removed from the HTML body.
-- Additional-charge payment request: payment CTA href preserved; visible raw private payment URL removed from the guest HTML body.
-- Lifecycle date-change and stay-extension payment requests: payment CTA href preserved; visible raw private payment URL removed from the guest HTML body.
+8e2d7d56a8e81a860833b05f4a28cba8a517bad4
 ```
 
-Preserved behavior:
+This documentation-only closure commit must not replace that feature head as the accepted Final-I.4 implementation head.
+
+Final-I.4 removes duplicated long raw action URLs from visible guest-facing HTML email body text only. It does not delete action URLs from email entirely.
+
+Accepted HTML/plaintext contract:
 
 ```text
-- HTML CTA `href` destinations remain unchanged.
-- Text/plain email continues to include labeled action URLs for plaintext clients.
-- Payment, reservation, review, and map URLs/tokens remain unchanged.
-- Expiry behavior, routing, recipients, subjects, delivery/retry pipeline, React Email, `@react-email/render`, `EmailLayout`, `EmailButton`, localization architecture, and brand layout remain unchanged.
-- Admin/internal visible URL fallbacks remain available, including additional-charge Admin reservation links and lifecycle adjustment Admin delivery-status emails.
+HTML:
+- CTA button remains.
+- action URL remains in the CTA href.
+- action URL is not printed as duplicated visible body text below the button.
+
+text/plain:
+- labeled action URL remains visible for plaintext clients.
 ```
 
-The email audit covered `emails/**` and `lib/email/**`. Reservation-confirmed email remains a no-action-url control. Final-I.4 is presentation-only and introduced no schema, migration, dependency, environment, scheduler, API, Production resource, FEL implementation, or Phase 13 work.
-
-Final-I.4 tests distinguish URL presence in HTML `href` attributes from forbidden visible text nodes, verify Spanish and English guest emails, preserve plaintext URLs, and include Admin regression coverage for shared templates where visible fallback URLs are still intentional.
-
-Final-I.5 through Final-I.8 define FEL direction without inventing provider specifics:
+Accepted guest-facing cleanup:
 
 ```text
-- Admin FEL module
-- initial fiscal type: Factura de Pequeño Contribuyente
-- one invoice may include one or more Reservations
-- one lodging line per Reservation
-- additional-charge lines per Reservation
-- invoice-level option to group extra-charge lines
-- fiscal receiver is separate from Reservation guest identity
-- invoice values use immutable snapshots from the accepted financial source
-- refund is not invoice cancellation
-- credit note is a separate fiscal adjustment
-- refund on already invoiced value may surface fiscal reconciliation required
-- no automatic credit note until provider/accounting contract is frozen
-- React Email + existing EmailLayout for delivery email
-- PDF attachment expected
-- XML certified document support to be decided from the official INFILE contract
-- INFILE provider contract must not be invented
+Arrival Instructions
+- mapUrl remains the CTA href.
+- raw mapUrl no longer appears visibly below the button.
+
+Review Invitation
+- reviewUrl remains the CTA href.
+- raw reviewUrl no longer appears visibly below the button.
+
+Additional Charge Payment Required
+- paymentUrl remains the guest CTA href.
+- raw paymentUrl no longer appears visibly below the button.
+
+Lifecycle Adjustment Payment Required
+- Date Change paymentUrl remains the CTA href.
+- Stay Extension paymentUrl remains the CTA href.
+- raw paymentUrl no longer appears visibly in guest HTML.
 ```
 
-Unresolved FEL/INFILE questions remain carried forward:
+Admin-facing and guest-facing URL presentation remain intentionally distinct. Final-I.4 intentionally did not remove existing Admin/internal visible URL fallbacks, including:
+
+```text
+- additional-charge Admin reservation links
+- Admin Date Change payment-link delivery-status email
+- Admin Stay Extension payment-link delivery-status email
+- admin-new-reservation email
+- admin-review-submitted email
+```
+
+Final-I.4 did not change:
+
+```text
+- CTA destinations
+- map URLs
+- review URLs
+- payment URLs
+- reservation/review/payment tokens
+- expiry behavior
+- recipient routing
+- subjects
+- preview text
+- React Email
+- @react-email/render
+- EmailLayout
+- EmailButton
+- email persistence
+- email retry policy
+- Resend provider
+- sender addresses
+- reply-to behavior
+- scheduler
+```
+
+`reservation-confirmed-email.tsx` remained a no-action-URL regression control.
+
+Owner Hosted/mobile validation passed for representative real emails:
+
+```text
+Arrival Instructions
+PASS
+- map CTA visible
+- no long raw map URL underneath
+- mobile width/layout normal
+- CTA opens correct destination
+
+Review Invitation
+PASS
+- review CTA visible
+- no raw review URL underneath
+- mobile width/layout normal
+- CTA opens correct destination
+
+Additional Charge Payment Required
+PASS
+- payment CTA visible
+- no raw payment URL underneath
+- mobile width/layout normal
+- CTA opens correct destination
+
+Lifecycle Adjustment Payment Required
+PASS
+- representative Date Change or Stay Extension email validated
+- payment CTA visible
+- no raw payment URL underneath
+- mobile width/layout normal
+- CTA opens correct destination
+```
+
+Owner acceptance was explicit on 2026-09-30. Vercel for the accepted feature head was SUCCESS.
+
+## Final-I.5 Prepared Scope - Not Started
+
+Final-I.5 - FEL/INFILE fiscal/domain contract and architecture - is the next subphase and remains Not started until explicitly requested. This closure prepares the scope only; it does not implement Final-I.5.
+
+Final-I.5 is an architecture/contract subphase. Its purpose is to freeze the TRP Booking fiscal domain model and provider-independent FEL architecture before implementing persistence or calling INFILE. Provider transport remains deferred to Final-I.7.
+
+Final-I.5 must not invent undocumented INFILE endpoints, authentication, payloads, headers, cancellation APIs, credit-note APIs, PDF/XML endpoints, idempotency semantics, retry semantics, response fields, status lookup behavior, or duplicate-handling semantics.
+
+Owner business goal:
+
+```text
+- Admin must eventually support issuing Guatemala FEL documents for completed stays.
+- Primary use case: Factura Pequeño Contribuyente.
+- Admin must be able to create one fiscal document for one reservation or multiple reservations.
+- A fiscal document may contain one lodging line per reservation plus eligible extra/additional-charge lines.
+```
+
+Illustrative future line examples:
+
+```text
+Reservación del 15 al 16 de Agosto (1 noche)
+Reservación del 16 al 18 de Agosto (2 noches)
+Transporte (Desde Antigua a Panajachel)
+Daños (Manchas a paredes)
+```
+
+Additional-charge grouping requirement:
+
+```text
+- Admin must eventually choose between individual extra lines and one grouped extras line for the complete invoice.
+- Example grouped line: Servicios y cargos adicionales, or equivalent finalized fiscal description.
+- Even when displayed as one grouped fiscal line, internal source mappings must preserve which AdditionalCharge, GuestPaymentRequestItem, refund/allocation, and reservation contributed to that fiscal line.
+- Grouping must not destroy source traceability.
+```
+
+Fiscal receiver boundary:
+
+```text
+booking guest != fiscal receiver
+```
+
+A fiscal receiver may require independent fiscal identity data such as legal/fiscal name, NIT or applicable tax identifier, fiscal address, email, and other provider/SAT-required receiver fields. Do not assume `Reservation.guestName` or `Reservation.guestEmail` alone are sufficient. Exact receiver fields remain blocked until official fiscal/provider/accounting guidance is available.
+
+Provider-independent lifecycle concept:
+
+```text
+DRAFT
+READY
+SUBMITTING
+CERTIFIED
+REJECTED
+RETRY_PENDING
+```
+
+Final-I.5 may refine exact names, but must preserve the lifecycle distinction. Cancellation is an operation/state on the original certified DTE, not a negative invoice.
+
+Document-type architecture must support at minimum the conceptual distinction between:
+
+```text
+SMALL_TAXPAYER_INVOICE
+CREDIT_NOTE
+```
+
+Exact SAT/INFILE DTE codes and provider identifiers must not be invented. Invoice cancellation is separate from Credit Note issuance.
+
+Fiscal/payment separation:
+
+```text
+reservation cancellation
+!=
+payment refund
+!=
+FEL document cancellation
+!=
+credit note
+```
+
+Do not automatically assume every refund creates a credit note, or that reservation cancellation creates DTE cancellation. Exact fiscal rules must be frozen later using official documentation and accounting guidance.
+
+Invoice source-of-truth principle:
+
+```text
+- FEL must use immutable fiscal snapshots.
+- An issued/certified invoice must not be calculated dynamically from current mutable reservation records.
+- Conceptual sources include reservation pricing snapshot, lodging totals, additional charges, GuestPaymentRequestItem snapshots, refund allocations, frozen receiver data, and frozen exchange-rate/currency data if applicable.
+- Once a DTE is certified, the fiscal representation must remain historically reproducible.
+```
+
+Double-counting prevention is mandatory. Final-I.5 must document the relationship between `Reservation.total` and `AdditionalCharge` / `GuestPaymentRequestItem` before any persistence implementation. It must not naively invoice `Reservation.total + all AdditionalCharges` without proving which amounts are already included.
+
+Candidate conceptual entities for later Final-I.6 implementation, not to be created during this closure:
+
+```text
+FelDocument
+FelDocumentReservation
+FelLineItem
+FelProviderAttempt
+FelCreditAllocation
+```
+
+Potential responsibilities:
+
+```text
+FelDocument:
+- document type
+- status
+- currency
+- receiver fiscal snapshot
+- totals
+- provider certification identity
+- authorization/UUID
+- series
+- number
+- certification timestamps
+- cancellation state
+- original-document relation where appropriate
+
+FelDocumentReservation:
+- maps a fiscal document to one or more reservations
+- preserves reservation-level source snapshot/reference
+
+FelLineItem:
+- immutable displayed fiscal line
+- quantity
+- description
+- unit price
+- amount
+- tax/fiscal attributes when contract is known
+- source mapping
+
+FelProviderAttempt:
+- operation
+- attempt number
+- request fingerprint/idempotency reference
+- safe provider response metadata
+- status
+- error classification
+- timestamps
+
+FelCreditAllocation:
+- maps a credit note or fiscal adjustment back to original fiscal lines/documents and relevant financial/refund sources
+```
+
+Names remain conceptual until Final-I.5 freezes the contract. This closure must not modify Prisma.
+
+Invoice eligibility:
+
+```text
+- Owner preference: Admin creates invoices for stays after checkout.
+- Treat after checkout as the current TRP application eligibility rule.
+- Do not claim Guatemala law requires this exact timing unless verified separately.
+- Final-I.5 must distinguish TRP business eligibility rules from legal/provider requirements.
+```
+
+Later Final-I.6 Admin workflow concept:
+
+```text
+Admin > FEL / Facturación
+Admin selects eligible reservations.
+Selection should support one reservation or multiple reservations with the same intended fiscal receiver and compatible currency/fiscal conditions.
+Admin reviews receiver, lodging lines, extra charges, grouped vs individual extras, fiscal totals, and saves DRAFT.
+Certification does not belong to Final-I.6 unless the exact provider contract is available.
+```
+
+Open fiscal/provider questions that must remain unresolved until official provider/SAT/accounting confirmation:
 
 ```text
 - USD/GTQ handling
 - exchange rates
+- taxable base
+- rounding
+- CF
+- NIT
+- other receiver identification
+- invoice amount thresholds
 - DTE receiver fields
-- CF/NIT/CUI/passport/foreign tax ID rules
-- legal timing and eligibility around checkout
 - INFILE transport
 - INFILE authentication
-- INFILE signature requirements
-- certification response shape
-- cancellation behavior
-- credit note behavior
+- INFILE signatures
+- certification request/response schema
+- authorization UUID
+- series
+- number
+- status fields
 - idempotency
-- retry and contingency behavior
+- duplicate handling
+- timeout reconciliation
+- status lookup
+- cancellation
+- credit notes
 - PDF retrieval
 - XML retrieval
+- error taxonomy
+- rate limits
+- retry guidance
+- Test environment behavior
 ```
+
+Do not silently convert USD to GTQ. Do not hard-code CF/NIT thresholds or legal rules unless supported by current official documentation.
+
+Provider-independent persistence boundary:
+
+```text
+TRP fiscal domain
+-> provider adapter
+-> INFILE
+```
+
+The eventual persistence model must store normalized TRP fiscal fields, not make INFILE response JSON the database schema. Provider-specific payload/response details should remain isolated behind an adapter boundary.
+
+Durable operation principle for later implementation:
+
+```text
+persist fiscal intention / immutable snapshot
+COMMIT
+attempt provider operation best-effort
+persist result
+
+if retryable:
+durable retry/recovery
+```
+
+Network timeout is not automatically equivalent to certification failure. If timeout occurs after INFILE may have certified the DTE, TRP must reconcile status before blindly resubmitting. Exact status/idempotency mechanisms remain blocked on official INFILE documentation.
+
+Retry classification concept:
+
+```text
+network timeout
+5xx
+provider temporary failure
+-> potentially RETRY_PENDING
+
+validation/business rejection
+-> REJECTED
+-> no blind retry until corrected
+```
+
+No retries, cron, scheduler, provider call, schema, or migration are introduced by this closure. A future `PROCESS_FEL_DOCUMENTS` Production cron may be needed, but must not be added during Final-I.5. The accepted Production cron registry remains exactly the current six jobs until a later FEL contract explicitly requires another one.
+
+Final-I.7 remains blocked until the owner provides official INFILE Postman/OpenAPI/Swagger/integration manual plus Test credentials.
+
+Final-I.5 expected deliverable when explicitly started:
+
+```text
+architecture/domain documentation
+field/relationship contract
+state machine
+source-of-truth rules
+grouping rules
+fiscal receiver contract
+invoice eligibility rules
+provider boundary
+open-question register
+I.6 persistence/UI implementation plan
+I.7 provider-integration blocker list
+```
+
+Final-I.5 acceptance must answer:
+
+```text
+What exactly is a fiscal document in TRP?
+How does one document relate to one/multiple reservations?
+How are lodging amounts sourced?
+How are extra charges sourced?
+How is double counting prevented?
+How are grouped extra lines traced back to original sources?
+What receiver data is frozen?
+When does a reservation become invoice-eligible?
+What is immutable after certification?
+How are cancellation, refund and credit note separated?
+Which questions remain blocked on official INFILE/SAT/accounting documentation?
+What exactly will I.6 implement?
+What exactly remains deferred to I.7?
+```
+
+Final-I.6, Final-I.8, and Final-I.9 remain Not started. Final-I.7 remains Blocked pending official INFILE technical documentation and Test credentials.
 
 ## Boundaries
 
 ```text
 - Phase 13 remains blocked / not started until Final-I closes.
 - No Production provider account, credential, DNS cutover, payment credential, database, media account, WhatsApp sender, FEL account, or public go-live is introduced by Final-I.1 through Final-I.4.
-- No schema, migration, dependency, environment variable, scheduler, AdminNotificationType, Production, Final-I.5+, FEL, Final-G/H reopening, or Phase 13 work is part of Final-I.4.
-- Final-I.5 is the next subphase and remains Not started until explicitly requested.
+- No schema, migration, dependency, environment variable, scheduler, AdminNotificationType, Production, FEL runtime, Final-I.5 implementation, Final-G/H reopening, or Phase 13 work is part of this Final-I.4 acceptance closure.
+- Final-I.5 is the next subphase and remains Not started until explicitly requested; this closure only prepares its architecture scope.
 - Existing Final-F.7 Zoho webhook signature verification, bootstrap behavior, Limited Data parsing, bounded persistence, notification-center serialization, and immediate Web Push delivery remain preserved.
 - `vercel.json` remains `{ "crons": [] }`.
 ```
@@ -368,6 +694,12 @@ Final-I.4 implementation validation:
 - npm run build - PASS; initial sandbox run failed to fetch Google Fonts for next/font before the escalated rerun passed; Next slow filesystem warning only
 - npm audit --omit=dev - PASS, 0 vulnerabilities; initial sandbox run could not reach the audit endpoint/cache before the escalated rerun passed
 - git diff --check - PASS
+- Vercel - SUCCESS
+- Hosted/mobile owner validation - PASS
+- Owner acceptance - PASS on 2026-09-30 at accepted feature head 8e2d7d56a8e81a860833b05f4a28cba8a517bad4
+Final-I.4 documentation acceptance closure validation:
+- npm run final-i:validate - PASS, 29/29; initial sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM before the escalated rerun passed
+- git diff --check - PASS; Windows CRLF normalization warnings only
 ```
 
 ## Final-I.1 Hosted Owner Validation Completed
@@ -424,7 +756,7 @@ Final mobile/PWA scroll refinement:
 - later manual accordion changes do not trigger forced scrolling
 ```
 
-Final-I.4 implementation is completed; Hosted owner validation + acceptance pending.
+Final-I.4 is completed and accepted on 2026-09-30 at accepted head `8e2d7d56a8e81a860833b05f4a28cba8a517bad4`.
 
 ## Final-I.2 Hosted Owner Visual Validation Completed
 
@@ -454,4 +786,4 @@ Admin cancellation:
 - cancellation/refund separation explained as current behavior
 ```
 
-Final-I.1 is completed and accepted on 2026-09-29 at accepted head `9a15f349c1104671f5555d1988caa56756e5ff0c`. Final-I.2 is completed and accepted on 2026-09-29 at accepted head `6451cb705d972c83a771a9ff39f6da80d130cf58`. Final-I.3 is completed and accepted on 2026-09-29 at accepted head `8c5a9186e392f35bdbc998f463c5c3c6cd0be295`. Final-I.4 implementation is completed; Hosted owner validation + acceptance pending.
+Final-I.1 is completed and accepted on 2026-09-29 at accepted head `9a15f349c1104671f5555d1988caa56756e5ff0c`. Final-I.2 is completed and accepted on 2026-09-29 at accepted head `6451cb705d972c83a771a9ff39f6da80d130cf58`. Final-I.3 is completed and accepted on 2026-09-29 at accepted head `8c5a9186e392f35bdbc998f463c5c3c6cd0be295`. Final-I.4 is completed and accepted on 2026-09-30 at accepted head `8e2d7d56a8e81a860833b05f4a28cba8a517bad4`.
