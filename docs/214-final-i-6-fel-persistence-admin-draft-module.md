@@ -233,7 +233,7 @@ Final-I.6 hardening adds the explicit DB-backed validation gate:
 npm run final-i:db:validate
 ```
 
-That suite runs only when `TRP_ENVIRONMENT=test`, uses uniquely namespaced fixtures and targeted cleanup, and executes real Prisma/PostgreSQL service calls for draft creation, grouped and individual extras, duplicate source conflicts, the PostgreSQL XOR CHECK, failed rebuild rollback, discard source release, non-DRAFT edit rejection, and same-draft preview ownership.
+That suite runs only when `TRP_ENVIRONMENT=test`, uses uniquely namespaced fixtures and targeted cleanup, and executes real Prisma/PostgreSQL service calls for draft creation, grouped and individual extras, duplicate Reservation source conflicts, duplicate GuestPaymentRequestItem source conflicts, the PostgreSQL XOR CHECK, failed rebuild rollback, discard source release, non-DRAFT edit rejection, and same-draft preview ownership.
 
 ## I.7 Carry-Forward
 
@@ -243,7 +243,7 @@ Before Final-I.7 creates any `FelCreditAllocation`, the provider-integration imp
 
 ```text
 npm run final-i:validate - PASS, 48/48; initial sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM before the escalated rerun passed
-npm run final-i:db:validate - PASS, 9/9 with TRP_ENVIRONMENT=test; direct local-environment run failed closed because TRP_ENVIRONMENT was local
+npm run final-i:db:validate - PASS, 10/10 with TRP_ENVIRONMENT=test; direct local-environment run failed closed because TRP_ENVIRONMENT was local
 npm run final-f:validate - PASS, 125/125
 npm run final-h:validate - PASS, 20/20
 npm run env:validate - PASS; initial sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM before the escalated rerun passed
@@ -256,6 +256,8 @@ npm run build - PASS; initial sandbox run failed to fetch Google Fonts for next/
 npm audit --omit=dev - PASS, 0 vulnerabilities; initial sandbox run could not reach the audit endpoint/cache before the escalated rerun passed
 git diff --check - PASS
 ```
+
+The DB-backed gate now explicitly proves both canonical source uniqueness constraints: Reservation source uniqueness and GuestPaymentRequestItem source uniqueness.
 
 ## Current State
 

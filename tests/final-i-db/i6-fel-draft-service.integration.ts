@@ -720,6 +720,64 @@ test("I.6 DB rejects duplicate reservation claims with bounded FEL error", async
   });
 });
 
+test("I.6 DB rejects duplicate GPRI commercial source allocation", async () => {
+  await withFixture("duplicate-gpri", async (context) => {
+    const reservationA = await createReservation(context, "duplicate-gpri-a");
+    const extraA = await createPaidExtra(
+      context,
+      reservationA,
+      "duplicate-gpri-extra-a",
+      "40.00",
+      AdditionalChargeCategory.TRANSPORT,
+    );
+    const reservationB = await createReservation(context, "duplicate-gpri-b");
+    const documentA = await createDraft(context, [reservationA.id], false);
+    const documentB = await createDraft(context, [reservationB.id], false);
+    const documentBGraph = await readDocumentGraph(documentB.id);
+    const conflictingAmount = new Prisma.Decimal("40.00");
+
+    assert.ok(documentBGraph);
+    const targetLine = documentBGraph.lineItems.find(
+      (line) => line.kind === FelLineKind.LODGING,
+    );
+
+    assert.ok(targetLine);
+
+    await assert.rejects(
+      () =>
+        prisma.$executeRaw`
+          INSERT INTO "fel_commercial_source_allocations"
+            ("id", "fel_document_id", "fel_line_item_id", "guest_payment_request_item_id", "amount_snapshot", "currency_snapshot", "created_at")
+          VALUES
+            (${makeId(context, "invalid-duplicate-gpri")}, ${documentB.id}, ${targetLine.id}, ${extraA.guestPaymentRequestItemId}, ${conflictingAmount}, ${"USD"}, NOW())
+        `,
+      (error) => {
+        assert.ok(error instanceof Prisma.PrismaClientKnownRequestError);
+        assert.match(
+          error.message,
+          /fel_commercial_source_allocations_gpri_id_key|guest_payment_request_item_id/i,
+        );
+        return true;
+      },
+    );
+
+    const allocations = await prisma.felCommercialSourceAllocation.findMany({
+      where: { guestPaymentRequestItemId: extraA.guestPaymentRequestItemId },
+      orderBy: { felDocumentId: "asc" },
+    });
+    const documentBAllocations = await prisma.felCommercialSourceAllocation.count({
+      where: {
+        felDocumentId: documentB.id,
+        guestPaymentRequestItemId: extraA.guestPaymentRequestItemId,
+      },
+    });
+
+    assert.equal(allocations.length, 1);
+    assert.equal(allocations[0].felDocumentId, documentA.id);
+    assert.equal(documentBAllocations, 0);
+  });
+});
+
 test("I.6 DB enforces XOR source constraint for commercial allocations", async () => {
   await withFixture("xor", async (context) => {
     const reservation = await createReservation(context, "valid");

@@ -698,7 +698,7 @@ Final-I.6 works without INFILE credentials, transport, certification endpoint, c
 
 Final-I.6 implementation record: `docs/214-final-i-6-fel-persistence-admin-draft-module.md`.
 
-Final-I.6 hardening added `npm run final-i:db:validate` as an explicit DB-backed Test-only integration gate. It verifies real Prisma/PostgreSQL draft creation, allocation uniqueness, XOR enforcement, rollback safety, discard source release, non-DRAFT edit rejection, and same-draft preview ownership with targeted fixture cleanup.
+Final-I.6 hardening added `npm run final-i:db:validate` as an explicit DB-backed Test-only integration gate. It verifies real Prisma/PostgreSQL draft creation, Reservation source uniqueness, GuestPaymentRequestItem source uniqueness, XOR enforcement, rollback safety, discard source release, non-DRAFT edit rejection, and same-draft preview ownership with targeted fixture cleanup.
 
 Final-I.7 carry-forward: before any `FelCreditAllocation` is created by provider integration, the implementation must ensure `originalLineItemId` belongs to `originalDocumentId`, preferably through a composite database relationship. I.6 does not add a second migration for this deferred provider-integration prerequisite.
 
@@ -812,7 +812,7 @@ Final-I.5 documentation acceptance closure validation:
 - git diff --check - PASS
 Final-I.6 implementation validation:
 - npm run final-i:validate - PASS, 48/48; initial sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM before the escalated rerun passed
-- npm run final-i:db:validate - PASS, 9/9 with TRP_ENVIRONMENT=test; direct local-environment run failed closed because TRP_ENVIRONMENT was local
+- npm run final-i:db:validate - PASS, 10/10 with TRP_ENVIRONMENT=test; direct local-environment run failed closed because TRP_ENVIRONMENT was local
 - npm run final-f:validate - PASS, 125/125
 - npm run final-h:validate - PASS, 20/20
 - npm run env:validate - PASS; initial sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM before the escalated rerun passed
