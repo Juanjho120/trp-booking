@@ -258,7 +258,7 @@ test("I.5 tracker state keeps I.6 next and Phase 13 blocked", () => {
   expectIncludes(record, "Accepted Final-I.5 head: fde3ae06427af1f8905e6f7589263c199f918553");
   expectIncludes(
     record,
-    "Final-I.6 status: Implementation completed; Hosted owner validation + acceptance pending",
+    "Final-I.6 status: Implementation completed; Hosted owner validation in progress",
   );
   expectIncludes(
     record,

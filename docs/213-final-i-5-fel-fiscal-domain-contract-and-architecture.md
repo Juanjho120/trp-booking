@@ -13,7 +13,7 @@ Final-I.1 status: Completed and accepted on 2026-09-29
 Final-I.2 status: Completed and accepted on 2026-09-29
 Final-I.3 status: Completed and accepted on 2026-09-29
 Final-I.4 status: Completed and accepted on 2026-09-30
-Final-I.6 status: Implementation completed; Hosted owner validation + acceptance pending
+Final-I.6 status: Implementation completed; Hosted owner validation in progress
 Final-I.6 implementation record: docs/214-final-i-6-fel-persistence-admin-draft-module.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started
@@ -38,7 +38,7 @@ Accepted closure evidence:
 ```text
 Vercel — SUCCESS for fde3ae06427af1f8905e6f7589263c199f918553
 Owner architecture acceptance — PASS
-Final-I.6 — Implementation completed; Hosted owner validation + acceptance pending
+Final-I.6 — Implementation completed; Hosted owner validation in progress
 Final-I.7 — Blocked pending official INFILE technical documentation + Test credentials
 Phase 13 — Blocked / Not started
 ```
@@ -621,7 +621,77 @@ foreign passport / foreign tax identifier where applicable
 Consumidor Final when legally eligible
 ```
 
-Exact normalization and validation remain part of later implementation/fiscal contract refinement.
+Final-I.6 freezes the Admin Fiscal Receiver form order as:
+
+```text
+Identifier type
+Identifier
+Receiver name
+Email
+Country
+Address
+```
+
+Spanish UI order:
+
+```text
+Tipo de identificación
+Identificación
+Nombre del receptor
+Correo
+País
+Dirección
+```
+
+This order is intentional: future NIT/CUI validation resolves the receiver name from the identifier before the Admin reaches the name field.
+
+Final-I.7 must support authoritative receiver validation through the configured FEL provider for both `NIT` and `CUI`. These validations belong to provider integration because they require INFILE's authenticated contract and credentials. Final-I.6 must not implement external NIT/CUI transport, call SAT/INFILE, add credentials, or invent provider-side format rules.
+
+Future provider-neutral receiver lookup states are:
+
+```text
+IDLE
+VALIDATING
+VALID
+NOT_FOUND
+UNAVAILABLE
+```
+
+Provider-neutral lookup results remain:
+
+```text
+FOUND
+NOT_FOUND
+UNAVAILABLE
+```
+
+Local syntax/format validation may reject clearly malformed input, but local validation is not authoritative taxpayer/person existence validation. Authoritative lookup determines whether the supplied NIT/CUI can be resolved by the configured provider.
+
+Future valid `NIT` lookup: Admin enters NIT, TRP normalizes it, the server-side receiver lookup adapter calls INFILE, and provider `FOUND` sets `receiverIdentifier` to the normalized NIT and `receiverName` to the official provider-returned name. Future valid `CUI` lookup follows the same pattern with provider-validated CUI. Prefer read-only receiver name while the validated NIT/CUI remains unchanged. Changing identifier type, identifier, or validated receiver name must invalidate lookup state and any server-authoritative preview.
+
+Invalid UX copy frozen for future implementation:
+
+```text
+ES NIT: El NIT ingresado no existe o no está registrado.
+EN NIT: The entered NIT does not exist or is not registered.
+ES CUI: El CUI ingresado no existe o no está registrado.
+EN CUI: The entered CUI does not exist or is not registered.
+```
+
+Provider-unavailable UX copy frozen for future implementation:
+
+```text
+ES NIT: No se pudo consultar el NIT en este momento.
+EN NIT: The NIT could not be checked at this time.
+ES CUI: No se pudo consultar el CUI en este momento.
+EN CUI: The CUI could not be checked at this time.
+```
+
+Provider unavailability must not be shown as an invalid identifier. For validated NIT/CUI, `receiverName` comes from the authoritative provider lookup, not from `Reservation.guestName`; preserve `fiscal receiver != booking guest`. `CONSUMIDOR_FINAL` does not run NIT/CUI lookup and must not be treated as a fake NIT. `PASSPORT_FOREIGN` and `OTHER` keep manually supplied receiver names unless official provider documentation defines another mechanism.
+
+SAT-domain carry-forward: `IDReceptor` can represent NIT or CUI; when CUI is used, `TipoEspecial = CUI`. This is a future provider/XML mapping concern and does not add SAT XML generation in I.6.
+
+When provider integration is active in Final-I.7, certification readiness must require successful authoritative receiver validation for `NIT` and `CUI`. Draft persistence may remain more permissive if operational recovery requires it, but an unvalidated identifier string must not be sufficient for certification readiness.
 
 ## Candidate Document Types
 
@@ -1601,4 +1671,4 @@ Documentation acceptance closure validation:
 - git diff --check - PASS
 ```
 
-Final-I.6 implementation is completed with Hosted owner validation + acceptance pending. Final-I.7 remains blocked pending official INFILE technical documentation and Test credentials.
+Final-I.6 implementation is completed with Hosted owner validation in progress. Final-I.7 remains blocked pending official INFILE technical documentation and Test credentials.

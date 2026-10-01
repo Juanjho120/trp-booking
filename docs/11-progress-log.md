@@ -1911,6 +1911,25 @@ No Prisma schema, migration, Admin FEL UI, INFILE transport, environment variabl
 
 Validation executed for I.5: initial implementation validation passed as previously recorded; source-consumption hardening validation passed as previously recorded; canonical amount-source hardening validation executed `npm run final-i:validate` PASS 36/36 outside the sandbox after the known sandbox-only `tsx` startup failure mode; `npm run final-h:validate` PASS 20/20 outside the sandbox after the same known `tsx` sandbox issue; `npm run env:validate` PASS outside the sandbox; `npm run db:validate` PASS with Prisma `package.json#prisma` deprecation warning only; `npm run db:generate` PASS with Prisma `package.json#prisma` deprecation warning only; `npm run db:migrate:status` PASS with 29 migrations and database schema up to date; `npm run lint` PASS; `npm run build` PASS with Next slow filesystem warning only; `npm audit --omit=dev` PASS with 0 vulnerabilities; and `git diff --check` PASS. Documentation acceptance closure validation executed `npm run final-i:validate` PASS 36/36 and `git diff --check` PASS; Vercel was SUCCESS and owner architecture acceptance was PASS for accepted head `fde3ae06427af1f8905e6f7589263c199f918553`.
 
+## 2026-09-30 — Final-I.6 NIT/CUI Receiver Validation Contract Frozen
+
+```text
+Package: Final-I — Operational Polish, Notification UX & FEL Invoicing
+Subphase: Final-I.6 — FEL persistence + Admin draft/selection/preview module
+Status: Implementation completed; Hosted owner validation in progress
+Final-I.6 record: docs/214-final-i-6-fel-persistence-admin-draft-module.md
+Final-I.7: Blocked pending official INFILE technical documentation + Test credentials
+Phase 13: Blocked / Not started until Final-I closes
+```
+
+This documentation-only contract pass freezes the Admin `/admin/fel` Fiscal Receiver form order as `Identifier type -> Identifier -> Receiver name -> Email -> Country -> Address` / `Tipo de identificación -> Identificación -> Nombre del receptor -> Correo -> País -> Dirección`. The order is intentional because future NIT/CUI validation resolves the fiscal receiver name from the identifier before the Admin reaches the name field.
+
+Final-I.7 must implement authoritative provider-backed receiver validation for both `NIT` and `CUI` through the configured FEL provider using server-only authenticated INFILE integration after official documentation and Test credentials exist. Final-I.6 does not implement external NIT lookup, external CUI lookup, SAT scraping, SAT/INFILE calls, INFILE credentials, environment variables, certification, migrations, or runtime changes.
+
+Future provider-neutral lookup states are `IDLE`, `VALIDATING`, `VALID`, `NOT_FOUND`, and `UNAVAILABLE`, with provider result families `FOUND`, `NOT_FOUND`, and `UNAVAILABLE`. Local syntax/format validation may reject clearly malformed input, but the authoritative provider lookup determines whether a NIT/CUI exists or can be resolved. Provider unavailability must not be shown as invalid. For validated NIT/CUI, `receiverName` comes from the provider-returned identity, not from `Reservation.guestName`; preserve `fiscal receiver != booking guest`.
+
+Future certification readiness in Final-I.7 must require successful authoritative receiver validation for `NIT` and `CUI`. `CONSUMIDOR_FINAL` does not run NIT/CUI lookup and must not be treated as a fake NIT. `PASSPORT_FOREIGN` and `OTHER` remain manually supplied unless official provider documentation defines another mechanism. SAT-domain carry-forward: `IDReceptor` can represent NIT or CUI; when CUI is used, `TipoEspecial = CUI`; XML generation remains future I.7/provider mapping work.
+
 ## 2026-09-30 — Final-I.6 Hosted Feedback Corrections Applied; Hosted Owner Validation In Progress
 
 ```text

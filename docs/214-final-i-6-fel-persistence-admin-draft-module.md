@@ -127,6 +127,8 @@ Draft discard only applies to `DRAFT`, deletes/releases the draft graph by relat
 
 Final-I.6 Hosted-feedback hardening adds a server-only provider-neutral NIT lookup boundary in `lib/fel/receiver-nit-lookup.ts` plus protected Admin API `POST /api/admin/fel/receiver/nit-lookup`. The current transport intentionally remains `PROVIDER_NOT_CONFIGURED` because TRP does not yet have an authoritative anonymous SAT JSON API contract or official INFILE Test credentials/documentation for receiver lookup. The lookup boundary normalizes NIT input, supports `FOUND`, `NOT_FOUND`, and `UNAVAILABLE` results, and does not log or persist provider credentials, raw requests, or raw responses.
 
+Final-I.7 must extend this provider-neutral receiver lookup boundary to authoritative INFILE-backed validation for both `NIT` and `CUI` once official documentation and Test credentials exist. React components must not call INFILE directly; the boundary remains `TRP fiscal receiver domain -> Receiver lookup adapter -> INFILE implementation`, with credentials server-only.
+
 ## Eligibility
 
 A reservation is eligible for a new normal invoice draft only when all of the following hold:
@@ -187,6 +189,49 @@ The module supports eligible reservation selection, one/multiple reservation dra
 The editable preview is now server-authoritative through `POST /api/admin/fel/preview`. Client-side arithmetic is not the fiscal source of truth. The UI distinguishes the saved draft snapshot from "Vista previa desde datos comerciales actuales" / "Preview from current commercial data", marks previews stale when reservation selection, receiver input, grouping mode, validated NIT/name changes, or edited document context changes, and disables save/rebuild until a fresh server preview exists for the current inputs.
 
 Fiscal receiver field order is `Tipo de identificación` / `Identifier type`, `Identificación` / `Identifier`, `Nombre del receptor` / `Receiver name`, `Correo` / `Email`, `País` / `Country`, and `Dirección` / `Address`. When identifier type is `NIT`, the Admin may explicitly run `Validar NIT` / `Validate NIT`; a future configured provider can return the official name and lock the validated NIT/name pair. While the provider remains not configured, the UI reports provider unavailability without treating the NIT as invalid and does not fake a successful lookup.
+
+That field order is frozen for Final-I.6 and future I.7 implementation: `Identifier type -> Identifier -> Receiver name -> Email -> Country -> Address` / `Tipo de identificación -> Identificación -> Nombre del receptor -> Correo -> País -> Dirección`. It is intentional because provider validation for NIT/CUI resolves the receiver name from the identifier before the Admin reaches the name field.
+
+Final-I.7 receiver validation carry-forward:
+
+```text
+NIT:
+Admin enters NIT
+-> normalize NIT
+-> validate through INFILE receiver lookup
+-> provider returns registered receiver identity
+-> receiverIdentifier = normalized NIT
+-> receiverName = official provider-returned name
+
+CUI:
+Admin enters CUI
+-> normalize/validate provider input
+-> validate through INFILE receiver lookup
+-> provider returns registered receiver identity
+-> receiverIdentifier = validated CUI
+-> receiverName = official provider-returned name
+```
+
+Prefer read-only receiver name while the validated NIT/CUI remains unchanged. Changing identifier type, identifier, or validated receiver name must invalidate lookup state and any server-authoritative preview. Provider-neutral lookup states are `IDLE`, `VALIDATING`, `VALID`, `NOT_FOUND`, and `UNAVAILABLE`; provider result families are `FOUND`, `NOT_FOUND`, and `UNAVAILABLE`. Local syntax checks may reject clearly malformed input, but local format validation is not authoritative existence validation.
+
+Future invalid and unavailable UX copy:
+
+```text
+ES NIT invalid: El NIT ingresado no existe o no está registrado.
+EN NIT invalid: The entered NIT does not exist or is not registered.
+ES CUI invalid: El CUI ingresado no existe o no está registrado.
+EN CUI invalid: The entered CUI does not exist or is not registered.
+ES NIT unavailable: No se pudo consultar el NIT en este momento.
+EN NIT unavailable: The NIT could not be checked at this time.
+ES CUI unavailable: No se pudo consultar el CUI en este momento.
+EN CUI unavailable: The CUI could not be checked at this time.
+```
+
+Provider unavailability must not be shown as an invalid identifier. For validated NIT/CUI, `receiverName` comes from the authoritative provider lookup, not from the Reservation guest name. `CONSUMIDOR_FINAL` does not run NIT/CUI lookup and must not be treated as a fake NIT. `PASSPORT_FOREIGN` and `OTHER` remain manually supplied unless official provider documentation defines another mechanism.
+
+SAT-domain carry-forward: `IDReceptor` can represent NIT or CUI; when CUI is used, `TipoEspecial = CUI`. This is a future provider/XML mapping concern and does not add SAT XML generation in I.6.
+
+When provider integration is active in Final-I.7, certification readiness must require successful authoritative receiver validation for `NIT` and `CUI`. Draft persistence may remain more permissive if operational recovery requires it, but an unvalidated identifier string is not enough for certification readiness.
 
 Fiscal line presentation was hardened during Hosted feedback: lodging line descriptions now persist the accommodation name, individual extras persist `<category label> (<description>)` using canonical Spanish fiscal labels, blank/redundant extra descriptions collapse to the category label, selected reservations keep the same strong border used on hover, document type display uses localized `Factura de Pequeño Contribuyente (FPEQ)` / `Small Taxpayer Invoice (FPEQ)`, and currency/amount render in separate aligned columns in preview and saved snapshots.
 
