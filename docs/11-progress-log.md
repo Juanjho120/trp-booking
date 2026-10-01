@@ -2003,6 +2003,26 @@ Validation executed for this correction: `npm run final-i:validate` PASS 57/57 a
 
 Final-I.6 remains not accepted until Hosted owner validation and explicit owner acceptance complete.
 
+## 2026-10-01 — Final-I.6 FEL Draft Post-Save Context Preservation Applied; Hosted Owner Validation In Progress
+
+```text
+Package: Final-I — Operational Polish, Notification UX & FEL Invoicing
+Subphase: Final-I.6 — FEL persistence + Admin draft/selection/preview module
+Status: Implementation completed; Hosted owner validation in progress
+Final-I.6 record: docs/214-final-i-6-fel-persistence-admin-draft-module.md
+Final-I.7: Blocked pending official INFILE technical documentation + Test credentials
+Final-I.8-Final-I.9: Not started
+Phase 13: Blocked / Not started until Final-I closes
+```
+
+Hosted validation identified a post-save UX continuity issue after successful draft creation: the new `FelCommercialSourceAllocation` correctly removed the just-invoiced Reservation from global eligibility, but the Admin screen could lose selected Reservation display and automatic contact suggestions while still showing the just-saved flow.
+
+The correction keeps successful draft creation as an explicit EDIT entry point. After `Guardar borrador` / `Save draft` returns the saved `AdminFelDocumentDetail`, `/admin/fel` accepts that snapshot as the current document, keeps the new-invoice tab active, uses manual receiver email/country snapshot values, keeps selected Reservations visible through the saved-draft fallback after `router.refresh()`, hides `Guardar borrador`, and shows `Guardar cambios`, `Descartar borrador`, `Nueva factura`, and `Snapshot guardado`.
+
+This does not reintroduce the previous implicit-history-selection bug: entering `/admin/fel`, refreshing, or returning later still starts in CREATE mode with no selected document. Only successful draft creation and explicit `Abrir / Editar` enter EDIT mode. No schema, migration, persistence architecture, INFILE, NIT/CUI lookup, dependency, environment variable, scheduler, Production resource, Final-I.7, or Phase 13 work was introduced.
+
+Validation executed for this correction: `npm run final-i:validate` PASS 57/57 after rerun outside the sandbox because the sandbox-only `tsx` startup failed with `uv_os_get_passwd ENOMEM`; `npm run final-i:db:validate` PASS 13/13 with `TRP_ENVIRONMENT=test` after the same sandbox-only `tsx` startup failure; `npm run final-h:validate` PASS 20/20 after the same sandbox-only `tsx` startup failure; `npm run lint` PASS; `npm run build` PASS after rerun outside the sandbox because the sandbox run could not fetch Google Fonts; and `git diff --check` PASS with Windows CRLF normalization warnings only.
+
 ## 2026-09-30 — Final-I.6 Implementation Completed; Hosted Owner Validation Pending
 
 ```text

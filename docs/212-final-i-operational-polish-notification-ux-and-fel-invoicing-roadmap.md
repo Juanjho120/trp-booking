@@ -711,6 +711,8 @@ Final-I.6 freezes the Admin `/admin/fel` Fiscal Receiver form order as `Identifi
 
 The latest Hosted-feedback correction simplifies Admin FEL drafting into explicit CREATE and EDIT modes. `/admin/fel` opens in clean CREATE mode with no selected document, even when draft history exists. History rows are navigation only; an existing draft enters EDIT only after explicit open/edit. CREATE mode exposes preview and save draft. EDIT mode exposes preview, single save changes, discard draft, and new invoice as appropriate. The old user-facing receiver-update versus rebuild distinction is removed; save changes preserves the same `FelDocument.id`, keeps source ownership under `FelCommercialSourceAllocation`, and rolls back without partially mutating the original draft if a conflict occurs.
 
+The post-save continuity correction keeps a newly created draft open as the current explicit EDIT document. Successful `Guardar borrador` / `Save draft` now accepts the returned saved snapshot, preserves receiver email/country as manual snapshot values, keeps the just-saved Reservations visible through the saved-draft fallback after refreshed eligibility data no longer includes allocated sources, hides `Guardar borrador`, and shows `Guardar cambios`, `Descartar borrador`, `Nueva factura`, and `Snapshot guardado`. Page load and refresh still start in clean CREATE mode unless the Admin explicitly creates a draft or opens one from history.
+
 Receiver guest contact data remains a suggestion source only, not fiscal identity. Selected Reservations can suggest receiver email values by trimmed, case-insensitive deduplication and receiver country values inferred from Reservation phone metadata through `libphonenumber-js` with a safe Reservation-country fallback. Manual Admin receiver email/country input is not overwritten by later selection changes, and existing draft receiver snapshots win when opened for edit. Eligible Reservation cards now display `dd/MM/yyyy` date-only ranges and localized singular/plural nights. The history-tab saved snapshot mirror was removed; the saved snapshot remains only in the new-invoice tab while explicitly editing a draft.
 
 Final-I.7 must implement authoritative provider-backed receiver validation for both `NIT` and `CUI` through the configured FEL provider, using server-only authenticated INFILE integration once official documentation and Test credentials exist. Future provider-neutral lookup states are `IDLE`, `VALIDATING`, `VALID`, `NOT_FOUND`, and `UNAVAILABLE`, with provider result families `FOUND`, `NOT_FOUND`, and `UNAVAILABLE`. Local syntax checks may reject clearly malformed values, but local format validation is not authoritative taxpayer/person existence validation.
@@ -860,6 +862,13 @@ Final-I.6 Hosted UX editing workflow correction validation:
 - npm run lint - PASS
 - npm run build - PASS after rerun outside the sandbox because the sandbox run could not fetch Google Fonts; Next slow filesystem warning only
 - npm audit --omit=dev - PASS, 0 vulnerabilities after rerun outside the sandbox because the sandbox audit endpoint/cache request failed
+- git diff --check - PASS; Windows CRLF normalization warnings only
+Final-I.6 post-save context preservation correction validation:
+- npm run final-i:validate - PASS, 57/57 after rerun outside the sandbox because the sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM
+- npm run final-i:db:validate - PASS, 13/13 with TRP_ENVIRONMENT=test after rerun outside the sandbox because the sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM
+- npm run final-h:validate - PASS, 20/20 after rerun outside the sandbox because the sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM
+- npm run lint - PASS
+- npm run build - PASS after rerun outside the sandbox because the sandbox run could not fetch Google Fonts; Next slow filesystem warning only
 - git diff --check - PASS; Windows CRLF normalization warnings only
 ```
 

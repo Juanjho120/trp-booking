@@ -773,12 +773,30 @@ test("I.6 Admin FEL starts in explicit CREATE mode and only edits after open", (
     component,
     /const isEditingDraft =\s*selectedDocument !== null &&\s*editingDocumentId !== null &&\s*selectedDocument\.id === editingDocumentId;/,
   );
-  assert.match(component, /!isEditingDraft && !draftJustSaved/);
+  assert.doesNotMatch(component, /draftJustSaved/);
+  assert.match(component, /!isEditingDraft \? \(/);
   assert.match(component, /isEditingDraft \? \(/);
   assert.match(component, /copy\.actions\.saveChanges/);
   assert.match(component, /copy\.actions\.newInvoice/);
   assert.match(component, /resetToNewInvoice/);
   assert.match(component, /setActiveTab\("new"\)/);
+  assert.match(component, /function acceptDocumentSnapshot\(document: AdminFelDocumentDetail\): void/);
+  assert.match(
+    component,
+    /setSelectedDocument\(document\);\s*setEditingDocumentId\(document\.id\);\s*setActiveTab\("new"\);/s,
+  );
+  assert.match(
+    component,
+    /setReceiverEmailMode\("MANUAL"\);\s*setReceiverCountryMode\("MANUAL"\);/s,
+  );
+  assert.match(
+    component,
+    /async function saveDraft\(\): Promise<void>[\s\S]*?if \(document && "id" in document\) \{\s*acceptDocumentSnapshot\(document\);\s*\}/,
+  );
+  assert.doesNotMatch(component, /setSelectedDocument\(null\);\s*setEditingDocumentId\(null\);\s*setDraftJustSaved\(true\);/s);
+  assert.match(component, /if \(selectedDocument && editingDocumentId === selectedDocument\.id\)/);
+  assert.match(component, /for \(const reservation of selectedDocument\.reservations\)/);
+  assert.match(component, /selectedDocument && editingDocumentId === selectedDocument\.id \? \(/);
   assert.doesNotMatch(component, /copy\.actions\.updateReceiver/);
   assert.doesNotMatch(component, /copy\.actions\.rebuild/);
   assert.doesNotMatch(component, /\/api\/admin\/fel\/drafts\/\$\{encodeURIComponent\(selectedDocument\.id\)\}\/rebuild/);

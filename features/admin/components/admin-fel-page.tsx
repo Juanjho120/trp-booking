@@ -257,7 +257,6 @@ export function AdminFelPageView({
   >(null);
   const [selectedDocument, setSelectedDocument] =
     useState<AdminFelDocumentDetail | null>(null);
-  const [draftJustSaved, setDraftJustSaved] = useState(false);
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -422,7 +421,6 @@ export function AdminFelPageView({
     setGroupExtras(false);
     setDraftPreview(null);
     setDraftPreviewSignature(null);
-    setDraftJustSaved(false);
     resetMessages();
     setActiveTab("new");
   }
@@ -519,7 +517,6 @@ export function AdminFelPageView({
 
     setSelectedDocument(document);
     setEditingDocumentId(document.id);
-    setDraftJustSaved(false);
     setActiveTab("new");
     setSelectedReservationIds(reservationIds);
     setGroupExtras(document.groupExtras);
@@ -542,7 +539,7 @@ export function AdminFelPageView({
 
     setSelectedDocument(document);
     setEditingDocumentId(document.id);
-    setDraftJustSaved(false);
+    setActiveTab("new");
     setSelectedReservationIds(reservationIds);
     setGroupExtras(document.groupExtras);
     setReceiver(nextReceiver);
@@ -680,9 +677,7 @@ export function AdminFelPageView({
     );
 
     if (document && "id" in document) {
-      setSelectedDocument(null);
-      setEditingDocumentId(null);
-      setDraftJustSaved(true);
+      acceptDocumentSnapshot(document);
     }
   }
 
@@ -1071,7 +1066,7 @@ export function AdminFelPageView({
                 </>
               )}
               <div className="flex flex-wrap gap-3">
-                {!isEditingDraft && !draftJustSaved ? (
+                {!isEditingDraft ? (
                   <Button
                     disabled={
                       busyAction !== null ||
@@ -1117,7 +1112,7 @@ export function AdminFelPageView({
                     </Button>
                   </>
                 ) : null}
-                {draftJustSaved || isEditingDraft ? (
+                {isEditingDraft ? (
                   <Button
                     disabled={busyAction !== null}
                     onClick={resetToNewInvoice}

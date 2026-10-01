@@ -234,6 +234,8 @@ Fiscal line presentation was hardened during Hosted feedback: lodging line descr
 
 A later Hosted-feedback correction simplifies the Admin workflow into explicit CREATE and EDIT modes. `/admin/fel` now starts with `selectedDocument == null` and `editingDocumentId == null`; draft history never selects the latest draft implicitly. EDIT starts only after the Admin clicks open/edit on a history row. CREATE mode shows preview and save draft only, while EDIT mode shows preview, save changes, discard draft, and new invoice as appropriate. The old user-facing receiver-update and rebuild distinction is removed; source ownership remains enforced by `FelCommercialSourceAllocation`, and the UI avoids accidentally invoking new-draft creation while editing an existing draft.
 
+The post-save Hosted-continuity correction keeps the newly created draft open as the explicit EDIT context. After `Guardar borrador` / `Save draft` succeeds, the returned `AdminFelDocumentDetail` is accepted as the current snapshot, receiver email/country modes become manual snapshot values, the saved Reservation fallback keeps allocated sources visible after `router.refresh()`, `Guardar borrador` disappears, and `Guardar cambios`, `Descartar borrador`, `Nueva factura`, and `Snapshot guardado` remain available. This is intentional edit entry caused by successful creation, not implicit history selection on page load.
+
 `Nueva factura` / `New invoice` is a local reset action only. It clears the selected document, editing id, selected Reservations, receiver input, grouping mode, preview/signature, transient feedback, and returns to the new-invoice tab without mutating or deleting any existing draft.
 
 Eligible Reservation cards now format date-only values as `dd/MM/yyyy` without timezone conversion and localize singular/plural nights. Receiver email and country values from selected Reservations are suggestions only, not fiscal identity: email suggestions dedupe trimmed values case-insensitively; country suggestions are inferred first from the Reservation phone using `libphonenumber-js`, then from a valid stored Reservation country fallback, and displayed with `Intl.DisplayNames`. Manual Admin receiver email/country entries are not overwritten by later Reservation-selection changes, and opening an existing draft keeps its persisted receiver snapshot authoritative. The receiver snapshot stores the Admin-selected/displayed receiver country string under the existing `receiverCountry` contract; no SAT/provider country mapping is introduced in I.6.
@@ -317,6 +319,13 @@ npm run db:migrate:status - PASS, 30 migrations, database schema is up to date a
 npm run lint - PASS
 npm run build - PASS after rerun outside the sandbox because the sandbox run could not fetch Google Fonts; Next slow filesystem warning only
 npm audit --omit=dev - PASS, 0 vulnerabilities after rerun outside the sandbox because the sandbox audit endpoint/cache request failed
+git diff --check - PASS; Windows CRLF normalization warnings only
+Final-I.6 post-save context preservation correction:
+npm run final-i:validate - PASS, 57/57 after rerun outside the sandbox because the sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM
+npm run final-i:db:validate - PASS, 13/13 with TRP_ENVIRONMENT=test after rerun outside the sandbox because the sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM
+npm run final-h:validate - PASS, 20/20 after rerun outside the sandbox because the sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM
+npm run lint - PASS
+npm run build - PASS after rerun outside the sandbox because the sandbox run could not fetch Google Fonts; Next slow filesystem warning only
 git diff --check - PASS; Windows CRLF normalization warnings only
 ```
 
