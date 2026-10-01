@@ -15,7 +15,7 @@ Final-I.9 status: Not started
 Phase 13 status: Blocked / Not started until Final-I closes
 ```
 
-Final-I.6 materializes the accepted Final-I.5 provider-independent FEL architecture. It adds persistence, draft-source ownership, the Admin `/admin/fel` draft module, protected Admin APIs, provider-neutral NIT lookup boundary/UX contract, and fiscal presentation corrections requested during Hosted owner validation. It does not add INFILE transport, credentials, certification, DTE cancellation, Credit Note issuing workflow, PDF/XML retrieval, provider retry/status lookup, FEL scheduler, environment variables, cron registration, Production resources, or Phase 13 work.
+Final-I.6 materializes the accepted Final-I.5 provider-independent FEL architecture. It adds persistence, draft-source ownership, the Admin `/admin/fel` draft module, protected Admin APIs, frozen Fiscal Receiver field ordering, documented future NIT/CUI receiver-validation requirements, and fiscal presentation corrections requested during Hosted owner validation. It does not add external receiver-validation runtime, INFILE transport, credentials, certification, DTE cancellation, Credit Note issuing workflow, PDF/XML retrieval, provider retry/status lookup, FEL scheduler, environment variables, cron registration, Production resources, or Phase 13 work.
 
 Hosted owner validation has started. Points 1-5 were executed, and owner-requested UX/presentation corrections were applied before points 6-10 continue. Final-I.6 is not accepted yet.
 
@@ -125,9 +125,9 @@ Draft discard only applies to `DRAFT`, deletes/releases the draft graph by relat
 
 `previewAdminFelDraft` is a server-authoritative, provider-independent read operation. It normalizes the same inputs as draft creation, optionally verifies an `editingDocumentId` is still `DRAFT`, reuses the same eligibility and `buildFelDraftComposition(...)` domain logic, and performs no writes. Existing source allocations remain unavailable for new drafts; only allocations owned by the same edited draft may be treated as available for preview/rebuild. Allocations owned by another document still return `ADMIN_FEL_SOURCE_ALREADY_ALLOCATED`.
 
-Final-I.6 Hosted-feedback hardening adds a server-only provider-neutral NIT lookup boundary in `lib/fel/receiver-nit-lookup.ts` plus protected Admin API `POST /api/admin/fel/receiver/nit-lookup`. The current transport intentionally remains `PROVIDER_NOT_CONFIGURED` because TRP does not yet have an authoritative anonymous SAT JSON API contract or official INFILE Test credentials/documentation for receiver lookup. The lookup boundary normalizes NIT input, supports `FOUND`, `NOT_FOUND`, and `UNAVAILABLE` results, and does not log or persist provider credentials, raw requests, or raw responses.
+Final-I.6 Hosted-feedback correction deliberately removes premature NIT-only lookup runtime. I.6 freezes only the Fiscal Receiver field order and the future provider-neutral NIT/CUI receiver-validation contract. No external receiver-validation endpoint, receiver-lookup API route, or lookup adapter is active in I.6.
 
-Final-I.7 must extend this provider-neutral receiver lookup boundary to authoritative INFILE-backed validation for both `NIT` and `CUI` once official documentation and Test credentials exist. React components must not call INFILE directly; the boundary remains `TRP fiscal receiver domain -> Receiver lookup adapter -> INFILE implementation`, with credentials server-only.
+Final-I.7 must introduce authoritative INFILE-backed receiver validation for both `NIT` and `CUI` once official documentation and Test credentials exist. React components must not call INFILE directly; the future boundary remains `TRP fiscal receiver domain -> Receiver identity lookup adapter -> INFILE implementation`, with credentials server-only.
 
 ## Eligibility
 
@@ -172,7 +172,6 @@ POST   /api/admin/fel/drafts
 PATCH  /api/admin/fel/drafts/[documentId]
 DELETE /api/admin/fel/drafts/[documentId]
 POST   /api/admin/fel/drafts/[documentId]/rebuild
-POST   /api/admin/fel/receiver/nit-lookup
 ```
 
 The Admin route is force-dynamic, protected by the existing Admin layout, and marked noindex/nofollow. The Admin shell includes the new `Facturación` / `Invoicing` navigation item after Payments.
@@ -184,11 +183,11 @@ Nueva factura / New invoice
 Borradores e historial / Drafts and history
 ```
 
-The module supports eligible reservation selection, one/multiple reservation drafts, fiscal receiver input, explicit NIT validation UX, individual/grouped extras, preview, save draft, open/edit, rebuild from current commercial data, and discard. It does not expose certification, INFILE, cancellation, Credit Note, XML, or PDF actions.
+The module supports eligible reservation selection, one/multiple reservation drafts, fiscal receiver input, manual receiver-name entry, individual/grouped extras, preview, save draft, open/edit, rebuild from current commercial data, and discard. It does not expose NIT lookup, CUI lookup, certification, INFILE, cancellation, Credit Note, XML, or PDF actions.
 
-The editable preview is now server-authoritative through `POST /api/admin/fel/preview`. Client-side arithmetic is not the fiscal source of truth. The UI distinguishes the saved draft snapshot from "Vista previa desde datos comerciales actuales" / "Preview from current commercial data", marks previews stale when reservation selection, receiver input, grouping mode, validated NIT/name changes, or edited document context changes, and disables save/rebuild until a fresh server preview exists for the current inputs.
+The editable preview is now server-authoritative through `POST /api/admin/fel/preview`. Client-side arithmetic is not the fiscal source of truth. The UI distinguishes the saved draft snapshot from "Vista previa desde datos comerciales actuales" / "Preview from current commercial data", marks previews stale when reservation selection, receiver input, grouping mode, or edited document context changes, and disables save/rebuild until a fresh server preview exists for the current inputs.
 
-Fiscal receiver field order is `Tipo de identificación` / `Identifier type`, `Identificación` / `Identifier`, `Nombre del receptor` / `Receiver name`, `Correo` / `Email`, `País` / `Country`, and `Dirección` / `Address`. When identifier type is `NIT`, the Admin may explicitly run `Validar NIT` / `Validate NIT`; a future configured provider can return the official name and lock the validated NIT/name pair. While the provider remains not configured, the UI reports provider unavailability without treating the NIT as invalid and does not fake a successful lookup.
+Fiscal receiver field order is `Tipo de identificación` / `Identifier type`, `Identificación` / `Identifier`, `Nombre del receptor` / `Receiver name`, `Correo` / `Email`, `País` / `Country`, and `Dirección` / `Address`. In I.6, the receiver name remains manually editable for every identifier type. There is no active NIT/CUI lookup control in the UI.
 
 That field order is frozen for Final-I.6 and future I.7 implementation: `Identifier type -> Identifier -> Receiver name -> Email -> Country -> Address` / `Tipo de identificación -> Identificación -> Nombre del receptor -> Correo -> País -> Dirección`. It is intentional because provider validation for NIT/CUI resolves the receiver name from the identifier before the Admin reaches the name field.
 
@@ -249,9 +248,9 @@ card data
 PushSubscription endpoints/keys
 VAPID private key material
 provider credentials
-NIT lookup provider credentials
-raw NIT provider requests
-raw NIT provider responses
+future receiver-identity lookup credentials
+future raw receiver-identity lookup requests
+future raw receiver-identity lookup responses
 ```
 
 Source snapshots remain bounded to commercial and audit metadata required for draft reproduction.
@@ -278,7 +277,7 @@ individual fiscal line ordering in reservation blocks
 lodging descriptions with accommodation snapshot
 additional-charge fiscal category descriptions
 invoice-wide grouped extras with multiple allocations
-provider-neutral NIT lookup boundary and explicit Admin UX
+Fiscal Receiver field order and future NIT/CUI validation contract
 multi-reservation draft arithmetic
 currency mismatch rejection
 sensitive data exclusions
@@ -312,7 +311,7 @@ npm run db:validate - PASS; Prisma package.json#prisma deprecation warning only
 npm run db:generate - PASS; Prisma package.json#prisma deprecation warning only after a retry because the first attempt overlapped a DB suite Prisma engine file lock
 npm run db:migrate:status - PASS, 30 migrations, database schema is up to date
 npm run lint - PASS
-npm run build - PASS; initial TypeScript narrowing failure in the NIT lookup UI handling was corrected before the final pass; Next slow filesystem warning only
+npm run build - PASS; initial TypeScript narrowing failure in the former NIT lookup UI handling was corrected before the final pass; Next slow filesystem warning only
 npm audit --omit=dev - PASS, 0 vulnerabilities
 git diff --check - PASS
 ```
@@ -324,7 +323,7 @@ The DB-backed gate now explicitly proves both canonical source uniqueness constr
 ```text
 Final-I.6 — Implementation completed; Hosted owner validation in progress
 Hosted owner validation points 1-5 executed; owner-requested UX/presentation corrections applied before points 6-10 continue.
-NIT lookup provider transport remains pending authoritative endpoint/credentials.
+NIT/CUI receiver validation runtime remains deferred to Final-I.7 pending authoritative INFILE documentation and Test credentials.
 Final-I.7 — Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 — Not started
 Final-I.9 — Not started

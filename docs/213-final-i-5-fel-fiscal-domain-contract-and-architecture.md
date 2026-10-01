@@ -643,6 +643,8 @@ País
 Dirección
 ```
 
+Canonical summary: `Identifier type -> Identifier -> Receiver name -> Email -> Country -> Address`.
+
 This order is intentional: future NIT/CUI validation resolves the receiver name from the identifier before the Admin reaches the name field.
 
 Final-I.7 must support authoritative receiver validation through the configured FEL provider for both `NIT` and `CUI`. These validations belong to provider integration because they require INFILE's authenticated contract and credentials. Final-I.6 must not implement external NIT/CUI transport, call SAT/INFILE, add credentials, or invent provider-side format rules.

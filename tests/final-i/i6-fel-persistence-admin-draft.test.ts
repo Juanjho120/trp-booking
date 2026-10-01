@@ -22,11 +22,6 @@ import {
   type AdminFelDraftSourceReservation,
 } from "@/lib/admin/fel";
 import { listCronJobDefinitions } from "@/lib/cron/registry";
-import {
-  lookupReceiverNit,
-  normalizeReceiverNit,
-  type ReceiverNitLookupProvider,
-} from "@/lib/fel/receiver-nit-lookup";
 import type { AdminFelReceiverInput } from "@/types/admin-fel";
 
 import { test } from "./harness";
@@ -686,7 +681,6 @@ test("I.6 service and UI avoid sensitive token, raw payload, push and card persi
     "app/api/admin/fel/preview/route.ts",
     "app/api/admin/fel/drafts/[documentId]/route.ts",
     "app/api/admin/fel/drafts/[documentId]/rebuild/route.ts",
-    "app/api/admin/fel/receiver/nit-lookup/route.ts",
   ]
     .map(read)
     .join("\n");
@@ -744,78 +738,11 @@ test("I.6 server-authoritative preview route backs draft editing", () => {
   assert.doesNotMatch(component, /centsFromMoney|moneyFromCents|previewLines/);
 });
 
-test("I.6 NIT lookup boundary normalizes NIT and maps provider states without external calls", async () => {
-  const foundProvider: ReceiverNitLookupProvider = {
-    async lookupNit(nit) {
-      return {
-        status: "FOUND",
-        nit,
-        name: "NOMBRE O RAZON SOCIAL",
-      };
-    },
-  };
-  const notFoundProvider: ReceiverNitLookupProvider = {
-    async lookupNit(nit) {
-      return {
-        status: "NOT_FOUND",
-        nit,
-      };
-    },
-  };
-  const unavailableProvider: ReceiverNitLookupProvider = {
-    async lookupNit() {
-      return {
-        status: "UNAVAILABLE",
-        reason: "PROVIDER_NOT_CONFIGURED",
-      };
-    },
-  };
-  const timeoutProvider: ReceiverNitLookupProvider = {
-    async lookupNit() {
-      return new Promise<never>(() => undefined);
-    },
-  };
-
-  assert.equal(normalizeReceiverNit(" 1234567-k "), "1234567K");
-  assert.deepEqual(
-    await lookupReceiverNit(" 1234567-k ", { provider: foundProvider }),
-    {
-      status: "FOUND",
-      nit: "1234567K",
-      name: "NOMBRE O RAZON SOCIAL",
-    },
-  );
-  assert.deepEqual(
-    await lookupReceiverNit("1234567K", { provider: notFoundProvider }),
-    {
-      status: "NOT_FOUND",
-      nit: "1234567K",
-    },
-  );
-  assert.deepEqual(
-    await lookupReceiverNit("1234567K", { provider: unavailableProvider }),
-    {
-      status: "UNAVAILABLE",
-      reason: "PROVIDER_NOT_CONFIGURED",
-    },
-  );
-  assert.deepEqual(
-    await lookupReceiverNit("1234567K", {
-      provider: timeoutProvider,
-      timeoutMs: 1,
-    }),
-    {
-      status: "UNAVAILABLE",
-      reason: "TIMEOUT",
-    },
-  );
-});
-
-test("I.6 NIT Admin route and receiver UI expose the provider-neutral lookup contract", () => {
+test("I.6 receiver UI keeps manual fields and no NIT/CUI lookup runtime", () => {
   const component = read("features/admin/components/admin-fel-page.tsx");
-  const route = read("app/api/admin/fel/receiver/nit-lookup/route.ts");
   const es = read("messages/es.ts");
   const en = read("messages/en.ts");
+  const service = read("lib/admin/fel.ts");
   const receiverFieldOrder = [
     component.indexOf("copy.fields.receiverIdentifierType"),
     component.indexOf("copy.fields.receiverIdentifier"),
@@ -829,26 +756,56 @@ test("I.6 NIT Admin route and receiver UI expose the provider-neutral lookup con
     [...receiverFieldOrder].sort((left, right) => left - right),
     receiverFieldOrder,
   );
-  assert.match(component, /\/api\/admin\/fel\/receiver\/nit-lookup/);
-  assert.match(component, /copy\.actions\.validateNit/);
-  assert.match(component, /copy\.actions\.validatingNit/);
-  assert.match(component, /copy\.nitLookup\.invalid/);
-  assert.match(component, /copy\.nitLookup\.unavailable/);
-  assert.match(component, /receiverName:\s*payload\.name/);
-  assert.match(component, /readOnly=\{receiverNameLocked\}/);
+  assert.doesNotMatch(component, /\/api\/admin\/fel\/receiver\/nit-lookup/);
+  assert.doesNotMatch(component, /\/api\/admin\/fel\/receiver\/cui-lookup/);
+  assert.doesNotMatch(component, /copy\.actions\.validateNit/);
+  assert.doesNotMatch(component, /copy\.actions\.validatingNit/);
+  assert.doesNotMatch(component, /copy\.nitLookup/);
+  assert.doesNotMatch(component, /Validate NIT|Validar NIT|Validate CUI|Validar CUI/);
+  assert.doesNotMatch(component, /readOnly=\{receiverNameLocked\}/);
+  assert.doesNotMatch(component, /receiverName:\s*payload\.name/);
   assert.match(component, /draftPreviewSignature/);
-  assert.match(route, /getAdminSessionActor/);
-  assert.match(route, /isValidAdminMutationOrigin/);
-  assert.match(route, /lookupReceiverNit/);
-  assert.doesNotMatch(route, /fetch\(|sat\.gob|infile|ITDEMO|sample/i);
-  assert.match(es, /Validar NIT/);
-  assert.match(es, /Validando NIT\.\.\./);
-  assert.match(es, /El NIT ingresado no existe o no está registrado\./);
-  assert.match(es, /La consulta de NIT no está disponible en este momento\./);
-  assert.match(en, /Validate NIT/);
-  assert.match(en, /Validating NIT\.\.\./);
-  assert.match(en, /The entered NIT does not exist or is not registered\./);
-  assert.match(en, /NIT lookup is currently unavailable\./);
+  assert.match(component, /receiverName:\s*event\.target\.value/);
+  assert.doesNotMatch(service, /normalizeReceiverNit|receiver-nit-lookup/);
+  assert.doesNotMatch(es, /validateNit|validatingNit|nitLookup|Validar NIT|Validando NIT/);
+  assert.doesNotMatch(en, /validateNit|validatingNit|nitLookup|Validate NIT|Validating NIT/);
+  assert.equal(
+    existsSync(path.join(ROOT, "app/api/admin/fel/receiver/nit-lookup/route.ts")),
+    false,
+  );
+  assert.equal(
+    existsSync(path.join(ROOT, "app/api/admin/fel/receiver/cui-lookup/route.ts")),
+    false,
+  );
+  assert.equal(
+    existsSync(path.join(ROOT, "lib/fel/receiver-nit-lookup.ts")),
+    false,
+  );
+});
+
+test("I.6 documentation defers authoritative NIT and CUI lookup to I.7", () => {
+  const roadmap = read(
+    "docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md",
+  );
+  const architecture = read(
+    "docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md",
+  );
+  const record = read(I6_RECORD);
+
+  for (const source of [roadmap, architecture, record]) {
+    assert.match(source, /Identifier type -> Identifier -> Receiver name -> Email -> Country -> Address/);
+    assert.match(source, /NIT/);
+    assert.match(source, /CUI/);
+    assert.match(source, /FOUND/);
+    assert.match(source, /NOT_FOUND/);
+    assert.match(source, /UNAVAILABLE/);
+    assert.match(source, /Final-I\.7/);
+    assert.match(source, /INFILE/);
+    assert.match(source, /certification readiness/i);
+    assert.match(source, /IDReceptor/);
+    assert.match(source, /TipoEspecial = CUI/);
+    assert.doesNotMatch(source, /Final-I\.6 .*NIT lookup API|POST\s+\/api\/admin\/fel\/receiver\/nit-lookup/);
+  }
 });
 
 test("I.6 APIs use admin session, same-origin protection and bounded FEL error codes", () => {
@@ -857,7 +814,6 @@ test("I.6 APIs use admin session, same-origin protection and bounded FEL error c
     "app/api/admin/fel/preview/route.ts",
     "app/api/admin/fel/drafts/[documentId]/route.ts",
     "app/api/admin/fel/drafts/[documentId]/rebuild/route.ts",
-    "app/api/admin/fel/receiver/nit-lookup/route.ts",
   ];
 
   for (const routePath of routes) {
@@ -893,7 +849,7 @@ test("I.6 documentation records implementation pending owner acceptance", () => 
     /Final-I\.6 .*Implementation completed; Hosted owner validation in progress/,
   );
   assert.match(record, /Hosted owner validation points 1-5 executed/);
-  assert.match(record, /NIT lookup provider transport remains pending authoritative endpoint\/credentials/);
+  assert.match(record, /NIT\/CUI receiver validation runtime remains deferred to Final-I\.7/);
   assert.match(record, /PAYMENT != FISCAL LINE/);
   assert.match(record, /FelCommercialSourceAllocation\.amountSnapshot/);
   assert.match(record, /Final-I\.7 .*Blocked pending official INFILE technical documentation \+ Test credentials/);

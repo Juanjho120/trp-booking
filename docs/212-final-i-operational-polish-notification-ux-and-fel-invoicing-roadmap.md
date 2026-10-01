@@ -685,7 +685,8 @@ Admin /admin/fel
 eligible reservation selection
 one/multiple reservation drafts
 fiscal receiver form
-explicit NIT validation UX and provider-neutral lookup boundary
+frozen Fiscal Receiver form order
+future NIT/CUI receiver-validation contract
 individual/grouped extras
 server-authoritative draft preview
 same-draft edit/rebuild source ownership
@@ -695,7 +696,7 @@ document totals from persisted lines
 draft history/edit/rebuild/discard
 ```
 
-Final-I.6 works without INFILE credentials, transport, certification endpoint, cancellation endpoint, Credit Note endpoint, PDF/XML API, provider idempotency, provider retry/status lookup, FEL cron registration, or Production resources. Certification controls remain unavailable until Final-I.7 unblocks. NIT lookup provider transport remains pending an authoritative documented endpoint and credentials; the current Admin lookup contract reports provider unavailability instead of faking a successful lookup.
+Final-I.6 works without INFILE credentials, transport, external receiver-validation runtime, certification endpoint, cancellation endpoint, Credit Note endpoint, PDF/XML API, provider idempotency, provider retry/status lookup, FEL cron registration, or Production resources. Certification controls remain unavailable until Final-I.7 unblocks. NIT/CUI receiver validation remains documented future I.7 work and is not active in the I.6 UI or API.
 
 Final-I.6 freezes the Admin `/admin/fel` Fiscal Receiver form order as `Identifier type -> Identifier -> Receiver name -> Email -> Country -> Address` / `Tipo de identificación -> Identificación -> Nombre del receptor -> Correo -> País -> Dirección`. This order is intentional because future authoritative NIT/CUI validation resolves the fiscal receiver name from the identifier before the Admin reaches the name field.
 
@@ -720,7 +721,7 @@ Final-I.6 is Implementation completed; Hosted owner validation in progress. Fina
 ```text
 - Phase 13 remains blocked / not started until Final-I closes.
 - No Production provider account, credential, DNS cutover, payment credential, database, media account, WhatsApp sender, FEL account, or public go-live is introduced by Final-I.1 through Final-I.6.
-- No dependency, environment variable, scheduler, AdminNotificationType, Production, INFILE transport, certification, Credit Note issuing workflow, PDF/XML retrieval, Final-I.7 provider integration, Final-G/H reopening, or Phase 13 work is part of Final-I.6.
+- No dependency, environment variable, scheduler, AdminNotificationType, Production, external receiver lookup, INFILE transport, certification, Credit Note issuing workflow, PDF/XML retrieval, Final-I.7 provider integration, Final-G/H reopening, or Phase 13 work is part of Final-I.6.
 - Final-I.7 is blocked pending official INFILE technical documentation + Test credentials and must not begin until explicitly requested.
 - Existing Final-F.7 Zoho webhook signature verification, bootstrap behavior, Limited Data parsing, bounded persistence, notification-center serialization, and immediate Web Push delivery remain preserved.
 - `vercel.json` remains `{ "crons": [] }`.
@@ -831,7 +832,7 @@ Final-I.6 implementation validation:
 - npm run db:generate - PASS; Prisma package.json#prisma deprecation warning only after a retry because the first attempt overlapped a DB suite Prisma engine file lock
 - npm run db:migrate:status - PASS, 30 migrations, database schema is up to date
 - npm run lint - PASS
-- npm run build - PASS; initial TypeScript narrowing failure in the NIT lookup UI handling was corrected before the final pass; Next slow filesystem warning only
+- npm run build - PASS; initial TypeScript narrowing failure in the former NIT lookup UI handling was corrected before the final pass; Next slow filesystem warning only
 - npm audit --omit=dev - PASS, 0 vulnerabilities
 - git diff --check - PASS
 ```

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { FileText, RefreshCw, Search, Trash2 } from "lucide-react";
+import { FileText, RefreshCw, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -30,29 +30,6 @@ type FelMutationResponse =
 type FelPreviewResponse =
   | Readonly<{ preview: AdminFelDraftPreview }>
   | Readonly<{ error: { code: AdminFelErrorCode | string } }>;
-
-type NitLookupResponse =
-  | Readonly<{
-      status: "FOUND";
-      nit: string;
-      name: string;
-    }>
-  | Readonly<{
-      status: "NOT_FOUND";
-      nit: string;
-    }>
-  | Readonly<{
-      status: "UNAVAILABLE";
-      reason: "PROVIDER_NOT_CONFIGURED" | "PROVIDER_ERROR" | "TIMEOUT";
-    }>
-  | Readonly<{ error: { code: AdminFelErrorCode | string } }>;
-
-type NitLookupState =
-  | Readonly<{ status: "idle" }>
-  | Readonly<{ status: "validating" }>
-  | Readonly<{ status: "valid"; nit: string; name: string }>
-  | Readonly<{ status: "invalid"; nit: string }>
-  | Readonly<{ status: "unavailable"; reason: string }>;
 
 type ReceiverState = Readonly<{
   receiverName: string;
@@ -103,10 +80,6 @@ function getIntlLocale(locale: Locale): string {
 
 function formatMoney(amount: string, currency: string): string {
   return `${currency} ${amount}`;
-}
-
-function normalizeNitForClient(value: string): string {
-  return value.trim().toUpperCase().replace(/[\s-]+/g, "");
 }
 
 function AmountFields({
@@ -267,9 +240,6 @@ export function AdminFelPageView({
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [nitLookup, setNitLookup] = useState<NitLookupState>({
-    status: "idle",
-  });
 
   const reservationChoices = useMemo<ReservationChoice[]>(() => {
     const choices = data.eligibleReservations.map((reservation) => ({
@@ -342,12 +312,6 @@ export function AdminFelPageView({
     draftPreview !== null && draftPreviewSignature === currentPreviewSignature;
   const previewIsStale =
     draftPreview !== null && draftPreviewSignature !== currentPreviewSignature;
-  const receiverUsesNit = receiver.receiverIdentifierType === "NIT";
-  const normalizedReceiverNit = normalizeNitForClient(receiver.receiverIdentifier);
-  const receiverNameLocked =
-    receiverUsesNit &&
-    nitLookup.status === "valid" &&
-    nitLookup.nit === normalizedReceiverNit;
 
   function formatDateTime(value: string): string {
     return new Intl.DateTimeFormat(intlLocale, {
@@ -370,114 +334,20 @@ export function AdminFelPageView({
     setErrorMessage(null);
   }
 
-  function clearNitLookup(): void {
-    setNitLookup({ status: "idle" });
-  }
-
   function changeReceiverIdentifierType(
     receiverIdentifierType: AdminFelReceiverIdentifierType,
   ): void {
     setReceiver((current) => ({
       ...current,
       receiverIdentifierType,
-      receiverName:
-        current.receiverIdentifierType === "NIT" &&
-        nitLookup.status === "valid" &&
-        receiverIdentifierType !== "NIT"
-          ? ""
-          : current.receiverName,
     }));
-    clearNitLookup();
   }
 
   function changeReceiverIdentifier(receiverIdentifier: string): void {
-    setReceiver((current) => {
-      const shouldClearValidatedName =
-        current.receiverIdentifierType === "NIT" &&
-        nitLookup.status === "valid" &&
-        normalizeNitForClient(receiverIdentifier) !== nitLookup.nit;
-
-      return {
-        ...current,
-        receiverIdentifier,
-        receiverName: shouldClearValidatedName ? "" : current.receiverName,
-      };
-    });
-
-    if (receiverUsesNit) {
-      clearNitLookup();
-    }
-  }
-
-  async function validateNit(): Promise<void> {
-    if (!receiverUsesNit || !normalizedReceiverNit || busyAction !== null) {
-      return;
-    }
-
-    setBusyAction("nit-lookup");
-    setNitLookup({ status: "validating" });
-    resetMessages();
-
-    try {
-      const response = await fetch("/api/admin/fel/receiver/nit-lookup", {
-        method: "POST",
-        headers: {
-          accept: "application/json",
-          "content-type": "application/json",
-        },
-        body: JSON.stringify({ nit: receiver.receiverIdentifier }),
-      });
-      const payload = (await response.json()) as NitLookupResponse;
-
-      if (!("status" in payload)) {
-        setErrorMessage(resolveError(payload.error.code));
-        setNitLookup({ status: "idle" });
-        return;
-      }
-
-      if (!response.ok) {
-        const code = "ADMIN_FEL_UNEXPECTED_ERROR";
-        setErrorMessage(resolveError(code));
-        setNitLookup({ status: "idle" });
-        return;
-      }
-
-      if (payload.status === "FOUND") {
-        setReceiver((current) => ({
-          ...current,
-          receiverIdentifier: payload.nit,
-          receiverName: payload.name,
-        }));
-        setNitLookup({
-          status: "valid",
-          nit: payload.nit,
-          name: payload.name,
-        });
-        return;
-      }
-
-      if (payload.status === "NOT_FOUND") {
-        setReceiver((current) => ({
-          ...current,
-          receiverIdentifier: payload.nit,
-          receiverName: "",
-        }));
-        setNitLookup({ status: "invalid", nit: payload.nit });
-        return;
-      }
-
-      setNitLookup({
-        status: "unavailable",
-        reason: payload.reason,
-      });
-    } catch {
-      setNitLookup({
-        status: "unavailable",
-        reason: "PROVIDER_ERROR",
-      });
-    } finally {
-      setBusyAction(null);
-    }
+    setReceiver((current) => ({
+      ...current,
+      receiverIdentifier,
+    }));
   }
 
   function buildPayload() {
@@ -496,7 +366,6 @@ export function AdminFelPageView({
     setSelectedReservationIds(reservationIds);
     setGroupExtras(document.groupExtras);
     setReceiver(nextReceiver);
-    clearNitLookup();
     void refreshPreviewForState(
       reservationIds,
       nextReceiver,
@@ -516,7 +385,6 @@ export function AdminFelPageView({
     setSelectedReservationIds(reservationIds);
     setGroupExtras(document.groupExtras);
     setReceiver(nextReceiver);
-    clearNitLookup();
     setDraftPreview(previewFromDocument(document));
     setDraftPreviewSignature(
       buildPreviewSignature(
@@ -627,7 +495,6 @@ export function AdminFelPageView({
       setEditingDocumentId(null);
       setSelectedReservationIds([]);
       setReceiver(initialReceiverState);
-      clearNitLookup();
       setGroupExtras(false);
       setDraftPreview(null);
       setDraftPreviewSignature(null);
@@ -827,59 +694,25 @@ export function AdminFelPageView({
                   <label htmlFor="fel-receiver-identifier">
                     {copy.fields.receiverIdentifier}
                   </label>
-                  <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
-                    <input
-                      className="min-h-11 rounded-lg border border-input bg-background px-3 py-2"
-                      id="fel-receiver-identifier"
-                      onChange={(event) =>
-                        changeReceiverIdentifier(event.target.value)
-                      }
-                      value={receiver.receiverIdentifier}
-                    />
-                    {receiverUsesNit ? (
-                      <Button
-                        disabled={
-                          busyAction !== null ||
-                          normalizedReceiverNit.length === 0
-                        }
-                        onClick={() => void validateNit()}
-                        type="button"
-                        variant="outline"
-                      >
-                        <Search aria-hidden="true" />
-                        {nitLookup.status === "validating"
-                          ? copy.actions.validatingNit
-                          : copy.actions.validateNit}
-                      </Button>
-                    ) : null}
-                  </div>
-                  {receiverUsesNit && nitLookup.status === "valid" ? (
-                    <p className="text-xs font-medium text-emerald-700">
-                      {copy.nitLookup.valid}
-                    </p>
-                  ) : null}
-                  {receiverUsesNit && nitLookup.status === "invalid" ? (
-                    <p className="text-xs font-medium text-destructive">
-                      {copy.nitLookup.invalid}
-                    </p>
-                  ) : null}
-                  {receiverUsesNit && nitLookup.status === "unavailable" ? (
-                    <p className="text-xs font-medium text-muted-foreground">
-                      {copy.nitLookup.unavailable}
-                    </p>
-                  ) : null}
+                  <input
+                    className="min-h-11 rounded-lg border border-input bg-background px-3 py-2"
+                    id="fel-receiver-identifier"
+                    onChange={(event) =>
+                      changeReceiverIdentifier(event.target.value)
+                    }
+                    value={receiver.receiverIdentifier}
+                  />
                 </div>
                 <label className="grid gap-2 text-sm font-medium">
                   {copy.fields.receiverName}
                   <input
-                    className="min-h-11 rounded-lg border border-input bg-background px-3 py-2 disabled:bg-muted/50"
+                    className="min-h-11 rounded-lg border border-input bg-background px-3 py-2"
                     onChange={(event) =>
                       setReceiver((current) => ({
                         ...current,
                         receiverName: event.target.value,
                       }))
                     }
-                    readOnly={receiverNameLocked}
                     value={receiver.receiverName}
                   />
                 </label>

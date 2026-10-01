@@ -17,7 +17,6 @@ import {
 
 import { prisma } from "@/lib/db/prisma";
 import { normalizeTimeOfDay } from "@/lib/email/time-of-day";
-import { normalizeReceiverNit } from "@/lib/fel/receiver-nit-lookup";
 import type { AdminActor } from "@/types/admin";
 import type {
   AdminFelDocumentDetail,
@@ -517,14 +516,10 @@ function normalizeReceiverInput(
     throw new AdminFelError("INVALID_ADMIN_FEL_REQUEST");
   }
 
-  const rawReceiverIdentifier = trimBounded(
+  const receiverIdentifier = trimBounded(
     input.receiverIdentifier,
     RECEIVER_IDENTIFIER_MAX_LENGTH,
   );
-  const receiverIdentifier =
-    receiverIdentifierType === "NIT" && rawReceiverIdentifier
-      ? normalizeReceiverNit(rawReceiverIdentifier)
-      : rawReceiverIdentifier;
 
   if (receiverIdentifierType !== "CONSUMIDOR_FINAL" && !receiverIdentifier) {
     throw new AdminFelError("INVALID_ADMIN_FEL_REQUEST");
