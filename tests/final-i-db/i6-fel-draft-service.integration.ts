@@ -25,7 +25,7 @@ import {
   createAdminFelDraft,
   discardAdminFelDraft,
   previewAdminFelDraft,
-  rebuildAdminFelDraft,
+  saveAdminFelDraftChanges,
 } from "@/lib/admin/fel";
 import { prisma } from "@/lib/db/prisma";
 import type { AdminActor } from "@/types/admin";
@@ -995,7 +995,82 @@ test("I.6 DB enforces XOR source constraint for commercial allocations", async (
   });
 });
 
-test("I.6 DB failed rebuild rolls back original draft graph", async () => {
+test("I.6 DB save changes preserves document identity and refreshes composition", async () => {
+  await withFixture("save-changes", async (context) => {
+    const reservation = await createReservation(context, "save-changes");
+    await createPaidExtra(
+      context,
+      reservation,
+      "save-changes-transport",
+      "40.00",
+      AdditionalChargeCategory.TRANSPORT,
+    );
+    await createPaidExtra(
+      context,
+      reservation,
+      "save-changes-damage",
+      "25.00",
+      AdditionalChargeCategory.DAMAGE,
+    );
+    const document = await createDraft(context, [reservation.id], false);
+    const before = await prisma.felDocument.findUniqueOrThrow({
+      where: { id: document.id },
+      select: {
+        id: true,
+        createdAt: true,
+        createdByAdminId: true,
+      },
+    });
+
+    const updated = await saveAdminFelDraftChanges(
+      {
+        ...receiver,
+        documentId: document.id,
+        reservationIds: [reservation.id],
+        groupExtras: true,
+        receiverName: "Receptor Actualizado",
+        receiverEmail: "receptor@example.com",
+        receiverCountry: "Guatemala",
+      },
+      context.actor,
+    );
+    const after = await readDocumentGraph(document.id);
+    const documentCount = await prisma.felDocument.count({
+      where: { id: { in: context.felDocumentIds } },
+    });
+
+    assert.equal(updated.id, document.id);
+    assert.ok(after);
+    assert.equal(after.id, before.id);
+    assert.equal(after.createdAt.toISOString(), before.createdAt.toISOString());
+    assert.equal(after.createdByAdminId, before.createdByAdminId);
+    assert.equal(after.receiverName, "Receptor Actualizado");
+    assert.equal(after.receiverEmail, "receptor@example.com");
+    assert.equal(after.receiverCountry, "Guatemala");
+    assert.equal(after.groupExtras, true);
+    assert.equal(decimalText(after.total), "445.00");
+    assert.deepEqual(
+      after.lineItems.map((line) => [
+        line.kind,
+        decimalText(line.amount),
+        line.commercialAllocations.length,
+      ]),
+      [
+        [FelLineKind.LODGING, "380.00", 1],
+        [FelLineKind.GROUPED_ADDITIONAL_CHARGES, "65.00", 2],
+      ],
+    );
+    assert.equal(documentCount, 1);
+    assert.equal(
+      await prisma.felCommercialSourceAllocation.count({
+        where: { reservationId: reservation.id },
+      }),
+      1,
+    );
+  });
+});
+
+test("I.6 DB failed save changes rolls back original draft graph", async () => {
   await withFixture("rollback", async (context) => {
     const reservationA = await createReservation(context, "rollback-a");
     const reservationB = await createReservation(context, "rollback-b");
@@ -1004,8 +1079,9 @@ test("I.6 DB failed rebuild rolls back original draft graph", async () => {
     const before = normalizeDocumentGraph(await readDocumentGraph(documentA.id));
 
     await assertAdminFelError(
-      rebuildAdminFelDraft(
+      saveAdminFelDraftChanges(
         {
+          ...receiver,
           documentId: documentA.id,
           reservationIds: [reservationA.id, reservationB.id],
           groupExtras: false,
@@ -1056,7 +1132,7 @@ test("I.6 DB discard deletes draft graph and releases commercial source", async 
   });
 });
 
-test("I.6 DB blocks rebuild and discard for non-DRAFT documents", async () => {
+test("I.6 DB blocks save changes and discard for non-DRAFT documents", async () => {
   await withFixture("readonly", async (context) => {
     const reservation = await createReservation(context, "readonly");
     const document = await createDraft(context, [reservation.id]);
@@ -1071,8 +1147,9 @@ test("I.6 DB blocks rebuild and discard for non-DRAFT documents", async () => {
       "ADMIN_FEL_DRAFT_NOT_EDITABLE",
     );
     await assertAdminFelError(
-      rebuildAdminFelDraft(
+      saveAdminFelDraftChanges(
         {
+          ...receiver,
           documentId: document.id,
           reservationIds: [reservation.id],
           groupExtras: false,

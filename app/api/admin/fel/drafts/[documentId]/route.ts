@@ -7,7 +7,7 @@ import {
   discardAdminFelDraft,
   getAdminSessionActor,
   isValidAdminMutationOrigin,
-  updateAdminFelDraftReceiver,
+  saveAdminFelDraftChanges,
 } from "@/lib/admin";
 import {
   ADMIN_FEL_RECEIVER_IDENTIFIER_TYPES,
@@ -23,6 +23,8 @@ const paramsSchema = z.object({
 
 const requestSchema = z
   .object({
+    reservationIds: z.array(z.string().trim().min(1).max(160)).min(1).max(20),
+    groupExtras: z.boolean(),
     receiverName: z.string().trim().min(1).max(160),
     receiverIdentifierType: z.enum(ADMIN_FEL_RECEIVER_IDENTIFIER_TYPES),
     receiverIdentifier: z.string().trim().max(80).nullable().optional(),
@@ -93,7 +95,7 @@ export async function PATCH(request: Request, context: RouteContext) {
       return adminApiErrorResponse("INVALID_ADMIN_FEL_REQUEST", 400);
     }
 
-    const document = await updateAdminFelDraftReceiver(
+    const document = await saveAdminFelDraftChanges(
       {
         documentId: parsedParams.data.documentId,
         ...parsedBody.data,

@@ -17,6 +17,7 @@ import {
 
 import { prisma } from "@/lib/db/prisma";
 import { normalizeTimeOfDay } from "@/lib/email/time-of-day";
+import { inferReservationPhoneCountry } from "@/lib/fel/receiver-contact-suggestions";
 import type { AdminActor } from "@/types/admin";
 import type {
   AdminFelDocumentDetail,
@@ -24,15 +25,13 @@ import type {
   AdminFelEligibleReservation,
   AdminFelErrorCode,
   AdminFelLinePreview,
-  AdminFelReceiverIdentifierType,
   AdminFelReceiverInput,
   AdminFelReceiverSnapshot,
   AdminFelPageData,
   CreateAdminFelDraftInput,
   DiscardAdminFelDraftInput,
   PreviewAdminFelDraftInput,
-  RebuildAdminFelDraftInput,
-  UpdateAdminFelDraftReceiverInput,
+  SaveAdminFelDraftChangesInput,
 } from "@/types/admin-fel";
 import { ADMIN_FEL_RECEIVER_IDENTIFIER_TYPES } from "@/types/admin-fel";
 
@@ -50,6 +49,7 @@ const RECEIVER_IDENTIFIER_MAX_LENGTH = 80;
 const RECEIVER_ADDRESS_MAX_LENGTH = 500;
 const RECEIVER_EMAIL_MAX_LENGTH = 254;
 const RECEIVER_COUNTRY_MAX_LENGTH = 100;
+const GUEST_PHONE_MAX_LENGTH = 64;
 
 const ADDITIONAL_CHARGE_FISCAL_LABELS: Record<
   AdditionalChargeCategory,
@@ -128,6 +128,9 @@ export type AdminFelDraftSourceExtra = Readonly<{
 export type AdminFelDraftSourceReservation = Readonly<{
   id: string;
   guestName: string;
+  guestEmail: string | null;
+  guestPhone: string | null;
+  guestCountry: string | null;
   propertyId: string;
   propertyName: string;
   checkInDate: string;
@@ -186,6 +189,9 @@ type FelDraftComposition = Readonly<{
 const adminFelReservationSelect = {
   id: true,
   guestName: true,
+  guestEmail: true,
+  guestPhone: true,
+  guestCountry: true,
   status: true,
   checkInDate: true,
   checkOutDate: true,
@@ -502,6 +508,19 @@ function trimBounded(
   return trimmed;
 }
 
+function trimSuggestion(
+  value: string | null | undefined,
+  maxLength: number,
+): string | null {
+  const trimmed = value?.trim() ?? "";
+
+  if (!trimmed || trimmed.length > maxLength) {
+    return null;
+  }
+
+  return trimmed;
+}
+
 function normalizeReceiverInput(
   input: AdminFelReceiverInput,
 ): AdminFelReceiverSnapshot {
@@ -777,6 +796,12 @@ function toDraftSourceReservation(
   return {
     id: record.id,
     guestName: record.guestName,
+    guestEmail: trimSuggestion(record.guestEmail, RECEIVER_EMAIL_MAX_LENGTH),
+    guestPhone: trimSuggestion(record.guestPhone, GUEST_PHONE_MAX_LENGTH),
+    guestCountry: inferReservationPhoneCountry(
+      record.guestPhone,
+      record.guestCountry,
+    ),
     propertyId: record.property.id,
     propertyName: record.property.nameEs,
     checkInDate,
@@ -1174,6 +1199,9 @@ function toEligibleReservation(
   return {
     id: source.id,
     guestName: source.guestName,
+    guestEmail: source.guestEmail,
+    guestPhone: source.guestPhone,
+    guestCountry: source.guestCountry,
     property: {
       id: source.propertyId,
       nameEs: source.propertyName,
@@ -1346,7 +1374,7 @@ async function createFelAuditLog(
   transaction: FelTransactionClient,
   input: Readonly<{
     adminUserId: string;
-    action: "FEL_DRAFT_CREATED" | "FEL_DRAFT_REBUILT" | "FEL_DRAFT_DISCARDED";
+    action: "FEL_DRAFT_CREATED" | "FEL_DRAFT_UPDATED" | "FEL_DRAFT_DISCARDED";
     documentId: string;
     metadata: Prisma.InputJsonObject;
   }>,
@@ -1628,25 +1656,20 @@ export async function createAdminFelDraft(
   }
 }
 
-async function rebuildAdminFelDraftInTransaction(
+async function saveAdminFelDraftChangesInTransaction(
   transaction: FelTransactionClient,
-  input: RebuildAdminFelDraftInput,
+  input: SaveAdminFelDraftChangesInput,
   actor: AdminActor,
 ): Promise<AdminFelDocumentDetail> {
   const documentId = input.documentId.trim();
   const reservationIds = normalizeReservationIds(input.reservationIds);
+  const receiver = normalizeReceiverInput(input);
   const adminUser = await resolveAdminActor(transaction, actor);
   const document = await transaction.felDocument.findUnique({
     where: { id: documentId },
     select: {
       id: true,
       status: true,
-      receiverName: true,
-      receiverIdentifierType: true,
-      receiverIdentifier: true,
-      receiverAddress: true,
-      receiverEmail: true,
-      receiverCountry: true,
     },
   });
 
@@ -1660,21 +1683,19 @@ async function rebuildAdminFelDraftInTransaction(
   const records = await loadReservationRecords(transaction, reservationIds);
   const composition = buildFelDraftComposition({
     reservations: recordsToDraftSources(records, new Date()),
-    receiver: {
-      receiverName: document.receiverName,
-      receiverIdentifierType:
-        document.receiverIdentifierType as AdminFelReceiverIdentifierType,
-      receiverIdentifier: document.receiverIdentifier,
-      receiverAddress: document.receiverAddress,
-      receiverEmail: document.receiverEmail,
-      receiverCountry: document.receiverCountry,
-    },
+    receiver,
     groupExtras: input.groupExtras,
   });
 
   await transaction.felDocument.update({
     where: { id: document.id },
     data: {
+      receiverName: composition.receiver.receiverName,
+      receiverIdentifierType: composition.receiver.receiverIdentifierType,
+      receiverIdentifier: composition.receiver.receiverIdentifier,
+      receiverAddress: composition.receiver.receiverAddress,
+      receiverEmail: composition.receiver.receiverEmail,
+      receiverCountry: composition.receiver.receiverCountry,
       commercialCurrency: composition.commercialCurrency,
       total: new Prisma.Decimal(composition.total),
       groupExtras: composition.groupExtras,
@@ -1683,7 +1704,7 @@ async function rebuildAdminFelDraftInTransaction(
   await persistFelDraftComponents(transaction, document.id, composition);
   await createFelAuditLog(transaction, {
     adminUserId: adminUser.id,
-    action: "FEL_DRAFT_REBUILT",
+    action: "FEL_DRAFT_UPDATED",
     documentId: document.id,
     metadata: auditMetadataForComposition(composition),
   });
@@ -1691,13 +1712,13 @@ async function rebuildAdminFelDraftInTransaction(
   return findFelDocumentDetail(transaction, document.id);
 }
 
-export async function rebuildAdminFelDraft(
-  input: RebuildAdminFelDraftInput,
+export async function saveAdminFelDraftChanges(
+  input: SaveAdminFelDraftChangesInput,
   actor: AdminActor,
 ): Promise<AdminFelDocumentDetail> {
   try {
     return await runAdminFelTransactionWithRetry((transaction) =>
-      rebuildAdminFelDraftInTransaction(transaction, input, actor),
+      saveAdminFelDraftChangesInTransaction(transaction, input, actor),
     );
   } catch (error) {
     if (isAdminFelSourceConflict(error)) {
@@ -1706,43 +1727,6 @@ export async function rebuildAdminFelDraft(
 
     throw error;
   }
-}
-
-export async function updateAdminFelDraftReceiver(
-  input: UpdateAdminFelDraftReceiverInput,
-  actor: AdminActor,
-): Promise<AdminFelDocumentDetail> {
-  const documentId = input.documentId.trim();
-  const receiver = normalizeReceiverInput(input);
-
-  return runAdminFelTransactionWithRetry(async (transaction) => {
-    await resolveAdminActor(transaction, actor);
-
-    const document = await transaction.felDocument.findUnique({
-      where: { id: documentId },
-      select: { id: true, status: true },
-    });
-
-    if (!document) {
-      throw new AdminFelError("ADMIN_FEL_DOCUMENT_NOT_FOUND");
-    }
-
-    ensureDraftEditable(document.status);
-
-    await transaction.felDocument.update({
-      where: { id: document.id },
-      data: {
-        receiverName: receiver.receiverName,
-        receiverIdentifierType: receiver.receiverIdentifierType,
-        receiverIdentifier: receiver.receiverIdentifier,
-        receiverAddress: receiver.receiverAddress,
-        receiverEmail: receiver.receiverEmail,
-        receiverCountry: receiver.receiverCountry,
-      },
-    });
-
-    return findFelDocumentDetail(transaction, document.id);
-  });
 }
 
 export async function discardAdminFelDraft(

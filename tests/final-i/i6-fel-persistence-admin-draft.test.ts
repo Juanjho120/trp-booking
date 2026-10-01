@@ -14,6 +14,14 @@ import {
 } from "@prisma/client";
 
 import {
+  formatAdminFelDateRangeForCard,
+  formatAdminFelNightsForCard,
+} from "@/lib/admin/fel-display";
+import {
+  buildReceiverCountrySuggestions,
+  buildReceiverEmailSuggestions,
+} from "@/lib/admin/fel-receiver-suggestions";
+import {
   additionalChargeFiscalDescription,
   buildAdminFelDraftPreview,
   calculateFelCheckoutAt,
@@ -22,6 +30,7 @@ import {
   type AdminFelDraftSourceReservation,
 } from "@/lib/admin/fel";
 import { listCronJobDefinitions } from "@/lib/cron/registry";
+import { inferReservationPhoneCountry } from "@/lib/fel/receiver-contact-suggestions";
 import type { AdminFelReceiverInput } from "@/types/admin-fel";
 
 import { test } from "./harness";
@@ -75,6 +84,9 @@ function sourceReservation(
   return {
     id: "reservation-a",
     guestName: "Ada Lovelace",
+    guestEmail: "ada@example.com",
+    guestPhone: "+50255550000",
+    guestCountry: "GT",
     propertyId: "property-a",
     propertyName: "Bungalow del Bosque",
     checkInDate: "2026-08-15",
@@ -680,7 +692,6 @@ test("I.6 service and UI avoid sensitive token, raw payload, push and card persi
     "app/api/admin/fel/drafts/route.ts",
     "app/api/admin/fel/preview/route.ts",
     "app/api/admin/fel/drafts/[documentId]/route.ts",
-    "app/api/admin/fel/drafts/[documentId]/rebuild/route.ts",
   ]
     .map(read)
     .join("\n");
@@ -707,8 +718,19 @@ test("I.6 Admin surface exists with nav, localization parity and no provider act
   assert.match(component, /groupExtras/);
   assert.match(component, /refreshPreviewForState/);
   assert.match(component, /saveDraft/);
-  assert.match(component, /rebuildDraft/);
+  assert.match(component, /saveDraftChanges/);
   assert.match(component, /discardDraft/);
+  assert.match(component, /resetToNewInvoice/);
+  assert.doesNotMatch(component, /rebuildDraft|updateReceiver\(\)/);
+  assert.equal(
+    existsSync(
+      path.join(
+        ROOT,
+        "app/api/admin/fel/drafts/[documentId]/rebuild/route.ts",
+      ),
+    ),
+    false,
+  );
   assert.match(component, /documentTypeLabel\(copy,\s*draftPreview\.documentType\)/);
   assert.doesNotMatch(component, /:\s*\{draftPreview\.documentType\}/);
   assert.match(es, /felPage:\s*{/);
@@ -736,6 +758,127 @@ test("I.6 server-authoritative preview route backs draft editing", () => {
   assert.match(component, /editingDocumentId\s*===\s*selectedDocument\.id/);
   assert.match(component, /setActiveTab\("new"\)/);
   assert.doesNotMatch(component, /centsFromMoney|moneyFromCents|previewLines/);
+});
+
+test("I.6 Admin FEL starts in explicit CREATE mode and only edits after open", () => {
+  const component = read("features/admin/components/admin-fel-page.tsx");
+
+  assert.match(
+    component,
+    /useState<AdminFelDocumentDetail \| null>\(null\)/,
+  );
+  assert.match(component, /useState<string \| null>\(\s*null,\s*\)/);
+  assert.doesNotMatch(component, /data\.documents\[0\]\s*\?\?\s*null/);
+  assert.match(
+    component,
+    /const isEditingDraft =\s*selectedDocument !== null &&\s*editingDocumentId !== null &&\s*selectedDocument\.id === editingDocumentId;/,
+  );
+  assert.match(component, /!isEditingDraft && !draftJustSaved/);
+  assert.match(component, /isEditingDraft \? \(/);
+  assert.match(component, /copy\.actions\.saveChanges/);
+  assert.match(component, /copy\.actions\.newInvoice/);
+  assert.match(component, /resetToNewInvoice/);
+  assert.match(component, /setActiveTab\("new"\)/);
+  assert.doesNotMatch(component, /copy\.actions\.updateReceiver/);
+  assert.doesNotMatch(component, /copy\.actions\.rebuild/);
+  assert.doesNotMatch(component, /\/api\/admin\/fel\/drafts\/\$\{encodeURIComponent\(selectedDocument\.id\)\}\/rebuild/);
+  assert.match(component, /selectedDocument\.id}-editor-\$\{line\.lineNumber\}/);
+  assert.doesNotMatch(component, /selectedDocument\.id}-\$\{line\.lineNumber\}/);
+});
+
+test("I.6 Admin FEL card dates and nights are localized without date drift", () => {
+  assert.equal(
+    formatAdminFelDateRangeForCard("2026-09-28", "2026-09-29"),
+    "28/09/2026 - 29/09/2026",
+  );
+  assert.equal(
+    formatAdminFelNightsForCard(1, {
+      singular: "noche",
+      plural: "noches",
+    }),
+    "1 noche",
+  );
+  assert.equal(
+    formatAdminFelNightsForCard(2, {
+      singular: "noche",
+      plural: "noches",
+    }),
+    "2 noches",
+  );
+  assert.equal(
+    formatAdminFelNightsForCard(1, {
+      singular: "night",
+      plural: "nights",
+    }),
+    "1 night",
+  );
+  assert.equal(
+    formatAdminFelNightsForCard(2, {
+      singular: "night",
+      plural: "nights",
+    }),
+    "2 nights",
+  );
+});
+
+test("I.6 receiver email and country suggestions dedupe selected Reservations", () => {
+  assert.deepEqual(
+    buildReceiverEmailSuggestions([{ guestEmail: " Guest1@Example.com " }]),
+    ["Guest1@Example.com"],
+  );
+  assert.deepEqual(
+    buildReceiverEmailSuggestions([
+      { guestEmail: "guest1@example.com" },
+      { guestEmail: " GUEST1@example.com " },
+    ]),
+    ["guest1@example.com"],
+  );
+  assert.deepEqual(
+    buildReceiverEmailSuggestions([
+      { guestEmail: "guest1@example.com" },
+      { guestEmail: "guest2@example.com" },
+    ]),
+    ["guest1@example.com", "guest2@example.com"],
+  );
+  assert.deepEqual(
+    buildReceiverCountrySuggestions([{ guestCountry: "gt" }], "es-GT"),
+    [{ code: "GT", label: "Guatemala" }],
+  );
+  assert.deepEqual(
+    buildReceiverCountrySuggestions(
+      [{ guestCountry: "US" }, { guestCountry: "us" }],
+      "en-US",
+    ),
+    [{ code: "US", label: "United States" }],
+  );
+  assert.deepEqual(
+    buildReceiverCountrySuggestions(
+      [{ guestCountry: "GT" }, { guestCountry: "MX" }],
+      "es-GT",
+    ).map((suggestion) => suggestion.code),
+    ["GT", "MX"],
+  );
+
+  const component = read("features/admin/components/admin-fel-page.tsx");
+
+  assert.match(component, /receiverEmailMode/);
+  assert.match(component, /receiverCountryMode/);
+  assert.match(component, /receiverEmailMode !== "AUTO"/);
+  assert.match(component, /receiverCountryMode !== "AUTO"/);
+  assert.match(component, /chooseReceiverEmailSuggestion/);
+  assert.match(component, /chooseReceiverCountrySuggestion/);
+  assert.match(component, /OTHER_EMAIL_VALUE/);
+  assert.match(component, /OTHER_COUNTRY_VALUE/);
+  assert.match(component, /setReceiverEmailMode\("MANUAL"\)/);
+  assert.match(component, /setReceiverCountryMode\("MANUAL"\)/);
+});
+
+test("I.6 country inference uses phone metadata with safe fallback", () => {
+  assert.equal(inferReservationPhoneCountry("+50255550000", null), "GT");
+  assert.equal(inferReservationPhoneCountry("+12025550123", null), "US");
+  assert.equal(inferReservationPhoneCountry("+525555123456", null), "MX");
+  assert.equal(inferReservationPhoneCountry("not a phone", "GT"), "GT");
+  assert.equal(inferReservationPhoneCountry("not a phone", "bad"), null);
 });
 
 test("I.6 receiver UI keeps manual fields and no NIT/CUI lookup runtime", () => {
@@ -813,7 +956,6 @@ test("I.6 APIs use admin session, same-origin protection and bounded FEL error c
     "app/api/admin/fel/drafts/route.ts",
     "app/api/admin/fel/preview/route.ts",
     "app/api/admin/fel/drafts/[documentId]/route.ts",
-    "app/api/admin/fel/drafts/[documentId]/rebuild/route.ts",
   ];
 
   for (const routePath of routes) {

@@ -1979,6 +1979,30 @@ No Prisma schema change, migration, dependency, environment variable, scheduler,
 
 Validation executed for this I.6 Hosted-feedback correction: `npm run final-i:validate` PASS 53/53 after rerun outside the sandbox because the sandbox-only `tsx` startup failed with `uv_os_get_passwd ENOMEM`; `npm run final-i:db:validate` PASS 12/12 with `TRP_ENVIRONMENT=test`; `npm run final-f:validate` PASS 125/125; `npm run final-h:validate` PASS 20/20; `npm run env:validate` PASS; `npm run db:validate` PASS with Prisma `package.json#prisma` deprecation warning only; `npm run db:generate` PASS with the same Prisma warning after a retry because the first attempt overlapped a DB suite Prisma engine file lock; `npm run db:migrate:status` PASS with 30 migrations and database schema up to date; `npm run lint` PASS; `npm run build` PASS with Next slow filesystem warning only; `npm audit --omit=dev` PASS with 0 vulnerabilities; and `git diff --check` PASS.
 
+## 2026-10-01 — Final-I.6 Hosted UX Editing Workflow Correction Applied; Hosted Owner Validation In Progress
+
+```text
+Package: Final-I — Operational Polish, Notification UX & FEL Invoicing
+Subphase: Final-I.6 — FEL persistence + Admin draft/selection/preview module
+Status: Implementation completed; Hosted owner validation in progress
+Final-I.6 record: docs/214-final-i-6-fel-persistence-admin-draft-module.md
+Final-I.7: Blocked pending official INFILE technical documentation + Test credentials
+Final-I.8-Final-I.9: Not started
+Phase 13: Blocked / Not started until Final-I closes
+```
+
+Hosted validation identified a second Admin FEL UX correction pass before continuing owner points 6-10. The correction keeps Final-I.6 provider-independent and does not add INFILE, NIT/CUI lookup, schema changes, migrations, environment variables, scheduler work, Production resources, Final-I.7, or Phase 13 work.
+
+The Admin FEL module now uses explicit CREATE and EDIT modes. `/admin/fel` opens in clean CREATE mode with no implicit selected last draft, and draft history does not silently select a document. EDIT begins only through the explicit open/edit action. CREATE mode exposes preview and save draft; EDIT mode exposes preview, a single save changes action, discard draft, and new invoice where appropriate. `Nueva factura` / `New invoice` resets local UI state only and does not mutate or delete any saved draft.
+
+The correction also removes the user-facing receiver-update versus rebuild distinction. `Guardar cambios` / `Save changes` persists the Admin's current edited composition on the same `FelDocument.id`, preserves source ownership through `FelCommercialSourceAllocation`, and rolls back without partially mutating the original draft if a conflict occurs. The redundant history-tab saved snapshot card was removed; the saved snapshot remains available only in the new-invoice tab while a draft is explicitly open for edit.
+
+Eligible Reservation data now provides bounded suggestion-only guest contact fields. Selected Reservations can suggest receiver email values with trimmed, case-insensitive deduplication and receiver country values inferred from Reservation phone metadata through `libphonenumber-js`, with a safe stored country fallback. Manual receiver email/country input is not overwritten by later selection changes, and persisted receiver snapshots win when an existing draft is opened. Eligible Reservation cards now display `dd/MM/yyyy` date-only ranges and localized singular/plural night labels.
+
+Validation executed for this correction: `npm run final-i:validate` PASS 57/57 after rerun outside the sandbox because the sandbox-only `tsx` startup failed with `uv_os_get_passwd ENOMEM`; `npm run final-i:db:validate` PASS 13/13 with `TRP_ENVIRONMENT=test` after the same sandbox-only `tsx` startup failure; `npm run final-f:validate` PASS 125/125 after the same sandbox-only `tsx` startup failure; `npm run final-h:validate` PASS 20/20 after the same sandbox-only `tsx` startup failure; `npm run env:validate` PASS after the same sandbox-only `tsx` startup failure; `npm run db:validate` PASS with Prisma `package.json#prisma` deprecation warning only; `npm run db:generate` PASS with the same Prisma warning; `npm run db:migrate:status` PASS with 30 migrations and database schema up to date after rerun outside the sandbox because the sandbox run returned `Schema engine error`; `npm run lint` PASS; `npm run build` PASS after rerun outside the sandbox because the sandbox run could not fetch Google Fonts; `npm audit --omit=dev` PASS with 0 vulnerabilities after rerun outside the sandbox because the sandbox audit endpoint/cache request failed; and `git diff --check` PASS with Windows CRLF normalization warnings only.
+
+Final-I.6 remains not accepted until Hosted owner validation and explicit owner acceptance complete.
+
 ## 2026-09-30 — Final-I.6 Implementation Completed; Hosted Owner Validation Pending
 
 ```text

@@ -2611,7 +2611,9 @@ export const enMessages = {
         receiverIdentifier: "Identifier",
         receiverAddress: "Optional address",
         receiverEmail: "Optional email",
+        receiverEmailSuggestion: "Suggested email",
         receiverCountry: "Optional country",
+        receiverCountrySuggestion: "Suggested country",
         groupExtras: "Group services and additional charges in one line",
       },
       identifierTypes: {
@@ -2625,7 +2627,8 @@ export const enMessages = {
         selected: "Selected",
         selectable: "Select",
         currencyMismatch: "Currency mismatch",
-        nights: "nights",
+        nightSingular: "night",
+        nightPlural: "nights",
         stayTotal: "Stay",
         extras: "Extras",
         line: "Line",
@@ -2643,6 +2646,8 @@ export const enMessages = {
         previewFresh: "Preview current",
         previewStale: "Preview stale",
         savedDraftSource: "Saved draft source",
+        otherEmail: "Other email...",
+        otherCountry: "Other country...",
       },
       preview: {
         lodgingPrefix: "Reservation",
@@ -2653,9 +2658,10 @@ export const enMessages = {
         loadingPreview: "Refreshing...",
         save: "Save draft",
         saving: "Saving...",
+        saveChanges: "Save changes",
+        savingChanges: "Saving changes...",
+        newInvoice: "New invoice",
         openEdit: "Open / Edit",
-        updateReceiver: "Update receiver",
-        rebuild: "Rebuild from current commercial data",
         discard: "Discard draft",
       },
       documentTypes: {
@@ -2677,7 +2683,7 @@ export const enMessages = {
         noProviderCertification:
           "This module saves a fiscal draft. FEL certification and final certifier validation belong to the later integration.",
         previewStale:
-          "Refresh the preview before saving or rebuilding so the server can validate the commercial sources.",
+          "Refresh the preview before saving so the server can validate the commercial sources.",
         savedSnapshot:
           "These values are the saved draft snapshot. They are not refreshed automatically when opened.",
       },
@@ -2685,8 +2691,7 @@ export const enMessages = {
         previewRefreshed:
           "The fiscal preview was refreshed from current commercial sources.",
         saved: "The fiscal draft was saved.",
-        updated: "The draft fiscal receiver was updated.",
-        rebuilt: "The draft was rebuilt from current commercial sources.",
+        changesSaved: "The draft changes were saved.",
         discarded: "The draft was discarded and its sources were released.",
       },
       empty: {

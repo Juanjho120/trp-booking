@@ -15,7 +15,7 @@ Final-I.9 status: Not started
 Phase 13 status: Blocked / Not started until Final-I closes
 ```
 
-Final-I.6 materializes the accepted Final-I.5 provider-independent FEL architecture. It adds persistence, draft-source ownership, the Admin `/admin/fel` draft module, protected Admin APIs, frozen Fiscal Receiver field ordering, documented future NIT/CUI receiver-validation requirements, and fiscal presentation corrections requested during Hosted owner validation. It does not add external receiver-validation runtime, INFILE transport, credentials, certification, DTE cancellation, Credit Note issuing workflow, PDF/XML retrieval, provider retry/status lookup, FEL scheduler, environment variables, cron registration, Production resources, or Phase 13 work.
+Final-I.6 materializes the accepted Final-I.5 provider-independent FEL architecture. It adds persistence, draft-source ownership, the Admin `/admin/fel` draft module, protected Admin APIs, frozen Fiscal Receiver field ordering, documented future NIT/CUI receiver-validation requirements, and fiscal presentation/workflow corrections requested during Hosted owner validation. It does not add external receiver-validation runtime, INFILE transport, credentials, certification, DTE cancellation, Credit Note issuing workflow, PDF/XML retrieval, provider retry/status lookup, FEL scheduler, environment variables, cron registration, Production resources, or Phase 13 work.
 
 Hosted owner validation has started. Points 1-5 were executed, and owner-requested UX/presentation corrections were applied before points 6-10 continue. Final-I.6 is not accepted yet.
 
@@ -109,8 +109,7 @@ getAdminFelPage
 getAdminFelDraft
 previewAdminFelDraft
 createAdminFelDraft
-rebuildAdminFelDraft
-updateAdminFelDraftReceiver
+saveAdminFelDraftChanges
 discardAdminFelDraft
 runAdminFelTransactionWithRetry
 ```
@@ -119,11 +118,11 @@ Mutations use `Prisma.TransactionIsolationLevel.Serializable` with explicit boun
 
 Draft creation transactionally resolves the Admin actor, normalizes receiver input, re-reads selected Reservations, re-checks eligibility, claims source allocations, persists snapshots/lines/provenance, validates arithmetic, and records `FEL_DRAFT_CREATED` in `AdminAuditLog`.
 
-Draft rebuild verifies the document is still `DRAFT`, releases provisional allocations inside the same serializable transaction, re-reads current commercial sources, rebuilds snapshots/lines/provenance, recalculates totals from allocations, and records `FEL_DRAFT_REBUILT`. A failed rebuild rolls back without leaving the draft partially modified.
+Draft save-changes verifies the document is still `DRAFT`, releases the current provisional draft components/allocations inside the same serializable transaction, re-reads the Admin-selected current commercial sources, rebuilds snapshots/lines/provenance through `buildFelDraftComposition(...)`, updates receiver fields, `commercialCurrency`, `total`, and `groupExtras`, validates arithmetic, and records `FEL_DRAFT_UPDATED`. A failed save-changes operation rolls back without leaving the original saved draft partially modified.
 
 Draft discard only applies to `DRAFT`, deletes/releases the draft graph by relational cascade, and records `FEL_DRAFT_DISCARDED`.
 
-`previewAdminFelDraft` is a server-authoritative, provider-independent read operation. It normalizes the same inputs as draft creation, optionally verifies an `editingDocumentId` is still `DRAFT`, reuses the same eligibility and `buildFelDraftComposition(...)` domain logic, and performs no writes. Existing source allocations remain unavailable for new drafts; only allocations owned by the same edited draft may be treated as available for preview/rebuild. Allocations owned by another document still return `ADMIN_FEL_SOURCE_ALREADY_ALLOCATED`.
+`previewAdminFelDraft` is a server-authoritative, provider-independent read operation. It normalizes the same inputs as draft creation, optionally verifies an `editingDocumentId` is still `DRAFT`, reuses the same eligibility and `buildFelDraftComposition(...)` domain logic, and performs no writes. Existing source allocations remain unavailable for new drafts; only allocations owned by the same explicitly edited draft may be treated as available for preview/save-changes. Allocations owned by another document still return `ADMIN_FEL_SOURCE_ALREADY_ALLOCATED`.
 
 Final-I.6 Hosted-feedback correction deliberately removes premature NIT-only lookup runtime. I.6 freezes only the Fiscal Receiver field order and the future provider-neutral NIT/CUI receiver-validation contract. No external receiver-validation endpoint, receiver-lookup API route, or lookup adapter is active in I.6.
 
@@ -146,7 +145,7 @@ currency is present and compatible with the draft
 
 I.6 deliberately excludes `PENDING_PAYMENT`, `EXPIRED`, `BLOCKED`, `CANCELLED`, `REFUNDED`, and `PARTIALLY_REFUNDED`. It treats lifecycle statuses `PENDING_REVIEW`, `APPROVED`, and `AWAITING_ADJUSTMENT_PAYMENT` as unresolved; terminal/historical statuses remain evidence only. Refund statuses `PENDING`, `PROCESSING`, `APPROVED`, and `MANUAL` are active fiscal reconciliation blockers; `FAILED` is not.
 
-For editing an existing `DRAFT`, the same-draft preview/rebuild path may include Reservations and `GuestPaymentRequestItem` extras already allocated to that same `FelDocument`. This does not make allocated sources globally eligible: sources allocated to any other document remain blocked.
+For editing an existing `DRAFT`, the same-draft preview/save-changes path may include Reservations and `GuestPaymentRequestItem` extras already allocated to that same `FelDocument`. This does not make allocated sources globally eligible: sources allocated to any other document remain blocked.
 
 Additional-charge sources are eligible only through `GuestPaymentRequestItem` snapshots when:
 
@@ -171,7 +170,6 @@ POST   /api/admin/fel/preview
 POST   /api/admin/fel/drafts
 PATCH  /api/admin/fel/drafts/[documentId]
 DELETE /api/admin/fel/drafts/[documentId]
-POST   /api/admin/fel/drafts/[documentId]/rebuild
 ```
 
 The Admin route is force-dynamic, protected by the existing Admin layout, and marked noindex/nofollow. The Admin shell includes the new `Facturación` / `Invoicing` navigation item after Payments.
@@ -183,9 +181,9 @@ Nueva factura / New invoice
 Borradores e historial / Drafts and history
 ```
 
-The module supports eligible reservation selection, one/multiple reservation drafts, fiscal receiver input, manual receiver-name entry, individual/grouped extras, preview, save draft, open/edit, rebuild from current commercial data, and discard. It does not expose NIT lookup, CUI lookup, certification, INFILE, cancellation, Credit Note, XML, or PDF actions.
+The module supports eligible reservation selection, one/multiple reservation drafts, fiscal receiver input, manual receiver-name entry, individual/grouped extras, preview, save draft, explicit open/edit, single save-changes editing, local new-invoice reset, and discard. It does not expose NIT lookup, CUI lookup, certification, INFILE, cancellation, Credit Note, XML, or PDF actions.
 
-The editable preview is now server-authoritative through `POST /api/admin/fel/preview`. Client-side arithmetic is not the fiscal source of truth. The UI distinguishes the saved draft snapshot from "Vista previa desde datos comerciales actuales" / "Preview from current commercial data", marks previews stale when reservation selection, receiver input, grouping mode, or edited document context changes, and disables save/rebuild until a fresh server preview exists for the current inputs.
+The editable preview is now server-authoritative through `POST /api/admin/fel/preview`. Client-side arithmetic is not the fiscal source of truth. The UI distinguishes the saved draft snapshot from "Vista previa desde datos comerciales actuales" / "Preview from current commercial data", marks previews stale when reservation selection, receiver input, grouping mode, or edited document context changes, and disables save draft / save changes until a fresh server preview exists for the current inputs.
 
 Fiscal receiver field order is `Tipo de identificación` / `Identifier type`, `Identificación` / `Identifier`, `Nombre del receptor` / `Receiver name`, `Correo` / `Email`, `País` / `Country`, and `Dirección` / `Address`. In I.6, the receiver name remains manually editable for every identifier type. There is no active NIT/CUI lookup control in the UI.
 
@@ -233,6 +231,12 @@ SAT-domain carry-forward: `IDReceptor` can represent NIT or CUI; when CUI is use
 When provider integration is active in Final-I.7, certification readiness must require successful authoritative receiver validation for `NIT` and `CUI`. Draft persistence may remain more permissive if operational recovery requires it, but an unvalidated identifier string is not enough for certification readiness.
 
 Fiscal line presentation was hardened during Hosted feedback: lodging line descriptions now persist the accommodation name, individual extras persist `<category label> (<description>)` using canonical Spanish fiscal labels, blank/redundant extra descriptions collapse to the category label, selected reservations keep the same strong border used on hover, document type display uses localized `Factura de Pequeño Contribuyente (FPEQ)` / `Small Taxpayer Invoice (FPEQ)`, and currency/amount render in separate aligned columns in preview and saved snapshots.
+
+A later Hosted-feedback correction simplifies the Admin workflow into explicit CREATE and EDIT modes. `/admin/fel` now starts with `selectedDocument == null` and `editingDocumentId == null`; draft history never selects the latest draft implicitly. EDIT starts only after the Admin clicks open/edit on a history row. CREATE mode shows preview and save draft only, while EDIT mode shows preview, save changes, discard draft, and new invoice as appropriate. The old user-facing receiver-update and rebuild distinction is removed; source ownership remains enforced by `FelCommercialSourceAllocation`, and the UI avoids accidentally invoking new-draft creation while editing an existing draft.
+
+`Nueva factura` / `New invoice` is a local reset action only. It clears the selected document, editing id, selected Reservations, receiver input, grouping mode, preview/signature, transient feedback, and returns to the new-invoice tab without mutating or deleting any existing draft.
+
+Eligible Reservation cards now format date-only values as `dd/MM/yyyy` without timezone conversion and localize singular/plural nights. Receiver email and country values from selected Reservations are suggestions only, not fiscal identity: email suggestions dedupe trimmed values case-insensitively; country suggestions are inferred first from the Reservation phone using `libphonenumber-js`, then from a valid stored Reservation country fallback, and displayed with `Intl.DisplayNames`. Manual Admin receiver email/country entries are not overwritten by later Reservation-selection changes, and opening an existing draft keeps its persisted receiver snapshot authoritative. The receiver snapshot stores the Admin-selected/displayed receiver country string under the existing `receiverCountry` contract; no SAT/provider country mapping is introduced in I.6.
 
 Visible copy is centralized in `messages/es.ts` and `messages/en.ts`.
 
@@ -293,7 +297,7 @@ Final-I.6 hardening adds the explicit DB-backed validation gate:
 npm run final-i:db:validate
 ```
 
-That suite runs only when `TRP_ENVIRONMENT=test`, uses uniquely namespaced fixtures and targeted cleanup, and executes real Prisma/PostgreSQL service calls for draft creation, grouped and individual extras, persisted individual line ordering, grouped invoice-wide line regression, duplicate Reservation source conflicts, duplicate GuestPaymentRequestItem source conflicts, the PostgreSQL XOR CHECK, failed rebuild rollback, discard source release, non-DRAFT edit rejection, and same-draft preview ownership.
+That suite runs only when `TRP_ENVIRONMENT=test`, uses uniquely namespaced fixtures and targeted cleanup, and executes real Prisma/PostgreSQL service calls for draft creation, grouped and individual extras, persisted individual line ordering, grouped invoice-wide line regression, duplicate Reservation source conflicts, duplicate GuestPaymentRequestItem source conflicts, the PostgreSQL XOR CHECK, save-changes identity preservation, failed save-changes rollback, discard source release, non-DRAFT edit rejection, and same-draft preview/save ownership.
 
 ## I.7 Carry-Forward
 
@@ -302,18 +306,18 @@ Before Final-I.7 creates any `FelCreditAllocation`, the provider-integration imp
 ## Validation Ledger
 
 ```text
-npm run final-i:validate - PASS, 53/53 after rerun outside the sandbox because the sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM
-npm run final-i:db:validate - PASS, 12/12 with TRP_ENVIRONMENT=test; an initial date-change fixture setup violated the existing lifecycle delta CHECK and was corrected before the final pass
+npm run final-i:validate - PASS, 57/57 after rerun outside the sandbox because the sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM
+npm run final-i:db:validate - PASS, 13/13 with TRP_ENVIRONMENT=test after rerun outside the sandbox because the sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM
 npm run final-f:validate - PASS, 125/125
 npm run final-h:validate - PASS, 20/20
-npm run env:validate - PASS
+npm run env:validate - PASS after rerun outside the sandbox because the sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM
 npm run db:validate - PASS; Prisma package.json#prisma deprecation warning only
-npm run db:generate - PASS; Prisma package.json#prisma deprecation warning only after a retry because the first attempt overlapped a DB suite Prisma engine file lock
-npm run db:migrate:status - PASS, 30 migrations, database schema is up to date
+npm run db:generate - PASS; Prisma package.json#prisma deprecation warning only
+npm run db:migrate:status - PASS, 30 migrations, database schema is up to date after rerun outside the sandbox because the sandbox run returned Schema engine error
 npm run lint - PASS
-npm run build - PASS; initial TypeScript narrowing failure in the former NIT lookup UI handling was corrected before the final pass; Next slow filesystem warning only
-npm audit --omit=dev - PASS, 0 vulnerabilities
-git diff --check - PASS
+npm run build - PASS after rerun outside the sandbox because the sandbox run could not fetch Google Fonts; Next slow filesystem warning only
+npm audit --omit=dev - PASS, 0 vulnerabilities after rerun outside the sandbox because the sandbox audit endpoint/cache request failed
+git diff --check - PASS; Windows CRLF normalization warnings only
 ```
 
 The DB-backed gate now explicitly proves both canonical source uniqueness constraints: Reservation source uniqueness and GuestPaymentRequestItem source uniqueness.

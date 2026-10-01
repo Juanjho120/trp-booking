@@ -1,14 +1,22 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { FileText, RefreshCw, Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { FileText, Plus, RefreshCw, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocale } from "@/features/i18n";
+import {
+  formatAdminFelDateRangeForCard,
+  formatAdminFelNightsForCard,
+} from "@/lib/admin/fel-display";
+import {
+  buildReceiverCountrySuggestions,
+  buildReceiverEmailSuggestions,
+} from "@/lib/admin/fel-receiver-suggestions";
 import { cn } from "@/lib/utils";
 import type {
   AdminFelDocumentDetail,
@@ -40,6 +48,8 @@ type ReceiverState = Readonly<{
   receiverCountry: string;
 }>;
 
+type SuggestionMode = "AUTO" | "MANUAL";
+
 const initialReceiverState: ReceiverState = {
   receiverName: "",
   receiverIdentifierType: "CONSUMIDOR_FINAL",
@@ -52,6 +62,9 @@ const initialReceiverState: ReceiverState = {
 type ReservationChoice = Readonly<{
   id: string;
   guestName: string;
+  guestEmail: string | null;
+  guestPhone: string | null;
+  guestCountry: string | null;
   propertyName: string;
   checkInDate: string;
   checkOutDate: string;
@@ -61,6 +74,9 @@ type ReservationChoice = Readonly<{
   eligibleExtraCount: number;
   eligibleExtraTotal: string;
 }>;
+
+const OTHER_EMAIL_VALUE = "__other_email__";
+const OTHER_COUNTRY_VALUE = "__other_country__";
 
 function isErrorResponse(
   response: FelMutationResponse,
@@ -226,6 +242,10 @@ export function AdminFelPageView({
   );
   const [receiver, setReceiver] =
     useState<ReceiverState>(initialReceiverState);
+  const [receiverEmailMode, setReceiverEmailMode] =
+    useState<SuggestionMode>("AUTO");
+  const [receiverCountryMode, setReceiverCountryMode] =
+    useState<SuggestionMode>("AUTO");
   const [groupExtras, setGroupExtras] = useState(false);
   const [editingDocumentId, setEditingDocumentId] = useState<string | null>(
     null,
@@ -236,7 +256,8 @@ export function AdminFelPageView({
     string | null
   >(null);
   const [selectedDocument, setSelectedDocument] =
-    useState<AdminFelDocumentDetail | null>(data.documents[0] ?? null);
+    useState<AdminFelDocumentDetail | null>(null);
+  const [draftJustSaved, setDraftJustSaved] = useState(false);
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -245,6 +266,9 @@ export function AdminFelPageView({
     const choices = data.eligibleReservations.map((reservation) => ({
       id: reservation.id,
       guestName: reservation.guestName,
+      guestEmail: reservation.guestEmail,
+      guestPhone: reservation.guestPhone,
+      guestCountry: reservation.guestCountry,
       propertyName: reservation.property.nameEs,
       checkInDate: reservation.checkInDate,
       checkOutDate: reservation.checkOutDate,
@@ -266,6 +290,9 @@ export function AdminFelPageView({
         choices.push({
           id: reservation.reservationId,
           guestName: copy.labels.savedDraftSource,
+          guestEmail: null,
+          guestPhone: null,
+          guestCountry: null,
           propertyName: reservation.propertyName,
           checkInDate: reservation.checkInDate,
           checkOutDate: reservation.checkOutDate,
@@ -285,6 +312,29 @@ export function AdminFelPageView({
     editingDocumentId,
     selectedDocument,
   ]);
+  const isEditingDraft =
+    selectedDocument !== null &&
+    editingDocumentId !== null &&
+    selectedDocument.id === editingDocumentId;
+  const selectedReservationChoices = useMemo(
+    () =>
+      selectedReservationIds
+        .map((id) =>
+          reservationChoices.find((reservation) => reservation.id === id),
+        )
+        .filter((reservation): reservation is ReservationChoice =>
+          Boolean(reservation),
+        ),
+    [reservationChoices, selectedReservationIds],
+  );
+  const emailSuggestions = useMemo(
+    () => buildReceiverEmailSuggestions(selectedReservationChoices),
+    [selectedReservationChoices],
+  );
+  const countrySuggestions = useMemo(
+    () => buildReceiverCountrySuggestions(selectedReservationChoices, intlLocale),
+    [intlLocale, selectedReservationChoices],
+  );
   const selectedCurrency =
     reservationChoices.find((reservation) =>
       selectedReservationIds.includes(reservation.id),
@@ -313,6 +363,34 @@ export function AdminFelPageView({
   const previewIsStale =
     draftPreview !== null && draftPreviewSignature !== currentPreviewSignature;
 
+  useEffect(() => {
+    if (receiverEmailMode !== "AUTO") {
+      return;
+    }
+
+    const nextEmail = emailSuggestions[0] ?? "";
+
+    setReceiver((current) =>
+      current.receiverEmail === nextEmail
+        ? current
+        : { ...current, receiverEmail: nextEmail },
+    );
+  }, [emailSuggestions, receiverEmailMode]);
+
+  useEffect(() => {
+    if (receiverCountryMode !== "AUTO") {
+      return;
+    }
+
+    const nextCountry = countrySuggestions[0]?.label ?? "";
+
+    setReceiver((current) =>
+      current.receiverCountry === nextCountry
+        ? current
+        : { ...current, receiverCountry: nextCountry },
+    );
+  }, [countrySuggestions, receiverCountryMode]);
+
   function formatDateTime(value: string): string {
     return new Intl.DateTimeFormat(intlLocale, {
       dateStyle: "medium",
@@ -334,6 +412,21 @@ export function AdminFelPageView({
     setErrorMessage(null);
   }
 
+  function resetToNewInvoice(): void {
+    setSelectedDocument(null);
+    setEditingDocumentId(null);
+    setSelectedReservationIds([]);
+    setReceiver(initialReceiverState);
+    setReceiverEmailMode("AUTO");
+    setReceiverCountryMode("AUTO");
+    setGroupExtras(false);
+    setDraftPreview(null);
+    setDraftPreviewSignature(null);
+    setDraftJustSaved(false);
+    resetMessages();
+    setActiveTab("new");
+  }
+
   function changeReceiverIdentifierType(
     receiverIdentifierType: AdminFelReceiverIdentifierType,
   ): void {
@@ -350,6 +443,70 @@ export function AdminFelPageView({
     }));
   }
 
+  function changeReceiverEmail(receiverEmail: string): void {
+    setReceiverEmailMode("MANUAL");
+    setReceiver((current) => ({
+      ...current,
+      receiverEmail,
+    }));
+  }
+
+  function chooseReceiverEmailSuggestion(value: string): void {
+    if (value === OTHER_EMAIL_VALUE) {
+      setReceiverEmailMode("MANUAL");
+      setReceiver((current) => ({
+        ...current,
+        receiverEmail: emailSuggestions.includes(current.receiverEmail)
+          ? ""
+          : current.receiverEmail,
+      }));
+      return;
+    }
+
+    setReceiverEmailMode("AUTO");
+    setReceiver((current) => ({
+      ...current,
+      receiverEmail: value,
+    }));
+  }
+
+  function changeReceiverCountry(receiverCountry: string): void {
+    setReceiverCountryMode("MANUAL");
+    setReceiver((current) => ({
+      ...current,
+      receiverCountry,
+    }));
+  }
+
+  function chooseReceiverCountrySuggestion(value: string): void {
+    if (value === OTHER_COUNTRY_VALUE) {
+      setReceiverCountryMode("MANUAL");
+      setReceiver((current) => ({
+        ...current,
+        receiverCountry: countrySuggestions.some(
+          (suggestion) => suggestion.label === current.receiverCountry,
+        )
+          ? ""
+          : current.receiverCountry,
+      }));
+      return;
+    }
+
+    const suggestion = countrySuggestions.find(
+      (candidate) => candidate.code === value,
+    );
+
+    if (!suggestion) {
+      return;
+    }
+
+    setReceiverCountryMode("AUTO");
+    setReceiver((current) => ({
+      ...current,
+      receiverCountry: suggestion.label,
+    }));
+  }
+
   function buildPayload() {
     return buildPayloadFromState(selectedReservationIds, receiver, groupExtras);
   }
@@ -362,10 +519,13 @@ export function AdminFelPageView({
 
     setSelectedDocument(document);
     setEditingDocumentId(document.id);
+    setDraftJustSaved(false);
     setActiveTab("new");
     setSelectedReservationIds(reservationIds);
     setGroupExtras(document.groupExtras);
     setReceiver(nextReceiver);
+    setReceiverEmailMode("MANUAL");
+    setReceiverCountryMode("MANUAL");
     void refreshPreviewForState(
       reservationIds,
       nextReceiver,
@@ -382,9 +542,12 @@ export function AdminFelPageView({
 
     setSelectedDocument(document);
     setEditingDocumentId(document.id);
+    setDraftJustSaved(false);
     setSelectedReservationIds(reservationIds);
     setGroupExtras(document.groupExtras);
     setReceiver(nextReceiver);
+    setReceiverEmailMode("MANUAL");
+    setReceiverCountryMode("MANUAL");
     setDraftPreview(previewFromDocument(document));
     setDraftPreviewSignature(
       buildPreviewSignature(
@@ -459,7 +622,9 @@ export function AdminFelPageView({
     request: RequestInfo | URL,
     init: RequestInit,
     successCopy: string,
-  ): Promise<AdminFelDocumentDetail | null> {
+  ): Promise<
+    AdminFelDocumentDetail | Readonly<{ discardedDocumentId: string }> | null
+  > {
     setBusyAction(action);
     resetMessages();
 
@@ -487,17 +652,13 @@ export function AdminFelPageView({
       router.refresh();
 
       if ("document" in payload) {
-        setSelectedDocument(payload.document);
         return payload.document;
       }
 
-      setSelectedDocument(null);
-      setEditingDocumentId(null);
-      setSelectedReservationIds([]);
-      setReceiver(initialReceiverState);
-      setGroupExtras(false);
-      setDraftPreview(null);
-      setDraftPreviewSignature(null);
+      if ("discardedDocumentId" in payload) {
+        return { discardedDocumentId: payload.discardedDocumentId };
+      }
+
       return null;
     } catch {
       setErrorMessage(copy.errors.ADMIN_FEL_UNEXPECTED_ERROR);
@@ -518,54 +679,35 @@ export function AdminFelPageView({
       copy.feedback.saved,
     );
 
-    if (document) {
-      acceptDocumentSnapshot(document);
+    if (document && "id" in document) {
+      setSelectedDocument(null);
+      setEditingDocumentId(null);
+      setDraftJustSaved(true);
     }
   }
 
-  async function updateReceiver(): Promise<void> {
-    if (!selectedDocument) return;
+  async function saveDraftChanges(): Promise<void> {
+    if (!isEditingDraft || !selectedDocument) return;
 
     const document = await submitMutation(
-      "update",
+      "save-changes",
       `/api/admin/fel/drafts/${encodeURIComponent(selectedDocument.id)}`,
       {
         method: "PATCH",
-        body: JSON.stringify(receiver),
+        body: JSON.stringify(buildPayload()),
       },
-      copy.feedback.updated,
+      copy.feedback.changesSaved,
     );
 
-    if (document) {
-      acceptDocumentSnapshot(document);
-    }
-  }
-
-  async function rebuildDraft(): Promise<void> {
-    if (!selectedDocument) return;
-
-    const document = await submitMutation(
-      "rebuild",
-      `/api/admin/fel/drafts/${encodeURIComponent(selectedDocument.id)}/rebuild`,
-      {
-        method: "POST",
-        body: JSON.stringify({
-          reservationIds: selectedReservationIds,
-          groupExtras,
-        }),
-      },
-      copy.feedback.rebuilt,
-    );
-
-    if (document) {
+    if (document && "id" in document) {
       acceptDocumentSnapshot(document);
     }
   }
 
   async function discardDraft(): Promise<void> {
-    if (!selectedDocument) return;
+    if (!isEditingDraft || !selectedDocument) return;
 
-    await submitMutation(
+    const result = await submitMutation(
       "discard",
       `/api/admin/fel/drafts/${encodeURIComponent(selectedDocument.id)}`,
       {
@@ -573,6 +715,12 @@ export function AdminFelPageView({
       },
       copy.feedback.discarded,
     );
+
+    if (result && "discardedDocumentId" in result) {
+      resetToNewInvoice();
+      setSuccessMessage(copy.feedback.discarded);
+      router.refresh();
+    }
   }
 
   function toggleReservation(reservation: ReservationChoice): void {
@@ -647,9 +795,16 @@ export function AdminFelPageView({
                           ) : null}
                         </span>
                         <span className="text-muted-foreground">
-                          {reservation.propertyName} · {reservation.checkInDate} -{" "}
-                          {reservation.checkOutDate} · {reservation.nights}{" "}
-                          {copy.labels.nights}
+                          {reservation.propertyName} ·{" "}
+                          {formatAdminFelDateRangeForCard(
+                            reservation.checkInDate,
+                            reservation.checkOutDate,
+                          )}{" "}
+                          ·{" "}
+                          {formatAdminFelNightsForCard(reservation.nights, {
+                            singular: copy.labels.nightSingular,
+                            plural: copy.labels.nightPlural,
+                          })}
                         </span>
                         <span>
                           {copy.labels.stayTotal}:{" "}
@@ -718,30 +873,75 @@ export function AdminFelPageView({
                 </label>
                 <label className="grid gap-2 text-sm font-medium">
                   {copy.fields.receiverEmail}
+                  {emailSuggestions.length > 1 ? (
+                    <select
+                      aria-label={copy.fields.receiverEmailSuggestion}
+                      className="min-h-11 rounded-lg border border-input bg-background px-3 py-2"
+                      onChange={(event) =>
+                        chooseReceiverEmailSuggestion(event.target.value)
+                      }
+                      value={
+                        emailSuggestions.includes(receiver.receiverEmail)
+                          ? receiver.receiverEmail
+                          : OTHER_EMAIL_VALUE
+                      }
+                    >
+                      {emailSuggestions.map((email) => (
+                        <option key={email} value={email}>
+                          {email}
+                        </option>
+                      ))}
+                      <option value={OTHER_EMAIL_VALUE}>
+                        {copy.labels.otherEmail}
+                      </option>
+                    </select>
+                  ) : null}
+                  {emailSuggestions.length <= 1 ||
+                  receiverEmailMode === "MANUAL" ? (
                   <input
                     className="min-h-11 rounded-lg border border-input bg-background px-3 py-2"
-                    onChange={(event) =>
-                      setReceiver((current) => ({
-                        ...current,
-                        receiverEmail: event.target.value,
-                      }))
-                    }
+                    onChange={(event) => changeReceiverEmail(event.target.value)}
                     type="email"
                     value={receiver.receiverEmail}
                   />
+                  ) : null}
                 </label>
                 <label className="grid gap-2 text-sm font-medium">
                   {copy.fields.receiverCountry}
+                  {countrySuggestions.length > 1 ? (
+                    <select
+                      aria-label={copy.fields.receiverCountrySuggestion}
+                      className="min-h-11 rounded-lg border border-input bg-background px-3 py-2"
+                      onChange={(event) =>
+                        chooseReceiverCountrySuggestion(event.target.value)
+                      }
+                      value={
+                        countrySuggestions.find(
+                          (suggestion) =>
+                            suggestion.label === receiver.receiverCountry,
+                        )?.code ?? OTHER_COUNTRY_VALUE
+                      }
+                    >
+                      {countrySuggestions.map((suggestion) => (
+                        <option key={suggestion.code} value={suggestion.code}>
+                          {suggestion.label}
+                        </option>
+                      ))}
+                      <option value={OTHER_COUNTRY_VALUE}>
+                        {copy.labels.otherCountry}
+                      </option>
+                    </select>
+                  ) : null}
+                  {countrySuggestions.length <= 1 ||
+                  receiverCountryMode === "MANUAL" ? (
                   <input
                     className="min-h-11 rounded-lg border border-input bg-background px-3 py-2"
                     onChange={(event) =>
-                      setReceiver((current) => ({
-                        ...current,
-                        receiverCountry: event.target.value,
-                      }))
+                      changeReceiverCountry(event.target.value)
                     }
                     value={receiver.receiverCountry}
                   />
+                  ) : null}
                 </label>
                 <label className="grid gap-2 text-sm font-medium">
                   {copy.fields.receiverAddress}
@@ -871,41 +1071,40 @@ export function AdminFelPageView({
                 </>
               )}
               <div className="flex flex-wrap gap-3">
-                <Button
-                  disabled={
-                    busyAction !== null ||
-                    selectedReservationIds.length === 0 ||
-                    receiver.receiverName.trim() === "" ||
-                    !previewIsFresh
-                  }
-                  onClick={() => void saveDraft()}
-                  type="button"
-                >
-                  <FileText aria-hidden="true" />
-                  {busyAction === "save" ? copy.actions.saving : copy.actions.save}
-                </Button>
-                {selectedDocument ? (
+                {!isEditingDraft && !draftJustSaved ? (
+                  <Button
+                    disabled={
+                      busyAction !== null ||
+                      selectedReservationIds.length === 0 ||
+                      receiver.receiverName.trim() === "" ||
+                      !previewIsFresh
+                    }
+                    onClick={() => void saveDraft()}
+                    type="button"
+                  >
+                    <FileText aria-hidden="true" />
+                    {busyAction === "save"
+                      ? copy.actions.saving
+                      : copy.actions.save}
+                  </Button>
+                ) : null}
+                {isEditingDraft ? (
                   <>
-                    <Button
-                      disabled={busyAction !== null}
-                      onClick={() => void updateReceiver()}
-                      type="button"
-                      variant="outline"
-                    >
-                      {copy.actions.updateReceiver}
-                    </Button>
                     <Button
                       disabled={
                         busyAction !== null ||
                         selectedReservationIds.length === 0 ||
+                        receiver.receiverName.trim() === "" ||
                         !previewIsFresh
                       }
-                      onClick={() => void rebuildDraft()}
+                      onClick={() => void saveDraftChanges()}
                       type="button"
                       variant="secondary"
                     >
-                      <RefreshCw aria-hidden="true" />
-                      {copy.actions.rebuild}
+                      <FileText aria-hidden="true" />
+                      {busyAction === "save-changes"
+                        ? copy.actions.savingChanges
+                        : copy.actions.saveChanges}
                     </Button>
                     <Button
                       disabled={busyAction !== null}
@@ -917,6 +1116,17 @@ export function AdminFelPageView({
                       {copy.actions.discard}
                     </Button>
                   </>
+                ) : null}
+                {draftJustSaved || isEditingDraft ? (
+                  <Button
+                    disabled={busyAction !== null}
+                    onClick={resetToNewInvoice}
+                    type="button"
+                    variant="outline"
+                  >
+                    <Plus aria-hidden="true" />
+                    {copy.actions.newInvoice}
+                  </Button>
                 ) : null}
               </div>
             </CardContent>
@@ -1040,34 +1250,6 @@ export function AdminFelPageView({
             </CardContent>
           </Card>
 
-          {selectedDocument ? (
-            <Card className="border-border/70 shadow-sm">
-              <CardHeader>
-                <CardTitle>{copy.sections.savedSnapshot}</CardTitle>
-              </CardHeader>
-              <CardContent className="grid gap-3 text-sm">
-                <p className="text-muted-foreground">
-                  {copy.notes.savedSnapshot}
-                </p>
-                {selectedDocument.lines.map((line) => (
-                  <div
-                    className="grid gap-2 rounded-lg border border-border/70 p-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
-                    key={`${selectedDocument.id}-${line.lineNumber}`}
-                  >
-                    <span className="min-w-0">{line.description}</span>
-                    <AmountFields amount={line.amount} currency={line.currency} />
-                  </div>
-                ))}
-                <div className="grid gap-2 rounded-lg border border-border/70 bg-muted/30 p-3 font-semibold sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-                  <span>{copy.labels.total}</span>
-                  <AmountFields
-                    amount={selectedDocument.total}
-                    currency={selectedDocument.commercialCurrency}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          ) : null}
         </TabsContent>
       </Tabs>
 

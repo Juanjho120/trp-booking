@@ -689,16 +689,29 @@ frozen Fiscal Receiver form order
 future NIT/CUI receiver-validation contract
 individual/grouped extras
 server-authoritative draft preview
-same-draft edit/rebuild source ownership
+same-draft edit/save-changes source ownership
 immutable allocation snapshots
 line totals from allocations
 document totals from persisted lines
-draft history/edit/rebuild/discard
+draft history/open-edit/save-changes/discard
+explicit CREATE vs EDIT mode
+no implicit last-draft selection
+new-invoice local reset
+receiver email suggestions from selected Reservations
+receiver country suggestions inferred from Reservation phone
+dd/MM/yyyy eligible-card dates
+night/night(s) localization
+history snapshot card removed
+saved snapshot retained only in explicit edit context
 ```
 
 Final-I.6 works without INFILE credentials, transport, external receiver-validation runtime, certification endpoint, cancellation endpoint, Credit Note endpoint, PDF/XML API, provider idempotency, provider retry/status lookup, FEL cron registration, or Production resources. Certification controls remain unavailable until Final-I.7 unblocks. NIT/CUI receiver validation remains documented future I.7 work and is not active in the I.6 UI or API.
 
 Final-I.6 freezes the Admin `/admin/fel` Fiscal Receiver form order as `Identifier type -> Identifier -> Receiver name -> Email -> Country -> Address` / `Tipo de identificación -> Identificación -> Nombre del receptor -> Correo -> País -> Dirección`. This order is intentional because future authoritative NIT/CUI validation resolves the fiscal receiver name from the identifier before the Admin reaches the name field.
+
+The latest Hosted-feedback correction simplifies Admin FEL drafting into explicit CREATE and EDIT modes. `/admin/fel` opens in clean CREATE mode with no selected document, even when draft history exists. History rows are navigation only; an existing draft enters EDIT only after explicit open/edit. CREATE mode exposes preview and save draft. EDIT mode exposes preview, single save changes, discard draft, and new invoice as appropriate. The old user-facing receiver-update versus rebuild distinction is removed; save changes preserves the same `FelDocument.id`, keeps source ownership under `FelCommercialSourceAllocation`, and rolls back without partially mutating the original draft if a conflict occurs.
+
+Receiver guest contact data remains a suggestion source only, not fiscal identity. Selected Reservations can suggest receiver email values by trimmed, case-insensitive deduplication and receiver country values inferred from Reservation phone metadata through `libphonenumber-js` with a safe Reservation-country fallback. Manual Admin receiver email/country input is not overwritten by later selection changes, and existing draft receiver snapshots win when opened for edit. Eligible Reservation cards now display `dd/MM/yyyy` date-only ranges and localized singular/plural nights. The history-tab saved snapshot mirror was removed; the saved snapshot remains only in the new-invoice tab while explicitly editing a draft.
 
 Final-I.7 must implement authoritative provider-backed receiver validation for both `NIT` and `CUI` through the configured FEL provider, using server-only authenticated INFILE integration once official documentation and Test credentials exist. Future provider-neutral lookup states are `IDLE`, `VALIDATING`, `VALID`, `NOT_FOUND`, and `UNAVAILABLE`, with provider result families `FOUND`, `NOT_FOUND`, and `UNAVAILABLE`. Local syntax checks may reject clearly malformed values, but local format validation is not authoritative taxpayer/person existence validation.
 
@@ -835,6 +848,19 @@ Final-I.6 implementation validation:
 - npm run build - PASS; initial TypeScript narrowing failure in the former NIT lookup UI handling was corrected before the final pass; Next slow filesystem warning only
 - npm audit --omit=dev - PASS, 0 vulnerabilities
 - git diff --check - PASS
+Final-I.6 Hosted UX editing workflow correction validation:
+- npm run final-i:validate - PASS, 57/57 after rerun outside the sandbox because the sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM
+- npm run final-i:db:validate - PASS, 13/13 with TRP_ENVIRONMENT=test after rerun outside the sandbox because the sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM
+- npm run final-f:validate - PASS, 125/125 after rerun outside the sandbox because the sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM
+- npm run final-h:validate - PASS, 20/20 after rerun outside the sandbox because the sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM
+- npm run env:validate - PASS after rerun outside the sandbox because the sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM
+- npm run db:validate - PASS; Prisma package.json#prisma deprecation warning only
+- npm run db:generate - PASS; Prisma package.json#prisma deprecation warning only
+- npm run db:migrate:status - PASS, 30 migrations, database schema is up to date after rerun outside the sandbox because the sandbox run returned Schema engine error
+- npm run lint - PASS
+- npm run build - PASS after rerun outside the sandbox because the sandbox run could not fetch Google Fonts; Next slow filesystem warning only
+- npm audit --omit=dev - PASS, 0 vulnerabilities after rerun outside the sandbox because the sandbox audit endpoint/cache request failed
+- git diff --check - PASS; Windows CRLF normalization warnings only
 ```
 
 ## Final-I.1 Hosted Owner Validation Completed

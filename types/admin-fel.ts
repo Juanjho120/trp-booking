@@ -78,6 +78,9 @@ export type AdminFelEligibleExtra = Readonly<{
 export type AdminFelEligibleReservation = Readonly<{
   id: string;
   guestName: string;
+  guestEmail: string | null;
+  guestPhone: string | null;
+  guestCountry: string | null;
   property: Readonly<{
     id: string;
     nameEs: string;
@@ -175,15 +178,11 @@ export type PreviewAdminFelDraftInput = CreateAdminFelDraftInput &
     editingDocumentId?: string | null;
   }>;
 
-export type RebuildAdminFelDraftInput = Readonly<{
-  documentId: string;
-  reservationIds: readonly string[];
-  groupExtras: boolean;
-}>;
-
-export type UpdateAdminFelDraftReceiverInput = AdminFelReceiverInput &
+export type SaveAdminFelDraftChangesInput = AdminFelReceiverInput &
   Readonly<{
     documentId: string;
+    reservationIds: readonly string[];
+    groupExtras: boolean;
   }>;
 
 export type DiscardAdminFelDraftInput = Readonly<{

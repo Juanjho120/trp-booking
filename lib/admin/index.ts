@@ -73,9 +73,8 @@ export {
   getAdminFelPage,
   hasUnresolvedFelLifecycleMutation,
   previewAdminFelDraft,
-  rebuildAdminFelDraft,
   runAdminFelTransactionWithRetry,
-  updateAdminFelDraftReceiver,
+  saveAdminFelDraftChanges,
 } from "./fel";
 export { getAdminDashboardSummary } from "./dashboard";
 export {

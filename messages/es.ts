@@ -2615,7 +2615,9 @@ export const esMessages = {
         receiverIdentifier: "Identificación",
         receiverAddress: "Dirección opcional",
         receiverEmail: "Correo opcional",
+        receiverEmailSuggestion: "Correo sugerido",
         receiverCountry: "País opcional",
+        receiverCountrySuggestion: "País sugerido",
         groupExtras: "Agrupar servicios y cargos adicionales en una sola línea",
       },
       identifierTypes: {
@@ -2629,7 +2631,8 @@ export const esMessages = {
         selected: "Seleccionada",
         selectable: "Seleccionar",
         currencyMismatch: "Moneda incompatible",
-        nights: "noches",
+        nightSingular: "noche",
+        nightPlural: "noches",
         stayTotal: "Estadía",
         extras: "Extras",
         line: "Línea",
@@ -2647,6 +2650,8 @@ export const esMessages = {
         previewFresh: "Vista previa actualizada",
         previewStale: "Vista previa desactualizada",
         savedDraftSource: "Fuente del borrador guardado",
+        otherEmail: "Otro correo...",
+        otherCountry: "Otro país...",
       },
       preview: {
         lodgingPrefix: "Reservación",
@@ -2657,9 +2662,10 @@ export const esMessages = {
         loadingPreview: "Actualizando...",
         save: "Guardar borrador",
         saving: "Guardando...",
+        saveChanges: "Guardar cambios",
+        savingChanges: "Guardando cambios...",
+        newInvoice: "Nueva factura",
         openEdit: "Abrir / Editar",
-        updateReceiver: "Actualizar receptor",
-        rebuild: "Reconstruir desde datos comerciales actuales",
         discard: "Descartar borrador",
       },
       documentTypes: {
@@ -2681,7 +2687,7 @@ export const esMessages = {
         noProviderCertification:
           "Este módulo guarda un borrador fiscal. La certificación FEL y la validación final con certificador pertenecen a la integración posterior.",
         previewStale:
-          "Actualiza la vista previa antes de guardar o reconstruir para validar las fuentes comerciales en el servidor.",
+          "Actualiza la vista previa antes de guardar para validar las fuentes comerciales en el servidor.",
         savedSnapshot:
           "Estos valores son el snapshot guardado del borrador. No se actualizan automáticamente al abrirlo.",
       },
@@ -2689,8 +2695,7 @@ export const esMessages = {
         previewRefreshed:
           "La vista previa fiscal se actualizó desde las fuentes comerciales actuales.",
         saved: "El borrador fiscal quedó guardado.",
-        updated: "El receptor fiscal del borrador se actualizó.",
-        rebuilt: "El borrador se reconstruyó desde las fuentes comerciales actuales.",
+        changesSaved: "Los cambios del borrador quedaron guardados.",
         discarded: "El borrador fue descartado y sus fuentes quedaron liberadas.",
       },
       empty: {
