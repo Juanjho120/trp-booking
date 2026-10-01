@@ -2023,6 +2023,28 @@ This does not reintroduce the previous implicit-history-selection bug: entering 
 
 Validation executed for this correction: `npm run final-i:validate` PASS 57/57 after rerun outside the sandbox because the sandbox-only `tsx` startup failed with `uv_os_get_passwd ENOMEM`; `npm run final-i:db:validate` PASS 13/13 with `TRP_ENVIRONMENT=test` after the same sandbox-only `tsx` startup failure; `npm run final-h:validate` PASS 20/20 after the same sandbox-only `tsx` startup failure; `npm run lint` PASS; `npm run build` PASS after rerun outside the sandbox because the sandbox run could not fetch Google Fonts; and `git diff --check` PASS with Windows CRLF normalization warnings only.
 
+## 2026-10-01 — Final-I.6 Admin FEL Design-System Select Correction Applied; Hosted Owner Validation In Progress
+
+```text
+Package: Final-I — Operational Polish, Notification UX & FEL Invoicing
+Subphase: Final-I.6 — FEL persistence + Admin draft/selection/preview module
+Status: Implementation completed; Hosted owner validation in progress
+Final-I.6 record: docs/214-final-i-6-fel-persistence-admin-draft-module.md
+Final-I.7: Blocked pending official INFILE technical documentation + Test credentials
+Final-I.8-Final-I.9: Not started
+Phase 13: Blocked / Not started until Final-I closes
+```
+
+Hosted owner validation of the latest Final-I.6 FEL draft flow passed functionally, including new draft creation, explicit post-save EDIT context, Reservation/receiver/snapshot retention, save-changes, new-invoice reset, history reopen, discard, and source release. Owner review then identified a visual/design-system violation: the Admin `/admin/fel` Fiscal Receiver selectors still rendered as native browser `<select>` controls.
+
+This correction migrates the Fiscal Receiver identifier type selector, the multiple-email suggestion selector, and the multiple-country suggestion selector to the existing shadcn/Radix Select implementation in `components/ui/select.tsx`. It preserves the existing identifier-type path, email AUTO/MANUAL behavior, country AUTO/MANUAL behavior, `Otro correo` / `Other email`, `Otro país` / `Other country`, localized option labels, suggestion derivation, and manual input safeguards.
+
+Deterministic Final-I regression coverage now rejects native `<select>` / `<option>` usage in `features/admin/components/admin-fel-page.tsx`, verifies the project Select import, and confirms the identifier type, email suggestion, country suggestion, and AUTO/MANUAL flows remain represented. No schema, migration, dependency, persistence architecture, fiscal/provider integration, INFILE, NIT/CUI lookup, environment variable, scheduler, Production resource, Final-I.7, or Phase 13 scope changed.
+
+Validation executed for this correction: `npm run final-i:validate` PASS 58/58 after rerun outside the sandbox because the sandbox-only `tsx` startup failed with `uv_os_get_passwd ENOMEM`; `npm run final-i:db:validate` PASS 13/13 with `TRP_ENVIRONMENT=test` after the same sandbox-only `tsx` startup failure; `npm run final-h:validate` PASS 20/20 after the same sandbox-only `tsx` startup failure; `npm run lint` PASS; `npm run build` PASS after rerun outside the sandbox because the sandbox run could not fetch Google Fonts; Next slow filesystem warning only; and `git diff --check` PASS with Windows CRLF normalization warnings only.
+
+Final-I.6 remains not accepted until this visual correction is deployed, Hosted owner validation resumes, and explicit owner acceptance is recorded.
+
 ## 2026-09-30 — Final-I.6 Implementation Completed; Hosted Owner Validation Pending
 
 ```text

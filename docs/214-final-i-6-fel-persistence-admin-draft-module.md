@@ -240,6 +240,8 @@ The post-save Hosted-continuity correction keeps the newly created draft open as
 
 Eligible Reservation cards now format date-only values as `dd/MM/yyyy` without timezone conversion and localize singular/plural nights. Receiver email and country values from selected Reservations are suggestions only, not fiscal identity: email suggestions dedupe trimmed values case-insensitively; country suggestions are inferred first from the Reservation phone using `libphonenumber-js`, then from a valid stored Reservation country fallback, and displayed with `Intl.DisplayNames`. Manual Admin receiver email/country entries are not overwritten by later Reservation-selection changes, and opening an existing draft keeps its persisted receiver snapshot authoritative. The receiver snapshot stores the Admin-selected/displayed receiver country string under the existing `receiverCountry` contract; no SAT/provider country mapping is introduced in I.6.
 
+Hosted owner validation of the latest Final-I.6 draft flow passed functionally, including new draft creation, explicit post-save EDIT context, Reservation/receiver/snapshot retention, save-changes, new-invoice reset, history reopen, discard, and source release. Owner review then identified a visual/design-system violation: the Fiscal Receiver identifier type selector, multiple-email suggestion selector, and multiple-country suggestion selector used native browser `<select>` controls. The Admin FEL component now uses the existing shadcn/Radix Select implementation from `components/ui/select.tsx` for those three flows while preserving localized option labels, identifier-type state, email AUTO/MANUAL behavior, country AUTO/MANUAL behavior, `Other` sentinels, suggestion derivation, and manual input safeguards.
+
 Visible copy is centralized in `messages/es.ts` and `messages/en.ts`.
 
 ## Sensitive Data Boundary
@@ -288,6 +290,7 @@ multi-reservation draft arithmetic
 currency mismatch rejection
 sensitive data exclusions
 Admin route/nav/UI/API structure
+Admin FEL design-system Select enforcement with no native select controls
 no provider certification controls
 no FEL cron/scheduler registration
 documentation status continuity
@@ -322,6 +325,13 @@ npm audit --omit=dev - PASS, 0 vulnerabilities after rerun outside the sandbox b
 git diff --check - PASS; Windows CRLF normalization warnings only
 Final-I.6 post-save context preservation correction:
 npm run final-i:validate - PASS, 57/57 after rerun outside the sandbox because the sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM
+npm run final-i:db:validate - PASS, 13/13 with TRP_ENVIRONMENT=test after rerun outside the sandbox because the sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM
+npm run final-h:validate - PASS, 20/20 after rerun outside the sandbox because the sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM
+npm run lint - PASS
+npm run build - PASS after rerun outside the sandbox because the sandbox run could not fetch Google Fonts; Next slow filesystem warning only
+git diff --check - PASS; Windows CRLF normalization warnings only
+Final-I.6 Admin FEL design-system Select correction:
+npm run final-i:validate - PASS, 58/58 after rerun outside the sandbox because the sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM
 npm run final-i:db:validate - PASS, 13/13 with TRP_ENVIRONMENT=test after rerun outside the sandbox because the sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM
 npm run final-h:validate - PASS, 20/20 after rerun outside the sandbox because the sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM
 npm run lint - PASS

@@ -699,6 +699,7 @@ no implicit last-draft selection
 new-invoice local reset
 receiver email suggestions from selected Reservations
 receiver country suggestions inferred from Reservation phone
+design-system Select controls for receiver identifier/email/country suggestions
 dd/MM/yyyy eligible-card dates
 night/night(s) localization
 history snapshot card removed
@@ -714,6 +715,8 @@ The latest Hosted-feedback correction simplifies Admin FEL drafting into explici
 The post-save continuity correction keeps a newly created draft open as the current explicit EDIT document. Successful `Guardar borrador` / `Save draft` now accepts the returned saved snapshot, preserves receiver email/country as manual snapshot values, keeps the just-saved Reservations visible through the saved-draft fallback after refreshed eligibility data no longer includes allocated sources, hides `Guardar borrador`, and shows `Guardar cambios`, `Descartar borrador`, `Nueva factura`, and `Snapshot guardado`. Page load and refresh still start in clean CREATE mode unless the Admin explicitly creates a draft or opens one from history.
 
 Receiver guest contact data remains a suggestion source only, not fiscal identity. Selected Reservations can suggest receiver email values by trimmed, case-insensitive deduplication and receiver country values inferred from Reservation phone metadata through `libphonenumber-js` with a safe Reservation-country fallback. Manual Admin receiver email/country input is not overwritten by later selection changes, and existing draft receiver snapshots win when opened for edit. Eligible Reservation cards now display `dd/MM/yyyy` date-only ranges and localized singular/plural nights. The history-tab saved snapshot mirror was removed; the saved snapshot remains only in the new-invoice tab while explicitly editing a draft.
+
+Hosted owner validation of the latest draft flow passed functionally, including new draft creation, post-save EDIT context preservation, Reservation/receiver/snapshot retention, save-changes, new-invoice reset, history reopen, discard, and source release. Owner review then identified a visual/design-system violation: the Fiscal Receiver identifier type selector, multiple-email suggestion selector, and multiple-country suggestion selector still used native browser `<select>` controls. Those selectors now use the existing shadcn/Radix Select implementation from `components/ui/select.tsx` while preserving identifier-type behavior, email AUTO/MANUAL behavior, country AUTO/MANUAL behavior, localized `Other` options, suggestion derivation, and manual input safeguards. Final-I regression coverage now rejects native `<select>` / `<option>` usage in the Admin FEL component and verifies the project Select import plus all three selector flows.
 
 Final-I.7 must implement authoritative provider-backed receiver validation for both `NIT` and `CUI` through the configured FEL provider, using server-only authenticated INFILE integration once official documentation and Test credentials exist. Future provider-neutral lookup states are `IDLE`, `VALIDATING`, `VALID`, `NOT_FOUND`, and `UNAVAILABLE`, with provider result families `FOUND`, `NOT_FOUND`, and `UNAVAILABLE`. Local syntax checks may reject clearly malformed values, but local format validation is not authoritative taxpayer/person existence validation.
 
@@ -865,6 +868,13 @@ Final-I.6 Hosted UX editing workflow correction validation:
 - git diff --check - PASS; Windows CRLF normalization warnings only
 Final-I.6 post-save context preservation correction validation:
 - npm run final-i:validate - PASS, 57/57 after rerun outside the sandbox because the sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM
+- npm run final-i:db:validate - PASS, 13/13 with TRP_ENVIRONMENT=test after rerun outside the sandbox because the sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM
+- npm run final-h:validate - PASS, 20/20 after rerun outside the sandbox because the sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM
+- npm run lint - PASS
+- npm run build - PASS after rerun outside the sandbox because the sandbox run could not fetch Google Fonts; Next slow filesystem warning only
+- git diff --check - PASS; Windows CRLF normalization warnings only
+Final-I.6 Admin FEL design-system Select correction validation:
+- npm run final-i:validate - PASS, 58/58 after rerun outside the sandbox because the sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM
 - npm run final-i:db:validate - PASS, 13/13 with TRP_ENVIRONMENT=test after rerun outside the sandbox because the sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM
 - npm run final-h:validate - PASS, 20/20 after rerun outside the sandbox because the sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM
 - npm run lint - PASS

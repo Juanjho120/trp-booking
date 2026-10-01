@@ -891,6 +891,54 @@ test("I.6 receiver email and country suggestions dedupe selected Reservations", 
   assert.match(component, /setReceiverCountryMode\("MANUAL"\)/);
 });
 
+test("I.6 Admin FEL receiver selectors use the design-system Select", () => {
+  const component = read("features/admin/components/admin-fel-page.tsx");
+
+  assert.doesNotMatch(component, /<select\b/);
+  assert.doesNotMatch(component, /<\/select>/);
+  assert.doesNotMatch(component, /<option\b/);
+  assert.match(component, /from "@\/components\/ui\/select"/);
+  assert.match(component, /\bSelect\b/);
+  assert.match(component, /\bSelectTrigger\b/);
+  assert.match(component, /\bSelectValue\b/);
+  assert.match(component, /\bSelectContent\b/);
+  assert.match(component, /\bSelectItem\b/);
+  assert.match(component, /value=\{receiver\.receiverIdentifierType\}/);
+  assert.match(
+    component,
+    /changeReceiverIdentifierType\(\s*value as AdminFelReceiverIdentifierType,\s*\)/,
+  );
+  assert.match(component, /Object\.entries\(copy\.identifierTypes\)\.map/);
+  assert.match(component, /emailSuggestions\.length > 1 \? \(/);
+  assert.match(component, /onValueChange=\{chooseReceiverEmailSuggestion\}/);
+  assert.match(
+    component,
+    /emailSuggestions\.includes\(receiver\.receiverEmail\)[\s\S]*OTHER_EMAIL_VALUE/,
+  );
+  assert.match(component, /<SelectItem key=\{email\} value=\{email\}>/);
+  assert.match(
+    component,
+    /<SelectItem value=\{OTHER_EMAIL_VALUE\}>[\s\S]*copy\.labels\.otherEmail/,
+  );
+  assert.match(component, /countrySuggestions\.length > 1 \? \(/);
+  assert.match(component, /onValueChange=\{chooseReceiverCountrySuggestion\}/);
+  assert.match(component, /countrySuggestions\.find\(/);
+  assert.match(
+    component,
+    /<SelectItem\s+key=\{suggestion\.code\}\s+value=\{suggestion\.code\}/,
+  );
+  assert.match(
+    component,
+    /<SelectItem value=\{OTHER_COUNTRY_VALUE\}>[\s\S]*copy\.labels\.otherCountry/,
+  );
+  assert.match(component, /if \(value === OTHER_EMAIL_VALUE\)/);
+  assert.match(component, /if \(value === OTHER_COUNTRY_VALUE\)/);
+  assert.match(component, /setReceiverEmailMode\("AUTO"\)/);
+  assert.match(component, /setReceiverEmailMode\("MANUAL"\)/);
+  assert.match(component, /setReceiverCountryMode\("AUTO"\)/);
+  assert.match(component, /setReceiverCountryMode\("MANUAL"\)/);
+});
+
 test("I.6 country inference uses phone metadata with safe fallback", () => {
   assert.equal(inferReservationPhoneCountry("+50255550000", null), "GT");
   assert.equal(inferReservationPhoneCountry("+12025550123", null), "US");

@@ -7,6 +7,13 @@ import { useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocale } from "@/features/i18n";
 import {
@@ -822,24 +829,34 @@ export function AdminFelPageView({
                 <CardTitle>{copy.sections.receiver}</CardTitle>
               </CardHeader>
               <CardContent className="grid gap-4">
-                <label className="grid gap-2 text-sm font-medium">
-                  {copy.fields.receiverIdentifierType}
-                  <select
-                    className="min-h-11 rounded-lg border border-input bg-background px-3 py-2"
-                    onChange={(event) =>
+                <div className="grid gap-2 text-sm font-medium">
+                  <span id="fel-receiver-identifier-type-label">
+                    {copy.fields.receiverIdentifierType}
+                  </span>
+                  <Select
+                    onValueChange={(value) =>
                       changeReceiverIdentifierType(
-                        event.target.value as AdminFelReceiverIdentifierType,
+                        value as AdminFelReceiverIdentifierType,
                       )
                     }
                     value={receiver.receiverIdentifierType}
                   >
-                    {Object.entries(copy.identifierTypes).map(([value, label]) => (
-                      <option key={value} value={value}>
-                        {label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                    <SelectTrigger
+                      aria-labelledby="fel-receiver-identifier-type-label"
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(copy.identifierTypes).map(
+                        ([value, label]) => (
+                          <SelectItem key={value} value={value}>
+                            {label}
+                          </SelectItem>
+                        ),
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div className="grid gap-2 text-sm font-medium">
                   <label htmlFor="fel-receiver-identifier">
                     {copy.fields.receiverIdentifier}
@@ -866,50 +883,56 @@ export function AdminFelPageView({
                     value={receiver.receiverName}
                   />
                 </label>
-                <label className="grid gap-2 text-sm font-medium">
-                  {copy.fields.receiverEmail}
+                <div className="grid gap-2 text-sm font-medium">
+                  <span id="fel-receiver-email-label">
+                    {copy.fields.receiverEmail}
+                  </span>
                   {emailSuggestions.length > 1 ? (
-                    <select
-                      aria-label={copy.fields.receiverEmailSuggestion}
-                      className="min-h-11 rounded-lg border border-input bg-background px-3 py-2"
-                      onChange={(event) =>
-                        chooseReceiverEmailSuggestion(event.target.value)
-                      }
+                    <Select
+                      onValueChange={chooseReceiverEmailSuggestion}
                       value={
                         emailSuggestions.includes(receiver.receiverEmail)
                           ? receiver.receiverEmail
                           : OTHER_EMAIL_VALUE
                       }
                     >
-                      {emailSuggestions.map((email) => (
-                        <option key={email} value={email}>
-                          {email}
-                        </option>
-                      ))}
-                      <option value={OTHER_EMAIL_VALUE}>
-                        {copy.labels.otherEmail}
-                      </option>
-                    </select>
+                      <SelectTrigger
+                        aria-label={copy.fields.receiverEmailSuggestion}
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {emailSuggestions.map((email) => (
+                          <SelectItem key={email} value={email}>
+                            {email}
+                          </SelectItem>
+                        ))}
+                        <SelectItem value={OTHER_EMAIL_VALUE}>
+                          {copy.labels.otherEmail}
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                   ) : null}
                   {emailSuggestions.length <= 1 ||
                   receiverEmailMode === "MANUAL" ? (
-                  <input
-                    className="min-h-11 rounded-lg border border-input bg-background px-3 py-2"
-                    onChange={(event) => changeReceiverEmail(event.target.value)}
-                    type="email"
-                    value={receiver.receiverEmail}
-                  />
-                  ) : null}
-                </label>
-                <label className="grid gap-2 text-sm font-medium">
-                  {copy.fields.receiverCountry}
-                  {countrySuggestions.length > 1 ? (
-                    <select
-                      aria-label={copy.fields.receiverCountrySuggestion}
+                    <input
+                      aria-labelledby="fel-receiver-email-label"
                       className="min-h-11 rounded-lg border border-input bg-background px-3 py-2"
                       onChange={(event) =>
-                        chooseReceiverCountrySuggestion(event.target.value)
+                        changeReceiverEmail(event.target.value)
                       }
+                      type="email"
+                      value={receiver.receiverEmail}
+                    />
+                  ) : null}
+                </div>
+                <div className="grid gap-2 text-sm font-medium">
+                  <span id="fel-receiver-country-label">
+                    {copy.fields.receiverCountry}
+                  </span>
+                  {countrySuggestions.length > 1 ? (
+                    <Select
+                      onValueChange={chooseReceiverCountrySuggestion}
                       value={
                         countrySuggestions.find(
                           (suggestion) =>
@@ -917,27 +940,38 @@ export function AdminFelPageView({
                         )?.code ?? OTHER_COUNTRY_VALUE
                       }
                     >
-                      {countrySuggestions.map((suggestion) => (
-                        <option key={suggestion.code} value={suggestion.code}>
-                          {suggestion.label}
-                        </option>
-                      ))}
-                      <option value={OTHER_COUNTRY_VALUE}>
-                        {copy.labels.otherCountry}
-                      </option>
-                    </select>
+                      <SelectTrigger
+                        aria-label={copy.fields.receiverCountrySuggestion}
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {countrySuggestions.map((suggestion) => (
+                          <SelectItem
+                            key={suggestion.code}
+                            value={suggestion.code}
+                          >
+                            {suggestion.label}
+                          </SelectItem>
+                        ))}
+                        <SelectItem value={OTHER_COUNTRY_VALUE}>
+                          {copy.labels.otherCountry}
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                   ) : null}
                   {countrySuggestions.length <= 1 ||
                   receiverCountryMode === "MANUAL" ? (
-                  <input
-                    className="min-h-11 rounded-lg border border-input bg-background px-3 py-2"
-                    onChange={(event) =>
-                      changeReceiverCountry(event.target.value)
-                    }
-                    value={receiver.receiverCountry}
-                  />
+                    <input
+                      aria-labelledby="fel-receiver-country-label"
+                      className="min-h-11 rounded-lg border border-input bg-background px-3 py-2"
+                      onChange={(event) =>
+                        changeReceiverCountry(event.target.value)
+                      }
+                      value={receiver.receiverCountry}
+                    />
                   ) : null}
-                </label>
+                </div>
                 <label className="grid gap-2 text-sm font-medium">
                   {copy.fields.receiverAddress}
                   <textarea
