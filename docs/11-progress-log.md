@@ -28,7 +28,7 @@ Accepted Final-I.4 head: 8e2d7d56a8e81a860833b05f4a28cba8a517bad4
 Final-I.5 status: Completed and accepted on 2026-09-30
 Accepted Final-I.5 head: fde3ae06427af1f8905e6f7589263c199f918553
 Final-I.5 implementation and acceptance record: docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md
-Final-I.6 status: Implementation completed; Hosted owner validation + acceptance pending
+Final-I.6 status: Implementation completed; Hosted owner validation in progress
 Final-I.6 implementation record: docs/214-final-i-6-fel-persistence-admin-draft-module.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8-Final-I.9 status: Not started
@@ -60,7 +60,7 @@ Accepted Final-I.4 head: 8e2d7d56a8e81a860833b05f4a28cba8a517bad4
 Final-I.5 status: Completed and accepted on 2026-09-30
 Accepted Final-I.5 head: fde3ae06427af1f8905e6f7589263c199f918553
 Final-I.5 implementation and acceptance record: docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md
-Final-I.6 status: Implementation completed; Hosted owner validation + acceptance pending
+Final-I.6 status: Implementation completed; Hosted owner validation in progress
 Final-I.6 implementation record: docs/214-final-i-6-fel-persistence-admin-draft-module.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8-Final-I.9 status: Not started
@@ -254,7 +254,7 @@ Accepted Final-I.4 head: 8e2d7d56a8e81a860833b05f4a28cba8a517bad4
 Final-I.5 status: Completed and accepted on 2026-09-30
 Accepted Final-I.5 head: fde3ae06427af1f8905e6f7589263c199f918553
 Final-I.5 implementation and acceptance record: docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md
-Final-I.6 status: Implementation completed; Hosted owner validation + acceptance pending
+Final-I.6 status: Implementation completed; Hosted owner validation in progress
 Final-I.6 implementation record: docs/214-final-i-6-fel-persistence-admin-draft-module.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8-Final-I.9 status: Not started
@@ -286,7 +286,7 @@ Accepted Final-I.4 head: 8e2d7d56a8e81a860833b05f4a28cba8a517bad4
 Final-I.5 status: Completed and accepted on 2026-09-30
 Accepted Final-I.5 head: fde3ae06427af1f8905e6f7589263c199f918553
 Final-I.5 implementation and acceptance record: docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md
-Final-I.6 status: Implementation completed; Hosted owner validation + acceptance pending
+Final-I.6 status: Implementation completed; Hosted owner validation in progress
 Final-I.6 implementation record: docs/214-final-i-6-fel-persistence-admin-draft-module.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8-Final-I.9 status: Not started
@@ -1910,6 +1910,30 @@ Final-I.5 canonical amount-source hardening removes the last monetary ambiguity 
 No Prisma schema, migration, Admin FEL UI, INFILE transport, environment variable, scheduler, Production resource, Final-I.6 implementation, Final-I.7 provider integration, Final-I.8+, or Phase 13 work was introduced. Final-I.6 is the next subphase and remains Not started. Final-I.7 remains blocked pending official INFILE technical documentation and Test credentials.
 
 Validation executed for I.5: initial implementation validation passed as previously recorded; source-consumption hardening validation passed as previously recorded; canonical amount-source hardening validation executed `npm run final-i:validate` PASS 36/36 outside the sandbox after the known sandbox-only `tsx` startup failure mode; `npm run final-h:validate` PASS 20/20 outside the sandbox after the same known `tsx` sandbox issue; `npm run env:validate` PASS outside the sandbox; `npm run db:validate` PASS with Prisma `package.json#prisma` deprecation warning only; `npm run db:generate` PASS with Prisma `package.json#prisma` deprecation warning only; `npm run db:migrate:status` PASS with 29 migrations and database schema up to date; `npm run lint` PASS; `npm run build` PASS with Next slow filesystem warning only; `npm audit --omit=dev` PASS with 0 vulnerabilities; and `git diff --check` PASS. Documentation acceptance closure validation executed `npm run final-i:validate` PASS 36/36 and `git diff --check` PASS; Vercel was SUCCESS and owner architecture acceptance was PASS for accepted head `fde3ae06427af1f8905e6f7589263c199f918553`.
+
+## 2026-09-30 — Final-I.6 Hosted Feedback Corrections Applied; Hosted Owner Validation In Progress
+
+```text
+Package: Final-I — Operational Polish, Notification UX & FEL Invoicing
+Subphase: Final-I.6 — FEL persistence + Admin draft/selection/preview module
+Status: Implementation completed; Hosted owner validation in progress
+Final-I.6 record: docs/214-final-i-6-fel-persistence-admin-draft-module.md
+Final-I.7: Blocked pending official INFILE technical documentation + Test credentials
+Final-I.8-Final-I.9: Not started
+Phase 13: Blocked / Not started until Final-I closes
+```
+
+Hosted owner validation points 1-5 were executed. Owner-requested UX/presentation corrections were applied before points 6-10 continue; Final-I.6 is not accepted yet.
+
+The correction pass adds the provider-neutral NIT lookup domain/UX contract without activating an undocumented transport. `POST /api/admin/fel/receiver/nit-lookup` is protected by the existing Admin session and same-origin checks, calls a server-only provider boundary, normalizes NIT input, and currently returns provider unavailability because TRP still lacks authoritative INFILE Test credentials/documentation or a documented anonymous SAT machine-to-machine endpoint. It does not scrape SAT HTML, call internal discovered SAT URLs, use demo/community credentials, expose provider credentials to the browser, or persist raw lookup requests/responses.
+
+The Admin FEL receiver form now uses the owner-requested order: identifier type, identifier, receiver name, email, country, address. NIT validation is an explicit Admin action, supports idle/validating/valid/invalid/unavailable states, auto-populates and locks the receiver name only when a provider returns `FOUND`, clears stale validation/name state when the NIT changes, and keeps provider-unavailable distinct from invalid NIT.
+
+Fiscal presentation corrections now persist lodging descriptions with the accommodation snapshot, additional-charge descriptions as canonical Spanish fiscal category label plus bounded snapshot description, reservation-block line ordering for individual extras, and invoice-wide grouped extras when `groupExtras == true`. The Admin preview/snapshot UI now aligns currency and amount in separate columns, keeps the selected reservation border visible, and displays `SMALL_TAXPAYER_INVOICE` as `Factura de Pequeño Contribuyente (FPEQ)` / `Small Taxpayer Invoice (FPEQ)`.
+
+No Prisma schema change, migration, dependency, environment variable, scheduler, INFILE transport, certification, DTE submission, Credit Note, Production resource, Phase 13 work, or Final-I.7 work was introduced. NIT lookup provider transport remains pending authoritative endpoint/credentials. Final-I.7 remains blocked.
+
+Validation executed for this I.6 Hosted-feedback correction: `npm run final-i:validate` PASS 53/53 after rerun outside the sandbox because the sandbox-only `tsx` startup failed with `uv_os_get_passwd ENOMEM`; `npm run final-i:db:validate` PASS 12/12 with `TRP_ENVIRONMENT=test`; `npm run final-f:validate` PASS 125/125; `npm run final-h:validate` PASS 20/20; `npm run env:validate` PASS; `npm run db:validate` PASS with Prisma `package.json#prisma` deprecation warning only; `npm run db:generate` PASS with the same Prisma warning after a retry because the first attempt overlapped a DB suite Prisma engine file lock; `npm run db:migrate:status` PASS with 30 migrations and database schema up to date; `npm run lint` PASS; `npm run build` PASS with Next slow filesystem warning only; `npm audit --omit=dev` PASS with 0 vulnerabilities; and `git diff --check` PASS.
 
 ## 2026-09-30 — Final-I.6 Implementation Completed; Hosted Owner Validation Pending
 

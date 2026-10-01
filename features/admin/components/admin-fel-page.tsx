@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { FileText, RefreshCw, Trash2 } from "lucide-react";
+import { FileText, RefreshCw, Search, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocale } from "@/features/i18n";
+import { cn } from "@/lib/utils";
 import type {
   AdminFelDocumentDetail,
   AdminFelDraftPreview,
@@ -29,6 +30,29 @@ type FelMutationResponse =
 type FelPreviewResponse =
   | Readonly<{ preview: AdminFelDraftPreview }>
   | Readonly<{ error: { code: AdminFelErrorCode | string } }>;
+
+type NitLookupResponse =
+  | Readonly<{
+      status: "FOUND";
+      nit: string;
+      name: string;
+    }>
+  | Readonly<{
+      status: "NOT_FOUND";
+      nit: string;
+    }>
+  | Readonly<{
+      status: "UNAVAILABLE";
+      reason: "PROVIDER_NOT_CONFIGURED" | "PROVIDER_ERROR" | "TIMEOUT";
+    }>
+  | Readonly<{ error: { code: AdminFelErrorCode | string } }>;
+
+type NitLookupState =
+  | Readonly<{ status: "idle" }>
+  | Readonly<{ status: "validating" }>
+  | Readonly<{ status: "valid"; nit: string; name: string }>
+  | Readonly<{ status: "invalid"; nit: string }>
+  | Readonly<{ status: "unavailable"; reason: string }>;
 
 type ReceiverState = Readonly<{
   receiverName: string;
@@ -79,6 +103,22 @@ function getIntlLocale(locale: Locale): string {
 
 function formatMoney(amount: string, currency: string): string {
   return `${currency} ${amount}`;
+}
+
+function normalizeNitForClient(value: string): string {
+  return value.trim().toUpperCase().replace(/[\s-]+/g, "");
+}
+
+function AmountFields({
+  amount,
+  currency,
+}: Readonly<{ amount: string; currency: string }>) {
+  return (
+    <span className="grid grid-cols-[3rem_minmax(5rem,1fr)] items-baseline gap-2 text-right tabular-nums">
+      <span className="text-muted-foreground">{currency}</span>
+      <span className="font-medium">{amount}</span>
+    </span>
+  );
 }
 
 function normalizeReceiverForPayload(receiver: ReceiverState) {
@@ -190,6 +230,16 @@ function documentUrl(page: number): string {
   return page > 1 ? `/admin/fel?page=${page}` : "/admin/fel";
 }
 
+function documentTypeLabel(
+  copy: ReturnType<typeof useLocale>["messages"]["admin"]["felPage"],
+  documentType: string,
+): string {
+  return (
+    copy.documentTypes[documentType as keyof typeof copy.documentTypes] ??
+    documentType
+  );
+}
+
 export function AdminFelPageView({
   data,
 }: Readonly<{ data: AdminFelPageData }>) {
@@ -217,6 +267,9 @@ export function AdminFelPageView({
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [nitLookup, setNitLookup] = useState<NitLookupState>({
+    status: "idle",
+  });
 
   const reservationChoices = useMemo<ReservationChoice[]>(() => {
     const choices = data.eligibleReservations.map((reservation) => ({
@@ -289,6 +342,12 @@ export function AdminFelPageView({
     draftPreview !== null && draftPreviewSignature === currentPreviewSignature;
   const previewIsStale =
     draftPreview !== null && draftPreviewSignature !== currentPreviewSignature;
+  const receiverUsesNit = receiver.receiverIdentifierType === "NIT";
+  const normalizedReceiverNit = normalizeNitForClient(receiver.receiverIdentifier);
+  const receiverNameLocked =
+    receiverUsesNit &&
+    nitLookup.status === "valid" &&
+    nitLookup.nit === normalizedReceiverNit;
 
   function formatDateTime(value: string): string {
     return new Intl.DateTimeFormat(intlLocale, {
@@ -311,6 +370,116 @@ export function AdminFelPageView({
     setErrorMessage(null);
   }
 
+  function clearNitLookup(): void {
+    setNitLookup({ status: "idle" });
+  }
+
+  function changeReceiverIdentifierType(
+    receiverIdentifierType: AdminFelReceiverIdentifierType,
+  ): void {
+    setReceiver((current) => ({
+      ...current,
+      receiverIdentifierType,
+      receiverName:
+        current.receiverIdentifierType === "NIT" &&
+        nitLookup.status === "valid" &&
+        receiverIdentifierType !== "NIT"
+          ? ""
+          : current.receiverName,
+    }));
+    clearNitLookup();
+  }
+
+  function changeReceiverIdentifier(receiverIdentifier: string): void {
+    setReceiver((current) => {
+      const shouldClearValidatedName =
+        current.receiverIdentifierType === "NIT" &&
+        nitLookup.status === "valid" &&
+        normalizeNitForClient(receiverIdentifier) !== nitLookup.nit;
+
+      return {
+        ...current,
+        receiverIdentifier,
+        receiverName: shouldClearValidatedName ? "" : current.receiverName,
+      };
+    });
+
+    if (receiverUsesNit) {
+      clearNitLookup();
+    }
+  }
+
+  async function validateNit(): Promise<void> {
+    if (!receiverUsesNit || !normalizedReceiverNit || busyAction !== null) {
+      return;
+    }
+
+    setBusyAction("nit-lookup");
+    setNitLookup({ status: "validating" });
+    resetMessages();
+
+    try {
+      const response = await fetch("/api/admin/fel/receiver/nit-lookup", {
+        method: "POST",
+        headers: {
+          accept: "application/json",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ nit: receiver.receiverIdentifier }),
+      });
+      const payload = (await response.json()) as NitLookupResponse;
+
+      if (!("status" in payload)) {
+        setErrorMessage(resolveError(payload.error.code));
+        setNitLookup({ status: "idle" });
+        return;
+      }
+
+      if (!response.ok) {
+        const code = "ADMIN_FEL_UNEXPECTED_ERROR";
+        setErrorMessage(resolveError(code));
+        setNitLookup({ status: "idle" });
+        return;
+      }
+
+      if (payload.status === "FOUND") {
+        setReceiver((current) => ({
+          ...current,
+          receiverIdentifier: payload.nit,
+          receiverName: payload.name,
+        }));
+        setNitLookup({
+          status: "valid",
+          nit: payload.nit,
+          name: payload.name,
+        });
+        return;
+      }
+
+      if (payload.status === "NOT_FOUND") {
+        setReceiver((current) => ({
+          ...current,
+          receiverIdentifier: payload.nit,
+          receiverName: "",
+        }));
+        setNitLookup({ status: "invalid", nit: payload.nit });
+        return;
+      }
+
+      setNitLookup({
+        status: "unavailable",
+        reason: payload.reason,
+      });
+    } catch {
+      setNitLookup({
+        status: "unavailable",
+        reason: "PROVIDER_ERROR",
+      });
+    } finally {
+      setBusyAction(null);
+    }
+  }
+
   function buildPayload() {
     return buildPayloadFromState(selectedReservationIds, receiver, groupExtras);
   }
@@ -327,6 +496,7 @@ export function AdminFelPageView({
     setSelectedReservationIds(reservationIds);
     setGroupExtras(document.groupExtras);
     setReceiver(nextReceiver);
+    clearNitLookup();
     void refreshPreviewForState(
       reservationIds,
       nextReceiver,
@@ -346,6 +516,7 @@ export function AdminFelPageView({
     setSelectedReservationIds(reservationIds);
     setGroupExtras(document.groupExtras);
     setReceiver(nextReceiver);
+    clearNitLookup();
     setDraftPreview(previewFromDocument(document));
     setDraftPreviewSignature(
       buildPreviewSignature(
@@ -456,6 +627,7 @@ export function AdminFelPageView({
       setEditingDocumentId(null);
       setSelectedReservationIds([]);
       setReceiver(initialReceiverState);
+      clearNitLookup();
       setGroupExtras(false);
       setDraftPreview(null);
       setDraftPreviewSignature(null);
@@ -585,7 +757,10 @@ export function AdminFelPageView({
 
                     return (
                       <button
-                        className="grid gap-2 rounded-lg border border-border/70 p-4 text-left text-sm transition hover:border-primary disabled:cursor-not-allowed disabled:opacity-50"
+                        className={cn(
+                          "grid gap-2 rounded-lg border border-border/70 p-4 text-left text-sm transition hover:border-primary disabled:cursor-not-allowed disabled:opacity-50",
+                          selected && "border-primary",
+                        )}
                         disabled={incompatible}
                         key={reservation.id}
                         onClick={() => toggleReservation(reservation)}
@@ -631,28 +806,13 @@ export function AdminFelPageView({
               </CardHeader>
               <CardContent className="grid gap-4">
                 <label className="grid gap-2 text-sm font-medium">
-                  {copy.fields.receiverName}
-                  <input
-                    className="min-h-11 rounded-lg border border-input bg-background px-3 py-2"
-                    onChange={(event) =>
-                      setReceiver((current) => ({
-                        ...current,
-                        receiverName: event.target.value,
-                      }))
-                    }
-                    value={receiver.receiverName}
-                  />
-                </label>
-                <label className="grid gap-2 text-sm font-medium">
                   {copy.fields.receiverIdentifierType}
                   <select
                     className="min-h-11 rounded-lg border border-input bg-background px-3 py-2"
                     onChange={(event) =>
-                      setReceiver((current) => ({
-                        ...current,
-                        receiverIdentifierType: event.target
-                          .value as AdminFelReceiverIdentifierType,
-                      }))
+                      changeReceiverIdentifierType(
+                        event.target.value as AdminFelReceiverIdentifierType,
+                      )
                     }
                     value={receiver.receiverIdentifierType}
                   >
@@ -663,17 +823,64 @@ export function AdminFelPageView({
                     ))}
                   </select>
                 </label>
+                <div className="grid gap-2 text-sm font-medium">
+                  <label htmlFor="fel-receiver-identifier">
+                    {copy.fields.receiverIdentifier}
+                  </label>
+                  <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+                    <input
+                      className="min-h-11 rounded-lg border border-input bg-background px-3 py-2"
+                      id="fel-receiver-identifier"
+                      onChange={(event) =>
+                        changeReceiverIdentifier(event.target.value)
+                      }
+                      value={receiver.receiverIdentifier}
+                    />
+                    {receiverUsesNit ? (
+                      <Button
+                        disabled={
+                          busyAction !== null ||
+                          normalizedReceiverNit.length === 0
+                        }
+                        onClick={() => void validateNit()}
+                        type="button"
+                        variant="outline"
+                      >
+                        <Search aria-hidden="true" />
+                        {nitLookup.status === "validating"
+                          ? copy.actions.validatingNit
+                          : copy.actions.validateNit}
+                      </Button>
+                    ) : null}
+                  </div>
+                  {receiverUsesNit && nitLookup.status === "valid" ? (
+                    <p className="text-xs font-medium text-emerald-700">
+                      {copy.nitLookup.valid}
+                    </p>
+                  ) : null}
+                  {receiverUsesNit && nitLookup.status === "invalid" ? (
+                    <p className="text-xs font-medium text-destructive">
+                      {copy.nitLookup.invalid}
+                    </p>
+                  ) : null}
+                  {receiverUsesNit && nitLookup.status === "unavailable" ? (
+                    <p className="text-xs font-medium text-muted-foreground">
+                      {copy.nitLookup.unavailable}
+                    </p>
+                  ) : null}
+                </div>
                 <label className="grid gap-2 text-sm font-medium">
-                  {copy.fields.receiverIdentifier}
+                  {copy.fields.receiverName}
                   <input
-                    className="min-h-11 rounded-lg border border-input bg-background px-3 py-2"
+                    className="min-h-11 rounded-lg border border-input bg-background px-3 py-2 disabled:bg-muted/50"
                     onChange={(event) =>
                       setReceiver((current) => ({
                         ...current,
-                        receiverIdentifier: event.target.value,
+                        receiverName: event.target.value,
                       }))
                     }
-                    value={receiver.receiverIdentifier}
+                    readOnly={receiverNameLocked}
+                    value={receiver.receiverName}
                   />
                 </label>
                 <label className="grid gap-2 text-sm font-medium">
@@ -772,7 +979,8 @@ export function AdminFelPageView({
                 <>
                   <div className="grid gap-1 rounded-lg border border-border/70 p-3 text-sm text-muted-foreground sm:grid-cols-2 xl:grid-cols-4">
                     <span>
-                      {copy.labels.documentType}: {draftPreview.documentType}
+                      {copy.labels.documentType}:{" "}
+                      {documentTypeLabel(copy, draftPreview.documentType)}
                     </span>
                     <span>
                       {copy.labels.status}: {copy.statuses[draftPreview.status]}
@@ -791,6 +999,9 @@ export function AdminFelPageView({
                           <th className="py-2 pr-4">{copy.labels.line}</th>
                           <th className="py-2 pr-4">{copy.labels.description}</th>
                           <th className="py-2 pr-4 text-right">
+                            {copy.labels.currency}
+                          </th>
+                          <th className="py-2 pr-4 text-right">
                             {copy.labels.amount}
                           </th>
                         </tr>
@@ -800,8 +1011,11 @@ export function AdminFelPageView({
                           <tr key={`${line.kind}-${line.lineNumber}`}>
                             <td className="py-2 pr-4">{line.lineNumber}</td>
                             <td className="py-2 pr-4">{line.description}</td>
-                            <td className="py-2 pr-4 text-right">
-                              {formatMoney(line.amount, line.currency)}
+                            <td className="py-2 pr-4 text-right text-muted-foreground">
+                              {line.currency}
+                            </td>
+                            <td className="py-2 pr-4 text-right tabular-nums">
+                              {line.amount}
                             </td>
                           </tr>
                         ))}
@@ -811,11 +1025,11 @@ export function AdminFelPageView({
                           <td className="py-3 pr-4" colSpan={2}>
                             {copy.labels.total}
                           </td>
-                          <td className="py-3 pr-4 text-right">
-                            {formatMoney(
-                              draftPreview.total,
-                              draftPreview.commercialCurrency,
-                            )}
+                          <td className="py-3 pr-4 text-right text-muted-foreground">
+                            {draftPreview.commercialCurrency}
+                          </td>
+                          <td className="py-3 pr-4 text-right tabular-nums">
+                            {draftPreview.total}
                           </td>
                         </tr>
                       </tfoot>
@@ -886,15 +1100,20 @@ export function AdminFelPageView({
                 </p>
                 {selectedDocument.lines.map((line) => (
                   <div
-                    className="flex items-center justify-between gap-4 rounded-lg border border-border/70 p-3"
+                    className="grid gap-2 rounded-lg border border-border/70 p-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
                     key={`${selectedDocument.id}-editor-${line.lineNumber}`}
                   >
-                    <span>{line.description}</span>
-                    <span className="font-medium">
-                      {formatMoney(line.amount, line.currency)}
-                    </span>
+                    <span className="min-w-0">{line.description}</span>
+                    <AmountFields amount={line.amount} currency={line.currency} />
                   </div>
                 ))}
+                <div className="grid gap-2 rounded-lg border border-border/70 bg-muted/30 p-3 font-semibold sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                  <span>{copy.labels.total}</span>
+                  <AmountFields
+                    amount={selectedDocument.total}
+                    currency={selectedDocument.commercialCurrency}
+                  />
+                </div>
               </CardContent>
             </Card>
           ) : null}
@@ -923,8 +1142,12 @@ export function AdminFelPageView({
                           {document.id} · {copy.statuses[document.status]}
                         </p>
                       </div>
-                      <Badge variant="secondary">
-                        {formatMoney(document.total, document.commercialCurrency)}
+                      <Badge
+                        className="grid grid-cols-[3rem_auto] gap-2 tabular-nums"
+                        variant="secondary"
+                      >
+                        <span>{document.commercialCurrency}</span>
+                        <span>{document.total}</span>
                       </Badge>
                     </div>
                     <div className="grid gap-1 text-sm text-muted-foreground sm:grid-cols-3">
@@ -995,15 +1218,20 @@ export function AdminFelPageView({
                 </p>
                 {selectedDocument.lines.map((line) => (
                   <div
-                    className="flex items-center justify-between gap-4 rounded-lg border border-border/70 p-3"
+                    className="grid gap-2 rounded-lg border border-border/70 p-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
                     key={`${selectedDocument.id}-${line.lineNumber}`}
                   >
-                    <span>{line.description}</span>
-                    <span className="font-medium">
-                      {formatMoney(line.amount, line.currency)}
-                    </span>
+                    <span className="min-w-0">{line.description}</span>
+                    <AmountFields amount={line.amount} currency={line.currency} />
                   </div>
                 ))}
+                <div className="grid gap-2 rounded-lg border border-border/70 bg-muted/30 p-3 font-semibold sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                  <span>{copy.labels.total}</span>
+                  <AmountFields
+                    amount={selectedDocument.total}
+                    currency={selectedDocument.commercialCurrency}
+                  />
+                </div>
               </CardContent>
             </Card>
           ) : null}

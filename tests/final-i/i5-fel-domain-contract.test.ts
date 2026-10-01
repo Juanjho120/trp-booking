@@ -281,7 +281,7 @@ test("I.5 tracker state keeps I.6 next and Phase 13 blocked", () => {
   );
   assert.ok(
     finalIRoadmap.includes(
-      "Final-I.6 status: Implementation completed; Hosted owner validation + acceptance pending",
+      "Final-I.6 status: Implementation completed; Hosted owner validation in progress",
     ),
     "docs/212 must expose I.6 implementation as completed pending owner acceptance",
   );

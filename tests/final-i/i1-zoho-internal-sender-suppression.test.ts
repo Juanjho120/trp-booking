@@ -611,7 +611,7 @@ test("I.1 registers the roadmap, validation script, and F.7 forward note", () =>
   );
   expectIncludes(
     doc212,
-    "Final-I.6 status: Implementation completed; Hosted owner validation + acceptance pending",
+    "Final-I.6 status: Implementation completed; Hosted owner validation in progress",
   );
   expectIncludes(
     doc212,

@@ -2661,6 +2661,17 @@ export const esMessages = {
         updateReceiver: "Actualizar receptor",
         rebuild: "Reconstruir desde datos comerciales actuales",
         discard: "Descartar borrador",
+        validateNit: "Validar NIT",
+        validatingNit: "Validando NIT...",
+      },
+      nitLookup: {
+        valid: "NIT válido",
+        invalid: "El NIT ingresado no existe o no está registrado.",
+        unavailable: "La consulta de NIT no está disponible en este momento.",
+      },
+      documentTypes: {
+        SMALL_TAXPAYER_INVOICE: "Factura de Pequeño Contribuyente (FPEQ)",
+        CREDIT_NOTE: "Nota de Crédito",
       },
       statuses: {
         DRAFT: "Borrador",

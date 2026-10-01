@@ -22,7 +22,7 @@ Accepted Final-I.4 head: 8e2d7d56a8e81a860833b05f4a28cba8a517bad4
 Final-I.5 status: Completed and accepted on 2026-09-30
 Accepted Final-I.5 head: fde3ae06427af1f8905e6f7589263c199f918553
 Final-I.5 implementation and acceptance record: docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md
-Final-I.6 status: Implementation completed; Hosted owner validation + acceptance pending
+Final-I.6 status: Implementation completed; Hosted owner validation in progress
 Final-I.6 implementation record: docs/214-final-i-6-fel-persistence-admin-draft-module.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started
@@ -30,7 +30,7 @@ Final-I.9 status: Not started
 Phase 13 status: Blocked / Not started until Final-I closes
 ```
 
-Final-I is an owner-requested pre-Production addendum registered after the accepted Final-H closure. It does not rewrite the historical acceptance of Phase 12, Final-A through Final-H, or the complete Post-Phase-12 / Pre-Phase-13 Final Improvement Track at `6922cf27e31e63fde071c0d0a810b141e44b9f90`. Final-I.1 is completed and accepted at its feature head `9a15f349c1104671f5555d1988caa56756e5ff0c`, and Final-I.2 is completed and accepted at `6451cb705d972c83a771a9ff39f6da80d130cf58`; Final-I.3 is completed and accepted on 2026-09-29 at accepted head `8c5a9186e392f35bdbc998f463c5c3c6cd0be295` after Hosted owner validation of the desktop, Android mobile browser, Android standalone PWA, Push deep-link, and final mobile/PWA auto-scroll refinement. Final-I.4 is completed and accepted on 2026-09-30 at accepted feature head `8e2d7d56a8e81a860833b05f4a28cba8a517bad4` after Hosted/mobile owner validation of representative guest emails. Final-I.5 is completed and accepted on 2026-09-30 at accepted head `fde3ae06427af1f8905e6f7589263c199f918553`; the provider-independent FEL fiscal domain contract remains recorded in `docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md`. Final-I.6 implementation is completed and recorded in `docs/214-final-i-6-fel-persistence-admin-draft-module.md`; Hosted owner validation and acceptance remain pending. Phase 13 remains not started and is blocked until Final-I closes and receives owner acceptance.
+Final-I is an owner-requested pre-Production addendum registered after the accepted Final-H closure. It does not rewrite the historical acceptance of Phase 12, Final-A through Final-H, or the complete Post-Phase-12 / Pre-Phase-13 Final Improvement Track at `6922cf27e31e63fde071c0d0a810b141e44b9f90`. Final-I.1 is completed and accepted at its feature head `9a15f349c1104671f5555d1988caa56756e5ff0c`, and Final-I.2 is completed and accepted at `6451cb705d972c83a771a9ff39f6da80d130cf58`; Final-I.3 is completed and accepted on 2026-09-29 at accepted head `8c5a9186e392f35bdbc998f463c5c3c6cd0be295` after Hosted owner validation of the desktop, Android mobile browser, Android standalone PWA, Push deep-link, and final mobile/PWA auto-scroll refinement. Final-I.4 is completed and accepted on 2026-09-30 at accepted feature head `8e2d7d56a8e81a860833b05f4a28cba8a517bad4` after Hosted/mobile owner validation of representative guest emails. Final-I.5 is completed and accepted on 2026-09-30 at accepted head `fde3ae06427af1f8905e6f7589263c199f918553`; the provider-independent FEL fiscal domain contract remains recorded in `docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md`. Final-I.6 implementation is completed and recorded in `docs/214-final-i-6-fel-persistence-admin-draft-module.md`; Hosted owner validation is in progress and acceptance remains pending. Phase 13 remains not started and is blocked until Final-I closes and receives owner acceptance.
 
 Final-I.5 canonical amount-source hardening freezes `FelCommercialSourceAllocation.amountSnapshot` and `FelCommercialSourceAllocation.currencySnapshot` as the only canonical commercial amount source for future draft line totals. `FelLineSource` is frozen as provenance/evidence only: its rows are never summed to compute `FelLineItem.amount` or `FelDocument` totals, including when `sourceRole = AMOUNT_SOURCE`. Conceptual mandatory `FelLineSource.sourceAmount` / `sourceCurrency` fields were removed from the I.5 persistence contract to avoid two divergent monetary sources of truth; any supporting monetary evidence belongs only inside `sourceSnapshotJson` as non-authoritative audit/reproduction metadata.
 
@@ -662,9 +662,9 @@ FelCommercialSourceAllocation
 + canonical immutable commercial amount snapshot
 ```
 
-## Final-I.6 Implementation Completed - Hosted Acceptance Pending
+## Final-I.6 Implementation Completed - Hosted Validation In Progress
 
-Final-I.6 remains provider-independent and implementation is completed with Hosted owner validation + acceptance pending. Implemented I.6 scope:
+Final-I.6 remains provider-independent and implementation is completed with Hosted owner validation in progress. Hosted owner validation points 1-5 were executed, and owner-requested UX/presentation corrections were applied before points 6-10 continue. Implemented I.6 scope:
 
 ```text
 Prisma FEL persistence
@@ -685,6 +685,7 @@ Admin /admin/fel
 eligible reservation selection
 one/multiple reservation drafts
 fiscal receiver form
+explicit NIT validation UX and provider-neutral lookup boundary
 individual/grouped extras
 server-authoritative draft preview
 same-draft edit/rebuild source ownership
@@ -694,15 +695,15 @@ document totals from persisted lines
 draft history/edit/rebuild/discard
 ```
 
-Final-I.6 works without INFILE credentials, transport, certification endpoint, cancellation endpoint, Credit Note endpoint, PDF/XML API, provider idempotency, provider retry/status lookup, FEL cron registration, or Production resources. Certification controls remain unavailable until Final-I.7 unblocks.
+Final-I.6 works without INFILE credentials, transport, certification endpoint, cancellation endpoint, Credit Note endpoint, PDF/XML API, provider idempotency, provider retry/status lookup, FEL cron registration, or Production resources. Certification controls remain unavailable until Final-I.7 unblocks. NIT lookup provider transport remains pending an authoritative documented endpoint and credentials; the current Admin lookup contract reports provider unavailability instead of faking a successful lookup.
 
 Final-I.6 implementation record: `docs/214-final-i-6-fel-persistence-admin-draft-module.md`.
 
-Final-I.6 hardening added `npm run final-i:db:validate` as an explicit DB-backed Test-only integration gate. It verifies real Prisma/PostgreSQL draft creation, Reservation source uniqueness, GuestPaymentRequestItem source uniqueness, XOR enforcement, rollback safety, discard source release, non-DRAFT edit rejection, and same-draft preview ownership with targeted fixture cleanup.
+Final-I.6 hardening added `npm run final-i:db:validate` as an explicit DB-backed Test-only integration gate. It verifies real Prisma/PostgreSQL draft creation, Reservation source uniqueness, GuestPaymentRequestItem source uniqueness, persisted individual line ordering, grouped invoice-wide line behavior, XOR enforcement, rollback safety, discard source release, non-DRAFT edit rejection, and same-draft preview ownership with targeted fixture cleanup.
 
 Final-I.7 carry-forward: before any `FelCreditAllocation` is created by provider integration, the implementation must ensure `originalLineItemId` belongs to `originalDocumentId`, preferably through a composite database relationship. I.6 does not add a second migration for this deferred provider-integration prerequisite.
 
-Final-I.6 is Implementation completed; Hosted owner validation + acceptance pending. Final-I.8 and Final-I.9 remain Not started. Final-I.7 remains Blocked pending official INFILE technical documentation and Test credentials.
+Final-I.6 is Implementation completed; Hosted owner validation in progress. Final-I.8 and Final-I.9 remain Not started. Final-I.7 remains Blocked pending official INFILE technical documentation and Test credentials.
 
 ## Boundaries
 
@@ -811,18 +812,17 @@ Final-I.5 documentation acceptance closure validation:
 - npm run final-i:validate - PASS, 36/36
 - git diff --check - PASS
 Final-I.6 implementation validation:
-- npm run final-i:validate - PASS, 48/48; initial sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM before the escalated rerun passed
-- npm run final-i:db:validate - PASS, 10/10 with TRP_ENVIRONMENT=test; direct local-environment run failed closed because TRP_ENVIRONMENT was local
+- npm run final-i:validate - PASS, 53/53 after rerun outside the sandbox because the sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM
+- npm run final-i:db:validate - PASS, 12/12 with TRP_ENVIRONMENT=test; an initial date-change fixture setup violated the existing lifecycle delta CHECK and was corrected before the final pass
 - npm run final-f:validate - PASS, 125/125
 - npm run final-h:validate - PASS, 20/20
-- npm run env:validate - PASS; initial sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM before the escalated rerun passed
-- npm run db:format - PASS; Prisma package.json#prisma deprecation warning only
+- npm run env:validate - PASS
 - npm run db:validate - PASS; Prisma package.json#prisma deprecation warning only
-- npm run db:generate - PASS; Prisma package.json#prisma deprecation warning only
-- npm run db:migrate:status - PASS, 30 migrations, database schema is up to date; initial sandbox run returned Schema engine error before the escalated rerun passed
+- npm run db:generate - PASS; Prisma package.json#prisma deprecation warning only after a retry because the first attempt overlapped a DB suite Prisma engine file lock
+- npm run db:migrate:status - PASS, 30 migrations, database schema is up to date
 - npm run lint - PASS
-- npm run build - PASS; initial sandbox run failed to fetch Google Fonts for next/font before the escalated rerun passed; Next slow filesystem warning only
-- npm audit --omit=dev - PASS, 0 vulnerabilities; initial sandbox run could not reach the audit endpoint/cache before the escalated rerun passed
+- npm run build - PASS; initial TypeScript narrowing failure in the NIT lookup UI handling was corrected before the final pass; Next slow filesystem warning only
+- npm audit --omit=dev - PASS, 0 vulnerabilities
 - git diff --check - PASS
 ```
 

@@ -99,6 +99,13 @@ function decimalText(value: Prisma.Decimal): string {
   return value.toFixed(2);
 }
 
+function shiftDateOnly(value: string, days: number): string {
+  const date = new Date(`${value}T00:00:00.000Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+
+  return date.toISOString().slice(0, 10);
+}
+
 async function createContext(name: string): Promise<FixtureContext> {
   const prefix = createPrefix(name);
   const adminId = `${prefix}-admin`;
@@ -259,6 +266,7 @@ async function withFixture(
 async function createProperty(
   context: FixtureContext,
   suffix: string,
+  input: Readonly<{ name?: string }> = {},
 ): Promise<string> {
   const id = makeId(context, `property-${suffix}`);
   context.propertyIds.push(id);
@@ -266,8 +274,8 @@ async function createProperty(
   await prisma.property.create({
     data: {
       id,
-      nameEs: `Propiedad ${suffix}`,
-      nameEn: `Property ${suffix}`,
+      nameEs: input.name ?? `Propiedad ${suffix}`,
+      nameEn: input.name ?? `Property ${suffix}`,
       slug: `${context.prefix}-property-${suffix}`,
       shortDescriptionEs: "Fixture FEL",
       shortDescriptionEn: "FEL fixture",
@@ -293,6 +301,9 @@ async function createReservation(
   input: Readonly<{
     total?: string;
     subtotal?: string;
+    propertyName?: string;
+    checkInDate?: string;
+    checkOutDate?: string;
     payments?: readonly Readonly<{
       suffix: string;
       purpose: PaymentPurpose;
@@ -300,10 +311,16 @@ async function createReservation(
     }>[];
   }> = {},
 ): Promise<ReservationFixture> {
-  const propertyId = await createProperty(context, suffix);
+  const propertyId = await createProperty(context, suffix, {
+    name: input.propertyName,
+  });
   const reservationId = makeId(context, `reservation-${suffix}`);
   const total = input.total ?? "380.00";
   const subtotal = input.subtotal ?? "350.00";
+  const checkInDate = input.checkInDate ?? "2026-08-15";
+  const checkOutDate = input.checkOutDate ?? "2026-08-16";
+  const originalCheckInDate = shiftDateOnly(checkInDate, -1);
+  const originalCheckOutDate = shiftDateOnly(checkOutDate, -1);
   context.reservationIds.push(reservationId);
 
   await prisma.reservation.create({
@@ -315,8 +332,8 @@ async function createReservation(
       guestPhone: "+50255550000",
       guestCountry: "GT",
       preferredLocale: "es",
-      checkInDate: new Date("2026-08-15T00:00:00.000Z"),
-      checkOutDate: new Date("2026-08-16T00:00:00.000Z"),
+      checkInDate: new Date(`${checkInDate}T00:00:00.000Z`),
+      checkOutDate: new Date(`${checkOutDate}T00:00:00.000Z`),
       guestCount: 2,
       status: ReservationStatus.CONFIRMED,
       subtotal: new Prisma.Decimal(subtotal),
@@ -369,8 +386,10 @@ async function createReservation(
             `lifecycle-idempotency-${suffix}-${payment.suffix}`,
           ),
           originalReservationStatus: ReservationStatus.CONFIRMED,
-          originalCheckInDate: new Date("2026-08-14T00:00:00.000Z"),
-          originalCheckOutDate: new Date("2026-08-15T00:00:00.000Z"),
+          originalCheckInDate: new Date(`${originalCheckInDate}T00:00:00.000Z`),
+          originalCheckOutDate: new Date(
+            `${originalCheckOutDate}T00:00:00.000Z`,
+          ),
           originalGuestName: `Huesped ${suffix}`,
           originalGuestEmail: `${context.prefix}-${suffix}@guest.test`,
           originalGuestPhone: "+50255550000",
@@ -384,8 +403,8 @@ async function createReservation(
           originalTotal,
           originalPricingSnapshot: { fixture: context.prefix, suffix },
           currency: "USD",
-          requestedCheckInDate: new Date("2026-08-15T00:00:00.000Z"),
-          requestedCheckOutDate: new Date("2026-08-16T00:00:00.000Z"),
+          requestedCheckInDate: new Date(`${checkInDate}T00:00:00.000Z`),
+          requestedCheckOutDate: new Date(`${checkOutDate}T00:00:00.000Z`),
           requestedGuestCount: 2,
           requestedSubtotal: new Prisma.Decimal(subtotal),
           requestedCleaningFee: new Prisma.Decimal("30.00"),
@@ -430,11 +449,13 @@ async function createPaidExtra(
   suffix: string,
   amount: string,
   category: AdditionalChargeCategory,
+  input: Readonly<{ description?: string; createdAt?: string }> = {},
 ): Promise<ExtraFixture> {
   const chargeId = makeId(context, `charge-${suffix}`);
   const requestId = makeId(context, `gpr-${suffix}`);
   const itemId = makeId(context, `gpri-${suffix}`);
   const paymentId = makeId(context, `payment-extra-${suffix}`);
+  const description = input.description ?? `Cargo ${suffix}`;
 
   context.additionalChargeIds.push(chargeId);
   context.guestPaymentRequestIds.push(requestId);
@@ -446,7 +467,7 @@ async function createPaidExtra(
       id: chargeId,
       reservationId: reservation.id,
       category,
-      description: `Cargo ${suffix}`,
+      description,
       amount: new Prisma.Decimal(amount),
       currency: "USD",
       status: AdditionalChargeStatus.PAID,
@@ -474,9 +495,10 @@ async function createPaidExtra(
       paymentRequestId: requestId,
       additionalChargeId: chargeId,
       categorySnapshot: category,
-      descriptionSnapshot: `Cargo ${suffix}`,
+      descriptionSnapshot: description,
       amountSnapshot: new Prisma.Decimal(amount),
       currencySnapshot: "USD",
+      ...(input.createdAt ? { createdAt: new Date(input.createdAt) } : {}),
     },
   });
   await prisma.payment.create({
@@ -689,6 +711,165 @@ test("I.6 DB creates grouped extra line while preserving two canonical allocatio
       [
         [FelLineKind.LODGING, "380.00", 1],
         [FelLineKind.GROUPED_ADDITIONAL_CHARGES, "65.00", 2],
+      ],
+    );
+  });
+});
+
+test("I.6 DB persists individual extra lines in reservation blocks", async () => {
+  await withFixture("line-order", async (context) => {
+    const reservationA = await createReservation(context, "line-order-a", {
+      total: "285.00",
+      subtotal: "255.00",
+      propertyName: "Bungalow 1",
+      checkInDate: "2026-09-28",
+      checkOutDate: "2026-09-29",
+    });
+    await createPaidExtra(
+      context,
+      reservationA,
+      "line-order-cleaning",
+      "15.00",
+      AdditionalChargeCategory.CLEANING,
+      {
+        description: "Limpieza extra",
+        createdAt: "2026-09-29T12:00:00.000Z",
+      },
+    );
+    await createPaidExtra(
+      context,
+      reservationA,
+      "line-order-damage",
+      "5.00",
+      AdditionalChargeCategory.DAMAGE,
+      {
+        description: "Vaso quebrado",
+        createdAt: "2026-09-29T12:02:00.000Z",
+      },
+    );
+    await createPaidExtra(
+      context,
+      reservationA,
+      "line-order-late-checkout",
+      "10.00",
+      AdditionalChargeCategory.LATE_CHECKOUT,
+      {
+        description: "Se tardó en salir",
+        createdAt: "2026-09-29T12:04:00.000Z",
+      },
+    );
+    const reservationB = await createReservation(context, "line-order-b", {
+      total: "130.00",
+      subtotal: "100.00",
+      propertyName: "Bungalow 2",
+      checkInDate: "2026-09-28",
+      checkOutDate: "2026-09-29",
+    });
+    await createPaidExtra(
+      context,
+      reservationB,
+      "line-order-transport",
+      "75.00",
+      AdditionalChargeCategory.TRANSPORT,
+      {
+        description: "Antigua para Panajachel",
+        createdAt: "2026-09-29T12:06:00.000Z",
+      },
+    );
+
+    const document = await createDraft(
+      context,
+      [reservationB.id, reservationA.id],
+      false,
+    );
+    const graph = await readDocumentGraph(document.id);
+
+    assert.ok(graph);
+    assert.equal(decimalText(graph.total), "520.00");
+    assert.deepEqual(
+      graph.lineItems.map((line) => [
+        line.lineNumber,
+        line.description,
+        decimalText(line.amount),
+      ]),
+      [
+        [
+          1,
+          "Reservación del 28 al 29 de septiembre (1 noche) - Bungalow 1",
+          "285.00",
+        ],
+        [2, "Limpieza adicional (Limpieza extra)", "15.00"],
+        [3, "Daños (Vaso quebrado)", "5.00"],
+        [4, "Salida tardía (Se tardó en salir)", "10.00"],
+        [
+          5,
+          "Reservación del 28 al 29 de septiembre (1 noche) - Bungalow 2",
+          "130.00",
+        ],
+        [6, "Transporte (Antigua para Panajachel)", "75.00"],
+      ],
+    );
+  });
+});
+
+test("I.6 DB keeps grouped extras invoice-wide after lodging lines", async () => {
+  await withFixture("grouped-invoice-wide", async (context) => {
+    const reservationA = await createReservation(context, "grouped-wide-a", {
+      total: "285.00",
+      subtotal: "255.00",
+      propertyName: "Bungalow 1",
+      checkInDate: "2026-09-28",
+      checkOutDate: "2026-09-29",
+    });
+    await createPaidExtra(
+      context,
+      reservationA,
+      "grouped-wide-cleaning",
+      "15.00",
+      AdditionalChargeCategory.CLEANING,
+      {
+        description: "Limpieza extra",
+        createdAt: "2026-09-29T12:00:00.000Z",
+      },
+    );
+    const reservationB = await createReservation(context, "grouped-wide-b", {
+      total: "130.00",
+      subtotal: "100.00",
+      propertyName: "Bungalow 2",
+      checkInDate: "2026-09-28",
+      checkOutDate: "2026-09-29",
+    });
+    await createPaidExtra(
+      context,
+      reservationB,
+      "grouped-wide-transport",
+      "75.00",
+      AdditionalChargeCategory.TRANSPORT,
+      {
+        description: "Antigua para Panajachel",
+        createdAt: "2026-09-29T12:06:00.000Z",
+      },
+    );
+
+    const document = await createDraft(
+      context,
+      [reservationB.id, reservationA.id],
+      true,
+    );
+    const graph = await readDocumentGraph(document.id);
+
+    assert.ok(graph);
+    assert.deepEqual(
+      graph.lineItems.map((line) => [
+        line.lineNumber,
+        line.kind,
+        decimalText(line.amount),
+        line.commercialAllocations.length,
+      ]),
+      [
+        [1, FelLineKind.LODGING, "285.00", 1],
+        [2, FelLineKind.LODGING, "130.00", 1],
+        [3, FelLineKind.GROUPED_ADDITIONAL_CHARGES, "90.00", 2],
       ],
     );
   });

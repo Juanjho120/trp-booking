@@ -6,7 +6,7 @@
 Project: TRP Booking
 Track: Final-I - Operational Polish, Notification UX & FEL Invoicing
 Subphase: Final-I.6 - FEL persistence + Admin draft/selection/preview module
-Status: Implementation completed; Hosted owner validation + acceptance pending
+Status: Implementation completed; Hosted owner validation in progress
 Implementation base: 46664f6022871cd20089aba0de3cea1a4d7a2af7
 Final-I.5 accepted head: fde3ae06427af1f8905e6f7589263c199f918553
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
@@ -15,7 +15,9 @@ Final-I.9 status: Not started
 Phase 13 status: Blocked / Not started until Final-I closes
 ```
 
-Final-I.6 materializes the accepted Final-I.5 provider-independent FEL architecture. It adds persistence, draft-source ownership, the Admin `/admin/fel` draft module, and protected Admin APIs. It does not add INFILE transport, credentials, certification, DTE cancellation, Credit Note issuing workflow, PDF/XML retrieval, provider retry/status lookup, FEL scheduler, environment variables, cron registration, Production resources, or Phase 13 work.
+Final-I.6 materializes the accepted Final-I.5 provider-independent FEL architecture. It adds persistence, draft-source ownership, the Admin `/admin/fel` draft module, protected Admin APIs, provider-neutral NIT lookup boundary/UX contract, and fiscal presentation corrections requested during Hosted owner validation. It does not add INFILE transport, credentials, certification, DTE cancellation, Credit Note issuing workflow, PDF/XML retrieval, provider retry/status lookup, FEL scheduler, environment variables, cron registration, Production resources, or Phase 13 work.
+
+Hosted owner validation has started. Points 1-5 were executed, and owner-requested UX/presentation corrections were applied before points 6-10 continue. Final-I.6 is not accepted yet.
 
 ## Accepted Invariants Preserved
 
@@ -61,7 +63,7 @@ FelCreditAllocation
 
 `FelDocumentReservation` stores one immutable reservation snapshot per selected Reservation. It preserves property, dates, guest count, pricing components, total, currency, pricing snapshot, and the reservation update timestamp.
 
-`FelLineItem` stores deterministic fiscal presentation lines. I.6 creates one lodging line per reservation, one extra line per `GuestPaymentRequestItem` in individual mode, or one invoice-wide grouped line for all eligible extras in grouped mode.
+`FelLineItem` stores deterministic fiscal presentation lines. I.6 creates one lodging line per reservation, one extra line per `GuestPaymentRequestItem` in individual mode, or one invoice-wide grouped line for all eligible extras in grouped mode. In individual mode, fiscal lines are persisted in reservation blocks using deterministic reservation ordering (`checkInDate`, `checkOutDate`, `reservationId`) and deterministic extra ordering (`GuestPaymentRequestItem.createdAt`, `id`).
 
 `FelLineSource` stores bounded provenance/evidence snapshots only:
 
@@ -123,6 +125,8 @@ Draft discard only applies to `DRAFT`, deletes/releases the draft graph by relat
 
 `previewAdminFelDraft` is a server-authoritative, provider-independent read operation. It normalizes the same inputs as draft creation, optionally verifies an `editingDocumentId` is still `DRAFT`, reuses the same eligibility and `buildFelDraftComposition(...)` domain logic, and performs no writes. Existing source allocations remain unavailable for new drafts; only allocations owned by the same edited draft may be treated as available for preview/rebuild. Allocations owned by another document still return `ADMIN_FEL_SOURCE_ALREADY_ALLOCATED`.
 
+Final-I.6 Hosted-feedback hardening adds a server-only provider-neutral NIT lookup boundary in `lib/fel/receiver-nit-lookup.ts` plus protected Admin API `POST /api/admin/fel/receiver/nit-lookup`. The current transport intentionally remains `PROVIDER_NOT_CONFIGURED` because TRP does not yet have an authoritative anonymous SAT JSON API contract or official INFILE Test credentials/documentation for receiver lookup. The lookup boundary normalizes NIT input, supports `FOUND`, `NOT_FOUND`, and `UNAVAILABLE` results, and does not log or persist provider credentials, raw requests, or raw responses.
+
 ## Eligibility
 
 A reservation is eligible for a new normal invoice draft only when all of the following hold:
@@ -166,6 +170,7 @@ POST   /api/admin/fel/drafts
 PATCH  /api/admin/fel/drafts/[documentId]
 DELETE /api/admin/fel/drafts/[documentId]
 POST   /api/admin/fel/drafts/[documentId]/rebuild
+POST   /api/admin/fel/receiver/nit-lookup
 ```
 
 The Admin route is force-dynamic, protected by the existing Admin layout, and marked noindex/nofollow. The Admin shell includes the new `Facturación` / `Invoicing` navigation item after Payments.
@@ -177,9 +182,13 @@ Nueva factura / New invoice
 Borradores e historial / Drafts and history
 ```
 
-The module supports eligible reservation selection, one/multiple reservation drafts, fiscal receiver input, individual/grouped extras, preview, save draft, open/edit, rebuild from current commercial data, and discard. It does not expose certification, INFILE, cancellation, Credit Note, XML, or PDF actions.
+The module supports eligible reservation selection, one/multiple reservation drafts, fiscal receiver input, explicit NIT validation UX, individual/grouped extras, preview, save draft, open/edit, rebuild from current commercial data, and discard. It does not expose certification, INFILE, cancellation, Credit Note, XML, or PDF actions.
 
-The editable preview is now server-authoritative through `POST /api/admin/fel/preview`. Client-side arithmetic is not the fiscal source of truth. The UI distinguishes the saved draft snapshot from "Vista previa desde datos comerciales actuales" / "Preview from current commercial data", marks previews stale when reservation selection, receiver input, grouping mode, or edited document context changes, and disables save/rebuild until a fresh server preview exists for the current inputs.
+The editable preview is now server-authoritative through `POST /api/admin/fel/preview`. Client-side arithmetic is not the fiscal source of truth. The UI distinguishes the saved draft snapshot from "Vista previa desde datos comerciales actuales" / "Preview from current commercial data", marks previews stale when reservation selection, receiver input, grouping mode, validated NIT/name changes, or edited document context changes, and disables save/rebuild until a fresh server preview exists for the current inputs.
+
+Fiscal receiver field order is `Tipo de identificación` / `Identifier type`, `Identificación` / `Identifier`, `Nombre del receptor` / `Receiver name`, `Correo` / `Email`, `País` / `Country`, and `Dirección` / `Address`. When identifier type is `NIT`, the Admin may explicitly run `Validar NIT` / `Validate NIT`; a future configured provider can return the official name and lock the validated NIT/name pair. While the provider remains not configured, the UI reports provider unavailability without treating the NIT as invalid and does not fake a successful lookup.
+
+Fiscal line presentation was hardened during Hosted feedback: lodging line descriptions now persist the accommodation name, individual extras persist `<category label> (<description>)` using canonical Spanish fiscal labels, blank/redundant extra descriptions collapse to the category label, selected reservations keep the same strong border used on hover, document type display uses localized `Factura de Pequeño Contribuyente (FPEQ)` / `Small Taxpayer Invoice (FPEQ)`, and currency/amount render in separate aligned columns in preview and saved snapshots.
 
 Visible copy is centralized in `messages/es.ts` and `messages/en.ts`.
 
@@ -195,6 +204,9 @@ card data
 PushSubscription endpoints/keys
 VAPID private key material
 provider credentials
+NIT lookup provider credentials
+raw NIT provider requests
+raw NIT provider responses
 ```
 
 Source snapshots remain bounded to commercial and audit metadata required for draft reproduction.
@@ -217,7 +229,11 @@ refund/fiscal reconciliation blockers
 existing source allocation blocker
 Payment evidence not double-counted as fiscal value
 individual extras from GPRI snapshots
+individual fiscal line ordering in reservation blocks
+lodging descriptions with accommodation snapshot
+additional-charge fiscal category descriptions
 invoice-wide grouped extras with multiple allocations
+provider-neutral NIT lookup boundary and explicit Admin UX
 multi-reservation draft arithmetic
 currency mismatch rejection
 sensitive data exclusions
@@ -233,7 +249,7 @@ Final-I.6 hardening adds the explicit DB-backed validation gate:
 npm run final-i:db:validate
 ```
 
-That suite runs only when `TRP_ENVIRONMENT=test`, uses uniquely namespaced fixtures and targeted cleanup, and executes real Prisma/PostgreSQL service calls for draft creation, grouped and individual extras, duplicate Reservation source conflicts, duplicate GuestPaymentRequestItem source conflicts, the PostgreSQL XOR CHECK, failed rebuild rollback, discard source release, non-DRAFT edit rejection, and same-draft preview ownership.
+That suite runs only when `TRP_ENVIRONMENT=test`, uses uniquely namespaced fixtures and targeted cleanup, and executes real Prisma/PostgreSQL service calls for draft creation, grouped and individual extras, persisted individual line ordering, grouped invoice-wide line regression, duplicate Reservation source conflicts, duplicate GuestPaymentRequestItem source conflicts, the PostgreSQL XOR CHECK, failed rebuild rollback, discard source release, non-DRAFT edit rejection, and same-draft preview ownership.
 
 ## I.7 Carry-Forward
 
@@ -242,18 +258,17 @@ Before Final-I.7 creates any `FelCreditAllocation`, the provider-integration imp
 ## Validation Ledger
 
 ```text
-npm run final-i:validate - PASS, 48/48; initial sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM before the escalated rerun passed
-npm run final-i:db:validate - PASS, 10/10 with TRP_ENVIRONMENT=test; direct local-environment run failed closed because TRP_ENVIRONMENT was local
+npm run final-i:validate - PASS, 53/53 after rerun outside the sandbox because the sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM
+npm run final-i:db:validate - PASS, 12/12 with TRP_ENVIRONMENT=test; an initial date-change fixture setup violated the existing lifecycle delta CHECK and was corrected before the final pass
 npm run final-f:validate - PASS, 125/125
 npm run final-h:validate - PASS, 20/20
-npm run env:validate - PASS; initial sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM before the escalated rerun passed
-npm run db:format - PASS; Prisma package.json#prisma deprecation warning only
+npm run env:validate - PASS
 npm run db:validate - PASS; Prisma package.json#prisma deprecation warning only
-npm run db:generate - PASS; Prisma package.json#prisma deprecation warning only
-npm run db:migrate:status - PASS, 30 migrations, database schema is up to date; initial sandbox run returned Schema engine error before the escalated rerun passed
+npm run db:generate - PASS; Prisma package.json#prisma deprecation warning only after a retry because the first attempt overlapped a DB suite Prisma engine file lock
+npm run db:migrate:status - PASS, 30 migrations, database schema is up to date
 npm run lint - PASS
-npm run build - PASS; initial sandbox run failed to fetch Google Fonts for next/font before the escalated rerun passed; Next slow filesystem warning only
-npm audit --omit=dev - PASS, 0 vulnerabilities; initial sandbox run could not reach the audit endpoint/cache before the escalated rerun passed
+npm run build - PASS; initial TypeScript narrowing failure in the NIT lookup UI handling was corrected before the final pass; Next slow filesystem warning only
+npm audit --omit=dev - PASS, 0 vulnerabilities
 git diff --check - PASS
 ```
 
@@ -262,7 +277,9 @@ The DB-backed gate now explicitly proves both canonical source uniqueness constr
 ## Current State
 
 ```text
-Final-I.6 — Implementation completed; Hosted owner validation + acceptance pending
+Final-I.6 — Implementation completed; Hosted owner validation in progress
+Hosted owner validation points 1-5 executed; owner-requested UX/presentation corrections applied before points 6-10 continue.
+NIT lookup provider transport remains pending authoritative endpoint/credentials.
 Final-I.7 — Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 — Not started
 Final-I.9 — Not started

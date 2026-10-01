@@ -3,6 +3,7 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 import {
+  AdditionalChargeCategory,
   AdditionalChargeStatus,
   FelLineKind,
   PaymentPurpose,
@@ -13,6 +14,7 @@ import {
 } from "@prisma/client";
 
 import {
+  additionalChargeFiscalDescription,
   buildAdminFelDraftPreview,
   calculateFelCheckoutAt,
   evaluateAdminFelReservationEligibility,
@@ -20,6 +22,11 @@ import {
   type AdminFelDraftSourceReservation,
 } from "@/lib/admin/fel";
 import { listCronJobDefinitions } from "@/lib/cron/registry";
+import {
+  lookupReceiverNit,
+  normalizeReceiverNit,
+  type ReceiverNitLookupProvider,
+} from "@/lib/fel/receiver-nit-lookup";
 import type { AdminFelReceiverInput } from "@/types/admin-fel";
 
 import { test } from "./harness";
@@ -414,6 +421,226 @@ test("I.6 supports individual and grouped extras from GPRI snapshots", () => {
   assert.equal(grouped.total, "445.00");
 });
 
+test("I.6 individual fiscal lines are persisted in reservation blocks with fiscal descriptions", () => {
+  const reservationA = sourceReservation({
+    id: "reservation-a",
+    propertyName: "Bungalow 1",
+    checkInDate: "2026-09-28",
+    checkOutDate: "2026-09-29",
+    nights: 1,
+    total: "285.00",
+    subtotal: "255.00",
+    extras: [
+      {
+        guestPaymentRequestItemId: "gpri-cleaning",
+        additionalChargeId: "charge-cleaning",
+        category: AdditionalChargeCategory.CLEANING,
+        description: "Limpieza extra",
+        amount: "15.00",
+        currency: "USD",
+        createdAt: "2026-09-29T12:00:00.000Z",
+        settlementPayment: {
+          id: "payment-extra-cleaning",
+          purpose: PaymentPurpose.ADDITIONAL_CHARGE,
+          status: PaymentStatus.APPROVED,
+          amount: "15.00",
+          currency: "USD",
+          paidAt: "2026-09-29T12:01:00.000Z",
+        },
+      },
+      {
+        guestPaymentRequestItemId: "gpri-damage",
+        additionalChargeId: "charge-damage",
+        category: AdditionalChargeCategory.DAMAGE,
+        description: "Vaso quebrado",
+        amount: "5.00",
+        currency: "USD",
+        createdAt: "2026-09-29T12:02:00.000Z",
+        settlementPayment: {
+          id: "payment-extra-damage",
+          purpose: PaymentPurpose.ADDITIONAL_CHARGE,
+          status: PaymentStatus.APPROVED,
+          amount: "5.00",
+          currency: "USD",
+          paidAt: "2026-09-29T12:03:00.000Z",
+        },
+      },
+      {
+        guestPaymentRequestItemId: "gpri-late-checkout",
+        additionalChargeId: "charge-late-checkout",
+        category: AdditionalChargeCategory.LATE_CHECKOUT,
+        description: "Se tardó en salir",
+        amount: "10.00",
+        currency: "USD",
+        createdAt: "2026-09-29T12:04:00.000Z",
+        settlementPayment: {
+          id: "payment-extra-late-checkout",
+          purpose: PaymentPurpose.ADDITIONAL_CHARGE,
+          status: PaymentStatus.APPROVED,
+          amount: "10.00",
+          currency: "USD",
+          paidAt: "2026-09-29T12:05:00.000Z",
+        },
+      },
+    ],
+  });
+  const reservationB = sourceReservation({
+    id: "reservation-b",
+    propertyName: "Bungalow 2",
+    checkInDate: "2026-09-28",
+    checkOutDate: "2026-09-29",
+    nights: 1,
+    total: "130.00",
+    subtotal: "100.00",
+    extras: [
+      {
+        guestPaymentRequestItemId: "gpri-transport",
+        additionalChargeId: "charge-transport",
+        category: AdditionalChargeCategory.TRANSPORT,
+        description: "Antigua para Panajachel",
+        amount: "75.00",
+        currency: "USD",
+        createdAt: "2026-09-29T12:06:00.000Z",
+        settlementPayment: {
+          id: "payment-extra-transport",
+          purpose: PaymentPurpose.ADDITIONAL_CHARGE,
+          status: PaymentStatus.APPROVED,
+          amount: "75.00",
+          currency: "USD",
+          paidAt: "2026-09-29T12:07:00.000Z",
+        },
+      },
+    ],
+  });
+  const preview = buildAdminFelDraftPreview({
+    reservations: [reservationB, reservationA],
+    receiver,
+    groupExtras: false,
+  });
+
+  assert.deepEqual(
+    preview.lines.map((line) => [
+      line.lineNumber,
+      line.description,
+      line.amount,
+    ]),
+    [
+      [
+        1,
+        "Reservación del 28 al 29 de septiembre (1 noche) - Bungalow 1",
+        "285.00",
+      ],
+      [2, "Limpieza adicional (Limpieza extra)", "15.00"],
+      [3, "Daños (Vaso quebrado)", "5.00"],
+      [4, "Salida tardía (Se tardó en salir)", "10.00"],
+      [
+        5,
+        "Reservación del 28 al 29 de septiembre (1 noche) - Bungalow 2",
+        "130.00",
+      ],
+      [6, "Transporte (Antigua para Panajachel)", "75.00"],
+    ],
+  );
+  assert.equal(preview.total, "520.00");
+});
+
+test("I.6 fiscal extra descriptions avoid empty and redundant category text", () => {
+  assert.equal(
+    additionalChargeFiscalDescription({
+      category: AdditionalChargeCategory.DAMAGE,
+      description: "",
+    }),
+    "Daños",
+  );
+  assert.equal(
+    additionalChargeFiscalDescription({
+      category: AdditionalChargeCategory.DAMAGE,
+      description: "  daños  ",
+    }),
+    "Daños",
+  );
+  assert.equal(
+    additionalChargeFiscalDescription({
+      category: AdditionalChargeCategory.EXTRA_SERVICE,
+      description: "Decoración",
+    }),
+    "Servicio adicional (Decoración)",
+  );
+});
+
+test("I.6 grouped extras remain one invoice-wide line after lodging lines", () => {
+  const grouped = buildAdminFelDraftPreview({
+    reservations: [
+      sourceReservation({
+        id: "reservation-b",
+        propertyName: "Bungalow 2",
+        total: "130.00",
+        subtotal: "100.00",
+        extras: [
+          {
+            guestPaymentRequestItemId: "gpri-transport",
+            additionalChargeId: "charge-transport",
+            category: AdditionalChargeCategory.TRANSPORT,
+            description: "Antigua para Panajachel",
+            amount: "75.00",
+            currency: "USD",
+            createdAt: "2026-09-29T12:06:00.000Z",
+            settlementPayment: {
+              id: "payment-extra-transport",
+              purpose: PaymentPurpose.ADDITIONAL_CHARGE,
+              status: PaymentStatus.APPROVED,
+              amount: "75.00",
+              currency: "USD",
+              paidAt: "2026-09-29T12:07:00.000Z",
+            },
+          },
+        ],
+      }),
+      sourceReservation({
+        id: "reservation-a",
+        propertyName: "Bungalow 1",
+        total: "285.00",
+        subtotal: "255.00",
+        extras: [
+          {
+            guestPaymentRequestItemId: "gpri-cleaning",
+            additionalChargeId: "charge-cleaning",
+            category: AdditionalChargeCategory.CLEANING,
+            description: "Limpieza extra",
+            amount: "15.00",
+            currency: "USD",
+            createdAt: "2026-09-29T12:00:00.000Z",
+            settlementPayment: {
+              id: "payment-extra-cleaning",
+              purpose: PaymentPurpose.ADDITIONAL_CHARGE,
+              status: PaymentStatus.APPROVED,
+              amount: "15.00",
+              currency: "USD",
+              paidAt: "2026-09-29T12:01:00.000Z",
+            },
+          },
+        ],
+      }),
+    ],
+    receiver,
+    groupExtras: true,
+  });
+
+  assert.deepEqual(
+    grouped.lines.map((line) => [
+      line.lineNumber,
+      line.kind,
+      line.amount,
+      line.allocationCount,
+    ]),
+    [
+      [1, FelLineKind.LODGING, "285.00", 1],
+      [2, FelLineKind.LODGING, "130.00", 1],
+      [3, FelLineKind.GROUPED_ADDITIONAL_CHARGES, "90.00", 2],
+    ],
+  );
+});
+
 test("I.6 supports multi-reservation drafts and rejects currency mismatch atomically", () => {
   const reservationB = sourceReservation({
     id: "reservation-b",
@@ -459,6 +686,7 @@ test("I.6 service and UI avoid sensitive token, raw payload, push and card persi
     "app/api/admin/fel/preview/route.ts",
     "app/api/admin/fel/drafts/[documentId]/route.ts",
     "app/api/admin/fel/drafts/[documentId]/rebuild/route.ts",
+    "app/api/admin/fel/receiver/nit-lookup/route.ts",
   ]
     .map(read)
     .join("\n");
@@ -487,8 +715,12 @@ test("I.6 Admin surface exists with nav, localization parity and no provider act
   assert.match(component, /saveDraft/);
   assert.match(component, /rebuildDraft/);
   assert.match(component, /discardDraft/);
+  assert.match(component, /documentTypeLabel\(copy,\s*draftPreview\.documentType\)/);
+  assert.doesNotMatch(component, /:\s*\{draftPreview\.documentType\}/);
   assert.match(es, /felPage:\s*{/);
   assert.match(en, /felPage:\s*{/);
+  assert.match(es, /Factura de Pequeño Contribuyente \(FPEQ\)/);
+  assert.match(en, /Small Taxpayer Invoice \(FPEQ\)/);
   assert.doesNotMatch(
     component,
     /Certificar|Enviar a INFILE|Anular DTE|Emitir Nota de Crédito|Descargar XML|Descargar PDF|Certify|Send to INFILE|Cancel DTE|Credit Note|Download XML|Download PDF/,
@@ -512,12 +744,120 @@ test("I.6 server-authoritative preview route backs draft editing", () => {
   assert.doesNotMatch(component, /centsFromMoney|moneyFromCents|previewLines/);
 });
 
+test("I.6 NIT lookup boundary normalizes NIT and maps provider states without external calls", async () => {
+  const foundProvider: ReceiverNitLookupProvider = {
+    async lookupNit(nit) {
+      return {
+        status: "FOUND",
+        nit,
+        name: "NOMBRE O RAZON SOCIAL",
+      };
+    },
+  };
+  const notFoundProvider: ReceiverNitLookupProvider = {
+    async lookupNit(nit) {
+      return {
+        status: "NOT_FOUND",
+        nit,
+      };
+    },
+  };
+  const unavailableProvider: ReceiverNitLookupProvider = {
+    async lookupNit() {
+      return {
+        status: "UNAVAILABLE",
+        reason: "PROVIDER_NOT_CONFIGURED",
+      };
+    },
+  };
+  const timeoutProvider: ReceiverNitLookupProvider = {
+    async lookupNit() {
+      return new Promise<never>(() => undefined);
+    },
+  };
+
+  assert.equal(normalizeReceiverNit(" 1234567-k "), "1234567K");
+  assert.deepEqual(
+    await lookupReceiverNit(" 1234567-k ", { provider: foundProvider }),
+    {
+      status: "FOUND",
+      nit: "1234567K",
+      name: "NOMBRE O RAZON SOCIAL",
+    },
+  );
+  assert.deepEqual(
+    await lookupReceiverNit("1234567K", { provider: notFoundProvider }),
+    {
+      status: "NOT_FOUND",
+      nit: "1234567K",
+    },
+  );
+  assert.deepEqual(
+    await lookupReceiverNit("1234567K", { provider: unavailableProvider }),
+    {
+      status: "UNAVAILABLE",
+      reason: "PROVIDER_NOT_CONFIGURED",
+    },
+  );
+  assert.deepEqual(
+    await lookupReceiverNit("1234567K", {
+      provider: timeoutProvider,
+      timeoutMs: 1,
+    }),
+    {
+      status: "UNAVAILABLE",
+      reason: "TIMEOUT",
+    },
+  );
+});
+
+test("I.6 NIT Admin route and receiver UI expose the provider-neutral lookup contract", () => {
+  const component = read("features/admin/components/admin-fel-page.tsx");
+  const route = read("app/api/admin/fel/receiver/nit-lookup/route.ts");
+  const es = read("messages/es.ts");
+  const en = read("messages/en.ts");
+  const receiverFieldOrder = [
+    component.indexOf("copy.fields.receiverIdentifierType"),
+    component.indexOf("copy.fields.receiverIdentifier"),
+    component.indexOf("copy.fields.receiverName"),
+    component.indexOf("copy.fields.receiverEmail"),
+    component.indexOf("copy.fields.receiverCountry"),
+    component.indexOf("copy.fields.receiverAddress"),
+  ];
+
+  assert.deepEqual(
+    [...receiverFieldOrder].sort((left, right) => left - right),
+    receiverFieldOrder,
+  );
+  assert.match(component, /\/api\/admin\/fel\/receiver\/nit-lookup/);
+  assert.match(component, /copy\.actions\.validateNit/);
+  assert.match(component, /copy\.actions\.validatingNit/);
+  assert.match(component, /copy\.nitLookup\.invalid/);
+  assert.match(component, /copy\.nitLookup\.unavailable/);
+  assert.match(component, /receiverName:\s*payload\.name/);
+  assert.match(component, /readOnly=\{receiverNameLocked\}/);
+  assert.match(component, /draftPreviewSignature/);
+  assert.match(route, /getAdminSessionActor/);
+  assert.match(route, /isValidAdminMutationOrigin/);
+  assert.match(route, /lookupReceiverNit/);
+  assert.doesNotMatch(route, /fetch\(|sat\.gob|infile|ITDEMO|sample/i);
+  assert.match(es, /Validar NIT/);
+  assert.match(es, /Validando NIT\.\.\./);
+  assert.match(es, /El NIT ingresado no existe o no está registrado\./);
+  assert.match(es, /La consulta de NIT no está disponible en este momento\./);
+  assert.match(en, /Validate NIT/);
+  assert.match(en, /Validating NIT\.\.\./);
+  assert.match(en, /The entered NIT does not exist or is not registered\./);
+  assert.match(en, /NIT lookup is currently unavailable\./);
+});
+
 test("I.6 APIs use admin session, same-origin protection and bounded FEL error codes", () => {
   const routes = [
     "app/api/admin/fel/drafts/route.ts",
     "app/api/admin/fel/preview/route.ts",
     "app/api/admin/fel/drafts/[documentId]/route.ts",
     "app/api/admin/fel/drafts/[documentId]/rebuild/route.ts",
+    "app/api/admin/fel/receiver/nit-lookup/route.ts",
   ];
 
   for (const routePath of routes) {
@@ -550,8 +890,10 @@ test("I.6 documentation records implementation pending owner acceptance", () => 
 
   assert.match(
     record,
-    /Final-I\.6 .*Implementation completed; Hosted owner validation \+ acceptance pending/,
+    /Final-I\.6 .*Implementation completed; Hosted owner validation in progress/,
   );
+  assert.match(record, /Hosted owner validation points 1-5 executed/);
+  assert.match(record, /NIT lookup provider transport remains pending authoritative endpoint\/credentials/);
   assert.match(record, /PAYMENT != FISCAL LINE/);
   assert.match(record, /FelCommercialSourceAllocation\.amountSnapshot/);
   assert.match(record, /Final-I\.7 .*Blocked pending official INFILE technical documentation \+ Test credentials/);

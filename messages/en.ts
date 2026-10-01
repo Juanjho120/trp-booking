@@ -2657,6 +2657,17 @@ export const enMessages = {
         updateReceiver: "Update receiver",
         rebuild: "Rebuild from current commercial data",
         discard: "Discard draft",
+        validateNit: "Validate NIT",
+        validatingNit: "Validating NIT...",
+      },
+      nitLookup: {
+        valid: "Valid NIT",
+        invalid: "The entered NIT does not exist or is not registered.",
+        unavailable: "NIT lookup is currently unavailable.",
+      },
+      documentTypes: {
+        SMALL_TAXPAYER_INVOICE: "Small Taxpayer Invoice (FPEQ)",
+        CREDIT_NOTE: "Credit Note",
       },
       statuses: {
         DRAFT: "Draft",

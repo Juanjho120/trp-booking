@@ -1,4 +1,5 @@
 import {
+  AdditionalChargeCategory,
   AdditionalChargeStatus,
   FelDocumentStatus,
   FelDocumentType,
@@ -16,6 +17,7 @@ import {
 
 import { prisma } from "@/lib/db/prisma";
 import { normalizeTimeOfDay } from "@/lib/email/time-of-day";
+import { normalizeReceiverNit } from "@/lib/fel/receiver-nit-lookup";
 import type { AdminActor } from "@/types/admin";
 import type {
   AdminFelDocumentDetail,
@@ -49,6 +51,18 @@ const RECEIVER_IDENTIFIER_MAX_LENGTH = 80;
 const RECEIVER_ADDRESS_MAX_LENGTH = 500;
 const RECEIVER_EMAIL_MAX_LENGTH = 254;
 const RECEIVER_COUNTRY_MAX_LENGTH = 100;
+
+const ADDITIONAL_CHARGE_FISCAL_LABELS: Record<
+  AdditionalChargeCategory,
+  string
+> = {
+  [AdditionalChargeCategory.CLEANING]: "Limpieza adicional",
+  [AdditionalChargeCategory.DAMAGE]: "Daños",
+  [AdditionalChargeCategory.TRANSPORT]: "Transporte",
+  [AdditionalChargeCategory.LATE_CHECKOUT]: "Salida tardía",
+  [AdditionalChargeCategory.EXTRA_SERVICE]: "Servicio adicional",
+  [AdditionalChargeCategory.OTHER]: "Otro",
+};
 
 const COMMITTED_REFUND_STATUSES = [
   RefundStatus.PENDING,
@@ -503,10 +517,14 @@ function normalizeReceiverInput(
     throw new AdminFelError("INVALID_ADMIN_FEL_REQUEST");
   }
 
-  const receiverIdentifier = trimBounded(
+  const rawReceiverIdentifier = trimBounded(
     input.receiverIdentifier,
     RECEIVER_IDENTIFIER_MAX_LENGTH,
   );
+  const receiverIdentifier =
+    receiverIdentifierType === "NIT" && rawReceiverIdentifier
+      ? normalizeReceiverNit(rawReceiverIdentifier)
+      : rawReceiverIdentifier;
 
   if (receiverIdentifierType !== "CONSUMIDOR_FINAL" && !receiverIdentifier) {
     throw new AdminFelError("INVALID_ADMIN_FEL_REQUEST");
@@ -848,11 +866,44 @@ function formatSpanishDateRange(checkInDate: string, checkOutDate: string): stri
 function lodgingDescription(reservation: AdminFelDraftSourceReservation): string {
   const nightsLabel =
     reservation.nights === 1 ? "1 noche" : `${reservation.nights} noches`;
+  const propertyName = reservation.propertyName.trim();
+  const propertySuffix = propertyName ? ` - ${propertyName}` : "";
 
   return `Reservación del ${formatSpanishDateRange(
     reservation.checkInDate,
     reservation.checkOutDate,
-  )} (${nightsLabel})`;
+  )} (${nightsLabel})${propertySuffix}`;
+}
+
+function normalizeFiscalDescriptionText(value: string): string {
+  return value.trim().replace(/\s+/g, " ").toLocaleLowerCase("es-GT");
+}
+
+function additionalChargeCategoryFiscalLabel(category: string): string {
+  if (category in ADDITIONAL_CHARGE_FISCAL_LABELS) {
+    return ADDITIONAL_CHARGE_FISCAL_LABELS[
+      category as AdditionalChargeCategory
+    ];
+  }
+
+  return ADDITIONAL_CHARGE_FISCAL_LABELS[AdditionalChargeCategory.OTHER];
+}
+
+export function additionalChargeFiscalDescription(
+  extra: Pick<AdminFelDraftSourceExtra, "category" | "description">,
+): string {
+  const label = additionalChargeCategoryFiscalLabel(extra.category);
+  const description = extra.description.trim().replace(/\s+/g, " ");
+
+  if (
+    !description ||
+    normalizeFiscalDescriptionText(description) ===
+      normalizeFiscalDescriptionText(label)
+  ) {
+    return label;
+  }
+
+  return `${label} (${description})`;
 }
 
 function reservationAmountSource(
@@ -999,6 +1050,16 @@ function buildFelDraftComposition(
 
   const [commercialCurrency] = currencies;
   const lines: FelLinePlan[] = [];
+  const extras = reservations.flatMap((reservation) =>
+    reservation.extras.map((extra) => ({ reservationId: reservation.id, extra })),
+  );
+  const skippedCurrencyExtras = extras.filter(
+    ({ extra }) => extra.currency !== commercialCurrency,
+  );
+
+  if (skippedCurrencyExtras.length > 0) {
+    throw new AdminFelError("ADMIN_FEL_CURRENCY_MISMATCH");
+  }
 
   reservations.forEach((reservation) => {
     if (reservation.currency !== commercialCurrency) {
@@ -1024,21 +1085,27 @@ function buildFelDraftComposition(
         ...reservationLifecycleSources(reservation),
       ],
     });
+
+    if (!input.groupExtras) {
+      reservation.extras.forEach((extra) => {
+        lines.push({
+          lineNumber: lines.length + 1,
+          kind: FelLineKind.ADDITIONAL_CHARGE,
+          description: additionalChargeFiscalDescription(extra),
+          amount: extra.amount,
+          currency: extra.currency,
+          allocations: [
+            {
+              guestPaymentRequestItemId: extra.guestPaymentRequestItemId,
+              amount: extra.amount,
+              currency: extra.currency,
+            },
+          ],
+          sources: [extraAmountSource(extra), extraSettlementSource(extra)],
+        });
+      });
+    }
   });
-
-  const extras = reservations.flatMap((reservation) =>
-    reservation.extras
-      .filter((extra) => extra.currency === commercialCurrency)
-      .map((extra) => ({ reservationId: reservation.id, extra })),
-  );
-
-  const skippedCurrencyExtras = reservations.flatMap((reservation) =>
-    reservation.extras.filter((extra) => extra.currency !== commercialCurrency),
-  );
-
-  if (skippedCurrencyExtras.length > 0) {
-    throw new AdminFelError("ADMIN_FEL_CURRENCY_MISMATCH");
-  }
 
   if (input.groupExtras && extras.length > 0) {
     const allocations = extras.map(({ extra }) => ({
@@ -1060,38 +1127,6 @@ function buildFelDraftComposition(
         extraSettlementSource(extra),
       ]),
     });
-  }
-
-  if (!input.groupExtras) {
-    extras
-      .sort(
-        (left, right) =>
-          reservations.findIndex((reservation) => reservation.id === left.reservationId) -
-            reservations.findIndex(
-              (reservation) => reservation.id === right.reservationId,
-            ) ||
-          left.extra.createdAt.localeCompare(right.extra.createdAt) ||
-          left.extra.guestPaymentRequestItemId.localeCompare(
-            right.extra.guestPaymentRequestItemId,
-          ),
-      )
-      .forEach(({ extra }) => {
-        lines.push({
-          lineNumber: lines.length + 1,
-          kind: FelLineKind.ADDITIONAL_CHARGE,
-          description: extra.description,
-          amount: extra.amount,
-          currency: extra.currency,
-          allocations: [
-            {
-              guestPaymentRequestItemId: extra.guestPaymentRequestItemId,
-              amount: extra.amount,
-              currency: extra.currency,
-            },
-          ],
-          sources: [extraAmountSource(extra), extraSettlementSource(extra)],
-        });
-      });
   }
 
   lines.forEach(validateLineArithmetic);
