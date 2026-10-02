@@ -11,7 +11,7 @@ Final-I.6.1 status: Implementation in progress
 Registration record: docs/215-final-i-6-1-interim-operational-hardening.md
 Registration base: 1fd728567b739100e51dea41aeb6da3f23cc6c19
 Workstream E status: Completed; provider trigger configuration + Hosted validation PASS on 2026-10-02
-Workstream A status: Implementation completed; Hosted owner validation pending
+Workstream A status: Confidence hardening implemented; Hosted owner revalidation pending
 Workstream B+C status: Not started
 Workstream D status: Not started
 Final-I.6 status: Completed and accepted on 2026-10-02
@@ -22,7 +22,7 @@ Final-I.9 status: Not started / integrated Final-I closure
 Phase 13 status: Blocked / Not started until Final-I closes
 ```
 
-Final-I.6.1 is an owner-requested, provider-independent interim hardening package registered while Final-I.7 remains blocked by missing official INFILE technical documentation and Test credentials. Workstream E is completed through provider-side Zoho trigger configuration plus Hosted validation PASS on 2026-10-02. Workstream A is implemented as a bounded guest phone-country convenience default and remains pending Hosted owner validation. This does not reopen Final-I.6, does not replace the accepted Final-I.6 feature head, and does not supersede Final-I.7.
+Final-I.6.1 is an owner-requested, provider-independent interim hardening package registered while Final-I.7 remains blocked by missing official INFILE technical documentation and Test credentials. Workstream E is completed through provider-side Zoho trigger configuration plus Hosted validation PASS on 2026-10-02. Workstream A confidence hardening is implemented as a bounded guest phone-country convenience default and remains pending Hosted owner revalidation. This does not reopen Final-I.6, does not replace the accepted Final-I.6 feature head, and does not supersede Final-I.7.
 
 ## Purpose
 
@@ -55,8 +55,11 @@ Owner requirement: when a guest opens the Reservation request form, TRP should a
 Frozen architecture:
 
 ```text
-Target signal: x-vercel-ip-country
-Expected value: ISO-3166-1 alpha-2 country code, for example GT, US, MX
+Signals: browser IANA timezone + x-vercel-ip-country
+Priority: MANUAL > uniquely attributable browser timezone country > Vercel IP country > GT fallback
+Expected IP-country value: ISO-3166-1 alpha-2 country code, for example GT, US, MX
+Expected timezone value: IANA timezone name, for example America/Guatemala
+Timezone data source: countries-and-timezones ^3.10.0 static local data
 Existing country catalog: lib/geo/countries.ts
 Existing Reservation form: features/reservations/components/reservation-request-form.tsx
 Fallback: GT
@@ -65,6 +68,8 @@ Fallback: GT
 The implementation:
 
 ```text
+- uses browser IANA timezone as the stronger non-authoritative convenience signal only when it maps to exactly one supported phone country;
+- treats multi-country timezone mappings as ambiguous and falls through to the Vercel IP-country signal;
 - uses coarse Vercel request-IP country metadata only through the `x-vercel-ip-country` header;
 - exposes a public read-only `GET /api/geo/phone-country` endpoint returning only `{ country }`;
 - validates the ISO2 value with `normalizeSupportedCountryCode(...)` from the supported phone-country catalog;
@@ -76,8 +81,11 @@ The implementation:
 - avoids browser GPS/geolocation permission prompts;
 - avoids external geolocation providers or paid services;
 - avoids adding @vercel/functions;
-- avoids persisting raw IP, city, latitude, longitude, postal code, provider geo metadata, or any inferred-country field.
+- avoids sending browser timezone to the server, endpoint, headers, request body, database, Reservation records, audit records, or analytics;
+- avoids persisting raw IP, city, latitude, longitude, postal code, provider geo metadata, browser timezone, inferred metadata, or any inferred-country field.
 ```
+
+Initial Workstream A Hosted validation discovered a real IP-country false positive: physical Guatemala / VPN OFF / Vercel country US. The confidence hardening keeps the original bounded endpoint but resolves the client-side convenience default through `resolvePhoneCountryInference(...)`, where `America/Guatemala` wins over `US`, ambiguous timezones return null, invalid or missing timezones fall back to the validated IP country, and manual guest selection remains authoritative.
 
 The inferred country is only a convenience default and must never be treated as authoritative identity, residency, or location evidence. Reservation persistence continues to store only the existing booking contract fields: `guestCountry`, `countryDialCode`, and `guestPhoneLocal`.
 
@@ -416,7 +424,7 @@ This I.6.1 checkpoint does not implement:
 - TRP Zoho webhook/runtime code changes
 - payment/refund behavior changes
 - environment variables
-- dependencies
+- dependencies beyond `countries-and-timezones` static timezone metadata for Workstream A
 - vercel.json changes
 - INFILE work
 - Production resources
@@ -441,5 +449,13 @@ Workstream E Hosted validation + Workstream A implementation validation:
 - npm run final-h:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; rerun outside the sandbox PASS, 20/20
 - npm run lint - PASS
 - npm run build - sandbox attempt failed fetching Google Fonts; rerun outside the sandbox PASS
+- git diff --check - PASS; Windows CRLF normalization warnings only
+
+Workstream A confidence hardening validation:
+- npm run final-i:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; after stale tracker assertions were updated to the new Workstream A status, rerun outside the sandbox PASS, 67/67
+- npm run final-h:validate - PASS, 20/20
+- npm run lint - PASS
+- npm run build - sandbox attempt failed fetching Google Fonts; rerun outside the sandbox PASS
+- npm audit --omit=dev - PASS, 0 vulnerabilities
 - git diff --check - PASS; Windows CRLF normalization warnings only
 ```

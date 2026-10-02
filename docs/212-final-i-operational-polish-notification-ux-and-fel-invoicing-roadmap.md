@@ -28,7 +28,7 @@ Final-I.6 implementation and acceptance record: docs/214-final-i-6-fel-persisten
 Final-I.6.1 status: Implementation in progress
 Final-I.6.1 registration record: docs/215-final-i-6-1-interim-operational-hardening.md
 Workstream E status: Completed; provider trigger configuration + Hosted validation PASS on 2026-10-02
-Workstream A status: Implementation completed; Hosted owner validation pending
+Workstream A status: Confidence hardening implemented; Hosted owner revalidation pending
 Workstream B+C status: Not started
 Workstream D status: Not started
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
@@ -37,7 +37,7 @@ Final-I.9 status: Not started / integrated Final-I closure
 Phase 13 status: Blocked / Not started until Final-I closes
 ```
 
-Final-I is an owner-requested pre-Production addendum registered after the accepted Final-H closure. It does not rewrite the historical acceptance of Phase 12, Final-A through Final-H, or the complete Post-Phase-12 / Pre-Phase-13 Final Improvement Track at `6922cf27e31e63fde071c0d0a810b141e44b9f90`. Final-I.1 is completed and accepted at its feature head `9a15f349c1104671f5555d1988caa56756e5ff0c`, and Final-I.2 is completed and accepted at `6451cb705d972c83a771a9ff39f6da80d130cf58`; Final-I.3 is completed and accepted on 2026-09-29 at accepted head `8c5a9186e392f35bdbc998f463c5c3c6cd0be295` after Hosted owner validation of the desktop, Android mobile browser, Android standalone PWA, Push deep-link, and final mobile/PWA auto-scroll refinement. Final-I.4 is completed and accepted on 2026-09-30 at accepted feature head `8e2d7d56a8e81a860833b05f4a28cba8a517bad4` after Hosted/mobile owner validation of representative guest emails. Final-I.5 is completed and accepted on 2026-09-30 at accepted head `fde3ae06427af1f8905e6f7589263c199f918553`; the provider-independent FEL fiscal domain contract remains recorded in `docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md`. Final-I.6 is completed and accepted on 2026-10-02 at accepted feature head `80469abda146d0d50516ab598a514a9ccea2db6d`; the implementation and acceptance record is `docs/214-final-i-6-fel-persistence-admin-draft-module.md`. Final-I.6.1 is implementation in progress as provider-independent interim operational hardening while Final-I.7 remains blocked; Workstream E is completed with provider trigger configuration + Hosted validation PASS on 2026-10-02, and Workstream A implementation is completed with Hosted owner validation pending. The I.6.1 record is `docs/215-final-i-6-1-interim-operational-hardening.md`. Phase 13 remains not started and is blocked until Final-I closes and receives owner acceptance.
+Final-I is an owner-requested pre-Production addendum registered after the accepted Final-H closure. It does not rewrite the historical acceptance of Phase 12, Final-A through Final-H, or the complete Post-Phase-12 / Pre-Phase-13 Final Improvement Track at `6922cf27e31e63fde071c0d0a810b141e44b9f90`. Final-I.1 is completed and accepted at its feature head `9a15f349c1104671f5555d1988caa56756e5ff0c`, and Final-I.2 is completed and accepted at `6451cb705d972c83a771a9ff39f6da80d130cf58`; Final-I.3 is completed and accepted on 2026-09-29 at accepted head `8c5a9186e392f35bdbc998f463c5c3c6cd0be295` after Hosted owner validation of the desktop, Android mobile browser, Android standalone PWA, Push deep-link, and final mobile/PWA auto-scroll refinement. Final-I.4 is completed and accepted on 2026-09-30 at accepted feature head `8e2d7d56a8e81a860833b05f4a28cba8a517bad4` after Hosted/mobile owner validation of representative guest emails. Final-I.5 is completed and accepted on 2026-09-30 at accepted head `fde3ae06427af1f8905e6f7589263c199f918553`; the provider-independent FEL fiscal domain contract remains recorded in `docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md`. Final-I.6 is completed and accepted on 2026-10-02 at accepted feature head `80469abda146d0d50516ab598a514a9ccea2db6d`; the implementation and acceptance record is `docs/214-final-i-6-fel-persistence-admin-draft-module.md`. Final-I.6.1 is implementation in progress as provider-independent interim operational hardening while Final-I.7 remains blocked; Workstream E is completed with provider trigger configuration + Hosted validation PASS on 2026-10-02, and Workstream A confidence hardening is implemented with Hosted owner revalidation pending. The I.6.1 record is `docs/215-final-i-6-1-interim-operational-hardening.md`. Phase 13 remains not started and is blocked until Final-I closes and receives owner acceptance.
 
 Final-I.5 canonical amount-source hardening freezes `FelCommercialSourceAllocation.amountSnapshot` and `FelCommercialSourceAllocation.currencySnapshot` as the only canonical commercial amount source for future draft line totals. `FelLineSource` is frozen as provenance/evidence only: its rows are never summed to compute `FelLineItem.amount` or `FelDocument` totals, including when `sourceRole = AMOUNT_SOURCE`. Conceptual mandatory `FelLineSource.sourceAmount` / `sourceCurrency` fields were removed from the I.5 persistence contract to avoid two divergent monetary sources of truth; any supporting monetary evidence belongs only inside `sourceSnapshotJson` as non-authoritative audit/reproduction metadata.
 
@@ -750,7 +750,7 @@ Final-I.6.1 is Implementation in progress. It is a provider-independent interim 
 
 Workstream E status: Completed; provider trigger configuration + Hosted validation PASS on 2026-10-02.
 
-Workstream A status: Implementation completed; Hosted owner validation pending.
+Workstream A status: Confidence hardening implemented; Hosted owner revalidation pending.
 
 Registered workstreams:
 
@@ -776,14 +776,14 @@ Final-I.6.1 does not reopen Final-I.6, does not replace accepted Final-I.6 head 
 
 Workstream E corrects the initial registration boundary: TRP must not replace Final-F.7 runtime correspondence-domain compatibility with exact-alias runtime matching because Zoho Limited Data may expose a mailbox-normalized recipient. The owner configured the existing Zoho outgoing webhook with provider-side Any / OR positive recipient conditions for `admin@juantzun.dev`, `reservas@juantzun.dev`, and `reservations@juantzun.dev`; Hosted validation passed on 2026-10-02 with DMARC Reports and DMARC Forensic negative cases producing no false `GUEST_EMAIL_RECEIVED` event or Admin Push, while external mail to all three intended aliases still followed the accepted guest/admin correspondence path. Runtime domain matching remains defense in depth over the Limited Data representation; no DMARC subject, sender or keyword heuristic is introduced.
 
-Workstream A implements guest phone-country inference as a convenience default only. The public Reservation form still renders with GT/+502 initially, then performs one non-blocking post-mount request to `GET /api/geo/phone-country`. The endpoint reads only Vercel's coarse `x-vercel-ip-country` ISO2 header, validates it through the shared phone-country catalog, returns only `{ country }`, uses `no-store`, and exposes no IP/location/header metadata. Missing, invalid, or unsupported metadata leaves the GT fallback unchanged. Guest manual country selection permanently wins over the asynchronous inference result. No GPS, external geolocation provider, persistence field, schema, migration, environment variable, dependency, or public property-page request-header read was added; `app/alojamientos/[slug]/page.tsx` keeps `export const revalidate = 300`.
+Workstream A implements guest phone-country inference as a convenience default only. Initial Workstream A Hosted validation discovered a real IP-country false positive: physical Guatemala / VPN OFF / Vercel country US. The confidence hardening keeps GT/+502 as the initial visible fallback, reads the browser IANA timezone safely after mount, performs one non-blocking request to `GET /api/geo/phone-country`, and resolves `MANUAL > uniquely attributable browser timezone country > Vercel IP country > GT fallback`. The endpoint still reads only Vercel's coarse `x-vercel-ip-country` ISO2 header, validates it through the shared phone-country catalog, returns only `{ country }`, uses `no-store`, and exposes no IP/location/header metadata. `countries-and-timezones` is declared as a direct dependency for static local timezone-country data; multi-country timezone mappings are treated as ambiguous and fall through to the IP-country signal. Guest manual country selection permanently wins over any asynchronous inference result. No GPS, external geolocation provider, browser timezone transmission/persistence, inferred metadata persistence, schema, migration, environment variable, or public property-page request-header read was added; `app/alojamientos/[slug]/page.tsx` keeps `export const revalidate = 300`.
 
 ## Boundaries
 
 ```text
 - Phase 13 remains blocked / not started until Final-I closes.
 - No Production provider account, credential, DNS cutover, payment credential, database, media account, WhatsApp sender, FEL account, or public go-live is introduced by Final-I.1 through Final-I.6.1.
-- No dependency, environment variable, scheduler, AdminNotificationType, Production, external receiver lookup, INFILE transport, certification, Credit Note issuing workflow, PDF/XML retrieval, Final-I.7 provider integration, Final-G/H reopening, or Phase 13 work is part of the Final-I.6.1 registration.
+- No dependency beyond `countries-and-timezones` static timezone metadata for Workstream A, environment variable, scheduler, AdminNotificationType, Production, external receiver lookup, INFILE transport, certification, Credit Note issuing workflow, PDF/XML retrieval, Final-I.7 provider integration, Final-G/H reopening, or Phase 13 work is part of the Final-I.6.1 registration.
 - Final-I.7 is blocked pending official INFILE technical documentation + Test credentials and must not begin until explicitly requested.
 - Existing Final-F.7 Zoho webhook signature verification, bootstrap behavior, Limited Data parsing, bounded persistence, notification-center serialization, and immediate Web Push delivery remain preserved.
 - `vercel.json` remains `{ "crons": [] }`.
@@ -941,6 +941,13 @@ Final-I.6.1 Workstream E Hosted validation + Workstream A implementation validat
 - npm run final-h:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; rerun outside the sandbox PASS, 20/20
 - npm run lint - PASS
 - npm run build - sandbox attempt failed fetching Google Fonts; rerun outside the sandbox PASS
+- git diff --check - PASS; Windows CRLF normalization warnings only
+Final-I.6.1 Workstream A confidence hardening validation:
+- npm run final-i:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; after stale tracker assertions were updated to the new Workstream A status, rerun outside the sandbox PASS, 67/67
+- npm run final-h:validate - PASS, 20/20
+- npm run lint - PASS
+- npm run build - sandbox attempt failed fetching Google Fonts; rerun outside the sandbox PASS
+- npm audit --omit=dev - PASS, 0 vulnerabilities
 - git diff --check - PASS; Windows CRLF normalization warnings only
 ```
 

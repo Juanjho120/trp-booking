@@ -2,8 +2,14 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
+import { getTimezone } from "countries-and-timezones";
+
 import { GET as getPhoneCountry } from "@/app/api/geo/phone-country/route";
 import { normalizeSupportedCountryCode } from "@/lib/geo/countries";
+import {
+  resolveCountryFromTimeZone,
+  resolvePhoneCountryInference,
+} from "@/lib/geo/phone-country-inference";
 
 import { test } from "./harness";
 
@@ -11,6 +17,17 @@ const ROOT = process.cwd();
 
 function read(relativePath: string): string {
   return readFileSync(path.join(ROOT, relativePath), "utf8");
+}
+
+function readFunctionSource(relativePath: string, functionName: string): string {
+  const source = read(relativePath);
+  const start = source.indexOf(`function ${functionName}`);
+
+  assert.notEqual(start, -1, `${functionName} should exist`);
+
+  const nextFunction = source.indexOf("\nfunction ", start + 1);
+
+  return nextFunction === -1 ? source.slice(start) : source.slice(start, nextFunction);
 }
 
 async function requestPhoneCountry(
@@ -70,6 +87,79 @@ test("I.6.1 phone-country endpoint exposes only the bounded country result", asy
   assert.doesNotMatch(route, /getAdminSession|auth\(|session|prisma|database/i);
 });
 
+test("I.6.1 resolves only uniquely attributable browser timezones", () => {
+  const ambiguousTimezone = getTimezone("America/Phoenix");
+  const ambiguousSupportedCountries =
+    ambiguousTimezone?.countries
+      .map((country) => normalizeSupportedCountryCode(country))
+      .filter((country): country is NonNullable<typeof country> => country !== null) ??
+    [];
+
+  assert.ok(
+    ambiguousSupportedCountries.length > 1,
+    "America/Phoenix must remain an actual multi-country timezone in the dependency data",
+  );
+  assert.equal(resolveCountryFromTimeZone("America/Guatemala"), "GT");
+  assert.equal(resolveCountryFromTimeZone("America/New_York"), "US");
+  assert.equal(resolveCountryFromTimeZone("America/Phoenix"), null);
+  assert.equal(resolveCountryFromTimeZone(""), null);
+  assert.equal(resolveCountryFromTimeZone("Not/A_Timezone"), null);
+  assert.equal(resolveCountryFromTimeZone(null), null);
+  assert.equal(resolveCountryFromTimeZone(undefined), null);
+});
+
+test("I.6.1 prioritizes unique browser timezone over Vercel IP country", () => {
+  assert.equal(
+    resolvePhoneCountryInference({
+      ipCountry: "US",
+      timeZone: "America/Guatemala",
+    }),
+    "GT",
+  );
+  assert.equal(
+    resolvePhoneCountryInference({
+      ipCountry: "US",
+      timeZone: "America/New_York",
+    }),
+    "US",
+  );
+  assert.equal(
+    resolvePhoneCountryInference({
+      ipCountry: "MX",
+      timeZone: "America/Guatemala",
+    }),
+    "GT",
+  );
+  assert.equal(
+    resolvePhoneCountryInference({
+      ipCountry: "US",
+      timeZone: null,
+    }),
+    "US",
+  );
+  assert.equal(
+    resolvePhoneCountryInference({
+      ipCountry: "ZZ",
+      timeZone: "America/Guatemala",
+    }),
+    "GT",
+  );
+  assert.equal(
+    resolvePhoneCountryInference({
+      ipCountry: "ZZ",
+      timeZone: "Not/A_Timezone",
+    }),
+    null,
+  );
+  assert.equal(
+    resolvePhoneCountryInference({
+      ipCountry: null,
+      timeZone: null,
+    }),
+    null,
+  );
+});
+
 test("I.6.1 keeps the public property page cacheable and free of request headers", () => {
   const page = read("app/alojamientos/[slug]/page.tsx");
 
@@ -83,11 +173,19 @@ test("I.6.1 reservation form infers after mount while preserving GT fallback and
   const component = read(
     "features/reservations/components/reservation-request-form.tsx",
   );
+  const pendingHoldPayload = readFunctionSource(
+    "features/reservations/components/reservation-request-form.tsx",
+    "buildPendingHoldPayload",
+  );
 
   assert.match(component, /const defaultCountry: Country = "GT";/);
   assert.match(component, /useState<Country>\(defaultCountry\)/);
+  assert.match(component, /Intl\.DateTimeFormat\(\)\.resolvedOptions\(\)\.timeZone/);
+  assert.match(component, /resolvePhoneCountryInference/);
+  assert.match(component, /timeZone: browserTimeZone/);
   assert.match(component, /fetch\("\/api\/geo\/phone-country"/);
   assert.match(component, /cache:\s*"no-store"/);
+  assert.doesNotMatch(component, /\/api\/geo\/phone-country\?/);
   assert.match(component, /countrySelectionSourceRef\.current === "MANUAL"/);
   assert.match(component, /countrySelectionSourceRef\.current = "INFERRED"/);
   assert.match(component, /countrySelectionSourceRef\.current = "MANUAL"/);
@@ -98,7 +196,8 @@ test("I.6.1 reservation form infers after mount while preserving GT fallback and
   assert.match(component, /countryDialCode: input\.guestCountry\.dialCode/);
   assert.match(component, /guestPhoneLocal: input\.guestPhoneLocal\.trim\(\)/);
   assert.doesNotMatch(
-    component,
-    /(?:inferredCountry|geoCountry|ipCountry|locationCountry)\s*:/,
+    pendingHoldPayload,
+    /(?:inferredCountry|geoCountry|ipCountry|locationCountry|timeZone|timezone|browserTimeZone)\s*:/,
   );
+  assert.doesNotMatch(pendingHoldPayload, /Intl\.DateTimeFormat|x-vercel-ip-country/);
 });

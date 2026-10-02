@@ -35,9 +35,9 @@ import { useTilopaySdkTokenWarmup } from "@/features/payments/lib/tilopay-sdk-to
 import {
   getCountryOption,
   getCountryOptions,
-  normalizeSupportedCountryCode,
   type CountryOption,
 } from "@/lib/geo/countries";
+import { resolvePhoneCountryInference } from "@/lib/geo/phone-country-inference";
 import type { AccommodationId } from "@/types/accommodation";
 import type { BlockedDatesApiResponse } from "@/types/availability-blocked-dates";
 import type { DateOnlyString } from "@/types/availability";
@@ -308,6 +308,18 @@ function formatExpirationDateTime(value: string, locale: string): string {
   }).format(new Date(value));
 }
 
+function getBrowserTimeZone(): string | null {
+  try {
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    return typeof timeZone === "string" && timeZone.trim()
+      ? timeZone
+      : null;
+  } catch {
+    return null;
+  }
+}
+
 function scrollElementToViewportCenter(element: HTMLElement | null): void {
   if (!element) {
     return;
@@ -461,6 +473,9 @@ export function ReservationRequestForm({
     let cancelled = false;
 
     async function inferPhoneCountry(): Promise<void> {
+      const browserTimeZone = getBrowserTimeZone();
+      let ipCountry: string | null = null;
+
       try {
         const response = await fetch("/api/geo/phone-country", {
           cache: "no-store",
@@ -470,29 +485,30 @@ export function ReservationRequestForm({
           method: "GET",
         });
 
-        if (!response.ok) {
-          return;
+        if (response.ok) {
+          const payload = (await response.json()) as { country?: unknown };
+          ipCountry =
+            typeof payload.country === "string" ? payload.country : null;
         }
-
-        const payload = (await response.json()) as { country?: unknown };
-        const inferredCountry =
-          typeof payload.country === "string"
-            ? normalizeSupportedCountryCode(payload.country)
-            : null;
-
-        if (
-          cancelled ||
-          !inferredCountry ||
-          countrySelectionSourceRef.current === "MANUAL"
-        ) {
-          return;
-        }
-
-        countrySelectionSourceRef.current = "INFERRED";
-        setGuestCountry(inferredCountry);
       } catch {
         // Missing/invalid coarse country metadata is non-blocking; GT remains the fallback.
       }
+
+      const inferredCountry = resolvePhoneCountryInference({
+        ipCountry,
+        timeZone: browserTimeZone,
+      });
+
+      if (
+        cancelled ||
+        !inferredCountry ||
+        countrySelectionSourceRef.current === "MANUAL"
+      ) {
+        return;
+      }
+
+      countrySelectionSourceRef.current = "INFERRED";
+      setGuestCountry(inferredCountry);
     }
 
     void inferPhoneCountry();

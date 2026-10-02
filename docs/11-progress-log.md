@@ -2039,6 +2039,28 @@ This does not reintroduce the previous implicit-history-selection bug: entering 
 
 Validation executed for this correction: `npm run final-i:validate` PASS 57/57 after rerun outside the sandbox because the sandbox-only `tsx` startup failed with `uv_os_get_passwd ENOMEM`; `npm run final-i:db:validate` PASS 13/13 with `TRP_ENVIRONMENT=test` after the same sandbox-only `tsx` startup failure; `npm run final-h:validate` PASS 20/20 after the same sandbox-only `tsx` startup failure; `npm run lint` PASS; `npm run build` PASS after rerun outside the sandbox because the sandbox run could not fetch Google Fonts; and `git diff --check` PASS with Windows CRLF normalization warnings only.
 
+## 2026-10-02 — Final-I.6.1 Workstream A Confidence Hardening Implemented
+
+```text
+Package: Final-I — Operational Polish, Notification UX & FEL Invoicing
+Subphase: Final-I.6.1 — Interim Operational Hardening
+Status: Implementation in progress
+Workstream E: Completed; provider trigger configuration + Hosted validation PASS on 2026-10-02
+Workstream A: Confidence hardening implemented; Hosted owner revalidation pending
+Workstream B+C: Not started
+Workstream D: Not started
+Final-I.7: Blocked pending official INFILE technical documentation + Test credentials
+Phase 13: Blocked / Not started until Final-I closes
+```
+
+Initial Workstream A Hosted validation discovered a real IP-country false positive: physical Guatemala / VPN OFF / Vercel country US. The original bounded endpoint remains unchanged, but the public Reservation form now safely reads the browser IANA timezone after mount and resolves the convenience default with `MANUAL > uniquely attributable browser timezone country > Vercel IP country > GT fallback`.
+
+`countries-and-timezones` is now declared as a direct dependency and supplies static local timezone-country metadata. `America/Guatemala` resolves to GT and wins over an IP-country value of US; multi-country timezone mappings are treated as ambiguous and fall through to the IP-country signal. Browser timezone is not sent to `/api/geo/phone-country`, request headers, request body, database rows, Reservation records, audit records, analytics, or any persistence surface. Only the existing final booking fields `guestCountry`, `countryDialCode`, and `guestPhoneLocal` continue into the booking request.
+
+No schema, migration, environment variable, provider integration code, cron registry, notification enum, `vercel.json`, Production resource, Final-I.7, Final-I.8, Final-I.9, or Phase 13 scope was introduced by this confidence hardening. `app/alojamientos/[slug]/page.tsx` keeps `export const revalidate = 300` and remains free of request-header reads.
+
+Validation executed for this Workstream A confidence hardening checkpoint: `npm run final-i:validate` initially failed before tests inside the sandbox with `uv_os_get_passwd ENOMEM`; after stale tracker assertions were updated to the new Workstream A status, rerun outside the sandbox PASS 67/67. `npm run final-h:validate` PASS 20/20. `npm run lint` PASS. `npm run build` failed inside the sandbox fetching Google Fonts, then PASS outside the sandbox. `npm audit --omit=dev` PASS, 0 vulnerabilities. `git diff --check` PASS with Windows CRLF normalization warnings only.
+
 ## 2026-10-02 — Final-I.6.1 Workstream E PASS and Workstream A Implemented
 
 ```text
@@ -2046,7 +2068,7 @@ Package: Final-I — Operational Polish, Notification UX & FEL Invoicing
 Subphase: Final-I.6.1 — Interim Operational Hardening
 Status: Implementation in progress
 Workstream E: Completed; provider trigger configuration + Hosted validation PASS on 2026-10-02
-Workstream A: Implementation completed; Hosted owner validation pending
+Workstream A: Initial implementation completed at this checkpoint; confidence hardening now implemented with Hosted owner revalidation pending
 Workstream B+C: Not started
 Workstream D: Not started
 Final-I.7: Blocked pending official INFILE technical documentation + Test credentials
@@ -2059,7 +2081,7 @@ The corrected boundary is provider-side trigger scope: the owner must edit the e
 
 Workstream E Hosted validation passed on 2026-10-02 after the owner configured the existing Zoho outgoing webhook `TRP Booking Test` with positive recipient conditions for the three intended Test aliases. Negative validation confirmed DMARC Reports and DMARC Forensic mail create no `ZohoInboundEmailEvent`, no `GUEST_EMAIL_RECEIVED`, and no Admin Push. Positive validation confirmed external mail to `reservas@juantzun.dev`, `reservations@juantzun.dev`, and `admin@juantzun.dev` still follows the accepted guest/admin correspondence path. No TRP runtime code changed for Workstream E; the accepted architecture remains Zoho positive original-recipient trigger allowlist plus TRP domain-based Limited Data compatibility guard, signature validation, internal-sender suppression, reservation matching, bounded persistence, and Admin Web Push.
 
-Workstream A implemented guest phone-country inference as a convenience default. `GET /api/geo/phone-country` reads only `x-vercel-ip-country`, validates the ISO2 value against the shared supported phone-country catalog, returns only `{ country }`, and uses `no-store`. The public Reservation form keeps GT/+502 as the initial visible fallback, performs one non-blocking post-mount request, applies a valid inferred country only while the guest has not manually selected a country, and never persists raw IP, location metadata, or new inferred-geo fields. `app/alojamientos/[slug]/page.tsx` keeps `export const revalidate = 300` and does not call `headers()` for this feature.
+Workstream A initially implemented guest phone-country inference as a convenience default. `GET /api/geo/phone-country` reads only `x-vercel-ip-country`, validates the ISO2 value against the shared supported phone-country catalog, returns only `{ country }`, and uses `no-store`. The public Reservation form keeps GT/+502 as the initial visible fallback, performs one non-blocking post-mount request, applies a valid inferred country only while the guest has not manually selected a country, and never persists raw IP, location metadata, or new inferred-geo fields. The later confidence hardening entry above records the accepted current Workstream A status. `app/alojamientos/[slug]/page.tsx` keeps `export const revalidate = 300` and does not call `headers()` for this feature.
 
 No schema, migration, dependency, environment variable, provider integration code, cron registry, notification enum, `vercel.json`, Production resource, Final-I.7, Final-I.8, Final-I.9, or Phase 13 scope was introduced by this checkpoint. Workstream B+C and Workstream D remain Not started.
 
