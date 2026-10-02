@@ -715,7 +715,11 @@ test("I.1 registers the roadmap, validation script, and F.7 forward note", () =>
   expectIncludes(doc212, "Final-I.6.1 status: Implementation in progress");
   expectIncludes(
     doc212,
-    "Workstream E status: Architecture corrected; owner Zoho trigger configuration + Hosted validation pending",
+    "Workstream E status: Completed; provider trigger configuration + Hosted validation PASS on 2026-10-02",
+  );
+  expectIncludes(
+    doc212,
+    "Workstream A status: Implementation completed; Hosted owner validation pending",
   );
   expectIncludes(
     doc212,
@@ -727,6 +731,7 @@ test("I.1 registers the roadmap, validation script, and F.7 forward note", () =>
   expectIncludes(doc212, "Phase 13 status: Blocked / Not started until Final-I closes");
   expectIncludes(doc204, "Final-I.1 forward hardening note");
   expectIncludes(doc204, "Final-I.6.1 Provider Trigger-Scope Hardening Note");
+  expectIncludes(doc204, "Final-I.6.1 Workstream E Hosted validation passed on 2026-10-02");
   expectIncludes(doc215, "Any / OR");
   expectIncludes(doc215, "admin@juantzun.dev");
   expectIncludes(doc215, "reservas@juantzun.dev");

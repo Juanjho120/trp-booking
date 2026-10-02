@@ -1084,7 +1084,11 @@ test("I.6 documentation records owner acceptance and preserves future boundaries
   assert.match(i61Record, /E - Zoho guest-correspondence trigger hardening/);
   assert.match(
     i61Record,
-    /Workstream E status: Architecture corrected; owner Zoho trigger configuration \+ Hosted validation pending/,
+    /Workstream E status: Completed; provider trigger configuration \+ Hosted validation PASS on 2026-10-02/,
+  );
+  assert.match(
+    i61Record,
+    /Workstream A status: Implementation completed; Hosted owner validation pending/,
   );
   assert.match(i61Record, /Runtime acceptance remains intentionally domain-based/);
   assert.match(i61Record, /Any \/ OR/);
@@ -1094,7 +1098,8 @@ test("I.6 documentation records owner acceptance and preserves future boundaries
   assert.match(i61Record, /D - Reservation Additional Charges nested tabs \+ single accordions/);
   assert.match(i61Record, /Final-I\.8 status: Not started \/ reserved for FEL delivery email\/PDF\/XML\/history UX/);
   assert.match(i61Record, /Final-I\.9 status: Not started \/ integrated Final-I closure/);
-  assert.match(i61Record, /runtime TS\/TSX behavior/);
+  assert.match(i61Record, /GET \/api\/geo\/phone-country/);
+  assert.match(i61Record, /export const revalidate = 300/);
   assert.match(i61Record, /Prisma schema changes/);
   assert.match(i61Record, /vercel\.json changes/);
 

@@ -10,8 +10,8 @@ Status: Implementation in progress
 Final-I.6.1 status: Implementation in progress
 Registration record: docs/215-final-i-6-1-interim-operational-hardening.md
 Registration base: 1fd728567b739100e51dea41aeb6da3f23cc6c19
-Workstream E status: Architecture corrected; owner Zoho trigger configuration + Hosted validation pending
-Workstream A status: Not started
+Workstream E status: Completed; provider trigger configuration + Hosted validation PASS on 2026-10-02
+Workstream A status: Implementation completed; Hosted owner validation pending
 Workstream B+C status: Not started
 Workstream D status: Not started
 Final-I.6 status: Completed and accepted on 2026-10-02
@@ -22,7 +22,7 @@ Final-I.9 status: Not started / integrated Final-I closure
 Phase 13 status: Blocked / Not started until Final-I closes
 ```
 
-Final-I.6.1 is an owner-requested, provider-independent interim hardening package registered while Final-I.7 remains blocked by missing official INFILE technical documentation and Test credentials. Workstream E has begun as an architecture/documentation/test correction only. This does not reopen Final-I.6, does not replace the accepted Final-I.6 feature head, does not supersede Final-I.7, and does not implement runtime changes.
+Final-I.6.1 is an owner-requested, provider-independent interim hardening package registered while Final-I.7 remains blocked by missing official INFILE technical documentation and Test credentials. Workstream E is completed through provider-side Zoho trigger configuration plus Hosted validation PASS on 2026-10-02. Workstream A is implemented as a bounded guest phone-country convenience default and remains pending Hosted owner validation. This does not reopen Final-I.6, does not replace the accepted Final-I.6 feature head, and does not supersede Final-I.7.
 
 ## Purpose
 
@@ -62,22 +62,24 @@ Existing Reservation form: features/reservations/components/reservation-request-
 Fallback: GT
 ```
 
-The future implementation must:
+The implementation:
 
 ```text
-- use coarse Vercel request-IP country metadata only;
-- validate the ISO2 value against the supported phone-country catalog;
-- preselect the inferred country only when valid and when the guest has not manually chosen a country;
-- keep GT fallback for local development, missing headers, invalid headers, and unsupported countries;
-- allow the guest to override the inferred/default country;
-- never overwrite a manual guest selection with a later asynchronous inference result;
-- avoid browser GPS/geolocation permission prompts;
-- avoid external geolocation providers or paid services;
-- avoid adding @vercel/functions solely for this if the existing request header is enough;
-- avoid persisting raw IP, city, latitude, longitude, postal code, or other geolocation metadata.
+- uses coarse Vercel request-IP country metadata only through the `x-vercel-ip-country` header;
+- exposes a public read-only `GET /api/geo/phone-country` endpoint returning only `{ country }`;
+- validates the ISO2 value with `normalizeSupportedCountryCode(...)` from the supported phone-country catalog;
+- keeps the public property page cacheable with `export const revalidate = 300` and no `headers()` call;
+- preselects the inferred country only after mount, only when valid, and only when the guest has not manually chosen a country;
+- keeps GT/+502 as the visible fallback for local development, missing headers, invalid headers, and unsupported countries;
+- allows the guest to override the inferred/default country;
+- never overwrites a manual guest selection with a later asynchronous inference result;
+- avoids browser GPS/geolocation permission prompts;
+- avoids external geolocation providers or paid services;
+- avoids adding @vercel/functions;
+- avoids persisting raw IP, city, latitude, longitude, postal code, provider geo metadata, or any inferred-country field.
 ```
 
-The inferred country is only a convenience default and must never be treated as authoritative identity, residency, or location evidence. Reservation persistence continues to store only the country/phone fields already intended by the booking contract.
+The inferred country is only a convenience default and must never be treated as authoritative identity, residency, or location evidence. Reservation persistence continues to store only the existing booking contract fields: `guestCountry`, `countryDialCode`, and `guestPhoneLocal`.
 
 ## Workstream B - GuestPaymentRequest Expiration Cron
 
@@ -239,7 +241,7 @@ Do not place interactive Buttons inside an AccordionTrigger if that would create
 Status:
 
 ```text
-Workstream E status: Architecture corrected; owner Zoho trigger configuration + Hosted validation pending
+Workstream E status: Completed; provider trigger configuration + Hosted validation PASS on 2026-10-02
 ```
 
 The initial I.6.1 registration described Workstream E as a runtime change from correspondence-domain matching to exact accepted-alias matching. That is not the accepted architecture and must not be implemented.
@@ -354,65 +356,62 @@ Preserve:
 
 Do not fake a runtime test claiming TRP can identify the original alias when Zoho Limited Data does not provide it.
 
-### Owner Hosted Configuration Checklist
+### Owner Hosted Configuration Validation
 
-The owner Hosted validation for Workstream E must first edit the existing Zoho outgoing webhook from:
+The owner configured the existing Zoho outgoing webhook from:
 
 ```text
 No conditions. All incoming emails
 ```
 
-to an Any / OR condition set scoped to the three intended correspondence aliases. If Zoho's actual condition UI or alias handling differs during configuration, record the observed provider behavior and adjust the provider configuration safely instead of inventing runtime behavior.
+to an Any / OR condition set scoped to the three intended Test correspondence aliases:
+
+```text
+admin@juantzun.dev
+reservas@juantzun.dev
+reservations@juantzun.dev
+```
+
+The existing Zoho outgoing webhook is named `TRP Booking Test`. This is a provider trigger configuration change, not a TRP runtime code change.
 
 Negative Hosted cases:
 
 ```text
 DMARC Reports email:
-- no ZohoInboundEmailEvent
-- no GUEST_EMAIL_RECEIVED
-- no Admin Push
+- PASS; no ZohoInboundEmailEvent
+- PASS; no GUEST_EMAIL_RECEIVED
+- PASS; no Admin Push
 
 DMARC Forensic email:
-- no ZohoInboundEmailEvent
-- no GUEST_EMAIL_RECEIVED
-- no Admin Push
+- PASS; no ZohoInboundEmailEvent
+- PASS; no GUEST_EMAIL_RECEIVED
+- PASS; no Admin Push
 ```
 
 Positive Hosted cases:
 
 ```text
 External email to reservas@juantzun.dev:
-- webhook processes
-- GUEST_EMAIL_RECEIVED is created
-- Reservation matching works when applicable
-- Admin Push works
+- PASS; intended guest/admin correspondence path remains operational
 
 External email to reservations@juantzun.dev:
-- webhook processes
-- GUEST_EMAIL_RECEIVED is created
-- Reservation matching works when applicable
-- Admin Push works
+- PASS; intended guest/admin correspondence path remains operational
 
 External email to admin@juantzun.dev:
-- webhook processes
-- GUEST_EMAIL_RECEIVED is created
-- Reservation matching works when applicable
-- Admin Push works
+- PASS; intended guest/admin correspondence path remains operational
 ```
 
-Workstream E must not be marked accepted until the owner completes the real Zoho provider configuration and Hosted validation.
+Workstream E Hosted validation passed on 2026-10-02. The accepted architecture remains Zoho positive original-recipient trigger allowlist plus TRP domain-based Limited Data compatibility guard, signature validation, internal-sender suppression, reservation matching, bounded persistence, and Admin Web Push. No exact-alias runtime filtering, DMARC heuristic, or runtime email subject/sender suppression was introduced.
 
 ## Strict Boundaries
 
-This registration does not implement:
+This I.6.1 checkpoint does not implement:
 
 ```text
-- runtime TS/TSX behavior
 - Prisma schema changes
 - migrations
 - cron registry changes
 - notification enum changes
-- Reservation form changes
 - Additional Charges UI changes
 - TRP Zoho webhook/runtime code changes
 - payment/refund behavior changes
@@ -435,5 +434,12 @@ Final-I.6.1 registration validation:
 
 Workstream E architecture correction validation:
 - npm run final-i:validate - PASS, 61/61 after rerun outside the sandbox because the sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM
+- git diff --check - PASS; Windows CRLF normalization warnings only
+
+Workstream E Hosted validation + Workstream A implementation validation:
+- npm run final-i:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; rerun outside the sandbox PASS, 65/65
+- npm run final-h:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; rerun outside the sandbox PASS, 20/20
+- npm run lint - PASS
+- npm run build - sandbox attempt failed fetching Google Fonts; rerun outside the sandbox PASS
 - git diff --check - PASS; Windows CRLF normalization warnings only
 ```

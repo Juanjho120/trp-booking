@@ -35,6 +35,7 @@ import { useTilopaySdkTokenWarmup } from "@/features/payments/lib/tilopay-sdk-to
 import {
   getCountryOption,
   getCountryOptions,
+  normalizeSupportedCountryCode,
   type CountryOption,
 } from "@/lib/geo/countries";
 import type { AccommodationId } from "@/types/accommodation";
@@ -72,6 +73,7 @@ type QuoteApiErrorResponse = Readonly<{
 
 type QuoteApiResponse = QuoteApiSuccessResponse | QuoteApiErrorResponse;
 type RequestStatus = "idle" | "loading" | "success" | "error";
+type CountrySelectionSource = "DEFAULT" | "INFERRED" | "MANUAL";
 
 type SelectOption = Readonly<{
   value: string;
@@ -396,6 +398,8 @@ export function ReservationRequestForm({
   const pendingHoldErrorRef = useRef<HTMLParagraphElement | null>(null);
   const paymentSectionRef = useRef<HTMLDivElement | null>(null);
   const formContainerRef = useRef<HTMLDivElement | null>(null);
+  const countrySelectionSourceRef =
+    useRef<CountrySelectionSource>("DEFAULT");
   const [visibleMonth, setVisibleMonth] = useState(() => new Date());
   const [blockedDates, setBlockedDates] = useState<readonly Date[]>([]);
 
@@ -452,6 +456,51 @@ export function ReservationRequestForm({
     messages.payments.tilopaySdk.sessionError,
     paymentCheckoutLoadStatus,
   ]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function inferPhoneCountry(): Promise<void> {
+      try {
+        const response = await fetch("/api/geo/phone-country", {
+          cache: "no-store",
+          headers: {
+            accept: "application/json",
+          },
+          method: "GET",
+        });
+
+        if (!response.ok) {
+          return;
+        }
+
+        const payload = (await response.json()) as { country?: unknown };
+        const inferredCountry =
+          typeof payload.country === "string"
+            ? normalizeSupportedCountryCode(payload.country)
+            : null;
+
+        if (
+          cancelled ||
+          !inferredCountry ||
+          countrySelectionSourceRef.current === "MANUAL"
+        ) {
+          return;
+        }
+
+        countrySelectionSourceRef.current = "INFERRED";
+        setGuestCountry(inferredCountry);
+      } catch {
+        // Missing/invalid coarse country metadata is non-blocking; GT remains the fallback.
+      }
+    }
+
+    void inferPhoneCountry();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -775,6 +824,7 @@ export function ReservationRequestForm({
               onOpenChange={setCountryOpen}
               onSearchChange={setCountrySearch}
               onSelect={(country) => {
+                countrySelectionSourceRef.current = "MANUAL";
                 setGuestCountry(country.iso2);
                 setCountryOpen(false);
                 setCountrySearch("");

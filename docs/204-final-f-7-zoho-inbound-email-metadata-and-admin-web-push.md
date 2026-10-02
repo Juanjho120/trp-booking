@@ -351,8 +351,15 @@ reservations@<correspondence-domain>
 TRP keeps `getAcceptedZohoMailRecipientAddresses(...)` as the documented intended-address
 contract, keeps `isAcceptedZohoMailRecipient(...)` domain-based for mailbox-normalized Limited Data
 compatibility, and keeps outside-domain/domain-lookalike rejection as defense in depth. Do not add
-DMARC subject, sender or keyword suppression. Workstream E remains pending owner Zoho trigger
-configuration and Hosted validation.
+DMARC subject, sender or keyword suppression.
+
+Final-I.6.1 Workstream E Hosted validation passed on 2026-10-02. The owner configured the
+existing Zoho outgoing webhook `TRP Booking Test` with positive recipient conditions for the three
+intended Test aliases (`admin@juantzun.dev`, `reservas@juantzun.dev`, and
+`reservations@juantzun.dev`). Negative Hosted validation confirmed DMARC Reports and DMARC
+Forensic mail did not create false `GUEST_EMAIL_RECEIVED` events or mobile Admin Push, while
+positive validation confirmed external email to each intended alias still followed the accepted
+guest/admin correspondence path. No TRP runtime exact-alias filtering or DMARC heuristic was added.
 
 ## Reservation Matching And Targets
 

@@ -2039,14 +2039,14 @@ This does not reintroduce the previous implicit-history-selection bug: entering 
 
 Validation executed for this correction: `npm run final-i:validate` PASS 57/57 after rerun outside the sandbox because the sandbox-only `tsx` startup failed with `uv_os_get_passwd ENOMEM`; `npm run final-i:db:validate` PASS 13/13 with `TRP_ENVIRONMENT=test` after the same sandbox-only `tsx` startup failure; `npm run final-h:validate` PASS 20/20 after the same sandbox-only `tsx` startup failure; `npm run lint` PASS; `npm run build` PASS after rerun outside the sandbox because the sandbox run could not fetch Google Fonts; and `git diff --check` PASS with Windows CRLF normalization warnings only.
 
-## 2026-10-02 — Final-I.6.1 Workstream E Zoho Trigger Boundary Corrected
+## 2026-10-02 — Final-I.6.1 Workstream E PASS and Workstream A Implemented
 
 ```text
 Package: Final-I — Operational Polish, Notification UX & FEL Invoicing
 Subphase: Final-I.6.1 — Interim Operational Hardening
 Status: Implementation in progress
-Workstream E: Architecture corrected; owner Zoho trigger configuration + Hosted validation pending
-Workstream A: Not started
+Workstream E: Completed; provider trigger configuration + Hosted validation PASS on 2026-10-02
+Workstream A: Implementation completed; Hosted owner validation pending
 Workstream B+C: Not started
 Workstream D: Not started
 Final-I.7: Blocked pending official INFILE technical documentation + Test credentials
@@ -2057,11 +2057,13 @@ Workstream E was corrected after repository review of the accepted Final-F.7 Hos
 
 The corrected boundary is provider-side trigger scope: the owner must edit the existing Zoho outgoing webhook from `No conditions. All incoming emails` to an Any / OR positive recipient condition set for `admin@...`, `reservas@...`, and `reservations@...` in the active correspondence domain. TRP runtime keeps the domain guard as defense in depth, still rejects outside-domain and lookalike domains, preserves internal-sender suppression, and introduces no DMARC subject/sender/keyword heuristic.
 
-Workstream E remains pending owner Zoho trigger configuration and Hosted negative/positive validation. Negative validation must confirm DMARC Reports and DMARC Forensic mail create no `ZohoInboundEmailEvent`, no `GUEST_EMAIL_RECEIVED`, and no Admin Push. Positive validation must confirm external mail to `reservas@juantzun.dev`, `reservations@juantzun.dev`, and `admin@juantzun.dev` still follows the accepted guest-correspondence path.
+Workstream E Hosted validation passed on 2026-10-02 after the owner configured the existing Zoho outgoing webhook `TRP Booking Test` with positive recipient conditions for the three intended Test aliases. Negative validation confirmed DMARC Reports and DMARC Forensic mail create no `ZohoInboundEmailEvent`, no `GUEST_EMAIL_RECEIVED`, and no Admin Push. Positive validation confirmed external mail to `reservas@juantzun.dev`, `reservations@juantzun.dev`, and `admin@juantzun.dev` still follows the accepted guest/admin correspondence path. No TRP runtime code changed for Workstream E; the accepted architecture remains Zoho positive original-recipient trigger allowlist plus TRP domain-based Limited Data compatibility guard, signature validation, internal-sender suppression, reservation matching, bounded persistence, and Admin Web Push.
 
-No runtime behavior, schema, migration, dependency, environment variable, provider integration code, cron registry, notification enum, `vercel.json`, Production resource, Final-I.7, Final-I.8, Final-I.9, or Phase 13 scope was introduced by this correction.
+Workstream A implemented guest phone-country inference as a convenience default. `GET /api/geo/phone-country` reads only `x-vercel-ip-country`, validates the ISO2 value against the shared supported phone-country catalog, returns only `{ country }`, and uses `no-store`. The public Reservation form keeps GT/+502 as the initial visible fallback, performs one non-blocking post-mount request, applies a valid inferred country only while the guest has not manually selected a country, and never persists raw IP, location metadata, or new inferred-geo fields. `app/alojamientos/[slug]/page.tsx` keeps `export const revalidate = 300` and does not call `headers()` for this feature.
 
-Validation executed for this Workstream E architecture correction: `npm run final-i:validate` PASS 61/61 after rerun outside the sandbox because the sandbox-only `tsx` startup failed with `uv_os_get_passwd ENOMEM`; `git diff --check` PASS with Windows CRLF normalization warnings only.
+No schema, migration, dependency, environment variable, provider integration code, cron registry, notification enum, `vercel.json`, Production resource, Final-I.7, Final-I.8, Final-I.9, or Phase 13 scope was introduced by this checkpoint. Workstream B+C and Workstream D remain Not started.
+
+Validation executed for this Workstream E Hosted validation + Workstream A implementation checkpoint: `npm run final-i:validate` initially failed before tests inside the sandbox with `uv_os_get_passwd ENOMEM`, then PASS 65/65 outside the sandbox; `npm run final-h:validate` initially failed before tests inside the sandbox with `uv_os_get_passwd ENOMEM`, then PASS 20/20 outside the sandbox; `npm run lint` PASS; `npm run build` initially failed inside the sandbox fetching Google Fonts, then PASS outside the sandbox; `git diff --check` PASS with Windows CRLF normalization warnings only.
 
 ## 2026-10-02 — Final-I.6.1 Interim Operational Hardening Registered
 

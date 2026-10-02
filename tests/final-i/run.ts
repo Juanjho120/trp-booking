@@ -4,6 +4,7 @@ import "./i3-admin-notification-center-ux.test";
 import "./i4-guest-email-visible-url-cleanup.test";
 import "./i5-fel-domain-contract.test";
 import "./i6-fel-persistence-admin-draft.test";
+import "./i61-phone-country-inference.test";
 
 import { runFinalITests } from "./harness";
 
