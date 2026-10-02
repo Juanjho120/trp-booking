@@ -2044,6 +2044,8 @@ Owner Hosted validation ultimately passed after the workflow and design-system c
 
 Owner formal acceptance: PASS on 2026-10-02. This documentation-only closure does not replace the accepted Final-I.6 feature head `80469abda146d0d50516ab598a514a9ccea2db6d`. Final-I.7 remains blocked pending official INFILE technical documentation + Test credentials; Final-I.8 and Final-I.9 remain Not started; Phase 13 remains Blocked / Not started until Final-I closes.
 
+Final-I.6 documentation acceptance closure validation: accepted Final-I.6 feature head `80469abda146d0d50516ab598a514a9ccea2db6d`; Owner Hosted validation PASS; owner formal acceptance PASS on 2026-10-02; `npm run final-i:validate` PASS, 58/58 after rerun outside the sandbox because the sandbox-only `tsx` startup failed with `uv_os_get_passwd ENOMEM`; `git diff --check` PASS with Windows CRLF normalization warnings only.
+
 No runtime behavior, schema, migration, dependency, environment variable, provider integration, INFILE transport, certification, cancellation, Credit Notes, PDF/XML, scheduler, Production resource, Final-I.7, or Phase 13 scope was introduced by this closure.
 
 ## 2026-10-01 — Final-I.6 Admin FEL Design-System Select Correction Applied; Hosted Owner Validation In Progress

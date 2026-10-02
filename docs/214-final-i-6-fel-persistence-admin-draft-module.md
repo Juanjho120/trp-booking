@@ -357,6 +357,12 @@ npm run final-h:validate - PASS, 20/20 after rerun outside the sandbox because t
 npm run lint - PASS
 npm run build - PASS after rerun outside the sandbox because the sandbox run could not fetch Google Fonts; Next slow filesystem warning only
 git diff --check - PASS; Windows CRLF normalization warnings only
+Final-I.6 documentation acceptance closure validation:
+- Accepted Final-I.6 feature head - 80469abda146d0d50516ab598a514a9ccea2db6d
+- Owner Hosted validation - PASS
+- Owner formal acceptance - PASS on 2026-10-02
+- npm run final-i:validate - PASS, 58/58 after rerun outside the sandbox because the sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM
+- git diff --check - PASS; Windows CRLF normalization warnings only
 ```
 
 The DB-backed gate now explicitly proves both canonical source uniqueness constraints: Reservation source uniqueness and GuestPaymentRequestItem source uniqueness.

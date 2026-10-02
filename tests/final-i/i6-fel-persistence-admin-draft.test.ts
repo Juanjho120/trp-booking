@@ -1075,6 +1075,15 @@ test("I.6 documentation records owner acceptance and preserves future boundaries
 
   assert.match(record, /Owner Hosted validation: PASS/);
   assert.match(record, /Owner formal acceptance: PASS on 2026-10-02/);
+  assert.match(record, /Final-I\.6 documentation acceptance closure validation:/);
+  assert.match(
+    record,
+    /Accepted Final-I\.6 feature head - 80469abda146d0d50516ab598a514a9ccea2db6d/,
+  );
+  assert.match(record, /Owner Hosted validation - PASS/);
+  assert.match(record, /Owner formal acceptance - PASS on 2026-10-02/);
+  assert.match(record, /npm run final-i:validate - PASS/);
+  assert.match(record, /git diff --check - PASS/);
   assert.match(
     record,
     /documentation-only closure commit does not replace that accepted feature head/,
