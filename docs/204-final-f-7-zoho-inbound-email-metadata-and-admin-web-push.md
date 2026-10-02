@@ -321,6 +321,39 @@ correspondence domain are internal and return HTTP 200 ignored with the safe rea
 `internal_sender`. Ignored requests create no `ZohoInboundEmailEvent`, no `AdminNotification`, no
 `AdminPushDelivery` and no best-effort Web Push attempt.
 
+## Final-I.6.1 Provider Trigger-Scope Hardening Note
+
+Final-I.6.1 preserves the accepted Final-F.7 runtime recipient compatibility above. The
+domain-based runtime guard was not a mistake: it is required because Zoho Limited Data may expose a
+mailbox-normalized recipient even when the original email was addressed to one of the intended
+public aliases.
+
+The owner-observed DMARC false-positive risk comes from the accepted Hosted Test provider
+configuration:
+
+```text
+Entity: Mail
+Condition Type: No conditions. All incoming emails
+Limited Data List: ON
+Status: Enabled
+```
+
+Under Final-I.6.1 Workstream E, the corrective boundary is provider-side trigger scope. The owner
+must edit the existing Zoho outgoing webhook to use Any / OR positive recipient conditions for the
+three intended aliases in the active environment:
+
+```text
+admin@<correspondence-domain>
+reservas@<correspondence-domain>
+reservations@<correspondence-domain>
+```
+
+TRP keeps `getAcceptedZohoMailRecipientAddresses(...)` as the documented intended-address
+contract, keeps `isAcceptedZohoMailRecipient(...)` domain-based for mailbox-normalized Limited Data
+compatibility, and keeps outside-domain/domain-lookalike rejection as defense in depth. Do not add
+DMARC subject, sender or keyword suppression. Workstream E remains pending owner Zoho trigger
+configuration and Hosted validation.
+
 ## Reservation Matching And Targets
 
 Matching is intentionally narrow and deterministic:

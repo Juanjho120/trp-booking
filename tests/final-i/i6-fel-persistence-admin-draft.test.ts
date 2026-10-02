@@ -1077,11 +1077,17 @@ test("I.6 documentation records owner acceptance and preserves future boundaries
   }
 
   for (const source of [agents, progress, roadmap, i61Record]) {
-    assert.match(source, /Final-I\.6\.1 .*Registered \/ implementation not started/);
+    assert.match(source, /Final-I\.6\.1 .*Implementation in progress/);
     assert.match(source, /docs\/215-final-i-6-1-interim-operational-hardening\.md/);
   }
 
-  assert.match(i61Record, /E - Zoho exact-recipient suppression/);
+  assert.match(i61Record, /E - Zoho guest-correspondence trigger hardening/);
+  assert.match(
+    i61Record,
+    /Workstream E status: Architecture corrected; owner Zoho trigger configuration \+ Hosted validation pending/,
+  );
+  assert.match(i61Record, /Runtime acceptance remains intentionally domain-based/);
+  assert.match(i61Record, /Any \/ OR/);
   assert.match(i61Record, /A - Guest phone-country inference/);
   assert.match(i61Record, /B - GuestPaymentRequest expiration cron/);
   assert.match(i61Record, /C - Financial Admin Web Push notifications/);

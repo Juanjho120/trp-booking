@@ -31,7 +31,7 @@ Final-I.5 implementation and acceptance record: docs/213-final-i-5-fel-fiscal-do
 Final-I.6 status: Completed and accepted on 2026-10-02
 Accepted Final-I.6 head: 80469abda146d0d50516ab598a514a9ccea2db6d
 Final-I.6 implementation and acceptance record: docs/214-final-i-6-fel-persistence-admin-draft-module.md
-Final-I.6.1 status: Registered / implementation not started
+Final-I.6.1 status: Implementation in progress
 Final-I.6.1 registration record: docs/215-final-i-6-1-interim-operational-hardening.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
@@ -67,7 +67,7 @@ Final-I.5 implementation and acceptance record: docs/213-final-i-5-fel-fiscal-do
 Final-I.6 status: Completed and accepted on 2026-10-02
 Accepted Final-I.6 head: 80469abda146d0d50516ab598a514a9ccea2db6d
 Final-I.6 implementation and acceptance record: docs/214-final-i-6-fel-persistence-admin-draft-module.md
-Final-I.6.1 status: Registered / implementation not started
+Final-I.6.1 status: Implementation in progress
 Final-I.6.1 registration record: docs/215-final-i-6-1-interim-operational-hardening.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
@@ -265,7 +265,7 @@ Final-I.5 implementation and acceptance record: docs/213-final-i-5-fel-fiscal-do
 Final-I.6 status: Completed and accepted on 2026-10-02
 Accepted Final-I.6 head: 80469abda146d0d50516ab598a514a9ccea2db6d
 Final-I.6 implementation and acceptance record: docs/214-final-i-6-fel-persistence-admin-draft-module.md
-Final-I.6.1 status: Registered / implementation not started
+Final-I.6.1 status: Implementation in progress
 Final-I.6.1 registration record: docs/215-final-i-6-1-interim-operational-hardening.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
@@ -301,7 +301,7 @@ Final-I.5 implementation and acceptance record: docs/213-final-i-5-fel-fiscal-do
 Final-I.6 status: Completed and accepted on 2026-10-02
 Accepted Final-I.6 head: 80469abda146d0d50516ab598a514a9ccea2db6d
 Final-I.6 implementation and acceptance record: docs/214-final-i-6-fel-persistence-admin-draft-module.md
-Final-I.6.1 status: Registered / implementation not started
+Final-I.6.1 status: Implementation in progress
 Final-I.6.1 registration record: docs/215-final-i-6-1-interim-operational-hardening.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
@@ -2039,12 +2039,36 @@ This does not reintroduce the previous implicit-history-selection bug: entering 
 
 Validation executed for this correction: `npm run final-i:validate` PASS 57/57 after rerun outside the sandbox because the sandbox-only `tsx` startup failed with `uv_os_get_passwd ENOMEM`; `npm run final-i:db:validate` PASS 13/13 with `TRP_ENVIRONMENT=test` after the same sandbox-only `tsx` startup failure; `npm run final-h:validate` PASS 20/20 after the same sandbox-only `tsx` startup failure; `npm run lint` PASS; `npm run build` PASS after rerun outside the sandbox because the sandbox run could not fetch Google Fonts; and `git diff --check` PASS with Windows CRLF normalization warnings only.
 
+## 2026-10-02 — Final-I.6.1 Workstream E Zoho Trigger Boundary Corrected
+
+```text
+Package: Final-I — Operational Polish, Notification UX & FEL Invoicing
+Subphase: Final-I.6.1 — Interim Operational Hardening
+Status: Implementation in progress
+Workstream E: Architecture corrected; owner Zoho trigger configuration + Hosted validation pending
+Workstream A: Not started
+Workstream B+C: Not started
+Workstream D: Not started
+Final-I.7: Blocked pending official INFILE technical documentation + Test credentials
+Phase 13: Blocked / Not started until Final-I closes
+```
+
+Workstream E was corrected after repository review of the accepted Final-F.7 Hosted recipient-filtering evidence. Final-F.7 intentionally preserved runtime correspondence-domain acceptance because Zoho Limited Data may expose a mailbox-normalized recipient rather than the original public alias. Final-I.6.1 therefore must not replace `isAcceptedZohoMailRecipient(...)` with exact-alias matching.
+
+The corrected boundary is provider-side trigger scope: the owner must edit the existing Zoho outgoing webhook from `No conditions. All incoming emails` to an Any / OR positive recipient condition set for `admin@...`, `reservas@...`, and `reservations@...` in the active correspondence domain. TRP runtime keeps the domain guard as defense in depth, still rejects outside-domain and lookalike domains, preserves internal-sender suppression, and introduces no DMARC subject/sender/keyword heuristic.
+
+Workstream E remains pending owner Zoho trigger configuration and Hosted negative/positive validation. Negative validation must confirm DMARC Reports and DMARC Forensic mail create no `ZohoInboundEmailEvent`, no `GUEST_EMAIL_RECEIVED`, and no Admin Push. Positive validation must confirm external mail to `reservas@juantzun.dev`, `reservations@juantzun.dev`, and `admin@juantzun.dev` still follows the accepted guest-correspondence path.
+
+No runtime behavior, schema, migration, dependency, environment variable, provider integration code, cron registry, notification enum, `vercel.json`, Production resource, Final-I.7, Final-I.8, Final-I.9, or Phase 13 scope was introduced by this correction.
+
+Validation executed for this Workstream E architecture correction: `npm run final-i:validate` PASS 61/61 after rerun outside the sandbox because the sandbox-only `tsx` startup failed with `uv_os_get_passwd ENOMEM`; `git diff --check` PASS with Windows CRLF normalization warnings only.
+
 ## 2026-10-02 — Final-I.6.1 Interim Operational Hardening Registered
 
 ```text
 Package: Final-I — Operational Polish, Notification UX & FEL Invoicing
 Subphase: Final-I.6.1 — Interim Operational Hardening
-Status: Registered / implementation not started
+Status at registration: Registered; current status after Workstream E correction: Implementation in progress
 Registration record: docs/215-final-i-6-1-interim-operational-hardening.md
 Final-I.6: Completed and accepted on 2026-10-02 at 80469abda146d0d50516ab598a514a9ccea2db6d
 Final-I.7: Blocked pending official INFILE technical documentation + Test credentials
@@ -2053,9 +2077,9 @@ Final-I.9: Not started / integrated Final-I closure
 Phase 13: Blocked / Not started until Final-I closes
 ```
 
-Final-I.6.1 registers five provider-independent interim workstreams requested by the owner while Final-I.7 remains blocked: E — Zoho exact-recipient suppression / DMARC false-positive fix; A — guest phone-country inference; B — GuestPaymentRequest expiration cron; C — financial Admin Web Push notifications; and D — Reservation Additional Charges nested tabs + single accordions. The frozen sequence is E, A, B+C, D, then integrated regression and Hosted owner acceptance.
+Final-I.6.1 is scoped to five provider-independent interim workstreams requested by the owner while Final-I.7 remains blocked: E — Zoho guest-correspondence trigger hardening / DMARC false-positive fix; A — guest phone-country inference; B — GuestPaymentRequest expiration cron; C — financial Admin Web Push notifications; and D — Reservation Additional Charges nested tabs + single accordions. The frozen sequence is E, A, B+C, D, then integrated regression and Hosted owner acceptance.
 
-This registration does not reopen Final-I.6, does not replace accepted Final-I.6 head `80469abda146d0d50516ab598a514a9ccea2db6d`, does not supersede Final-I.7, and does not introduce runtime behavior, schema, migration, dependency, environment variable, provider integration, INFILE transport, notification enum, cron registry, `vercel.json`, Production resource, or Phase 13 scope.
+This registration did not reopen Final-I.6, did not replace accepted Final-I.6 head `80469abda146d0d50516ab598a514a9ccea2db6d`, did not supersede Final-I.7, and did not introduce runtime behavior, schema, migration, dependency, environment variable, provider integration, INFILE transport, notification enum, cron registry, `vercel.json`, Production resource, or Phase 13 scope.
 
 Validation executed for I.6.1 registration: `npm run final-i:validate` PASS 58/58 after rerun outside the sandbox because the sandbox-only `tsx` startup failed with `uv_os_get_passwd ENOMEM`; `git diff --check` PASS with Windows CRLF normalization warnings only.
 

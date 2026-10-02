@@ -6,10 +6,14 @@
 Project: TRP Booking
 Track: Final-I - Operational Polish, Notification UX & FEL Invoicing
 Subphase: Final-I.6.1 - Interim Operational Hardening
-Status: Registered / implementation not started
-Final-I.6.1 status: Registered / implementation not started
+Status: Implementation in progress
+Final-I.6.1 status: Implementation in progress
 Registration record: docs/215-final-i-6-1-interim-operational-hardening.md
 Registration base: 1fd728567b739100e51dea41aeb6da3f23cc6c19
+Workstream E status: Architecture corrected; owner Zoho trigger configuration + Hosted validation pending
+Workstream A status: Not started
+Workstream B+C status: Not started
+Workstream D status: Not started
 Final-I.6 status: Completed and accepted on 2026-10-02
 Accepted Final-I.6 head: 80469abda146d0d50516ab598a514a9ccea2db6d
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
@@ -18,7 +22,7 @@ Final-I.9 status: Not started / integrated Final-I closure
 Phase 13 status: Blocked / Not started until Final-I closes
 ```
 
-Final-I.6.1 is an owner-requested, provider-independent interim hardening package registered while Final-I.7 remains blocked by missing official INFILE technical documentation and Test credentials. This registration does not reopen Final-I.6, does not replace the accepted Final-I.6 feature head, does not supersede Final-I.7, and does not implement runtime changes.
+Final-I.6.1 is an owner-requested, provider-independent interim hardening package registered while Final-I.7 remains blocked by missing official INFILE technical documentation and Test credentials. Workstream E has begun as an architecture/documentation/test correction only. This does not reopen Final-I.6, does not replace the accepted Final-I.6 feature head, does not supersede Final-I.7, and does not implement runtime changes.
 
 ## Purpose
 
@@ -29,13 +33,13 @@ A - Guest phone-country inference
 B - GuestPaymentRequest expiration cron
 C - Financial Admin Web Push notifications
 D - Reservation Additional Charges nested tabs + single accordions
-E - Zoho exact-recipient suppression / DMARC false-positive fix
+E - Zoho guest-correspondence trigger hardening / DMARC false-positive fix
 ```
 
 Implementation must proceed in this order:
 
 ```text
-1. E - Zoho exact-recipient suppression
+1. E - Zoho guest-correspondence trigger hardening
 2. A - Guest phone-country inference
 3. B+C - GuestPaymentRequest expiration cron + financial Admin Push foundation
 4. D - Additional Charges tabs + accordions
@@ -230,30 +234,173 @@ Requirements:
 
 Do not place interactive Buttons inside an AccordionTrigger if that would create nested buttons or invalid interactive markup. Charge selection must remain accessible through a non-nested design, such as a sibling/action area or another appropriate design-system control. Existing nested refund-history Accordion inside an expanded Charge must remain functional.
 
-## Workstream E - Zoho Exact-Recipient Suppression
+## Workstream E - Zoho Guest-Correspondence Trigger Hardening
 
-Current root cause: `getAcceptedZohoMailRecipientAddresses(...)` already returns the exact accepted correspondence addresses:
-
-```text
-admin@<correspondence-domain>
-reservas@<correspondence-domain>
-reservations@<correspondence-domain>
-```
-
-However, `isAcceptedZohoMailRecipient(...)` currently accepts an inbound event when any recipient merely belongs to the correspondence domain. That lets unrelated same-domain aliases enter the guest-email notification pipeline and explains the owner-observed false mobile Push for DMARC Reports. The same architecture can affect DMARC Forensic.
-
-Target future behavior:
+Status:
 
 ```text
-same correspondence domain -> not enough
-exact normalized accepted recipient address -> required
+Workstream E status: Architecture corrected; owner Zoho trigger configuration + Hosted validation pending
 ```
 
-An inbound Zoho event proceeds toward guest correspondence only if at least one normalized `toAddress` exactly matches the accepted allowlist. Any other same-domain mailbox or alias must be ignored before Reservation matching, `ZohoInboundEmailEvent` persistence, `AdminNotification`, `AdminPushDelivery`, and Web Push.
+The initial I.6.1 registration described Workstream E as a runtime change from correspondence-domain matching to exact accepted-alias matching. That is not the accepted architecture and must not be implemented.
 
-Do not hardcode a broad DMARC subject/sender filter. The fix must be recipient-based because exact recipient acceptance is the trust boundary. Preserve webhook signature verification, bootstrap behavior, Limited Data parsing, internal-sender suppression, deduplication, and genuine guest-email behavior for the three accepted correspondence addresses.
+Final-F.7 Hosted Test established that Zoho Mail Limited Data may expose the active mailbox-normalized recipient address even when the original email was sent to an intended public alias such as `reservas@juantzun.dev`. Because of that provider behavior, TRP runtime acceptance intentionally remains domain-based after exact email parsing:
 
-Regression coverage must prove that arbitrary same-domain but non-accepted recipients are ignored. If stable DMARC Reports/Forensic aliases are already documented in the repository, add explicit regression cases for them; do not invent undocumented addresses.
+```text
+Local/Test accepted domain: juantzun.dev
+Production accepted domain: turefugioperfecto.com
+```
+
+`getAcceptedZohoMailRecipientAddresses(...)` remains the documented intended correspondence-address contract:
+
+```text
+Local/Test:
+admin@juantzun.dev
+reservas@juantzun.dev
+reservations@juantzun.dev
+
+Production:
+admin@turefugioperfecto.com
+reservas@turefugioperfecto.com
+reservations@turefugioperfecto.com
+```
+
+Do not replace `isAcceptedZohoMailRecipient(...)` with exact-alias runtime matching unless new provider evidence proves Zoho Limited Data always exposes the original alias without mailbox normalization. The current runtime guard still rejects outside-domain recipients and domain lookalikes such as `eviljuantzun.dev` and `juantzun.dev.attacker.example`.
+
+### Corrected Root Cause
+
+The accepted Zoho outgoing webhook configuration is currently:
+
+```text
+Entity: Mail
+Condition Type: No conditions. All incoming emails
+Limited Data List: ON
+Status: Enabled
+```
+
+With `No conditions. All incoming emails`, Zoho can trigger TRP for unrelated same-mailbox traffic such as DMARC Reports and potentially DMARC Forensic. If Zoho's Limited Data representation exposes a recipient at the active correspondence domain, TRP can correctly pass the domain guard even though the original incoming email was not intended guest/admin correspondence.
+
+The trust boundary therefore belongs at provider trigger scope:
+
+```text
+Original incoming email in Zoho
+-> Zoho Outgoing Webhook mail conditions
+-> only intended guest/admin correspondence recipients trigger webhook
+-> TRP signature verification
+-> Limited Data parsing
+-> existing correspondence-domain runtime compatibility guard
+-> existing internal-sender suppression
+-> Reservation matching
+-> persistence
+-> Admin notification / Web Push
+```
+
+### Provider-Side Positive Trigger Allowlist
+
+The owner must edit the existing Zoho outgoing webhook so it triggers only when the original incoming email is addressed to one of the intended correspondence aliases for the environment.
+
+Use Any / OR semantics:
+
+```text
+To matches admin@<correspondence-domain>
+OR To matches reservas@<correspondence-domain>
+OR To matches reservations@<correspondence-domain>
+```
+
+Local/Test intended aliases:
+
+```text
+admin@juantzun.dev
+reservas@juantzun.dev
+reservations@juantzun.dev
+```
+
+Production intended aliases:
+
+```text
+admin@turefugioperfecto.com
+reservas@turefugioperfecto.com
+reservations@turefugioperfecto.com
+```
+
+Do not invent DMARC alias addresses. Do not add DMARC subject, sender or keyword suppression. The intended-recipient allowlist is the positive provider boundary.
+
+### TRP Runtime Defense In Depth
+
+Runtime acceptance remains intentionally domain-based, not exact-alias-based, to preserve the Final-F.7 mailbox-normalization compatibility. The provider-side Zoho condition and TRP runtime guard have different responsibilities:
+
+```text
+Zoho condition:
+authoritative trigger scope using original incoming recipient
+
+TRP runtime guard:
+defense in depth over the Limited Data representation that may be mailbox-normalized
+```
+
+Preserve:
+
+```text
+- webhook signature verification
+- bootstrap and persisted x-hook-secret behavior
+- Limited Data parsing
+- `messageId` accept-but-ignore behavior
+- exact correspondence-domain runtime comparison
+- outside-domain and domain-lookalike rejection
+- internal-sender suppression
+- SHA-256 raw-body idempotency
+- bounded `ZohoInboundEmailEvent` persistence
+- `GUEST_EMAIL_RECEIVED` notification and immediate Web Push behavior for genuine guest correspondence
+```
+
+Do not fake a runtime test claiming TRP can identify the original alias when Zoho Limited Data does not provide it.
+
+### Owner Hosted Configuration Checklist
+
+The owner Hosted validation for Workstream E must first edit the existing Zoho outgoing webhook from:
+
+```text
+No conditions. All incoming emails
+```
+
+to an Any / OR condition set scoped to the three intended correspondence aliases. If Zoho's actual condition UI or alias handling differs during configuration, record the observed provider behavior and adjust the provider configuration safely instead of inventing runtime behavior.
+
+Negative Hosted cases:
+
+```text
+DMARC Reports email:
+- no ZohoInboundEmailEvent
+- no GUEST_EMAIL_RECEIVED
+- no Admin Push
+
+DMARC Forensic email:
+- no ZohoInboundEmailEvent
+- no GUEST_EMAIL_RECEIVED
+- no Admin Push
+```
+
+Positive Hosted cases:
+
+```text
+External email to reservas@juantzun.dev:
+- webhook processes
+- GUEST_EMAIL_RECEIVED is created
+- Reservation matching works when applicable
+- Admin Push works
+
+External email to reservations@juantzun.dev:
+- webhook processes
+- GUEST_EMAIL_RECEIVED is created
+- Reservation matching works when applicable
+- Admin Push works
+
+External email to admin@juantzun.dev:
+- webhook processes
+- GUEST_EMAIL_RECEIVED is created
+- Reservation matching works when applicable
+- Admin Push works
+```
+
+Workstream E must not be marked accepted until the owner completes the real Zoho provider configuration and Hosted validation.
 
 ## Strict Boundaries
 
@@ -267,7 +414,7 @@ This registration does not implement:
 - notification enum changes
 - Reservation form changes
 - Additional Charges UI changes
-- Zoho webhook/runtime changes
+- TRP Zoho webhook/runtime code changes
 - payment/refund behavior changes
 - environment variables
 - dependencies
@@ -284,5 +431,9 @@ This registration does not implement:
 ```text
 Final-I.6.1 registration validation:
 - npm run final-i:validate - PASS, 58/58 after rerun outside the sandbox because the sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM
+- git diff --check - PASS; Windows CRLF normalization warnings only
+
+Workstream E architecture correction validation:
+- npm run final-i:validate - PASS, 61/61 after rerun outside the sandbox because the sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM
 - git diff --check - PASS; Windows CRLF normalization warnings only
 ```

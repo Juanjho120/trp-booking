@@ -11,7 +11,9 @@ import {
 import {
   createZohoMailWebhookSignature,
   encryptZohoMailWebhookSecret,
+  getAcceptedZohoMailRecipientAddresses,
   getInternalZohoMailSenderDomains,
+  isAcceptedZohoMailRecipient,
   isInternalZohoMailSender,
   processZohoMailWebhook,
   ZohoMailWebhookError,
@@ -538,6 +540,92 @@ test("I.1 preserves external guest processing and reservation matching", async (
   assert.equal(deliverCalls, 1);
 });
 
+test("I.6.1 preserves intended aliases and domain-based Zoho recipient compatibility", async () => {
+  assert.deepEqual(getAcceptedZohoMailRecipientAddresses("test"), [
+    "admin@juantzun.dev",
+    "reservas@juantzun.dev",
+    "reservations@juantzun.dev",
+  ]);
+  assert.deepEqual(getAcceptedZohoMailRecipientAddresses("production"), [
+    "admin@turefugioperfecto.com",
+    "reservas@turefugioperfecto.com",
+    "reservations@turefugioperfecto.com",
+  ]);
+
+  for (const recipient of getAcceptedZohoMailRecipientAddresses("test")) {
+    const fake = createFakeZohoPrismaClient({
+      reservations: [createFakeReservation({ guestEmail: "guest@example.com" })],
+    });
+    registerWebhookConfiguration(fake);
+
+    const outcome = await processRegisteredWebhook({
+      fake,
+      payloadOverride: {
+        from: "Guest Example <guest@example.com>",
+        to: [`TRP <${recipient}>`],
+      },
+    });
+
+    assert.equal(outcome.status, "processed");
+    assert.equal(fake.events.size, 1);
+    assert.equal(fake.notifications.size, 1);
+  }
+
+  const normalizedRecipientFake = createFakeZohoPrismaClient({
+    reservations: [createFakeReservation({ guestEmail: "guest@example.com" })],
+  });
+  registerWebhookConfiguration(normalizedRecipientFake);
+
+  const normalizedOutcome = await processRegisteredWebhook({
+    fake: normalizedRecipientFake,
+    payloadOverride: {
+      from: "Guest Example <guest@example.com>",
+      to: ["Mailbox normalized <mailbox-normalized@juantzun.dev>"],
+    },
+  });
+
+  assert.equal(normalizedOutcome.status, "processed");
+  assert.equal(normalizedRecipientFake.events.size, 1);
+  assert.equal(
+    isAcceptedZohoMailRecipient({
+      toAddresses: ["mailbox-normalized@juantzun.dev"],
+      trpEnvironment: "test",
+    }),
+    true,
+  );
+});
+
+test("I.6.1 rejects recipient-domain lookalikes without exact-alias runtime filtering", async () => {
+  for (const recipient of [
+    "attacker@eviljuantzun.dev",
+    "attacker@juantzun.dev.attacker.example",
+    "attacker@example.com",
+  ]) {
+    const fake = createFakeZohoPrismaClient();
+    registerWebhookConfiguration(fake);
+
+    const outcome = await processRegisteredWebhook({
+      fake,
+      payloadOverride: {
+        to: [`Lookalike <${recipient}>`],
+      },
+    });
+
+    assert.deepEqual(outcome, {
+      status: "ignored",
+      reason: "recipient_outside_correspondence_domain",
+    });
+    assertNoInboundPersistence(fake);
+    assert.equal(
+      isAcceptedZohoMailRecipient({
+        toAddresses: [recipient],
+        trpEnvironment: "test",
+      }),
+      false,
+    );
+  }
+});
+
 test("I.1 keeps recipient filtering and signature verification boundaries", async () => {
   const unsafeRecipientFake = createFakeZohoPrismaClient();
   registerWebhookConfiguration(unsafeRecipientFake);
@@ -585,6 +673,9 @@ test("I.1 registers the roadmap, validation script, and F.7 forward note", () =>
   const doc204 = read(
     "docs/204-final-f-7-zoho-inbound-email-metadata-and-admin-web-push.md",
   );
+  const doc215 = read(
+    "docs/215-final-i-6-1-interim-operational-hardening.md",
+  );
   const vercel = JSON.parse(read("vercel.json")) as { crons?: unknown[] };
 
   assert.equal(
@@ -621,7 +712,11 @@ test("I.1 registers the roadmap, validation script, and F.7 forward note", () =>
     doc212,
     "Final-I.6 implementation and acceptance record: docs/214-final-i-6-fel-persistence-admin-draft-module.md",
   );
-  expectIncludes(doc212, "Final-I.6.1 status: Registered / implementation not started");
+  expectIncludes(doc212, "Final-I.6.1 status: Implementation in progress");
+  expectIncludes(
+    doc212,
+    "Workstream E status: Architecture corrected; owner Zoho trigger configuration + Hosted validation pending",
+  );
   expectIncludes(
     doc212,
     "Final-I.6.1 registration record: docs/215-final-i-6-1-interim-operational-hardening.md",
@@ -631,6 +726,16 @@ test("I.1 registers the roadmap, validation script, and F.7 forward note", () =>
   expectIncludes(doc212, "Final-I.9 status: Not started / integrated Final-I closure");
   expectIncludes(doc212, "Phase 13 status: Blocked / Not started until Final-I closes");
   expectIncludes(doc204, "Final-I.1 forward hardening note");
+  expectIncludes(doc204, "Final-I.6.1 Provider Trigger-Scope Hardening Note");
+  expectIncludes(doc215, "Any / OR");
+  expectIncludes(doc215, "admin@juantzun.dev");
+  expectIncludes(doc215, "reservas@juantzun.dev");
+  expectIncludes(doc215, "reservations@juantzun.dev");
+  expectIncludes(doc215, "admin@turefugioperfecto.com");
+  expectIncludes(doc215, "reservas@turefugioperfecto.com");
+  expectIncludes(doc215, "reservations@turefugioperfecto.com");
+  expectIncludes(doc215, "Runtime acceptance remains intentionally domain-based");
+  expectIncludes(doc215, "Do not add DMARC subject, sender or keyword suppression");
 });
 
 test("I.1 records internal suppression from environmentConfig without hardcoded extra domains", () => {
@@ -639,4 +744,12 @@ test("I.1 records internal suppression from environmentConfig without hardcoded 
   expectIncludes(service, "environmentConfig.production.sendingDomain");
   expectIncludes(service, "environmentConfig.test.sendingDomain");
   expectIncludes(service, "getInternalZohoMailSenderDomains");
+});
+
+test("I.6.1 keeps Zoho runtime free of DMARC subject or sender heuristics", () => {
+  const service = read("lib/zoho-mail/inbound-email.ts");
+
+  assert.doesNotMatch(service, /DMARC|Forensic|Report/i);
+  assert.doesNotMatch(service, /subject[\s\S]{0,120}DMARC/i);
+  assert.doesNotMatch(service, /fromAddress[\s\S]{0,120}DMARC/i);
 });
