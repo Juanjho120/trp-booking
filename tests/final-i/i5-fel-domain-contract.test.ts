@@ -245,7 +245,7 @@ test("I.5 historical record leaves Prisma, migrations, UI, cron and scheduler wo
   );
 });
 
-test("I.5 tracker state keeps I.6 next and Phase 13 blocked", () => {
+test("I.5 tracker state records I.6 accepted and keeps Phase 13 blocked", () => {
   const record = readRecord();
   const finalIRoadmap = read(
     "docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md",
@@ -258,11 +258,12 @@ test("I.5 tracker state keeps I.6 next and Phase 13 blocked", () => {
   expectIncludes(record, "Accepted Final-I.5 head: fde3ae06427af1f8905e6f7589263c199f918553");
   expectIncludes(
     record,
-    "Final-I.6 status: Implementation completed; Hosted owner validation in progress",
+    "Final-I.6 status: Completed and accepted on 2026-10-02",
   );
+  expectIncludes(record, "Accepted Final-I.6 head: 80469abda146d0d50516ab598a514a9ccea2db6d");
   expectIncludes(
     record,
-    "Final-I.6 implementation record: docs/214-final-i-6-fel-persistence-admin-draft-module.md",
+    "Final-I.6 implementation and acceptance record: docs/214-final-i-6-fel-persistence-admin-draft-module.md",
   );
   expectIncludes(record, "Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials");
   expectIncludes(record, "Phase 13 status: Blocked / Not started until Final-I closes");
@@ -281,9 +282,15 @@ test("I.5 tracker state keeps I.6 next and Phase 13 blocked", () => {
   );
   assert.ok(
     finalIRoadmap.includes(
-      "Final-I.6 status: Implementation completed; Hosted owner validation in progress",
+      "Final-I.6 status: Completed and accepted on 2026-10-02",
     ),
-    "docs/212 must expose I.6 implementation as completed pending owner acceptance",
+    "docs/212 must expose I.6 as completed and accepted",
+  );
+  assert.ok(
+    finalIRoadmap.includes(
+      "Accepted Final-I.6 head: 80469abda146d0d50516ab598a514a9ccea2db6d",
+    ),
+    "docs/212 must expose the accepted I.6 feature head",
   );
   assert.ok(
     finalIRoadmap.includes("Phase 13 status: Blocked / Not started until Final-I closes"),

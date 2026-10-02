@@ -6,7 +6,10 @@
 Project: TRP Booking
 Track: Final-I - Operational Polish, Notification UX & FEL Invoicing
 Subphase: Final-I.6 - FEL persistence + Admin draft/selection/preview module
-Status: Implementation completed; Hosted owner validation in progress
+Final-I.6 status: Completed and accepted on 2026-10-02
+Accepted Final-I.6 head: 80469abda146d0d50516ab598a514a9ccea2db6d
+Owner Hosted validation: PASS
+Owner formal acceptance: PASS on 2026-10-02
 Implementation base: 46664f6022871cd20089aba0de3cea1a4d7a2af7
 Final-I.5 accepted head: fde3ae06427af1f8905e6f7589263c199f918553
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
@@ -17,7 +20,24 @@ Phase 13 status: Blocked / Not started until Final-I closes
 
 Final-I.6 materializes the accepted Final-I.5 provider-independent FEL architecture. It adds persistence, draft-source ownership, the Admin `/admin/fel` draft module, protected Admin APIs, frozen Fiscal Receiver field ordering, documented future NIT/CUI receiver-validation requirements, and fiscal presentation/workflow corrections requested during Hosted owner validation. It does not add external receiver-validation runtime, INFILE transport, credentials, certification, DTE cancellation, Credit Note issuing workflow, PDF/XML retrieval, provider retry/status lookup, FEL scheduler, environment variables, cron registration, Production resources, or Phase 13 work.
 
-Hosted owner validation has started. Points 1-5 were executed, and owner-requested UX/presentation corrections were applied before points 6-10 continue. Final-I.6 is not accepted yet.
+Final-I.6 owner Hosted validation passed and owner formal acceptance was explicit on 2026-10-02. The accepted Final-I.6 feature head is `80469abda146d0d50516ab598a514a9ccea2db6d`; this later documentation-only closure commit does not replace that accepted feature head.
+
+## Owner Acceptance / Closure
+
+```text
+Final-I.6 status: Completed and accepted on 2026-10-02
+Accepted Final-I.6 head: 80469abda146d0d50516ab598a514a9ccea2db6d
+Owner Hosted validation: PASS
+Owner formal acceptance: PASS on 2026-10-02
+Final-I.7: Blocked pending official INFILE technical documentation + Test credentials
+Final-I.8: Not started
+Final-I.9: Not started
+Phase 13: Blocked / Not started until Final-I closes
+```
+
+The accepted Final-I.6 contract is provider-independent FEL persistence and Admin draft management. It includes canonical commercial source ownership through `FelCommercialSourceAllocation`, immutable allocation amount/currency snapshots, server-authoritative preview, explicit CREATE/EDIT workflow, same-draft save-changes, post-save EDIT context preservation, local `Nueva factura` / `New invoice` reset, discard/source release, receiver email/country suggestion behavior, localized Reservation dates and night/nights presentation, design-system Select controls for identifier/email/country selectors, and deterministic no-native-select regression coverage.
+
+Final-I.6 does not include INFILE provider transport, NIT/CUI validation runtime, certification, cancellation, Credit Notes, PDF/XML retrieval, scheduler work, Production resources, Final-I.7, or Phase 13.
 
 ## Accepted Invariants Preserved
 
@@ -344,8 +364,10 @@ The DB-backed gate now explicitly proves both canonical source uniqueness constr
 ## Current State
 
 ```text
-Final-I.6 — Implementation completed; Hosted owner validation in progress
-Hosted owner validation points 1-5 executed; owner-requested UX/presentation corrections applied before points 6-10 continue.
+Final-I.6 — Completed and accepted on 2026-10-02
+Accepted Final-I.6 head: 80469abda146d0d50516ab598a514a9ccea2db6d
+Owner Hosted validation: PASS
+Owner formal acceptance: PASS on 2026-10-02
 NIT/CUI receiver validation runtime remains deferred to Final-I.7 pending authoritative INFILE documentation and Test credentials.
 Final-I.7 — Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 — Not started

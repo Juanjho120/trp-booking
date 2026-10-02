@@ -1049,17 +1049,37 @@ test("I.6 preserves scheduler boundary and does not add FEL cron work", () => {
   );
 });
 
-test("I.6 documentation records implementation pending owner acceptance", () => {
+test("I.6 documentation records owner acceptance and preserves future boundaries", () => {
+  const agents = read("AGENTS.md");
+  const progress = read("docs/11-progress-log.md");
+  const roadmap = read(
+    "docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md",
+  );
   const record = read(I6_RECORD);
+  const currentRecords = [agents, progress, roadmap, record];
 
+  for (const source of [progress, roadmap, record]) {
+    assert.match(source, /Final-I\.6 status: Completed and accepted on 2026-10-02/);
+    assert.match(
+      source,
+      /Accepted Final-I\.6 head: 80469abda146d0d50516ab598a514a9ccea2db6d/,
+    );
+  }
+
+  for (const source of currentRecords) {
+    assert.match(source, /Completed and accepted on 2026-10-02/);
+    assert.match(source, /80469abda146d0d50516ab598a514a9ccea2db6d/);
+    assert.match(source, /Final-I\.7 .*Blocked pending official INFILE technical documentation \+ Test credentials/);
+    assert.match(source, /Phase 13 .*Blocked \/ Not started/);
+  }
+
+  assert.match(record, /Owner Hosted validation: PASS/);
+  assert.match(record, /Owner formal acceptance: PASS on 2026-10-02/);
   assert.match(
     record,
-    /Final-I\.6 .*Implementation completed; Hosted owner validation in progress/,
+    /documentation-only closure commit does not replace that accepted feature head/,
   );
-  assert.match(record, /Hosted owner validation points 1-5 executed/);
   assert.match(record, /NIT\/CUI receiver validation runtime remains deferred to Final-I\.7/);
   assert.match(record, /PAYMENT != FISCAL LINE/);
   assert.match(record, /FelCommercialSourceAllocation\.amountSnapshot/);
-  assert.match(record, /Final-I\.7 .*Blocked pending official INFILE technical documentation \+ Test credentials/);
-  assert.match(record, /Phase 13 .*Blocked \/ Not started/);
 });

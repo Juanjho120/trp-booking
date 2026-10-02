@@ -28,8 +28,9 @@ Accepted Final-I.4 head: 8e2d7d56a8e81a860833b05f4a28cba8a517bad4
 Final-I.5 status: Completed and accepted on 2026-09-30
 Accepted Final-I.5 head: fde3ae06427af1f8905e6f7589263c199f918553
 Final-I.5 implementation and acceptance record: docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md
-Final-I.6 status: Implementation completed; Hosted owner validation in progress
-Final-I.6 implementation record: docs/214-final-i-6-fel-persistence-admin-draft-module.md
+Final-I.6 status: Completed and accepted on 2026-10-02
+Accepted Final-I.6 head: 80469abda146d0d50516ab598a514a9ccea2db6d
+Final-I.6 implementation and acceptance record: docs/214-final-i-6-fel-persistence-admin-draft-module.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8-Final-I.9 status: Not started
 Final-I record: docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md
@@ -60,8 +61,9 @@ Accepted Final-I.4 head: 8e2d7d56a8e81a860833b05f4a28cba8a517bad4
 Final-I.5 status: Completed and accepted on 2026-09-30
 Accepted Final-I.5 head: fde3ae06427af1f8905e6f7589263c199f918553
 Final-I.5 implementation and acceptance record: docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md
-Final-I.6 status: Implementation completed; Hosted owner validation in progress
-Final-I.6 implementation record: docs/214-final-i-6-fel-persistence-admin-draft-module.md
+Final-I.6 status: Completed and accepted on 2026-10-02
+Accepted Final-I.6 head: 80469abda146d0d50516ab598a514a9ccea2db6d
+Final-I.6 implementation and acceptance record: docs/214-final-i-6-fel-persistence-admin-draft-module.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8-Final-I.9 status: Not started
 Final-I record: docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md
@@ -254,8 +256,9 @@ Accepted Final-I.4 head: 8e2d7d56a8e81a860833b05f4a28cba8a517bad4
 Final-I.5 status: Completed and accepted on 2026-09-30
 Accepted Final-I.5 head: fde3ae06427af1f8905e6f7589263c199f918553
 Final-I.5 implementation and acceptance record: docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md
-Final-I.6 status: Implementation completed; Hosted owner validation in progress
-Final-I.6 implementation record: docs/214-final-i-6-fel-persistence-admin-draft-module.md
+Final-I.6 status: Completed and accepted on 2026-10-02
+Accepted Final-I.6 head: 80469abda146d0d50516ab598a514a9ccea2db6d
+Final-I.6 implementation and acceptance record: docs/214-final-i-6-fel-persistence-admin-draft-module.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8-Final-I.9 status: Not started
 Final-I record: docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md
@@ -286,8 +289,9 @@ Accepted Final-I.4 head: 8e2d7d56a8e81a860833b05f4a28cba8a517bad4
 Final-I.5 status: Completed and accepted on 2026-09-30
 Accepted Final-I.5 head: fde3ae06427af1f8905e6f7589263c199f918553
 Final-I.5 implementation and acceptance record: docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md
-Final-I.6 status: Implementation completed; Hosted owner validation in progress
-Final-I.6 implementation record: docs/214-final-i-6-fel-persistence-admin-draft-module.md
+Final-I.6 status: Completed and accepted on 2026-10-02
+Accepted Final-I.6 head: 80469abda146d0d50516ab598a514a9ccea2db6d
+Final-I.6 implementation and acceptance record: docs/214-final-i-6-fel-persistence-admin-draft-module.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8-Final-I.9 status: Not started
 Final-I record: docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md
@@ -2022,6 +2026,25 @@ The correction keeps successful draft creation as an explicit EDIT entry point. 
 This does not reintroduce the previous implicit-history-selection bug: entering `/admin/fel`, refreshing, or returning later still starts in CREATE mode with no selected document. Only successful draft creation and explicit `Abrir / Editar` enter EDIT mode. No schema, migration, persistence architecture, INFILE, NIT/CUI lookup, dependency, environment variable, scheduler, Production resource, Final-I.7, or Phase 13 work was introduced.
 
 Validation executed for this correction: `npm run final-i:validate` PASS 57/57 after rerun outside the sandbox because the sandbox-only `tsx` startup failed with `uv_os_get_passwd ENOMEM`; `npm run final-i:db:validate` PASS 13/13 with `TRP_ENVIRONMENT=test` after the same sandbox-only `tsx` startup failure; `npm run final-h:validate` PASS 20/20 after the same sandbox-only `tsx` startup failure; `npm run lint` PASS; `npm run build` PASS after rerun outside the sandbox because the sandbox run could not fetch Google Fonts; and `git diff --check` PASS with Windows CRLF normalization warnings only.
+
+## 2026-10-02 — Final-I.6 Completed And Accepted; Final-I.7 Remains Blocked
+
+```text
+Package: Final-I — Operational Polish, Notification UX & FEL Invoicing
+Subphase: Final-I.6 — FEL persistence + Admin draft/selection/preview module
+Status: Completed and accepted on 2026-10-02
+Accepted Final-I.6 head: 80469abda146d0d50516ab598a514a9ccea2db6d
+Final-I.6 record: docs/214-final-i-6-fel-persistence-admin-draft-module.md
+Final-I.7: Blocked pending official INFILE technical documentation + Test credentials
+Final-I.8-Final-I.9: Not started
+Phase 13: Blocked / Not started until Final-I closes
+```
+
+Owner Hosted validation ultimately passed after the workflow and design-system corrections applied during I.6 validation. The owner validated clean CREATE entry, eligible Reservation selection, Fiscal Receiver input, server-authoritative preview, new draft save, explicit post-save EDIT context, selected Reservation/receiver/saved-snapshot retention after source allocation, EDIT actions, same-draft save changes, local `Nueva factura` reset, draft history, explicit reopen/edit, discard, source release, Reservation re-eligibility after discard, localized `dd/MM/yyyy` dates, localized night/nights copy, receiver email/country suggestions, multiple-email and multiple-country selection, manual `Otro correo` / `Other email`, manual `Otro país` / `Other country`, identifier-type selection, and approved shadcn/Radix Select controls for all three FEL selectors.
+
+Owner formal acceptance: PASS on 2026-10-02. This documentation-only closure does not replace the accepted Final-I.6 feature head `80469abda146d0d50516ab598a514a9ccea2db6d`. Final-I.7 remains blocked pending official INFILE technical documentation + Test credentials; Final-I.8 and Final-I.9 remain Not started; Phase 13 remains Blocked / Not started until Final-I closes.
+
+No runtime behavior, schema, migration, dependency, environment variable, provider integration, INFILE transport, certification, cancellation, Credit Notes, PDF/XML, scheduler, Production resource, Final-I.7, or Phase 13 scope was introduced by this closure.
 
 ## 2026-10-01 — Final-I.6 Admin FEL Design-System Select Correction Applied; Hosted Owner Validation In Progress
 
