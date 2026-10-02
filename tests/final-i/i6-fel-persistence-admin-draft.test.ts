@@ -1056,7 +1056,10 @@ test("I.6 documentation records owner acceptance and preserves future boundaries
     "docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md",
   );
   const record = read(I6_RECORD);
-  const currentRecords = [agents, progress, roadmap, record];
+  const i61Record = read(
+    "docs/215-final-i-6-1-interim-operational-hardening.md",
+  );
+  const currentRecords = [agents, progress, roadmap, record, i61Record];
 
   for (const source of [progress, roadmap, record]) {
     assert.match(source, /Final-I\.6 status: Completed and accepted on 2026-10-02/);
@@ -1072,6 +1075,22 @@ test("I.6 documentation records owner acceptance and preserves future boundaries
     assert.match(source, /Final-I\.7 .*Blocked pending official INFILE technical documentation \+ Test credentials/);
     assert.match(source, /Phase 13 .*Blocked \/ Not started/);
   }
+
+  for (const source of [agents, progress, roadmap, i61Record]) {
+    assert.match(source, /Final-I\.6\.1 .*Registered \/ implementation not started/);
+    assert.match(source, /docs\/215-final-i-6-1-interim-operational-hardening\.md/);
+  }
+
+  assert.match(i61Record, /E - Zoho exact-recipient suppression/);
+  assert.match(i61Record, /A - Guest phone-country inference/);
+  assert.match(i61Record, /B - GuestPaymentRequest expiration cron/);
+  assert.match(i61Record, /C - Financial Admin Web Push notifications/);
+  assert.match(i61Record, /D - Reservation Additional Charges nested tabs \+ single accordions/);
+  assert.match(i61Record, /Final-I\.8 status: Not started \/ reserved for FEL delivery email\/PDF\/XML\/history UX/);
+  assert.match(i61Record, /Final-I\.9 status: Not started \/ integrated Final-I closure/);
+  assert.match(i61Record, /runtime TS\/TSX behavior/);
+  assert.match(i61Record, /Prisma schema changes/);
+  assert.match(i61Record, /vercel\.json changes/);
 
   assert.match(record, /Owner Hosted validation: PASS/);
   assert.match(record, /Owner formal acceptance: PASS on 2026-10-02/);

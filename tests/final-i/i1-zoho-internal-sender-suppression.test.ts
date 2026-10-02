@@ -621,7 +621,14 @@ test("I.1 registers the roadmap, validation script, and F.7 forward note", () =>
     doc212,
     "Final-I.6 implementation and acceptance record: docs/214-final-i-6-fel-persistence-admin-draft-module.md",
   );
+  expectIncludes(doc212, "Final-I.6.1 status: Registered / implementation not started");
+  expectIncludes(
+    doc212,
+    "Final-I.6.1 registration record: docs/215-final-i-6-1-interim-operational-hardening.md",
+  );
   expectIncludes(doc212, "Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials");
+  expectIncludes(doc212, "Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX");
+  expectIncludes(doc212, "Final-I.9 status: Not started / integrated Final-I closure");
   expectIncludes(doc212, "Phase 13 status: Blocked / Not started until Final-I closes");
   expectIncludes(doc204, "Final-I.1 forward hardening note");
 });

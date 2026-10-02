@@ -31,8 +31,11 @@ Final-I.5 implementation and acceptance record: docs/213-final-i-5-fel-fiscal-do
 Final-I.6 status: Completed and accepted on 2026-10-02
 Accepted Final-I.6 head: 80469abda146d0d50516ab598a514a9ccea2db6d
 Final-I.6 implementation and acceptance record: docs/214-final-i-6-fel-persistence-admin-draft-module.md
+Final-I.6.1 status: Registered / implementation not started
+Final-I.6.1 registration record: docs/215-final-i-6-1-interim-operational-hardening.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
-Final-I.8-Final-I.9 status: Not started
+Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
+Final-I.9 status: Not started / integrated Final-I closure
 Final-I record: docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md
 Phase 13 status: Blocked / Not started until Final-I closes
 Final-G.1 status: Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf
@@ -64,8 +67,11 @@ Final-I.5 implementation and acceptance record: docs/213-final-i-5-fel-fiscal-do
 Final-I.6 status: Completed and accepted on 2026-10-02
 Accepted Final-I.6 head: 80469abda146d0d50516ab598a514a9ccea2db6d
 Final-I.6 implementation and acceptance record: docs/214-final-i-6-fel-persistence-admin-draft-module.md
+Final-I.6.1 status: Registered / implementation not started
+Final-I.6.1 registration record: docs/215-final-i-6-1-interim-operational-hardening.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
-Final-I.8-Final-I.9 status: Not started
+Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
+Final-I.9 status: Not started / integrated Final-I closure
 Final-I record: docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md
 Phase 13 status: Blocked / Not started until Final-I closes
 Final-G.1 status: Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf
@@ -259,8 +265,11 @@ Final-I.5 implementation and acceptance record: docs/213-final-i-5-fel-fiscal-do
 Final-I.6 status: Completed and accepted on 2026-10-02
 Accepted Final-I.6 head: 80469abda146d0d50516ab598a514a9ccea2db6d
 Final-I.6 implementation and acceptance record: docs/214-final-i-6-fel-persistence-admin-draft-module.md
+Final-I.6.1 status: Registered / implementation not started
+Final-I.6.1 registration record: docs/215-final-i-6-1-interim-operational-hardening.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
-Final-I.8-Final-I.9 status: Not started
+Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
+Final-I.9 status: Not started / integrated Final-I closure
 Final-I record: docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md
 Phase 13 status: Blocked / Not started until Final-I closes
 Final-G.1 status: Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf
@@ -292,8 +301,11 @@ Final-I.5 implementation and acceptance record: docs/213-final-i-5-fel-fiscal-do
 Final-I.6 status: Completed and accepted on 2026-10-02
 Accepted Final-I.6 head: 80469abda146d0d50516ab598a514a9ccea2db6d
 Final-I.6 implementation and acceptance record: docs/214-final-i-6-fel-persistence-admin-draft-module.md
+Final-I.6.1 status: Registered / implementation not started
+Final-I.6.1 registration record: docs/215-final-i-6-1-interim-operational-hardening.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
-Final-I.8-Final-I.9 status: Not started
+Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
+Final-I.9 status: Not started / integrated Final-I closure
 Final-I record: docs/212-final-i-operational-polish-notification-ux-and-fel-invoicing-roadmap.md
 Phase 13 status: Blocked / Not started until Final-I closes
 Final-G.1 status: Completed and accepted on 2026-09-28 at 1623389b028be1b0391a2afce6e7c28244ad0fbf
@@ -2026,6 +2038,26 @@ The correction keeps successful draft creation as an explicit EDIT entry point. 
 This does not reintroduce the previous implicit-history-selection bug: entering `/admin/fel`, refreshing, or returning later still starts in CREATE mode with no selected document. Only successful draft creation and explicit `Abrir / Editar` enter EDIT mode. No schema, migration, persistence architecture, INFILE, NIT/CUI lookup, dependency, environment variable, scheduler, Production resource, Final-I.7, or Phase 13 work was introduced.
 
 Validation executed for this correction: `npm run final-i:validate` PASS 57/57 after rerun outside the sandbox because the sandbox-only `tsx` startup failed with `uv_os_get_passwd ENOMEM`; `npm run final-i:db:validate` PASS 13/13 with `TRP_ENVIRONMENT=test` after the same sandbox-only `tsx` startup failure; `npm run final-h:validate` PASS 20/20 after the same sandbox-only `tsx` startup failure; `npm run lint` PASS; `npm run build` PASS after rerun outside the sandbox because the sandbox run could not fetch Google Fonts; and `git diff --check` PASS with Windows CRLF normalization warnings only.
+
+## 2026-10-02 — Final-I.6.1 Interim Operational Hardening Registered
+
+```text
+Package: Final-I — Operational Polish, Notification UX & FEL Invoicing
+Subphase: Final-I.6.1 — Interim Operational Hardening
+Status: Registered / implementation not started
+Registration record: docs/215-final-i-6-1-interim-operational-hardening.md
+Final-I.6: Completed and accepted on 2026-10-02 at 80469abda146d0d50516ab598a514a9ccea2db6d
+Final-I.7: Blocked pending official INFILE technical documentation + Test credentials
+Final-I.8: Not started / reserved for FEL delivery email/PDF/XML/history UX
+Final-I.9: Not started / integrated Final-I closure
+Phase 13: Blocked / Not started until Final-I closes
+```
+
+Final-I.6.1 registers five provider-independent interim workstreams requested by the owner while Final-I.7 remains blocked: E — Zoho exact-recipient suppression / DMARC false-positive fix; A — guest phone-country inference; B — GuestPaymentRequest expiration cron; C — financial Admin Web Push notifications; and D — Reservation Additional Charges nested tabs + single accordions. The frozen sequence is E, A, B+C, D, then integrated regression and Hosted owner acceptance.
+
+This registration does not reopen Final-I.6, does not replace accepted Final-I.6 head `80469abda146d0d50516ab598a514a9ccea2db6d`, does not supersede Final-I.7, and does not introduce runtime behavior, schema, migration, dependency, environment variable, provider integration, INFILE transport, notification enum, cron registry, `vercel.json`, Production resource, or Phase 13 scope.
+
+Validation executed for I.6.1 registration: `npm run final-i:validate` PASS 58/58 after rerun outside the sandbox because the sandbox-only `tsx` startup failed with `uv_os_get_passwd ENOMEM`; `git diff --check` PASS with Windows CRLF normalization warnings only.
 
 ## 2026-10-02 — Final-I.6 Completed And Accepted; Final-I.7 Remains Blocked
 

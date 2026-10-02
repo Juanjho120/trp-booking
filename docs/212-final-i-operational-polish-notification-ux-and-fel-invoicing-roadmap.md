@@ -25,13 +25,15 @@ Final-I.5 implementation and acceptance record: docs/213-final-i-5-fel-fiscal-do
 Final-I.6 status: Completed and accepted on 2026-10-02
 Accepted Final-I.6 head: 80469abda146d0d50516ab598a514a9ccea2db6d
 Final-I.6 implementation and acceptance record: docs/214-final-i-6-fel-persistence-admin-draft-module.md
+Final-I.6.1 status: Registered / implementation not started
+Final-I.6.1 registration record: docs/215-final-i-6-1-interim-operational-hardening.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
-Final-I.8 status: Not started
-Final-I.9 status: Not started
+Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
+Final-I.9 status: Not started / integrated Final-I closure
 Phase 13 status: Blocked / Not started until Final-I closes
 ```
 
-Final-I is an owner-requested pre-Production addendum registered after the accepted Final-H closure. It does not rewrite the historical acceptance of Phase 12, Final-A through Final-H, or the complete Post-Phase-12 / Pre-Phase-13 Final Improvement Track at `6922cf27e31e63fde071c0d0a810b141e44b9f90`. Final-I.1 is completed and accepted at its feature head `9a15f349c1104671f5555d1988caa56756e5ff0c`, and Final-I.2 is completed and accepted at `6451cb705d972c83a771a9ff39f6da80d130cf58`; Final-I.3 is completed and accepted on 2026-09-29 at accepted head `8c5a9186e392f35bdbc998f463c5c3c6cd0be295` after Hosted owner validation of the desktop, Android mobile browser, Android standalone PWA, Push deep-link, and final mobile/PWA auto-scroll refinement. Final-I.4 is completed and accepted on 2026-09-30 at accepted feature head `8e2d7d56a8e81a860833b05f4a28cba8a517bad4` after Hosted/mobile owner validation of representative guest emails. Final-I.5 is completed and accepted on 2026-09-30 at accepted head `fde3ae06427af1f8905e6f7589263c199f918553`; the provider-independent FEL fiscal domain contract remains recorded in `docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md`. Final-I.6 is completed and accepted on 2026-10-02 at accepted feature head `80469abda146d0d50516ab598a514a9ccea2db6d`; the implementation and acceptance record is `docs/214-final-i-6-fel-persistence-admin-draft-module.md`. Phase 13 remains not started and is blocked until Final-I closes and receives owner acceptance.
+Final-I is an owner-requested pre-Production addendum registered after the accepted Final-H closure. It does not rewrite the historical acceptance of Phase 12, Final-A through Final-H, or the complete Post-Phase-12 / Pre-Phase-13 Final Improvement Track at `6922cf27e31e63fde071c0d0a810b141e44b9f90`. Final-I.1 is completed and accepted at its feature head `9a15f349c1104671f5555d1988caa56756e5ff0c`, and Final-I.2 is completed and accepted at `6451cb705d972c83a771a9ff39f6da80d130cf58`; Final-I.3 is completed and accepted on 2026-09-29 at accepted head `8c5a9186e392f35bdbc998f463c5c3c6cd0be295` after Hosted owner validation of the desktop, Android mobile browser, Android standalone PWA, Push deep-link, and final mobile/PWA auto-scroll refinement. Final-I.4 is completed and accepted on 2026-09-30 at accepted feature head `8e2d7d56a8e81a860833b05f4a28cba8a517bad4` after Hosted/mobile owner validation of representative guest emails. Final-I.5 is completed and accepted on 2026-09-30 at accepted head `fde3ae06427af1f8905e6f7589263c199f918553`; the provider-independent FEL fiscal domain contract remains recorded in `docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md`. Final-I.6 is completed and accepted on 2026-10-02 at accepted feature head `80469abda146d0d50516ab598a514a9ccea2db6d`; the implementation and acceptance record is `docs/214-final-i-6-fel-persistence-admin-draft-module.md`. Final-I.6.1 is registered / implementation not started as provider-independent interim operational hardening while Final-I.7 remains blocked; its registration record is `docs/215-final-i-6-1-interim-operational-hardening.md`. Phase 13 remains not started and is blocked until Final-I closes and receives owner acceptance.
 
 Final-I.5 canonical amount-source hardening freezes `FelCommercialSourceAllocation.amountSnapshot` and `FelCommercialSourceAllocation.currencySnapshot` as the only canonical commercial amount source for future draft line totals. `FelLineSource` is frozen as provenance/evidence only: its rows are never summed to compute `FelLineItem.amount` or `FelDocument` totals, including when `sourceRole = AMOUNT_SOURCE`. Conceptual mandatory `FelLineSource.sourceAmount` / `sourceCurrency` fields were removed from the I.5 persistence contract to avoid two divergent monetary sources of truth; any supporting monetary evidence belongs only inside `sourceSnapshotJson` as non-authoritative audit/reproduction metadata.
 
@@ -44,6 +46,7 @@ Final-I.3 - Admin notification-center desktop simplification + single accordion 
 Final-I.4 - Guest-facing email visible-URL cleanup
 Final-I.5 - FEL/INFILE fiscal/domain contract and architecture
 Final-I.6 - FEL persistence + Admin draft/selection/preview module
+Final-I.6.1 - Interim Operational Hardening
 Final-I.7 - INFILE provider integration: certification, cancellation, credit notes, retry/contingency
 Final-I.8 - FEL delivery email/PDF/XML/history UX
 Final-I.9 - Integrated A-I regression, Hosted acceptance and renewed pre-Phase-13 closure
@@ -737,12 +740,38 @@ Owner formal acceptance: PASS on 2026-10-02. The documentation-only closure comm
 
 Final-I.6 is Completed and accepted on 2026-10-02. Final-I.8 and Final-I.9 remain Not started. Final-I.7 remains Blocked pending official INFILE technical documentation and Test credentials.
 
+## Final-I.6.1 Registered - Interim Operational Hardening
+
+Final-I.6.1 is Registered / implementation not started. It is a provider-independent interim package requested by the owner while Final-I.7 remains blocked pending official INFILE technical documentation + Test credentials. The registration record is `docs/215-final-i-6-1-interim-operational-hardening.md`.
+
+Registered workstreams:
+
+```text
+E - Zoho exact-recipient suppression / DMARC false-positive fix
+A - Guest phone-country inference
+B - GuestPaymentRequest expiration cron
+C - Financial Admin Web Push notifications
+D - Reservation Additional Charges nested tabs + single accordions
+```
+
+Frozen implementation sequence:
+
+```text
+1. E - Zoho exact-recipient suppression
+2. A - Guest phone-country inference
+3. B+C - GuestPaymentRequest expiration cron + financial Admin Push foundation
+4. D - Additional Charges tabs + accordions
+5. Integrated regression + Hosted owner acceptance
+```
+
+Final-I.6.1 does not reopen Final-I.6, does not replace accepted Final-I.6 head `80469abda146d0d50516ab598a514a9ccea2db6d`, and does not supersede Final-I.7. Final-I.8 remains reserved for FEL delivery email/PDF/XML/history UX, Final-I.9 remains reserved for integrated Final-I closure, and Phase 13 remains Blocked / Not started until Final-I closes.
+
 ## Boundaries
 
 ```text
 - Phase 13 remains blocked / not started until Final-I closes.
-- No Production provider account, credential, DNS cutover, payment credential, database, media account, WhatsApp sender, FEL account, or public go-live is introduced by Final-I.1 through Final-I.6.
-- No dependency, environment variable, scheduler, AdminNotificationType, Production, external receiver lookup, INFILE transport, certification, Credit Note issuing workflow, PDF/XML retrieval, Final-I.7 provider integration, Final-G/H reopening, or Phase 13 work is part of Final-I.6.
+- No Production provider account, credential, DNS cutover, payment credential, database, media account, WhatsApp sender, FEL account, or public go-live is introduced by Final-I.1 through Final-I.6.1.
+- No dependency, environment variable, scheduler, AdminNotificationType, Production, external receiver lookup, INFILE transport, certification, Credit Note issuing workflow, PDF/XML retrieval, Final-I.7 provider integration, Final-G/H reopening, or Phase 13 work is part of the Final-I.6.1 registration.
 - Final-I.7 is blocked pending official INFILE technical documentation + Test credentials and must not begin until explicitly requested.
 - Existing Final-F.7 Zoho webhook signature verification, bootstrap behavior, Limited Data parsing, bounded persistence, notification-center serialization, and immediate Web Push delivery remain preserved.
 - `vercel.json` remains `{ "crons": [] }`.
@@ -887,6 +916,9 @@ Final-I.6 documentation acceptance closure validation:
 - Accepted Final-I.6 feature head - 80469abda146d0d50516ab598a514a9ccea2db6d
 - Owner Hosted validation - PASS
 - Owner formal acceptance - PASS on 2026-10-02
+- npm run final-i:validate - PASS, 58/58 after rerun outside the sandbox because the sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM
+- git diff --check - PASS; Windows CRLF normalization warnings only
+Final-I.6.1 registration validation:
 - npm run final-i:validate - PASS, 58/58 after rerun outside the sandbox because the sandbox-only tsx startup failed with uv_os_get_passwd ENOMEM
 - git diff --check - PASS; Windows CRLF normalization warnings only
 ```
