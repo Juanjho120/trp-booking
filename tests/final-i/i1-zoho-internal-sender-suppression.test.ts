@@ -719,7 +719,11 @@ test("I.1 registers the roadmap, validation script, and F.7 forward note", () =>
   );
   expectIncludes(
     doc212,
-    "Workstream A status: Timezone resolution correction implemented; Hosted owner revalidation pending",
+    "Workstream A status: Completed; Hosted owner validation PASS on 2026-10-05",
+  );
+  expectIncludes(
+    doc212,
+    "Workstream B+C status: Implemented; validation completed; Hosted owner validation pending",
   );
   expectIncludes(
     doc212,

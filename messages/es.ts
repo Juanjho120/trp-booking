@@ -2424,6 +2424,11 @@ export const esMessages = {
           description:
             "Expira holds públicos vencidos y holds vencidos de ajustes del ciclo de vida.",
         },
+        EXPIRE_GUEST_PAYMENT_REQUESTS: {
+          title: "Expirar solicitudes de pago vencidas",
+          description:
+            "Marca como vencidas las solicitudes de pago de huéspedes que siguen pendientes después de su fecha límite.",
+        },
         PROCESS_EMAIL_NOTIFICATIONS: {
           title: "Procesar notificaciones por correo",
           description:

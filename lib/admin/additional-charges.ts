@@ -19,6 +19,7 @@ import {
 import {
   deliverAdditionalChargePaymentNotificationsBestEffort,
 } from "@/lib/email/additional-charge-payment-notifications";
+import { expirePendingGuestPaymentRequests } from "@/lib/payments/guest-payment-request-expiration";
 import { createGuestPaymentRequestTokenMaterial } from "@/lib/payments/guest-payment-request-token";
 import type { AdminActor } from "@/types/admin";
 import type {
@@ -598,15 +599,10 @@ async function expirePendingRequests(
   transaction: Prisma.TransactionClient | typeof prisma = prisma,
   now: Date = new Date(),
 ): Promise<void> {
-  await transaction.guestPaymentRequest.updateMany({
-    where: {
-      reservationId,
-      status: GuestPaymentRequestStatus.PENDING,
-      expiresAt: { lte: now },
-    },
-    data: {
-      status: GuestPaymentRequestStatus.EXPIRED,
-    },
+  await expirePendingGuestPaymentRequests({
+    client: transaction,
+    now,
+    reservationId,
   });
 }
 

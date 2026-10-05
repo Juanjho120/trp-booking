@@ -2420,6 +2420,11 @@ export const enMessages = {
           description:
             "Expires overdue public reservation holds and overdue lifecycle-adjustment holds.",
         },
+        EXPIRE_GUEST_PAYMENT_REQUESTS: {
+          title: "Expire overdue payment requests",
+          description:
+            "Marks guest payment requests as expired when they remain pending past their expiration time.",
+        },
         PROCESS_EMAIL_NOTIFICATIONS: {
           title: "Process email notifications",
           description:

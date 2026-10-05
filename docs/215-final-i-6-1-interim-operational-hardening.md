@@ -11,8 +11,8 @@ Final-I.6.1 status: Implementation in progress
 Registration record: docs/215-final-i-6-1-interim-operational-hardening.md
 Registration base: 1fd728567b739100e51dea41aeb6da3f23cc6c19
 Workstream E status: Completed; provider trigger configuration + Hosted validation PASS on 2026-10-02
-Workstream A status: Timezone resolution correction implemented; Hosted owner revalidation pending
-Workstream B+C status: Not started
+Workstream A status: Completed; Hosted owner validation PASS on 2026-10-05
+Workstream B+C status: Implemented; validation completed; Hosted owner validation pending
 Workstream D status: Not started
 Final-I.6 status: Completed and accepted on 2026-10-02
 Accepted Final-I.6 head: 80469abda146d0d50516ab598a514a9ccea2db6d
@@ -22,7 +22,7 @@ Final-I.9 status: Not started / integrated Final-I closure
 Phase 13 status: Blocked / Not started until Final-I closes
 ```
 
-Final-I.6.1 is an owner-requested, provider-independent interim hardening package registered while Final-I.7 remains blocked by missing official INFILE technical documentation and Test credentials. Workstream E is completed through provider-side Zoho trigger configuration plus Hosted validation PASS on 2026-10-02. Workstream A timezone resolution correction is implemented as a bounded guest phone-country convenience default and remains pending Hosted owner revalidation. This does not reopen Final-I.6, does not replace the accepted Final-I.6 feature head, and does not supersede Final-I.7.
+Final-I.6.1 is an owner-requested, provider-independent interim hardening package registered while Final-I.7 remains blocked by missing official INFILE technical documentation and Test credentials. Workstream E is completed through provider-side Zoho trigger configuration plus Hosted validation PASS on 2026-10-02. Workstream A timezone resolution correction is completed as a bounded guest phone-country convenience default with Hosted owner validation PASS on 2026-10-05. Workstreams B+C are implemented as the GuestPaymentRequest expiration cron foundation plus financial Admin Web Push notification foundation, with Hosted owner validation still pending. This does not reopen Final-I.6, does not replace the accepted Final-I.6 feature head, and does not supersede Final-I.7.
 
 ## Purpose
 
@@ -92,14 +92,33 @@ Initial Workstream A Hosted validation discovered a real IP-country false positi
 
 The inferred country is only a convenience default and must never be treated as authoritative identity, residency, or location evidence. Reservation persistence continues to store only the existing booking contract fields: `guestCountry`, `countryDialCode`, and `guestPhoneLocal`.
 
+### Workstream A Hosted Owner Validation
+
+Hosted owner validation passed on 2026-10-05. Confirmed cases:
+
+```text
+Physical Guatemala / VPN OFF; Vercel IP may report US; browser timezone America/Guatemala -> Guatemala/+502 PASS
+US IP + Europe/London -> UK/+44 PASS
+US IP + Asia/Tokyo -> Japan/+81 PASS
+France IP + France browser/Sensors timezone -> France/+33 PASS
+Manual guest country override remained authoritative PASS
+```
+
+Accepted architecture remains:
+
+```text
+MANUAL selection > browser timezone countries with agreeing-IP disambiguation or primary timezone country > Vercel IP country > GT fallback
+```
+
 ## Workstream B - GuestPaymentRequest Expiration Cron
 
 Current behavior: GuestPaymentRequest expiration exists lazily in multiple flows, including `expirePendingRequestByHash(...)` in `lib/payments/guest-payment-request-payment.ts` and reservation-scoped `expirePendingRequests(...)` in `lib/admin/additional-charges.ts`.
 
-Target future domain:
+Implemented canonical domain:
 
 ```text
-expirePendingGuestPaymentRequests(...)
+expirePendingGuestPaymentRequests({ now?, reservationId?, accessTokenHash?, client? })
+-> { expiredCount, expiredAt }
 ```
 
 The canonical expiration service must globally transition only:
@@ -112,19 +131,19 @@ AND expiresAt <= now
 
 It must not cancel charges, mark charges paid, alter Reservation totals, alter payment evidence, or mutate already `PAID`, `CANCELLED`, or `EXPIRED` requests. Existing lazy expiration paths should reuse the canonical domain where practical instead of maintaining divergent rules.
 
-Future cron registration concept:
+Cron registration:
 
 ```text
 key: EXPIRE_GUEST_PAYMENT_REQUESTS
 slug: expire-guest-payment-requests
-recommended schedule metadata: */5 * * * *
+schedule metadata: */5 * * * *
+safe error: GUEST_PAYMENT_REQUEST_EXPIRATION_UNEXPECTED_ERROR
+route: /api/cron/expire-guest-payment-requests
 ```
 
-The cron must appear in Admin `Tareas programadas / Scheduled tasks`, support the existing protected manual-run workflow, and expose bounded safe result evidence such as `expiredCount` and `expiredAt`.
+The cron appears in Admin `Tareas programadas / Scheduled tasks`, supports the existing protected manual-run workflow, and returns bounded result evidence `expiredCount` and `expiredAt`. Existing lazy expiration paths in `lib/payments/guest-payment-request-payment.ts` and `lib/admin/additional-charges.ts` now reuse the canonical service.
 
-Final-I.6.1 must not activate Production scheduling. `vercel.json` remains empty/no scheduled registrations during the pre-Production track. A protected `/api/cron/expire-guest-payment-requests` route may be added consistently with the existing cron architecture when implementation begins, while actual Production scheduler registration remains Phase 13 work.
-
-This workstream is expected to extend the existing `CronJobKey` contract and may require a migration.
+Final-I.6.1 does not activate Production scheduling. `vercel.json` remains empty/no scheduled registrations during the pre-Production track; actual Production scheduler registration remains Phase 13 work.
 
 ## Workstream C - Financial Admin Web Push Notifications
 
@@ -187,7 +206,41 @@ ES: Reembolso procesado · <huesped> · <alojamiento>
 EN: Refund processed · <guest> · <property>
 ```
 
-The AdminNotification enum extension may share the same Final-I.6.1 migration as the new CronJobKey extension. Do not create unnecessary migrations.
+Implemented AdminNotification classes and deduplication keys:
+
+```text
+ADDITIONAL_CHARGE_PAID -> admin-notification/additional-charge-paid/<guestPaymentRequestId>
+LIFECYCLE_ADJUSTMENT_PAID -> admin-notification/lifecycle-adjustment-paid/<lifecycleRequestId>
+REFUND_PROCESSED -> admin-notification/refund-processed/<refundId>
+```
+
+Implementation uses explicit helpers exported from `lib/admin-notifications/index.ts`:
+
+```text
+ensureAdditionalChargePaidAdminNotificationIntent(...)
+ensureLifecycleAdjustmentPaidAdminNotificationIntent(...)
+ensureRefundProcessedAdminNotificationIntent(...)
+```
+
+Each helper reads canonical Reservation notification context, creates an idempotent `AdminNotification`, creates pending `AdminPushDelivery` rows only for active subscriptions when newly created, targets `/admin/reservations/{reservationId}`, and returns `{ id, type, created }`. The notification copy is intentionally bounded to localized title + guest name + property name plus generic body. No amounts, payment/refund amounts, card identifiers, provider IDs, email addresses, phone numbers, private notes, tokens, or secrets are added to notification payloads.
+
+Business triggers are intentionally post-validation and commit-safe:
+
+```text
+Additional Charge payment approved -> intent inside GuestPaymentRequest paid transaction -> Web Push best effort after commit
+Lifecycle adjustment paid completion -> intent inside paid date-mutation completion transaction -> Web Push best effort after commit
+Refund reconciled APPROVED -> intent inside refund reconciliation transaction -> Web Push best effort after commit
+```
+
+Already-processed/idempotent branches, failed/pending/processing refunds, zero-difference lifecycle completion, rejected/pending payments, and provider observations before successful reconciliation do not create financial Admin Push notifications.
+
+Workstreams B+C share one enum-only migration:
+
+```text
+20261005130000_final_i_6_1_financial_operations_hardening
+```
+
+The migration only extends PostgreSQL enums `cron_job_key` and `admin_notification_type`; it does not add tables, columns, indexes, relations, scheduler activation, environment variables, or dependencies.
 
 ## Workstream D - Additional Charges Tabs + Accordions
 
@@ -416,25 +469,21 @@ Workstream E Hosted validation passed on 2026-10-02. The accepted architecture r
 
 ## Strict Boundaries
 
-This I.6.1 checkpoint does not implement:
+This I.6.1 checkpoint implements Workstreams B+C only after the accepted Workstream E and completed Workstream A validation. It still does not implement:
 
 ```text
-- Prisma schema changes
-- migrations
-- cron registry changes
-- notification enum changes
-- Additional Charges UI changes
+- Additional Charges UI tabs/accordions from Workstream D
 - TRP Zoho webhook/runtime code changes
-- payment/refund behavior changes
+- financial amount/pricing/refund arithmetic changes
 - environment variables
 - dependencies beyond `countries-and-timezones` static timezone metadata for Workstream A
-- vercel.json changes
+- vercel.json scheduler activation
 - INFILE work
 - Production resources
 - Phase 13 activation
 ```
 
-`vercel.json` remains `{ "crons": [] }` until a later explicitly requested implementation still preserving the pre-Production scheduler boundary.
+`vercel.json` remains `{ "crons": [] }` until a later explicitly requested Production scheduler activation. Workstream D remains Not started. Final-I.7 remains blocked pending official INFILE technical documentation + Test credentials.
 
 ## Validation Ledger
 
@@ -464,6 +513,20 @@ Workstream A confidence hardening validation:
 
 Workstream A timezone resolution correction validation:
 - npm run final-i:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; rerun outside the sandbox PASS, 67/67
+- npm run final-h:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; rerun outside the sandbox PASS, 20/20
+- npm run lint - PASS
+- npm run build - sandbox attempt failed fetching Google Fonts; rerun outside the sandbox PASS
+- npm audit --omit=dev - sandbox attempt failed against the npm audit endpoint/cache; rerun outside the sandbox PASS, 0 vulnerabilities
+- git diff --check - PASS; Windows CRLF normalization warnings only
+
+
+Workstreams B+C implementation validation:
+- npm run db:validate - PASS; Prisma package.json#prisma deprecation warning only
+- npm run db:generate - PASS; Prisma package.json#prisma deprecation warning only
+- npm run db:migrate:deploy - initial sandbox attempt returned Schema engine error; rerun outside the sandbox PASS, applied 20261005130000_final_i_6_1_financial_operations_hardening
+- npm run db:migrate:status - initial sandbox attempt returned Schema engine error; rerun outside the sandbox PASS, 31 migrations, database schema is up to date
+- npm run final-i:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; rerun outside the sandbox PASS, 72/72
+- TRP_ENVIRONMENT=test npm run final-i:db:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; after a test-only DB fixture size reduction preserved the existing line-order/grouped-extra assertions under the accepted transaction timeout, rerun outside the sandbox PASS, 14/14
 - npm run final-h:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; rerun outside the sandbox PASS, 20/20
 - npm run lint - PASS
 - npm run build - sandbox attempt failed fetching Google Fonts; rerun outside the sandbox PASS

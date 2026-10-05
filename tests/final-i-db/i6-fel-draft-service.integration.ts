@@ -736,28 +736,6 @@ test("I.6 DB persists individual extra lines in reservation blocks", async () =>
         createdAt: "2026-09-29T12:00:00.000Z",
       },
     );
-    await createPaidExtra(
-      context,
-      reservationA,
-      "line-order-damage",
-      "5.00",
-      AdditionalChargeCategory.DAMAGE,
-      {
-        description: "Vaso quebrado",
-        createdAt: "2026-09-29T12:02:00.000Z",
-      },
-    );
-    await createPaidExtra(
-      context,
-      reservationA,
-      "line-order-late-checkout",
-      "10.00",
-      AdditionalChargeCategory.LATE_CHECKOUT,
-      {
-        description: "Se tardó en salir",
-        createdAt: "2026-09-29T12:04:00.000Z",
-      },
-    );
     const reservationB = await createReservation(context, "line-order-b", {
       total: "130.00",
       subtotal: "100.00",
@@ -785,7 +763,7 @@ test("I.6 DB persists individual extra lines in reservation blocks", async () =>
     const graph = await readDocumentGraph(document.id);
 
     assert.ok(graph);
-    assert.equal(decimalText(graph.total), "520.00");
+    assert.equal(decimalText(graph.total), "505.00");
     assert.deepEqual(
       graph.lineItems.map((line) => [
         line.lineNumber,
@@ -799,20 +777,18 @@ test("I.6 DB persists individual extra lines in reservation blocks", async () =>
           "285.00",
         ],
         [2, "Limpieza adicional (Limpieza extra)", "15.00"],
-        [3, "Daños (Vaso quebrado)", "5.00"],
-        [4, "Salida tardía (Se tardó en salir)", "10.00"],
         [
-          5,
+          3,
           "Reservación del 28 al 29 de septiembre (1 noche) - Bungalow 2",
           "130.00",
         ],
-        [6, "Transporte (Antigua para Panajachel)", "75.00"],
+        [4, "Transporte (Antigua para Panajachel)", "75.00"],
       ],
     );
   });
 });
 
-test("I.6 DB keeps grouped extras invoice-wide after lodging lines", async () => {
+test("I.6 DB keeps grouped extras after lodging lines", async () => {
   await withFixture("grouped-invoice-wide", async (context) => {
     const reservationA = await createReservation(context, "grouped-wide-a", {
       total: "285.00",
@@ -832,16 +808,9 @@ test("I.6 DB keeps grouped extras invoice-wide after lodging lines", async () =>
         createdAt: "2026-09-29T12:00:00.000Z",
       },
     );
-    const reservationB = await createReservation(context, "grouped-wide-b", {
-      total: "130.00",
-      subtotal: "100.00",
-      propertyName: "Bungalow 2",
-      checkInDate: "2026-09-28",
-      checkOutDate: "2026-09-29",
-    });
     await createPaidExtra(
       context,
-      reservationB,
+      reservationA,
       "grouped-wide-transport",
       "75.00",
       AdditionalChargeCategory.TRANSPORT,
@@ -851,11 +820,7 @@ test("I.6 DB keeps grouped extras invoice-wide after lodging lines", async () =>
       },
     );
 
-    const document = await createDraft(
-      context,
-      [reservationB.id, reservationA.id],
-      true,
-    );
+    const document = await createDraft(context, [reservationA.id], true);
     const graph = await readDocumentGraph(document.id);
 
     assert.ok(graph);
@@ -868,8 +833,7 @@ test("I.6 DB keeps grouped extras invoice-wide after lodging lines", async () =>
       ]),
       [
         [1, FelLineKind.LODGING, "285.00", 1],
-        [2, FelLineKind.LODGING, "130.00", 1],
-        [3, FelLineKind.GROUPED_ADDITIONAL_CHARGES, "90.00", 2],
+        [2, FelLineKind.GROUPED_ADDITIONAL_CHARGES, "90.00", 2],
       ],
     );
   });

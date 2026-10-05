@@ -9,10 +9,15 @@ import {
 } from "@prisma/client";
 
 import { dateOnlyFromDate } from "@/lib/availability/rules";
+import {
+  deliverAdminPushNotificationsBestEffort,
+  ensureAdditionalChargePaidAdminNotificationIntent,
+} from "@/lib/admin-notifications";
 import { prisma } from "@/lib/db/prisma";
 import {
   createAdditionalChargePaymentApprovedNotificationIntents,
 } from "@/lib/email/additional-charge-notification-intents";
+import { expirePendingGuestPaymentRequests } from "@/lib/payments/guest-payment-request-expiration";
 import { buildGuestPaymentRequestPaymentPath } from "@/lib/payments/guest-payment-request-link";
 import {
   decryptGuestPaymentRequestAccessToken,
@@ -97,6 +102,7 @@ export type ApprovedGuestPaymentRequestPaymentResult = Readonly<{
   paidAt: string;
   alreadyPaid: boolean;
   notificationIds: readonly string[];
+  adminNotificationIds: readonly string[];
 }>;
 
 const paymentRequestPaymentSelect = {
@@ -374,23 +380,6 @@ function assertPayableRequest(
   }
 }
 
-async function expirePendingRequestByHash(
-  tokenHash: string,
-  now: Date,
-  transaction: Prisma.TransactionClient | typeof prisma = prisma,
-): Promise<void> {
-  await transaction.guestPaymentRequest.updateMany({
-    where: {
-      accessTokenHash: tokenHash,
-      status: GuestPaymentRequestStatus.PENDING,
-      expiresAt: { lte: now },
-    },
-    data: {
-      status: GuestPaymentRequestStatus.EXPIRED,
-    },
-  });
-}
-
 async function readRequestByToken(
   rawToken: string,
   options: Readonly<{
@@ -407,7 +396,11 @@ async function readRequestByToken(
   const client = options.transaction ?? prisma;
 
   if (options.expireOverduePending) {
-    await expirePendingRequestByHash(token.tokenHash, now, client);
+    await expirePendingGuestPaymentRequests({
+      accessTokenHash: token.tokenHash,
+      client,
+      now,
+    });
   }
 
   const request = await client.guestPaymentRequest.findUnique({
@@ -494,7 +487,11 @@ export async function prepareGuestPaymentRequestPayment(
   try {
     return await runRequestPaymentTransactionWithRetry(
       async (transaction) => {
-        await expirePendingRequestByHash(token.tokenHash, new Date(), transaction);
+        await expirePendingGuestPaymentRequests({
+          accessTokenHash: token.tokenHash,
+          client: transaction,
+          now: new Date(),
+        });
         const request = await transaction.guestPaymentRequest.findUnique({
           where: { accessTokenHash: token.tokenHash },
           select: paymentRequestPaymentSelect,
@@ -690,7 +687,7 @@ export async function markGuestPaymentRequestPaidFromApprovedPayment(
     paidAt?: Date;
   }>,
 ): Promise<ApprovedGuestPaymentRequestPaymentResult> {
-  return runRequestPaymentTransactionWithRetry(async (transaction) => {
+  const result = await runRequestPaymentTransactionWithRetry(async (transaction) => {
     const now = input.paidAt ?? new Date();
     const payment = await transaction.payment.findUnique({
       where: { id: input.paymentId },
@@ -793,6 +790,7 @@ export async function markGuestPaymentRequestPaidFromApprovedPayment(
         paidAt: request.paidAt.toISOString(),
         alreadyPaid: true,
         notificationIds: [],
+        adminNotificationIds: [],
       };
     }
 
@@ -902,6 +900,11 @@ export async function markGuestPaymentRequestPaidFromApprovedPayment(
           preferredLocale: payment.reservation.preferredLocale,
         },
       );
+    const adminNotificationIntent =
+      await ensureAdditionalChargePaidAdminNotificationIntent(transaction, {
+        reservationId: request.reservationId,
+        guestPaymentRequestId: request.id,
+      });
 
     return {
       requestId: request.id,
@@ -912,6 +915,13 @@ export async function markGuestPaymentRequestPaidFromApprovedPayment(
       notificationIds: notificationIntents
         .filter((notification) => notification.created)
         .map((notification) => notification.id),
+      adminNotificationIds: adminNotificationIntent.created
+        ? [adminNotificationIntent.id]
+        : [],
     };
   });
+
+  await deliverAdminPushNotificationsBestEffort(result.adminNotificationIds);
+
+  return result;
 }

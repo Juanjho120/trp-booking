@@ -47,6 +47,11 @@ const EXPECTED_CRON_JOBS = [
     "expire-pending-reservation-holds",
     "*/5 * * * *",
   ],
+  [
+    "EXPIRE_GUEST_PAYMENT_REQUESTS",
+    "expire-guest-payment-requests",
+    "*/5 * * * *",
+  ],
   ["PROCESS_EMAIL_NOTIFICATIONS", "process-email-notifications", "*/5 * * * *"],
   [
     "SCHEDULE_ARRIVAL_INSTRUCTIONS",
@@ -203,7 +208,7 @@ function ineligibleReason(overrides: Record<string, unknown> = {}): string {
   return result.reason;
 }
 
-test("I.6 adds provider-independent FEL schema and exactly one migration with allocation constraints", () => {
+test("I.6 adds provider-independent FEL schema and preserves the I.6 migration constraints", () => {
   const schema = read("prisma/schema.prisma");
   const migrationPath = path.join(
     ROOT,
@@ -228,7 +233,18 @@ test("I.6 adds provider-independent FEL schema and exactly one migration with al
     assert.match(schema, new RegExp(`\\bmodel\\s+${modelName}\\b`));
   }
 
-  assert.equal(migrations.length, 30);
+  assert.equal(migrations.length, 31);
+  assert.equal(
+    migrations.filter((entry) => entry.name === MIGRATION_DIR).length,
+    1,
+  );
+  assert.ok(
+    migrations.some(
+      (entry) =>
+        entry.name ===
+        "20261005130000_final_i_6_1_financial_operations_hardening",
+    ),
+  );
   assert.equal(existsSync(migrationPath), true);
 
   const migration = read(
@@ -1088,7 +1104,7 @@ test("I.6 documentation records owner acceptance and preserves future boundaries
   );
   assert.match(
     i61Record,
-    /Workstream A status: Timezone resolution correction implemented; Hosted owner revalidation pending/,
+    /Workstream A status: Completed; Hosted owner validation PASS on 2026-10-05/,
   );
   assert.match(i61Record, /Runtime acceptance remains intentionally domain-based/);
   assert.match(i61Record, /Any \/ OR/);
@@ -1100,8 +1116,11 @@ test("I.6 documentation records owner acceptance and preserves future boundaries
   assert.match(i61Record, /Final-I\.9 status: Not started \/ integrated Final-I closure/);
   assert.match(i61Record, /GET \/api\/geo\/phone-country/);
   assert.match(i61Record, /export const revalidate = 300/);
-  assert.match(i61Record, /Prisma schema changes/);
-  assert.match(i61Record, /vercel\.json changes/);
+  assert.match(i61Record, /Workstream B\+C status: Implemented; validation completed; Hosted owner validation pending/);
+  assert.match(i61Record, /20261005130000_final_i_6_1_financial_operations_hardening/);
+  assert.match(i61Record, /enum-only migration/);
+  assert.match(i61Record, /Workstream D status: Not started/);
+  assert.match(i61Record, /vercel\.json.*crons/);
 
   assert.match(record, /Owner Hosted validation: PASS/);
   assert.match(record, /Owner formal acceptance: PASS on 2026-10-02/);

@@ -100,6 +100,12 @@ const acceptedNotificationTypes = [
   "REVIEW_SUBMITTED",
 ] as const;
 
+const finalI61FinancialNotificationTypes = [
+  "ADDITIONAL_CHARGE_PAID",
+  "LIFECYCLE_ADJUSTMENT_PAID",
+  "REFUND_PROCESSED",
+] as const;
+
 test("F.8 exposes the permanent Final-F validation gate", () => {
   assert.equal(
     PACKAGE_JSON.scripts?.["final-f:validate"],
@@ -198,10 +204,13 @@ test("F.8 integrated Android PWA and Web Push foundation remains bounded", () =>
   expectIncludes(DOC_200, "iOS/iPadOS are explicitly deferred");
 });
 
-test("F.8 integrated notification package keeps the six accepted ADMIN classes only", () => {
+test("F.8 integrated notification package keeps accepted classes plus Final-I.6.1 financial additions", () => {
   assert.deepEqual(
     Object.values(AdminNotificationType).sort(),
-    [...acceptedNotificationTypes].sort(),
+    [
+      ...acceptedNotificationTypes,
+      ...finalI61FinancialNotificationTypes,
+    ].sort(),
   );
 
   for (const type of acceptedNotificationTypes) {

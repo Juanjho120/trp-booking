@@ -12,6 +12,10 @@ import {
   ReservationStatus,
 } from "@prisma/client";
 
+import {
+  deliverAdminPushNotificationsBestEffort,
+  ensureRefundProcessedAdminNotificationIntent,
+} from "@/lib/admin-notifications";
 import { prisma } from "@/lib/db/prisma";
 import {
   getReservationFinancialSummary,
@@ -246,6 +250,7 @@ type RefundReconciliationTransactionResult = Readonly<{
   reconciliationResult: AdminRefundReconciliationResult;
   lifecycleNotificationIds: readonly string[];
   ancillaryNotificationIds: readonly string[];
+  adminNotificationIds: readonly string[];
 }>;
 
 export class AdminRefundError extends Error {
@@ -2560,6 +2565,7 @@ export async function reconcileAdminRefund(
           },
           lifecycleNotificationIds: [],
           ancillaryNotificationIds: [],
+          adminNotificationIds: [],
         };
       }
 
@@ -2581,6 +2587,7 @@ export async function reconcileAdminRefund(
           },
           lifecycleNotificationIds: [],
           ancillaryNotificationIds: [],
+          adminNotificationIds: [],
         };
       }
 
@@ -2796,6 +2803,13 @@ export async function reconcileAdminRefund(
               },
             )
           : [];
+      const adminNotificationIntent =
+        input.outcome === "APPROVED"
+          ? await ensureRefundProcessedAdminNotificationIntent(transaction, {
+              reservationId: refund.payment.reservationId,
+              refundId: refund.id,
+            })
+          : null;
 
       await transaction.adminAuditLog.create({
         data: {
@@ -2841,6 +2855,9 @@ export async function reconcileAdminRefund(
             ancillaryNotificationIds: ancillaryNotificationIntents.map(
               ({ id }) => id,
             ),
+            adminPushNotificationCreated:
+              adminNotificationIntent?.created ?? false,
+            adminPushNotificationId: adminNotificationIntent?.id ?? null,
           },
         },
       });
@@ -2858,6 +2875,9 @@ export async function reconcileAdminRefund(
         ancillaryNotificationIds: ancillaryNotificationIntents
           .filter((notification) => notification.created)
           .map(({ id }) => id),
+        adminNotificationIds: adminNotificationIntent?.created
+          ? [adminNotificationIntent.id]
+          : [],
       };
     },
     { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
@@ -2868,6 +2888,9 @@ export async function reconcileAdminRefund(
   );
   await deliverAdditionalChargePaymentNotificationsBestEffort(
     transactionResult.ancillaryNotificationIds,
+  );
+  await deliverAdminPushNotificationsBestEffort(
+    transactionResult.adminNotificationIds,
   );
 
   return transactionResult.reconciliationResult;

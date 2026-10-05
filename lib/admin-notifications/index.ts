@@ -21,7 +21,10 @@ export type { AdminNotificationsDisplayMode } from "./center-routing";
 export {
   calculateNextAdminPushDeliveryAttemptAt,
   deliverAdminPushNotificationsBestEffort,
+  ensureAdditionalChargePaidAdminNotificationIntent,
   ensureDueAdminOperationalReminders,
+  ensureLifecycleAdjustmentPaidAdminNotificationIntent,
+  ensureRefundProcessedAdminNotificationIntent,
   ensureReservationCancelledAdminNotificationIntent,
   ensureReservationConfirmedAdminNotificationIntent,
   ensureReviewSubmittedAdminNotificationIntent,

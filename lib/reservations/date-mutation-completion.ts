@@ -12,6 +12,10 @@ import {
   ReservationStatus,
 } from "@prisma/client";
 
+import {
+  deliverAdminPushNotificationsBestEffort,
+  ensureLifecycleAdjustmentPaidAdminNotificationIntent,
+} from "@/lib/admin-notifications";
 import { checkAccommodationAvailability } from "@/lib/availability/service";
 import {
   buildPreparationBufferRanges,
@@ -218,6 +222,7 @@ type ArrivalIntentResult = Readonly<{
 type CompletionTransactionResult = Readonly<{
   completionResult: ReservationDateMutationCompletionResult;
   notificationIds: readonly string[];
+  adminNotificationIds: readonly string[];
 }>;
 
 function wait(milliseconds: number): Promise<void> {
@@ -810,6 +815,7 @@ async function completeRequestInTransaction(
         input.expectedPaymentId,
       ),
       notificationIds: [],
+      adminNotificationIds: [],
     };
   }
 
@@ -951,6 +957,12 @@ async function completeRequestInTransaction(
       guestEmail: request.reservation.guestEmail,
       preferredLocale: request.reservation.preferredLocale,
     });
+  const adminNotificationIntent = positiveArtifacts
+    ? await ensureLifecycleAdjustmentPaidAdminNotificationIntent(transaction, {
+        reservationId: request.reservationId,
+        lifecycleRequestId: request.id,
+      })
+    : null;
   const actorId = request.reviewedByAdminId ?? request.createdByAdminId;
   const actorEmail = request.reviewedByAdmin?.email ?? null;
 
@@ -1015,6 +1027,8 @@ async function completeRequestInTransaction(
         lifecycleNotificationIds: lifecycleNotificationIntents.map(
           ({ id }) => id,
         ),
+        adminPushNotificationCreated: adminNotificationIntent?.created ?? false,
+        adminPushNotificationId: adminNotificationIntent?.id ?? null,
       },
     },
   });
@@ -1035,6 +1049,9 @@ async function completeRequestInTransaction(
       alreadyCompleted: false,
     },
     notificationIds: lifecycleNotificationIntents.map(({ id }) => id),
+    adminNotificationIds: adminNotificationIntent?.created
+      ? [adminNotificationIntent.id]
+      : [],
   };
 }
 
@@ -1105,6 +1122,9 @@ export async function completePaidDateMutation(
 
   await deliverLifecycleNotificationsBestEffort(
     transactionResult.notificationIds,
+  );
+  await deliverAdminPushNotificationsBestEffort(
+    transactionResult.adminNotificationIds,
   );
 
   return transactionResult.completionResult;

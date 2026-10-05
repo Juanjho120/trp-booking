@@ -601,7 +601,7 @@ test("I.3 service worker falls back to the notification center for missing or in
   expectExcludes(SERVICE_WORKER, "const targetUrl = new URL(targetPath");
 });
 
-test("I.3 keeps the six accepted AdminNotification types unchanged", () => {
+test("I.3 keeps accepted AdminNotification types and records Final-I.6.1 financial additions", () => {
   const notificationType = SCHEMA.match(
     /enum AdminNotificationType \{([\s\S]*?)\n\}/,
   );
@@ -619,6 +619,9 @@ test("I.3 keeps the six accepted AdminNotification types unchanged", () => {
       "CHECK_OUT_MINUS_6H",
       "REVIEW_SUBMITTED",
       "GUEST_EMAIL_RECEIVED",
+      "ADDITIONAL_CHARGE_PAID",
+      "LIFECYCLE_ADJUSTMENT_PAID",
+      "REFUND_PROCESSED",
     ],
   );
 });

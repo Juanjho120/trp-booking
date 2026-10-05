@@ -12,13 +12,19 @@ type PackageJson = Readonly<{
   dependencies: Readonly<Record<string, string>>;
 }>;
 
-const activeNotificationTypes = [
+const finalFAcceptedNotificationTypes = [
   "RESERVATION_CONFIRMED",
   "RESERVATION_CANCELLED",
   "CHECK_IN_MINUS_48H",
   "CHECK_OUT_MINUS_6H",
   "REVIEW_SUBMITTED",
   "GUEST_EMAIL_RECEIVED",
+] as const;
+
+const finalI61FinancialNotificationTypes = [
+  "ADDITIONAL_CHARGE_PAID",
+  "LIFECYCLE_ADJUSTMENT_PAID",
+  "REFUND_PROCESSED",
 ] as const;
 
 test("superseded WhatsApp backend/provider route directories contain no active route files", () => {
@@ -47,7 +53,7 @@ test("active dependencies do not reintroduce Twilio, 360dialog, Meta or Gupshup 
   }
 });
 
-test("ADMIN-only user and the six active notification classes remain exact", () => {
+test("ADMIN-only user remains exact and notification classes add only Final-I.6.1 financial types", () => {
   const schema = readRepoFile("prisma/schema.prisma");
   const userRole = schema.match(/enum UserRole \{([\s\S]*?)\n\}/);
   const notificationType = schema.match(
@@ -58,7 +64,10 @@ test("ADMIN-only user and the six active notification classes remain exact", () 
   assert.deepEqual(extractEnumValues(userRole[1]), ["ADMIN"]);
 
   assert.ok(notificationType, "AdminNotificationType enum should exist");
-  assert.deepEqual(extractEnumValues(notificationType[1]), activeNotificationTypes);
+  assert.deepEqual(extractEnumValues(notificationType[1]), [
+    ...finalFAcceptedNotificationTypes,
+    ...finalI61FinancialNotificationTypes,
+  ]);
 
   assertNoRegexMatch("prisma/schema.prisma", /\bSTAFF\b/);
   assertNoRegexMatch("prisma/schema.prisma", /\bGUEST_WHATSAPP_RECEIVED\b/);

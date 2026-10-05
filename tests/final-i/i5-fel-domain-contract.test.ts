@@ -17,6 +17,11 @@ const EXPECTED_CRON_JOBS = [
     "expire-pending-reservation-holds",
     "*/5 * * * *",
   ],
+  [
+    "EXPIRE_GUEST_PAYMENT_REQUESTS",
+    "expire-guest-payment-requests",
+    "*/5 * * * *",
+  ],
   ["PROCESS_EMAIL_NOTIFICATIONS", "process-email-notifications", "*/5 * * * *"],
   [
     "SCHEDULE_ARRIVAL_INSTRUCTIONS",

@@ -10,6 +10,10 @@ import {
   ReservationStatus,
 } from "@prisma/client";
 
+import {
+  deliverAdminPushNotificationsBestEffort,
+  ensureRefundProcessedAdminNotificationIntent,
+} from "@/lib/admin-notifications";
 import { prisma } from "@/lib/db/prisma";
 import {
   getReservationFinancialSummary,
@@ -153,6 +157,7 @@ type LifecycleRefundForAction = Prisma.RefundGetPayload<{
 type LifecycleRefundReconciliationTransactionResult = Readonly<{
   result: AdminRefundReconciliationResult;
   lifecycleNotificationIds: readonly string[];
+  adminNotificationIds: readonly string[];
 }>;
 
 function isJsonRecord(value: unknown): value is Record<string, unknown> {
@@ -1027,6 +1032,7 @@ export async function reconcileAdminLifecycleAdjustmentRefundIfApplicable(
             alreadyProcessed: true,
           },
           lifecycleNotificationIds: [],
+          adminNotificationIds: [],
         };
       }
 
@@ -1047,6 +1053,7 @@ export async function reconcileAdminLifecycleAdjustmentRefundIfApplicable(
             alreadyProcessed: true,
           },
           lifecycleNotificationIds: [],
+          adminNotificationIds: [],
         };
       }
 
@@ -1219,6 +1226,13 @@ export async function reconcileAdminLifecycleAdjustmentRefundIfApplicable(
               preferredLocale: refund.payment.reservation.preferredLocale,
             })
           : [];
+      const adminNotificationIntent =
+        input.outcome === "APPROVED"
+          ? await ensureRefundProcessedAdminNotificationIntent(transaction, {
+              reservationId: refund.payment.reservationId,
+              refundId: refund.id,
+            })
+          : null;
 
       await transaction.adminAuditLog.create({
         data: {
@@ -1250,6 +1264,9 @@ export async function reconcileAdminLifecycleAdjustmentRefundIfApplicable(
             lifecycleNotificationCount: lifecycleNotificationIntents.length,
             lifecycleNotificationIds:
               lifecycleNotificationIntents.map(({ id }) => id),
+            adminPushNotificationCreated:
+              adminNotificationIntent?.created ?? false,
+            adminPushNotificationId: adminNotificationIntent?.id ?? null,
           },
         },
       });
@@ -1263,6 +1280,9 @@ export async function reconcileAdminLifecycleAdjustmentRefundIfApplicable(
         },
         lifecycleNotificationIds:
           lifecycleNotificationIntents.map(({ id }) => id),
+        adminNotificationIds: adminNotificationIntent?.created
+          ? [adminNotificationIntent.id]
+          : [],
       };
     },
     { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
@@ -1273,6 +1293,9 @@ export async function reconcileAdminLifecycleAdjustmentRefundIfApplicable(
       transactionResult.lifecycleNotificationIds,
     );
   }
+  await deliverAdminPushNotificationsBestEffort(
+    transactionResult.adminNotificationIds,
+  );
 
   return transactionResult.result;
 }

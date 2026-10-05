@@ -1,6 +1,7 @@
 export const cronJobSlugs = [
   "sync-airbnb-calendars",
   "expire-pending-reservation-holds",
+  "expire-guest-payment-requests",
   "process-email-notifications",
   "schedule-arrival-instructions",
   "schedule-review-invitations",
@@ -12,6 +13,7 @@ export type CronJobSlug = (typeof cronJobSlugs)[number];
 export type CronJobKeyValue =
   | "SYNC_AIRBNB_CALENDARS"
   | "EXPIRE_PENDING_RESERVATION_HOLDS"
+  | "EXPIRE_GUEST_PAYMENT_REQUESTS"
   | "PROCESS_EMAIL_NOTIFICATIONS"
   | "SCHEDULE_ARRIVAL_INSTRUCTIONS"
   | "SCHEDULE_REVIEW_INVITATIONS"

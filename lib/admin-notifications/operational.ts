@@ -172,6 +172,9 @@ function buildAdminNotificationCopy(
       CHECK_OUT_MINUS_6H: `Check-out in 6 hours · ${guestName} · ${propertyName}`,
       REVIEW_SUBMITTED: `New review received · ${guestName} · ${propertyName}`,
       GUEST_EMAIL_RECEIVED: `New guest email · ${guestName} · ${propertyName}`,
+      ADDITIONAL_CHARGE_PAID: `Additional charge payment received · ${guestName} · ${propertyName}`,
+      LIFECYCLE_ADJUSTMENT_PAID: `Stay adjustment payment received · ${guestName} · ${propertyName}`,
+      REFUND_PROCESSED: `Refund processed · ${guestName} · ${propertyName}`,
     }[input.type];
 
     return {
@@ -190,6 +193,9 @@ function buildAdminNotificationCopy(
     CHECK_OUT_MINUS_6H: `Check-out en 6 horas · ${guestName} · ${propertyName}`,
     REVIEW_SUBMITTED: `Nueva reseña recibida · ${guestName} · ${propertyName}`,
     GUEST_EMAIL_RECEIVED: `Nuevo correo de huésped · ${guestName} · ${propertyName}`,
+    ADDITIONAL_CHARGE_PAID: `Pago de cargo adicional recibido · ${guestName} · ${propertyName}`,
+    LIFECYCLE_ADJUSTMENT_PAID: `Pago de ajuste de estadía recibido · ${guestName} · ${propertyName}`,
+    REFUND_PROCESSED: `Reembolso procesado · ${guestName} · ${propertyName}`,
   }[input.type];
 
   return {
@@ -479,6 +485,114 @@ export async function ensureReservationCancelledAdminNotificationIntent(
   return ensureAdminOperationalNotificationIntent(transaction, {
     type: AdminNotificationType.RESERVATION_CANCELLED,
     deduplicationKey: `admin-notification/reservation-cancelled/${reservation.id}`,
+    context: {
+      reservationId: reservation.id,
+      reviewId: null,
+      guestName: reservation.guestName,
+      propertyNameEs: reservation.property.nameEs,
+      propertyNameEn: reservation.property.nameEn,
+    },
+    targetPath: resolveAdminNotificationTarget({
+      kind: "reservation",
+      reservationId: reservation.id,
+    }).targetPath,
+    source,
+  });
+}
+
+export async function ensureAdditionalChargePaidAdminNotificationIntent(
+  transaction: Prisma.TransactionClient,
+  input: Readonly<{
+    reservationId: string;
+    guestPaymentRequestId: string;
+  }>,
+  source: NodeJS.ProcessEnv = process.env,
+): Promise<AdminOperationalNotificationIntent> {
+  const reservation = await readReservationNotificationContext(
+    transaction,
+    input.reservationId,
+  );
+  const guestPaymentRequestId = input.guestPaymentRequestId.trim();
+
+  if (!guestPaymentRequestId) {
+    throw new TypeError("Missing admin notification payment request relation.");
+  }
+
+  return ensureAdminOperationalNotificationIntent(transaction, {
+    type: AdminNotificationType.ADDITIONAL_CHARGE_PAID,
+    deduplicationKey: `admin-notification/additional-charge-paid/${guestPaymentRequestId}`,
+    context: {
+      reservationId: reservation.id,
+      reviewId: null,
+      guestName: reservation.guestName,
+      propertyNameEs: reservation.property.nameEs,
+      propertyNameEn: reservation.property.nameEn,
+    },
+    targetPath: resolveAdminNotificationTarget({
+      kind: "reservation",
+      reservationId: reservation.id,
+    }).targetPath,
+    source,
+  });
+}
+
+export async function ensureLifecycleAdjustmentPaidAdminNotificationIntent(
+  transaction: Prisma.TransactionClient,
+  input: Readonly<{
+    reservationId: string;
+    lifecycleRequestId: string;
+  }>,
+  source: NodeJS.ProcessEnv = process.env,
+): Promise<AdminOperationalNotificationIntent> {
+  const reservation = await readReservationNotificationContext(
+    transaction,
+    input.reservationId,
+  );
+  const lifecycleRequestId = input.lifecycleRequestId.trim();
+
+  if (!lifecycleRequestId) {
+    throw new TypeError("Missing admin notification lifecycle request relation.");
+  }
+
+  return ensureAdminOperationalNotificationIntent(transaction, {
+    type: AdminNotificationType.LIFECYCLE_ADJUSTMENT_PAID,
+    deduplicationKey: `admin-notification/lifecycle-adjustment-paid/${lifecycleRequestId}`,
+    context: {
+      reservationId: reservation.id,
+      reviewId: null,
+      guestName: reservation.guestName,
+      propertyNameEs: reservation.property.nameEs,
+      propertyNameEn: reservation.property.nameEn,
+    },
+    targetPath: resolveAdminNotificationTarget({
+      kind: "reservation",
+      reservationId: reservation.id,
+    }).targetPath,
+    source,
+  });
+}
+
+export async function ensureRefundProcessedAdminNotificationIntent(
+  transaction: Prisma.TransactionClient,
+  input: Readonly<{
+    reservationId: string;
+    refundId: string;
+  }>,
+  source: NodeJS.ProcessEnv = process.env,
+): Promise<AdminOperationalNotificationIntent> {
+  const reservation = await readReservationNotificationContext(
+    transaction,
+    input.reservationId,
+  );
+  const refundId = input.refundId.trim();
+
+  if (!refundId) {
+    throw new TypeError("Missing admin notification refund relation.");
+  }
+
+  return ensureAdminOperationalNotificationIntent(transaction, {
+    type: AdminNotificationType.REFUND_PROCESSED,
+    deduplicationKey: `admin-notification/refund-processed/${refundId}`,
     context: {
       reservationId: reservation.id,
       reviewId: null,

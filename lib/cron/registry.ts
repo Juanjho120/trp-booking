@@ -7,6 +7,7 @@ import {
   scheduleArrivalInstructionsNotifications,
   scheduleReviewInvitations,
 } from "@/lib/email";
+import { expirePendingGuestPaymentRequests } from "@/lib/payments/guest-payment-request-expiration";
 import { expirePendingReservationHolds } from "@/lib/reservations/expiration";
 import { expireDueLifecycleAdjustmentHolds } from "@/lib/reservations/lifecycle-adjustment-holds";
 import type {
@@ -105,6 +106,19 @@ const definitions: readonly CronJobDefinition[] = [
         lifecycleAdjustmentExpiredCount: lifecycleResult.expiredCount,
         expiredAt: publicResult.expiredAt,
       });
+    },
+  },
+  {
+    key: "EXPIRE_GUEST_PAYMENT_REQUESTS",
+    slug: "expire-guest-payment-requests",
+    schedule: "*/5 * * * *",
+    safeUnexpectedErrorCode: "GUEST_PAYMENT_REQUEST_EXPIRATION_UNEXPECTED_ERROR",
+    safeUnexpectedErrorMessage:
+      "Guest payment request expiration could not be completed.",
+    async execute() {
+      const result = await expirePendingGuestPaymentRequests();
+
+      return successfulResult(result);
     },
   },
   {

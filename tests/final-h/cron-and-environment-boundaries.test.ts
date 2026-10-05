@@ -13,7 +13,7 @@ type VercelConfig = Readonly<{
   crons?: readonly unknown[];
 }>;
 
-const expectedCronJobs = [
+const expectedFinalHCarryForwardCronJobs = [
   ["SYNC_AIRBNB_CALENDARS", "sync-airbnb-calendars", "*/30 * * * *"],
   [
     "EXPIRE_PENDING_RESERVATION_HOLDS",
@@ -38,7 +38,17 @@ const expectedCronJobs = [
   ],
 ] as const;
 
-test("the current cron registry contains exactly the six accepted Production carry-forward jobs", () => {
+const expectedCronJobs = [
+  ...expectedFinalHCarryForwardCronJobs.slice(0, 2),
+  [
+    "EXPIRE_GUEST_PAYMENT_REQUESTS",
+    "expire-guest-payment-requests",
+    "*/5 * * * *",
+  ],
+  ...expectedFinalHCarryForwardCronJobs.slice(2),
+] as const;
+
+test("the current cron registry contains accepted jobs plus the Final-I.6.1 GPR expiration job", () => {
   const definitions = listCronJobDefinitions();
 
   assert.equal(definitions.length, expectedCronJobs.length);
@@ -64,7 +74,7 @@ test("Final-H cron registry documents review invitations and admin push recovery
     "docs/211-final-h-integrated-regression-and-final-improvement-track-closure.md",
   );
 
-  for (const [, slug, schedule] of expectedCronJobs) {
+  for (const [, slug, schedule] of expectedFinalHCarryForwardCronJobs) {
     assert.ok(document.includes(slug), `docs/211 should document ${slug}`);
     assert.ok(document.includes(schedule), `docs/211 should document ${schedule}`);
   }
