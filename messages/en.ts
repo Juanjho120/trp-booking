@@ -2505,6 +2505,8 @@ export const enMessages = {
           "Airbnb calendar synchronization could not be completed.",
         PENDING_HOLD_EXPIRATION_UNEXPECTED_ERROR:
           "Pending reservation hold expiration could not be completed.",
+        GUEST_PAYMENT_REQUEST_EXPIRATION_UNEXPECTED_ERROR:
+          "Guest payment request expiration could not be completed.",
         EMAIL_DELIVERY_UNAVAILABLE:
           "Email delivery is currently unavailable.",
         EMAIL_NOTIFICATION_PROCESSING_PARTIAL_SUCCESS:

@@ -262,10 +262,103 @@ test("I.6.1 canonical GPR expiration only mutates overdue pending requests", asy
   );
 });
 
+test("I.6.1 canonical GPR expiration global mode expires all overdue pending requests", async () => {
+  const now = new Date("2026-10-05T12:00:00.000Z");
+  const records: ExpirationRecord[] = [
+    {
+      id: "overdue-a",
+      reservationId: "reservation-a",
+      accessTokenHash: "hash-overdue-a",
+      status: GuestPaymentRequestStatus.PENDING,
+      expiresAt: new Date("2026-10-05T11:59:00.000Z"),
+    },
+    {
+      id: "future-a",
+      reservationId: "reservation-a",
+      accessTokenHash: "hash-future-a",
+      status: GuestPaymentRequestStatus.PENDING,
+      expiresAt: new Date("2026-10-05T12:01:00.000Z"),
+    },
+    {
+      id: "paid-a",
+      reservationId: "reservation-a",
+      accessTokenHash: "hash-paid-a",
+      status: GuestPaymentRequestStatus.PAID,
+      expiresAt: new Date("2026-10-05T11:00:00.000Z"),
+    },
+    {
+      id: "cancelled-a",
+      reservationId: "reservation-a",
+      accessTokenHash: "hash-cancelled-a",
+      status: GuestPaymentRequestStatus.CANCELLED,
+      expiresAt: new Date("2026-10-05T11:00:00.000Z"),
+    },
+    {
+      id: "expired-a",
+      reservationId: "reservation-a",
+      accessTokenHash: "hash-expired-a",
+      status: GuestPaymentRequestStatus.EXPIRED,
+      expiresAt: new Date("2026-10-05T11:00:00.000Z"),
+    },
+    {
+      id: "overdue-b",
+      reservationId: "reservation-b",
+      accessTokenHash: "hash-overdue-b",
+      status: GuestPaymentRequestStatus.PENDING,
+      expiresAt: new Date("2026-10-05T10:00:00.000Z"),
+    },
+  ];
+  const { calls, client } = createExpirationClient(records);
+
+  const result = await expirePendingGuestPaymentRequests({ client, now });
+
+  assert.deepEqual(result, {
+    expiredCount: 2,
+    expiredAt: "2026-10-05T12:00:00.000Z",
+  });
+  assert.equal(
+    records.find((record) => record.id === "overdue-a")?.status,
+    "EXPIRED",
+  );
+  assert.equal(
+    records.find((record) => record.id === "future-a")?.status,
+    "PENDING",
+  );
+  assert.equal(records.find((record) => record.id === "paid-a")?.status, "PAID");
+  assert.equal(
+    records.find((record) => record.id === "cancelled-a")?.status,
+    "CANCELLED",
+  );
+  assert.equal(
+    records.find((record) => record.id === "expired-a")?.status,
+    "EXPIRED",
+  );
+  assert.equal(
+    records.find((record) => record.id === "overdue-b")?.status,
+    "EXPIRED",
+  );
+  assert.deepEqual(calls.map((call) => call.where), [
+    {
+      status: GuestPaymentRequestStatus.PENDING,
+      expiresAt: { lte: now },
+    },
+  ]);
+  assert.equal(
+    Object.hasOwn(calls[0]?.where ?? {}, "reservationId"),
+    false,
+  );
+  assert.equal(
+    Object.hasOwn(calls[0]?.where ?? {}, "accessTokenHash"),
+    false,
+  );
+});
+
 test("I.6.1 registers the GPR expiration cron without enabling Vercel schedules", () => {
   const definition = listCronJobDefinitions().find(
     (job) => job.key === "EXPIRE_GUEST_PAYMENT_REQUESTS",
   );
+  const esMessages = read("messages/es.ts");
+  const enMessages = read("messages/en.ts");
 
   assert.ok(definition);
   assert.equal(definition.slug, "expire-guest-payment-requests");
@@ -280,10 +373,24 @@ test("I.6.1 registers the GPR expiration cron without enabling Vercel schedules"
       'handleScheduledCronRequest(request, "expire-guest-payment-requests")',
     ),
   );
+  assert.ok(esMessages.includes("Expirar solicitudes de pago vencidas"));
+  assert.ok(enMessages.includes("Expire overdue payment requests"));
   assert.ok(
-    read("messages/es.ts").includes("Expirar solicitudes de pago vencidas"),
+    esMessages.includes("GUEST_PAYMENT_REQUEST_EXPIRATION_UNEXPECTED_ERROR"),
   );
-  assert.ok(read("messages/en.ts").includes("Expire overdue payment requests"));
+  assert.ok(
+    esMessages.includes(
+      "No se pudo completar la expiración de solicitudes de pago de huéspedes.",
+    ),
+  );
+  assert.ok(
+    enMessages.includes("GUEST_PAYMENT_REQUEST_EXPIRATION_UNEXPECTED_ERROR"),
+  );
+  assert.ok(
+    enMessages.includes(
+      "Guest payment request expiration could not be completed.",
+    ),
+  );
 });
 
 test("I.6.1 financial Admin Push helpers are idempotent and bounded", async () => {

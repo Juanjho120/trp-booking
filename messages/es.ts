@@ -2509,6 +2509,8 @@ export const esMessages = {
           "No se pudo completar la sincronización de calendarios de Airbnb.",
         PENDING_HOLD_EXPIRATION_UNEXPECTED_ERROR:
           "No se pudo completar la expiración de holds de reservaciones pendientes.",
+        GUEST_PAYMENT_REQUEST_EXPIRATION_UNEXPECTED_ERROR:
+          "No se pudo completar la expiración de solicitudes de pago de huéspedes.",
         EMAIL_DELIVERY_UNAVAILABLE:
           "La entrega de correos no está disponible actualmente.",
         EMAIL_NOTIFICATION_PROCESSING_PARTIAL_SUCCESS:
