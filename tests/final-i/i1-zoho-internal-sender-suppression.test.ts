@@ -719,7 +719,7 @@ test("I.1 registers the roadmap, validation script, and F.7 forward note", () =>
   );
   expectIncludes(
     doc212,
-    "Workstream A status: Confidence hardening implemented; Hosted owner revalidation pending",
+    "Workstream A status: Timezone resolution correction implemented; Hosted owner revalidation pending",
   );
   expectIncludes(
     doc212,

@@ -1088,7 +1088,7 @@ test("I.6 documentation records owner acceptance and preserves future boundaries
   );
   assert.match(
     i61Record,
-    /Workstream A status: Confidence hardening implemented; Hosted owner revalidation pending/,
+    /Workstream A status: Timezone resolution correction implemented; Hosted owner revalidation pending/,
   );
   assert.match(i61Record, /Runtime acceptance remains intentionally domain-based/);
   assert.match(i61Record, /Any \/ OR/);

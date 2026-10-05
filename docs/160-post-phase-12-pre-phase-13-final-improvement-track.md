@@ -1324,7 +1324,7 @@ Final-I.5 accepted head — fde3ae06427af1f8905e6f7589263c199f918553
 Final-I.5 implementation and acceptance record — docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md
 Final-I.6 — FEL persistence + Admin draft/selection/preview module — Completed and accepted on 2026-10-02 at 80469abda146d0d50516ab598a514a9ccea2db6d
 Final-I.6 implementation and acceptance record — docs/214-final-i-6-fel-persistence-admin-draft-module.md
-Final-I.6.1 — Interim Operational Hardening — Implementation in progress; Workstream E completed with provider trigger configuration + Hosted validation PASS on 2026-10-02; Workstream A confidence hardening implemented with Hosted owner revalidation pending; Workstream B+C and D Not started
+Final-I.6.1 — Interim Operational Hardening — Implementation in progress; Workstream E completed with provider trigger configuration + Hosted validation PASS on 2026-10-02; Workstream A timezone resolution correction implemented with Hosted owner revalidation pending; Workstream B+C and D Not started
 Final-I.6.1 registration record — docs/215-final-i-6-1-interim-operational-hardening.md
 Final-I.7 — Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 — Not started / reserved for FEL delivery email/PDF/XML/history UX

@@ -8,44 +8,59 @@ export type PhoneCountryInferenceInput = Readonly<{
   timeZone: string | null | undefined;
 }>;
 
-export function resolveCountryFromTimeZone(
+export function getSupportedCountriesForTimeZone(
   timeZone: string | null | undefined,
-): Country | null {
+): readonly Country[] {
   const normalizedTimeZone = timeZone?.trim();
 
   if (!normalizedTimeZone) {
-    return null;
+    return [];
   }
 
   const timezone = getTimezone(normalizedTimeZone);
 
   if (!timezone) {
-    return null;
+    return [];
   }
 
-  const supportedCountries = new Set<Country>();
+  const supportedCountries: Country[] = [];
+  const seenCountries = new Set<Country>();
 
   for (const country of timezone.countries) {
     const supportedCountry = normalizeSupportedCountryCode(country);
 
-    if (supportedCountry) {
-      supportedCountries.add(supportedCountry);
+    if (supportedCountry && !seenCountries.has(supportedCountry)) {
+      seenCountries.add(supportedCountry);
+      supportedCountries.push(supportedCountry);
     }
   }
 
-  if (supportedCountries.size !== 1) {
-    return null;
-  }
+  return supportedCountries;
+}
 
-  return Array.from(supportedCountries)[0] ?? null;
+export function resolveCountryFromTimeZone(
+  timeZone: string | null | undefined,
+): Country | null {
+  return getSupportedCountriesForTimeZone(timeZone)[0] ?? null;
 }
 
 export function resolvePhoneCountryInference({
   ipCountry,
   timeZone,
 }: PhoneCountryInferenceInput): Country | null {
-  return (
-    resolveCountryFromTimeZone(timeZone) ??
-    normalizeSupportedCountryCode(ipCountry)
-  );
+  const normalizedIpCountry = normalizeSupportedCountryCode(ipCountry);
+  const supportedTimeZoneCountries = getSupportedCountriesForTimeZone(timeZone);
+
+  if (supportedTimeZoneCountries.length === 0) {
+    return normalizedIpCountry;
+  }
+
+  if (
+    normalizedIpCountry &&
+    supportedTimeZoneCountries.includes(normalizedIpCountry)
+  ) {
+    return normalizedIpCountry;
+  }
+
+  return supportedTimeZoneCountries[0] ?? null;
 }

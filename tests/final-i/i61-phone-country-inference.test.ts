@@ -7,6 +7,7 @@ import { getTimezone } from "countries-and-timezones";
 import { GET as getPhoneCountry } from "@/app/api/geo/phone-country/route";
 import { normalizeSupportedCountryCode } from "@/lib/geo/countries";
 import {
+  getSupportedCountriesForTimeZone,
   resolveCountryFromTimeZone,
   resolvePhoneCountryInference,
 } from "@/lib/geo/phone-country-inference";
@@ -87,28 +88,65 @@ test("I.6.1 phone-country endpoint exposes only the bounded country result", asy
   assert.doesNotMatch(route, /getAdminSession|auth\(|session|prisma|database/i);
 });
 
-test("I.6.1 resolves only uniquely attributable browser timezones", () => {
-  const ambiguousTimezone = getTimezone("America/Phoenix");
-  const ambiguousSupportedCountries =
-    ambiguousTimezone?.countries
-      .map((country) => normalizeSupportedCountryCode(country))
-      .filter((country): country is NonNullable<typeof country> => country !== null) ??
-    [];
+test("I.6.1 preserves ordered timezone countries from the package metadata", () => {
+  assert.deepEqual(getTimezone("Europe/London")?.countries, [
+    "GB",
+    "GG",
+    "IM",
+    "JE",
+  ]);
+  assert.deepEqual(getTimezone("Asia/Tokyo")?.countries, ["JP", "AU"]);
+  assert.deepEqual(getTimezone("America/Phoenix")?.countries, ["US", "CA"]);
 
   assert.ok(
-    ambiguousSupportedCountries.length > 1,
+    (getTimezone("Europe/London")?.countries.length ?? 0) > 1,
+    "Europe/London must remain an actual multi-country timezone in the dependency data",
+  );
+  assert.ok(
+    (getTimezone("Asia/Tokyo")?.countries.length ?? 0) > 1,
+    "Asia/Tokyo must remain an actual multi-country timezone in the dependency data",
+  );
+  assert.ok(
+    (getTimezone("America/Phoenix")?.countries.length ?? 0) > 1,
     "America/Phoenix must remain an actual multi-country timezone in the dependency data",
+  );
+
+  const tokyoSupportedCountries = Array.from(
+    getSupportedCountriesForTimeZone("Asia/Tokyo"),
+  );
+  const phoenixSupportedCountries = Array.from(
+    getSupportedCountriesForTimeZone("America/Phoenix"),
+  );
+
+  assert.deepEqual(getSupportedCountriesForTimeZone("Europe/London"), [
+    "GB",
+    "GG",
+    "IM",
+    "JE",
+  ]);
+  assert.deepEqual(tokyoSupportedCountries, ["JP", "AU"]);
+  assert.deepEqual(phoenixSupportedCountries, ["US", "CA"]);
+  assert.notDeepEqual(tokyoSupportedCountries, [...tokyoSupportedCountries].sort());
+  assert.notDeepEqual(
+    phoenixSupportedCountries,
+    [...phoenixSupportedCountries].sort(),
   );
   assert.equal(resolveCountryFromTimeZone("America/Guatemala"), "GT");
   assert.equal(resolveCountryFromTimeZone("America/New_York"), "US");
-  assert.equal(resolveCountryFromTimeZone("America/Phoenix"), null);
+  assert.equal(resolveCountryFromTimeZone("Europe/London"), "GB");
+  assert.equal(resolveCountryFromTimeZone("Asia/Tokyo"), "JP");
+  assert.equal(resolveCountryFromTimeZone("America/Phoenix"), "US");
   assert.equal(resolveCountryFromTimeZone(""), null);
+  assert.deepEqual(getSupportedCountriesForTimeZone(""), []);
   assert.equal(resolveCountryFromTimeZone("Not/A_Timezone"), null);
+  assert.deepEqual(getSupportedCountriesForTimeZone("Not/A_Timezone"), []);
   assert.equal(resolveCountryFromTimeZone(null), null);
+  assert.deepEqual(getSupportedCountriesForTimeZone(null), []);
   assert.equal(resolveCountryFromTimeZone(undefined), null);
+  assert.deepEqual(getSupportedCountriesForTimeZone(undefined), []);
 });
 
-test("I.6.1 prioritizes unique browser timezone over Vercel IP country", () => {
+test("I.6.1 uses IP agreement to disambiguate or falls back to primary timezone country", () => {
   assert.equal(
     resolvePhoneCountryInference({
       ipCountry: "US",
@@ -120,6 +158,55 @@ test("I.6.1 prioritizes unique browser timezone over Vercel IP country", () => {
     resolvePhoneCountryInference({
       ipCountry: "US",
       timeZone: "America/New_York",
+    }),
+    "US",
+  );
+  assert.equal(
+    resolvePhoneCountryInference({
+      ipCountry: "US",
+      timeZone: "Europe/London",
+    }),
+    "GB",
+  );
+  assert.equal(
+    resolvePhoneCountryInference({
+      ipCountry: "US",
+      timeZone: "Asia/Tokyo",
+    }),
+    "JP",
+  );
+  assert.equal(
+    resolvePhoneCountryInference({
+      ipCountry: "GG",
+      timeZone: "Europe/London",
+    }),
+    "GG",
+  );
+  assert.equal(
+    resolvePhoneCountryInference({
+      ipCountry: "AU",
+      timeZone: "Asia/Tokyo",
+    }),
+    "AU",
+  );
+  assert.equal(
+    resolvePhoneCountryInference({
+      ipCountry: "CA",
+      timeZone: "America/Phoenix",
+    }),
+    "CA",
+  );
+  assert.equal(
+    resolvePhoneCountryInference({
+      ipCountry: "US",
+      timeZone: "America/Phoenix",
+    }),
+    "US",
+  );
+  assert.equal(
+    resolvePhoneCountryInference({
+      ipCountry: "MX",
+      timeZone: "America/Phoenix",
     }),
     "US",
   );
@@ -139,10 +226,31 @@ test("I.6.1 prioritizes unique browser timezone over Vercel IP country", () => {
   );
   assert.equal(
     resolvePhoneCountryInference({
+      ipCountry: "US",
+      timeZone: "Not/A_Timezone",
+    }),
+    "US",
+  );
+  assert.equal(
+    resolvePhoneCountryInference({
       ipCountry: "ZZ",
       timeZone: "America/Guatemala",
     }),
     "GT",
+  );
+  assert.equal(
+    resolvePhoneCountryInference({
+      ipCountry: "ZZ",
+      timeZone: "Europe/London",
+    }),
+    "GB",
+  );
+  assert.equal(
+    resolvePhoneCountryInference({
+      ipCountry: "ZZ",
+      timeZone: "Asia/Tokyo",
+    }),
+    "JP",
   );
   assert.equal(
     resolvePhoneCountryInference({
@@ -155,6 +263,13 @@ test("I.6.1 prioritizes unique browser timezone over Vercel IP country", () => {
     resolvePhoneCountryInference({
       ipCountry: null,
       timeZone: null,
+    }),
+    null,
+  );
+  assert.equal(
+    resolvePhoneCountryInference({
+      ipCountry: undefined,
+      timeZone: undefined,
     }),
     null,
   );

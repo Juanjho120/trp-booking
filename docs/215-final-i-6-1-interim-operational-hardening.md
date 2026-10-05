@@ -11,7 +11,7 @@ Final-I.6.1 status: Implementation in progress
 Registration record: docs/215-final-i-6-1-interim-operational-hardening.md
 Registration base: 1fd728567b739100e51dea41aeb6da3f23cc6c19
 Workstream E status: Completed; provider trigger configuration + Hosted validation PASS on 2026-10-02
-Workstream A status: Confidence hardening implemented; Hosted owner revalidation pending
+Workstream A status: Timezone resolution correction implemented; Hosted owner revalidation pending
 Workstream B+C status: Not started
 Workstream D status: Not started
 Final-I.6 status: Completed and accepted on 2026-10-02
@@ -22,7 +22,7 @@ Final-I.9 status: Not started / integrated Final-I closure
 Phase 13 status: Blocked / Not started until Final-I closes
 ```
 
-Final-I.6.1 is an owner-requested, provider-independent interim hardening package registered while Final-I.7 remains blocked by missing official INFILE technical documentation and Test credentials. Workstream E is completed through provider-side Zoho trigger configuration plus Hosted validation PASS on 2026-10-02. Workstream A confidence hardening is implemented as a bounded guest phone-country convenience default and remains pending Hosted owner revalidation. This does not reopen Final-I.6, does not replace the accepted Final-I.6 feature head, and does not supersede Final-I.7.
+Final-I.6.1 is an owner-requested, provider-independent interim hardening package registered while Final-I.7 remains blocked by missing official INFILE technical documentation and Test credentials. Workstream E is completed through provider-side Zoho trigger configuration plus Hosted validation PASS on 2026-10-02. Workstream A timezone resolution correction is implemented as a bounded guest phone-country convenience default and remains pending Hosted owner revalidation. This does not reopen Final-I.6, does not replace the accepted Final-I.6 feature head, and does not supersede Final-I.7.
 
 ## Purpose
 
@@ -56,7 +56,7 @@ Frozen architecture:
 
 ```text
 Signals: browser IANA timezone + x-vercel-ip-country
-Priority: MANUAL > uniquely attributable browser timezone country > Vercel IP country > GT fallback
+Priority: MANUAL > browser timezone country with IP-country agreement or primary timezone country > Vercel IP country > GT fallback
 Expected IP-country value: ISO-3166-1 alpha-2 country code, for example GT, US, MX
 Expected timezone value: IANA timezone name, for example America/Guatemala
 Timezone data source: countries-and-timezones ^3.10.0 static local data
@@ -68,8 +68,11 @@ Fallback: GT
 The implementation:
 
 ```text
-- uses browser IANA timezone as the stronger non-authoritative convenience signal only when it maps to exactly one supported phone country;
-- treats multi-country timezone mappings as ambiguous and falls through to the Vercel IP-country signal;
+- uses browser IANA timezone as the stronger non-authoritative convenience signal when it maps to supported phone countries;
+- preserves the ordered timezone-country metadata from `countries-and-timezones` without alphabetical sorting;
+- uses a normalized Vercel IP-country value to disambiguate a shared timezone only when the IP country is one of the timezone's supported countries;
+- otherwise uses the timezone's first/primary supported country;
+- falls back to the Vercel IP-country signal only when the timezone is missing, invalid, or has no supported phone countries;
 - uses coarse Vercel request-IP country metadata only through the `x-vercel-ip-country` header;
 - exposes a public read-only `GET /api/geo/phone-country` endpoint returning only `{ country }`;
 - validates the ISO2 value with `normalizeSupportedCountryCode(...)` from the supported phone-country catalog;
@@ -85,7 +88,7 @@ The implementation:
 - avoids persisting raw IP, city, latitude, longitude, postal code, provider geo metadata, browser timezone, inferred metadata, or any inferred-country field.
 ```
 
-Initial Workstream A Hosted validation discovered a real IP-country false positive: physical Guatemala / VPN OFF / Vercel country US. The confidence hardening keeps the original bounded endpoint but resolves the client-side convenience default through `resolvePhoneCountryInference(...)`, where `America/Guatemala` wins over `US`, ambiguous timezones return null, invalid or missing timezones fall back to the validated IP country, and manual guest selection remains authoritative.
+Initial Workstream A Hosted validation discovered a real IP-country false positive: physical Guatemala / VPN OFF / Vercel country US. The confidence hardening kept the original bounded endpoint and made `America/Guatemala` win over `US`, but the first timezone-confidence implementation treated every multi-country IANA timezone as ambiguous. Hosted Sensors validation showed this was too conservative: Europe/London and Asia/Tokyo both fell back to the inaccurate Vercel US IP country. The corrected policy preserves ordered timezone-country metadata and uses an agreeing IP country to disambiguate; otherwise it uses the timezone's primary supported country. Current concrete outcomes include `US + America/Guatemala -> GT`, `US + Europe/London -> GB`, `US + Asia/Tokyo -> JP`, `GG + Europe/London -> GG`, `AU + Asia/Tokyo -> AU`, `CA + America/Phoenix -> CA`, `US + America/Phoenix -> US`, and `MX + America/Phoenix -> US`. Invalid or missing timezones still fall back to the validated IP country, invalid IP plus valid timezone still uses the timezone country, and manual guest selection remains authoritative.
 
 The inferred country is only a convenience default and must never be treated as authoritative identity, residency, or location evidence. Reservation persistence continues to store only the existing booking contract fields: `guestCountry`, `countryDialCode`, and `guestPhoneLocal`.
 
@@ -457,5 +460,13 @@ Workstream A confidence hardening validation:
 - npm run lint - PASS
 - npm run build - sandbox attempt failed fetching Google Fonts; rerun outside the sandbox PASS
 - npm audit --omit=dev - PASS, 0 vulnerabilities
+- git diff --check - PASS; Windows CRLF normalization warnings only
+
+Workstream A timezone resolution correction validation:
+- npm run final-i:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; rerun outside the sandbox PASS, 67/67
+- npm run final-h:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; rerun outside the sandbox PASS, 20/20
+- npm run lint - PASS
+- npm run build - sandbox attempt failed fetching Google Fonts; rerun outside the sandbox PASS
+- npm audit --omit=dev - sandbox attempt failed against the npm audit endpoint/cache; rerun outside the sandbox PASS, 0 vulnerabilities
 - git diff --check - PASS; Windows CRLF normalization warnings only
 ```
