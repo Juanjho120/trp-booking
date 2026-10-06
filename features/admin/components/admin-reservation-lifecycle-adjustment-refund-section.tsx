@@ -575,7 +575,7 @@ export function AdminReservationLifecycleAdjustmentRefundSection({
                 key={request.id}
                 value={`request:${request.id}`}
               >
-                <AccordionTrigger className="px-4 py-3 hover:bg-muted/40 sm:px-5">
+                <AccordionTrigger className="px-4 py-3 sm:px-5">
                   <div className="grid min-w-0 flex-1 gap-2 pr-2 text-left sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
@@ -703,7 +703,7 @@ export function AdminReservationLifecycleAdjustmentRefundSection({
                   key={refund.id}
                   value={`refund:${refund.id}`}
                 >
-                  <AccordionTrigger className="px-4 py-3 hover:bg-muted/40 sm:px-5">
+                  <AccordionTrigger className="px-4 py-3 sm:px-5">
                     <div className="grid min-w-0 flex-1 gap-2 pr-2 text-left sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
                       <div className="min-w-0">
                         <p className="break-all text-sm font-semibold">

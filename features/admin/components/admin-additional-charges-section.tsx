@@ -1076,10 +1076,16 @@ export function AdminAdditionalChargesSection({
           ) : null}
 
           <Tabs className="grid gap-5" defaultValue="charges">
-            <TabsList className="w-full justify-start overflow-x-auto sm:w-auto">
-              <TabsTrigger value="charges">{copy.tabs.charges}</TabsTrigger>
-              <TabsTrigger value="requests">{copy.tabs.requests}</TabsTrigger>
-            </TabsList>
+            <div className="-mx-1 overflow-x-auto px-1 pb-2">
+              <TabsList className="inline-flex h-auto min-w-full justify-start gap-1 rounded-2xl border border-border/70 bg-muted/40 p-1.5 sm:min-w-0">
+                <TabsTrigger className="min-h-10 shrink-0" value="charges">
+                  {copy.tabs.charges}
+                </TabsTrigger>
+                <TabsTrigger className="min-h-10 shrink-0" value="requests">
+                  {copy.tabs.requests}
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
             <TabsContent className="mt-0 space-y-4" value="charges">
               <section className="space-y-4">
@@ -1132,7 +1138,7 @@ export function AdminAdditionalChargesSection({
                               <Check aria-hidden="true" className="size-4" />
                             </Button>
                             <div className="min-w-0">
-                              <AccordionTrigger className="min-w-0 w-full rounded-xl px-3 py-2 hover:bg-muted/40">
+                              <AccordionTrigger className="min-w-0 w-full rounded-xl px-3 py-2">
                                 <span className="grid min-w-0 flex-1 gap-3 pr-2 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
                                   <span className="min-w-0">
                                     <span className="flex flex-wrap items-center gap-2">
@@ -1334,7 +1340,7 @@ export function AdminAdditionalChargesSection({
                         key={request.id}
                         value={request.id}
                       >
-                        <AccordionTrigger className="px-4 py-3 hover:bg-muted/40 sm:px-5">
+                        <AccordionTrigger className="px-4 py-3 sm:px-5">
                           <span className="grid min-w-0 flex-1 gap-3 pr-2 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
                             <span className="min-w-0">
                               <span className="flex flex-wrap items-center gap-2">

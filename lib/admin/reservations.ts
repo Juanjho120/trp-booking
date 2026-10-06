@@ -14,7 +14,7 @@ import type {
   AdminReservationsPageData,
 } from "@/types/admin-reservations";
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 5;
 
 function normalizePage(value: number | undefined): number {
   return Number.isInteger(value) && (value ?? 0) > 0 ? value! : 1;

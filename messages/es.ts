@@ -905,6 +905,7 @@ export const esMessages = {
       actions: {
         review: "Revisar",
         viewAll: "Ver todas",
+        viewReservation: "Ver reservación",
       },
       upcomingArrivalsDescription:
         "Las cinco próximas reservas confirmadas, ordenadas por fecha de entrada.",

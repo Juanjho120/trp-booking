@@ -7,6 +7,7 @@ import {
   CalendarClock,
   CalendarX2,
   CreditCard,
+  ExternalLink,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -130,14 +131,14 @@ export function AdminDashboardPage({
           <div className="grid gap-3">
             {summary.upcomingArrivals.map((arrival) => (
               <Card className="border-border/70 bg-card shadow-sm" key={arrival.id} size="sm">
-                <CardContent className="grid gap-4 py-4 sm:grid-cols-[1fr_auto] sm:items-center">
+                <CardContent className="grid gap-4 py-4 lg:grid-cols-[minmax(0,1fr)_auto_auto] lg:items-center">
                   <div>
                     <p className="font-medium text-foreground">{arrival.guestName}</p>
                     <p className="mt-1 text-sm text-muted-foreground">
                       {locale === "en" ? arrival.property.nameEn : arrival.property.nameEs}
                     </p>
                   </div>
-                  <div className="text-sm sm:text-right">
+                  <div className="text-sm lg:text-right">
                     <p className="font-medium text-foreground">
                       {formatDate(arrival.checkInDate)} — {formatDate(arrival.checkOutDate)}
                     </p>
@@ -145,6 +146,12 @@ export function AdminDashboardPage({
                       {copy.labels.guests}: {arrival.guestCount}
                     </p>
                   </div>
+                  <Button asChild className="w-full lg:w-auto" variant="outline">
+                    <Link href={`/admin/reservations/${encodeURIComponent(arrival.id)}`}>
+                      {copy.actions.viewReservation}
+                      <ExternalLink aria-hidden="true" />
+                    </Link>
+                  </Button>
                 </CardContent>
               </Card>
             ))}

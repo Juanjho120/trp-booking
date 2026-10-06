@@ -903,6 +903,7 @@ export const enMessages = {
       actions: {
         review: "Review",
         viewAll: "View all",
+        viewReservation: "View reservation",
       },
       upcomingArrivalsDescription:
         "The next five confirmed reservations ordered by check-in date.",

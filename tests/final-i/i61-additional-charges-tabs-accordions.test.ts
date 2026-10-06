@@ -27,9 +27,17 @@ test("I.6.1 D additional charges UI uses localized nested tabs", () => {
 
   expectIncludes(component, "} from \"@/components/ui/tabs\";");
   expectIncludes(component, "<Tabs className=\"grid gap-5\" defaultValue=\"charges\">");
-  expectIncludes(component, "<TabsList");
-  expectIncludes(component, "<TabsTrigger value=\"charges\">{copy.tabs.charges}</TabsTrigger>");
-  expectIncludes(component, "<TabsTrigger value=\"requests\">{copy.tabs.requests}</TabsTrigger>");
+  expectIncludes(component, "<div className=\"-mx-1 overflow-x-auto px-1 pb-2\">");
+  expectIncludes(
+    component,
+    "<TabsList className=\"inline-flex h-auto min-w-full justify-start gap-1 rounded-2xl border border-border/70 bg-muted/40 p-1.5 sm:min-w-0\">",
+  );
+  assert.doesNotMatch(
+    component,
+    /<TabsList className="w-full justify-start overflow-x-auto sm:w-auto">/,
+  );
+  expectIncludes(component, "<TabsTrigger className=\"min-h-10 shrink-0\" value=\"charges\">");
+  expectIncludes(component, "<TabsTrigger className=\"min-h-10 shrink-0\" value=\"requests\">");
   expectIncludes(component, "<TabsContent className=\"mt-0 space-y-4\" value=\"charges\">");
   expectIncludes(component, "<TabsContent className=\"mt-0 space-y-4\" value=\"requests\">");
   expectIncludes(es, "tabs: {");
@@ -65,7 +73,7 @@ test("I.6.1 D charge accordion trigger stretches beside the selector", () => {
   );
   expectIncludes(
     component,
-    "<AccordionTrigger className=\"min-w-0 w-full rounded-xl px-3 py-2 hover:bg-muted/40\">",
+    "<AccordionTrigger className=\"min-w-0 w-full rounded-xl px-3 py-2\">",
   );
   assert.ok(
     component.indexOf("grid-cols-[auto_minmax(0,1fr)]") <

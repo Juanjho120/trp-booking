@@ -5,6 +5,12 @@ import { useRouter } from "next/navigation";
 import { ExternalLink, Star } from "lucide-react";
 import { useRef, useState } from "react";
 
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -309,19 +315,22 @@ export function AdminReviewsPageView({
       </div>
 
       {data.reviews.length > 0 ? (
-        <div className="grid gap-4">
+        <Accordion className="grid gap-3" collapsible type="single">
           {data.reviews.map((review) => {
             const targetStatus = targetForReview(review);
+            const submittedAt = formatDateTime(review.submittedAt);
+            const reviewPropertyName = propertyName(review);
 
             return (
-              <Card
-                className="border-border/70 bg-card shadow-sm"
+              <AccordionItem
+                className="overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm last:border-b"
                 key={review.id}
+                value={review.id}
               >
-                <CardContent className="grid gap-5 p-5">
-                  <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
+                <AccordionTrigger className="px-4 py-3 sm:px-5 sm:py-4">
+                  <span className="grid min-w-0 flex-1 gap-3 pr-2 text-left lg:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)_auto] lg:items-center">
+                    <span className="min-w-0">
+                      <span className="flex flex-wrap items-center gap-2">
                         <Badge variant="outline">
                           {statusLabel(review.moderationStatus)}
                         </Badge>
@@ -336,13 +345,51 @@ export function AdminReviewsPageView({
                             ),
                           )}
                         </span>
-                      </div>
-                      <h2 className="mt-3 text-xl font-semibold tracking-tight">
+                      </span>
+                      <span className="mt-2 block truncate text-base font-semibold text-foreground">
                         {review.guestDisplayName}
-                      </h2>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {propertyName(review)}
-                      </p>
+                      </span>
+                    </span>
+
+                    <span className="min-w-0 text-sm text-muted-foreground">
+                      <span className="block truncate">{reviewPropertyName}</span>
+                      <span className="mt-1 block">
+                        {copy.labels.submittedAt}: {submittedAt}
+                      </span>
+                    </span>
+
+                    <span className="text-sm font-medium text-muted-foreground">
+                      {copy.labels.rating}: {review.rating}/5
+                    </span>
+                  </span>
+                </AccordionTrigger>
+
+                <AccordionContent className="border-t border-border/70 px-4 pt-4 sm:px-5">
+                  <div className="grid gap-5">
+                    <p className="whitespace-pre-wrap rounded-2xl border border-border/70 bg-muted/20 p-4 text-sm leading-6">
+                      {review.comment}
+                    </p>
+
+                    <div className="grid gap-3 text-sm sm:grid-cols-2 xl:grid-cols-4">
+                      <ReviewMetric
+                        label={copy.labels.submittedAt}
+                        value={submittedAt}
+                      />
+                      <ReviewMetric
+                        label={copy.labels.publishedAt}
+                        value={formatDateTime(review.publishedAt)}
+                      />
+                      <ReviewMetric
+                        label={copy.labels.moderatedAt}
+                        value={formatDateTime(review.moderatedAt)}
+                      />
+                      <ReviewMetric
+                        label={copy.labels.moderatedBy}
+                        value={
+                          review.moderatedByAdmin?.email ??
+                          copy.labels.unavailable
+                        }
+                      />
                     </div>
 
                     <div className="flex flex-wrap gap-2">
@@ -369,37 +416,11 @@ export function AdminReviewsPageView({
                       ) : null}
                     </div>
                   </div>
-
-                  <p className="whitespace-pre-wrap rounded-2xl border border-border/70 bg-muted/20 p-4 text-sm leading-6">
-                    {review.comment}
-                  </p>
-
-                  <div className="grid gap-3 text-sm sm:grid-cols-2 xl:grid-cols-4">
-                    <ReviewMetric
-                      label={copy.labels.submittedAt}
-                      value={formatDateTime(review.submittedAt)}
-                    />
-                    <ReviewMetric
-                      label={copy.labels.publishedAt}
-                      value={formatDateTime(review.publishedAt)}
-                    />
-                    <ReviewMetric
-                      label={copy.labels.moderatedAt}
-                      value={formatDateTime(review.moderatedAt)}
-                    />
-                    <ReviewMetric
-                      label={copy.labels.moderatedBy}
-                      value={
-                        review.moderatedByAdmin?.email ??
-                        copy.labels.unavailable
-                      }
-                    />
-                  </div>
-                </CardContent>
-              </Card>
+                </AccordionContent>
+              </AccordionItem>
             );
           })}
-        </div>
+        </Accordion>
       ) : (
         <Card className="border-dashed bg-muted/20 shadow-none">
           <CardContent className="py-10 text-center text-sm text-muted-foreground">

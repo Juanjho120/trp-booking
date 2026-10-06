@@ -1205,7 +1205,7 @@ function RefundOperationCard({
       className="overflow-hidden rounded-2xl border border-border bg-muted/20 last:border-b"
       value={`operation:${group.id}`}
     >
-      <AccordionTrigger className="px-4 py-3 hover:bg-muted/40 sm:px-5">
+      <AccordionTrigger className="px-4 py-3 sm:px-5">
         <div className="grid min-w-0 flex-1 gap-3 pr-2 text-left sm:grid-cols-[minmax(0,1.4fr)_minmax(0,0.7fr)_minmax(0,0.9fr)_auto] sm:items-center">
           <div className="min-w-0">
             <p className="text-xs uppercase tracking-wide text-muted-foreground">

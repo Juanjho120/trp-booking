@@ -343,7 +343,7 @@ export function AdminPublicLocationPage({
                         key={entry.id}
                         value={entry.id}
                       >
-                        <AccordionTrigger className="px-4 py-3 hover:bg-muted/40 sm:px-5">
+                        <AccordionTrigger className="px-4 py-3 sm:px-5">
                           <div className="grid min-w-0 flex-1 gap-2 pr-2 text-left sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
                             <div className="min-w-0">
                               <p className="truncate text-sm font-semibold">{actor}</p>

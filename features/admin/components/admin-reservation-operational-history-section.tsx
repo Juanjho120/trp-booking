@@ -198,7 +198,7 @@ export function AdminReservationOperationalHistorySection({
                   key={event.id}
                   value={event.id}
                 >
-                  <AccordionTrigger className="px-4 py-3 hover:bg-muted/40 sm:px-5">
+                  <AccordionTrigger className="px-4 py-3 sm:px-5">
                     <div className="flex min-w-0 flex-1 items-start gap-3 pr-2 text-left">
                       <div className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-background">
                         {categoryIcon(event.category)}

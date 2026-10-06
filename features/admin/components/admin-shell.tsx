@@ -205,22 +205,24 @@ export function AdminShell({
 
   return (
     <div className="min-h-screen bg-muted/20 text-foreground lg:grid lg:grid-cols-[17rem_minmax(0,1fr)]">
-      <aside className="sticky top-0 hidden h-screen flex-col border-r border-border bg-background p-5 lg:flex">
-        <Link className="flex items-center gap-3" href="/admin">
-          <span className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-border/70 bg-white shadow-sm">
-            <BrandMark alt="" className="w-11" sizes="44px" width={44} />
-          </span>
-          <div className="min-w-0">
-            <p className="truncate text-sm font-semibold">{copy.brandLabel}</p>
-            <p className="truncate text-xs text-muted-foreground">
-              {siteConfig.brandName}
-            </p>
-          </div>
-        </Link>
-        <div className="mt-8">
+      <aside className="sticky top-0 hidden h-screen min-h-0 flex-col border-r border-border bg-background lg:flex">
+        <div className="shrink-0 border-b border-border/70 p-5">
+          <Link className="flex items-center gap-3" href="/admin">
+            <span className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-border/70 bg-white shadow-sm">
+              <BrandMark alt="" className="w-11" sizes="44px" width={44} />
+            </span>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold">{copy.brandLabel}</p>
+              <p className="truncate text-xs text-muted-foreground">
+                {siteConfig.brandName}
+              </p>
+            </div>
+          </Link>
+        </div>
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
           <NavigationLinks />
         </div>
-        <div className="mt-auto">
+        <div className="shrink-0 border-t border-border/70 p-5">
           <AccountActions />
         </div>
       </aside>
@@ -243,10 +245,10 @@ export function AdminShell({
                 </SheetTrigger>
                 <SheetContent
                   closeLabel={copy.closeMenu}
-                  className="p-0"
+                  className="min-h-0 gap-0 p-0"
                   side="left"
                 >
-                  <SheetHeader>
+                  <SheetHeader className="shrink-0">
                     <div className="flex items-center gap-3">
                       <span className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-border/70 bg-white shadow-sm">
                         <BrandMark alt="" className="w-10" sizes="40px" width={40} />
@@ -257,11 +259,11 @@ export function AdminShell({
                       </div>
                     </div>
                   </SheetHeader>
-                  <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-5 pb-5">
+                  <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
                     <NavigationLinks mobile />
-                    <div className="mt-auto">
-                      <AccountActions />
-                    </div>
+                  </div>
+                  <div className="shrink-0 border-t border-border/70 px-5 py-5">
+                    <AccountActions />
                   </div>
                 </SheetContent>
               </Sheet>
