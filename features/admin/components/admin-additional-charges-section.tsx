@@ -14,7 +14,12 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { Accordion } from "@/components/ui/accordion";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,6 +44,12 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 import { useLocale } from "@/features/i18n";
 import {
   ADDITIONAL_CHARGE_CATEGORIES,
@@ -1050,7 +1061,7 @@ export function AdminAdditionalChargesSection({
             {copy.actions.createCharge}
           </Button>
         </CardHeader>
-        <CardContent className="grid gap-8">
+        <CardContent className="grid gap-6">
           <div className="rounded-2xl border border-primary/15 bg-primary/5 p-4 text-sm leading-6 text-muted-foreground">
             <p className="font-medium text-foreground">
               {copy.notes.financialIsolationTitle}
@@ -1064,415 +1075,474 @@ export function AdminAdditionalChargesSection({
             </p>
           ) : null}
 
-          <section className="space-y-4">
-            <div className="flex flex-wrap items-end justify-between gap-3">
-              <div>
-                <h3 className="text-lg font-semibold">
-                  {copy.sections.charges}
-                </h3>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {copy.notes.chargeBoundary}
-                </p>
-              </div>
-              <Button
-                disabled={selectedCharges.length === 0}
-                onClick={openPaymentRequestSheet}
-                type="button"
-                variant="outline"
-              >
-                <CreditCard aria-hidden="true" />
-                {copy.actions.createRequest}
-                {selectedCharges.length > 0
-                  ? ` (${selectedCharges.length})`
-                  : ""}
-              </Button>
-            </div>
+          <Tabs className="grid gap-5" defaultValue="charges">
+            <TabsList className="w-full justify-start overflow-x-auto sm:w-auto">
+              <TabsTrigger value="charges">{copy.tabs.charges}</TabsTrigger>
+              <TabsTrigger value="requests">{copy.tabs.requests}</TabsTrigger>
+            </TabsList>
 
-            {management && management.charges.length > 0 ? (
-              <div className="grid gap-3">
-                {management.charges.map((charge) => (
-                  <div
-                    className="rounded-2xl border border-border/70 bg-muted/20 p-4"
-                    key={charge.id}
+            <TabsContent className="mt-0 space-y-4" value="charges">
+              <section className="space-y-4">
+                <div className="flex flex-wrap items-end justify-between gap-3">
+                  <div>
+                    <h3 className="text-lg font-semibold">
+                      {copy.sections.charges}
+                    </h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {copy.notes.chargeBoundary}
+                    </p>
+                  </div>
+                  <Button
+                    disabled={selectedCharges.length === 0}
+                    onClick={openPaymentRequestSheet}
+                    type="button"
+                    variant="outline"
                   >
-                    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                      <div className="flex min-w-0 gap-3">
-                        <Button
-                          aria-label={`${copy.actions.selectCharge}: ${charge.description}`}
-                          aria-pressed={selectedChargeIds.includes(charge.id)}
-                          className="mt-0.5 size-8 shrink-0 rounded-xl p-0"
-                          disabled={!charge.canRequest}
-                          onClick={() => toggleChargeSelection(charge.id)}
-                          type="button"
-                          variant={
-                            selectedChargeIds.includes(charge.id)
-                              ? "default"
-                              : "outline"
-                          }
+                    <CreditCard aria-hidden="true" />
+                    {copy.actions.createRequest}
+                    {selectedCharges.length > 0
+                      ? ` (${selectedCharges.length})`
+                      : ""}
+                  </Button>
+                </div>
+
+                {management && management.charges.length > 0 ? (
+                  <Accordion className="grid gap-3" collapsible type="single">
+                    {management.charges.map((charge) => {
+                      const chargeSelected = selectedChargeIds.includes(
+                        charge.id,
+                      );
+
+                      return (
+                        <AccordionItem
+                          className="overflow-hidden rounded-2xl border border-border/70 bg-muted/20 last:border-b"
+                          key={charge.id}
+                          value={charge.id}
                         >
-                          <Check aria-hidden="true" className="size-4" />
-                        </Button>
-                        <div className="min-w-0">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <p className="font-semibold text-foreground">
-                              {categoryLabel(charge.category)}
-                            </p>
-                            <Badge variant="outline">
-                              {chargeStatusLabel(charge.status)}
-                            </Badge>
-                            {charge.activePaymentRequestId ? (
-                              <Badge variant="secondary">
-                                {copy.states.activeRequest}
-                              </Badge>
-                            ) : null}
-                          </div>
-                          <p className="mt-2 break-words text-sm leading-6 text-foreground">
-                            {charge.description}
-                          </p>
-                          {charge.internalNote ? (
-                            <p className="mt-2 break-words text-xs leading-5 text-muted-foreground">
-                              <span className="font-medium text-foreground">
-                                {copy.labels.internalNote}:
-                              </span>
-                              {charge.internalNote}
-                            </p>
-                          ) : null}
-                          <p className="mt-2 text-xs text-muted-foreground">
-                            {copy.labels.createdAt}: {formatDateTime(charge.createdAt)}
-                          </p>
-                          <div className="mt-3 grid gap-2 text-xs sm:grid-cols-3">
-                            <DetailMetric
-                              label={copy.labels.capturedAmount}
-                              value={formatMoney(charge.capturedAmount)}
-                            />
-                            <DetailMetric
-                              label={copy.labels.refundedAmount}
-                              value={formatMoney(charge.refundedAmount)}
-                            />
-                            <DetailMetric
-                              label={copy.labels.remainingRefundableAmount}
-                              value={formatMoney(charge.remainingRefundableAmount)}
-                            />
-                          </div>
-                          {charge.refundAllocations.length > 0 ? (
-                            <div className="mt-3 grid gap-2">
-                              <p className="text-xs font-medium text-foreground">
-                                {copy.labels.refundHistory}
-                              </p>
-                              <Accordion
-                                className="grid gap-2"
-                                collapsible
-                                type="single"
+                          <div className="flex flex-col gap-3 p-4 lg:flex-row lg:items-start lg:justify-between">
+                            <div className="flex min-w-0 flex-1 gap-3">
+                              <Button
+                                aria-label={`${copy.actions.selectCharge}: ${charge.description}`}
+                                aria-pressed={chargeSelected}
+                                className="mt-2 size-8 shrink-0 rounded-xl p-0"
+                                disabled={!charge.canRequest}
+                                onClick={() => toggleChargeSelection(charge.id)}
+                                type="button"
+                                variant={chargeSelected ? "default" : "outline"}
                               >
-                                {charge.refundAllocations.map((allocation) => {
-                                  const refund =
-                                    refundSummaryFromAllocation(allocation);
-                                  const payment = paymentForCharge(charge);
-
-                                  return (
-                                    <AdminRefundOperationCard
-                                      apiExecutionEnabled={
-                                        management.refundApiExecutionEnabled
-                                      }
-                                      authorizationTypeLabel={refundAuthorizationTypeLabel(
-                                        refund.authorizationType,
-                                      )}
-                                      busyAction={busyKey}
-                                      classificationLabel={refundClassificationLabel}
-                                      copy={refundCopy}
-                                      extraDetails={[
-                                        {
-                                          label: copy.labels.allocatedAmount,
-                                          value: formatMoney(
-                                            allocation.allocatedAmount,
-                                          ),
-                                        },
-                                      ]}
-                                      formatDateTime={formatDateTime}
-                                      formatMoney={formatRefundMoney}
-                                      key={allocation.id}
-                                      modeLabel={refundModeLabel(
-                                        refund.processingMode,
-                                      )}
-                                      onConsult={() =>
-                                        void consultRefund(refund)
-                                      }
-                                      onExecute={() =>
-                                        openExecution(refund, payment)
-                                      }
-                                      onReconcile={() =>
-                                        openReconciliation(refund, payment)
-                                      }
-                                      payment={payment}
-                                      refund={refund}
-                                      statusLabel={refundStatusLabel(
-                                        refund.status,
-                                      )}
-                                    />
-                                  );
-                                })}
-                              </Accordion>
-                            </div>
-                          ) : null}
-                        </div>
-                      </div>
-
-                      <div className="flex shrink-0 flex-col gap-3 sm:items-end">
-                        <p className="text-xl font-semibold tabular-nums">
-                          {formatMoney(charge.amount)}
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {charge.canEdit ? (
-                            <Button
-                              onClick={() => openEditCharge(charge)}
-                              size="sm"
-                              type="button"
-                              variant="outline"
-                            >
-                              <PencilLine aria-hidden="true" />
-                              {copy.actions.editCharge}
-                            </Button>
-                          ) : null}
-                          {charge.canCancel ? (
-                            <Button
-                              onClick={() => setCancelChargeTarget(charge)}
-                              size="sm"
-                              type="button"
-                              variant="outline"
-                            >
-                              <Trash2 aria-hidden="true" />
-                              {copy.actions.cancelCharge}
-                            </Button>
-                          ) : null}
-                          {charge.canRefund ? (
-                            <Button
-                              onClick={() => openRefundSheet(charge)}
-                              size="sm"
-                              type="button"
-                              variant="outline"
-                            >
-                              <RotateCcw aria-hidden="true" />
-                              {copy.actions.refundCharge}
-                            </Button>
-                          ) : null}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="rounded-2xl border border-dashed border-border p-4 text-sm text-muted-foreground">
-                {copy.empty.charges}
-              </p>
-            )}
-          </section>
-
-          <section className="space-y-4">
-            <div>
-              <h3 className="text-lg font-semibold">
-                {copy.sections.requests}
-              </h3>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {copy.notes.requestBoundary}
-              </p>
-            </div>
-
-            {management && management.paymentRequests.length > 0 ? (
-              <div className="grid gap-3">
-                {management.paymentRequests.map((request) => (
-                  <div
-                    className="rounded-2xl border border-border/70 bg-muted/20 p-4"
-                    key={request.id}
-                  >
-                    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="break-all text-sm font-semibold">
-                            {copy.labels.request} {request.id}
-                          </p>
-                          <Badge variant="outline">
-                            {requestStatusLabel(request.status)}
-                          </Badge>
-                        </div>
-                        <p className="mt-2 text-xs text-muted-foreground">
-                          {copy.labels.expiresAt}:{" "}
-                          {formatDateTime(request.expiresAt)}
-                        </p>
-                        <div className="mt-4 grid gap-2">
-                          {request.items.map((item) => (
-                            <div
-                              className="flex flex-col gap-1 rounded-xl border border-border/60 bg-background p-3 text-sm sm:flex-row sm:items-center sm:justify-between"
-                              key={item.id}
-                            >
-                              <div className="min-w-0">
-                                <p className="font-medium">
-                                  {categoryLabel(item.category)}
-                                </p>
-                                <p className="break-words text-xs text-muted-foreground">
-                                  {item.description}
-                                </p>
-                              </div>
-                              <span className="shrink-0 font-semibold tabular-nums">
-                                {formatMoney(item.amount)}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                        <div className="mt-4 grid gap-2">
-                          <p className="flex items-center gap-2 text-xs font-medium text-foreground">
-                            <Mail aria-hidden="true" className="size-3.5" />
-                            {copy.labels.notificationDelivery}
-                          </p>
-                          {request.emailNotifications.length > 0 ? (
-                            request.emailNotifications.map((notification) => (
-                              <div
-                                className="rounded-xl border border-border/60 bg-background p-3 text-xs"
-                                key={notification.id}
-                              >
-                                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                                  <div className="min-w-0">
-                                    <div className="flex flex-wrap items-center gap-2">
+                                <Check aria-hidden="true" className="size-4" />
+                              </Button>
+                              <AccordionTrigger className="min-w-0 rounded-xl px-3 py-2 hover:bg-muted/40">
+                                <span className="grid min-w-0 flex-1 gap-3 pr-2 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
+                                  <span className="min-w-0">
+                                    <span className="flex flex-wrap items-center gap-2">
+                                      <span className="font-semibold text-foreground">
+                                        {categoryLabel(charge.category)}
+                                      </span>
                                       <Badge variant="outline">
-                                        {notificationStatusLabel(
-                                          notification.status,
-                                        )}
+                                        {chargeStatusLabel(charge.status)}
                                       </Badge>
-                                      <Badge variant="secondary">
-                                        {notificationOriginLabel(
-                                          notification.origin,
-                                        )}
-                                      </Badge>
-                                    </div>
-                                    <div className="mt-3 grid gap-2 text-muted-foreground sm:grid-cols-2">
-                                      <DetailMetric
-                                        label={copy.labels.recipient}
-                                        value={notification.recipient}
-                                      />
-                                      <DetailMetric
-                                        label={copy.labels.locale}
-                                        value={notificationLocaleLabel(
-                                          notification.locale,
-                                        )}
-                                      />
-                                      <DetailMetric
-                                        label={copy.labels.attempts}
-                                        value={String(notification.attemptCount)}
-                                      />
-                                      <DetailMetric
-                                        label={copy.labels.emailCreatedAt}
-                                        value={formatDateTime(
-                                          notification.createdAt,
-                                        )}
-                                      />
-                                      <DetailMetric
-                                        label={copy.labels.requestedAt}
-                                        value={formatDateTime(
-                                          notification.requestedAt,
-                                        )}
-                                      />
-                                      <DetailMetric
-                                        label={copy.labels.lastAttemptAt}
-                                        value={formatDateTime(
-                                          notification.lastAttemptAt,
-                                        )}
-                                      />
-                                      <DetailMetric
-                                        label={copy.labels.nextAttemptAt}
-                                        value={formatDateTime(
-                                          notification.nextAttemptAt,
-                                        )}
-                                      />
-                                      <DetailMetric
-                                        label={copy.labels.sentAt}
-                                        value={formatDateTime(
-                                          notification.sentAt,
-                                        )}
-                                      />
-                                      <DetailMetric
-                                        label={copy.labels.errorCode}
-                                        value={
-                                          notification.errorCode ??
-                                          copy.labels.unavailable
-                                        }
-                                      />
-                                    </div>
-                                  </div>
-                                  {notification.canResend ? (
-                                    <Button
-                                      disabled={busyKey !== null}
-                                      onClick={() =>
-                                        openEmailResend(request, notification)
-                                      }
-                                      size="sm"
-                                      type="button"
-                                      variant="outline"
-                                    >
-                                      <Send aria-hidden="true" />
-                                      {busyKey ===
-                                      `email-resend-${notification.id}`
-                                        ? copy.actions.resendingEmail
-                                        : copy.actions.resendEmail}
-                                    </Button>
-                                  ) : null}
-                                </div>
-                              </div>
-                            ))
-                          ) : (
-                            <p className="rounded-xl border border-dashed border-border p-3 text-xs text-muted-foreground">
-                              {copy.empty.notifications}
-                            </p>
-                          )}
-                        </div>
-                      </div>
+                                      {charge.activePaymentRequestId ? (
+                                        <Badge variant="secondary">
+                                          {copy.states.activeRequest}
+                                        </Badge>
+                                      ) : null}
+                                    </span>
+                                    <span className="mt-2 block break-words text-sm leading-6 text-foreground">
+                                      {charge.description}
+                                    </span>
+                                  </span>
+                                  <span className="shrink-0 text-left text-lg font-semibold tabular-nums text-foreground lg:text-right">
+                                    {formatMoney(charge.amount)}
+                                  </span>
+                                </span>
+                              </AccordionTrigger>
+                            </div>
+                          </div>
 
-                      <div className="flex shrink-0 flex-col gap-3 sm:items-end">
-                        <div>
-                          <p className="text-xs text-muted-foreground">
-                            {copy.labels.total}
-                          </p>
-                          <p className="text-xl font-semibold tabular-nums">
-                            {formatMoney(request.totalAmount)}
-                          </p>
-                        </div>
-                        <div className="flex flex-wrap justify-end gap-2">
-                          {request.canCopyLink ? (
-                            <Button
-                              disabled={busyKey !== null}
-                              onClick={() => void copyPaymentRequestLink(request)}
-                              size="sm"
-                              type="button"
-                              variant="outline"
-                            >
-                              <Copy aria-hidden="true" />
-                              {busyKey === `request-copy-${request.id}`
-                                ? copy.actions.copyingRequestLink
-                                : copy.actions.copyRequestLink}
-                            </Button>
-                          ) : null}
-                          {request.canCancel ? (
-                            <Button
-                              onClick={() => setCancelRequestTarget(request)}
-                              size="sm"
-                              type="button"
-                              variant="outline"
-                            >
-                              <Trash2 aria-hidden="true" />
-                              {copy.actions.cancelRequest}
-                            </Button>
-                          ) : null}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="rounded-2xl border border-dashed border-border p-4 text-sm text-muted-foreground">
-                {copy.empty.requests}
-              </p>
-            )}
-          </section>
+                          <AccordionContent className="border-t border-border/70 px-4 pt-4">
+                            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
+                              <div className="min-w-0">
+                                {charge.internalNote ? (
+                                  <p className="break-words text-xs leading-5 text-muted-foreground">
+                                    <span className="font-medium text-foreground">
+                                      {copy.labels.internalNote}:
+                                    </span>{" "}
+                                    {charge.internalNote}
+                                  </p>
+                                ) : null}
+                                <p className="mt-2 text-xs text-muted-foreground">
+                                  {copy.labels.createdAt}:{" "}
+                                  {formatDateTime(charge.createdAt)}
+                                </p>
+                                <div className="mt-3 grid gap-2 text-xs sm:grid-cols-3">
+                                  <DetailMetric
+                                    label={copy.labels.capturedAmount}
+                                    value={formatMoney(charge.capturedAmount)}
+                                  />
+                                  <DetailMetric
+                                    label={copy.labels.refundedAmount}
+                                    value={formatMoney(charge.refundedAmount)}
+                                  />
+                                  <DetailMetric
+                                    label={copy.labels.remainingRefundableAmount}
+                                    value={formatMoney(
+                                      charge.remainingRefundableAmount,
+                                    )}
+                                  />
+                                </div>
+                                {charge.refundAllocations.length > 0 ? (
+                                  <div className="mt-3 grid gap-2">
+                                    <p className="text-xs font-medium text-foreground">
+                                      {copy.labels.refundHistory}
+                                    </p>
+                                    <Accordion
+                                      className="grid gap-2"
+                                      collapsible
+                                      type="single"
+                                    >
+                                      {charge.refundAllocations.map(
+                                        (allocation) => {
+                                          const refund =
+                                            refundSummaryFromAllocation(
+                                              allocation,
+                                            );
+                                          const payment =
+                                            paymentForCharge(charge);
+
+                                          return (
+                                            <AdminRefundOperationCard
+                                              apiExecutionEnabled={
+                                                management.refundApiExecutionEnabled
+                                              }
+                                              authorizationTypeLabel={refundAuthorizationTypeLabel(
+                                                refund.authorizationType,
+                                              )}
+                                              busyAction={busyKey}
+                                              classificationLabel={
+                                                refundClassificationLabel
+                                              }
+                                              copy={refundCopy}
+                                              extraDetails={[
+                                                {
+                                                  label:
+                                                    copy.labels.allocatedAmount,
+                                                  value: formatMoney(
+                                                    allocation.allocatedAmount,
+                                                  ),
+                                                },
+                                              ]}
+                                              formatDateTime={formatDateTime}
+                                              formatMoney={formatRefundMoney}
+                                              key={allocation.id}
+                                              modeLabel={refundModeLabel(
+                                                refund.processingMode,
+                                              )}
+                                              onConsult={() =>
+                                                void consultRefund(refund)
+                                              }
+                                              onExecute={() =>
+                                                openExecution(refund, payment)
+                                              }
+                                              onReconcile={() =>
+                                                openReconciliation(
+                                                  refund,
+                                                  payment,
+                                                )
+                                              }
+                                              payment={payment}
+                                              refund={refund}
+                                              statusLabel={refundStatusLabel(
+                                                refund.status,
+                                              )}
+                                            />
+                                          );
+                                        },
+                                      )}
+                                    </Accordion>
+                                  </div>
+                                ) : null}
+                              </div>
+
+                              <div className="flex flex-wrap gap-2 lg:justify-end">
+                                {charge.canEdit ? (
+                                  <Button
+                                    onClick={() => openEditCharge(charge)}
+                                    size="sm"
+                                    type="button"
+                                    variant="outline"
+                                  >
+                                    <PencilLine aria-hidden="true" />
+                                    {copy.actions.editCharge}
+                                  </Button>
+                                ) : null}
+                                {charge.canCancel ? (
+                                  <Button
+                                    onClick={() =>
+                                      setCancelChargeTarget(charge)
+                                    }
+                                    size="sm"
+                                    type="button"
+                                    variant="outline"
+                                  >
+                                    <Trash2 aria-hidden="true" />
+                                    {copy.actions.cancelCharge}
+                                  </Button>
+                                ) : null}
+                                {charge.canRefund ? (
+                                  <Button
+                                    onClick={() => openRefundSheet(charge)}
+                                    size="sm"
+                                    type="button"
+                                    variant="outline"
+                                  >
+                                    <RotateCcw aria-hidden="true" />
+                                    {copy.actions.refundCharge}
+                                  </Button>
+                                ) : null}
+                              </div>
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      );
+                    })}
+                  </Accordion>
+                ) : (
+                  <p className="rounded-2xl border border-dashed border-border p-4 text-sm text-muted-foreground">
+                    {copy.empty.charges}
+                  </p>
+                )}
+              </section>
+            </TabsContent>
+
+            <TabsContent className="mt-0 space-y-4" value="requests">
+              <section className="space-y-4">
+                <div>
+                  <h3 className="text-lg font-semibold">
+                    {copy.sections.requests}
+                  </h3>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {copy.notes.requestBoundary}
+                  </p>
+                </div>
+
+                {management && management.paymentRequests.length > 0 ? (
+                  <Accordion className="grid gap-3" collapsible type="single">
+                    {management.paymentRequests.map((request) => (
+                      <AccordionItem
+                        className="overflow-hidden rounded-2xl border border-border/70 bg-muted/20 last:border-b"
+                        key={request.id}
+                        value={request.id}
+                      >
+                        <AccordionTrigger className="px-4 py-3 hover:bg-muted/40 sm:px-5">
+                          <span className="grid min-w-0 flex-1 gap-3 pr-2 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
+                            <span className="min-w-0">
+                              <span className="flex flex-wrap items-center gap-2">
+                                <span className="break-all text-sm font-semibold text-foreground">
+                                  {copy.labels.request} {request.id}
+                                </span>
+                                <Badge variant="outline">
+                                  {requestStatusLabel(request.status)}
+                                </Badge>
+                              </span>
+                              <span className="mt-2 block text-xs text-muted-foreground">
+                                {copy.labels.expiresAt}:{" "}
+                                {formatDateTime(request.expiresAt)}
+                              </span>
+                            </span>
+                            <span className="shrink-0 text-left lg:text-right">
+                              <span className="block text-xs text-muted-foreground">
+                                {copy.labels.total}
+                              </span>
+                              <span className="mt-1 block text-lg font-semibold tabular-nums text-foreground">
+                                {formatMoney(request.totalAmount)}
+                              </span>
+                            </span>
+                          </span>
+                        </AccordionTrigger>
+
+                        <AccordionContent className="border-t border-border/70 px-4 pt-4 sm:px-5">
+                          <div className="grid gap-4">
+                            <div className="grid gap-2">
+                              {request.items.map((item) => (
+                                <div
+                                  className="flex flex-col gap-1 rounded-xl border border-border/60 bg-background p-3 text-sm sm:flex-row sm:items-center sm:justify-between"
+                                  key={item.id}
+                                >
+                                  <div className="min-w-0">
+                                    <p className="font-medium">
+                                      {categoryLabel(item.category)}
+                                    </p>
+                                    <p className="break-words text-xs text-muted-foreground">
+                                      {item.description}
+                                    </p>
+                                  </div>
+                                  <span className="shrink-0 font-semibold tabular-nums">
+                                    {formatMoney(item.amount)}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+
+                            <div className="grid gap-2">
+                              <p className="flex items-center gap-2 text-xs font-medium text-foreground">
+                                <Mail aria-hidden="true" className="size-3.5" />
+                                {copy.labels.notificationDelivery}
+                              </p>
+                              {request.emailNotifications.length > 0 ? (
+                                request.emailNotifications.map(
+                                  (notification) => (
+                                    <div
+                                      className="rounded-xl border border-border/60 bg-background p-3 text-xs"
+                                      key={notification.id}
+                                    >
+                                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                        <div className="min-w-0">
+                                          <div className="flex flex-wrap items-center gap-2">
+                                            <Badge variant="outline">
+                                              {notificationStatusLabel(
+                                                notification.status,
+                                              )}
+                                            </Badge>
+                                            <Badge variant="secondary">
+                                              {notificationOriginLabel(
+                                                notification.origin,
+                                              )}
+                                            </Badge>
+                                          </div>
+                                          <div className="mt-3 grid gap-2 text-muted-foreground sm:grid-cols-2">
+                                            <DetailMetric
+                                              label={copy.labels.recipient}
+                                              value={notification.recipient}
+                                            />
+                                            <DetailMetric
+                                              label={copy.labels.locale}
+                                              value={notificationLocaleLabel(
+                                                notification.locale,
+                                              )}
+                                            />
+                                            <DetailMetric
+                                              label={copy.labels.attempts}
+                                              value={String(
+                                                notification.attemptCount,
+                                              )}
+                                            />
+                                            <DetailMetric
+                                              label={
+                                                copy.labels.emailCreatedAt
+                                              }
+                                              value={formatDateTime(
+                                                notification.createdAt,
+                                              )}
+                                            />
+                                            <DetailMetric
+                                              label={copy.labels.requestedAt}
+                                              value={formatDateTime(
+                                                notification.requestedAt,
+                                              )}
+                                            />
+                                            <DetailMetric
+                                              label={copy.labels.lastAttemptAt}
+                                              value={formatDateTime(
+                                                notification.lastAttemptAt,
+                                              )}
+                                            />
+                                            <DetailMetric
+                                              label={copy.labels.nextAttemptAt}
+                                              value={formatDateTime(
+                                                notification.nextAttemptAt,
+                                              )}
+                                            />
+                                            <DetailMetric
+                                              label={copy.labels.sentAt}
+                                              value={formatDateTime(
+                                                notification.sentAt,
+                                              )}
+                                            />
+                                            <DetailMetric
+                                              label={copy.labels.errorCode}
+                                              value={
+                                                notification.errorCode ??
+                                                copy.labels.unavailable
+                                              }
+                                            />
+                                          </div>
+                                        </div>
+                                        {notification.canResend ? (
+                                          <Button
+                                            disabled={busyKey !== null}
+                                            onClick={() =>
+                                              openEmailResend(
+                                                request,
+                                                notification,
+                                              )
+                                            }
+                                            size="sm"
+                                            type="button"
+                                            variant="outline"
+                                          >
+                                            <Send aria-hidden="true" />
+                                            {busyKey ===
+                                            `email-resend-${notification.id}`
+                                              ? copy.actions.resendingEmail
+                                              : copy.actions.resendEmail}
+                                          </Button>
+                                        ) : null}
+                                      </div>
+                                    </div>
+                                  ),
+                                )
+                              ) : (
+                                <p className="rounded-xl border border-dashed border-border p-3 text-xs text-muted-foreground">
+                                  {copy.empty.notifications}
+                                </p>
+                              )}
+                            </div>
+
+                            <div className="flex flex-wrap justify-end gap-2">
+                              {request.canCopyLink ? (
+                                <Button
+                                  disabled={busyKey !== null}
+                                  onClick={() =>
+                                    void copyPaymentRequestLink(request)
+                                  }
+                                  size="sm"
+                                  type="button"
+                                  variant="outline"
+                                >
+                                  <Copy aria-hidden="true" />
+                                  {busyKey === `request-copy-${request.id}`
+                                    ? copy.actions.copyingRequestLink
+                                    : copy.actions.copyRequestLink}
+                                </Button>
+                              ) : null}
+                              {request.canCancel ? (
+                                <Button
+                                  onClick={() =>
+                                    setCancelRequestTarget(request)
+                                  }
+                                  size="sm"
+                                  type="button"
+                                  variant="outline"
+                                >
+                                  <Trash2 aria-hidden="true" />
+                                  {copy.actions.cancelRequest}
+                                </Button>
+                              ) : null}
+                            </div>
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
+                ) : (
+                  <p className="rounded-2xl border border-dashed border-border p-4 text-sm text-muted-foreground">
+                    {copy.empty.requests}
+                  </p>
+                )}
+              </section>
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
 

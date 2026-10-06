@@ -945,6 +945,10 @@ export const enMessages = {
           charges: "Charges",
           requests: "Guest payment requests",
         },
+        tabs: {
+          charges: "Charges",
+          requests: "Payment requests",
+        },
         labels: {
           category: "Category",
           description: "Guest-visible description",

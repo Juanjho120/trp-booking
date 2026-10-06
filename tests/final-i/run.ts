@@ -6,6 +6,7 @@ import "./i5-fel-domain-contract.test";
 import "./i6-fel-persistence-admin-draft.test";
 import "./i61-phone-country-inference.test";
 import "./i61-financial-operations-hardening.test";
+import "./i61-additional-charges-tabs-accordions.test";
 
 import { runFinalITests } from "./harness";
 

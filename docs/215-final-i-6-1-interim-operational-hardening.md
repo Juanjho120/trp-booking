@@ -12,8 +12,8 @@ Registration record: docs/215-final-i-6-1-interim-operational-hardening.md
 Registration base: 1fd728567b739100e51dea41aeb6da3f23cc6c19
 Workstream E status: Completed; provider trigger configuration + Hosted validation PASS on 2026-10-02
 Workstream A status: Completed; Hosted owner validation PASS on 2026-10-05
-Workstream B+C status: Implemented; validation completed; Hosted owner validation pending
-Workstream D status: Not started
+Workstream B+C status: Completed; Hosted owner validation PASS on 2026-10-06
+Workstream D status: Implementation completed; Hosted owner validation pending
 Final-I.6 status: Completed and accepted on 2026-10-02
 Accepted Final-I.6 head: 80469abda146d0d50516ab598a514a9ccea2db6d
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
@@ -22,7 +22,7 @@ Final-I.9 status: Not started / integrated Final-I closure
 Phase 13 status: Blocked / Not started until Final-I closes
 ```
 
-Final-I.6.1 is an owner-requested, provider-independent interim hardening package registered while Final-I.7 remains blocked by missing official INFILE technical documentation and Test credentials. Workstream E is completed through provider-side Zoho trigger configuration plus Hosted validation PASS on 2026-10-02. Workstream A timezone resolution correction is completed as a bounded guest phone-country convenience default with Hosted owner validation PASS on 2026-10-05. Workstreams B+C are implemented as the GuestPaymentRequest expiration cron foundation plus financial Admin Web Push notification foundation, with Hosted owner validation still pending. This does not reopen Final-I.6, does not replace the accepted Final-I.6 feature head, and does not supersede Final-I.7.
+Final-I.6.1 is an owner-requested, provider-independent interim hardening package registered while Final-I.7 remains blocked by missing official INFILE technical documentation and Test credentials. Workstream E is completed through provider-side Zoho trigger configuration plus Hosted validation PASS on 2026-10-02. Workstream A timezone resolution correction is completed as a bounded guest phone-country convenience default with Hosted owner validation PASS on 2026-10-05. Workstreams B+C are completed after Hosted owner validation PASS on 2026-10-06 for the GuestPaymentRequest expiration cron foundation and financial Admin Web Push notification foundation. Workstream D is implementation completed with Hosted owner validation pending. This does not reopen Final-I.6, does not replace the accepted Final-I.6 feature head, and does not supersede Final-I.7.
 
 ## Purpose
 
@@ -467,12 +467,54 @@ External email to admin@juantzun.dev:
 
 Workstream E Hosted validation passed on 2026-10-02. The accepted architecture remains Zoho positive original-recipient trigger allowlist plus TRP domain-based Limited Data compatibility guard, signature validation, internal-sender suppression, reservation matching, bounded persistence, and Admin Web Push. No exact-alias runtime filtering, DMARC heuristic, or runtime email subject/sender suppression was introduced.
 
-## Strict Boundaries
+### Workstreams B+C Hosted Owner Validation
 
-This I.6.1 checkpoint implements Workstreams B+C only after the accepted Workstream E and completed Workstream A validation. It still does not implement:
+Workstreams B+C Hosted owner validation passed on 2026-10-06.
+
+Validated clean cases:
 
 ```text
-- Additional Charges UI tabs/accordions from Workstream D
+B:
+- new Expire overdue payment requests job visible in Admin Scheduled Tasks
+- manual execution completed successfully
+- overdue PENDING GuestPaymentRequest -> EXPIRED
+- associated AdditionalCharge remained unchanged
+- normalized execution history/result correct
+
+C1:
+- guest paid an Additional Charge payment request
+- Payment -> APPROVED
+- GuestPaymentRequest -> PAID
+- AdditionalCharge(s) -> PAID
+- ADMIN Push ADDITIONAL_CHARGE_PAID received
+- notification opened correct Reservation
+- no sensitive financial/payment content exposed
+- idempotent behavior preserved
+
+C2:
+- positive stay-extension difference paid successfully
+- requested dates applied
+- ADMIN Push LIFECYCLE_ADJUSTMENT_PAID received
+- notification opened correct Reservation
+
+C2:
+- complete date-change difference paid successfully
+- requested dates applied
+- ADMIN Push LIFECYCLE_ADJUSTMENT_PAID received
+
+C3:
+- Refund reconciled successfully to APPROVED
+- ADMIN Push REFUND_PROCESSED received
+- notification opened correct Reservation
+```
+
+One apparent C2 anomaly was later proven to use a Reservation that had been manually modified directly in the database for another unrelated test. That Reservation was contaminated test data and is not retained as product-defect evidence. Clean stay-extension and full date-change C2 tests both passed. No lifecycle settlement-grace behavior or lifecycle-payment change is introduced from that invalid scenario.
+
+## Strict Boundaries
+
+This I.6.1 checkpoint implements Workstream D after the accepted Workstream E, completed Workstream A validation, and completed Workstreams B+C Hosted owner validation. It still does not implement:
+
+```text
 - TRP Zoho webhook/runtime code changes
 - financial amount/pricing/refund arithmetic changes
 - environment variables
@@ -483,7 +525,7 @@ This I.6.1 checkpoint implements Workstreams B+C only after the accepted Workstr
 - Phase 13 activation
 ```
 
-`vercel.json` remains `{ "crons": [] }` until a later explicitly requested Production scheduler activation. Workstream D remains Not started. Final-I.7 remains blocked pending official INFILE technical documentation + Test credentials.
+`vercel.json` remains `{ "crons": [] }` until a later explicitly requested Production scheduler activation. Workstream D is implementation completed with Hosted owner validation pending. Final-I.7 remains blocked pending official INFILE technical documentation + Test credentials.
 
 ## Validation Ledger
 
@@ -531,5 +573,13 @@ Workstreams B+C implementation validation:
 - npm run lint - PASS
 - npm run build - sandbox attempt failed fetching Google Fonts; rerun outside the sandbox PASS
 - npm audit --omit=dev - sandbox attempt failed against the npm audit endpoint/cache; rerun outside the sandbox PASS, 0 vulnerabilities
+- git diff --check - PASS; Windows CRLF normalization warnings only
+
+Workstream D implementation validation:
+- npm run final-i:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; rerun outside the sandbox PASS, 77/77
+- npm run final-h:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; rerun outside the sandbox PASS, 20/20
+- npm run lint - PASS
+- npm run build - initial sandbox attempt failed fetching Google Fonts; rerun outside the sandbox PASS
+- npm audit --omit=dev - FAIL outside the sandbox with existing dependency advisories for sharp <0.35.5 and source-map-js 1.0.0-1.2.1; no dependency change is part of this UI-only Workstream D checkpoint
 - git diff --check - PASS; Windows CRLF normalization warnings only
 ```

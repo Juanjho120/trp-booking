@@ -947,6 +947,10 @@ export const esMessages = {
           charges: "Cargos",
           requests: "Solicitudes de pago del huésped",
         },
+        tabs: {
+          charges: "Cargos",
+          requests: "Solicitudes de pago",
+        },
         labels: {
           category: "Categoría",
           description: "Descripción visible para el huésped",
