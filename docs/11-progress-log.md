@@ -35,6 +35,7 @@ Final-I.6.1 status: Completed and accepted on 2026-10-06
 Accepted Final-I.6.1 feature head: 4d8a1dd5eb2f2eaaadf43bd8b97d7dd1df6e500e
 Final-I.6.1 implementation and acceptance record: docs/215-final-i-6-1-interim-operational-hardening.md
 Final-I.6.2 status: Implementation completed; Hosted owner validation pending
+Final-I.6.2 scope: Workstreams A-K implemented
 Final-I.6.2 implementation record: docs/216-final-i-6-2-admin-ux-navigation-accordions-pagination-polish.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
@@ -74,6 +75,7 @@ Final-I.6.1 status: Completed and accepted on 2026-10-06
 Accepted Final-I.6.1 feature head: 4d8a1dd5eb2f2eaaadf43bd8b97d7dd1df6e500e
 Final-I.6.1 implementation and acceptance record: docs/215-final-i-6-1-interim-operational-hardening.md
 Final-I.6.2 status: Implementation completed; Hosted owner validation pending
+Final-I.6.2 scope: Workstreams A-K implemented
 Final-I.6.2 implementation record: docs/216-final-i-6-2-admin-ux-navigation-accordions-pagination-polish.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
@@ -275,6 +277,7 @@ Final-I.6.1 status: Completed and accepted on 2026-10-06
 Accepted Final-I.6.1 feature head: 4d8a1dd5eb2f2eaaadf43bd8b97d7dd1df6e500e
 Final-I.6.1 implementation and acceptance record: docs/215-final-i-6-1-interim-operational-hardening.md
 Final-I.6.2 status: Implementation completed; Hosted owner validation pending
+Final-I.6.2 scope: Workstreams A-K implemented
 Final-I.6.2 implementation record: docs/216-final-i-6-2-admin-ux-navigation-accordions-pagination-polish.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
@@ -314,6 +317,7 @@ Final-I.6.1 status: Completed and accepted on 2026-10-06
 Accepted Final-I.6.1 feature head: 4d8a1dd5eb2f2eaaadf43bd8b97d7dd1df6e500e
 Final-I.6.1 implementation and acceptance record: docs/215-final-i-6-1-interim-operational-hardening.md
 Final-I.6.2 status: Implementation completed; Hosted owner validation pending
+Final-I.6.2 scope: Workstreams A-K implemented
 Final-I.6.2 implementation record: docs/216-final-i-6-2-admin-ux-navigation-accordions-pagination-polish.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX

@@ -9,7 +9,15 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { type ChangeEvent, type ReactNode, useMemo, useState } from "react";
+import {
+  type ChangeEvent,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import {
   Accordion,
@@ -69,6 +77,7 @@ import {
   useAdminRecordPagination,
 } from "./admin-record-pagination";
 import { AdminSnackbar } from "./admin-snackbar";
+import { useAdminInitialFocusScroll } from "./use-admin-initial-focus-scroll";
 
 const inputClassName =
   "h-11 w-full rounded-2xl border border-input bg-background px-3 text-sm text-foreground shadow-xs outline-none transition focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50";
@@ -108,8 +117,12 @@ function isRefundConsultType(value: string | null | undefined): boolean {
 }
 
 export function AdminReservationLifecycleAdjustmentRefundSection({
+  focusedRefundId = null,
   reservation,
-}: Readonly<{ reservation: AdminReservationDetailData }>) {
+}: Readonly<{
+  focusedRefundId?: string | null;
+  reservation: AdminReservationDetailData;
+}>) {
   const router = useRouter();
   const { locale, messages } = useLocale();
   const refundCopy = messages.admin.reservationsPage.refunds;
@@ -150,6 +163,9 @@ export function AdminReservationLifecycleAdjustmentRefundSection({
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [errorFeedback, setErrorFeedback] = useState<string | null>(null);
   const [successFeedback, setSuccessFeedback] = useState<string | null>(null);
+  const [openLifecycleRefundId, setOpenLifecycleRefundId] = useState("");
+  const refundElementRefs = useRef(new Map<string, HTMLDivElement>());
+  const appliedFocusRef = useRef<string | null>(null);
   const isBusy = busyAction !== null;
   const reconciliationConsultClassification =
     reconciliationTarget?.diagnostics?.source === "tilopay_refund_consult"
@@ -193,6 +209,59 @@ export function AdminReservationLifecycleAdjustmentRefundSection({
     previous: paginationCopy.actions.previous,
     results: paginationCopy.labels.results,
   } as const;
+  const focusedRefundGroupIndex = focusedRefundId
+    ? refundOperationGroups.findIndex((group) =>
+        group.refunds.some((refund) => refund.id === focusedRefundId),
+      )
+    : -1;
+  const focusedRefundGroup =
+    focusedRefundGroupIndex >= 0
+      ? refundOperationGroups[focusedRefundGroupIndex]
+      : null;
+  const focusedRefundEntryId = focusedRefundGroup
+    ? `operation:${focusedRefundGroup.id}`
+    : "";
+  const focusedRefundEntryIndex = focusedRefundEntryId
+    ? paginationEntries.indexOf(focusedRefundEntryId)
+    : -1;
+  const registerRefundElement = useCallback(
+    (refundId: string, element: HTMLDivElement | null) => {
+      if (element) {
+        refundElementRefs.current.set(refundId, element);
+        return;
+      }
+
+      refundElementRefs.current.delete(refundId);
+    },
+    [],
+  );
+  const getFocusedRefundElement = useCallback(
+    () => (focusedRefundId ? refundElementRefs.current.get(focusedRefundId) : null),
+    [focusedRefundId],
+  );
+
+  useEffect(() => {
+    if (!focusedRefundId || focusedRefundEntryIndex < 0) {
+      return;
+    }
+
+    if (appliedFocusRef.current === focusedRefundId) {
+      return;
+    }
+
+    entryPagination.setPage(
+      Math.floor(focusedRefundEntryIndex / entryPagination.pageSize) + 1,
+    );
+    setOpenLifecycleRefundId(`refund:${focusedRefundId}`);
+    appliedFocusRef.current = focusedRefundId;
+  }, [entryPagination, focusedRefundEntryIndex, focusedRefundId]);
+
+  useAdminInitialFocusScroll({
+    enabled: focusedRefundEntryIndex >= 0,
+    focusKey: focusedRefundId,
+    getElement: getFocusedRefundElement,
+    scrollReadyKey: `${entryPagination.page}:${openLifecycleRefundId}`,
+  });
 
   if (refunds.length === 0 && pendingNegativeRequests.length === 0) {
     return null;
@@ -676,7 +745,15 @@ export function AdminReservationLifecycleAdjustmentRefundSection({
                       {refundCopy.notes.providerMovements}
                     </p>
                   ) : null}
-                  <Accordion className="mt-3 grid gap-3" collapsible type="single">
+                  <Accordion
+                    className="mt-3 grid gap-3"
+                    collapsible
+                    onValueChange={(value) =>
+                      setOpenLifecycleRefundId(value || "")
+                    }
+                    type="single"
+                    value={openLifecycleRefundId}
+                  >
                     {group.refunds.map((refund) => {
               const payment = paymentForRefund(refund);
               const canExecute =
@@ -699,8 +776,9 @@ export function AdminReservationLifecycleAdjustmentRefundSection({
 
               return (
                 <AccordionItem
-                  className="overflow-hidden rounded-2xl border border-border bg-muted/20"
+                  className="scroll-mt-24 overflow-hidden rounded-2xl border border-border bg-muted/20"
                   key={refund.id}
+                  ref={(element) => registerRefundElement(refund.id, element)}
                   value={`refund:${refund.id}`}
                 >
                   <AccordionTrigger className="px-4 py-3 sm:px-5">

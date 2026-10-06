@@ -45,6 +45,11 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocale } from "@/features/i18n";
 import {
+  resolveAdminReservationDetailInitialTab,
+  type AdminReservationDetailFocus,
+  type AdminReservationDetailTab,
+} from "@/lib/admin/reservation-detail-focus";
+import {
   getAdminReservationEmailNotificationTypeLabel,
   groupAdminReservationEmailNotifications,
 } from "@/features/admin/email-notification-display";
@@ -81,6 +86,22 @@ const manuallyResendableTypes = new Set([
 ]);
 const manuallyResendableStatuses = new Set(["PENDING", "FAILED", "SENT"]);
 const effectiveRefundStatuses = new Set(["APPROVED", "MANUAL"]);
+const adminReservationDetailTabs = new Set<AdminReservationDetailTab>([
+  "reservation",
+  "financial",
+  "emails",
+  "lifecycle",
+  "additionalCharges",
+  "refunds",
+  "changes",
+  "history",
+]);
+
+function isAdminReservationDetailTab(
+  value: string,
+): value is AdminReservationDetailTab {
+  return adminReservationDetailTabs.has(value as AdminReservationDetailTab);
+}
 
 type ManualResendTarget = Readonly<{
   notification: AdminReservationDetailEmailNotification;
@@ -111,9 +132,11 @@ function canManuallyResend(
 }
 
 export function AdminReservationDetailPage({
+  initialFocus = null,
   paymentAttemptHistory,
   reservation,
 }: Readonly<{
+  initialFocus?: AdminReservationDetailFocus | null;
   paymentAttemptHistory: AdminPaymentSubmissionAttemptHistoryData;
   reservation: AdminReservationDetailData;
 }>) {
@@ -158,6 +181,13 @@ export function AdminReservationDetailPage({
     previous: reservationCopy.actions.previous,
     results: reservationCopy.labels.results,
   } as const;
+  const [activeReservationTab, setActiveReservationTab] =
+    useState<AdminReservationDetailTab>(() =>
+      resolveAdminReservationDetailInitialTab({
+        focus: initialFocus,
+        refunds: reservation.refunds,
+      }),
+    );
 
   function formatDate(value: string): string {
     return new Intl.DateTimeFormat(intlLocale, {
@@ -444,7 +474,15 @@ export function AdminReservationDetailPage({
         variant={errorFeedback ? "error" : "success"}
       />
 
-      <Tabs className="mt-6" defaultValue="reservation">
+      <Tabs
+        className="mt-6"
+        onValueChange={(value) => {
+          if (isAdminReservationDetailTab(value)) {
+            setActiveReservationTab(value);
+          }
+        }}
+        value={activeReservationTab}
+      >
         <div className="-mx-1 overflow-x-auto px-1 pb-2">
           <TabsList
             aria-label={reservationCopy.title}
@@ -887,7 +925,10 @@ export function AdminReservationDetailPage({
           forceMount
           value="additionalCharges"
         >
-          <AdminAdditionalChargesSection reservationId={reservation.id} />
+          <AdminAdditionalChargesSection
+            initialFocus={initialFocus}
+            reservationId={reservation.id}
+          />
         </TabsContent>
 
         <TabsContent
@@ -897,9 +938,15 @@ export function AdminReservationDetailPage({
         >
           <div className="-mt-6">
             <AdminReservationRefundSection
+              focusedRefundId={
+                initialFocus?.kind === "refund" ? initialFocus.focusId : null
+              }
               reservation={standardRefundReservation}
             />
             <AdminReservationLifecycleAdjustmentRefundSection
+              focusedRefundId={
+                initialFocus?.kind === "refund" ? initialFocus.focusId : null
+              }
               reservation={reservation}
             />
           </div>
@@ -911,7 +958,14 @@ export function AdminReservationDetailPage({
           value="changes"
         >
           <div className="-mt-6">
-            <AdminReservationDateMutationSection reservation={reservation} />
+            <AdminReservationDateMutationSection
+              focusedLifecycleRequestId={
+                initialFocus?.kind === "lifecycleAdjustment"
+                  ? initialFocus.focusId
+                  : null
+              }
+              reservation={reservation}
+            />
           </div>
         </TabsContent>
 

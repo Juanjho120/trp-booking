@@ -4,6 +4,7 @@ import { AdminNotificationsPageView } from "@/features/admin/components/admin-no
 import { getAdminSessionActor } from "@/lib/admin/session";
 import {
   getAdminNotificationCenter,
+  normalizeAdminNotificationCenterPage,
   normalizeAdminNotificationId,
   resolveAdminNotificationInitialOpenId,
 } from "@/lib/admin-notifications";
@@ -22,6 +23,7 @@ export const metadata: Metadata = {
 type AdminNotificationsPageProps = Readonly<{
   searchParams?: Promise<{
     notification?: string | string[];
+    page?: string | string[];
   }>;
 }>;
 
@@ -33,8 +35,11 @@ export default async function AdminNotificationsPage({
   const rawNotificationId = Array.isArray(params.notification)
     ? params.notification[0]
     : params.notification;
+  const rawPage = Array.isArray(params.page) ? params.page[0] : params.page;
   const requestedNotificationId = normalizeAdminNotificationId(rawNotificationId);
+  const requestedPage = normalizeAdminNotificationCenterPage(rawPage);
   const notificationCenter = await getAdminNotificationCenter(actor, {
+    page: requestedPage,
     requestedNotificationId,
   });
   const initialNotificationId = resolveAdminNotificationInitialOpenId({

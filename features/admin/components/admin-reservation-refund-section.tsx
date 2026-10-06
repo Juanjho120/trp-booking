@@ -7,7 +7,14 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { type ReactNode, useMemo, useState } from "react";
+import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import {
   Accordion,
@@ -68,6 +75,7 @@ import {
 } from "./admin-record-pagination";
 import { AdminRefundOperationCard } from "./admin-refund-operational-controls";
 import { AdminSnackbar } from "./admin-snackbar";
+import { useAdminInitialFocusScroll } from "./use-admin-initial-focus-scroll";
 
 const inputClassName =
   "h-11 w-full rounded-2xl border border-input bg-background px-3 text-sm text-foreground shadow-xs outline-none transition focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50";
@@ -119,8 +127,12 @@ function isRefundConsultType(value: string | null | undefined): boolean {
 }
 
 export function AdminReservationRefundSection({
+  focusedRefundId = null,
   reservation,
-}: Readonly<{ reservation: AdminReservationDetailData }>) {
+}: Readonly<{
+  focusedRefundId?: string | null;
+  reservation: AdminReservationDetailData;
+}>) {
   const router = useRouter();
   const { locale, messages } = useLocale();
   const copy = messages.admin.reservationsPage.refunds;
@@ -192,6 +204,10 @@ export function AdminReservationRefundSection({
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [errorFeedback, setErrorFeedback] = useState<string | null>(null);
   const [successFeedback, setSuccessFeedback] = useState<string | null>(null);
+  const [openRefundGroupId, setOpenRefundGroupId] = useState("");
+  const [openNestedRefundId, setOpenNestedRefundId] = useState("");
+  const refundElementRefs = useRef(new Map<string, HTMLDivElement>());
+  const appliedFocusRef = useRef<string | null>(null);
   const canAuthorizeStandard = Boolean(
     eligibleRequest &&
       financialSummary &&
@@ -236,6 +252,66 @@ export function AdminReservationRefundSection({
     previous: paginationCopy.actions.previous,
     results: paginationCopy.labels.results,
   } as const;
+  const focusedRefundGroupIndex = focusedRefundId
+    ? refundOperationGroups.findIndex((group) =>
+        group.refunds.some((refund) => refund.id === focusedRefundId),
+      )
+    : -1;
+  const focusedRefundGroup =
+    focusedRefundGroupIndex >= 0
+      ? refundOperationGroups[focusedRefundGroupIndex]
+      : null;
+  const focusedRefundGroupValue = focusedRefundGroup
+    ? focusedRefundGroup.refundOperationKey === null &&
+      focusedRefundGroup.refunds.length === 1
+      ? focusedRefundGroup.refunds[0].id
+      : `operation:${focusedRefundGroup.id}`
+    : "";
+  const registerRefundElement = useCallback(
+    (refundId: string, element: HTMLDivElement | null) => {
+      if (element) {
+        refundElementRefs.current.set(refundId, element);
+        return;
+      }
+
+      refundElementRefs.current.delete(refundId);
+    },
+    [],
+  );
+  const getFocusedRefundElement = useCallback(
+    () => (focusedRefundId ? refundElementRefs.current.get(focusedRefundId) : null),
+    [focusedRefundId],
+  );
+
+  useEffect(() => {
+    if (!focusedRefundId || focusedRefundGroupIndex < 0 || !focusedRefundGroup) {
+      return;
+    }
+
+    if (appliedFocusRef.current === focusedRefundId) {
+      return;
+    }
+
+    refundPagination.setPage(
+      Math.floor(focusedRefundGroupIndex / refundPagination.pageSize) + 1,
+    );
+    setOpenRefundGroupId(focusedRefundGroupValue);
+    setOpenNestedRefundId(focusedRefundId);
+    appliedFocusRef.current = focusedRefundId;
+  }, [
+    focusedRefundGroup,
+    focusedRefundGroupIndex,
+    focusedRefundGroupValue,
+    focusedRefundId,
+    refundPagination,
+  ]);
+
+  useAdminInitialFocusScroll({
+    enabled: focusedRefundGroupIndex >= 0,
+    focusKey: focusedRefundId,
+    getElement: getFocusedRefundElement,
+    scrollReadyKey: `${refundPagination.page}:${openRefundGroupId}:${openNestedRefundId}`,
+  });
 
   function clearFeedback(): void {
     setErrorFeedback(null);
@@ -744,7 +820,9 @@ export function AdminReservationRefundSection({
                 className="grid gap-3"
                 collapsible
                 key={`${refundPagination.page}-${refundPagination.pageSize}`}
+                onValueChange={(value) => setOpenRefundGroupId(value || "")}
                 type="single"
+                value={openRefundGroupId}
               >
                 {refundPagination.pageItems.map((group) =>
                   group.refundOperationKey === null &&
@@ -759,6 +837,9 @@ export function AdminReservationRefundSection({
                       copy={copy}
                       formatDateTime={formatDateTime}
                       formatMoney={formatMoney}
+                      itemRef={(element) =>
+                        registerRefundElement(group.refunds[0].id, element)
+                      }
                       key={group.id}
                       modeLabel={modeLabel(group.refunds[0].processingMode)}
                       onConsult={() => void consultRefund(group.refunds[0])}
@@ -782,6 +863,9 @@ export function AdminReservationRefundSection({
                       group={group}
                       key={group.id}
                       modeLabel={modeLabel}
+                      onNestedValueChange={(value) => setOpenNestedRefundId(value || "")}
+                      openNestedRefundId={openNestedRefundId}
+                      registerRefundElement={registerRefundElement}
                       onConsult={(refund) => void consultRefund(refund)}
                       onExecute={openExecution}
                       onReconcile={openReconciliation}
@@ -1178,6 +1262,9 @@ function RefundOperationCard({
   onExecute,
   onConsult,
   onReconcile,
+  openNestedRefundId,
+  onNestedValueChange,
+  registerRefundElement,
 }: Readonly<{
   group: AdminRefundOperationGroup;
   apiExecutionEnabled: boolean;
@@ -1195,6 +1282,9 @@ function RefundOperationCard({
   onExecute: (refund: AdminRefundSummary) => void;
   onConsult: (refund: AdminRefundSummary) => void;
   onReconcile: (refund: AdminRefundSummary) => void;
+  openNestedRefundId: string;
+  onNestedValueChange: (value: string) => void;
+  registerRefundElement: (refundId: string, element: HTMLDivElement | null) => void;
 }>) {
   const completedMovements = group.refunds.filter((refund) =>
     refund.status === "APPROVED" || refund.status === "MANUAL",
@@ -1258,7 +1348,13 @@ function RefundOperationCard({
         <p className="mt-4 text-sm leading-6 text-muted-foreground">
           {copy.notes.providerMovements}
         </p>
-        <Accordion className="mt-4 grid gap-3" collapsible type="single">
+        <Accordion
+          className="mt-4 grid gap-3"
+          collapsible
+          onValueChange={onNestedValueChange}
+          type="single"
+          value={openNestedRefundId}
+        >
           {group.refunds.map((refund) => (
             <AdminRefundOperationCard
               apiExecutionEnabled={apiExecutionEnabled}
@@ -1268,6 +1364,7 @@ function RefundOperationCard({
               copy={copy}
               formatDateTime={formatDateTime}
               formatMoney={formatMoney}
+              itemRef={(element) => registerRefundElement(refund.id, element)}
               key={refund.id}
               modeLabel={modeLabel(refund.processingMode)}
               onConsult={() => onConsult(refund)}

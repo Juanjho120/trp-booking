@@ -1,12 +1,18 @@
 export {
   getAdminNotificationCenter,
   markAdminNotificationRead,
+  normalizeAdminNotificationCenterPage,
+  resolveAdminNotificationCenterSafePage,
+  resolveAdminNotificationCenterSkip,
+  resolveAdminNotificationCenterTotalPages,
+  resolveAdminNotificationTargetPage,
   AdminNotificationCenterError,
 } from "./center";
 export type {
   AdminNotificationCenterData,
   AdminNotificationCenterErrorCode,
   AdminNotificationCenterItem,
+  AdminNotificationCenterPagination,
 } from "./center";
 export {
   ADMIN_NOTIFICATION_CENTER_PATH,

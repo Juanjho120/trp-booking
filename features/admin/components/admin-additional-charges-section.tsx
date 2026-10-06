@@ -12,7 +12,7 @@ import {
   Send,
   Trash2,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   Accordion,
@@ -51,6 +51,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { useLocale } from "@/features/i18n";
+import type { AdminReservationDetailFocus } from "@/lib/admin/reservation-detail-focus";
 import {
   ADDITIONAL_CHARGE_CATEGORIES,
   type AdditionalChargeCategory,
@@ -74,6 +75,7 @@ import type {
 } from "@/types/admin-refund";
 
 import { AdminSnackbar } from "./admin-snackbar";
+import { useAdminInitialFocusScroll } from "./use-admin-initial-focus-scroll";
 import {
   AdminRefundExecutionSheet,
   AdminRefundOperationCard,
@@ -174,13 +176,31 @@ function isEmailResendSuccessResponse(
   return "result" in response;
 }
 
+type AdditionalChargeTab = "charges" | "requests";
+
+function isAdditionalChargeTab(value: string): value is AdditionalChargeTab {
+  return value === "charges" || value === "requests";
+}
+
 export function AdminAdditionalChargesSection({
+  initialFocus = null,
   reservationId,
-}: Readonly<{ reservationId: string }>) {
+}: Readonly<{
+  initialFocus?: AdminReservationDetailFocus | null;
+  reservationId: string;
+}>) {
   const { locale, messages } = useLocale();
   const copy = messages.admin.reservationsPage.additionalCharges;
   const [management, setManagement] =
     useState<AdminAdditionalChargeManagement | null>(null);
+  const [activeTab, setActiveTab] = useState<AdditionalChargeTab>(() =>
+    initialFocus?.kind === "additionalChargePaymentRequest"
+      ? "requests"
+      : "charges",
+  );
+  const [openChargeId, setOpenChargeId] = useState("");
+  const [openPaymentRequestId, setOpenPaymentRequestId] = useState("");
+  const [openRefundHistoryId, setOpenRefundHistoryId] = useState("");
   const [loading, setLoading] = useState(true);
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -222,6 +242,8 @@ export function AdminAdditionalChargesSection({
   const [selectedChargeIds, setSelectedChargeIds] = useState<readonly string[]>(
     [],
   );
+  const focusElementRefs = useRef(new Map<string, HTMLElement>());
+  const appliedFocusKeyRef = useRef<string | null>(null);
   const intlLocale = locale === "en" ? "en-US" : "es-GT";
   const refundCopy = messages.admin.reservationsPage.refunds;
   const isBusy = busyKey !== null;
@@ -299,6 +321,83 @@ export function AdminAdditionalChargesSection({
   useEffect(() => {
     void loadManagement(true);
   }, [loadManagement]);
+
+  const focusKey = initialFocus
+    ? `${initialFocus.kind}:${initialFocus.focusId}`
+    : null;
+  const focusElementKey =
+    initialFocus?.kind === "additionalChargePaymentRequest"
+      ? `request:${initialFocus.focusId}`
+      : initialFocus?.kind === "refund"
+        ? `refund:${initialFocus.focusId}`
+        : null;
+
+  const registerFocusElement = useCallback(
+    (key: string, element: HTMLElement | null) => {
+      if (element) {
+        focusElementRefs.current.set(key, element);
+        return;
+      }
+
+      focusElementRefs.current.delete(key);
+    },
+    [],
+  );
+  const getFocusElement = useCallback(
+    () => (focusElementKey ? focusElementRefs.current.get(focusElementKey) : null),
+    [focusElementKey],
+  );
+
+  useEffect(() => {
+    if (!management || !initialFocus || !focusKey) {
+      return;
+    }
+
+    if (appliedFocusKeyRef.current === focusKey) {
+      return;
+    }
+
+    if (initialFocus.kind === "additionalChargePaymentRequest") {
+      const paymentRequest = management.paymentRequests.find(
+        (request) => request.id === initialFocus.focusId,
+      );
+
+      if (!paymentRequest) {
+        appliedFocusKeyRef.current = focusKey;
+        return;
+      }
+
+      setActiveTab("requests");
+      setOpenPaymentRequestId(paymentRequest.id);
+      appliedFocusKeyRef.current = focusKey;
+      return;
+    }
+
+    if (initialFocus.kind === "refund") {
+      const charge = management.charges.find((candidate) =>
+        candidate.refundAllocations.some(
+          (allocation) => allocation.refundId === initialFocus.focusId,
+        ),
+      );
+
+      if (!charge) {
+        appliedFocusKeyRef.current = focusKey;
+        return;
+      }
+
+      setActiveTab("charges");
+      setOpenChargeId(charge.id);
+      setOpenRefundHistoryId(initialFocus.focusId);
+      appliedFocusKeyRef.current = focusKey;
+    }
+  }, [focusKey, initialFocus, management]);
+
+  useAdminInitialFocusScroll({
+    enabled: focusElementKey !== null,
+    focusKey,
+    getElement: getFocusElement,
+    scrollReadyKey: `${activeTab}:${openChargeId}:${openPaymentRequestId}:${openRefundHistoryId}`,
+  });
 
   const selectedCharges = useMemo(() => {
     if (!management) {
@@ -1075,7 +1174,15 @@ export function AdminAdditionalChargesSection({
             </p>
           ) : null}
 
-          <Tabs className="grid gap-5" defaultValue="charges">
+          <Tabs
+            className="grid gap-5"
+            onValueChange={(value) => {
+              if (isAdditionalChargeTab(value)) {
+                setActiveTab(value);
+              }
+            }}
+            value={activeTab}
+          >
             <div className="-mx-1 overflow-x-auto px-1 pb-2">
               <TabsList className="inline-flex h-auto min-w-full justify-start gap-1 rounded-2xl border border-border/70 bg-muted/40 p-1.5 sm:min-w-0">
                 <TabsTrigger className="min-h-10 shrink-0" value="charges">
@@ -1113,7 +1220,13 @@ export function AdminAdditionalChargesSection({
                 </div>
 
                 {management && management.charges.length > 0 ? (
-                  <Accordion className="grid gap-3" collapsible type="single">
+                  <Accordion
+                    className="grid gap-3"
+                    collapsible
+                    onValueChange={(value) => setOpenChargeId(value || "")}
+                    type="single"
+                    value={openChargeId}
+                  >
                     {management.charges.map((charge) => {
                       const chargeSelected = selectedChargeIds.includes(
                         charge.id,
@@ -1205,7 +1318,11 @@ export function AdminAdditionalChargesSection({
                                     <Accordion
                                       className="grid gap-2"
                                       collapsible
+                                      onValueChange={(value) =>
+                                        setOpenRefundHistoryId(value || "")
+                                      }
                                       type="single"
+                                      value={openRefundHistoryId}
                                     >
                                       {charge.refundAllocations.map(
                                         (allocation) => {
@@ -1240,6 +1357,12 @@ export function AdminAdditionalChargesSection({
                                               ]}
                                               formatDateTime={formatDateTime}
                                               formatMoney={formatRefundMoney}
+                                              itemRef={(element) =>
+                                                registerFocusElement(
+                                                  `refund:${refund.id}`,
+                                                  element,
+                                                )
+                                              }
                                               key={allocation.id}
                                               modeLabel={refundModeLabel(
                                                 refund.processingMode,
@@ -1333,11 +1456,22 @@ export function AdminAdditionalChargesSection({
                 </div>
 
                 {management && management.paymentRequests.length > 0 ? (
-                  <Accordion className="grid gap-3" collapsible type="single">
+                  <Accordion
+                    className="grid gap-3"
+                    collapsible
+                    onValueChange={(value) =>
+                      setOpenPaymentRequestId(value || "")
+                    }
+                    type="single"
+                    value={openPaymentRequestId}
+                  >
                     {management.paymentRequests.map((request) => (
                       <AccordionItem
-                        className="overflow-hidden rounded-2xl border border-border/70 bg-muted/20 last:border-b"
+                        className="scroll-mt-24 overflow-hidden rounded-2xl border border-border/70 bg-muted/20 last:border-b"
                         key={request.id}
+                        ref={(element) =>
+                          registerFocusElement(`request:${request.id}`, element)
+                        }
                         value={request.id}
                       >
                         <AccordionTrigger className="px-4 py-3 sm:px-5">

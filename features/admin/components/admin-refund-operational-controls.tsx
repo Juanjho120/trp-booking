@@ -7,7 +7,7 @@ import {
   RotateCcw,
   ShieldCheck,
 } from "lucide-react";
-import { type ReactNode } from "react";
+import { type ReactNode, type Ref } from "react";
 
 import {
   AccordionContent,
@@ -133,6 +133,7 @@ export function AdminRefundOperationCard({
   formatDateTime,
   busyAction,
   extraDetails = [],
+  itemRef,
   onExecute,
   onConsult,
   onReconcile,
@@ -149,6 +150,7 @@ export function AdminRefundOperationCard({
   formatDateTime: (value: string | null) => string;
   busyAction: string | null;
   extraDetails?: readonly Detail[];
+  itemRef?: Ref<HTMLDivElement>;
   onExecute: () => void;
   onConsult: () => void;
   onReconcile: () => void;
@@ -173,7 +175,8 @@ export function AdminRefundOperationCard({
 
   return (
     <AccordionItem
-      className="overflow-hidden rounded-2xl border border-border bg-muted/20 last:border-b"
+      className="scroll-mt-24 overflow-hidden rounded-2xl border border-border bg-muted/20 last:border-b"
+      ref={itemRef}
       value={refund.id}
     >
       <AccordionTrigger className="px-4 py-3 sm:px-5">

@@ -4,12 +4,17 @@ import { notFound } from "next/navigation";
 import { AdminReservationDetailPage } from "@/features/admin/components/admin-reservation-detail-page";
 import { getAdminPaymentSubmissionAttemptsForReservation } from "@/lib/admin/payment-submission-attempts";
 import { getAdminReservationDetail } from "@/lib/admin/reservation-detail";
+import { parseAdminReservationDetailFocusQuery } from "@/lib/admin/reservation-detail-focus";
 import { esMessages } from "@/messages";
 import type { AdminReservationDetailData } from "@/types/admin-reservation-detail";
 
 type AdminReservationDetailRouteProps = Readonly<{
   params: Promise<{
     reservationId: string;
+  }>;
+  searchParams?: Promise<{
+    focus?: string | string[];
+    focusId?: string | string[];
   }>;
 }>;
 
@@ -25,8 +30,11 @@ export const metadata: Metadata = {
 
 export default async function AdminReservationDetailRoute({
   params,
+  searchParams,
 }: AdminReservationDetailRouteProps) {
   const { reservationId } = await params;
+  const focusParams = searchParams ? await searchParams : {};
+  const initialFocus = parseAdminReservationDetailFocusQuery(focusParams);
   const [reservationResult, attemptHistory] = await Promise.all([
     getAdminReservationDetail(reservationId),
     getAdminPaymentSubmissionAttemptsForReservation(reservationId),
@@ -39,6 +47,7 @@ export default async function AdminReservationDetailRoute({
 
   return (
     <AdminReservationDetailPage
+      initialFocus={initialFocus}
       paymentAttemptHistory={attemptHistory}
       reservation={reservation}
     />

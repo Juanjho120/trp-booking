@@ -10,7 +10,14 @@ import {
   Plus,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { type ReactNode, useEffect, useMemo, useState } from "react";
+import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type { DateRange } from "react-day-picker";
 
 import { AvailabilityDateRangePicker } from "@/components/availability/availability-date-range-picker";
@@ -62,6 +69,7 @@ import {
   useAdminRecordPagination,
 } from "./admin-record-pagination";
 import { AdminSnackbar } from "./admin-snackbar";
+import { useAdminInitialFocusScroll } from "./use-admin-initial-focus-scroll";
 
 const inputClassName =
   "h-11 w-full rounded-2xl border border-input bg-background px-3 text-sm text-foreground shadow-xs outline-none transition focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50";
@@ -187,8 +195,10 @@ function toInitialDraft(
 }
 
 export function AdminReservationDateMutationSection({
+  focusedLifecycleRequestId = null,
   reservation,
 }: Readonly<{
+  focusedLifecycleRequestId?: string | null;
   reservation: AdminReservationDetailData;
 }>) {
   const router = useRouter();
@@ -216,6 +226,9 @@ export function AdminReservationDateMutationSection({
   const [busy, setBusy] = useState(false);
   const [errorFeedback, setErrorFeedback] = useState<string | null>(null);
   const [successFeedback, setSuccessFeedback] = useState<string | null>(null);
+  const [openRequestId, setOpenRequestId] = useState("");
+  const requestElementRefs = useRef(new Map<string, HTMLDivElement>());
+  const appliedFocusRef = useRef<string | null>(null);
   const activeDateMutation = useMemo(
     () =>
       reservation.dateMutationRequests.find(
@@ -267,6 +280,52 @@ export function AdminReservationDateMutationSection({
     previous: paginationCopy.actions.previous,
     results: paginationCopy.labels.results,
   } as const;
+  const focusedRequestIndex = focusedLifecycleRequestId
+    ? reservation.dateMutationRequests.findIndex(
+        (request) => request.id === focusedLifecycleRequestId,
+      )
+    : -1;
+  const registerRequestElement = useCallback(
+    (requestId: string, element: HTMLDivElement | null) => {
+      if (element) {
+        requestElementRefs.current.set(requestId, element);
+        return;
+      }
+
+      requestElementRefs.current.delete(requestId);
+    },
+    [],
+  );
+  const getFocusedRequestElement = useCallback(
+    () =>
+      focusedLifecycleRequestId
+        ? requestElementRefs.current.get(focusedLifecycleRequestId)
+        : null,
+    [focusedLifecycleRequestId],
+  );
+
+  useEffect(() => {
+    if (!focusedLifecycleRequestId || focusedRequestIndex < 0) {
+      return;
+    }
+
+    if (appliedFocusRef.current === focusedLifecycleRequestId) {
+      return;
+    }
+
+    requestPagination.setPage(
+      Math.floor(focusedRequestIndex / requestPagination.pageSize) + 1,
+    );
+    setOpenRequestId(focusedLifecycleRequestId);
+    appliedFocusRef.current = focusedLifecycleRequestId;
+  }, [focusedLifecycleRequestId, focusedRequestIndex, requestPagination]);
+
+  useAdminInitialFocusScroll({
+    enabled: focusedRequestIndex >= 0,
+    focusKey: focusedLifecycleRequestId,
+    getElement: getFocusedRequestElement,
+    scrollReadyKey: `${requestPagination.page}:${openRequestId}`,
+  });
 
   useEffect(() => {
     if (!createOpen) {
@@ -591,7 +650,9 @@ export function AdminReservationDateMutationSection({
                 className="grid gap-3"
                 collapsible
                 key={`${requestPagination.page}-${requestPagination.pageSize}`}
+                onValueChange={(value) => setOpenRequestId(value || "")}
                 type="single"
+                value={openRequestId}
               >
               {requestPagination.pageItems.map((request) => (
                 <DateMutationRequestCard
@@ -601,6 +662,7 @@ export function AdminReservationDateMutationSection({
                   formatDateTime={formatDateTime}
                   formatMoney={formatMoney}
                   formatSignedMoney={formatSignedMoney}
+                  itemRef={(element) => registerRequestElement(request.id, element)}
                   key={request.id}
                   pricingModeLabel={pricingModeLabel(request.pricingMode)}
                   request={request}
@@ -857,6 +919,7 @@ function DateMutationRequestCard({
   request,
   requestTypeLabel,
   statusLabel,
+  itemRef,
 }: Readonly<{
   channelLabel: string;
   copy: ReturnType<typeof useLocale>["messages"]["admin"]["reservationsPage"]["dateMutation"];
@@ -865,6 +928,7 @@ function DateMutationRequestCard({
   formatMoney: (value: string, currency: string) => string;
   formatSignedMoney: (value: string, currency: string) => string;
   pricingModeLabel: string;
+  itemRef?: (element: HTMLDivElement | null) => void;
   request: AdminDateMutationRequestSummary;
   requestTypeLabel: string;
   statusLabel: string;
@@ -873,7 +937,8 @@ function DateMutationRequestCard({
 
   return (
     <AccordionItem
-      className="overflow-hidden rounded-2xl border border-border bg-muted/10 last:border-b"
+      className="scroll-mt-24 overflow-hidden rounded-2xl border border-border bg-muted/10 last:border-b"
+      ref={itemRef}
       value={request.id}
     >
       <AccordionTrigger className="px-4 py-3 sm:px-5">

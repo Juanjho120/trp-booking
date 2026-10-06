@@ -713,6 +713,13 @@ export const enMessages = {
         markedRead: "The notification was marked as read.",
         zohoEmailCopied: "We opened Zoho Mail and copied the guest email.",
       },
+      pagination: {
+        results: "Results",
+        previous: "Previous",
+        next: "Next",
+        page: "Page",
+        of: "of",
+      },
       history: {
         title: "Recent notifications",
         description:

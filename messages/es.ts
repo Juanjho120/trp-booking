@@ -715,6 +715,13 @@ export const esMessages = {
         zohoEmailCopied:
           "Abrimos Zoho Mail y copiamos el correo del huésped.",
       },
+      pagination: {
+        results: "Resultados",
+        previous: "Anterior",
+        next: "Siguiente",
+        page: "Página",
+        of: "de",
+      },
       history: {
         title: "Notificaciones recientes",
         description:

@@ -6,8 +6,12 @@ import { AdminNotificationType, type PrismaClient } from "@prisma/client";
 
 import {
   getAdminNotificationCenter,
-  mergeTargetedAdminNotification,
   normalizeAdminNotificationId,
+  normalizeAdminNotificationCenterPage,
+  resolveAdminNotificationCenterSafePage,
+  resolveAdminNotificationCenterSkip,
+  resolveAdminNotificationCenterTotalPages,
+  resolveAdminNotificationTargetPage,
   resolveAdminNotificationInitialOpenId,
 } from "@/lib/admin-notifications";
 import {
@@ -56,6 +60,7 @@ type FakeNotification = Readonly<{
   title: string;
   body: string;
   targetPath: string;
+  deduplicationKey: string;
   createdAt: Date;
   reservationId: string | null;
   zohoInboundEmailEvent: null;
@@ -89,37 +94,65 @@ function createNotificationCenterClient() {
     email: "admin@example.com",
     name: null,
   };
-  const notifications: FakeNotification[] = [
-    {
-      id: "notification_recent",
-      type: AdminNotificationType.RESERVATION_CONFIRMED,
-      title: "Reservación confirmada · Ada · Bungalow",
-      body: "Toca para ver detalles.",
-      targetPath: "/admin/reservations/reservation-1",
-      createdAt: new Date("2026-09-29T12:00:00.000Z"),
-      reservationId: "reservation-1",
-      zohoInboundEmailEvent: null,
+  const notifications: FakeNotification[] = Array.from(
+    { length: 23 },
+    (_, index) => {
+      const sequence = index + 1;
+      const id = `notification_${String(sequence).padStart(3, "0")}`;
+
+      return {
+        id,
+        type:
+          sequence === 15
+            ? AdminNotificationType.GUEST_EMAIL_RECEIVED
+            : AdminNotificationType.RESERVATION_CONFIRMED,
+        title: `Notification ${sequence}`,
+        body: "Toca para ver detalles.",
+        targetPath:
+          sequence === 15
+            ? "/admin/notifications"
+            : `/admin/reservations/reservation-${sequence}`,
+        deduplicationKey: `admin-notification/test/${id}`,
+        createdAt: new Date(
+          Date.UTC(2026, 8, 29, 12, 0, 0) - index * 60_000,
+        ),
+        reservationId: sequence === 15 ? null : `reservation-${sequence}`,
+        zohoInboundEmailEvent: null,
+      };
     },
+  );
+  const reads: FakeRead[] = [
     {
-      id: "notification_targeted",
-      type: AdminNotificationType.GUEST_EMAIL_RECEIVED,
-      title: "Nuevo correo de huésped · Ada · Bungalow",
-      body: "Toca para revisar la correspondencia.",
-      targetPath: "/admin/notifications",
-      createdAt: new Date("2026-09-28T12:00:00.000Z"),
-      reservationId: null,
-      zohoInboundEmailEvent: null,
+      notificationId: "notification_001",
+      userId: adminUser.id,
+      readAt: new Date("2026-09-29T12:30:00.000Z"),
     },
   ];
-  const reads: FakeRead[] = [];
   const findUniqueIds: string[] = [];
+  const findManyInputs: Array<Readonly<{ skip?: number; take?: number }>> = [];
+  const countInputs: unknown[] = [];
+  const orderedNotifications = () =>
+    [...notifications].sort((left, right) => {
+      const createdDelta = right.createdAt.getTime() - left.createdAt.getTime();
+
+      return createdDelta === 0
+        ? right.id.localeCompare(left.id)
+        : createdDelta;
+    });
 
   const prismaClient = {
     adminNotification: {
-      async findMany(input: { select: { reads: { where: { userId: string } } } }) {
+      async findMany(input: {
+        skip?: number;
+        take?: number;
+        select: { reads: { where: { userId: string } } };
+      }) {
+        findManyInputs.push({ skip: input.skip, take: input.take });
         const userId = input.select.reads.where.userId;
 
-        return [withReads(notifications[0], reads, userId)];
+        return orderedNotifications()
+          .slice(input.skip ?? 0, (input.skip ?? 0) + (input.take ?? 50))
+          .map((notification) => withReads(notification, reads, userId));
       },
       async findUnique(input: {
         where: { id: string };
@@ -140,14 +173,60 @@ function createNotificationCenterClient() {
           input.select.reads?.where?.userId ?? adminUser.id,
         );
       },
-      async count() {
-        return 2;
+      async count(input?: {
+        where?: {
+          reads?: { none: { userId: string } };
+          OR?: Array<{
+            createdAt?: { gt?: Date; equals?: Date };
+            id?: { gt: string };
+          }>;
+        };
+      }) {
+        countInputs.push(input);
+
+        if (input?.where?.reads?.none) {
+          const userId = input.where.reads.none.userId;
+
+          return notifications.filter(
+            (notification) =>
+              !reads.some(
+                (read) =>
+                  read.notificationId === notification.id &&
+                  read.userId === userId,
+              ),
+          ).length;
+        }
+
+        if (input?.where?.OR) {
+          return notifications.filter((notification) =>
+            input.where!.OR!.some((condition) => {
+              if (condition.createdAt?.gt) {
+                return notification.createdAt > condition.createdAt.gt;
+              }
+
+              if (condition.createdAt?.equals && condition.id?.gt) {
+                return (
+                  notification.createdAt.getTime() ===
+                    condition.createdAt.equals.getTime() &&
+                  notification.id > condition.id.gt
+                );
+              }
+
+              return false;
+            }),
+          ).length;
+        }
+
+        return notifications.length;
       },
     },
   } as unknown as PrismaClient;
 
   return {
+    countInputs,
+    findManyInputs,
     findUniqueIds,
+    notifications,
     prismaClient,
     resolveActor: async (_client: PrismaClient, actor: AdminActor) => {
       if (actor.email !== adminUser.email) {
@@ -400,32 +479,73 @@ test("I.3 notification-center query selection opens only existing visible items"
   );
 });
 
-test("I.3 targeted notification merge prepends a missing item and avoids duplicates", () => {
-  const recent = [{ id: "recent" }];
-  const targeted = { id: "targeted" };
-
-  assert.deepEqual(mergeTargetedAdminNotification(recent, null), recent);
-  assert.deepEqual(mergeTargetedAdminNotification(recent, recent[0]), recent);
-  assert.deepEqual(mergeTargetedAdminNotification(recent, targeted), [
-    targeted,
-    ...recent,
-  ]);
+test("I.6.2 notification pagination helpers normalize clamp and calculate offsets", () => {
+  assert.equal(normalizeAdminNotificationCenterPage("2"), 2);
+  assert.equal(normalizeAdminNotificationCenterPage(3), 3);
+  assert.equal(normalizeAdminNotificationCenterPage("0"), 1);
+  assert.equal(normalizeAdminNotificationCenterPage("-1"), 1);
+  assert.equal(normalizeAdminNotificationCenterPage("1.5"), 1);
+  assert.equal(normalizeAdminNotificationCenterPage("abc"), 1);
+  assert.equal(resolveAdminNotificationCenterTotalPages(0), 1);
+  assert.equal(resolveAdminNotificationCenterTotalPages(1), 1);
+  assert.equal(resolveAdminNotificationCenterTotalPages(10), 1);
+  assert.equal(resolveAdminNotificationCenterTotalPages(11), 2);
+  assert.equal(resolveAdminNotificationCenterTotalPages(23), 3);
+  assert.equal(
+    resolveAdminNotificationCenterSafePage({
+      requestedPage: 99,
+      totalItems: 23,
+    }),
+    3,
+  );
+  assert.equal(resolveAdminNotificationCenterSkip(1), 0);
+  assert.equal(resolveAdminNotificationCenterSkip(3), 20);
+  assert.equal(resolveAdminNotificationTargetPage({ rowsBeforeTarget: 14 }), 2);
 });
 
-test("I.3 loader fetches one authorized targeted notification and ignores malformed IDs", async () => {
+test("I.6.2 loader paginates notifications server-side and keeps unread count global", async () => {
+  const actor: AdminActor = { email: "admin@example.com" };
+  const client = createNotificationCenterClient();
+  const center = await getAdminNotificationCenter(actor, {
+    page: "2",
+    prismaClient: client.prismaClient,
+    resolveActor: client.resolveActor,
+  });
+
+  assert.equal(center.pagination.page, 2);
+  assert.equal(center.pagination.pageSize, 10);
+  assert.equal(center.pagination.totalItems, 23);
+  assert.equal(center.pagination.totalPages, 3);
+  assert.equal(center.unreadCount, 22);
+  assert.equal(center.notifications.length, 10);
+  assert.deepEqual(client.findManyInputs.at(-1), { skip: 10, take: 10 });
+  assert.deepEqual(
+    center.notifications.map((notification) => notification.id),
+    Array.from({ length: 10 }, (_, index) =>
+      `notification_${String(index + 11).padStart(3, "0")}`,
+    ),
+  );
+});
+
+test("I.6.2 loader opens targeted notifications on their canonical page without prepending rows", async () => {
   const actor: AdminActor = { email: "admin@example.com" };
   const firstClient = createNotificationCenterClient();
   const center = await getAdminNotificationCenter(actor, {
-    requestedNotificationId: "notification_targeted",
+    requestedNotificationId: "notification_015",
     prismaClient: firstClient.prismaClient,
     resolveActor: firstClient.resolveActor,
   });
 
-  assert.deepEqual(
-    center.notifications.map((notification) => notification.id),
-    ["notification_targeted", "notification_recent"],
+  assert.equal(center.pagination.page, 2);
+  assert.equal(center.notifications.length, 10);
+  assert.equal(
+    center.notifications.filter(
+      (notification) => notification.id === "notification_015",
+    ).length,
+    1,
   );
-  assert.deepEqual(firstClient.findUniqueIds, ["notification_targeted"]);
+  assert.deepEqual(firstClient.findUniqueIds, ["notification_015"]);
+  assert.deepEqual(firstClient.findManyInputs.at(-1), { skip: 10, take: 10 });
 
   const secondClient = createNotificationCenterClient();
   const malformed = await getAdminNotificationCenter(actor, {
@@ -436,7 +556,9 @@ test("I.3 loader fetches one authorized targeted notification and ignores malfor
 
   assert.deepEqual(
     malformed.notifications.map((notification) => notification.id),
-    ["notification_recent"],
+    Array.from({ length: 10 }, (_, index) =>
+      `notification_${String(index + 1).padStart(3, "0")}`,
+    ),
   );
   assert.deepEqual(secondClient.findUniqueIds, []);
 });
@@ -445,7 +567,9 @@ test("I.3 page and view wire safe query parsing, desktop simplification and sing
   for (const expected of [
     "searchParams",
     "normalizeAdminNotificationId",
+    "normalizeAdminNotificationCenterPage",
     "requestedNotificationId",
+    "requestedPage",
     "resolveAdminNotificationInitialOpenId",
     "initialNotificationId={initialNotificationId}",
   ]) {
@@ -462,7 +586,8 @@ test("I.3 page and view wire safe query parsing, desktop simplification and sing
     "type=\"single\"",
     "collapsible",
     "value={openNotificationId}",
-    "setOpenNotificationId(value || undefined)",
+    "initialNotificationId ?? \"\"",
+    "setOpenNotificationId(value || \"\")",
     "initialNotificationId ? \"notifications\" : null",
     "notificationElementRefs.current.get(initialNotificationId)",
     "ref={(element) =>",
@@ -482,6 +607,11 @@ test("I.3 page and view wire safe query parsing, desktop simplification and sing
     "notification.createdAt,",
     "{notification.title}",
     "openZohoMailForNotification",
+    "openAdminNotificationTarget",
+    "markNotificationReadForOpen",
+    "router.push(targetPath)",
+    "notificationCenter.pagination",
+    "navigateNotificationPage",
     "safeAdminTargetPath(notification.targetPath)",
   ]) {
     expectIncludes(NOTIFICATIONS_VIEW, expected);

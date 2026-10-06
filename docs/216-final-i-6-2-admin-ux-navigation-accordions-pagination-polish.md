@@ -31,6 +31,11 @@ C - Admin Dashboard upcoming-arrival reservation detail action
 D - Admin Reservations pagination size reduction to 5
 E - Shared Admin accordion trigger visual hierarchy polish
 F - Admin shell desktop/mobile navigation-only scrolling
+G - Admin Notifications accordion controlled-state correction
+H - Admin Notifications server-side pagination with 10 items per page
+I - Financial notification contextual Reservation focus links and exact-item scroll
+J - Notification Open action marks unread notifications read before navigation
+K - Admin identity relocation to the desktop header beside the locale switcher
 ```
 
 ### A - Additional Charges Tabs
@@ -82,6 +87,78 @@ Per-use Admin accordion hover overrides from the old `hover:bg-muted/30` / `hove
 
 The desktop Admin shell sidebar now keeps the brand/header and account/footer fixed while only the navigation list scrolls. The mobile Sheet mirrors that structure: header fixed, navigation scrollable, account actions fixed. Overflow is not placed on the whole sidebar/sheet body.
 
+### G - Notifications Accordion Controlled State
+
+The Admin Notification Center accordion now stays fully controlled with a stable empty-string closed value. It no longer transitions between a concrete notification id and `undefined`, so the accepted single/collapsible behavior remains predictable:
+
+```text
+- no item opens by default unless a valid notification deep link requests one
+- one click closes the currently open notification
+- opening B closes A
+- closing B leaves all notifications closed instead of restoring A
+```
+
+Accordion expansion itself still does not mark a notification read.
+
+### H - Notification Center Pagination
+
+Notification Center retrieval now uses canonical server-side pagination with `ADMIN_NOTIFICATION_CENTER_PAGE_SIZE = 10`, Prisma `count`, `skip`, `take`, and stable ordering by `createdAt DESC, id DESC`. `unreadCount` remains global across all Admin notifications, not limited to the visible page.
+
+The route supports `/admin/notifications?page=N`, normalizes unsafe page input to page 1, clamps overly large pages to the real final page, and renders localized Previous / Next controls below the accordion.
+
+When a Push or deep link uses `/admin/notifications?notification=<id>`, the server resolves the requested notification's canonical page by counting rows before it under the same ordering. The returned page contains at most 10 rows and the target appears only once; the implementation no longer prepends the target to an unrelated page.
+
+### I - Financial Notification Focus Links
+
+Financial Admin notifications now derive contextual Reservation-detail targets from existing accepted `deduplicationKey` identities, without a schema migration:
+
+```text
+ADDITIONAL_CHARGE_PAID + admin-notification/additional-charge-paid/<guestPaymentRequestId>
+-> /admin/reservations/<reservationId>?focus=additionalChargePaymentRequest&focusId=<guestPaymentRequestId>
+
+LIFECYCLE_ADJUSTMENT_PAID + admin-notification/lifecycle-adjustment-paid/<lifecycleRequestId>
+-> /admin/reservations/<reservationId>?focus=lifecycleAdjustment&focusId=<lifecycleRequestId>
+
+REFUND_PROCESSED + admin-notification/refund-processed/<refundId>
+-> /admin/reservations/<reservationId>?focus=refund&focusId=<refundId>
+```
+
+The focus contract is centralized in `lib/admin/reservation-detail-focus.ts`. It validates focus kinds, bounds focus ids, encodes target URLs, and falls back to the stored safe Admin target path if the notification type or deduplication key is malformed. This works for existing notification rows because it derives the focus at serialization time.
+
+Reservation detail now parses bounded `focus` / `focusId` query params and initializes the correct top-level tab once:
+
+```text
+additionalChargePaymentRequest -> Additional Charges
+lifecycleAdjustment -> Changes/Extensions
+refund + ADDITIONAL_CHARGE -> Additional Charges
+refund + other current authorization types -> Refunds
+unknown or invalid focus -> Reservation
+```
+
+The Admin can still manually switch tabs after the initial landing.
+
+Focused accordions now open and scroll to the exact operational item:
+
+```text
+- Additional Charge paid: Payment Requests tab, exact GuestPaymentRequest accordion
+- Lifecycle Adjustment paid: containing Changes/Extensions page, exact lifecycle request accordion
+- Refund processed: exact standard, grouped, lifecycle-adjustment, or Additional Charge refund item
+```
+
+Initial focus scrolling waits for the tab/accordion layout to commit, respects `prefers-reduced-motion`, uses `scrollIntoView({ block: "start" })`, and runs at most once per focus key.
+
+### J - Open Marks Notification Read
+
+The Notification Center `Open` action now uses the existing authenticated read endpoint before navigating. For unread notifications it marks the item read, updates local state, and decrements the global unread count once. If the read mutation unexpectedly fails, navigation to the safe Admin target still proceeds.
+
+The manual `Mark as read` action remains available for unread notifications, and accordion expansion alone still does not mark anything read.
+
+### K - Admin Identity Relocation
+
+The desktop Admin shell now renders the logged-in Admin identity card in the sticky header immediately to the left of the ES/EN locale switcher. The desktop sidebar footer keeps only `View public site` and `Sign out`, preserving the fixed footer and nav-only scrolling structure.
+
+On mobile, the full identity card remains inside the Admin Sheet footer above the same actions so the logged-in account remains visible without crowding the narrow header. Public site shell/header files are not changed.
+
 ## Frozen Boundaries
 
 ```text
@@ -91,7 +168,7 @@ The desktop Admin shell sidebar now keeps the brand/header and account/footer fi
 - No Final-I.8 or Final-I.9 work.
 - No Phase 13 or Production activation.
 - No dependency, environment, scheduler, cron, or vercel.json change.
-- No notification UX, email URL cleanup, or Final-I.6.1 scope reopened.
+- No email URL cleanup, FEL/INFILE behavior, Final-I.6.1 scope, Push service-worker behavior, or notification type/persistence contract reopened.
 ```
 
 ## Hosted Owner Validation Matrix
@@ -103,6 +180,13 @@ Pending - Additional Charges nested tabs responsive behavior
 Pending - Admin Reviews single/collapsible accordion behavior and action placement
 Pending - Admin Dashboard upcoming-arrival reservation detail action
 Pending - Admin Reservations pagination with 5 rows per page
+Pending - Notifications accordion one-click collapse and A -> B -> close B leaves all closed
+Pending - Notifications pagination with maximum 10 items per page, Previous / Next, global unread count, and targeted Push notification landing on its canonical page
+Pending - Refund Processed Open marks read, opens the correct Reservation contextual tab, opens the exact Refund accordion item, and scrolls to it
+Pending - Additional Charge Paid Open marks read, opens Additional Charges, selects Payment Requests, opens the exact request, and scrolls to it
+Pending - Lifecycle Adjustment Paid Open marks read, opens Changes/Extensions, opens the exact lifecycle request, and scrolls to it
+Pending - Manual Mark as read still works without opening the target
+Pending - Admin identity appears immediately left of ES/EN on desktop, is not duplicated in the desktop sidebar, remains accessible on mobile, and leaves the public site layout unaffected
 ```
 
 Final-I.6.2 must not be marked accepted until Hosted owner validation and explicit owner acceptance are recorded.
@@ -111,8 +195,8 @@ Final-I.6.2 must not be marked accepted until Hosted owner validation and explic
 
 ```text
 Final-I.6.2 implementation validation:
-- npm run final-i:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; rerun outside the sandbox PASS, 85/85
-- npm run final-h:validate - PASS, 20/20; executed outside the sandbox because the tsx gates have the known sandbox-only uv_os_get_passwd ENOMEM failure mode
+- npm run final-i:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; rerun outside the sandbox PASS, 95/95
+- npm run final-h:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; rerun outside the sandbox PASS, 20/20
 - npm run lint - PASS
 - npm run build - initial sandbox attempt failed fetching Google Fonts; rerun outside the sandbox PASS; Next slow filesystem warning only
 - git diff --check - PASS; Windows CRLF normalization warnings only

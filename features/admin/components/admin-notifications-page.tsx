@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import {
   Bell,
   BellOff,
@@ -129,7 +130,7 @@ export function shouldAutoScrollAdminNotification({
   hasScrolledToInitialNotification: boolean;
   initialNotificationId: string | null;
   isMobileViewport: boolean;
-  openNotificationId: string | undefined;
+  openNotificationId: string;
   targetElementAvailable: boolean;
 }>): boolean {
   return (
@@ -289,17 +290,19 @@ export function AdminNotificationsPageView({
   initialNotificationId?: string | null;
   notificationCenter: AdminNotificationCenterData;
 }>) {
+  const router = useRouter();
   const { locale, messages } = useLocale();
   const copy = messages.admin.notificationsPage;
   const [recentNotifications, setRecentNotifications] = useState(
     notificationCenter.notifications,
   );
+  const recentNotificationsRef = useRef(notificationCenter.notifications);
   const [unreadCount, setUnreadCount] = useState(
     notificationCenter.unreadCount,
   );
-  const [openNotificationId, setOpenNotificationId] = useState<
-    string | undefined
-  >(initialNotificationId ?? undefined);
+  const [openNotificationId, setOpenNotificationId] = useState(
+    initialNotificationId ?? "",
+  );
   const [config, setConfig] = useState<PushConfig | null>(null);
   const [serviceWorkerState, setServiceWorkerState] =
     useState<ServiceWorkerState>("checking");
@@ -330,6 +333,19 @@ export function AdminNotificationsPageView({
   const notificationElementRefs = useRef(new Map<string, HTMLDivElement>());
   const initialNotificationScrollFrameRef = useRef<number | null>(null);
   const hasScrolledToInitialNotificationRef = useRef(false);
+  const notificationPagination = notificationCenter.pagination;
+
+  useEffect(() => {
+    recentNotificationsRef.current = notificationCenter.notifications;
+    setRecentNotifications(notificationCenter.notifications);
+    setUnreadCount(notificationCenter.unreadCount);
+    setOpenNotificationId(initialNotificationId ?? "");
+    hasScrolledToInitialNotificationRef.current = false;
+  }, [
+    initialNotificationId,
+    notificationCenter.notifications,
+    notificationCenter.unreadCount,
+  ]);
 
   const supported = serviceWorkerState !== "unsupported";
   const configured = config?.configured === true;
@@ -608,6 +624,32 @@ export function AdminNotificationsPageView({
     }
   }
 
+  function applyNotificationReadState(
+    notificationId: string,
+    readAt: string,
+  ): void {
+    let markedUnreadItem = false;
+    const nextNotifications = recentNotificationsRef.current.map((item) => {
+      if (item.id !== notificationId || item.readAt) {
+        return item;
+      }
+
+      markedUnreadItem = true;
+      return {
+        ...item,
+        readAt,
+      };
+    });
+
+    if (!markedUnreadItem) {
+      return;
+    }
+
+    recentNotificationsRef.current = nextNotifications;
+    setRecentNotifications(nextNotifications);
+    setUnreadCount((current) => Math.max(0, current - 1));
+  }
+
   async function markNotificationRead(
     notification: AdminNotificationCenterItem,
   ): Promise<void> {
@@ -627,17 +669,7 @@ export function AdminNotificationsPageView({
         { method: "PATCH" },
       );
 
-      setRecentNotifications((current) =>
-        current.map((item) =>
-          item.id === notification.id
-            ? {
-                ...item,
-                readAt: result.readAt,
-              }
-            : item,
-        ),
-      );
-      setUnreadCount((current) => Math.max(0, current - 1));
+      applyNotificationReadState(notification.id, result.readAt);
       setSuccessMessage(copy.feedback.markedRead);
     } catch (error) {
       setErrorMessage(
@@ -650,6 +682,36 @@ export function AdminNotificationsPageView({
     } finally {
       setBusyNotificationId(null);
     }
+  }
+
+  async function markNotificationReadForOpen(
+    notification: AdminNotificationCenterItem,
+  ): Promise<void> {
+    if (notification.readAt) {
+      return;
+    }
+
+    try {
+      const result = await requestJson<ReadNotificationResponse>(
+        `/api/admin/notifications/${encodeURIComponent(
+          notification.id,
+        )}/read`,
+        { method: "PATCH" },
+      );
+
+      applyNotificationReadState(notification.id, result.readAt);
+    } catch {
+      // Opening the bounded Admin target remains available even if the read flag update fails.
+    }
+  }
+
+  async function openAdminNotificationTarget(
+    notification: AdminNotificationCenterItem,
+  ): Promise<void> {
+    const targetPath = safeAdminTargetPath(notification.targetPath);
+
+    await markNotificationReadForOpen(notification);
+    router.push(targetPath);
   }
 
   async function openZohoMailForNotification(
@@ -831,6 +893,27 @@ export function AdminNotificationsPageView({
     openNotificationId,
   ]);
 
+  const showNotificationPagination =
+    notificationPagination.totalItems > notificationPagination.pageSize;
+  const firstVisibleNotification =
+    (notificationPagination.page - 1) * notificationPagination.pageSize + 1;
+  const lastVisibleNotification = Math.min(
+    notificationPagination.page * notificationPagination.pageSize,
+    notificationPagination.totalItems,
+  );
+  const visibleNotificationRange = `${firstVisibleNotification}-${lastVisibleNotification}`;
+
+  function navigateNotificationPage(nextPage: number): void {
+    const page = Math.min(
+      Math.max(1, nextPage),
+      notificationPagination.totalPages,
+    );
+    const targetPath =
+      page === 1 ? "/admin/notifications" : `/admin/notifications?page=${page}`;
+
+    router.push(targetPath);
+  }
+
   const notificationsPanel = (
     <Card className="border-border/70 bg-card shadow-sm">
       <CardContent className="grid gap-5 p-5">
@@ -858,7 +941,7 @@ export function AdminNotificationsPageView({
             className="grid gap-3"
             collapsible
             onValueChange={(value) => {
-              setOpenNotificationId(value || undefined);
+              setOpenNotificationId(value || "");
             }}
             type="single"
             value={openNotificationId}
@@ -950,11 +1033,14 @@ export function AdminNotificationsPageView({
                     ) : null}
 
                     <div className="flex flex-wrap items-center gap-2">
-                      <Button asChild size="sm" variant="outline">
-                        <a href={safeAdminTargetPath(notification.targetPath)}>
-                          <ExternalLink aria-hidden="true" />
-                          {copy.actions.open}
-                        </a>
+                      <Button
+                        onClick={() => void openAdminNotificationTarget(notification)}
+                        size="sm"
+                        type="button"
+                        variant="outline"
+                      >
+                        <ExternalLink aria-hidden="true" />
+                        {copy.actions.open}
                       </Button>
                       {notification.zohoEmail ? (
                         <Button
@@ -990,6 +1076,39 @@ export function AdminNotificationsPageView({
             })}
           </Accordion>
         )}
+
+        {showNotificationPagination ? (
+          <div className="flex flex-col gap-3 border-t border-border/70 pt-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-muted-foreground" aria-live="polite">
+              {copy.pagination.results}: {visibleNotificationRange} {copy.pagination.of}{" "}
+              {notificationPagination.totalItems}
+            </p>
+            <div className="flex flex-wrap items-center justify-between gap-3 sm:justify-end">
+              <Button
+                disabled={notificationPagination.page <= 1}
+                onClick={() => navigateNotificationPage(notificationPagination.page - 1)}
+                size="sm"
+                type="button"
+                variant="outline"
+              >
+                {copy.pagination.previous}
+              </Button>
+              <span className="text-sm text-muted-foreground">
+                {copy.pagination.page} {notificationPagination.page}{" "}
+                {copy.pagination.of} {notificationPagination.totalPages}
+              </span>
+              <Button
+                disabled={notificationPagination.page >= notificationPagination.totalPages}
+                onClick={() => navigateNotificationPage(notificationPagination.page + 1)}
+                size="sm"
+                type="button"
+                variant="outline"
+              >
+                {copy.pagination.next}
+              </Button>
+            </div>
+          </div>
+        ) : null}
       </CardContent>
     </Card>
   );

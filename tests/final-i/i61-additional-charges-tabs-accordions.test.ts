@@ -26,7 +26,9 @@ test("I.6.1 D additional charges UI uses localized nested tabs", () => {
   const en = read("messages/en.ts");
 
   expectIncludes(component, "} from \"@/components/ui/tabs\";");
-  expectIncludes(component, "<Tabs className=\"grid gap-5\" defaultValue=\"charges\">");
+  expectIncludes(component, "const [activeTab, setActiveTab] = useState<AdditionalChargeTab>(");
+  expectIncludes(component, "value={activeTab}");
+  expectIncludes(component, "setActiveTab(\"charges\")");
   expectIncludes(component, "<div className=\"-mx-1 overflow-x-auto px-1 pb-2\">");
   expectIncludes(
     component,
@@ -51,11 +53,10 @@ test("I.6.1 D additional charges UI uses localized nested tabs", () => {
 test("I.6.1 D charge and payment-request lists are single collapsible accordions", () => {
   const component = read(COMPONENT_PATH);
 
-  assert.equal(
-    component.match(/<Accordion className="grid gap-3" collapsible type="single">/g)
-      ?.length,
-    2,
-  );
+  expectIncludes(component, "value={openChargeId}");
+  expectIncludes(component, "value={openPaymentRequestId}");
+  expectIncludes(component, "setOpenChargeId(value || \"\")");
+  expectIncludes(component, "setOpenPaymentRequestId(value || \"\")");
   expectIncludes(component, "management.charges.map((charge) => {");
   expectIncludes(component, "value={charge.id}");
   expectIncludes(component, "management.paymentRequests.map((request) => (");

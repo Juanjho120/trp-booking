@@ -173,15 +173,20 @@ export function AdminShell({
     );
   }
 
+  function AdminUserIdentity({ className }: Readonly<{ className?: string }>) {
+    return (
+      <div className={cn("rounded-2xl border border-border bg-muted/30 p-3", className)}>
+        <p className="truncate text-sm font-medium text-foreground">{adminName}</p>
+        {adminEmail ? (
+          <p className="mt-1 truncate text-xs text-muted-foreground">{adminEmail}</p>
+        ) : null}
+      </div>
+    );
+  }
+
   function AccountActions() {
     return (
       <div className="grid gap-3">
-        <div className="rounded-2xl border border-border bg-muted/30 p-3">
-          <p className="truncate text-sm font-medium text-foreground">{adminName}</p>
-          {adminEmail ? (
-            <p className="mt-1 truncate text-xs text-muted-foreground">{adminEmail}</p>
-          ) : null}
-        </div>
         <Button asChild className="justify-start rounded-2xl" variant="outline">
           <Link href="/">
             <ExternalLink aria-hidden="true" />
@@ -262,7 +267,8 @@ export function AdminShell({
                   <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
                     <NavigationLinks mobile />
                   </div>
-                  <div className="shrink-0 border-t border-border/70 px-5 py-5">
+                  <div className="grid shrink-0 gap-3 border-t border-border/70 px-5 py-5">
+                    <AdminUserIdentity />
                     <AccountActions />
                   </div>
                 </SheetContent>
@@ -277,7 +283,8 @@ export function AdminShell({
                 </div>
               </div>
             </div>
-            <div className="shrink-0">
+            <div className="flex min-w-0 shrink-0 items-center gap-3">
+              <AdminUserIdentity className="hidden max-w-72 md:block" />
               <LocaleSwitcher />
             </div>
           </div>

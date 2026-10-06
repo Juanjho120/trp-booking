@@ -36,7 +36,11 @@ test("I.6.2 A additional-charge nested tabs use compact Email Delivery tab patte
   const compactTabsClass =
     "inline-flex h-auto min-w-full justify-start gap-1 rounded-2xl border border-border/70 bg-muted/40 p-1.5 sm:min-w-0";
 
-  expectIncludes(additionalCharges, '<Tabs className="grid gap-5" defaultValue="charges">');
+  expectIncludes(additionalCharges, 'const [activeTab, setActiveTab] = useState<AdditionalChargeTab>(');
+  expectIncludes(additionalCharges, '<Tabs');
+  expectIncludes(additionalCharges, 'className="grid gap-5"');
+  expectIncludes(additionalCharges, 'onValueChange={(value) => {');
+  expectIncludes(additionalCharges, 'value={activeTab}');
   expectIncludes(additionalCharges, '<div className="-mx-1 overflow-x-auto px-1 pb-2">');
   expectIncludes(additionalCharges, `<TabsList className="${compactTabsClass}">`);
   expectIncludes(additionalCharges, '<TabsTrigger className="min-h-10 shrink-0" value="charges">');
@@ -159,5 +163,5 @@ test("I.6.2 F admin shell keeps only navigation scrollable on desktop and mobile
   expectIncludes(mobileSheet, 'className="min-h-0 gap-0 p-0"');
   expectIncludes(mobileSheet, '<SheetHeader className="shrink-0">');
   expectIncludes(mobileSheet, '<div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">');
-  expectIncludes(mobileSheet, '<div className="shrink-0 border-t border-border/70 px-5 py-5">');
+  expectIncludes(mobileSheet, '<div className="grid shrink-0 gap-3 border-t border-border/70 px-5 py-5">');
 });

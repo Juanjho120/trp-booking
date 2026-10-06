@@ -5,9 +5,10 @@ import type { AdminActor } from "@/types/admin";
 
 import { resolveAdminActor } from "@/lib/admin/admin-actor";
 import {
-  mergeTargetedAdminNotification,
-  normalizeAdminNotificationId,
-} from "./center-routing";
+  buildAdminReservationFocusedTargetPath,
+  resolveAdminNotificationReservationFocus,
+} from "@/lib/admin/reservation-detail-focus";
+import { normalizeAdminNotificationId } from "./center-routing";
 import { coerceAdminNotificationTargetPath } from "./targets";
 
 type AdminNotificationCenterActor = Readonly<{
@@ -38,8 +39,16 @@ export type AdminNotificationCenterItem = Readonly<{
   }> | null;
 }>;
 
+export type AdminNotificationCenterPagination = Readonly<{
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+}>;
+
 export type AdminNotificationCenterData = Readonly<{
   notifications: readonly AdminNotificationCenterItem[];
+  pagination: AdminNotificationCenterPagination;
   unreadCount: number;
 }>;
 
@@ -57,12 +66,15 @@ export class AdminNotificationCenterError extends Error {
   }
 }
 
+export const ADMIN_NOTIFICATION_CENTER_PAGE_SIZE = 10;
+
 const adminNotificationCenterSelect = {
   id: true,
   type: true,
   title: true,
   body: true,
   targetPath: true,
+  deduplicationKey: true,
   createdAt: true,
   reservationId: true,
   zohoInboundEmailEvent: {
@@ -82,6 +94,90 @@ const adminNotificationCenterSelect = {
 type AdminNotificationCenterRecord = Prisma.AdminNotificationGetPayload<{
   select: typeof adminNotificationCenterSelect;
 }>;
+
+export function normalizeAdminNotificationCenterPage(value: unknown): number {
+  if (typeof value === "number") {
+    return Number.isSafeInteger(value) && value > 0 ? value : 1;
+  }
+
+  if (typeof value !== "string") {
+    return 1;
+  }
+
+  const trimmed = value.trim();
+
+  if (!/^\d+$/.test(trimmed)) {
+    return 1;
+  }
+
+  const page = Number(trimmed);
+
+  return Number.isSafeInteger(page) && page > 0 ? page : 1;
+}
+
+export function resolveAdminNotificationCenterTotalPages(
+  totalItems: number,
+  pageSize = ADMIN_NOTIFICATION_CENTER_PAGE_SIZE,
+): number {
+  return Math.max(1, Math.ceil(Math.max(0, totalItems) / pageSize));
+}
+
+export function resolveAdminNotificationCenterSafePage(
+  input: Readonly<{
+    requestedPage: number;
+    totalItems: number;
+    pageSize?: number;
+  }>,
+): number {
+  const pageSize = input.pageSize ?? ADMIN_NOTIFICATION_CENTER_PAGE_SIZE;
+  const totalPages = resolveAdminNotificationCenterTotalPages(
+    input.totalItems,
+    pageSize,
+  );
+
+  return Math.min(Math.max(1, input.requestedPage), totalPages);
+}
+
+export function resolveAdminNotificationCenterSkip(
+  page: number,
+  pageSize = ADMIN_NOTIFICATION_CENTER_PAGE_SIZE,
+): number {
+  return (Math.max(1, page) - 1) * pageSize;
+}
+
+export function resolveAdminNotificationTargetPage(
+  input: Readonly<{
+    rowsBeforeTarget: number;
+    pageSize?: number;
+  }>,
+): number {
+  const pageSize = input.pageSize ?? ADMIN_NOTIFICATION_CENTER_PAGE_SIZE;
+
+  return Math.floor(Math.max(0, input.rowsBeforeTarget) / pageSize) + 1;
+}
+
+function resolveNotificationTargetPath(
+  notification: AdminNotificationCenterRecord,
+): string {
+  const fallbackTargetPath = coerceAdminNotificationTargetPath(
+    notification.targetPath,
+  );
+  const focus = resolveAdminNotificationReservationFocus({
+    type: notification.type,
+    deduplicationKey: notification.deduplicationKey,
+  });
+
+  if (!focus || !notification.reservationId) {
+    return fallbackTargetPath;
+  }
+
+  return (
+    buildAdminReservationFocusedTargetPath({
+      reservationId: notification.reservationId,
+      focus,
+    }) ?? fallbackTargetPath
+  );
+}
 
 function serializeNotification(
   notification: AdminNotificationCenterRecord,
@@ -103,7 +199,7 @@ function serializeNotification(
     type: notification.type,
     title: notification.title,
     body: notification.body,
-    targetPath: coerceAdminNotificationTargetPath(notification.targetPath),
+    targetPath: resolveNotificationTargetPath(notification),
     createdAt: notification.createdAt.toISOString(),
     readAt: notification.reads[0]?.readAt.toISOString() ?? null,
     zohoEmail,
@@ -113,6 +209,7 @@ function serializeNotification(
 export async function getAdminNotificationCenter(
   actor: AdminActor | null,
   input: Readonly<{
+    page?: unknown;
     requestedNotificationId?: string | null;
     prismaClient?: PrismaClient;
     resolveActor?: AdminNotificationCenterActorResolver;
@@ -131,6 +228,7 @@ export async function getAdminNotificationCenter(
   const requestedNotificationId = normalizeAdminNotificationId(
     input.requestedNotificationId,
   );
+  const requestedPage = normalizeAdminNotificationCenterPage(input.page);
   const selectWithReads = {
     ...adminNotificationCenterSelect,
     reads: {
@@ -138,18 +236,14 @@ export async function getAdminNotificationCenter(
       where: { userId: user.id },
     },
   } satisfies Prisma.AdminNotificationSelect;
-  const [notifications, targetedNotification, unreadCount] = await Promise.all([
-    prismaClient.adminNotification.findMany({
-      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-      take: 50,
-      select: selectWithReads,
-    }),
+  const [targetedNotification, totalItems, unreadCount] = await Promise.all([
     requestedNotificationId
       ? prismaClient.adminNotification.findUnique({
           where: { id: requestedNotificationId },
           select: selectWithReads,
         })
       : Promise.resolve(null),
+    prismaClient.adminNotification.count(),
     prismaClient.adminNotification.count({
       where: {
         reads: {
@@ -158,12 +252,49 @@ export async function getAdminNotificationCenter(
       },
     }),
   ]);
+  const targetPage = targetedNotification
+    ? resolveAdminNotificationTargetPage({
+        rowsBeforeTarget: await prismaClient.adminNotification.count({
+          where: {
+            OR: [
+              {
+                createdAt: {
+                  gt: targetedNotification.createdAt,
+                },
+              },
+              {
+                createdAt: {
+                  equals: targetedNotification.createdAt,
+                },
+                id: {
+                  gt: targetedNotification.id,
+                },
+              },
+            ],
+          },
+        }),
+      })
+    : null;
+  const page = resolveAdminNotificationCenterSafePage({
+    requestedPage: targetPage ?? requestedPage,
+    totalItems,
+  });
+  const totalPages = resolveAdminNotificationCenterTotalPages(totalItems);
+  const notifications = await prismaClient.adminNotification.findMany({
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    skip: resolveAdminNotificationCenterSkip(page),
+    take: ADMIN_NOTIFICATION_CENTER_PAGE_SIZE,
+    select: selectWithReads,
+  });
 
   return {
-    notifications: mergeTargetedAdminNotification(
-      notifications.map(serializeNotification),
-      targetedNotification ? serializeNotification(targetedNotification) : null,
-    ),
+    notifications: notifications.map(serializeNotification),
+    pagination: {
+      page,
+      pageSize: ADMIN_NOTIFICATION_CENTER_PAGE_SIZE,
+      totalItems,
+      totalPages,
+    },
     unreadCount,
   };
 }
