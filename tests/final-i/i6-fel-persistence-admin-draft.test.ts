@@ -1119,7 +1119,10 @@ test("I.6 documentation records owner acceptance and preserves future boundaries
   assert.match(i61Record, /Workstream B\+C status: Completed; Hosted owner validation PASS on 2026-10-06/);
   assert.match(i61Record, /20261005130000_final_i_6_1_financial_operations_hardening/);
   assert.match(i61Record, /enum-only migration/);
-  assert.match(i61Record, /Workstream D status: Implementation completed; Hosted owner validation pending/);
+  assert.match(
+    i61Record,
+    /Workstream D status: Implementation completed; Hosted functional validation PASS; full-width Charge accordion-header refinement implemented; final owner visual revalidation pending/,
+  );
   assert.match(i61Record, /contaminated test data/);
   assert.match(i61Record, /Clean stay-extension and full date-change C2 tests both passed/);
   assert.match(i61Record, /vercel\.json.*crons/);

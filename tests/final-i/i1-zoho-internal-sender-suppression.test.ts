@@ -727,7 +727,7 @@ test("I.1 registers the roadmap, validation script, and F.7 forward note", () =>
   );
   expectIncludes(
     doc212,
-    "Workstream D status: Implementation completed; Hosted owner validation pending",
+    "Workstream D status: Implementation completed; Hosted functional validation PASS; full-width Charge accordion-header refinement implemented; final owner visual revalidation pending",
   );
   expectIncludes(
     doc212,

@@ -56,6 +56,23 @@ test("I.6.1 D charge and payment-request lists are single collapsible accordions
   expectIncludes(component, "<AccordionContent className=\"border-t border-border/70 px-4 pt-4 sm:px-5\">");
 });
 
+test("I.6.1 D charge accordion trigger stretches beside the selector", () => {
+  const component = read(COMPONENT_PATH);
+
+  expectIncludes(
+    component,
+    "className=\"grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 p-4\"",
+  );
+  expectIncludes(
+    component,
+    "<AccordionTrigger className=\"min-w-0 w-full rounded-xl px-3 py-2 hover:bg-muted/40\">",
+  );
+  assert.ok(
+    component.indexOf("grid-cols-[auto_minmax(0,1fr)]") <
+      component.indexOf("<AccordionTrigger className=\"min-w-0 w-full"),
+  );
+});
+
 test("I.6.1 D keeps interactive actions outside accordion triggers", () => {
   const component = read(COMPONENT_PATH);
   const [chargeTrigger, requestTrigger] = accordionTriggerBlocks(component);

@@ -13,7 +13,7 @@ Registration base: 1fd728567b739100e51dea41aeb6da3f23cc6c19
 Workstream E status: Completed; provider trigger configuration + Hosted validation PASS on 2026-10-02
 Workstream A status: Completed; Hosted owner validation PASS on 2026-10-05
 Workstream B+C status: Completed; Hosted owner validation PASS on 2026-10-06
-Workstream D status: Implementation completed; Hosted owner validation pending
+Workstream D status: Implementation completed; Hosted functional validation PASS; full-width Charge accordion-header refinement implemented; final owner visual revalidation pending
 Final-I.6 status: Completed and accepted on 2026-10-02
 Accepted Final-I.6 head: 80469abda146d0d50516ab598a514a9ccea2db6d
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
@@ -22,7 +22,7 @@ Final-I.9 status: Not started / integrated Final-I closure
 Phase 13 status: Blocked / Not started until Final-I closes
 ```
 
-Final-I.6.1 is an owner-requested, provider-independent interim hardening package registered while Final-I.7 remains blocked by missing official INFILE technical documentation and Test credentials. Workstream E is completed through provider-side Zoho trigger configuration plus Hosted validation PASS on 2026-10-02. Workstream A timezone resolution correction is completed as a bounded guest phone-country convenience default with Hosted owner validation PASS on 2026-10-05. Workstreams B+C are completed after Hosted owner validation PASS on 2026-10-06 for the GuestPaymentRequest expiration cron foundation and financial Admin Web Push notification foundation. Workstream D is implementation completed with Hosted owner validation pending. This does not reopen Final-I.6, does not replace the accepted Final-I.6 feature head, and does not supersede Final-I.7.
+Final-I.6.1 is an owner-requested, provider-independent interim hardening package registered while Final-I.7 remains blocked by missing official INFILE technical documentation and Test credentials. Workstream E is completed through provider-side Zoho trigger configuration plus Hosted validation PASS on 2026-10-02. Workstream A timezone resolution correction is completed as a bounded guest phone-country convenience default with Hosted owner validation PASS on 2026-10-05. Workstreams B+C are completed after Hosted owner validation PASS on 2026-10-06 for the GuestPaymentRequest expiration cron foundation and financial Admin Web Push notification foundation. Workstream D is implementation completed with Hosted functional validation PASS, full-width Charge accordion-header refinement implemented, and final owner visual revalidation pending. This does not reopen Final-I.6, does not replace the accepted Final-I.6 feature head, and does not supersede Final-I.7.
 
 ## Purpose
 
@@ -510,6 +510,23 @@ C3:
 
 One apparent C2 anomaly was later proven to use a Reservation that had been manually modified directly in the database for another unrelated test. That Reservation was contaminated test data and is not retained as product-defect evidence. Clean stay-extension and full date-change C2 tests both passed. No lifecycle settlement-grace behavior or lifecycle-payment change is introduced from that invalid scenario.
 
+### Workstream D Hosted Functional Validation And Visual Refinement
+
+Workstream D Hosted functional validation passed for:
+
+```text
+- internal Additional Charges tabs
+- Charges accordion
+- Payment Requests accordion
+- independent charge selection
+- payment-request creation
+- existing charge and payment-request actions
+- nested Refund History
+- otherwise-correct mobile/responsive behavior
+```
+
+The remaining Hosted visual finding was that collapsed Charge accordion headers were narrower than Payment Request headers, making the expand/collapse target unnecessarily small. The implementation now includes a local full-width Charge accordion-header refinement: the selector remains outside the accordion trigger, the Charge trigger stretches across the available row width after the selector, and final owner visual revalidation remains pending.
+
 ## Strict Boundaries
 
 This I.6.1 checkpoint implements Workstream D after the accepted Workstream E, completed Workstream A validation, and completed Workstreams B+C Hosted owner validation. It still does not implement:
@@ -525,7 +542,7 @@ This I.6.1 checkpoint implements Workstream D after the accepted Workstream E, c
 - Phase 13 activation
 ```
 
-`vercel.json` remains `{ "crons": [] }` until a later explicitly requested Production scheduler activation. Workstream D is implementation completed with Hosted owner validation pending. Final-I.7 remains blocked pending official INFILE technical documentation + Test credentials.
+`vercel.json` remains `{ "crons": [] }` until a later explicitly requested Production scheduler activation. Workstream D is implementation completed with Hosted functional validation PASS, full-width Charge accordion-header refinement implemented, and final owner visual revalidation pending. Final-I.7 remains blocked pending official INFILE technical documentation + Test credentials.
 
 ## Validation Ledger
 
@@ -581,5 +598,12 @@ Workstream D implementation validation:
 - npm run lint - PASS
 - npm run build - initial sandbox attempt failed fetching Google Fonts; rerun outside the sandbox PASS
 - npm audit --omit=dev - FAIL outside the sandbox with existing dependency advisories for sharp <0.35.5 and source-map-js 1.0.0-1.2.1; no dependency change is part of this UI-only Workstream D checkpoint
+- git diff --check - PASS; Windows CRLF normalization warnings only
+
+Workstream D full-width Charge accordion-header refinement validation:
+- npm run final-i:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; rerun outside the sandbox PASS, 78/78
+- npm run final-h:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; rerun outside the sandbox PASS, 20/20
+- npm run lint - PASS
+- npm run build - initial sandbox attempt failed fetching Google Fonts; rerun outside the sandbox PASS
 - git diff --check - PASS; Windows CRLF normalization warnings only
 ```

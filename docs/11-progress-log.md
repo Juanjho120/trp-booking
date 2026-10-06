@@ -31,7 +31,7 @@ Final-I.5 implementation and acceptance record: docs/213-final-i-5-fel-fiscal-do
 Final-I.6 status: Completed and accepted on 2026-10-02
 Accepted Final-I.6 head: 80469abda146d0d50516ab598a514a9ccea2db6d
 Final-I.6 implementation and acceptance record: docs/214-final-i-6-fel-persistence-admin-draft-module.md
-Final-I.6.1 status: Implementation in progress - Workstream E completed with provider trigger configuration + Hosted validation PASS on 2026-10-02; Workstream A completed with Hosted owner validation PASS on 2026-10-05; Workstream B+C completed with Hosted owner validation PASS on 2026-10-06; Workstream D implementation completed with Hosted owner validation pending
+Final-I.6.1 status: Implementation in progress - Workstream E completed with provider trigger configuration + Hosted validation PASS on 2026-10-02; Workstream A completed with Hosted owner validation PASS on 2026-10-05; Workstream B+C completed with Hosted owner validation PASS on 2026-10-06; Workstream D implementation completed with Hosted functional validation PASS, full-width Charge accordion-header refinement implemented, and final owner visual revalidation pending
 Final-I.6.1 registration record: docs/215-final-i-6-1-interim-operational-hardening.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
@@ -67,7 +67,7 @@ Final-I.5 implementation and acceptance record: docs/213-final-i-5-fel-fiscal-do
 Final-I.6 status: Completed and accepted on 2026-10-02
 Accepted Final-I.6 head: 80469abda146d0d50516ab598a514a9ccea2db6d
 Final-I.6 implementation and acceptance record: docs/214-final-i-6-fel-persistence-admin-draft-module.md
-Final-I.6.1 status: Implementation in progress - Workstream E completed with provider trigger configuration + Hosted validation PASS on 2026-10-02; Workstream A completed with Hosted owner validation PASS on 2026-10-05; Workstream B+C completed with Hosted owner validation PASS on 2026-10-06; Workstream D implementation completed with Hosted owner validation pending
+Final-I.6.1 status: Implementation in progress - Workstream E completed with provider trigger configuration + Hosted validation PASS on 2026-10-02; Workstream A completed with Hosted owner validation PASS on 2026-10-05; Workstream B+C completed with Hosted owner validation PASS on 2026-10-06; Workstream D implementation completed with Hosted functional validation PASS, full-width Charge accordion-header refinement implemented, and final owner visual revalidation pending
 Final-I.6.1 registration record: docs/215-final-i-6-1-interim-operational-hardening.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
@@ -265,7 +265,7 @@ Final-I.5 implementation and acceptance record: docs/213-final-i-5-fel-fiscal-do
 Final-I.6 status: Completed and accepted on 2026-10-02
 Accepted Final-I.6 head: 80469abda146d0d50516ab598a514a9ccea2db6d
 Final-I.6 implementation and acceptance record: docs/214-final-i-6-fel-persistence-admin-draft-module.md
-Final-I.6.1 status: Implementation in progress - Workstream E completed with provider trigger configuration + Hosted validation PASS on 2026-10-02; Workstream A completed with Hosted owner validation PASS on 2026-10-05; Workstream B+C completed with Hosted owner validation PASS on 2026-10-06; Workstream D implementation completed with Hosted owner validation pending
+Final-I.6.1 status: Implementation in progress - Workstream E completed with provider trigger configuration + Hosted validation PASS on 2026-10-02; Workstream A completed with Hosted owner validation PASS on 2026-10-05; Workstream B+C completed with Hosted owner validation PASS on 2026-10-06; Workstream D implementation completed with Hosted functional validation PASS, full-width Charge accordion-header refinement implemented, and final owner visual revalidation pending
 Final-I.6.1 registration record: docs/215-final-i-6-1-interim-operational-hardening.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
@@ -301,7 +301,7 @@ Final-I.5 implementation and acceptance record: docs/213-final-i-5-fel-fiscal-do
 Final-I.6 status: Completed and accepted on 2026-10-02
 Accepted Final-I.6 head: 80469abda146d0d50516ab598a514a9ccea2db6d
 Final-I.6 implementation and acceptance record: docs/214-final-i-6-fel-persistence-admin-draft-module.md
-Final-I.6.1 status: Implementation in progress - Workstream E completed with provider trigger configuration + Hosted validation PASS on 2026-10-02; Workstream A completed with Hosted owner validation PASS on 2026-10-05; Workstream B+C completed with Hosted owner validation PASS on 2026-10-06; Workstream D implementation completed with Hosted owner validation pending
+Final-I.6.1 status: Implementation in progress - Workstream E completed with provider trigger configuration + Hosted validation PASS on 2026-10-02; Workstream A completed with Hosted owner validation PASS on 2026-10-05; Workstream B+C completed with Hosted owner validation PASS on 2026-10-06; Workstream D implementation completed with Hosted functional validation PASS, full-width Charge accordion-header refinement implemented, and final owner visual revalidation pending
 Final-I.6.1 registration record: docs/215-final-i-6-1-interim-operational-hardening.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
