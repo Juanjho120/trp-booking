@@ -298,8 +298,14 @@ test("I.5 tracker state records I.6 accepted and keeps Phase 13 blocked", () => 
     "docs/212 must expose the accepted I.6 feature head",
   );
   assert.ok(
-    finalIRoadmap.includes("Final-I.6.1 status: Implementation in progress"),
-    "docs/212 must expose I.6.1 as implementation in progress",
+    finalIRoadmap.includes("Final-I.6.1 status: Completed and accepted on 2026-10-06"),
+    "docs/212 must expose I.6.1 as completed and accepted",
+  );
+  assert.ok(
+    finalIRoadmap.includes(
+      "Accepted Final-I.6.1 feature head: 4d8a1dd5eb2f2eaaadf43bd8b97d7dd1df6e500e",
+    ),
+    "docs/212 must expose the accepted I.6.1 feature head",
   );
   assert.ok(
     finalIRoadmap.includes("Phase 13 status: Blocked / Not started until Final-I closes"),

@@ -25,19 +25,20 @@ Final-I.5 implementation and acceptance record: docs/213-final-i-5-fel-fiscal-do
 Final-I.6 status: Completed and accepted on 2026-10-02
 Accepted Final-I.6 head: 80469abda146d0d50516ab598a514a9ccea2db6d
 Final-I.6 implementation and acceptance record: docs/214-final-i-6-fel-persistence-admin-draft-module.md
-Final-I.6.1 status: Implementation in progress
-Final-I.6.1 registration record: docs/215-final-i-6-1-interim-operational-hardening.md
+Final-I.6.1 status: Completed and accepted on 2026-10-06
+Accepted Final-I.6.1 feature head: 4d8a1dd5eb2f2eaaadf43bd8b97d7dd1df6e500e
+Final-I.6.1 implementation and acceptance record: docs/215-final-i-6-1-interim-operational-hardening.md
 Workstream E status: Completed; provider trigger configuration + Hosted validation PASS on 2026-10-02
 Workstream A status: Completed; Hosted owner validation PASS on 2026-10-05
 Workstream B+C status: Completed; Hosted owner validation PASS on 2026-10-06
-Workstream D status: Implementation completed; Hosted functional validation PASS; full-width Charge accordion-header refinement implemented; final owner visual revalidation pending
+Workstream D status: Completed; Hosted functional validation PASS; final full-width Charge accordion-header visual revalidation PASS; Hosted owner validation PASS on 2026-10-06
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
 Phase 13 status: Blocked / Not started until Final-I closes
 ```
 
-Final-I is an owner-requested pre-Production addendum registered after the accepted Final-H closure. It does not rewrite the historical acceptance of Phase 12, Final-A through Final-H, or the complete Post-Phase-12 / Pre-Phase-13 Final Improvement Track at `6922cf27e31e63fde071c0d0a810b141e44b9f90`. Final-I.1 is completed and accepted at its feature head `9a15f349c1104671f5555d1988caa56756e5ff0c`, and Final-I.2 is completed and accepted at `6451cb705d972c83a771a9ff39f6da80d130cf58`; Final-I.3 is completed and accepted on 2026-09-29 at accepted head `8c5a9186e392f35bdbc998f463c5c3c6cd0be295` after Hosted owner validation of the desktop, Android mobile browser, Android standalone PWA, Push deep-link, and final mobile/PWA auto-scroll refinement. Final-I.4 is completed and accepted on 2026-09-30 at accepted feature head `8e2d7d56a8e81a860833b05f4a28cba8a517bad4` after Hosted/mobile owner validation of representative guest emails. Final-I.5 is completed and accepted on 2026-09-30 at accepted head `fde3ae06427af1f8905e6f7589263c199f918553`; the provider-independent FEL fiscal domain contract remains recorded in `docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md`. Final-I.6 is completed and accepted on 2026-10-02 at accepted feature head `80469abda146d0d50516ab598a514a9ccea2db6d`; the implementation and acceptance record is `docs/214-final-i-6-fel-persistence-admin-draft-module.md`. Final-I.6.1 is implementation in progress as provider-independent interim operational hardening while Final-I.7 remains blocked; Workstream E is completed with provider trigger configuration + Hosted validation PASS on 2026-10-02, Workstream A timezone resolution correction is completed with Hosted owner validation PASS on 2026-10-05, Workstreams B+C are completed with Hosted owner validation PASS on 2026-10-06, and Workstream D is implementation completed with Hosted functional validation PASS, full-width Charge accordion-header refinement implemented, and final owner visual revalidation pending. The I.6.1 record is `docs/215-final-i-6-1-interim-operational-hardening.md`. Phase 13 remains not started and is blocked until Final-I closes and receives owner acceptance.
+Final-I is an owner-requested pre-Production addendum registered after the accepted Final-H closure. It does not rewrite the historical acceptance of Phase 12, Final-A through Final-H, or the complete Post-Phase-12 / Pre-Phase-13 Final Improvement Track at `6922cf27e31e63fde071c0d0a810b141e44b9f90`. Final-I.1 is completed and accepted at its feature head `9a15f349c1104671f5555d1988caa56756e5ff0c`, and Final-I.2 is completed and accepted at `6451cb705d972c83a771a9ff39f6da80d130cf58`; Final-I.3 is completed and accepted on 2026-09-29 at accepted head `8c5a9186e392f35bdbc998f463c5c3c6cd0be295` after Hosted owner validation of the desktop, Android mobile browser, Android standalone PWA, Push deep-link, and final mobile/PWA auto-scroll refinement. Final-I.4 is completed and accepted on 2026-09-30 at accepted feature head `8e2d7d56a8e81a860833b05f4a28cba8a517bad4` after Hosted/mobile owner validation of representative guest emails. Final-I.5 is completed and accepted on 2026-09-30 at accepted head `fde3ae06427af1f8905e6f7589263c199f918553`; the provider-independent FEL fiscal domain contract remains recorded in `docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md`. Final-I.6 is completed and accepted on 2026-10-02 at accepted feature head `80469abda146d0d50516ab598a514a9ccea2db6d`; the implementation and acceptance record is `docs/214-final-i-6-fel-persistence-admin-draft-module.md`. Final-I.6.1 is completed and accepted on 2026-10-06 at accepted feature head `4d8a1dd5eb2f2eaaadf43bd8b97d7dd1df6e500e`; its implementation and acceptance record is `docs/215-final-i-6-1-interim-operational-hardening.md`. Final-I remains active because Final-I.7 is blocked, Final-I.8 and Final-I.9 are not started, and Phase 13 remains not started and blocked until Final-I closes and receives owner acceptance.
 
 Final-I.5 canonical amount-source hardening freezes `FelCommercialSourceAllocation.amountSnapshot` and `FelCommercialSourceAllocation.currencySnapshot` as the only canonical commercial amount source for future draft line totals. `FelLineSource` is frozen as provenance/evidence only: its rows are never summed to compute `FelLineItem.amount` or `FelDocument` totals, including when `sourceRole = AMOUNT_SOURCE`. Conceptual mandatory `FelLineSource.sourceAmount` / `sourceCurrency` fields were removed from the I.5 persistence contract to avoid two divergent monetary sources of truth; any supporting monetary evidence belongs only inside `sourceSnapshotJson` as non-authoritative audit/reproduction metadata.
 
@@ -744,9 +745,9 @@ Owner formal acceptance: PASS on 2026-10-02. The documentation-only closure comm
 
 Final-I.6 is Completed and accepted on 2026-10-02. Final-I.8 and Final-I.9 remain Not started. Final-I.7 remains Blocked pending official INFILE technical documentation and Test credentials.
 
-## Final-I.6.1 Implementation In Progress - Interim Operational Hardening
+## Final-I.6.1 Completed And Accepted - Interim Operational Hardening
 
-Final-I.6.1 is Implementation in progress. It is a provider-independent interim package requested by the owner while Final-I.7 remains blocked pending official INFILE technical documentation + Test credentials. The registration record is `docs/215-final-i-6-1-interim-operational-hardening.md`.
+Final-I.6.1 is completed and accepted on 2026-10-06 at accepted feature head `4d8a1dd5eb2f2eaaadf43bd8b97d7dd1df6e500e`. It is a provider-independent interim package requested by the owner while Final-I.7 remains blocked pending official INFILE technical documentation + Test credentials. The implementation and acceptance record is `docs/215-final-i-6-1-interim-operational-hardening.md`.
 
 Workstream E status: Completed; provider trigger configuration + Hosted validation PASS on 2026-10-02.
 
@@ -754,7 +755,7 @@ Workstream A status: Completed; Hosted owner validation PASS on 2026-10-05.
 
 Workstream B+C status: Completed; Hosted owner validation PASS on 2026-10-06.
 
-Workstream D status: Implementation completed; Hosted functional validation PASS; full-width Charge accordion-header refinement implemented; final owner visual revalidation pending.
+Workstream D status: Completed; Hosted functional validation PASS; final full-width Charge accordion-header visual revalidation PASS; Hosted owner validation PASS on 2026-10-06.
 
 Registered workstreams:
 
@@ -784,7 +785,7 @@ Workstream A implements guest phone-country inference as a convenience default o
 
 Workstreams B+C Hosted owner validation passed on 2026-10-06 for the GPR expiration cron, Additional Charge paid notification, paid stay-extension and full date-change lifecycle notifications, and approved refund notification paths. The one apparent C2 anomaly was invalidated because the tested Reservation had been manually modified directly in the database for an unrelated prior test; it is not retained as product-defect evidence. Clean stay-extension and full date-change C2 tests both passed, and no lifecycle settlement-grace design is introduced.
 
-Workstream D Hosted functional validation passed for the internal Additional Charges tabs, Charges accordion, Payment Requests accordion, independent charge selection, payment-request creation, existing charge/payment-request actions, nested Refund History, and responsive behavior. The remaining Hosted visual finding was that collapsed Charge accordion headers were narrower than Payment Request headers, reducing the useful expand/collapse target. The implementation now uses a local full-width Charge accordion-header refinement while preserving the independent selector; final owner visual revalidation remains pending.
+Workstream D Hosted functional validation passed for the internal Additional Charges tabs, Charges accordion, Payment Requests accordion, independent charge selection, payment-request creation, existing charge/payment-request actions, nested Refund History, and responsive behavior. The final Hosted visual finding was that collapsed Charge accordion headers were narrower than Payment Request headers, reducing the useful expand/collapse target. The accepted implementation uses a local full-width Charge accordion-header refinement while preserving the independent selector; final owner visual revalidation passed on 2026-10-06.
 
 ## Boundaries
 
@@ -994,6 +995,13 @@ Workstream D full-width Charge accordion-header refinement validation:
 - npm run final-h:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; rerun outside the sandbox PASS, 20/20
 - npm run lint - PASS
 - npm run build - initial sandbox attempt failed fetching Google Fonts; rerun outside the sandbox PASS
+- git diff --check - PASS; Windows CRLF normalization warnings only
+
+Final-I.6.1 documentation acceptance closure validation:
+- npm run final-i:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; rerun outside the sandbox PASS, 78/78
+- npm run final-h:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; rerun outside the sandbox PASS, 20/20
+- npm run lint - PASS
+- npm run build - initial sandbox attempt failed fetching Google Fonts; rerun outside the sandbox PASS; Next slow filesystem warning only
 - git diff --check - PASS; Windows CRLF normalization warnings only
 ```
 

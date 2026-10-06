@@ -712,7 +712,11 @@ test("I.1 registers the roadmap, validation script, and F.7 forward note", () =>
     doc212,
     "Final-I.6 implementation and acceptance record: docs/214-final-i-6-fel-persistence-admin-draft-module.md",
   );
-  expectIncludes(doc212, "Final-I.6.1 status: Implementation in progress");
+  expectIncludes(doc212, "Final-I.6.1 status: Completed and accepted on 2026-10-06");
+  expectIncludes(
+    doc212,
+    "Accepted Final-I.6.1 feature head: 4d8a1dd5eb2f2eaaadf43bd8b97d7dd1df6e500e",
+  );
   expectIncludes(
     doc212,
     "Workstream E status: Completed; provider trigger configuration + Hosted validation PASS on 2026-10-02",
@@ -727,11 +731,11 @@ test("I.1 registers the roadmap, validation script, and F.7 forward note", () =>
   );
   expectIncludes(
     doc212,
-    "Workstream D status: Implementation completed; Hosted functional validation PASS; full-width Charge accordion-header refinement implemented; final owner visual revalidation pending",
+    "Workstream D status: Completed; Hosted functional validation PASS; final full-width Charge accordion-header visual revalidation PASS; Hosted owner validation PASS on 2026-10-06",
   );
   expectIncludes(
     doc212,
-    "Final-I.6.1 registration record: docs/215-final-i-6-1-interim-operational-hardening.md",
+    "Final-I.6.1 implementation and acceptance record: docs/215-final-i-6-1-interim-operational-hardening.md",
   );
   expectIncludes(doc212, "Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials");
   expectIncludes(doc212, "Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX");

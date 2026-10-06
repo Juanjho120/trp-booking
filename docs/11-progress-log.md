@@ -31,8 +31,9 @@ Final-I.5 implementation and acceptance record: docs/213-final-i-5-fel-fiscal-do
 Final-I.6 status: Completed and accepted on 2026-10-02
 Accepted Final-I.6 head: 80469abda146d0d50516ab598a514a9ccea2db6d
 Final-I.6 implementation and acceptance record: docs/214-final-i-6-fel-persistence-admin-draft-module.md
-Final-I.6.1 status: Implementation in progress - Workstream E completed with provider trigger configuration + Hosted validation PASS on 2026-10-02; Workstream A completed with Hosted owner validation PASS on 2026-10-05; Workstream B+C completed with Hosted owner validation PASS on 2026-10-06; Workstream D implementation completed with Hosted functional validation PASS, full-width Charge accordion-header refinement implemented, and final owner visual revalidation pending
-Final-I.6.1 registration record: docs/215-final-i-6-1-interim-operational-hardening.md
+Final-I.6.1 status: Completed and accepted on 2026-10-06
+Accepted Final-I.6.1 feature head: 4d8a1dd5eb2f2eaaadf43bd8b97d7dd1df6e500e
+Final-I.6.1 implementation and acceptance record: docs/215-final-i-6-1-interim-operational-hardening.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -67,8 +68,9 @@ Final-I.5 implementation and acceptance record: docs/213-final-i-5-fel-fiscal-do
 Final-I.6 status: Completed and accepted on 2026-10-02
 Accepted Final-I.6 head: 80469abda146d0d50516ab598a514a9ccea2db6d
 Final-I.6 implementation and acceptance record: docs/214-final-i-6-fel-persistence-admin-draft-module.md
-Final-I.6.1 status: Implementation in progress - Workstream E completed with provider trigger configuration + Hosted validation PASS on 2026-10-02; Workstream A completed with Hosted owner validation PASS on 2026-10-05; Workstream B+C completed with Hosted owner validation PASS on 2026-10-06; Workstream D implementation completed with Hosted functional validation PASS, full-width Charge accordion-header refinement implemented, and final owner visual revalidation pending
-Final-I.6.1 registration record: docs/215-final-i-6-1-interim-operational-hardening.md
+Final-I.6.1 status: Completed and accepted on 2026-10-06
+Accepted Final-I.6.1 feature head: 4d8a1dd5eb2f2eaaadf43bd8b97d7dd1df6e500e
+Final-I.6.1 implementation and acceptance record: docs/215-final-i-6-1-interim-operational-hardening.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -265,8 +267,9 @@ Final-I.5 implementation and acceptance record: docs/213-final-i-5-fel-fiscal-do
 Final-I.6 status: Completed and accepted on 2026-10-02
 Accepted Final-I.6 head: 80469abda146d0d50516ab598a514a9ccea2db6d
 Final-I.6 implementation and acceptance record: docs/214-final-i-6-fel-persistence-admin-draft-module.md
-Final-I.6.1 status: Implementation in progress - Workstream E completed with provider trigger configuration + Hosted validation PASS on 2026-10-02; Workstream A completed with Hosted owner validation PASS on 2026-10-05; Workstream B+C completed with Hosted owner validation PASS on 2026-10-06; Workstream D implementation completed with Hosted functional validation PASS, full-width Charge accordion-header refinement implemented, and final owner visual revalidation pending
-Final-I.6.1 registration record: docs/215-final-i-6-1-interim-operational-hardening.md
+Final-I.6.1 status: Completed and accepted on 2026-10-06
+Accepted Final-I.6.1 feature head: 4d8a1dd5eb2f2eaaadf43bd8b97d7dd1df6e500e
+Final-I.6.1 implementation and acceptance record: docs/215-final-i-6-1-interim-operational-hardening.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -301,8 +304,9 @@ Final-I.5 implementation and acceptance record: docs/213-final-i-5-fel-fiscal-do
 Final-I.6 status: Completed and accepted on 2026-10-02
 Accepted Final-I.6 head: 80469abda146d0d50516ab598a514a9ccea2db6d
 Final-I.6 implementation and acceptance record: docs/214-final-i-6-fel-persistence-admin-draft-module.md
-Final-I.6.1 status: Implementation in progress - Workstream E completed with provider trigger configuration + Hosted validation PASS on 2026-10-02; Workstream A completed with Hosted owner validation PASS on 2026-10-05; Workstream B+C completed with Hosted owner validation PASS on 2026-10-06; Workstream D implementation completed with Hosted functional validation PASS, full-width Charge accordion-header refinement implemented, and final owner visual revalidation pending
-Final-I.6.1 registration record: docs/215-final-i-6-1-interim-operational-hardening.md
+Final-I.6.1 status: Completed and accepted on 2026-10-06
+Accepted Final-I.6.1 feature head: 4d8a1dd5eb2f2eaaadf43bd8b97d7dd1df6e500e
+Final-I.6.1 implementation and acceptance record: docs/215-final-i-6-1-interim-operational-hardening.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -2038,6 +2042,35 @@ The correction keeps successful draft creation as an explicit EDIT entry point. 
 This does not reintroduce the previous implicit-history-selection bug: entering `/admin/fel`, refreshing, or returning later still starts in CREATE mode with no selected document. Only successful draft creation and explicit `Abrir / Editar` enter EDIT mode. No schema, migration, persistence architecture, INFILE, NIT/CUI lookup, dependency, environment variable, scheduler, Production resource, Final-I.7, or Phase 13 work was introduced.
 
 Validation executed for this correction: `npm run final-i:validate` PASS 57/57 after rerun outside the sandbox because the sandbox-only `tsx` startup failed with `uv_os_get_passwd ENOMEM`; `npm run final-i:db:validate` PASS 13/13 with `TRP_ENVIRONMENT=test` after the same sandbox-only `tsx` startup failure; `npm run final-h:validate` PASS 20/20 after the same sandbox-only `tsx` startup failure; `npm run lint` PASS; `npm run build` PASS after rerun outside the sandbox because the sandbox run could not fetch Google Fonts; and `git diff --check` PASS with Windows CRLF normalization warnings only.
+
+## 2026-10-06 — Final-I.6.1 Completed And Accepted
+
+```text
+Package: Final-I — Operational Polish, Notification UX & FEL Invoicing
+Subphase: Final-I.6.1 — Interim Operational Hardening
+Status: Completed and accepted on 2026-10-06
+Accepted Final-I.6.1 feature head: 4d8a1dd5eb2f2eaaadf43bd8b97d7dd1df6e500e
+Final-I.6.1 record: docs/215-final-i-6-1-interim-operational-hardening.md
+Final-I.6: Completed and accepted on 2026-10-02 at 80469abda146d0d50516ab598a514a9ccea2db6d
+Final-I.7: Blocked pending official INFILE technical documentation + Test credentials
+Final-I.8: Not started / reserved for FEL delivery email/PDF/XML/history UX
+Final-I.9: Not started / integrated Final-I closure
+Phase 13: Blocked / Not started until Final-I closes
+```
+
+Owner Hosted validation and formal acceptance passed on 2026-10-06 for the complete Final-I.6.1 provider-independent interim hardening package. The accepted feature head is `4d8a1dd5eb2f2eaaadf43bd8b97d7dd1df6e500e`; this documentation closure records acceptance without replacing that feature head.
+
+Final Workstream E is completed with Hosted validation PASS on 2026-10-02 using the accepted Zoho positive recipient trigger allowlist plus TRP correspondence-domain Limited Data compatibility guard, signature validation, internal-sender suppression, Reservation matching, bounded persistence, and Admin Web Push. No runtime exact-alias filtering was introduced.
+
+Final Workstream A is completed with Hosted owner validation PASS on 2026-10-05. The accepted phone-country priority is `MANUAL` selection, then browser timezone countries with agreeing-IP disambiguation or primary timezone country, then Vercel IP country, then GT fallback. The implementation preserves no GPS, no external geo provider, browser timezone client-only handling, no inferred-location persistence, and public property-page caching.
+
+Final Workstreams B+C are completed with Hosted owner validation PASS on 2026-10-06. The accepted B path is canonical `expirePendingGuestPaymentRequests(...)`, `EXPIRE_GUEST_PAYMENT_REQUESTS`, `expire-guest-payment-requests`, `*/5 * * * *`, Admin manual execution/history, and no Production scheduler activation. The accepted C path is `ADDITIONAL_CHARGE_PAID`, `LIFECYCLE_ADJUSTMENT_PAID`, and `REFUND_PROCESSED` with transactional AdminNotification intent, durable AdminPushDelivery, post-commit best-effort Web Push, and existing retry architecture. Deduplication identities are `admin-notification/additional-charge-paid/<guestPaymentRequestId>`, `admin-notification/lifecycle-adjustment-paid/<lifecycleRequestId>`, and `admin-notification/refund-processed/<refundId>`. The enum-only migration is `20261005130000_final_i_6_1_financial_operations_hardening`. The previously observed anomalous C2 test remains invalid/contaminated test data; the Reservation had been manually modified directly in the database for an unrelated prior test, clean stay-extension and full date-change tests passed, and no lifecycle settlement-grace behavior was introduced.
+
+Final Workstream D is completed with Hosted functional validation PASS, final full-width Charge accordion-header visual revalidation PASS, and Hosted owner validation PASS on 2026-10-06. The accepted UI keeps Additional Charges split into Charges and Payment Requests tabs, both lists use `Accordion type="single" collapsible`, charge selection remains independent from accordion expansion, the full-width Charge trigger follows the selector, nested interactive controls are avoided, nested Refund History remains available, all existing actions remain available, responsive/mobile behavior is preserved, and visible copy remains centralized in `messages/es.ts` and `messages/en.ts`.
+
+This closure does not reopen Final-I.6, does not replace accepted Final-I.6 head `80469abda146d0d50516ab598a514a9ccea2db6d`, does not introduce Production scheduler activation, keeps `vercel.json` at `{ "crons": [] }`, and does not start Final-I.7, Final-I.8, Final-I.9, or Phase 13.
+
+Validation executed for this documentation acceptance closure: `npm run final-i:validate` initially failed before tests inside the sandbox with `uv_os_get_passwd ENOMEM`, then PASS 78/78 outside the sandbox; `npm run final-h:validate` initially failed before tests inside the sandbox with `uv_os_get_passwd ENOMEM`, then PASS 20/20 outside the sandbox; `npm run lint` PASS; `npm run build` failed inside the sandbox fetching Google Fonts, then PASS outside the sandbox with Next slow filesystem warning only; and `git diff --check` PASS with Windows CRLF normalization warnings only.
 
 ## 2026-10-05 — Final-I.6.1 Workstream A Timezone Resolution Correction Implemented
 

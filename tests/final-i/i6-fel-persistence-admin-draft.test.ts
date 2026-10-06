@@ -1093,14 +1093,15 @@ test("I.6 documentation records owner acceptance and preserves future boundaries
   }
 
   for (const source of [agents, progress, roadmap, i61Record]) {
-    assert.match(source, /Final-I\.6\.1 .*Implementation in progress/);
+    assert.match(source, /Final-I\.6\.1 .*Completed and accepted on 2026-10-06/);
+    assert.match(source, /4d8a1dd5eb2f2eaaadf43bd8b97d7dd1df6e500e/);
     assert.match(source, /docs\/215-final-i-6-1-interim-operational-hardening\.md/);
   }
 
   assert.match(i61Record, /E - Zoho guest-correspondence trigger hardening/);
   assert.match(
     i61Record,
-    /Workstream E status: Completed; provider trigger configuration \+ Hosted validation PASS on 2026-10-02/,
+    /Workstream E status: Completed; Hosted validation PASS on 2026-10-02/,
   );
   assert.match(
     i61Record,
@@ -1121,7 +1122,7 @@ test("I.6 documentation records owner acceptance and preserves future boundaries
   assert.match(i61Record, /enum-only migration/);
   assert.match(
     i61Record,
-    /Workstream D status: Implementation completed; Hosted functional validation PASS; full-width Charge accordion-header refinement implemented; final owner visual revalidation pending/,
+    /Workstream D status: Completed; Hosted functional validation PASS; final full-width Charge accordion-header visual revalidation PASS; Hosted owner validation PASS on 2026-10-06/,
   );
   assert.match(i61Record, /contaminated test data/);
   assert.match(i61Record, /Clean stay-extension and full date-change C2 tests both passed/);
