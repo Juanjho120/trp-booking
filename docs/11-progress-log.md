@@ -34,9 +34,10 @@ Final-I.6 implementation and acceptance record: docs/214-final-i-6-fel-persisten
 Final-I.6.1 status: Completed and accepted on 2026-10-06
 Accepted Final-I.6.1 feature head: 4d8a1dd5eb2f2eaaadf43bd8b97d7dd1df6e500e
 Final-I.6.1 implementation and acceptance record: docs/215-final-i-6-1-interim-operational-hardening.md
-Final-I.6.2 status: Implementation completed; Hosted owner validation pending
-Final-I.6.2 scope: Workstreams A-K implemented
-Final-I.6.2 implementation record: docs/216-final-i-6-2-admin-ux-navigation-accordions-pagination-polish.md
+Final-I.6.2 status: Completed and accepted on 2026-10-07
+Accepted Final-I.6.2 feature head: d936983edd22607919148f871e3ba339ab4a4ed9
+Final-I.6.2 scope: Workstreams A-K completed
+Final-I.6.2 implementation and acceptance record: docs/216-final-i-6-2-admin-ux-navigation-accordions-pagination-polish.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -74,9 +75,10 @@ Final-I.6 implementation and acceptance record: docs/214-final-i-6-fel-persisten
 Final-I.6.1 status: Completed and accepted on 2026-10-06
 Accepted Final-I.6.1 feature head: 4d8a1dd5eb2f2eaaadf43bd8b97d7dd1df6e500e
 Final-I.6.1 implementation and acceptance record: docs/215-final-i-6-1-interim-operational-hardening.md
-Final-I.6.2 status: Implementation completed; Hosted owner validation pending
-Final-I.6.2 scope: Workstreams A-K implemented
-Final-I.6.2 implementation record: docs/216-final-i-6-2-admin-ux-navigation-accordions-pagination-polish.md
+Final-I.6.2 status: Completed and accepted on 2026-10-07
+Accepted Final-I.6.2 feature head: d936983edd22607919148f871e3ba339ab4a4ed9
+Final-I.6.2 scope: Workstreams A-K completed
+Final-I.6.2 implementation and acceptance record: docs/216-final-i-6-2-admin-ux-navigation-accordions-pagination-polish.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -276,9 +278,10 @@ Final-I.6 implementation and acceptance record: docs/214-final-i-6-fel-persisten
 Final-I.6.1 status: Completed and accepted on 2026-10-06
 Accepted Final-I.6.1 feature head: 4d8a1dd5eb2f2eaaadf43bd8b97d7dd1df6e500e
 Final-I.6.1 implementation and acceptance record: docs/215-final-i-6-1-interim-operational-hardening.md
-Final-I.6.2 status: Implementation completed; Hosted owner validation pending
-Final-I.6.2 scope: Workstreams A-K implemented
-Final-I.6.2 implementation record: docs/216-final-i-6-2-admin-ux-navigation-accordions-pagination-polish.md
+Final-I.6.2 status: Completed and accepted on 2026-10-07
+Accepted Final-I.6.2 feature head: d936983edd22607919148f871e3ba339ab4a4ed9
+Final-I.6.2 scope: Workstreams A-K completed
+Final-I.6.2 implementation and acceptance record: docs/216-final-i-6-2-admin-ux-navigation-accordions-pagination-polish.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -316,9 +319,10 @@ Final-I.6 implementation and acceptance record: docs/214-final-i-6-fel-persisten
 Final-I.6.1 status: Completed and accepted on 2026-10-06
 Accepted Final-I.6.1 feature head: 4d8a1dd5eb2f2eaaadf43bd8b97d7dd1df6e500e
 Final-I.6.1 implementation and acceptance record: docs/215-final-i-6-1-interim-operational-hardening.md
-Final-I.6.2 status: Implementation completed; Hosted owner validation pending
-Final-I.6.2 scope: Workstreams A-K implemented
-Final-I.6.2 implementation record: docs/216-final-i-6-2-admin-ux-navigation-accordions-pagination-polish.md
+Final-I.6.2 status: Completed and accepted on 2026-10-07
+Accepted Final-I.6.2 feature head: d936983edd22607919148f871e3ba339ab4a4ed9
+Final-I.6.2 scope: Workstreams A-K completed
+Final-I.6.2 implementation and acceptance record: docs/216-final-i-6-2-admin-ux-navigation-accordions-pagination-polish.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -2054,6 +2058,24 @@ The correction keeps successful draft creation as an explicit EDIT entry point. 
 This does not reintroduce the previous implicit-history-selection bug: entering `/admin/fel`, refreshing, or returning later still starts in CREATE mode with no selected document. Only successful draft creation and explicit `Abrir / Editar` enter EDIT mode. No schema, migration, persistence architecture, INFILE, NIT/CUI lookup, dependency, environment variable, scheduler, Production resource, Final-I.7, or Phase 13 work was introduced.
 
 Validation executed for this correction: `npm run final-i:validate` PASS 57/57 after rerun outside the sandbox because the sandbox-only `tsx` startup failed with `uv_os_get_passwd ENOMEM`; `npm run final-i:db:validate` PASS 13/13 with `TRP_ENVIRONMENT=test` after the same sandbox-only `tsx` startup failure; `npm run final-h:validate` PASS 20/20 after the same sandbox-only `tsx` startup failure; `npm run lint` PASS; `npm run build` PASS after rerun outside the sandbox because the sandbox run could not fetch Google Fonts; and `git diff --check` PASS with Windows CRLF normalization warnings only.
+
+## 2026-10-07 — Final-I.6.2 Completed And Accepted
+
+```text
+Subphase: Final-I.6.2 — Admin UX Navigation, Accordions & Pagination Polish
+Status: Completed and accepted on 2026-10-07
+Accepted Final-I.6.2 feature head: d936983edd22607919148f871e3ba339ab4a4ed9
+Documentation closure commit: documentation-only acceptance record; it does not replace the accepted feature head.
+Record: docs/216-final-i-6-2-admin-ux-navigation-accordions-pagination-polish.md
+Final-I.7: Blocked pending official INFILE technical documentation + Test credentials
+Final-I.8: Not started / reserved for FEL delivery email/PDF/XML/history UX
+Final-I.9: Not started / integrated Final-I closure
+Phase 13: Blocked / Not started until Final-I closes
+```
+
+Owner Hosted validation and formal acceptance passed on 2026-10-07 for the complete Final-I.6.2 Admin UX Navigation, Accordions & Pagination Polish package. Workstreams A-K are completed and accepted: Additional Charges compact tabs, Reviews single accordion, Dashboard Upcoming Arrivals action, Reservations `PAGE_SIZE = 5`, shared accordion visual hierarchy, desktop/mobile navigation-only scrolling, Notification accordion controlled empty-string closed state, Notification Center server-side pagination with canonical targeted pages, financial notification contextual Reservation focus, Open auto-mark-read behavior, and Admin identity relocation with compact desktop tooltip refinement.
+
+The accepted Final-I.6.2 feature head remains `d936983edd22607919148f871e3ba339ab4a4ed9`. This documentation-only closure records acceptance without replacing that feature head. It does not modify runtime behavior, Prisma schema, migrations, dependencies, environment variables, cron/scheduler registration, `vercel.json`, INFILE/FEL provider behavior, Final-I.7, Final-I.8, Final-I.9, Phase 13, or Production resources. Final-I remains Active; Phase 13 remains Blocked / Not started until Final-I closes.
 
 ## 2026-10-06 — Final-I.6.2 Admin UX Navigation, Accordions And Pagination Polish Implemented
 

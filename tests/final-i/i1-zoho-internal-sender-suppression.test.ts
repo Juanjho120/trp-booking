@@ -37,6 +37,13 @@ function expectIncludes(source: string, expected: string): void {
   );
 }
 
+function expectNotIncludes(source: string, unexpected: string): void {
+  assert.ok(
+    !source.includes(unexpected),
+    `Expected source not to include: ${unexpected}`,
+  );
+}
+
 const baseEnv = {
   TRP_ENVIRONMENT: "test",
   DATABASE_URL:
@@ -676,6 +683,9 @@ test("I.1 registers the roadmap, validation script, and F.7 forward note", () =>
   const doc215 = read(
     "docs/215-final-i-6-1-interim-operational-hardening.md",
   );
+  const doc216 = read(
+    "docs/216-final-i-6-2-admin-ux-navigation-accordions-pagination-polish.md",
+  );
   const vercel = JSON.parse(read("vercel.json")) as { crons?: unknown[] };
 
   assert.equal(
@@ -737,6 +747,28 @@ test("I.1 registers the roadmap, validation script, and F.7 forward note", () =>
     doc212,
     "Final-I.6.1 implementation and acceptance record: docs/215-final-i-6-1-interim-operational-hardening.md",
   );
+  expectIncludes(doc212, "Final-I.6.2 status: Completed and accepted on 2026-10-07");
+  expectIncludes(
+    doc212,
+    "Accepted Final-I.6.2 feature head: d936983edd22607919148f871e3ba339ab4a4ed9",
+  );
+  expectIncludes(
+    doc212,
+    "Final-I.6.2 implementation and acceptance record: docs/216-final-i-6-2-admin-ux-navigation-accordions-pagination-polish.md",
+  );
+  expectNotIncludes(
+    doc212,
+    "Final-I.6.2 implementation is completed with Hosted owner validation pending",
+  );
+  expectIncludes(doc216, "Status: Completed and accepted on 2026-10-07");
+  expectIncludes(
+    doc216,
+    "Accepted Final-I.6.2 feature head: d936983edd22607919148f871e3ba339ab4a4ed9",
+  );
+  expectIncludes(doc216, "Owner formal acceptance: PASS on 2026-10-07");
+  expectIncludes(doc216, "A - Additional Charges compact tabs: Completed; Hosted owner validation PASS");
+  expectIncludes(doc216, "K - Admin identity relocation and compact tooltip refinement: Completed; Hosted owner validation PASS on 2026-10-07");
+  expectNotIncludes(doc216, "Pending final visual revalidation");
   expectIncludes(doc212, "Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials");
   expectIncludes(doc212, "Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX");
   expectIncludes(doc212, "Final-I.9 status: Not started / integrated Final-I closure");
