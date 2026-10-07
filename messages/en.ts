@@ -943,6 +943,25 @@ export const enMessages = {
             "Preserved historical price",
         },
       },
+      detailTabs: {
+        reload: "Reload",
+        loadFailed: "This section could not be loaded.",
+        loading: {
+          reservation: "Loading reservation details...",
+          financial: "Loading payments and diagnostics...",
+          paymentAttempts: "Loading payment attempts...",
+          emails: "Loading email delivery...",
+          lifecycle: "Loading cancellations...",
+          additionalCharges: "Loading additional charges...",
+          refunds: "Loading refunds...",
+          changes: "Loading date changes and extensions...",
+          history: "Loading history...",
+        },
+        financial: {
+          summary: "Summary",
+          attempts: "Attempts",
+        },
+      },
       additionalCharges: {
         badge: "Ancillary charges",
         title: "Additional charges",

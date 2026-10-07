@@ -260,13 +260,14 @@ test("I.6.2 I reservation detail wires bounded focus into exact accordion target
   for (const expected of [
     "parseAdminReservationDetailFocusQuery",
     "const initialFocus = parseAdminReservationDetailFocusQuery(focusParams)",
+    "resolveAdminReservationRefundFocusTab",
+    "initialTab = await resolveAdminReservationRefundFocusTab",
     "initialFocus={initialFocus}",
   ]) {
     expectIncludes(RESERVATION_ROUTE, expected);
   }
 
   for (const expected of [
-    "resolveAdminReservationDetailInitialTab",
     "value={activeReservationTab}",
     "setActiveReservationTab(value)",
     "initialFocus={initialFocus}",

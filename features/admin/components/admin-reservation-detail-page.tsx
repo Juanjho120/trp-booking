@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   CalendarClock,
@@ -16,7 +15,8 @@ import {
   Send,
   ShieldCheck,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import type { ReactNode } from "react";
 
 import {
   Accordion,
@@ -26,7 +26,6 @@ import {
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { siteConfig } from "@/config/site";
 import {
   Card,
   CardContent,
@@ -43,28 +42,48 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useLocale } from "@/features/i18n";
 import {
-  resolveAdminReservationDetailInitialTab,
-  type AdminReservationDetailFocus,
-  type AdminReservationDetailTab,
-} from "@/lib/admin/reservation-detail-focus";
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { siteConfig } from "@/config/site";
 import {
   getAdminReservationEmailNotificationTypeLabel,
   groupAdminReservationEmailNotifications,
 } from "@/features/admin/email-notification-display";
+import { useLocale } from "@/features/i18n";
+import type {
+  AdminReservationDetailFocus,
+  AdminReservationDetailTab,
+} from "@/lib/admin/reservation-detail-focus";
 import type {
   AdminEmailNotificationResendErrorCode,
   AdminEmailNotificationResendResult,
 } from "@/types/admin-email-notification-resend";
+import type { AdminPaymentSubmissionAttemptHistory as AdminPaymentSubmissionAttemptHistoryData } from "@/types/admin-payment-submission-attempt";
 import type {
-  AdminReservationDetailData,
   AdminReservationDetailEmailNotification,
+  AdminReservationPricingBreakdown,
 } from "@/types/admin-reservation-detail";
+import type {
+  AdminReservationChangesTab,
+  AdminReservationDetailServerTab,
+  AdminReservationDetailShell,
+  AdminReservationDetailTabPayload,
+  AdminReservationEmailsTab,
+  AdminReservationFinancialTab,
+  AdminReservationHistoryTab,
+  AdminReservationLifecycleTab,
+  AdminReservationOverviewTab,
+  AdminReservationRefundsTab,
+} from "@/types/admin-reservation-detail-tabs";
 import type { Locale } from "@/types/locale";
 
-import { AdminPageHeader } from "./admin-page-header";
 import { AdminAdditionalChargesSection } from "./admin-additional-charges-section";
+import { AdminPageHeader } from "./admin-page-header";
+import { AdminPaymentSubmissionAttemptHistory } from "./admin-payment-submission-attempt-history";
 import {
   AdminRecordPagination,
   useAdminRecordPagination,
@@ -75,10 +94,29 @@ import { AdminReservationLifecycleAdjustmentRefundSection } from "./admin-reserv
 import { AdminReservationOperationalHistorySection } from "./admin-reservation-operational-history-section";
 import { AdminReservationRefundSection } from "./admin-reservation-refund-section";
 import { AdminSnackbar } from "./admin-snackbar";
-import type {
-  AdminPaymentSubmissionAttemptHistory as AdminPaymentSubmissionAttemptHistoryData,
-} from "@/types/admin-payment-submission-attempt";
-import { AdminPaymentSubmissionAttemptHistory } from "./admin-payment-submission-attempt-history";
+
+type FinancialNestedTab = "summary" | "attempts";
+type ClientDataKey = AdminReservationDetailServerTab | "additionalCharges";
+type CacheStatus = "idle" | "loading" | "ready" | "refreshing" | "error";
+
+type CacheEntry<T> = Readonly<{
+  data: T | null;
+  error: string | null;
+  stale: boolean;
+  status: CacheStatus;
+}>;
+
+type ManualResendTarget = Readonly<{
+  notification: AdminReservationDetailEmailNotification;
+  requestId: string;
+}>;
+
+type ManualResendApiResponse = Readonly<{
+  result?: AdminEmailNotificationResendResult;
+  error?: Readonly<{
+    code?: AdminEmailNotificationResendErrorCode;
+  }>;
+}>;
 
 const manuallyResendableTypes = new Set([
   "RESERVATION_CONFIRMED",
@@ -97,23 +135,20 @@ const adminReservationDetailTabs = new Set<AdminReservationDetailTab>([
   "history",
 ]);
 
+function emptyCache<T>(): CacheEntry<T> {
+  return {
+    data: null,
+    error: null,
+    stale: false,
+    status: "idle",
+  };
+}
+
 function isAdminReservationDetailTab(
   value: string,
 ): value is AdminReservationDetailTab {
   return adminReservationDetailTabs.has(value as AdminReservationDetailTab);
 }
-
-type ManualResendTarget = Readonly<{
-  notification: AdminReservationDetailEmailNotification;
-  requestId: string;
-}>;
-
-type ManualResendApiResponse = Readonly<{
-  result?: AdminEmailNotificationResendResult;
-  error?: Readonly<{
-    code?: AdminEmailNotificationResendErrorCode;
-  }>;
-}>;
 
 function getIntlLocale(locale: Locale): string {
   return locale === "en" ? "en-US" : "es-GT";
@@ -132,26 +167,52 @@ function canManuallyResend(
 }
 
 export function AdminReservationDetailPage({
+  initialActiveTab,
   initialFocus = null,
-  paymentAttemptHistory,
-  reservation,
+  reservationShell,
 }: Readonly<{
+  initialActiveTab: AdminReservationDetailTab;
   initialFocus?: AdminReservationDetailFocus | null;
-  paymentAttemptHistory: AdminPaymentSubmissionAttemptHistoryData;
-  reservation: AdminReservationDetailData;
+  reservationShell: AdminReservationDetailShell;
 }>) {
-  const router = useRouter();
   const { locale, messages } = useLocale();
   const reservationCopy = messages.admin.reservationsPage;
+  const detailCopy = reservationCopy.detailTabs;
   const paymentCopy = messages.admin.paymentsPage;
-  const requestCopy = messages.reservations.request;
-  const pendingCopy = messages.reservations.pendingHold;
   const reservationStatuses = messages.admin.statuses.reservation;
   const paymentStatuses = messages.admin.statuses.payment;
   const emailNotificationStatuses = messages.admin.statuses.emailNotification;
   const notificationCopy = reservationCopy.notifications;
   const correspondenceCopy = reservationCopy.correspondence;
   const intlLocale = getIntlLocale(locale);
+  const [activeReservationTab, setActiveReservationTab] =
+    useState<AdminReservationDetailTab>(initialActiveTab);
+  const [activeFinancialTab, setActiveFinancialTab] =
+    useState<FinancialNestedTab>("summary");
+  const [visitedTabs, setVisitedTabs] = useState<
+    ReadonlySet<AdminReservationDetailTab>
+  >(() => new Set([initialActiveTab]));
+  const [reservationCache, setReservationCache] = useState<
+    CacheEntry<AdminReservationOverviewTab>
+  >(emptyCache);
+  const [financialCache, setFinancialCache] = useState<
+    CacheEntry<AdminReservationFinancialTab>
+  >(emptyCache);
+  const [attemptsCache, setAttemptsCache] = useState<
+    CacheEntry<AdminPaymentSubmissionAttemptHistoryData>
+  >(emptyCache);
+  const [emailsCache, setEmailsCache] =
+    useState<CacheEntry<AdminReservationEmailsTab>>(emptyCache);
+  const [lifecycleCache, setLifecycleCache] =
+    useState<CacheEntry<AdminReservationLifecycleTab>>(emptyCache);
+  const [refundsCache, setRefundsCache] =
+    useState<CacheEntry<AdminReservationRefundsTab>>(emptyCache);
+  const [changesCache, setChangesCache] =
+    useState<CacheEntry<AdminReservationChangesTab>>(emptyCache);
+  const [historyCache, setHistoryCache] =
+    useState<CacheEntry<AdminReservationHistoryTab>>(emptyCache);
+  const [additionalChargesReloadVersion, setAdditionalChargesReloadVersion] =
+    useState(0);
   const [manualResendTarget, setManualResendTarget] =
     useState<ManualResendTarget | null>(null);
   const [busyNotificationId, setBusyNotificationId] = useState<string | null>(
@@ -160,34 +221,320 @@ export function AdminReservationDetailPage({
   const [errorFeedback, setErrorFeedback] = useState<string | null>(null);
   const [successFeedback, setSuccessFeedback] = useState<string | null>(null);
   const isBusy = busyNotificationId !== null;
-  const paymentPagination = useAdminRecordPagination(reservation.payments);
-  const emailNotificationGroups = useMemo(() => {
-    return groupAdminReservationEmailNotifications(
-      reservation.emailNotifications,
-    );
-  }, [reservation.emailNotifications]);
-  const guestEmailPagination = useAdminRecordPagination(
-    emailNotificationGroups.guest,
+
+  const setCacheForTab = useCallback(
+    (payload: AdminReservationDetailTabPayload): void => {
+      switch (payload.tab) {
+        case "reservation":
+          setReservationCache({
+            data: payload.data,
+            error: null,
+            stale: false,
+            status: "ready",
+          });
+          return;
+        case "financial":
+          setFinancialCache({
+            data: payload.data,
+            error: null,
+            stale: false,
+            status: "ready",
+          });
+          return;
+        case "payment-attempts":
+          setAttemptsCache({
+            data: payload.data,
+            error: null,
+            stale: false,
+            status: "ready",
+          });
+          return;
+        case "emails":
+          setEmailsCache({
+            data: payload.data,
+            error: null,
+            stale: false,
+            status: "ready",
+          });
+          return;
+        case "lifecycle":
+          setLifecycleCache({
+            data: payload.data,
+            error: null,
+            stale: false,
+            status: "ready",
+          });
+          return;
+        case "refunds":
+          setRefundsCache({
+            data: payload.data,
+            error: null,
+            stale: false,
+            status: "ready",
+          });
+          return;
+        case "changes":
+          setChangesCache({
+            data: payload.data,
+            error: null,
+            stale: false,
+            status: "ready",
+          });
+          return;
+        case "history":
+          setHistoryCache({
+            data: payload.data,
+            error: null,
+            stale: false,
+            status: "ready",
+          });
+      }
+    },
+    [],
   );
-  const adminEmailPagination = useAdminRecordPagination(
-    emailNotificationGroups.administration,
+
+  const updateCacheStatus = useCallback(
+    (tab: AdminReservationDetailServerTab, status: CacheStatus): void => {
+      const update = <T,>(entry: CacheEntry<T>): CacheEntry<T> => ({
+        ...entry,
+        error: null,
+        status,
+      });
+
+      switch (tab) {
+        case "reservation":
+          setReservationCache(update);
+          return;
+        case "financial":
+          setFinancialCache(update);
+          return;
+        case "payment-attempts":
+          setAttemptsCache(update);
+          return;
+        case "emails":
+          setEmailsCache(update);
+          return;
+        case "lifecycle":
+          setLifecycleCache(update);
+          return;
+        case "refunds":
+          setRefundsCache(update);
+          return;
+        case "changes":
+          setChangesCache(update);
+          return;
+        case "history":
+          setHistoryCache(update);
+      }
+    },
+    [],
   );
-  const defaultEmailGroup =
-    emailNotificationGroups.guest.length > 0 ? "guest" : "administration";
-  const paginationLabels = {
-    next: reservationCopy.actions.next,
-    of: reservationCopy.labels.of,
-    page: reservationCopy.labels.page,
-    previous: reservationCopy.actions.previous,
-    results: reservationCopy.labels.results,
-  } as const;
-  const [activeReservationTab, setActiveReservationTab] =
-    useState<AdminReservationDetailTab>(() =>
-      resolveAdminReservationDetailInitialTab({
-        focus: initialFocus,
-        refunds: reservation.refunds,
-      }),
-    );
+
+  const updateCacheError = useCallback(
+    (tab: AdminReservationDetailServerTab, message: string): void => {
+      const update = <T,>(entry: CacheEntry<T>): CacheEntry<T> => ({
+        ...entry,
+        error: message,
+        status: "error",
+      });
+
+      switch (tab) {
+        case "reservation":
+          setReservationCache(update);
+          return;
+        case "financial":
+          setFinancialCache(update);
+          return;
+        case "payment-attempts":
+          setAttemptsCache(update);
+          return;
+        case "emails":
+          setEmailsCache(update);
+          return;
+        case "lifecycle":
+          setLifecycleCache(update);
+          return;
+        case "refunds":
+          setRefundsCache(update);
+          return;
+        case "changes":
+          setChangesCache(update);
+          return;
+        case "history":
+          setHistoryCache(update);
+      }
+    },
+    [],
+  );
+
+  const markTabsStale = useCallback((tabs: readonly ClientDataKey[]): void => {
+    const update = <T,>(entry: CacheEntry<T>): CacheEntry<T> => ({
+      ...entry,
+      stale: entry.data !== null || entry.status === "ready",
+    });
+
+    for (const tab of tabs) {
+      switch (tab) {
+        case "reservation":
+          setReservationCache(update);
+          break;
+        case "financial":
+          setFinancialCache(update);
+          break;
+        case "payment-attempts":
+          setAttemptsCache(update);
+          break;
+        case "emails":
+          setEmailsCache(update);
+          break;
+        case "lifecycle":
+          setLifecycleCache(update);
+          break;
+        case "refunds":
+          setRefundsCache(update);
+          break;
+        case "changes":
+          setChangesCache(update);
+          break;
+        case "history":
+          setHistoryCache(update);
+          break;
+        case "additionalCharges":
+          break;
+      }
+    }
+  }, []);
+
+  const getCacheForTab = useCallback(
+    (tab: AdminReservationDetailServerTab): CacheEntry<unknown> => {
+      switch (tab) {
+        case "reservation":
+          return reservationCache;
+        case "financial":
+          return financialCache;
+        case "payment-attempts":
+          return attemptsCache;
+        case "emails":
+          return emailsCache;
+        case "lifecycle":
+          return lifecycleCache;
+        case "refunds":
+          return refundsCache;
+        case "changes":
+          return changesCache;
+        case "history":
+          return historyCache;
+      }
+    },
+    [
+      attemptsCache,
+      changesCache,
+      emailsCache,
+      financialCache,
+      historyCache,
+      lifecycleCache,
+      refundsCache,
+      reservationCache,
+    ],
+  );
+
+  const loadServerTab = useCallback(
+    async (
+      tab: AdminReservationDetailServerTab,
+      options: Readonly<{ force?: boolean }> = {},
+    ): Promise<void> => {
+      const current = getCacheForTab(tab);
+
+      if (
+        !options.force &&
+        (current.status === "loading" ||
+          current.status === "refreshing" ||
+          (current.status === "ready" && !current.stale))
+      ) {
+        return;
+      }
+
+      updateCacheStatus(tab, current.data ? "refreshing" : "loading");
+
+      try {
+        const response = await fetch(
+          `/api/admin/reservations/${encodeURIComponent(
+            reservationShell.id,
+          )}/tabs/${encodeURIComponent(tab)}`,
+          {
+            cache: "no-store",
+            headers: {
+              accept: "application/json",
+            },
+          },
+        );
+        const payload = (await response.json()) as
+          | AdminReservationDetailTabPayload
+          | Readonly<{ error?: { code?: string } }>;
+
+        if (!response.ok || !("data" in payload)) {
+          updateCacheError(tab, detailCopy.loadFailed);
+          return;
+        }
+
+        setCacheForTab(payload);
+      } catch {
+        updateCacheError(tab, detailCopy.loadFailed);
+      }
+    },
+    [
+      detailCopy.loadFailed,
+      getCacheForTab,
+      reservationShell.id,
+      setCacheForTab,
+      updateCacheError,
+      updateCacheStatus,
+    ],
+  );
+
+  useEffect(() => {
+    setVisitedTabs((current) => {
+      if (current.has(activeReservationTab)) {
+        return current;
+      }
+
+      return new Set([...current, activeReservationTab]);
+    });
+  }, [activeReservationTab]);
+
+  useEffect(() => {
+    if (activeReservationTab === "additionalCharges") {
+      return;
+    }
+
+    const tab =
+      activeReservationTab === "reservation"
+        ? "reservation"
+        : activeReservationTab;
+
+    void loadServerTab(tab);
+  }, [activeReservationTab, loadServerTab]);
+
+  useEffect(() => {
+    if (activeReservationTab === "financial") {
+      void loadServerTab(
+        activeFinancialTab === "attempts" ? "payment-attempts" : "financial",
+      );
+    }
+  }, [activeFinancialTab, activeReservationTab, loadServerTab]);
+
+  useEffect(() => {
+    if (!initialFocus) {
+      return;
+    }
+
+    const url = new URL(window.location.href);
+    url.searchParams.delete("focus");
+    url.searchParams.delete("focusId");
+    const nextUrl = `${url.pathname}${url.search}${url.hash}`;
+
+    window.history.replaceState(window.history.state, "", nextUrl);
+  }, [initialFocus]);
 
   function formatDate(value: string): string {
     return new Intl.DateTimeFormat(intlLocale, {
@@ -283,20 +630,20 @@ export function AdminReservationDetailPage({
     }
   }
 
-  async function copyGuestEmailForZoho(): Promise<void> {
+  async function copyGuestEmailForZoho(guestEmail: string): Promise<void> {
     clearFeedback();
 
     let copied = false;
 
     if (navigator.clipboard && window.isSecureContext) {
       try {
-        await navigator.clipboard.writeText(reservation.guestEmail);
+        await navigator.clipboard.writeText(guestEmail);
         copied = true;
       } catch {
-        copied = copyTextWithSelection(reservation.guestEmail);
+        copied = copyTextWithSelection(guestEmail);
       }
     } else {
-      copied = copyTextWithSelection(reservation.guestEmail);
+      copied = copyTextWithSelection(guestEmail);
     }
 
     if (copied) {
@@ -346,7 +693,9 @@ export function AdminReservationDetailPage({
   }
 
   async function confirmManualResend(): Promise<void> {
-    if (!manualResendTarget || isBusy) {
+    const emailData = emailsCache.data;
+
+    if (!manualResendTarget || isBusy || !emailData) {
       return;
     }
 
@@ -364,7 +713,7 @@ export function AdminReservationDetailPage({
             "content-type": "application/json",
           },
           body: JSON.stringify({
-            reservationId: reservation.id,
+            reservationId: reservationShell.id,
             expectedUpdatedAt: manualResendTarget.notification.updatedAt,
             requestId: manualResendTarget.requestId,
           }),
@@ -386,7 +735,8 @@ export function AdminReservationDetailPage({
       }
 
       setManualResendTarget(null);
-      router.refresh();
+      markTabsStale(["history"]);
+      await loadServerTab("emails", { force: true });
     } catch {
       setErrorFeedback(
         notificationCopy.errors.ADMIN_EMAIL_NOTIFICATION_UNEXPECTED_ERROR,
@@ -396,8 +746,74 @@ export function AdminReservationDetailPage({
     }
   }
 
+  function reloadActiveUnit(): void {
+    if (activeReservationTab === "additionalCharges") {
+      setAdditionalChargesReloadVersion((value) => value + 1);
+      return;
+    }
+
+    if (activeReservationTab === "financial") {
+      void loadServerTab(
+        activeFinancialTab === "attempts" ? "payment-attempts" : "financial",
+        { force: true },
+      );
+      return;
+    }
+
+    const tab =
+      activeReservationTab === "reservation"
+        ? "reservation"
+        : activeReservationTab;
+    void loadServerTab(tab, { force: true });
+  }
+
+  function handleLifecycleChanged(): void {
+    markTabsStale(["reservation", "changes", "refunds", "financial", "history"]);
+    void loadServerTab("lifecycle", { force: true });
+  }
+
+  function handleChangesChanged(): void {
+    markTabsStale(["reservation", "financial", "refunds", "history"]);
+    void loadServerTab("changes", { force: true });
+  }
+
+  function handleRefundsChanged(): void {
+    markTabsStale(["financial", "history"]);
+    void loadServerTab("refunds", { force: true });
+  }
+
+  function handleAdditionalChargesChanged(): void {
+    markTabsStale(["financial", "refunds", "history"]);
+  }
+
+  function renderLoadingPanel(message: string) {
+    return (
+      <Card className="border-border/70 bg-card shadow-sm">
+        <CardContent className="flex items-center gap-3 p-6 text-sm text-muted-foreground">
+          <Loader2 aria-hidden="true" className="size-4 animate-spin" />
+          {message}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  function renderErrorPanel(onReload: () => void) {
+    return (
+      <Card className="border-border/70 bg-card shadow-sm">
+        <CardContent className="grid gap-4 p-6 text-sm text-muted-foreground">
+          <p>{detailCopy.loadFailed}</p>
+          <Button className="w-fit" onClick={onReload} type="button" variant="outline">
+            <RefreshCcw aria-hidden="true" />
+            {detailCopy.reload}
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
   function renderEmailNotification(
     notification: AdminReservationDetailEmailNotification,
+    reservationStatus: string,
   ) {
     return (
       <EmailNotificationCard
@@ -407,7 +823,7 @@ export function AdminReservationDetailPage({
             : notificationCopy.actions.retryNow
         }
         busy={busyNotificationId === notification.id}
-        canResend={canManuallyResend(notification, reservation.status)}
+        canResend={canManuallyResend(notification, reservationStatus)}
         formatDateTime={formatDateTime}
         key={notification.id}
         labels={notificationCopy.labels}
@@ -423,33 +839,9 @@ export function AdminReservationDetailPage({
     );
   }
 
-  const propertyName =
-    locale === "en" ? reservation.property.nameEn : reservation.property.nameEs;
+  const shellBadge = reservationStatusLabel(reservationShell.status);
   const resendTargetWasSent =
     manualResendTarget?.notification.status === "SENT";
-  const standardRefundReservation: AdminReservationDetailData = {
-    ...reservation,
-    refunds: reservation.refunds.filter(
-      (refund) =>
-        refund.authorizationType !== "LIFECYCLE_ADJUSTMENT" &&
-        refund.authorizationType !== "ADDITIONAL_CHARGE",
-    ),
-  };
-  const paymentPurposeById = new Map(
-    reservation.payments.map((payment) => [payment.id, payment.purpose]),
-  );
-  const effectiveRefundAmount = reservation.refunds
-    .filter(
-      (refund) =>
-        refund.currency === reservation.currency &&
-        effectiveRefundStatuses.has(refund.status) &&
-        paymentPurposeById.get(refund.paymentId) !== "ADDITIONAL_CHARGE",
-    )
-    .reduce((total, refund) => total + Number(refund.amount), 0);
-  const netReservationTotal = Math.max(
-    0,
-    Number(reservation.total) - effectiveRefundAmount,
-  );
 
   return (
     <>
@@ -462,9 +854,9 @@ export function AdminReservationDetailPage({
             </Link>
           </Button>
         }
-        badge={reservationStatusLabel(reservation.status)}
+        badge={shellBadge}
         description={reservationCopy.description}
-        title={`${reservationCopy.title} · ${reservation.id}`}
+        title={`${reservationCopy.title} · ${reservationShell.id}`}
       />
 
       <AdminSnackbar
@@ -526,460 +918,217 @@ export function AdminReservationDetailPage({
           </TabsList>
         </div>
 
-        <TabsContent
-          className="mt-4 data-[state=inactive]:hidden sm:mt-6"
-          forceMount
-          value="reservation"
-        >
-          <Card className="border-border/70 bg-card shadow-sm">
-            <CardHeader>
-              <CardTitle>{reservation.guestName}</CardTitle>
-              <CardDescription>{propertyName}</CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-              <DetailValue
-                label={reservationCopy.labels.reservation}
-                value={reservation.id}
-              />
-              <DetailValue
-                label={requestCopy.fields.checkInDate}
-                value={formatDate(reservation.checkInDate)}
-              />
-              <DetailValue
-                label={requestCopy.fields.checkOutDate}
-                value={formatDate(reservation.checkOutDate)}
-              />
-              <DetailValue
-                label={requestCopy.fields.guestEmail}
-                value={reservation.guestEmail}
-              />
-              <DetailValue
-                label={requestCopy.fields.guestPhone}
-                value={
-                  reservation.guestPhone ?? reservationCopy.labels.unavailable
-                }
-              />
-              <DetailValue
-                label={requestCopy.fields.guestCountry}
-                value={
-                  reservation.guestCountry ?? reservationCopy.labels.unavailable
-                }
-              />
-              <DetailValue
-                label={reservationCopy.labels.guests}
-                value={String(reservation.guestCount)}
-              />
-              <DetailValue
-                label={requestCopy.fields.arrivalTimeEstimate}
-                value={
-                  reservation.arrivalTimeEstimate ??
-                  reservationCopy.labels.unavailable
-                }
-              />
-              <DetailValue
-                label={paymentCopy.labels.createdAt}
-                value={formatDateTime(reservation.createdAt)}
-              />
-              {reservation.expiresAt ? (
-                <DetailValue
-                  label={pendingCopy.expiresAt}
-                  value={formatDateTime(reservation.expiresAt)}
-                />
-              ) : null}
-            </CardContent>
-          </Card>
-
-          <ReservationPricingBreakdownCard
-              breakdown={reservation.pricingBreakdown}
+        {visitedTabs.has("reservation") ? (
+          <TabsContent
+            className="mt-4 data-[state=inactive]:hidden sm:mt-6"
+            forceMount
+            value="reservation"
+          >
+            <PanelToolbar
+              busy={reservationCache.status === "refreshing"}
+              label={detailCopy.reload}
+              onReload={reloadActiveUnit}
+            />
+            <ReservationOverviewPanel
+              cache={reservationCache}
+              copy={{
+                loading: detailCopy.loading.reservation,
+              }}
               formatDate={formatDate}
+              formatDateTime={formatDateTime}
               formatMoney={formatMoney}
+              onCopyGuestEmail={copyGuestEmailForZoho}
+              renderError={() => renderErrorPanel(() => void loadServerTab("reservation", { force: true }))}
             />
+          </TabsContent>
+        ) : null}
 
-          <Card className="mt-6 border-border/70 bg-card shadow-sm">
-            <CardHeader>
-              <CardTitle>{correspondenceCopy.title}</CardTitle>
-              <CardDescription>{correspondenceCopy.description}</CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-              <div className="min-w-0">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                  {requestCopy.fields.guestEmail}
-                </p>
-                <p className="mt-1 break-all text-sm font-medium">
-                  {reservation.guestEmail}
-                </p>
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-                  {correspondenceCopy.helper}
-                </p>
+        {visitedTabs.has("financial") ? (
+          <TabsContent
+            className="mt-4 data-[state=inactive]:hidden sm:mt-6"
+            forceMount
+            value="financial"
+          >
+            <PanelToolbar
+              busy={
+                activeFinancialTab === "attempts"
+                  ? attemptsCache.status === "refreshing"
+                  : financialCache.status === "refreshing"
+              }
+              label={detailCopy.reload}
+              onReload={reloadActiveUnit}
+            />
+            <FinancialPanel
+              activeTab={activeFinancialTab}
+              attemptsCache={attemptsCache}
+              financialCache={financialCache}
+              formatDateTime={formatDateTime}
+              formatMoney={formatMoney}
+              onTabChange={setActiveFinancialTab}
+              paymentStatusLabel={paymentStatusLabel}
+              renderAttemptsError={() =>
+                renderErrorPanel(() =>
+                  void loadServerTab("payment-attempts", { force: true }),
+                )
+              }
+              renderFinancialError={() =>
+                renderErrorPanel(() =>
+                  void loadServerTab("financial", { force: true }),
+                )
+              }
+              renderLoadingPanel={renderLoadingPanel}
+            />
+          </TabsContent>
+        ) : null}
+
+        {visitedTabs.has("emails") ? (
+          <TabsContent
+            className="mt-4 data-[state=inactive]:hidden sm:mt-6"
+            forceMount
+            value="emails"
+          >
+            <PanelToolbar
+              busy={emailsCache.status === "refreshing"}
+              label={detailCopy.reload}
+              onReload={reloadActiveUnit}
+            />
+            <EmailsPanel
+              cache={emailsCache}
+              renderEmailNotification={renderEmailNotification}
+              renderError={() => renderErrorPanel(() => void loadServerTab("emails", { force: true }))}
+              renderLoadingPanel={renderLoadingPanel}
+            />
+          </TabsContent>
+        ) : null}
+
+        {visitedTabs.has("lifecycle") ? (
+          <TabsContent
+            className="mt-4 data-[state=inactive]:hidden sm:mt-6"
+            forceMount
+            value="lifecycle"
+          >
+            <PanelToolbar
+              busy={lifecycleCache.status === "refreshing"}
+              label={detailCopy.reload}
+              onReload={reloadActiveUnit}
+            />
+            {lifecycleCache.data ? (
+              <div className="-mt-6">
+                <AdminReservationCancellationSection
+                  onDataChanged={handleLifecycleChanged}
+                  reservation={lifecycleCache.data}
+                />
               </div>
+            ) : lifecycleCache.status === "error" ? (
+              renderErrorPanel(() => void loadServerTab("lifecycle", { force: true }))
+            ) : (
+              renderLoadingPanel(detailCopy.loading.lifecycle)
+            )}
+          </TabsContent>
+        ) : null}
 
-              <Button asChild className="w-full shrink-0 sm:w-auto">
-                <a
-                  href={siteConfig.correspondence.zohoMailWebUrl}
-                  onClick={() => void copyGuestEmailForZoho()}
-                  rel="noopener noreferrer"
-                  target="_blank"
-                >
-                  <Mail aria-hidden="true" />
-                  <span className="hidden sm:inline">
-                    {correspondenceCopy.actions.openDesktop}
-                  </span>
-                  <span className="sm:hidden">
-                    {correspondenceCopy.actions.openMobile}
-                  </span>
-                  <ExternalLink aria-hidden="true" />
-                </a>
-              </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent
-          className="mt-4 data-[state=inactive]:hidden sm:mt-6"
-          forceMount
-          value="financial"
-        >
-          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(20rem,0.8fr)]">
-            <Card className="border-border/70 bg-card shadow-sm">
-              <CardHeader>
-                <CardTitle>{requestCopy.quoteTitle}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <dl className="grid gap-4 sm:grid-cols-2">
-                  <MoneyRow
-                    label={requestCopy.quoteRows.subtotal}
-                    value={formatMoney(
-                      reservation.subtotal,
-                      reservation.currency,
-                    )}
-                  />
-                  <MoneyRow
-                    label={requestCopy.quoteRows.cleaningFee}
-                    value={formatMoney(
-                      reservation.cleaningFee,
-                      reservation.currency,
-                    )}
-                  />
-                  <MoneyRow
-                    label={requestCopy.quoteRows.taxes}
-                    value={formatMoney(reservation.taxes, reservation.currency)}
-                  />
-                  <MoneyRow
-                    label={requestCopy.quoteRows.discounts}
-                    value={formatMoney(
-                      reservation.discounts,
-                      reservation.currency,
-                    )}
-                  />
-                  <MoneyRow
-                    label={reservationCopy.refunds.badge}
-                    value={formatMoney(
-                      (-effectiveRefundAmount).toFixed(2),
-                      reservation.currency,
-                    )}
-                  />
-                  <MoneyRow
-                    emphasized
-                    label={requestCopy.quoteRows.total}
-                    value={formatMoney(
-                      netReservationTotal.toFixed(2),
-                      reservation.currency,
-                    )}
-                  />
-                </dl>
-              </CardContent>
-            </Card>
-
-            <Card className="h-fit border-border/70 bg-card shadow-sm">
-              <CardHeader>
-                <CardTitle>{paymentCopy.title}</CardTitle>
-                <CardDescription>{paymentCopy.description}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {reservation.payments.length > 0 ? (
-                  <>
-                    <Accordion
-                      className="grid gap-3"
-                      collapsible
-                      key={`${paymentPagination.page}-${paymentPagination.pageSize}`}
-                      type="single"
-                    >
-                      {paymentPagination.pageItems.map((payment) => (
-                        <AccordionItem
-                          className="overflow-hidden rounded-2xl border border-border bg-muted/20 last:border-b"
-                          key={payment.id}
-                          value={payment.id}
-                        >
-                          <AccordionTrigger className="px-4 py-3 sm:px-5">
-                            <div className="grid min-w-0 flex-1 gap-3 pr-2 sm:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)_auto] sm:items-center">
-                              <div className="min-w-0">
-                                <p className="break-all text-sm font-semibold">
-                                  {payment.id}
-                                </p>
-                                <p className="mt-1 truncate text-sm text-muted-foreground">
-                                  {payment.providerReference ??
-                                    paymentCopy.labels.unavailable}
-                                </p>
-                              </div>
-                              <p className="text-sm font-semibold">
-                                {formatMoney(payment.amount, payment.currency)}
-                              </p>
-                              <Badge
-                                className="justify-self-start sm:justify-self-end"
-                                variant="outline"
-                              >
-                                {paymentStatusLabel(payment.status)}
-                              </Badge>
-                            </div>
-                          </AccordionTrigger>
-                          <AccordionContent className="border-t border-border/70 px-4 pt-4 sm:px-5">
-                            <div className="grid gap-4 sm:grid-cols-2">
-                              <DetailValue
-                                label={paymentCopy.labels.order}
-                                value={
-                                  payment.providerReference ??
-                                  paymentCopy.labels.unavailable
-                                }
-                              />
-                              <DetailValue
-                                label={paymentCopy.labels.createdAt}
-                                value={formatDateTime(payment.createdAt)}
-                              />
-                            </div>
-                            <div className="mt-4 flex justify-end">
-                              <Button asChild variant="outline">
-                                <Link
-                                  href={`/admin/payments/${encodeURIComponent(
-                                    payment.id,
-                                  )}`}
-                                >
-                                  {messages.common.viewDetails}
-                                  <ExternalLink aria-hidden="true" />
-                                </Link>
-                              </Button>
-                            </div>
-                          </AccordionContent>
-                        </AccordionItem>
-                      ))}
-                    </Accordion>
-                    <AdminRecordPagination
-                      labels={paginationLabels}
-                      onPageChange={paymentPagination.setPage}
-                      onPageSizeChange={paymentPagination.changePageSize}
-                      page={paymentPagination.page}
-                      pageSize={paymentPagination.pageSize}
-                      totalItems={paymentPagination.totalItems}
-                      totalPages={paymentPagination.totalPages}
-                    />
-                  </>
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    {paymentCopy.empty.noPayments}
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-          <AdminPaymentSubmissionAttemptHistory
-            history={paymentAttemptHistory}
-          />
-        </TabsContent>
-
-        <TabsContent
-          className="mt-4 data-[state=inactive]:hidden sm:mt-6"
-          forceMount
-          value="emails"
-        >
-          <Card className="border-border/70 bg-card shadow-sm">
-            <CardHeader>
-              <CardTitle>{notificationCopy.title}</CardTitle>
-              <CardDescription>{notificationCopy.description}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {reservation.emailNotifications.length > 0 ? (
-                <Tabs defaultValue={defaultEmailGroup}>
-                  <div className="-mx-1 overflow-x-auto px-1 pb-2">
-                    <TabsList
-                      aria-label={notificationCopy.title}
-                      className="inline-flex h-auto min-w-full justify-start gap-1 rounded-2xl border border-border/70 bg-muted/40 p-1.5 sm:min-w-0"
-                    >
-                      <TabsTrigger
-                        className="min-h-10 shrink-0 gap-2"
-                        value="guest"
-                      >
-                        <Mail aria-hidden="true" className="size-4 shrink-0" />
-                        {reservationCopy.labels.guests}
-                        <Badge variant="secondary">
-                          {emailNotificationGroups.guest.length}
-                        </Badge>
-                      </TabsTrigger>
-                      <TabsTrigger
-                        className="min-h-10 shrink-0 gap-2"
-                        value="administration"
-                      >
-                        <ShieldCheck
-                          aria-hidden="true"
-                          className="size-4 shrink-0"
-                        />
-                        {messages.footer.adminEmailLabel}
-                        <Badge variant="secondary">
-                          {emailNotificationGroups.administration.length}
-                        </Badge>
-                      </TabsTrigger>
-                    </TabsList>
-                  </div>
-
-                  <TabsContent
-                    className="mt-4 data-[state=inactive]:hidden"
-                    forceMount
-                    value="guest"
-                  >
-                    {emailNotificationGroups.guest.length > 0 ? (
-                      <>
-                        <Accordion
-                          className="grid gap-3"
-                          collapsible
-                          key={`guest-${guestEmailPagination.page}-${guestEmailPagination.pageSize}`}
-                          type="single"
-                        >
-                          {guestEmailPagination.pageItems.map(
-                            renderEmailNotification,
-                          )}
-                        </Accordion>
-                        <AdminRecordPagination
-                          labels={paginationLabels}
-                          onPageChange={guestEmailPagination.setPage}
-                          onPageSizeChange={
-                            guestEmailPagination.changePageSize
-                          }
-                          page={guestEmailPagination.page}
-                          pageSize={guestEmailPagination.pageSize}
-                          totalItems={guestEmailPagination.totalItems}
-                          totalPages={guestEmailPagination.totalPages}
-                        />
-                      </>
-                    ) : (
-                      <EmailGroupEmptyState
-                        label={reservationCopy.labels.results}
-                      />
-                    )}
-                  </TabsContent>
-
-                  <TabsContent
-                    className="mt-4 data-[state=inactive]:hidden"
-                    forceMount
-                    value="administration"
-                  >
-                    {emailNotificationGroups.administration.length > 0 ? (
-                      <>
-                        <Accordion
-                          className="grid gap-3"
-                          collapsible
-                          key={`administration-${adminEmailPagination.page}-${adminEmailPagination.pageSize}`}
-                          type="single"
-                        >
-                          {adminEmailPagination.pageItems.map(
-                            renderEmailNotification,
-                          )}
-                        </Accordion>
-                        <AdminRecordPagination
-                          labels={paginationLabels}
-                          onPageChange={adminEmailPagination.setPage}
-                          onPageSizeChange={
-                            adminEmailPagination.changePageSize
-                          }
-                          page={adminEmailPagination.page}
-                          pageSize={adminEmailPagination.pageSize}
-                          totalItems={adminEmailPagination.totalItems}
-                          totalPages={adminEmailPagination.totalPages}
-                        />
-                      </>
-                    ) : (
-                      <EmailGroupEmptyState
-                        label={reservationCopy.labels.results}
-                      />
-                    )}
-                  </TabsContent>
-                </Tabs>
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  {notificationCopy.empty}
-                </p>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent
-          className="mt-4 data-[state=inactive]:hidden sm:mt-6"
-          forceMount
-          value="lifecycle"
-        >
-          <div className="-mt-6">
-            <AdminReservationCancellationSection reservation={reservation} />
-          </div>
-        </TabsContent>
-
-        <TabsContent
-          className="mt-4 data-[state=inactive]:hidden sm:mt-6"
-          forceMount
-          value="additionalCharges"
-        >
-          <AdminAdditionalChargesSection
-            initialFocus={initialFocus}
-            reservationId={reservation.id}
-          />
-        </TabsContent>
-
-        <TabsContent
-          className="mt-4 data-[state=inactive]:hidden sm:mt-6"
-          forceMount
-          value="refunds"
-        >
-          <div className="-mt-6">
-            <AdminReservationRefundSection
-              focusedRefundId={
-                initialFocus?.kind === "refund" ? initialFocus.focusId : null
-              }
-              reservation={standardRefundReservation}
+        {visitedTabs.has("additionalCharges") ? (
+          <TabsContent
+            className="mt-4 data-[state=inactive]:hidden sm:mt-6"
+            forceMount
+            value="additionalCharges"
+          >
+            <PanelToolbar
+              busy={false}
+              label={detailCopy.reload}
+              onReload={reloadActiveUnit}
             />
-            <AdminReservationLifecycleAdjustmentRefundSection
-              focusedRefundId={
-                initialFocus?.kind === "refund" ? initialFocus.focusId : null
-              }
-              reservation={reservation}
+            <AdminAdditionalChargesSection
+              initialFocus={initialFocus}
+              onDataChanged={handleAdditionalChargesChanged}
+              reloadVersion={additionalChargesReloadVersion}
+              reservationId={reservationShell.id}
             />
-          </div>
-        </TabsContent>
+          </TabsContent>
+        ) : null}
 
-        <TabsContent
-          className="mt-4 data-[state=inactive]:hidden sm:mt-6"
-          forceMount
-          value="changes"
-        >
-          <div className="-mt-6">
-            <AdminReservationDateMutationSection
-              focusedLifecycleRequestId={
-                initialFocus?.kind === "lifecycleAdjustment"
-                  ? initialFocus.focusId
-                  : null
-              }
-              reservation={reservation}
+        {visitedTabs.has("refunds") ? (
+          <TabsContent
+            className="mt-4 data-[state=inactive]:hidden sm:mt-6"
+            forceMount
+            value="refunds"
+          >
+            <PanelToolbar
+              busy={refundsCache.status === "refreshing"}
+              label={detailCopy.reload}
+              onReload={reloadActiveUnit}
             />
-          </div>
-        </TabsContent>
+            {refundsCache.data ? (
+              <RefundsPanel
+                focusedRefundId={
+                  initialFocus?.kind === "refund" ? initialFocus.focusId : null
+                }
+                onDataChanged={handleRefundsChanged}
+                reservation={refundsCache.data}
+              />
+            ) : refundsCache.status === "error" ? (
+              renderErrorPanel(() => void loadServerTab("refunds", { force: true }))
+            ) : (
+              renderLoadingPanel(detailCopy.loading.refunds)
+            )}
+          </TabsContent>
+        ) : null}
 
-        <TabsContent
-          className="mt-4 data-[state=inactive]:hidden sm:mt-6"
-          forceMount
-          value="history"
-        >
-          <div className="-mt-6">
-            <AdminReservationOperationalHistorySection
-              reservation={reservation}
+        {visitedTabs.has("changes") ? (
+          <TabsContent
+            className="mt-4 data-[state=inactive]:hidden sm:mt-6"
+            forceMount
+            value="changes"
+          >
+            <PanelToolbar
+              busy={changesCache.status === "refreshing"}
+              label={detailCopy.reload}
+              onReload={reloadActiveUnit}
             />
-          </div>
-        </TabsContent>
+            {changesCache.data ? (
+              <div className="-mt-6">
+                <AdminReservationDateMutationSection
+                  focusedLifecycleRequestId={
+                    initialFocus?.kind === "lifecycleAdjustment"
+                      ? initialFocus.focusId
+                      : null
+                  }
+                  onDataChanged={handleChangesChanged}
+                  reservation={changesCache.data}
+                />
+              </div>
+            ) : changesCache.status === "error" ? (
+              renderErrorPanel(() => void loadServerTab("changes", { force: true }))
+            ) : (
+              renderLoadingPanel(detailCopy.loading.changes)
+            )}
+          </TabsContent>
+        ) : null}
+
+        {visitedTabs.has("history") ? (
+          <TabsContent
+            className="mt-4 data-[state=inactive]:hidden sm:mt-6"
+            forceMount
+            value="history"
+          >
+            <PanelToolbar
+              busy={historyCache.status === "refreshing"}
+              label={detailCopy.reload}
+              onReload={reloadActiveUnit}
+            />
+            {historyCache.data ? (
+              <div className="-mt-6">
+                <AdminReservationOperationalHistorySection
+                  reservation={historyCache.data}
+                />
+              </div>
+            ) : historyCache.status === "error" ? (
+              renderErrorPanel(() => void loadServerTab("history", { force: true }))
+            ) : (
+              renderLoadingPanel(detailCopy.loading.history)
+            )}
+          </TabsContent>
+        ) : null}
       </Tabs>
 
       <Sheet
@@ -1058,6 +1207,663 @@ export function AdminReservationDetailPage({
         </SheetContent>
       </Sheet>
     </>
+  );
+}
+
+function PanelToolbar({
+  busy,
+  label,
+  onReload,
+}: Readonly<{
+  busy: boolean;
+  label: string;
+  onReload: () => void;
+}>) {
+  return (
+    <div className="mb-3 flex justify-end">
+      <TooltipProvider delayDuration={150}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              aria-busy={busy}
+              aria-label={label}
+              disabled={busy}
+              onClick={onReload}
+              size="icon"
+              type="button"
+              variant="outline"
+            >
+              <RefreshCcw
+                aria-hidden="true"
+                className={busy ? "animate-spin" : undefined}
+              />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent align="end" side="bottom">
+            {label}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </div>
+  );
+}
+
+function ReservationOverviewPanel({
+  cache,
+  copy,
+  formatDate,
+  formatDateTime,
+  formatMoney,
+  onCopyGuestEmail,
+  renderError,
+}: Readonly<{
+  cache: CacheEntry<AdminReservationOverviewTab>;
+  copy: Readonly<{ loading: string }>;
+  formatDate: (value: string) => string;
+  formatDateTime: (value: string | null) => string;
+  formatMoney: (value: string, currency: string) => string;
+  onCopyGuestEmail: (value: string) => Promise<void>;
+  renderError: () => ReactNode;
+}>) {
+  const { locale, messages } = useLocale();
+  const reservationCopy = messages.admin.reservationsPage;
+  const paymentCopy = messages.admin.paymentsPage;
+  const requestCopy = messages.reservations.request;
+  const pendingCopy = messages.reservations.pendingHold;
+  const correspondenceCopy = reservationCopy.correspondence;
+  const reservation = cache.data;
+
+  if (!reservation) {
+    return cache.status === "error" ? (
+      renderError()
+    ) : (
+      <Card className="border-border/70 bg-card shadow-sm">
+        <CardContent className="flex items-center gap-3 p-6 text-sm text-muted-foreground">
+          <Loader2 aria-hidden="true" className="size-4 animate-spin" />
+          {copy.loading}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const propertyName =
+    locale === "en" ? reservation.property.nameEn : reservation.property.nameEs;
+
+  return (
+    <>
+      <Card className="border-border/70 bg-card shadow-sm">
+        <CardHeader>
+          <CardTitle>{reservation.guestName}</CardTitle>
+          <CardDescription>{propertyName}</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+          <DetailValue
+            label={reservationCopy.labels.reservation}
+            value={reservation.id}
+          />
+          <DetailValue
+            label={requestCopy.fields.checkInDate}
+            value={formatDate(reservation.checkInDate)}
+          />
+          <DetailValue
+            label={requestCopy.fields.checkOutDate}
+            value={formatDate(reservation.checkOutDate)}
+          />
+          <DetailValue
+            label={requestCopy.fields.guestEmail}
+            value={reservation.guestEmail}
+          />
+          <DetailValue
+            label={requestCopy.fields.guestPhone}
+            value={reservation.guestPhone ?? reservationCopy.labels.unavailable}
+          />
+          <DetailValue
+            label={requestCopy.fields.guestCountry}
+            value={
+              reservation.guestCountry ?? reservationCopy.labels.unavailable
+            }
+          />
+          <DetailValue
+            label={reservationCopy.labels.guests}
+            value={String(reservation.guestCount)}
+          />
+          <DetailValue
+            label={requestCopy.fields.arrivalTimeEstimate}
+            value={
+              reservation.arrivalTimeEstimate ??
+              reservationCopy.labels.unavailable
+            }
+          />
+          <DetailValue
+            label={paymentCopy.labels.createdAt}
+            value={formatDateTime(reservation.createdAt)}
+          />
+          {reservation.expiresAt ? (
+            <DetailValue
+              label={pendingCopy.expiresAt}
+              value={formatDateTime(reservation.expiresAt)}
+            />
+          ) : null}
+        </CardContent>
+      </Card>
+
+      <ReservationPricingBreakdownCard
+        breakdown={reservation.pricingBreakdown}
+        formatDate={formatDate}
+        formatMoney={formatMoney}
+      />
+
+      <Card className="mt-6 border-border/70 bg-card shadow-sm">
+        <CardHeader>
+          <CardTitle>{correspondenceCopy.title}</CardTitle>
+          <CardDescription>{correspondenceCopy.description}</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+              {requestCopy.fields.guestEmail}
+            </p>
+            <p className="mt-1 break-all text-sm font-medium">
+              {reservation.guestEmail}
+            </p>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+              {correspondenceCopy.helper}
+            </p>
+          </div>
+
+          <Button asChild className="w-full shrink-0 sm:w-auto">
+            <a
+              href={siteConfig.correspondence.zohoMailWebUrl}
+              onClick={() => void onCopyGuestEmail(reservation.guestEmail)}
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              <Mail aria-hidden="true" />
+              <span className="hidden sm:inline">
+                {correspondenceCopy.actions.openDesktop}
+              </span>
+              <span className="sm:hidden">
+                {correspondenceCopy.actions.openMobile}
+              </span>
+              <ExternalLink aria-hidden="true" />
+            </a>
+          </Button>
+        </CardContent>
+      </Card>
+    </>
+  );
+}
+
+function FinancialPanel({
+  activeTab,
+  attemptsCache,
+  financialCache,
+  formatDateTime,
+  formatMoney,
+  onTabChange,
+  paymentStatusLabel,
+  renderAttemptsError,
+  renderFinancialError,
+  renderLoadingPanel,
+}: Readonly<{
+  activeTab: FinancialNestedTab;
+  attemptsCache: CacheEntry<AdminPaymentSubmissionAttemptHistoryData>;
+  financialCache: CacheEntry<AdminReservationFinancialTab>;
+  formatDateTime: (value: string | null) => string;
+  formatMoney: (value: string, currency: string) => string;
+  onTabChange: (value: FinancialNestedTab) => void;
+  paymentStatusLabel: (value: string) => string;
+  renderAttemptsError: () => ReactNode;
+  renderFinancialError: () => ReactNode;
+  renderLoadingPanel: (message: string) => ReactNode;
+}>) {
+  const { messages } = useLocale();
+  const detailCopy = messages.admin.reservationsPage.detailTabs;
+  const financial = financialCache.data;
+  const attempts = attemptsCache.data;
+
+  return (
+    <Tabs
+      onValueChange={(value) => {
+        if (value === "summary" || value === "attempts") {
+          onTabChange(value);
+        }
+      }}
+      value={activeTab}
+    >
+      <div className="-mx-1 overflow-x-auto px-1 pb-2">
+        <TabsList
+          aria-label={messages.admin.paymentsPage.title}
+          className="inline-flex h-auto min-w-full justify-start gap-1 rounded-2xl border border-border/70 bg-muted/40 p-1.5 sm:min-w-0"
+        >
+          <TabsTrigger className="min-h-10 shrink-0" value="summary">
+            {detailCopy.financial.summary}
+          </TabsTrigger>
+          <TabsTrigger className="min-h-10 shrink-0" value="attempts">
+            {detailCopy.financial.attempts}
+          </TabsTrigger>
+        </TabsList>
+      </div>
+
+      <TabsContent
+        className="mt-4 data-[state=inactive]:hidden"
+        forceMount
+        value="summary"
+      >
+        {!financial ? (
+          financialCache.status === "error" ? (
+            renderFinancialError()
+          ) : (
+            renderLoadingPanel(detailCopy.loading.financial)
+          )
+        ) : (
+          <FinancialSummaryContent
+            financial={financial}
+            formatDateTime={formatDateTime}
+            formatMoney={formatMoney}
+            paymentStatusLabel={paymentStatusLabel}
+          />
+        )}
+      </TabsContent>
+
+      <TabsContent
+        className="mt-4 data-[state=inactive]:hidden"
+        forceMount
+        value="attempts"
+      >
+        {!attempts ? (
+          attemptsCache.status === "error" ? (
+            renderAttemptsError()
+          ) : (
+            renderLoadingPanel(detailCopy.loading.paymentAttempts)
+          )
+        ) : (
+          <AdminPaymentSubmissionAttemptHistory history={attempts} />
+        )}
+      </TabsContent>
+    </Tabs>
+  );
+}
+
+function FinancialSummaryContent({
+  financial,
+  formatDateTime,
+  formatMoney,
+  paymentStatusLabel,
+}: Readonly<{
+  financial: AdminReservationFinancialTab;
+  formatDateTime: (value: string | null) => string;
+  formatMoney: (value: string, currency: string) => string;
+  paymentStatusLabel: (value: string) => string;
+}>) {
+  const { messages } = useLocale();
+  const reservationCopy = messages.admin.reservationsPage;
+  const paymentCopy = messages.admin.paymentsPage;
+  const requestCopy = messages.reservations.request;
+  const paymentPagination = useAdminRecordPagination(financial.payments);
+  const paginationLabels = {
+    next: reservationCopy.actions.next,
+    of: reservationCopy.labels.of,
+    page: reservationCopy.labels.page,
+    previous: reservationCopy.actions.previous,
+    results: reservationCopy.labels.results,
+  } as const;
+  const paymentPurposeById = new Map(
+    financial.payments.map((payment) => [payment.id, payment.purpose]),
+  );
+  const effectiveRefundAmount = financial.refunds
+    .filter(
+      (refund) =>
+        refund.currency === financial.currency &&
+        effectiveRefundStatuses.has(refund.status) &&
+        paymentPurposeById.get(refund.paymentId) !== "ADDITIONAL_CHARGE",
+    )
+    .reduce((total, refund) => total + Number(refund.amount), 0);
+  const netReservationTotal = Math.max(
+    0,
+    Number(financial.total) - effectiveRefundAmount,
+  );
+
+  return (
+    <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(20rem,0.8fr)]">
+      <Card className="border-border/70 bg-card shadow-sm">
+        <CardHeader>
+          <CardTitle>{requestCopy.quoteTitle}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <dl className="grid gap-4 sm:grid-cols-2">
+            <MoneyRow
+              label={requestCopy.quoteRows.subtotal}
+              value={formatMoney(financial.subtotal, financial.currency)}
+            />
+            <MoneyRow
+              label={requestCopy.quoteRows.cleaningFee}
+              value={formatMoney(financial.cleaningFee, financial.currency)}
+            />
+            <MoneyRow
+              label={requestCopy.quoteRows.taxes}
+              value={formatMoney(financial.taxes, financial.currency)}
+            />
+            <MoneyRow
+              label={requestCopy.quoteRows.discounts}
+              value={formatMoney(financial.discounts, financial.currency)}
+            />
+            <MoneyRow
+              label={reservationCopy.refunds.badge}
+              value={formatMoney(
+                (-effectiveRefundAmount).toFixed(2),
+                financial.currency,
+              )}
+            />
+            <MoneyRow
+              emphasized
+              label={requestCopy.quoteRows.total}
+              value={formatMoney(
+                netReservationTotal.toFixed(2),
+                financial.currency,
+              )}
+            />
+          </dl>
+        </CardContent>
+      </Card>
+
+      <Card className="h-fit border-border/70 bg-card shadow-sm">
+        <CardHeader>
+          <CardTitle>{paymentCopy.title}</CardTitle>
+          <CardDescription>{paymentCopy.description}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {financial.payments.length > 0 ? (
+            <>
+              <Accordion
+                className="grid gap-3"
+                collapsible
+                key={`${paymentPagination.page}-${paymentPagination.pageSize}`}
+                type="single"
+              >
+                {paymentPagination.pageItems.map((payment) => (
+                  <AccordionItem
+                    className="overflow-hidden rounded-2xl border border-border bg-muted/20 last:border-b"
+                    key={payment.id}
+                    value={payment.id}
+                  >
+                    <AccordionTrigger className="px-4 py-3 sm:px-5">
+                      <div className="grid min-w-0 flex-1 gap-3 pr-2 sm:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)_auto] sm:items-center">
+                        <div className="min-w-0">
+                          <p className="break-all text-sm font-semibold">
+                            {payment.id}
+                          </p>
+                          <p className="mt-1 truncate text-sm text-muted-foreground">
+                            {payment.providerReference ??
+                              paymentCopy.labels.unavailable}
+                          </p>
+                        </div>
+                        <p className="text-sm font-semibold">
+                          {formatMoney(payment.amount, payment.currency)}
+                        </p>
+                        <Badge
+                          className="justify-self-start sm:justify-self-end"
+                          variant="outline"
+                        >
+                          {paymentStatusLabel(payment.status)}
+                        </Badge>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="border-t border-border/70 px-4 pt-4 sm:px-5">
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <DetailValue
+                          label={paymentCopy.labels.order}
+                          value={
+                            payment.providerReference ??
+                            paymentCopy.labels.unavailable
+                          }
+                        />
+                        <DetailValue
+                          label={paymentCopy.labels.createdAt}
+                          value={formatDateTime(payment.createdAt)}
+                        />
+                      </div>
+                      <div className="mt-4 flex justify-end">
+                        <Button asChild variant="outline">
+                          <Link
+                            href={`/admin/payments/${encodeURIComponent(
+                              payment.id,
+                            )}`}
+                          >
+                            {messages.common.viewDetails}
+                            <ExternalLink aria-hidden="true" />
+                          </Link>
+                        </Button>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+              <AdminRecordPagination
+                labels={paginationLabels}
+                onPageChange={paymentPagination.setPage}
+                onPageSizeChange={paymentPagination.changePageSize}
+                page={paymentPagination.page}
+                pageSize={paymentPagination.pageSize}
+                totalItems={paymentPagination.totalItems}
+                totalPages={paymentPagination.totalPages}
+              />
+            </>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              {paymentCopy.empty.noPayments}
+            </p>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function EmailsPanel({
+  cache,
+  renderEmailNotification,
+  renderError,
+  renderLoadingPanel,
+}: Readonly<{
+  cache: CacheEntry<AdminReservationEmailsTab>;
+  renderEmailNotification: (
+    notification: AdminReservationDetailEmailNotification,
+    reservationStatus: string,
+  ) => ReactNode;
+  renderError: () => ReactNode;
+  renderLoadingPanel: (message: string) => ReactNode;
+}>) {
+  const { messages } = useLocale();
+  const reservationCopy = messages.admin.reservationsPage;
+  const emailData = cache.data;
+
+  if (!emailData) {
+    return cache.status === "error"
+      ? renderError()
+      : renderLoadingPanel(reservationCopy.detailTabs.loading.emails);
+  }
+
+  return (
+    <EmailNotificationContent
+      emailData={emailData}
+      renderEmailNotification={renderEmailNotification}
+    />
+  );
+}
+
+function EmailNotificationContent({
+  emailData,
+  renderEmailNotification,
+}: Readonly<{
+  emailData: AdminReservationEmailsTab;
+  renderEmailNotification: (
+    notification: AdminReservationDetailEmailNotification,
+    reservationStatus: string,
+  ) => ReactNode;
+}>) {
+  const { messages } = useLocale();
+  const reservationCopy = messages.admin.reservationsPage;
+  const notificationCopy = reservationCopy.notifications;
+  const emailNotificationGroups = useMemo(
+    () => groupAdminReservationEmailNotifications(emailData.emailNotifications),
+    [emailData.emailNotifications],
+  );
+  const guestEmailPagination = useAdminRecordPagination(
+    emailNotificationGroups.guest,
+  );
+  const adminEmailPagination = useAdminRecordPagination(
+    emailNotificationGroups.administration,
+  );
+  const defaultEmailGroup =
+    emailNotificationGroups.guest.length > 0 ? "guest" : "administration";
+  const paginationLabels = {
+    next: reservationCopy.actions.next,
+    of: reservationCopy.labels.of,
+    page: reservationCopy.labels.page,
+    previous: reservationCopy.actions.previous,
+    results: reservationCopy.labels.results,
+  } as const;
+
+  return (
+    <Card className="border-border/70 bg-card shadow-sm">
+      <CardHeader>
+        <CardTitle>{notificationCopy.title}</CardTitle>
+        <CardDescription>{notificationCopy.description}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {emailData.emailNotifications.length > 0 ? (
+          <Tabs defaultValue={defaultEmailGroup}>
+            <div className="-mx-1 overflow-x-auto px-1 pb-2">
+              <TabsList
+                aria-label={notificationCopy.title}
+                className="inline-flex h-auto min-w-full justify-start gap-1 rounded-2xl border border-border/70 bg-muted/40 p-1.5 sm:min-w-0"
+              >
+                <TabsTrigger className="min-h-10 shrink-0 gap-2" value="guest">
+                  <Mail aria-hidden="true" className="size-4 shrink-0" />
+                  {reservationCopy.labels.guests}
+                  <Badge variant="secondary">
+                    {emailNotificationGroups.guest.length}
+                  </Badge>
+                </TabsTrigger>
+                <TabsTrigger
+                  className="min-h-10 shrink-0 gap-2"
+                  value="administration"
+                >
+                  <ShieldCheck aria-hidden="true" className="size-4 shrink-0" />
+                  {messages.footer.adminEmailLabel}
+                  <Badge variant="secondary">
+                    {emailNotificationGroups.administration.length}
+                  </Badge>
+                </TabsTrigger>
+              </TabsList>
+            </div>
+
+            <TabsContent
+              className="mt-4 data-[state=inactive]:hidden"
+              forceMount
+              value="guest"
+            >
+              {emailNotificationGroups.guest.length > 0 ? (
+                <>
+                  <Accordion
+                    className="grid gap-3"
+                    collapsible
+                    key={`guest-${guestEmailPagination.page}-${guestEmailPagination.pageSize}`}
+                    type="single"
+                  >
+                    {guestEmailPagination.pageItems.map((notification) =>
+                      renderEmailNotification(notification, emailData.status),
+                    )}
+                  </Accordion>
+                  <AdminRecordPagination
+                    labels={paginationLabels}
+                    onPageChange={guestEmailPagination.setPage}
+                    onPageSizeChange={guestEmailPagination.changePageSize}
+                    page={guestEmailPagination.page}
+                    pageSize={guestEmailPagination.pageSize}
+                    totalItems={guestEmailPagination.totalItems}
+                    totalPages={guestEmailPagination.totalPages}
+                  />
+                </>
+              ) : (
+                <EmailGroupEmptyState label={reservationCopy.labels.results} />
+              )}
+            </TabsContent>
+
+            <TabsContent
+              className="mt-4 data-[state=inactive]:hidden"
+              forceMount
+              value="administration"
+            >
+              {emailNotificationGroups.administration.length > 0 ? (
+                <>
+                  <Accordion
+                    className="grid gap-3"
+                    collapsible
+                    key={`administration-${adminEmailPagination.page}-${adminEmailPagination.pageSize}`}
+                    type="single"
+                  >
+                    {adminEmailPagination.pageItems.map((notification) =>
+                      renderEmailNotification(notification, emailData.status),
+                    )}
+                  </Accordion>
+                  <AdminRecordPagination
+                    labels={paginationLabels}
+                    onPageChange={adminEmailPagination.setPage}
+                    onPageSizeChange={adminEmailPagination.changePageSize}
+                    page={adminEmailPagination.page}
+                    pageSize={adminEmailPagination.pageSize}
+                    totalItems={adminEmailPagination.totalItems}
+                    totalPages={adminEmailPagination.totalPages}
+                  />
+                </>
+              ) : (
+                <EmailGroupEmptyState label={reservationCopy.labels.results} />
+              )}
+            </TabsContent>
+          </Tabs>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            {notificationCopy.empty}
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function RefundsPanel({
+  focusedRefundId,
+  onDataChanged,
+  reservation,
+}: Readonly<{
+  focusedRefundId: string | null;
+  onDataChanged: () => void;
+  reservation: AdminReservationRefundsTab;
+}>) {
+  const standardRefundReservation: AdminReservationRefundsTab = {
+    ...reservation,
+    refunds: reservation.refunds.filter(
+      (refund) =>
+        refund.authorizationType !== "LIFECYCLE_ADJUSTMENT" &&
+        refund.authorizationType !== "ADDITIONAL_CHARGE",
+    ),
+  };
+
+  return (
+    <div className="-mt-6">
+      <AdminReservationRefundSection
+        focusedRefundId={focusedRefundId}
+        onDataChanged={onDataChanged}
+        reservation={standardRefundReservation}
+      />
+      <AdminReservationLifecycleAdjustmentRefundSection
+        focusedRefundId={focusedRefundId}
+        onDataChanged={onDataChanged}
+        reservation={reservation}
+      />
+    </div>
   );
 }
 
@@ -1278,7 +2084,7 @@ function ReservationPricingBreakdownCard({
   formatDate,
   formatMoney,
 }: Readonly<{
-  breakdown: AdminReservationDetailData["pricingBreakdown"];
+  breakdown: AdminReservationPricingBreakdown | null;
   formatDate: (value: string) => string;
   formatMoney: (value: string, currency: string) => string;
 }>) {
@@ -1292,9 +2098,7 @@ function ReservationPricingBreakdownCard({
   }
 
   function sourceLabel(
-    segment: NonNullable<
-      AdminReservationDetailData["pricingBreakdown"]
-    >["segments"][number],
+    segment: NonNullable<AdminReservationPricingBreakdown>["segments"][number],
   ): string {
     if (segment.kind === "PRESERVED_LEGACY_STAY") {
       return copy.sources.PRESERVED_LEGACY_STAY;
@@ -1363,10 +2167,7 @@ function ReservationPricingBreakdownCard({
                     <p className="mt-1 text-sm text-muted-foreground">
                       {segment.nightlyRate
                         ? copy.nightsAtRate
-                            .replace(
-                              "{nights}",
-                              String(segment.nights),
-                            )
+                            .replace("{nights}", String(segment.nights))
                             .replace(
                               "{rate}",
                               formatMoney(
@@ -1386,10 +2187,7 @@ function ReservationPricingBreakdownCard({
                       {copy.segmentSubtotal}
                     </p>
                     <p className="mt-1 font-semibold tabular-nums">
-                      {formatMoney(
-                        segment.subtotal,
-                        breakdown.currency,
-                      )}
+                      {formatMoney(segment.subtotal, breakdown.currency)}
                     </p>
                   </div>
                 </div>

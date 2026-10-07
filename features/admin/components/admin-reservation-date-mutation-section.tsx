@@ -58,7 +58,7 @@ import type {
   AdminDateMutationRequestSummary,
   AdminDateMutationRequestType,
 } from "@/types/admin-reservation-date-mutation";
-import type { AdminReservationDetailData } from "@/types/admin-reservation-detail";
+import type { AdminReservationChangesTab } from "@/types/admin-reservation-detail-tabs";
 import type { BlockedDatesApiResponse } from "@/types/availability-blocked-dates";
 import type { DateOnlyString } from "@/types/availability";
 import type { Locale } from "@/types/locale";
@@ -135,7 +135,7 @@ function toNextMonthStartDateOnlyString(value: Date): DateOnlyString {
 }
 
 function toReservationDateRange(
-  reservation: AdminReservationDetailData,
+  reservation: AdminReservationChangesTab,
 ): DateRange {
   return {
     from: dateOnlyStringToLocalDate(reservation.checkInDate),
@@ -180,7 +180,7 @@ function buildAdminBlockedDatesUrl(input: Readonly<{
 }
 
 function toInitialDraft(
-  reservation: AdminReservationDetailData,
+  reservation: AdminReservationChangesTab,
 ): DateMutationDraft {
   return {
     requestType: "DATE_CHANGE",
@@ -196,10 +196,12 @@ function toInitialDraft(
 
 export function AdminReservationDateMutationSection({
   focusedLifecycleRequestId = null,
+  onDataChanged,
   reservation,
 }: Readonly<{
   focusedLifecycleRequestId?: string | null;
-  reservation: AdminReservationDetailData;
+  onDataChanged?: () => void;
+  reservation: AdminReservationChangesTab;
 }>) {
   const router = useRouter();
   const { locale, messages } = useLocale();
@@ -584,7 +586,11 @@ export function AdminReservationDateMutationSection({
 
       setCreateOpen(false);
       setSuccessFeedback(copy.success.requestCreated);
-      router.refresh();
+      if (onDataChanged) {
+        onDataChanged();
+      } else {
+        router.refresh();
+      }
     } catch {
       setErrorFeedback(copy.errors.ADMIN_DATE_MUTATION_UNEXPECTED_ERROR);
     } finally {

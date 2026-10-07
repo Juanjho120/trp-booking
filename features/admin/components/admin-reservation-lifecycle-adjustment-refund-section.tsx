@@ -67,9 +67,9 @@ import type {
   AdminRefundSummary,
 } from "@/types/admin-refund";
 import type {
-  AdminReservationDetailData,
   AdminReservationDetailPayment,
 } from "@/types/admin-reservation-detail";
+import type { AdminReservationRefundsTab } from "@/types/admin-reservation-detail-tabs";
 import type { Locale } from "@/types/locale";
 
 import {
@@ -118,10 +118,12 @@ function isRefundConsultType(value: string | null | undefined): boolean {
 
 export function AdminReservationLifecycleAdjustmentRefundSection({
   focusedRefundId = null,
+  onDataChanged,
   reservation,
 }: Readonly<{
   focusedRefundId?: string | null;
-  reservation: AdminReservationDetailData;
+  onDataChanged?: () => void;
+  reservation: AdminReservationRefundsTab;
 }>) {
   const router = useRouter();
   const { locale, messages } = useLocale();
@@ -431,7 +433,11 @@ export function AdminReservationLifecycleAdjustmentRefundSection({
       }
 
       setSuccessFeedback(dateMutationCopy.success.requestApproved);
-      router.refresh();
+      if (onDataChanged) {
+        onDataChanged();
+      } else {
+        router.refresh();
+      }
     } catch {
       setErrorFeedback(
         dateMutationCopy.errors.ADMIN_DATE_MUTATION_UNEXPECTED_ERROR,
@@ -492,7 +498,11 @@ export function AdminReservationLifecycleAdjustmentRefundSection({
         );
       }
 
-      router.refresh();
+      if (onDataChanged) {
+        onDataChanged();
+      } else {
+        router.refresh();
+      }
     } catch {
       setErrorFeedback(refundCopy.errors.ADMIN_REFUND_UNEXPECTED_ERROR);
     } finally {
@@ -536,7 +546,11 @@ export function AdminReservationLifecycleAdjustmentRefundSection({
             ? refundCopy.success.consultedRejected
             : refundCopy.success.consultedInconclusive,
       );
-      router.refresh();
+      if (onDataChanged) {
+        onDataChanged();
+      } else {
+        router.refresh();
+      }
     } catch {
       setErrorFeedback(refundCopy.errors.ADMIN_REFUND_UNEXPECTED_ERROR);
     } finally {
@@ -603,7 +617,11 @@ export function AdminReservationLifecycleAdjustmentRefundSection({
             : refundCopy.success.reconciledApproved
           : refundCopy.success.reconciledFailed,
       );
-      router.refresh();
+      if (onDataChanged) {
+        onDataChanged();
+      } else {
+        router.refresh();
+      }
     } catch {
       setErrorFeedback(refundCopy.errors.ADMIN_REFUND_UNEXPECTED_ERROR);
     } finally {

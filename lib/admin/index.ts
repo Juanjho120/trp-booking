@@ -162,7 +162,18 @@ export {
   toAdminRefundDiagnostics,
   toAdminRefundSummary,
 } from "./refunds";
-export { getAdminReservationDetail } from "./reservation-detail";
+export {
+  getAdminReservationChangesTab,
+  getAdminReservationDetail,
+  getAdminReservationDetailShell,
+  getAdminReservationEmailsTab,
+  getAdminReservationFinancialTab,
+  getAdminReservationHistoryTab,
+  getAdminReservationLifecycleTab,
+  getAdminReservationOverviewTab,
+  getAdminReservationRefundsTab,
+  resolveAdminReservationRefundFocusTab,
+} from "./reservation-detail";
 export { getAdminReservationOperationalHistory } from "./reservation-operational-history";
 export { getAdminReservationsPage } from "./reservations";
 export {

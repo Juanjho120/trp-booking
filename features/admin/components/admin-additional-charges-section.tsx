@@ -184,10 +184,14 @@ function isAdditionalChargeTab(value: string): value is AdditionalChargeTab {
 
 export function AdminAdditionalChargesSection({
   initialFocus = null,
+  onDataChanged,
   reservationId,
+  reloadVersion = 0,
 }: Readonly<{
   initialFocus?: AdminReservationDetailFocus | null;
+  onDataChanged?: () => void;
   reservationId: string;
+  reloadVersion?: number;
 }>) {
   const { locale, messages } = useLocale();
   const copy = messages.admin.reservationsPage.additionalCharges;
@@ -205,6 +209,9 @@ export function AdminAdditionalChargesSection({
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [managementErrorCode, setManagementErrorCode] = useState<string | null>(
+    null,
+  );
   const [chargeSheetOpen, setChargeSheetOpen] = useState(false);
   const [editingCharge, setEditingCharge] =
     useState<AdminAdditionalChargeSummary | null>(null);
@@ -289,11 +296,12 @@ export function AdminAdditionalChargesSection({
           const code = isErrorResponse(payload)
             ? payload.error.code
             : "ADMIN_ADDITIONAL_CHARGE_UNEXPECTED_ERROR";
-          setErrorMessage(resolveError(code));
+          setManagementErrorCode(code);
           return false;
         }
 
         setManagement(payload.management);
+        setManagementErrorCode(null);
         setSelectedChargeIds((current) => {
           const eligibleIds = new Set(
             payload.management.charges
@@ -305,9 +313,7 @@ export function AdminAdditionalChargesSection({
         });
         return true;
       } catch {
-        setErrorMessage(
-          resolveError("ADMIN_ADDITIONAL_CHARGE_UNEXPECTED_ERROR"),
-        );
+        setManagementErrorCode("ADMIN_ADDITIONAL_CHARGE_UNEXPECTED_ERROR");
         return false;
       } finally {
         if (showLoading) {
@@ -315,12 +321,18 @@ export function AdminAdditionalChargesSection({
         }
       }
     },
-    [reservationId, resolveError],
+    [reservationId],
   );
 
   useEffect(() => {
     void loadManagement(true);
   }, [loadManagement]);
+
+  useEffect(() => {
+    if (reloadVersion > 0) {
+      void loadManagement(false);
+    }
+  }, [loadManagement, reloadVersion]);
 
   const focusKey = initialFocus
     ? `${initialFocus.kind}:${initialFocus.focusId}`
@@ -602,6 +614,7 @@ export function AdminAdditionalChargesSection({
     setBusyKey(busyValue);
     setSuccessMessage(null);
     setErrorMessage(null);
+    setManagementErrorCode(null);
 
     try {
       const response = await fetch(url, {
@@ -623,6 +636,7 @@ export function AdminAdditionalChargesSection({
       }
 
       await loadManagement();
+      onDataChanged?.();
       return true;
     } catch {
       setErrorMessage(copy.errors.ADMIN_ADDITIONAL_CHARGE_UNEXPECTED_ERROR);
@@ -892,6 +906,7 @@ export function AdminAdditionalChargesSection({
       }
 
       await loadManagement();
+      onDataChanged?.();
     } catch {
       setErrorMessage(refundCopy.errors.ADMIN_REFUND_UNEXPECTED_ERROR);
     } finally {
@@ -937,6 +952,7 @@ export function AdminAdditionalChargesSection({
             : refundCopy.success.consultedInconclusive,
       );
       await loadManagement();
+      onDataChanged?.();
     } catch {
       setErrorMessage(refundCopy.errors.ADMIN_REFUND_UNEXPECTED_ERROR);
     } finally {
@@ -999,6 +1015,7 @@ export function AdminAdditionalChargesSection({
           : refundCopy.success.reconciledFailed,
       );
       await loadManagement();
+      onDataChanged?.();
     } catch {
       setErrorMessage(refundCopy.errors.ADMIN_REFUND_UNEXPECTED_ERROR);
     } finally {
@@ -1121,6 +1138,7 @@ export function AdminAdditionalChargesSection({
       setResendEmailRequestId("");
       setSuccessMessage(emailResendSuccessMessage(payload.result));
       await loadManagement();
+      onDataChanged?.();
     } catch {
       setErrorMessage(copy.errors.ADMIN_EMAIL_NOTIFICATION_UNEXPECTED_ERROR);
     } finally {
@@ -2163,8 +2181,14 @@ export function AdminAdditionalChargesSection({
       />
       <AdminSnackbar
         closeLabel={copy.actions.close}
-        message={errorMessage}
-        onDismiss={() => setErrorMessage(null)}
+        message={
+          errorMessage ??
+          (managementErrorCode ? resolveError(managementErrorCode) : null)
+        }
+        onDismiss={() => {
+          setErrorMessage(null);
+          setManagementErrorCode(null);
+        }}
         variant="error"
       />
     </>

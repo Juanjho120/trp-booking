@@ -41,6 +41,8 @@ Final-I.6.2 implementation and acceptance record: docs/216-final-i-6-2-admin-ux-
 Final-I.6.3 status: Completed and accepted on 2026-10-07
 Accepted Final-I.6.3 feature head: 235bd1f5a8a7d48161146c485c979d5f57a6530d
 Final-I.6.3 implementation and acceptance record: docs/217-final-i-6-3-additional-charges-email-delivery-layout-polish.md
+Final-I.6.4 status: Implementation completed; Hosted owner validation pending
+Final-I.6.4 implementation record: docs/218-final-i-6-4-reservation-detail-lazy-loading-tab-cache.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -85,6 +87,8 @@ Final-I.6.2 implementation and acceptance record: docs/216-final-i-6-2-admin-ux-
 Final-I.6.3 status: Completed and accepted on 2026-10-07
 Accepted Final-I.6.3 feature head: 235bd1f5a8a7d48161146c485c979d5f57a6530d
 Final-I.6.3 implementation and acceptance record: docs/217-final-i-6-3-additional-charges-email-delivery-layout-polish.md
+Final-I.6.4 status: Implementation completed; Hosted owner validation pending
+Final-I.6.4 implementation record: docs/218-final-i-6-4-reservation-detail-lazy-loading-tab-cache.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -291,6 +295,8 @@ Final-I.6.2 implementation and acceptance record: docs/216-final-i-6-2-admin-ux-
 Final-I.6.3 status: Completed and accepted on 2026-10-07
 Accepted Final-I.6.3 feature head: 235bd1f5a8a7d48161146c485c979d5f57a6530d
 Final-I.6.3 implementation and acceptance record: docs/217-final-i-6-3-additional-charges-email-delivery-layout-polish.md
+Final-I.6.4 status: Implementation completed; Hosted owner validation pending
+Final-I.6.4 implementation record: docs/218-final-i-6-4-reservation-detail-lazy-loading-tab-cache.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -335,6 +341,8 @@ Final-I.6.2 implementation and acceptance record: docs/216-final-i-6-2-admin-ux-
 Final-I.6.3 status: Completed and accepted on 2026-10-07
 Accepted Final-I.6.3 feature head: 235bd1f5a8a7d48161146c485c979d5f57a6530d
 Final-I.6.3 implementation and acceptance record: docs/217-final-i-6-3-additional-charges-email-delivery-layout-polish.md
+Final-I.6.4 status: Implementation completed; Hosted owner validation pending
+Final-I.6.4 implementation record: docs/218-final-i-6-4-reservation-detail-lazy-loading-tab-cache.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -2070,6 +2078,27 @@ The correction keeps successful draft creation as an explicit EDIT entry point. 
 This does not reintroduce the previous implicit-history-selection bug: entering `/admin/fel`, refreshing, or returning later still starts in CREATE mode with no selected document. Only successful draft creation and explicit `Abrir / Editar` enter EDIT mode. No schema, migration, persistence architecture, INFILE, NIT/CUI lookup, dependency, environment variable, scheduler, Production resource, Final-I.7, or Phase 13 work was introduced.
 
 Validation executed for this correction: `npm run final-i:validate` PASS 57/57 after rerun outside the sandbox because the sandbox-only `tsx` startup failed with `uv_os_get_passwd ENOMEM`; `npm run final-i:db:validate` PASS 13/13 with `TRP_ENVIRONMENT=test` after the same sandbox-only `tsx` startup failure; `npm run final-h:validate` PASS 20/20 after the same sandbox-only `tsx` startup failure; `npm run lint` PASS; `npm run build` PASS after rerun outside the sandbox because the sandbox run could not fetch Google Fonts; and `git diff --check` PASS with Windows CRLF normalization warnings only.
+
+## 2026-10-07 — Final-I.6.4 Reservation Detail Lazy Loading Implemented
+
+```text
+Package: Final-I — Operational Polish, Notification UX & FEL Invoicing
+Subphase: Final-I.6.4 — Reservation Detail Lazy Loading, Tab Cache & Financial Tabs
+Status: Implementation completed; Hosted owner validation pending
+Record: docs/218-final-i-6-4-reservation-detail-lazy-loading-tab-cache.md
+Implementation base: f934ae3ddae61dcdb3560fff771152c83e8768a7
+Final-I.6.3: Completed and accepted on 2026-10-07 at 235bd1f5a8a7d48161146c485c979d5f57a6530d
+Final-I.7: Blocked pending official INFILE technical documentation + Test credentials
+Final-I.8: Not started / reserved for FEL delivery email/PDF/XML/history UX
+Final-I.9: Not started / integrated Final-I closure
+Phase 13: Blocked / Not started until Final-I closes
+```
+
+Final-I.6.4 implements the bounded Admin Reservation detail lazy-loading correction: the initial server route now loads only the Reservation shell (`id` / `status`), detailed tab data moves behind an authenticated closed-tab API, the client page keeps page-scoped tab caches, Financial splits into Summary and Attempts, Additional Charges uses an explicit reload version without locale-refetching its management payload, and Reservation detail mutations now invalidate/reload scoped data units instead of forcing a full route refresh inside this page.
+
+This implementation does not change Prisma schema, migrations, dependencies, environment variables, cron/scheduler registration, `vercel.json`, Production resources, public-site behavior, guest-facing behavior, FEL provider behavior, INFILE behavior, Final-I.7, Final-I.8, Final-I.9, or Phase 13.
+
+Validation executed for this checkpoint: `npm run final-i:validate` initially failed before tests with sandbox `uv_os_get_passwd ENOMEM`; the first outside-sandbox run reached 98/107 and exposed an obsolete I.6.2 focus expectation, which was reconciled with the new lightweight refund focus resolver; final outside-sandbox rerun PASS 107/107. `npm run final-h:validate` initially failed before tests with the same sandbox ENOMEM and then PASS 20/20 outside the sandbox. `npm run lint` PASS. `npm run build` initially failed in the sandbox because Google Fonts could not be fetched and then PASS outside the sandbox, with the existing Next slow filesystem warning only. `git diff --check` PASS with Windows CRLF normalization warnings only.
 
 ## 2026-10-07 — Final-I.6.3 Completed And Accepted
 

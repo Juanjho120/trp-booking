@@ -49,7 +49,7 @@ import type {
   AdminCancellationRequestSummary,
   AdminReservationCancellationErrorCode,
 } from "@/types/admin-reservation-cancellation";
-import type { AdminReservationDetailData } from "@/types/admin-reservation-detail";
+import type { AdminReservationLifecycleTab } from "@/types/admin-reservation-detail-tabs";
 import type { Locale } from "@/types/locale";
 
 import {
@@ -96,7 +96,7 @@ function getIntlLocale(locale: Locale): string {
 }
 
 function toInitialDraft(
-  reservation: AdminReservationDetailData,
+  reservation: AdminReservationLifecycleTab,
 ): CancellationDraft {
   return {
     channel: "EMAIL",
@@ -108,9 +108,11 @@ function toInitialDraft(
 }
 
 export function AdminReservationCancellationSection({
+  onDataChanged,
   reservation,
 }: Readonly<{
-  reservation: AdminReservationDetailData;
+  onDataChanged?: () => void;
+  reservation: AdminReservationLifecycleTab;
 }>) {
   const router = useRouter();
   const { locale, messages } = useLocale();
@@ -258,7 +260,11 @@ export function AdminReservationCancellationSection({
 
       setCreateOpen(false);
       setSuccessFeedback(copy.success.requestCreated);
-      router.refresh();
+      if (onDataChanged) {
+        onDataChanged();
+      } else {
+        router.refresh();
+      }
     } catch {
       setErrorFeedback(copy.errors.ADMIN_CANCELLATION_UNEXPECTED_ERROR);
     } finally {
@@ -312,7 +318,11 @@ export function AdminReservationCancellationSection({
             ? copy.success.alreadyRejected
             : copy.success.rejected,
       );
-      router.refresh();
+      if (onDataChanged) {
+        onDataChanged();
+      } else {
+        router.refresh();
+      }
     } catch {
       setErrorFeedback(copy.errors.ADMIN_CANCELLATION_UNEXPECTED_ERROR);
     } finally {

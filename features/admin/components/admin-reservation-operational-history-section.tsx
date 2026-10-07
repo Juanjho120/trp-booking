@@ -26,7 +26,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useLocale } from "@/features/i18n";
-import type { AdminReservationDetailData } from "@/types/admin-reservation-detail";
+import type { AdminReservationHistoryTab } from "@/types/admin-reservation-detail-tabs";
 import type {
   AdminReservationOperationalHistoryCategory,
   AdminReservationOperationalHistoryEvent,
@@ -66,7 +66,7 @@ function categoryIcon(
 export function AdminReservationOperationalHistorySection({
   reservation,
 }: Readonly<{
-  reservation: AdminReservationDetailData;
+  reservation: AdminReservationHistoryTab;
 }>) {
   const { locale, messages } = useLocale();
   const copy = messages.admin.reservationsPage.operationalHistory;

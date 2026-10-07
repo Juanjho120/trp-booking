@@ -64,9 +64,9 @@ import type {
   AdminRefundSummary,
 } from "@/types/admin-refund";
 import type {
-  AdminReservationDetailData,
   AdminReservationDetailPayment,
 } from "@/types/admin-reservation-detail";
+import type { AdminReservationRefundsTab } from "@/types/admin-reservation-detail-tabs";
 import type { Locale } from "@/types/locale";
 
 import {
@@ -128,10 +128,12 @@ function isRefundConsultType(value: string | null | undefined): boolean {
 
 export function AdminReservationRefundSection({
   focusedRefundId = null,
+  onDataChanged,
   reservation,
 }: Readonly<{
   focusedRefundId?: string | null;
-  reservation: AdminReservationDetailData;
+  onDataChanged?: () => void;
+  reservation: AdminReservationRefundsTab;
 }>) {
   const router = useRouter();
   const { locale, messages } = useLocale();
@@ -513,7 +515,11 @@ export function AdminReservationRefundSection({
             ? copy.success.authorizedOperation
             : copy.success.authorized,
       );
-      router.refresh();
+      if (onDataChanged) {
+        onDataChanged();
+      } else {
+        router.refresh();
+      }
     } catch {
       setErrorFeedback(copy.errors.ADMIN_REFUND_UNEXPECTED_ERROR);
     } finally {
@@ -573,7 +579,11 @@ export function AdminReservationRefundSection({
         );
       }
 
-      router.refresh();
+      if (onDataChanged) {
+        onDataChanged();
+      } else {
+        router.refresh();
+      }
     } catch {
       setErrorFeedback(copy.errors.ADMIN_REFUND_UNEXPECTED_ERROR);
     } finally {
@@ -617,7 +627,11 @@ export function AdminReservationRefundSection({
             ? copy.success.consultedRejected
             : copy.success.consultedInconclusive,
       );
-      router.refresh();
+      if (onDataChanged) {
+        onDataChanged();
+      } else {
+        router.refresh();
+      }
     } catch {
       setErrorFeedback(copy.errors.ADMIN_REFUND_UNEXPECTED_ERROR);
     } finally {
@@ -684,7 +698,11 @@ export function AdminReservationRefundSection({
             : copy.success.reconciledApproved
           : copy.success.reconciledFailed,
       );
-      router.refresh();
+      if (onDataChanged) {
+        onDataChanged();
+      } else {
+        router.refresh();
+      }
     } catch {
       setErrorFeedback(copy.errors.ADMIN_REFUND_UNEXPECTED_ERROR);
     } finally {

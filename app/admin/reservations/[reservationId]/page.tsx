@@ -2,11 +2,15 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { AdminReservationDetailPage } from "@/features/admin/components/admin-reservation-detail-page";
-import { getAdminPaymentSubmissionAttemptsForReservation } from "@/lib/admin/payment-submission-attempts";
-import { getAdminReservationDetail } from "@/lib/admin/reservation-detail";
-import { parseAdminReservationDetailFocusQuery } from "@/lib/admin/reservation-detail-focus";
+import {
+  getAdminReservationDetailShell,
+  resolveAdminReservationRefundFocusTab,
+} from "@/lib/admin/reservation-detail";
+import {
+  parseAdminReservationDetailFocusQuery,
+  type AdminReservationDetailTab,
+} from "@/lib/admin/reservation-detail-focus";
 import { esMessages } from "@/messages";
-import type { AdminReservationDetailData } from "@/types/admin-reservation-detail";
 
 type AdminReservationDetailRouteProps = Readonly<{
   params: Promise<{
@@ -35,21 +39,30 @@ export default async function AdminReservationDetailRoute({
   const { reservationId } = await params;
   const focusParams = searchParams ? await searchParams : {};
   const initialFocus = parseAdminReservationDetailFocusQuery(focusParams);
-  const [reservationResult, attemptHistory] = await Promise.all([
-    getAdminReservationDetail(reservationId),
-    getAdminPaymentSubmissionAttemptsForReservation(reservationId),
-  ]);
-  const reservation = reservationResult as AdminReservationDetailData | null;
+  const reservation = await getAdminReservationDetailShell(reservationId);
 
   if (!reservation) {
     notFound();
   }
 
+  let initialTab: AdminReservationDetailTab = "reservation";
+
+  if (initialFocus?.kind === "additionalChargePaymentRequest") {
+    initialTab = "additionalCharges";
+  } else if (initialFocus?.kind === "lifecycleAdjustment") {
+    initialTab = "changes";
+  } else if (initialFocus?.kind === "refund") {
+    initialTab = await resolveAdminReservationRefundFocusTab({
+      reservationId,
+      refundId: initialFocus.focusId,
+    });
+  }
+
   return (
     <AdminReservationDetailPage
+      initialActiveTab={initialTab}
       initialFocus={initialFocus}
-      paymentAttemptHistory={attemptHistory}
-      reservation={reservation}
+      reservationShell={reservation}
     />
   );
 }

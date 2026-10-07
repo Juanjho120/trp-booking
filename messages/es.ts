@@ -945,6 +945,25 @@ export const esMessages = {
             "Precio histórico preservado",
         },
       },
+      detailTabs: {
+        reload: "Recargar",
+        loadFailed: "No se pudo cargar esta sección.",
+        loading: {
+          reservation: "Cargando detalles de la reservación...",
+          financial: "Cargando pagos y diagnóstico...",
+          paymentAttempts: "Cargando intentos de pago...",
+          emails: "Cargando entrega de correos...",
+          lifecycle: "Cargando cancelaciones...",
+          additionalCharges: "Cargando cargos adicionales...",
+          refunds: "Cargando reembolsos...",
+          changes: "Cargando cambios de fechas y extensiones...",
+          history: "Cargando historial...",
+        },
+        financial: {
+          summary: "Resumen",
+          attempts: "Intentos",
+        },
+      },
       additionalCharges: {
         badge: "Cargos adicionales",
         title: "Cargos adicionales",

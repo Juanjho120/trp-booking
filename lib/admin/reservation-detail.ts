@@ -8,9 +8,21 @@ import {
 } from "@/lib/reservations/financial-summary";
 import type {
   AdminReservationDetailData,
+  AdminReservationDetailEmailNotification,
+  AdminReservationDetailPayment,
   AdminReservationFinancialSummary,
   AdminReservationPricingBreakdown
 } from "@/types/admin-reservation-detail";
+import type {
+  AdminReservationChangesTab,
+  AdminReservationDetailShell,
+  AdminReservationEmailsTab,
+  AdminReservationFinancialTab,
+  AdminReservationHistoryTab,
+  AdminReservationLifecycleTab,
+  AdminReservationOverviewTab,
+  AdminReservationRefundsTab,
+} from "@/types/admin-reservation-detail-tabs";
 
 import { getAdminReservationOperationalHistory } from "./reservation-operational-history";
 import { getAdminCancellationRequestsForReservation } from "./reservation-cancellation";
@@ -23,6 +35,12 @@ const ERROR_CODE_MAX_LENGTH = 120;
 const ERROR_MESSAGE_MAX_LENGTH = 240;
 const ADMIN_NAME_MAX_LENGTH = 160;
 const ADMIN_EMAIL_MAX_LENGTH = 160;
+
+function normalizeReservationId(value: string): string | null {
+  const id = value.trim();
+
+  return id && id.length <= 120 ? id : null;
+}
 
 function normalizeRequiredText(value: string, maximumLength: number): string {
   return value.trim().replace(/\s+/g, " ").slice(0, maximumLength);
@@ -100,6 +118,106 @@ async function getAdminFinancialSummary(
 
 function centsToAmount(cents: number): string {
   return (cents / 100).toFixed(2);
+}
+
+function toAdminPayment(
+  payment: Readonly<{
+    id: string;
+    purpose: string;
+    providerReference: string | null;
+    providerTransactionId: string | null;
+    status: string;
+    amount: { toFixed(decimalPlaces: number): string };
+    currency: string;
+    paidAt: Date | null;
+    createdAt: Date;
+    updatedAt: Date;
+  }>,
+): AdminReservationDetailPayment {
+  return {
+    id: payment.id,
+    purpose: payment.purpose,
+    providerReference: payment.providerReference,
+    providerTransactionId: payment.providerTransactionId,
+    status: payment.status,
+    amount: payment.amount.toFixed(2),
+    currency: payment.currency,
+    paidAt: payment.paidAt?.toISOString() ?? null,
+    createdAt: payment.createdAt.toISOString(),
+    updatedAt: payment.updatedAt.toISOString(),
+  };
+}
+
+function toAdminEmailNotification(
+  notification: Readonly<{
+    id: string;
+    type: string;
+    recipient: string;
+    locale: string;
+    origin: string;
+    guestPaymentRequestId: string | null;
+    refundId: string | null;
+    parentNotificationId: string | null;
+    manualResends: readonly unknown[];
+    requestedAt: Date | null;
+    requestedByAdmin: { name: string | null; email: string } | null;
+    status: string;
+    attemptCount: number;
+    lastAttemptAt: Date | null;
+    nextAttemptAt: Date | null;
+    scheduledFor: Date | null;
+    sentAt: Date | null;
+    providerMessageId: string | null;
+    errorCode: string | null;
+    errorMessage: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+  }>,
+): AdminReservationDetailEmailNotification {
+  return {
+    id: notification.id,
+    type: notification.type,
+    recipient: notification.recipient,
+    locale: notification.locale,
+    origin: notification.origin,
+    guestPaymentRequestId: notification.guestPaymentRequestId,
+    refundId: notification.refundId,
+    parentNotificationId: notification.parentNotificationId,
+    hasManualResends: notification.manualResends.length > 0,
+    requestedAt: notification.requestedAt?.toISOString() ?? null,
+    requestedByAdmin: notification.requestedByAdmin
+      ? {
+          name: normalizeOptionalText(
+            notification.requestedByAdmin.name,
+            ADMIN_NAME_MAX_LENGTH,
+          ),
+          email: normalizeRequiredText(
+            notification.requestedByAdmin.email,
+            ADMIN_EMAIL_MAX_LENGTH,
+          ),
+        }
+      : null,
+    status: notification.status,
+    attemptCount: notification.attemptCount,
+    lastAttemptAt: notification.lastAttemptAt?.toISOString() ?? null,
+    nextAttemptAt: notification.nextAttemptAt?.toISOString() ?? null,
+    scheduledFor: notification.scheduledFor?.toISOString() ?? null,
+    sentAt: notification.sentAt?.toISOString() ?? null,
+    providerMessageId: normalizeOptionalText(
+      notification.providerMessageId,
+      PROVIDER_MESSAGE_ID_MAX_LENGTH,
+    ),
+    errorCode: normalizeOptionalText(
+      notification.errorCode,
+      ERROR_CODE_MAX_LENGTH,
+    ),
+    errorMessage: normalizeOptionalText(
+      notification.errorMessage,
+      ERROR_MESSAGE_MAX_LENGTH,
+    ),
+    createdAt: notification.createdAt.toISOString(),
+    updatedAt: notification.updatedAt.toISOString(),
+  };
 }
 
 async function getAdminReservationPricingBreakdown(
@@ -389,4 +507,427 @@ export async function getAdminReservationDetail(
     operationalHistory,
     refundApiExecutionEnabled,
   };
+}
+
+export async function getAdminReservationDetailShell(
+  reservationId: string,
+): Promise<AdminReservationDetailShell | null> {
+  const id = normalizeReservationId(reservationId);
+
+  if (!id) {
+    return null;
+  }
+
+  return prisma.reservation.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      status: true,
+    },
+  });
+}
+
+export async function getAdminReservationOverviewTab(
+  reservationId: string,
+): Promise<AdminReservationOverviewTab | null> {
+  const id = normalizeReservationId(reservationId);
+
+  if (!id) {
+    return null;
+  }
+
+  const reservation = await prisma.reservation.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      guestName: true,
+      guestEmail: true,
+      guestPhone: true,
+      guestCountry: true,
+      arrivalTimeEstimate: true,
+      checkInDate: true,
+      checkOutDate: true,
+      guestCount: true,
+      status: true,
+      expiresAt: true,
+      createdAt: true,
+      pricingSnapshot: true,
+      property: {
+        select: {
+          id: true,
+          nameEs: true,
+          nameEn: true,
+          checkInTime: true,
+        },
+      },
+    },
+  });
+
+  if (!reservation) {
+    return null;
+  }
+
+  const pricingBreakdown = await getAdminReservationPricingBreakdown(
+    reservation.pricingSnapshot,
+    reservation.property.id,
+  );
+
+  return {
+    id: reservation.id,
+    property: reservation.property,
+    guestName: reservation.guestName,
+    guestEmail: reservation.guestEmail,
+    guestPhone: reservation.guestPhone,
+    guestCountry: reservation.guestCountry,
+    arrivalTimeEstimate: reservation.arrivalTimeEstimate,
+    checkInDate: dateOnlyFromDate(reservation.checkInDate),
+    checkOutDate: dateOnlyFromDate(reservation.checkOutDate),
+    guestCount: reservation.guestCount,
+    status: reservation.status,
+    expiresAt: reservation.expiresAt?.toISOString() ?? null,
+    createdAt: reservation.createdAt.toISOString(),
+    pricingBreakdown,
+  };
+}
+
+export async function getAdminReservationFinancialTab(
+  reservationId: string,
+): Promise<AdminReservationFinancialTab | null> {
+  const id = normalizeReservationId(reservationId);
+
+  if (!id) {
+    return null;
+  }
+
+  const reservation = await prisma.reservation.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      status: true,
+      subtotal: true,
+      cleaningFee: true,
+      taxes: true,
+      discounts: true,
+      total: true,
+      currency: true,
+      payments: {
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        select: {
+          id: true,
+          purpose: true,
+          providerReference: true,
+          providerTransactionId: true,
+          status: true,
+          amount: true,
+          currency: true,
+          paidAt: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      },
+    },
+  });
+
+  if (!reservation) {
+    return null;
+  }
+
+  const [refunds, financialSummary] = await Promise.all([
+    getAdminRefundsForReservation(reservation.id),
+    getAdminFinancialSummary(reservation.id),
+  ]);
+
+  return {
+    id: reservation.id,
+    status: reservation.status,
+    subtotal: reservation.subtotal.toFixed(2),
+    cleaningFee: reservation.cleaningFee.toFixed(2),
+    taxes: reservation.taxes.toFixed(2),
+    discounts: reservation.discounts.toFixed(2),
+    total: reservation.total.toFixed(2),
+    currency: reservation.currency,
+    payments: reservation.payments.map(toAdminPayment),
+    refunds,
+    financialSummary,
+  };
+}
+
+export async function getAdminReservationEmailsTab(
+  reservationId: string,
+): Promise<AdminReservationEmailsTab | null> {
+  const id = normalizeReservationId(reservationId);
+
+  if (!id) {
+    return null;
+  }
+
+  const reservation = await prisma.reservation.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      status: true,
+      guestEmail: true,
+      emailNotifications: {
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        select: {
+          id: true,
+          type: true,
+          recipient: true,
+          locale: true,
+          origin: true,
+          guestPaymentRequestId: true,
+          refundId: true,
+          parentNotificationId: true,
+          manualResends: {
+            take: 1,
+            select: { id: true },
+          },
+          requestedAt: true,
+          requestedByAdmin: {
+            select: {
+              name: true,
+              email: true,
+            },
+          },
+          status: true,
+          attemptCount: true,
+          lastAttemptAt: true,
+          nextAttemptAt: true,
+          scheduledFor: true,
+          sentAt: true,
+          providerMessageId: true,
+          errorCode: true,
+          errorMessage: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      },
+    },
+  });
+
+  if (!reservation) {
+    return null;
+  }
+
+  return {
+    id: reservation.id,
+    status: reservation.status,
+    guestEmail: reservation.guestEmail,
+    emailNotifications: reservation.emailNotifications.map(
+      toAdminEmailNotification,
+    ),
+  };
+}
+
+export async function getAdminReservationLifecycleTab(
+  reservationId: string,
+): Promise<AdminReservationLifecycleTab | null> {
+  const id = normalizeReservationId(reservationId);
+
+  if (!id) {
+    return null;
+  }
+
+  const reservation = await prisma.reservation.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      guestName: true,
+      guestEmail: true,
+      guestPhone: true,
+      status: true,
+      updatedAt: true,
+    },
+  });
+
+  if (!reservation) {
+    return null;
+  }
+
+  const cancellationRequests = await getAdminCancellationRequestsForReservation(
+    reservation.id,
+  );
+
+  return {
+    id: reservation.id,
+    guestName: reservation.guestName,
+    guestEmail: reservation.guestEmail,
+    guestPhone: reservation.guestPhone,
+    status: reservation.status,
+    updatedAt: reservation.updatedAt.toISOString(),
+    cancellationRequests,
+  };
+}
+
+export async function getAdminReservationRefundsTab(
+  reservationId: string,
+): Promise<AdminReservationRefundsTab | null> {
+  const id = normalizeReservationId(reservationId);
+
+  if (!id) {
+    return null;
+  }
+
+  const reservation = await prisma.reservation.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      status: true,
+      updatedAt: true,
+      currency: true,
+      total: true,
+      payments: {
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        select: {
+          id: true,
+          purpose: true,
+          providerReference: true,
+          providerTransactionId: true,
+          status: true,
+          amount: true,
+          currency: true,
+          paidAt: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      },
+    },
+  });
+
+  if (!reservation) {
+    return null;
+  }
+
+  const [
+    cancellationRequests,
+    dateMutationRequests,
+    refunds,
+    financialSummary,
+  ] = await Promise.all([
+    getAdminCancellationRequestsForReservation(reservation.id),
+    getAdminDateMutationRequestsForReservation(reservation.id),
+    getAdminRefundsForReservation(reservation.id),
+    getAdminFinancialSummary(reservation.id),
+  ]);
+  const refundApiExecutionEnabled =
+    getTilopayEnv().TILOPAY_ENVIRONMENT === "sandbox";
+
+  return {
+    id: reservation.id,
+    status: reservation.status,
+    updatedAt: reservation.updatedAt.toISOString(),
+    currency: reservation.currency,
+    total: reservation.total.toFixed(2),
+    payments: reservation.payments.map(toAdminPayment),
+    refunds,
+    cancellationRequests,
+    dateMutationRequests,
+    financialSummary,
+    refundApiExecutionEnabled,
+  };
+}
+
+export async function getAdminReservationChangesTab(
+  reservationId: string,
+): Promise<AdminReservationChangesTab | null> {
+  const id = normalizeReservationId(reservationId);
+
+  if (!id) {
+    return null;
+  }
+
+  const reservation = await prisma.reservation.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      guestName: true,
+      guestEmail: true,
+      guestPhone: true,
+      checkInDate: true,
+      checkOutDate: true,
+      status: true,
+      updatedAt: true,
+    },
+  });
+
+  if (!reservation) {
+    return null;
+  }
+
+  const [cancellationRequests, dateMutationRequests] = await Promise.all([
+    getAdminCancellationRequestsForReservation(reservation.id),
+    getAdminDateMutationRequestsForReservation(reservation.id),
+  ]);
+
+  return {
+    id: reservation.id,
+    guestName: reservation.guestName,
+    guestEmail: reservation.guestEmail,
+    guestPhone: reservation.guestPhone,
+    checkInDate: dateOnlyFromDate(reservation.checkInDate),
+    checkOutDate: dateOnlyFromDate(reservation.checkOutDate),
+    status: reservation.status,
+    updatedAt: reservation.updatedAt.toISOString(),
+    cancellationRequests,
+    dateMutationRequests,
+  };
+}
+
+export async function getAdminReservationHistoryTab(
+  reservationId: string,
+): Promise<AdminReservationHistoryTab | null> {
+  const id = normalizeReservationId(reservationId);
+
+  if (!id) {
+    return null;
+  }
+
+  const reservation = await prisma.reservation.findUnique({
+    where: { id },
+    select: { id: true },
+  });
+
+  if (!reservation) {
+    return null;
+  }
+
+  return {
+    operationalHistory: await getAdminReservationOperationalHistory(
+      reservation.id,
+    ),
+  };
+}
+
+export async function resolveAdminReservationRefundFocusTab(
+  input: Readonly<{
+    reservationId: string;
+    refundId: string;
+  }>,
+): Promise<"reservation" | "refunds" | "additionalCharges"> {
+  const reservationId = normalizeReservationId(input.reservationId);
+  const refundId = normalizeReservationId(input.refundId);
+
+  if (!reservationId || !refundId) {
+    return "reservation";
+  }
+
+  const refund = await prisma.refund.findFirst({
+    where: {
+      id: refundId,
+      payment: {
+        reservationId,
+      },
+    },
+    select: {
+      authorizationType: true,
+    },
+  });
+
+  if (!refund) {
+    return "reservation";
+  }
+
+  return refund.authorizationType === "ADDITIONAL_CHARGE"
+    ? "additionalCharges"
+    : "refunds";
 }
