@@ -47,9 +47,9 @@ Final-I.6.2 status: Completed and accepted on 2026-10-07
 Accepted Final-I.6.2 feature head: d936983edd22607919148f871e3ba339ab4a4ed9
 Final-I.6.2 scope: Workstreams A-K completed
 Final-I.6.2 implementation and acceptance record: docs/216-final-i-6-2-admin-ux-navigation-accordions-pagination-polish.md
-Final-I.6.3 status: Implementation completed; Hosted owner validation pending
-Final-I.6.3 scope: Additional Charges Email Delivery Layout Polish
-Final-I.6.3 implementation record: docs/217-final-i-6-3-additional-charges-email-delivery-layout-polish.md
+Final-I.6.3 status: Completed and accepted on 2026-10-07
+Accepted Final-I.6.3 feature head: 235bd1f5a8a7d48161146c485c979d5f57a6530d
+Final-I.6.3 implementation and acceptance record: docs/217-final-i-6-3-additional-charges-email-delivery-layout-polish.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -91,9 +91,9 @@ Final-I.6.2 status: Completed and accepted on 2026-10-07
 Accepted Final-I.6.2 feature head: d936983edd22607919148f871e3ba339ab4a4ed9
 Final-I.6.2 scope: Workstreams A-K completed
 Final-I.6.2 implementation and acceptance record: docs/216-final-i-6-2-admin-ux-navigation-accordions-pagination-polish.md
-Final-I.6.3 status: Implementation completed; Hosted owner validation pending
-Final-I.6.3 scope: Additional Charges Email Delivery Layout Polish
-Final-I.6.3 implementation record: docs/217-final-i-6-3-additional-charges-email-delivery-layout-polish.md
+Final-I.6.3 status: Completed and accepted on 2026-10-07
+Accepted Final-I.6.3 feature head: 235bd1f5a8a7d48161146c485c979d5f57a6530d
+Final-I.6.3 implementation and acceptance record: docs/217-final-i-6-3-additional-charges-email-delivery-layout-polish.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure

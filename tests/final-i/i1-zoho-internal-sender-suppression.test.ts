@@ -761,19 +761,23 @@ test("I.1 registers the roadmap, validation script, and F.7 forward note", () =>
   );
   expectIncludes(
     doc212,
-    "Final-I.6.3 status: Implementation completed; Hosted owner validation pending",
+    "Final-I.6.3 status: Completed and accepted on 2026-10-07",
   );
   expectIncludes(
     doc212,
-    "Final-I.6.3 scope: Additional Charges Email Delivery Layout Polish",
+    "Accepted Final-I.6.3 feature head: 235bd1f5a8a7d48161146c485c979d5f57a6530d",
   );
   expectIncludes(
     doc212,
-    "Final-I.6.3 implementation record: docs/217-final-i-6-3-additional-charges-email-delivery-layout-polish.md",
+    "Final-I.6.3 implementation and acceptance record: docs/217-final-i-6-3-additional-charges-email-delivery-layout-polish.md",
   );
   expectNotIncludes(
     doc212,
     "Final-I.6.2 implementation is completed with Hosted owner validation pending",
+  );
+  expectNotIncludes(
+    doc212,
+    "Final-I.6.3 status: Implementation completed; Hosted owner validation pending",
   );
   expectNotIncludes(doc212, "no Final-I.6.3 was created");
   expectIncludes(doc216, "Status: Completed and accepted on 2026-10-07");
@@ -787,7 +791,7 @@ test("I.1 registers the roadmap, validation script, and F.7 forward note", () =>
   expectNotIncludes(doc216, "Pending final visual revalidation");
   expectIncludes(
     doc217,
-    "Status: Implementation completed; Hosted owner validation pending",
+    "Status: Completed and accepted on 2026-10-07",
   );
   expectIncludes(
     doc217,
@@ -795,7 +799,12 @@ test("I.1 registers the roadmap, validation script, and F.7 forward note", () =>
   );
   expectIncludes(
     doc217,
-    "The optional resend action remains in the card header, outside the metrics grid.",
+    "Accepted Final-I.6.3 feature head: 235bd1f5a8a7d48161146c485c979d5f57a6530d",
+  );
+  expectIncludes(doc217, "Owner formal acceptance: PASS on 2026-10-07");
+  expectIncludes(
+    doc217,
+    "The resend action remains outside the metrics grid.",
   );
   expectIncludes(
     doc217,
