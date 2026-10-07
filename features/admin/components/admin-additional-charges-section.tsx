@@ -1536,8 +1536,8 @@ export function AdminAdditionalChargesSection({
                                       className="rounded-xl border border-border/60 bg-background p-3 text-xs"
                                       key={notification.id}
                                     >
-                                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                                        <div className="min-w-0">
+                                      <div className="flex flex-col gap-3">
+                                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                                           <div className="flex flex-wrap items-center gap-2">
                                             <Badge variant="outline">
                                               {notificationStatusLabel(
@@ -1550,84 +1550,83 @@ export function AdminAdditionalChargesSection({
                                               )}
                                             </Badge>
                                           </div>
-                                          <div className="mt-3 grid gap-2 text-muted-foreground sm:grid-cols-2">
-                                            <DetailMetric
-                                              label={copy.labels.recipient}
-                                              value={notification.recipient}
-                                            />
-                                            <DetailMetric
-                                              label={copy.labels.locale}
-                                              value={notificationLocaleLabel(
-                                                notification.locale,
-                                              )}
-                                            />
-                                            <DetailMetric
-                                              label={copy.labels.attempts}
-                                              value={String(
-                                                notification.attemptCount,
-                                              )}
-                                            />
-                                            <DetailMetric
-                                              label={
-                                                copy.labels.emailCreatedAt
+                                          {notification.canResend ? (
+                                            <Button
+                                              className="shrink-0"
+                                              disabled={busyKey !== null}
+                                              onClick={() =>
+                                                openEmailResend(
+                                                  request,
+                                                  notification,
+                                                )
                                               }
-                                              value={formatDateTime(
-                                                notification.createdAt,
-                                              )}
-                                            />
-                                            <DetailMetric
-                                              label={copy.labels.requestedAt}
-                                              value={formatDateTime(
-                                                notification.requestedAt,
-                                              )}
-                                            />
-                                            <DetailMetric
-                                              label={copy.labels.lastAttemptAt}
-                                              value={formatDateTime(
-                                                notification.lastAttemptAt,
-                                              )}
-                                            />
-                                            <DetailMetric
-                                              label={copy.labels.nextAttemptAt}
-                                              value={formatDateTime(
-                                                notification.nextAttemptAt,
-                                              )}
-                                            />
-                                            <DetailMetric
-                                              label={copy.labels.sentAt}
-                                              value={formatDateTime(
-                                                notification.sentAt,
-                                              )}
-                                            />
-                                            <DetailMetric
-                                              label={copy.labels.errorCode}
-                                              value={
-                                                notification.errorCode ??
-                                                copy.labels.unavailable
-                                              }
-                                            />
-                                          </div>
+                                              size="sm"
+                                              type="button"
+                                              variant="outline"
+                                            >
+                                              <Send aria-hidden="true" />
+                                              {busyKey ===
+                                              `email-resend-${notification.id}`
+                                                ? copy.actions.resendingEmail
+                                                : copy.actions.resendEmail}
+                                            </Button>
+                                          ) : null}
                                         </div>
-                                        {notification.canResend ? (
-                                          <Button
-                                            disabled={busyKey !== null}
-                                            onClick={() =>
-                                              openEmailResend(
-                                                request,
-                                                notification,
-                                              )
+                                        <div className="grid grid-cols-1 gap-2 text-muted-foreground sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                                          <DetailMetric
+                                            label={copy.labels.recipient}
+                                            value={notification.recipient}
+                                          />
+                                          <DetailMetric
+                                            label={copy.labels.locale}
+                                            value={notificationLocaleLabel(
+                                              notification.locale,
+                                            )}
+                                          />
+                                          <DetailMetric
+                                            label={copy.labels.attempts}
+                                            value={String(
+                                              notification.attemptCount,
+                                            )}
+                                          />
+                                          <DetailMetric
+                                            label={copy.labels.emailCreatedAt}
+                                            value={formatDateTime(
+                                              notification.createdAt,
+                                            )}
+                                          />
+                                          <DetailMetric
+                                            label={copy.labels.requestedAt}
+                                            value={formatDateTime(
+                                              notification.requestedAt,
+                                            )}
+                                          />
+                                          <DetailMetric
+                                            label={copy.labels.lastAttemptAt}
+                                            value={formatDateTime(
+                                              notification.lastAttemptAt,
+                                            )}
+                                          />
+                                          <DetailMetric
+                                            label={copy.labels.sentAt}
+                                            value={formatDateTime(
+                                              notification.sentAt,
+                                            )}
+                                          />
+                                          <DetailMetric
+                                            label={copy.labels.nextAttemptAt}
+                                            value={formatDateTime(
+                                              notification.nextAttemptAt,
+                                            )}
+                                          />
+                                          <DetailMetric
+                                            label={copy.labels.errorCode}
+                                            value={
+                                              notification.errorCode ??
+                                              copy.labels.unavailable
                                             }
-                                            size="sm"
-                                            type="button"
-                                            variant="outline"
-                                          >
-                                            <Send aria-hidden="true" />
-                                            {busyKey ===
-                                            `email-resend-${notification.id}`
-                                              ? copy.actions.resendingEmail
-                                              : copy.actions.resendEmail}
-                                          </Button>
-                                        ) : null}
+                                          />
+                                        </div>
                                       </div>
                                     </div>
                                   ),
@@ -2246,7 +2245,7 @@ function DetailMetric({
   value: string;
 }>) {
   return (
-    <div className="rounded-xl border border-border/60 bg-background px-3 py-2">
+    <div className="min-w-0 rounded-xl border border-border/60 bg-background px-3 py-2">
       <p className="text-muted-foreground">{label}</p>
       <p className="mt-1 break-words font-semibold tabular-nums text-foreground">
         {value}

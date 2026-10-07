@@ -9,6 +9,7 @@ import "./i61-financial-operations-hardening.test";
 import "./i61-additional-charges-tabs-accordions.test";
 import "./i62-admin-ux-navigation-pagination.test";
 import "./i62-admin-notification-navigation.test";
+import "./i63-additional-charge-email-delivery-layout.test";
 
 import { runFinalITests } from "./harness";
 

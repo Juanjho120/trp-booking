@@ -38,6 +38,9 @@ Final-I.6.2 status: Completed and accepted on 2026-10-07
 Accepted Final-I.6.2 feature head: d936983edd22607919148f871e3ba339ab4a4ed9
 Final-I.6.2 scope: Workstreams A-K completed
 Final-I.6.2 implementation and acceptance record: docs/216-final-i-6-2-admin-ux-navigation-accordions-pagination-polish.md
+Final-I.6.3 status: Implementation completed; Hosted owner validation pending
+Final-I.6.3 scope: Additional Charges Email Delivery Layout Polish
+Final-I.6.3 implementation record: docs/217-final-i-6-3-additional-charges-email-delivery-layout-polish.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -79,6 +82,9 @@ Final-I.6.2 status: Completed and accepted on 2026-10-07
 Accepted Final-I.6.2 feature head: d936983edd22607919148f871e3ba339ab4a4ed9
 Final-I.6.2 scope: Workstreams A-K completed
 Final-I.6.2 implementation and acceptance record: docs/216-final-i-6-2-admin-ux-navigation-accordions-pagination-polish.md
+Final-I.6.3 status: Implementation completed; Hosted owner validation pending
+Final-I.6.3 scope: Additional Charges Email Delivery Layout Polish
+Final-I.6.3 implementation record: docs/217-final-i-6-3-additional-charges-email-delivery-layout-polish.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -282,6 +288,9 @@ Final-I.6.2 status: Completed and accepted on 2026-10-07
 Accepted Final-I.6.2 feature head: d936983edd22607919148f871e3ba339ab4a4ed9
 Final-I.6.2 scope: Workstreams A-K completed
 Final-I.6.2 implementation and acceptance record: docs/216-final-i-6-2-admin-ux-navigation-accordions-pagination-polish.md
+Final-I.6.3 status: Implementation completed; Hosted owner validation pending
+Final-I.6.3 scope: Additional Charges Email Delivery Layout Polish
+Final-I.6.3 implementation record: docs/217-final-i-6-3-additional-charges-email-delivery-layout-polish.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -323,6 +332,9 @@ Final-I.6.2 status: Completed and accepted on 2026-10-07
 Accepted Final-I.6.2 feature head: d936983edd22607919148f871e3ba339ab4a4ed9
 Final-I.6.2 scope: Workstreams A-K completed
 Final-I.6.2 implementation and acceptance record: docs/216-final-i-6-2-admin-ux-navigation-accordions-pagination-polish.md
+Final-I.6.3 status: Implementation completed; Hosted owner validation pending
+Final-I.6.3 scope: Additional Charges Email Delivery Layout Polish
+Final-I.6.3 implementation record: docs/217-final-i-6-3-additional-charges-email-delivery-layout-polish.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -2058,6 +2070,26 @@ The correction keeps successful draft creation as an explicit EDIT entry point. 
 This does not reintroduce the previous implicit-history-selection bug: entering `/admin/fel`, refreshing, or returning later still starts in CREATE mode with no selected document. Only successful draft creation and explicit `Abrir / Editar` enter EDIT mode. No schema, migration, persistence architecture, INFILE, NIT/CUI lookup, dependency, environment variable, scheduler, Production resource, Final-I.7, or Phase 13 work was introduced.
 
 Validation executed for this correction: `npm run final-i:validate` PASS 57/57 after rerun outside the sandbox because the sandbox-only `tsx` startup failed with `uv_os_get_passwd ENOMEM`; `npm run final-i:db:validate` PASS 13/13 with `TRP_ENVIRONMENT=test` after the same sandbox-only `tsx` startup failure; `npm run final-h:validate` PASS 20/20 after the same sandbox-only `tsx` startup failure; `npm run lint` PASS; `npm run build` PASS after rerun outside the sandbox because the sandbox run could not fetch Google Fonts; and `git diff --check` PASS with Windows CRLF normalization warnings only.
+
+## 2026-10-07 — Final-I.6.3 Additional Charges Email Delivery Layout Polish Implemented
+
+```text
+Package: Final-I — Operational Polish, Notification UX & FEL Invoicing
+Subphase: Final-I.6.3 — Additional Charges Email Delivery Layout Polish
+Status: Implementation completed; Hosted owner validation pending
+Record: docs/217-final-i-6-3-additional-charges-email-delivery-layout-polish.md
+Final-I.6.2: Completed and accepted on 2026-10-07 at d936983edd22607919148f871e3ba339ab4a4ed9
+Final-I.7: Blocked pending official INFILE technical documentation + Test credentials
+Final-I.8: Not started / reserved for FEL delivery email/PDF/XML/history UX
+Final-I.9: Not started / integrated Final-I closure
+Phase 13: Blocked / Not started until Final-I closes
+```
+
+Final-I.6.3 is a focused Admin UX layout polish for the Additional Charges Payment Requests Email delivery section only. It keeps the accepted Final-I.6.2 feature head frozen, does not reopen I.6.2, and does not begin Final-I.7, Final-I.8, Final-I.9, or Phase 13.
+
+The implementation keeps the existing email delivery notification cards, delivery status badge, origin badge, and resend action semantics. The card header now owns the badges and optional resend action, while the metadata uses a full-width responsive grid: one column on mobile, two on small screens, three on desktop, and four on wide desktop. Recipient, locale, attempts, created/requested/last-attempt/sent/next-attempt timestamps, and safe code remain present; no email notification processing, retry/resend behavior, API contract, Prisma schema, migration, dependency, environment variable, cron, `vercel.json`, public-site, FEL, INFILE, or business-rule scope changed.
+
+Validation executed for this checkpoint is recorded in `docs/217-final-i-6-3-additional-charges-email-delivery-layout-polish.md`. Final-I.6.3 remains pending Hosted owner validation and explicit owner acceptance.
 
 ## 2026-10-07 — Final-I.6.2 Completed And Accepted
 

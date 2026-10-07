@@ -686,6 +686,9 @@ test("I.1 registers the roadmap, validation script, and F.7 forward note", () =>
   const doc216 = read(
     "docs/216-final-i-6-2-admin-ux-navigation-accordions-pagination-polish.md",
   );
+  const doc217 = read(
+    "docs/217-final-i-6-3-additional-charges-email-delivery-layout-polish.md",
+  );
   const vercel = JSON.parse(read("vercel.json")) as { crons?: unknown[] };
 
   assert.equal(
@@ -756,10 +759,23 @@ test("I.1 registers the roadmap, validation script, and F.7 forward note", () =>
     doc212,
     "Final-I.6.2 implementation and acceptance record: docs/216-final-i-6-2-admin-ux-navigation-accordions-pagination-polish.md",
   );
+  expectIncludes(
+    doc212,
+    "Final-I.6.3 status: Implementation completed; Hosted owner validation pending",
+  );
+  expectIncludes(
+    doc212,
+    "Final-I.6.3 scope: Additional Charges Email Delivery Layout Polish",
+  );
+  expectIncludes(
+    doc212,
+    "Final-I.6.3 implementation record: docs/217-final-i-6-3-additional-charges-email-delivery-layout-polish.md",
+  );
   expectNotIncludes(
     doc212,
     "Final-I.6.2 implementation is completed with Hosted owner validation pending",
   );
+  expectNotIncludes(doc212, "no Final-I.6.3 was created");
   expectIncludes(doc216, "Status: Completed and accepted on 2026-10-07");
   expectIncludes(
     doc216,
@@ -769,6 +785,22 @@ test("I.1 registers the roadmap, validation script, and F.7 forward note", () =>
   expectIncludes(doc216, "A - Additional Charges compact tabs: Completed; Hosted owner validation PASS");
   expectIncludes(doc216, "K - Admin identity relocation and compact tooltip refinement: Completed; Hosted owner validation PASS on 2026-10-07");
   expectNotIncludes(doc216, "Pending final visual revalidation");
+  expectIncludes(
+    doc217,
+    "Status: Implementation completed; Hosted owner validation pending",
+  );
+  expectIncludes(
+    doc217,
+    "Accepted Final-I.6.2 feature head: d936983edd22607919148f871e3ba339ab4a4ed9",
+  );
+  expectIncludes(
+    doc217,
+    "The optional resend action remains in the card header, outside the metrics grid.",
+  );
+  expectIncludes(
+    doc217,
+    "Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials",
+  );
   expectIncludes(doc212, "Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials");
   expectIncludes(doc212, "Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX");
   expectIncludes(doc212, "Final-I.9 status: Not started / integrated Final-I closure");
