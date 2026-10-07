@@ -6,7 +6,7 @@
 Project: TRP Booking
 Track: Final-I - Operational Polish, Notification UX & FEL Invoicing
 Subphase: Final-I.6.2 - Admin UX Navigation, Accordions & Pagination Polish
-Status: Implementation completed; Hosted owner validation pending
+Status: Implementation completed; Hosted functional validation PASS; final Admin identity visual revalidation pending
 Registration date: 2026-10-06
 Registration base: c4b44620b946ca4252c952073db51bbdd1a6c512
 Registration base commit: docs(final-i): close Final-I.6.1
@@ -159,6 +159,8 @@ The desktop Admin shell now renders the logged-in Admin identity card in the sti
 
 On mobile, the full identity card remains inside the Admin Sheet footer above the same actions so the logged-in account remains visible without crowding the narrow header. Public site shell/header files are not changed.
 
+Hosted functional validation confirmed Workstreams A-K except for one final Workstream K visual finding: the desktop Admin identity card beside ES/EN was taller than the LocaleSwitcher because the Admin email occupied a second visible line. The correction keeps the desktop identity immediately left of ES/EN as a compact single-line name control with `h-10` height aligned to the locale switcher, moves the Admin email into a Radix tooltip on hover/focus, and preserves the mobile Sheet full identity card with visible Admin name and email. Final visual revalidation of this compact desktop identity remains pending; Final-I.6.2 is not accepted.
+
 ## Frozen Boundaries
 
 ```text
@@ -174,19 +176,19 @@ On mobile, the full identity card remains inside the Admin Sheet footer above th
 ## Hosted Owner Validation Matrix
 
 ```text
-Pending - desktop Admin sidebar with fixed header/footer and nav-only scrolling
-Pending - mobile Admin menu Sheet with fixed header/footer and nav-only scrolling
-Pending - Additional Charges nested tabs responsive behavior
-Pending - Admin Reviews single/collapsible accordion behavior and action placement
-Pending - Admin Dashboard upcoming-arrival reservation detail action
-Pending - Admin Reservations pagination with 5 rows per page
-Pending - Notifications accordion one-click collapse and A -> B -> close B leaves all closed
-Pending - Notifications pagination with maximum 10 items per page, Previous / Next, global unread count, and targeted Push notification landing on its canonical page
-Pending - Refund Processed Open marks read, opens the correct Reservation contextual tab, opens the exact Refund accordion item, and scrolls to it
-Pending - Additional Charge Paid Open marks read, opens Additional Charges, selects Payment Requests, opens the exact request, and scrolls to it
-Pending - Lifecycle Adjustment Paid Open marks read, opens Changes/Extensions, opens the exact lifecycle request, and scrolls to it
-Pending - Manual Mark as read still works without opening the target
-Pending - Admin identity appears immediately left of ES/EN on desktop, is not duplicated in the desktop sidebar, remains accessible on mobile, and leaves the public site layout unaffected
+PASS - desktop Admin sidebar with fixed header/footer and nav-only scrolling
+PASS - mobile Admin menu Sheet with fixed header/footer and nav-only scrolling
+PASS - Additional Charges nested tabs responsive behavior
+PASS - Admin Reviews single/collapsible accordion behavior and action placement
+PASS - Admin Dashboard upcoming-arrival reservation detail action
+PASS - Admin Reservations pagination with 5 rows per page
+PASS - Notifications accordion one-click collapse and A -> B -> close B leaves all closed
+PASS - Notifications pagination with maximum 10 items per page, Previous / Next, global unread count, and targeted Push notification landing on its canonical page
+PASS - Refund Processed Open marks read, opens the correct Reservation contextual tab, opens the exact Refund accordion item, and scrolls to it
+PASS - Additional Charge Paid Open marks read, opens Additional Charges, selects Payment Requests, opens the exact request, and scrolls to it
+PASS - Lifecycle Adjustment Paid Open marks read, opens Changes/Extensions, opens the exact lifecycle request, and scrolls to it
+PASS - Manual Mark as read still works without opening the target
+Pending final visual revalidation - compact desktop Admin identity appears immediately left of ES/EN, stays name-only at LocaleSwitcher height with email in tooltip, is not duplicated in the desktop sidebar, preserves the full mobile identity, and leaves the public site layout unaffected
 ```
 
 Final-I.6.2 must not be marked accepted until Hosted owner validation and explicit owner acceptance are recorded.
@@ -195,7 +197,7 @@ Final-I.6.2 must not be marked accepted until Hosted owner validation and explic
 
 ```text
 Final-I.6.2 implementation validation:
-- npm run final-i:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; rerun outside the sandbox PASS, 95/95
+- npm run final-i:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; rerun outside the sandbox PASS, 96/96
 - npm run final-h:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; rerun outside the sandbox PASS, 20/20
 - npm run lint - PASS
 - npm run build - initial sandbox attempt failed fetching Google Fonts; rerun outside the sandbox PASS; Next slow filesystem warning only
@@ -205,7 +207,7 @@ Final-I.6.2 implementation validation:
 ## Current Status
 
 ```text
-Final-I.6.2 — Implementation completed; Hosted owner validation pending
+Final-I.6.2 — Implementation completed; Hosted functional validation PASS; final Admin identity visual revalidation pending
 Final-I.7 — Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 — Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 — Not started / integrated Final-I closure

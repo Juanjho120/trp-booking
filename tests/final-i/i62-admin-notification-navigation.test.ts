@@ -53,6 +53,8 @@ const FOCUS_SCROLL_HOOK = read(
 );
 const ADMIN_SHELL = read("features/admin/components/admin-shell.tsx");
 const PUBLIC_SITE_HEADER = read("components/layout/site-header.tsx");
+const TOOLTIP = read("components/ui/tooltip.tsx");
+const PACKAGE_JSON = read("package.json");
 
 test("I.6.2 G notifications accordion uses a stable controlled string closed state", () => {
   expectIncludes(
@@ -382,18 +384,64 @@ test("I.6.2 K Admin identity moves to the Admin header and public shell stays un
   );
 
   expectIncludes(ADMIN_SHELL, "function AdminUserIdentity");
-  expectIncludes(header, "<AdminUserIdentity className=\"hidden max-w-72 md:block\" />");
+  expectIncludes(ADMIN_SHELL, "variant?: \"compact\" | \"full\"");
+  expectIncludes(ADMIN_SHELL, "variant === \"compact\"");
+  expectIncludes(
+    header,
+    "<AdminUserIdentity className=\"hidden md:inline-flex\" variant=\"compact\" />",
+  );
   assert.ok(
     header.indexOf("AdminUserIdentity") < header.indexOf("LocaleSwitcher"),
     "Admin identity should render before the LocaleSwitcher in the header",
   );
+  expectNotIncludes(header, "adminEmail");
   expectIncludes(desktopAside, "<AccountActions />");
   expectNotIncludes(desktopAside, "<AdminUserIdentity");
   expectIncludes(desktopAside, "min-h-0 flex-1 overflow-y-auto px-5 py-5");
-  expectIncludes(mobileSheet, "<AdminUserIdentity />");
+  expectIncludes(mobileSheet, "<AdminUserIdentity variant=\"full\" />");
   expectIncludes(mobileSheet, "<AccountActions />");
   expectIncludes(mobileSheet, "min-h-0 flex-1 overflow-y-auto px-5 py-5");
   expectIncludes(ADMIN_SHELL, "copy.publicSite");
   expectIncludes(ADMIN_SHELL, "copy.signOut");
   expectNotIncludes(PUBLIC_SITE_HEADER, "AdminUserIdentity");
+});
+
+test("I.6.2 K compact Admin identity keeps email in an accessible Radix tooltip only", () => {
+  for (const expected of [
+    "Tooltip",
+    "TooltipContent",
+    "TooltipProvider",
+    "TooltipTrigger",
+    "h-10 max-w-72 items-center rounded-full",
+    "tabIndex={adminEmail ? 0 : undefined}",
+    "<span className=\"truncate\">{adminName}</span>",
+    "<TooltipTrigger asChild>{identity}</TooltipTrigger>",
+    "<TooltipContent align=\"end\" side=\"bottom\">",
+    "{adminEmail}",
+  ]) {
+    expectIncludes(ADMIN_SHELL, expected);
+  }
+
+  const compactBranch = ADMIN_SHELL.slice(
+    ADMIN_SHELL.indexOf("if (variant === \"compact\")"),
+    ADMIN_SHELL.indexOf("return (", ADMIN_SHELL.indexOf("if (variant === \"compact\")") + 1),
+  );
+  expectNotIncludes(compactBranch, "text-xs text-muted-foreground");
+  expectNotIncludes(compactBranch, "mt-1 truncate");
+
+  for (const expected of [
+    "import { Tooltip as TooltipPrimitive } from \"radix-ui\";",
+    "TooltipPrimitive.Provider",
+    "TooltipPrimitive.Root",
+    "TooltipPrimitive.Trigger",
+    "TooltipPrimitive.Content",
+    "bg-popover",
+    "text-popover-foreground",
+    "px-3 py-2 text-xs",
+  ]) {
+    expectIncludes(TOOLTIP, expected);
+  }
+
+  expectIncludes(PACKAGE_JSON, "\"radix-ui\":");
+  expectNotIncludes(PACKAGE_JSON, "\"@radix-ui/react-tooltip\"");
 });

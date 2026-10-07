@@ -32,6 +32,12 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { siteConfig } from "@/config/site";
 import { LocaleSwitcher, useLocale } from "@/features/i18n";
 import { cn } from "@/lib/utils";
@@ -173,7 +179,43 @@ export function AdminShell({
     );
   }
 
-  function AdminUserIdentity({ className }: Readonly<{ className?: string }>) {
+  function AdminUserIdentity({
+    className,
+    variant = "full",
+  }: Readonly<{
+    className?: string;
+    variant?: "compact" | "full";
+  }>) {
+    if (variant === "compact") {
+      const identity = (
+        <div
+          aria-label={adminName}
+          className={cn(
+            "inline-flex h-10 max-w-72 items-center rounded-full border border-border bg-muted/30 px-3 text-sm font-medium text-foreground outline-none transition focus-visible:ring-[3px] focus-visible:ring-ring/50",
+            className,
+          )}
+          tabIndex={adminEmail ? 0 : undefined}
+        >
+          <span className="truncate">{adminName}</span>
+        </div>
+      );
+
+      if (!adminEmail) {
+        return identity;
+      }
+
+      return (
+        <TooltipProvider delayDuration={150}>
+          <Tooltip>
+            <TooltipTrigger asChild>{identity}</TooltipTrigger>
+            <TooltipContent align="end" side="bottom">
+              {adminEmail}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      );
+    }
+
     return (
       <div className={cn("rounded-2xl border border-border bg-muted/30 p-3", className)}>
         <p className="truncate text-sm font-medium text-foreground">{adminName}</p>
@@ -268,7 +310,7 @@ export function AdminShell({
                     <NavigationLinks mobile />
                   </div>
                   <div className="grid shrink-0 gap-3 border-t border-border/70 px-5 py-5">
-                    <AdminUserIdentity />
+                    <AdminUserIdentity variant="full" />
                     <AccountActions />
                   </div>
                 </SheetContent>
@@ -284,7 +326,7 @@ export function AdminShell({
               </div>
             </div>
             <div className="flex min-w-0 shrink-0 items-center gap-3">
-              <AdminUserIdentity className="hidden max-w-72 md:block" />
+              <AdminUserIdentity className="hidden md:inline-flex" variant="compact" />
               <LocaleSwitcher />
             </div>
           </div>
