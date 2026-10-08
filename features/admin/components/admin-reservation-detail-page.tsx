@@ -148,6 +148,10 @@ function emptyCache<T>(): CacheEntry<T> {
   };
 }
 
+function isCacheBusy(entry: CacheEntry<unknown>): boolean {
+  return entry.status === "loading" || entry.status === "refreshing";
+}
+
 function isAdminReservationDetailTab(
   value: string,
 ): value is AdminReservationDetailTab {
@@ -222,8 +226,9 @@ export function AdminReservationDetailPage({
   const initialFocusCleanedRef = useRef(false);
   const [additionalChargesReloadVersion, setAdditionalChargesReloadVersion] =
     useState(0);
-  const [additionalChargesRefreshing, setAdditionalChargesRefreshing] =
-    useState(false);
+  const [additionalChargesLoadBusy, setAdditionalChargesLoadBusy] = useState(
+    initialActiveTab === "additionalCharges",
+  );
   const [manualResendTarget, setManualResendTarget] =
     useState<ManualResendTarget | null>(null);
   const [busyNotificationId, setBusyNotificationId] = useState<string | null>(
@@ -814,6 +819,27 @@ export function AdminReservationDetailPage({
     void loadServerTab(tab, { force: true });
   }
 
+  function getActiveReloadBusy(): boolean {
+    if (activeReservationTab === "additionalCharges") {
+      return (
+        additionalChargesLoadBusy || !visitedTabs.has("additionalCharges")
+      );
+    }
+
+    if (activeReservationTab === "financial") {
+      return isCacheBusy(
+        activeFinancialTab === "attempts" ? attemptsCache : financialCache,
+      );
+    }
+
+    const tab =
+      activeReservationTab === "reservation"
+        ? "reservation"
+        : activeReservationTab;
+
+    return isCacheBusy(getCacheForTab(tab));
+  }
+
   function handleLifecycleChanged(): void {
     markTabsStale(["reservation", "changes", "refunds", "financial", "history"]);
     void loadServerTab("lifecycle", { force: true });
@@ -889,17 +915,43 @@ export function AdminReservationDetailPage({
   const shellBadge = reservationStatusLabel(reservationStatus);
   const resendTargetWasSent =
     manualResendTarget?.notification.status === "SENT";
+  const activeReloadBusy = getActiveReloadBusy();
 
   return (
     <>
       <AdminPageHeader
         actions={
-          <Button asChild variant="outline">
-            <Link href="/admin/reservations">
-              <ArrowLeft aria-hidden="true" />
-              {reservationCopy.title}
-            </Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button asChild variant="outline">
+              <Link href="/admin/reservations">
+                <ArrowLeft aria-hidden="true" />
+                {reservationCopy.title}
+              </Link>
+            </Button>
+            <TooltipProvider delayDuration={150}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    aria-busy={activeReloadBusy}
+                    aria-label={detailCopy.reload}
+                    disabled={activeReloadBusy}
+                    onClick={reloadActiveUnit}
+                    size="icon"
+                    type="button"
+                    variant="outline"
+                  >
+                    <RefreshCcw
+                      aria-hidden="true"
+                      className={activeReloadBusy ? "animate-spin" : undefined}
+                    />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent align="end" side="bottom">
+                  {detailCopy.reload}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
         }
         badge={shellBadge}
         description={reservationCopy.description}
@@ -917,6 +969,9 @@ export function AdminReservationDetailPage({
         className="mt-6"
         onValueChange={(value) => {
           if (isAdminReservationDetailTab(value)) {
+            if (value === "additionalCharges" && !visitedTabs.has(value)) {
+              setAdditionalChargesLoadBusy(true);
+            }
             setActiveReservationTab(value);
           }
         }}
@@ -971,11 +1026,6 @@ export function AdminReservationDetailPage({
             forceMount
             value="reservation"
           >
-            <PanelToolbar
-              busy={reservationCache.status === "refreshing"}
-              label={detailCopy.reload}
-              onReload={reloadActiveUnit}
-            />
             <ReservationOverviewPanel
               cache={reservationCache}
               copy={{
@@ -996,15 +1046,6 @@ export function AdminReservationDetailPage({
             forceMount
             value="financial"
           >
-            <PanelToolbar
-              busy={
-                activeFinancialTab === "attempts"
-                  ? attemptsCache.status === "refreshing"
-                  : financialCache.status === "refreshing"
-              }
-              label={detailCopy.reload}
-              onReload={reloadActiveUnit}
-            />
             <FinancialPanel
               activeTab={activeFinancialTab}
               attemptsCache={attemptsCache}
@@ -1034,11 +1075,6 @@ export function AdminReservationDetailPage({
             forceMount
             value="emails"
           >
-            <PanelToolbar
-              busy={emailsCache.status === "refreshing"}
-              label={detailCopy.reload}
-              onReload={reloadActiveUnit}
-            />
             <EmailsPanel
               cache={emailsCache}
               renderEmailNotification={renderEmailNotification}
@@ -1054,11 +1090,6 @@ export function AdminReservationDetailPage({
             forceMount
             value="lifecycle"
           >
-            <PanelToolbar
-              busy={lifecycleCache.status === "refreshing"}
-              label={detailCopy.reload}
-              onReload={reloadActiveUnit}
-            />
             {lifecycleCache.data ? (
               <div className="-mt-6">
                 <AdminReservationCancellationSection
@@ -1080,16 +1111,11 @@ export function AdminReservationDetailPage({
             forceMount
             value="additionalCharges"
           >
-            <PanelToolbar
-              busy={additionalChargesRefreshing}
-              label={detailCopy.reload}
-              onReload={reloadActiveUnit}
-            />
             <AdminAdditionalChargesSection
               initialFocus={initialFocus}
               onDataChanged={handleAdditionalChargesChanged}
               onInitialFocusApplied={cleanupInitialFocusQuery}
-              onRefreshingChange={setAdditionalChargesRefreshing}
+              onLoadBusyChange={setAdditionalChargesLoadBusy}
               reloadVersion={additionalChargesReloadVersion}
               reservationId={reservationShell.id}
             />
@@ -1102,11 +1128,6 @@ export function AdminReservationDetailPage({
             forceMount
             value="refunds"
           >
-            <PanelToolbar
-              busy={refundsCache.status === "refreshing"}
-              label={detailCopy.reload}
-              onReload={reloadActiveUnit}
-            />
             {refundsCache.data ? (
               <RefundsPanel
                 focusedRefundId={
@@ -1130,11 +1151,6 @@ export function AdminReservationDetailPage({
             forceMount
             value="changes"
           >
-            <PanelToolbar
-              busy={changesCache.status === "refreshing"}
-              label={detailCopy.reload}
-              onReload={reloadActiveUnit}
-            />
             {changesCache.data ? (
               <div className="-mt-6">
                 <AdminReservationDateMutationSection
@@ -1162,11 +1178,6 @@ export function AdminReservationDetailPage({
             forceMount
             value="history"
           >
-            <PanelToolbar
-              busy={historyCache.status === "refreshing"}
-              label={detailCopy.reload}
-              onReload={reloadActiveUnit}
-            />
             {historyCache.data ? (
               <div className="-mt-6">
                 <AdminReservationOperationalHistorySection
@@ -1258,44 +1269,6 @@ export function AdminReservationDetailPage({
         </SheetContent>
       </Sheet>
     </>
-  );
-}
-
-function PanelToolbar({
-  busy,
-  label,
-  onReload,
-}: Readonly<{
-  busy: boolean;
-  label: string;
-  onReload: () => void;
-}>) {
-  return (
-    <div className="mb-3 flex justify-end">
-      <TooltipProvider delayDuration={150}>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              aria-busy={busy}
-              aria-label={label}
-              disabled={busy}
-              onClick={onReload}
-              size="icon"
-              type="button"
-              variant="outline"
-            >
-              <RefreshCcw
-                aria-hidden="true"
-                className={busy ? "animate-spin" : undefined}
-              />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent align="end" side="bottom">
-            {label}
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    </div>
   );
 }
 

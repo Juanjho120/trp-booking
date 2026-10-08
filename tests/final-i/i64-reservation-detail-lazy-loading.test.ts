@@ -231,14 +231,16 @@ test("I.6.4 Additional Charges management reload is explicit and locale-stable",
   );
 
   expectIncludes(component, "reloadVersion?: number;");
-  expectIncludes(component, "onRefreshingChange?: (refreshing: boolean) => void;");
-  expectIncludes(component, "onRefreshingChangeRef.current?.(true);");
-  expectIncludes(component, "onRefreshingChangeRef.current?.(false);");
+  expectIncludes(component, "onLoadBusyChange?: (busy: boolean) => void;");
+  expectIncludes(component, "onLoadBusyChangeRef.current?.(true);");
+  expectIncludes(component, "onLoadBusyChangeRef.current?.(false);");
   expectIncludes(component, "if (reloadVersion > 0) {");
   expectIncludes(component, "void loadManagement(false);");
   expectIncludes(component, "onDataChanged?.();");
-  expectIncludes(loadManagement, "const shouldNotifyRefreshing = !showLoading;");
+  expectIncludes(loadManagement, "onLoadBusyChangeRef.current?.(true);");
   expectIncludes(loadManagement, "[reservationId]");
+  expectNotIncludes(component, "onRefreshingChange");
+  expectNotIncludes(loadManagement, "const shouldNotifyRefreshing = !showLoading;");
   expectNotIncludes(loadManagement, "resolveError");
   expectNotIncludes(loadManagement, "[copy]");
 });
@@ -305,20 +307,49 @@ test("I.6.4 reload control is icon-only, localized and scoped to the active data
   const component = read(DETAIL_PAGE);
   const es = read("messages/es.ts");
   const en = read("messages/en.ts");
+  const header = blockBetween(component, "<AdminPageHeader", "      <AdminSnackbar");
+  const actions = blockBetween(header, "actions={", "        badge={shellBadge}");
+  const reloadButton = blockBetween(
+    actions,
+    "aria-label={detailCopy.reload}",
+    "</Button>",
+  );
+  const reloadUnit = blockBetween(
+    component,
+    "  function reloadActiveUnit(): void {",
+    "  function getActiveReloadBusy(): boolean {",
+  );
 
-  for (const expected of [
-    "function PanelToolbar",
-    "size=\"icon\"",
-    "aria-label={label}",
-    "<TooltipContent align=\"end\" side=\"bottom\">",
-    "const [additionalChargesRefreshing, setAdditionalChargesRefreshing] =",
-    "busy={additionalChargesRefreshing}",
-    "onRefreshingChange={setAdditionalChargesRefreshing}",
-    "setAdditionalChargesReloadVersion((value) => value + 1);",
-    "reloadActiveUnit",
-  ]) {
-    expectIncludes(component, expected);
-  }
+  expectNotIncludes(component, "function PanelToolbar");
+  expectNotIncludes(component, "<PanelToolbar");
+  expectIncludes(actions, '<div className="flex items-center gap-2">');
+  assert.ok(
+    actions.indexOf('href="/admin/reservations"') <
+      actions.indexOf("aria-label={detailCopy.reload}"),
+    "Reload action should render after the Reservations back button",
+  );
+  expectIncludes(reloadButton, 'size="icon"');
+  expectIncludes(reloadButton, "<RefreshCcw");
+  expectNotIncludes(reloadButton, "\n                    {detailCopy.reload}\n");
+  expectIncludes(actions, '<TooltipContent align="end" side="bottom">');
+  expectIncludes(actions, "{detailCopy.reload}");
+  expectIncludes(component, "function isCacheBusy(entry: CacheEntry<unknown>): boolean");
+  expectIncludes(component, 'entry.status === "loading" || entry.status === "refreshing"');
+  expectIncludes(component, "function getActiveReloadBusy(): boolean");
+  expectIncludes(component, 'activeReservationTab === "additionalCharges"');
+  expectIncludes(component, 'additionalChargesLoadBusy || !visitedTabs.has("additionalCharges")');
+  expectIncludes(component, 'const [additionalChargesLoadBusy, setAdditionalChargesLoadBusy] = useState(');
+  expectIncludes(component, 'initialActiveTab === "additionalCharges"');
+  expectIncludes(component, 'value === "additionalCharges" && !visitedTabs.has(value)');
+  expectIncludes(component, 'activeFinancialTab === "attempts" ? attemptsCache : financialCache');
+  expectIncludes(component, "return isCacheBusy(getCacheForTab(tab));");
+  expectIncludes(component, "const activeReloadBusy = getActiveReloadBusy();");
+  expectIncludes(component, "aria-busy={activeReloadBusy}");
+  expectIncludes(component, "disabled={activeReloadBusy}");
+  expectIncludes(component, 'className={activeReloadBusy ? "animate-spin" : undefined}');
+  expectIncludes(component, "onLoadBusyChange={setAdditionalChargesLoadBusy}");
+  expectIncludes(reloadUnit, "setAdditionalChargesReloadVersion((value) => value + 1);");
+  expectIncludes(reloadUnit, 'activeFinancialTab === "attempts" ? "payment-attempts" : "financial"');
 
   expectIncludes(es, 'reload: "Recargar"');
   expectIncludes(en, 'reload: "Reload"');

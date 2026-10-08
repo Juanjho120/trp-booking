@@ -6,7 +6,7 @@
 Project: TRP Booking
 Track: Final-I - Operational Polish, Notification UX & FEL Invoicing
 Subphase: Final-I.6.4 - Reservation Detail Lazy Loading, Tab Cache & Financial Tabs
-Status: Implementation completed; Hosted owner validation pending
+Status: Implementation completed; Hosted functional validation PASS; final Reload placement visual revalidation pending
 Registration date: 2026-10-07
 Implementation base: f934ae3ddae61dcdb3560fff771152c83e8768a7
 Implementation base commit: docs(final-i): close Final-I.6.3
@@ -73,7 +73,8 @@ Summary and Attempts are cached and reloaded independently.
   - Adds page-scoped tab cache entries with `idle`, `loading`, `ready`, `refreshing`, and `error` states.
   - Fetches each tab on first visit and keeps visited tabs mounted, with per-tab in-flight deduplication for fast clicks, reloads, and callback/effect churn.
   - Keeps locale changes from triggering new data fetches.
-  - Adds an icon-only localized reload action scoped to the active tab/data unit.
+  - Adds an icon-only localized reload action scoped to the active tab/data unit in the Reservation detail page-header action area, immediately after the Back to Reservations action.
+  - Removes the normal per-tab reload toolbar instances from Reservation, Financial, Emails, Lifecycle, Additional Charges, Refunds, Changes, and History bodies.
   - Splits Financial Summary and Payment Attempts into separately cached nested tabs; the Financial tab is loaded only by its Financial-specific effect, not by the generic top-level tab effect.
   - Replaces full route refreshes for Reservation-detail mutations with scoped cache invalidation.
   - Cleans contextual `focus` / `focusId` query params through `history.replaceState` only after the exact target component applies focus and performs the initial scroll.
@@ -81,6 +82,7 @@ Summary and Attempts are cached and reloaded independently.
 - `features/admin/components/admin-additional-charges-section.tsx`
   - Receives an explicit `reloadVersion` from the Reservation detail page.
   - Keeps `loadManagement` independent from localized copy so locale changes do not refetch Additional Charges.
+  - Reports initial-load and manual-refresh busy state to the parent header reload control without making localized copy a fetch dependency.
   - Reports mutations back to the parent for dependent tab invalidation.
 
 - Reservation lifecycle/refund/date-mutation sections
@@ -99,7 +101,7 @@ Summary and Attempts are cached and reloaded independently.
 
 ```text
 Pre-Hosted hardening checkpoint on top of 239d2473ec6c87a9541bde69f2013ae4d953c770.
-Final-I.6.4 remains Implementation completed; Hosted owner validation pending.
+Final-I.6.4 remains Implementation completed; Hosted functional validation PASS; final Reload placement visual revalidation pending.
 ```
 
 This checkpoint corrected the remaining cache/UX regressions before Hosted owner validation:
@@ -111,8 +113,36 @@ This checkpoint corrected the remaining cache/UX regressions before Hosted owner
 - Automatic effect-driven retries stop after `error`; explicit reload/force actions remain available.
 - Manual refresh failures preserve existing tab data and surface localized snackbar feedback instead of blanking the panel.
 - The Reservation header badge now follows the latest successful lazy payload status instead of the immutable shell status.
-- Additional Charges reports real refresh state to the parent toolbar while preserving first-mount loading and locale-stable `loadManagement` dependencies.
+- Additional Charges reports real refresh state to the parent reload control while preserving first-mount loading and locale-stable `loadManagement` dependencies.
 - Contextual focus query cleanup is now driven by successful exact-target focus/scroll application, not by an unconditional mount effect.
+```
+
+## Hosted Functional Validation and Reload Placement Refinement - 2026-10-08
+
+Hosted functional validation passed for the Final-I.6.4 lazy Reservation detail behavior before formal acceptance. The owner then identified one final visual finding: the normal active-tab Reload icon was functionally correct, but its per-tab toolbar placement added unnecessary vertical UI noise.
+
+Owner requested relocation to the Reservation detail page-header action area, immediately to the right of the Back to Reservations action.
+
+This visual refinement keeps the same `reloadActiveUnit()` domain semantics and moves only the normal reload placement:
+
+```text
+- Reservation reloads only the reservation tab payload.
+- Financial / Summary reloads only the financial summary payload.
+- Financial / Attempts reloads only payment-attempts.
+- Emails reloads only emails.
+- Lifecycle reloads only lifecycle.
+- Additional Charges reloads only Additional Charges management.
+- Refunds reloads only refunds.
+- Changes reloads only changes.
+- History reloads only history.
+```
+
+The header Reload remains icon-only, localized through existing ES/EN `detailCopy.reload`, keyboard accessible, tooltip-backed, and compact beside the Back action for desktop and mobile header layouts. Its busy state now derives from the active top-level or nested Financial data unit and treats `loading` and `refreshing` as busy. Additional Charges now reports both initial management loading and manual refreshing through `onLoadBusyChange`, while `loadManagement` remains independent from localized copy so locale changes still do not refetch.
+
+Status remains:
+
+```text
+Final-I.6.4 - Implementation completed; Hosted functional validation PASS; final Reload placement visual revalidation pending
 ```
 
 ## Preserved Boundaries
@@ -135,7 +165,7 @@ Final-I.6.4 preserves:
 
 ```text
 Final-I.6.4 implementation validation:
-- npm run final-i:validate - initial implementation run PASS, 107/107; 2026-10-08 correction rerun PASS, 111/111
+- npm run final-i:validate - initial implementation run PASS, 107/107; 2026-10-08 cache/UX correction rerun PASS, 111/111; 2026-10-08 header Reload placement rerun PASS, 111/111
 - npm run final-h:validate - PASS, 20/20
 - npm run lint - PASS
 - npm run build - PASS; Next slow filesystem warning only
@@ -146,7 +176,7 @@ Final-I.6.4 implementation validation:
 ## Current State
 
 ```text
-Final-I.6.4 - Implementation completed; Hosted owner validation pending
+Final-I.6.4 - Implementation completed; Hosted functional validation PASS; final Reload placement visual revalidation pending
 Final-I.7 - Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 - Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 - Not started / integrated Final-I closure
