@@ -41,8 +41,10 @@ Final-I.6.2 implementation and acceptance record: docs/216-final-i-6-2-admin-ux-
 Final-I.6.3 status: Completed and accepted on 2026-10-07
 Accepted Final-I.6.3 feature head: 235bd1f5a8a7d48161146c485c979d5f57a6530d
 Final-I.6.3 implementation and acceptance record: docs/217-final-i-6-3-additional-charges-email-delivery-layout-polish.md
-Final-I.6.4 status: Implementation completed; Hosted owner validation pending
-Final-I.6.4 implementation record: docs/218-final-i-6-4-reservation-detail-lazy-loading-tab-cache.md
+Final-I.6.4 status: Completed and accepted on 2026-10-08
+Accepted Final-I.6.4 feature head: c80f172ac9e1e366e54517020dd5b1a1e1c30a76
+Final-I.6.4 implementation and acceptance record: docs/218-final-i-6-4-reservation-detail-lazy-loading-tab-cache.md
+Final-I.6.5 status: Not started / next bounded Admin UX polish: Admin Contextual Help & Copy Density Polish
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -87,8 +89,10 @@ Final-I.6.2 implementation and acceptance record: docs/216-final-i-6-2-admin-ux-
 Final-I.6.3 status: Completed and accepted on 2026-10-07
 Accepted Final-I.6.3 feature head: 235bd1f5a8a7d48161146c485c979d5f57a6530d
 Final-I.6.3 implementation and acceptance record: docs/217-final-i-6-3-additional-charges-email-delivery-layout-polish.md
-Final-I.6.4 status: Implementation completed; Hosted owner validation pending
-Final-I.6.4 implementation record: docs/218-final-i-6-4-reservation-detail-lazy-loading-tab-cache.md
+Final-I.6.4 status: Completed and accepted on 2026-10-08
+Accepted Final-I.6.4 feature head: c80f172ac9e1e366e54517020dd5b1a1e1c30a76
+Final-I.6.4 implementation and acceptance record: docs/218-final-i-6-4-reservation-detail-lazy-loading-tab-cache.md
+Final-I.6.5 status: Not started / next bounded Admin UX polish: Admin Contextual Help & Copy Density Polish
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -295,8 +299,10 @@ Final-I.6.2 implementation and acceptance record: docs/216-final-i-6-2-admin-ux-
 Final-I.6.3 status: Completed and accepted on 2026-10-07
 Accepted Final-I.6.3 feature head: 235bd1f5a8a7d48161146c485c979d5f57a6530d
 Final-I.6.3 implementation and acceptance record: docs/217-final-i-6-3-additional-charges-email-delivery-layout-polish.md
-Final-I.6.4 status: Implementation completed; Hosted owner validation pending
-Final-I.6.4 implementation record: docs/218-final-i-6-4-reservation-detail-lazy-loading-tab-cache.md
+Final-I.6.4 status: Completed and accepted on 2026-10-08
+Accepted Final-I.6.4 feature head: c80f172ac9e1e366e54517020dd5b1a1e1c30a76
+Final-I.6.4 implementation and acceptance record: docs/218-final-i-6-4-reservation-detail-lazy-loading-tab-cache.md
+Final-I.6.5 status: Not started / next bounded Admin UX polish: Admin Contextual Help & Copy Density Polish
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -341,8 +347,10 @@ Final-I.6.2 implementation and acceptance record: docs/216-final-i-6-2-admin-ux-
 Final-I.6.3 status: Completed and accepted on 2026-10-07
 Accepted Final-I.6.3 feature head: 235bd1f5a8a7d48161146c485c979d5f57a6530d
 Final-I.6.3 implementation and acceptance record: docs/217-final-i-6-3-additional-charges-email-delivery-layout-polish.md
-Final-I.6.4 status: Implementation completed; Hosted owner validation pending
-Final-I.6.4 implementation record: docs/218-final-i-6-4-reservation-detail-lazy-loading-tab-cache.md
+Final-I.6.4 status: Completed and accepted on 2026-10-08
+Accepted Final-I.6.4 feature head: c80f172ac9e1e366e54517020dd5b1a1e1c30a76
+Final-I.6.4 implementation and acceptance record: docs/218-final-i-6-4-reservation-detail-lazy-loading-tab-cache.md
+Final-I.6.5 status: Not started / next bounded Admin UX polish: Admin Contextual Help & Copy Density Polish
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -2079,12 +2087,33 @@ This does not reintroduce the previous implicit-history-selection bug: entering 
 
 Validation executed for this correction: `npm run final-i:validate` PASS 57/57 after rerun outside the sandbox because the sandbox-only `tsx` startup failed with `uv_os_get_passwd ENOMEM`; `npm run final-i:db:validate` PASS 13/13 with `TRP_ENVIRONMENT=test` after the same sandbox-only `tsx` startup failure; `npm run final-h:validate` PASS 20/20 after the same sandbox-only `tsx` startup failure; `npm run lint` PASS; `npm run build` PASS after rerun outside the sandbox because the sandbox run could not fetch Google Fonts; and `git diff --check` PASS with Windows CRLF normalization warnings only.
 
+## 2026-10-08 — Final-I.6.4 Completed And Accepted
+
+```text
+Package: Final-I — Operational Polish, Notification UX & FEL Invoicing
+Subphase: Final-I.6.4 — Reservation Detail Lazy Loading, Tab Cache & Financial Tabs
+Status: Completed and accepted on 2026-10-08
+Accepted Final-I.6.4 feature head: c80f172ac9e1e366e54517020dd5b1a1e1c30a76
+Record: docs/218-final-i-6-4-reservation-detail-lazy-loading-tab-cache.md
+Documentation closure commit: documentation-only; it does not replace the accepted feature head
+Final-I.6.5: Not started / next bounded Admin UX polish: Admin Contextual Help & Copy Density Polish
+Final-I.7: Blocked pending official INFILE technical documentation + Test credentials
+Final-I.8: Not started / reserved for FEL delivery email/PDF/XML/history UX
+Final-I.9: Not started / integrated Final-I closure
+Phase 13: Blocked / Not started until Final-I closes
+```
+
+Owner Hosted validation and formal acceptance passed on 2026-10-08 for the complete Final-I.6.4 Reservation Detail Lazy Loading, Tab Cache & Financial Tabs package. The accepted feature head remains `c80f172ac9e1e366e54517020dd5b1a1e1c30a76`; this documentation-only closure does not replace it.
+
+Accepted behavior includes the lightweight initial Reservation-detail route, first-visit lazy top-level tab loading, visited-tab cache reuse, independent Financial Summary/Attempts loading, Additional Charges locale-stable loading, active-unit Reload semantics, F5 returning to Reservation, contextual financial notification deep-links, header Reservation-status synchronization, header Reload placement on desktop/mobile, full-loading-on-Reload, Additional Charges spinner-only loading, canonical spacing for Lifecycle/Refunds/Date changes/Operational history, Zoho nested tab and Guest Correspondence relocation, zero-email Zoho accessibility, and shortened ES/EN navigation labels.
+
+No runtime behavior, Reservation-detail component code, API route, tab loader, cache logic, message/runtime copy, Prisma schema, migration, dependency, environment variable, cron/scheduler registration, `vercel.json`, INFILE/FEL provider behavior, Final-I.6.5 implementation, Final-I.7, Final-I.8, Final-I.9, Phase 13, or Production resource was introduced by this closure.
 ## 2026-10-07 — Final-I.6.4 Reservation Detail Lazy Loading Implemented
 
 ```text
 Package: Final-I — Operational Polish, Notification UX & FEL Invoicing
 Subphase: Final-I.6.4 — Reservation Detail Lazy Loading, Tab Cache & Financial Tabs
-Status: Implementation completed; Hosted owner validation pending
+Status: Implementation completed; owner acceptance later completed on 2026-10-08
 Record: docs/218-final-i-6-4-reservation-detail-lazy-loading-tab-cache.md
 Implementation base: f934ae3ddae61dcdb3560fff771152c83e8768a7
 Final-I.6.3: Completed and accepted on 2026-10-07 at 235bd1f5a8a7d48161146c485c979d5f57a6530d

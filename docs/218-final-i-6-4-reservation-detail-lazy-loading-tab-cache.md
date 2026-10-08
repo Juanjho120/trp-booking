@@ -6,20 +6,24 @@
 Project: TRP Booking
 Track: Final-I - Operational Polish, Notification UX & FEL Invoicing
 Subphase: Final-I.6.4 - Reservation Detail Lazy Loading, Tab Cache & Financial Tabs
-Status: Implementation completed; Hosted functional validation PASS; Reload placement visual validation PASS; Full-loading-on-Reload validation PASS; final navigation/spacing/Zoho polish revalidation pending
+Status: Completed and accepted on 2026-10-08
+Accepted Final-I.6.4 feature head: c80f172ac9e1e366e54517020dd5b1a1e1c30a76
+Owner formal acceptance: PASS on 2026-10-08
+Documentation closure commit: documentation-only closure; it does not replace the accepted feature head
 Registration date: 2026-10-07
 Implementation base: f934ae3ddae61dcdb3560fff771152c83e8768a7
 Implementation base commit: docs(final-i): close Final-I.6.3
 Final-I.6.3 status: Completed and accepted on 2026-10-07
 Accepted Final-I.6.3 feature head: 235bd1f5a8a7d48161146c485c979d5f57a6530d
 Final-I.6.3 implementation and acceptance record: docs/217-final-i-6-3-additional-charges-email-delivery-layout-polish.md
+Final-I.6.5 status: Not started / next bounded Admin UX polish: Admin Contextual Help & Copy Density Polish
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
 Phase 13 status: Blocked / Not started until Final-I closes
 ```
 
-Final-I.6.4 is a bounded Admin Reservation detail performance/UX correction on top of the accepted Final-I.6.3 closure. It does not reopen Final-I.6.3 and does not begin Final-I.7, Final-I.8, Final-I.9, Phase 13, schema, migrations, dependencies, environment variables, cron, scheduler, Vercel configuration, Production resources, INFILE transport, or FEL provider behavior.
+Final-I.6.4 is a completed and accepted bounded Admin Reservation detail performance/UX correction on top of the accepted Final-I.6.3 closure. It does not reopen Final-I.6.3 and does not begin Final-I.7, Final-I.8, Final-I.9, Phase 13, schema, migrations, dependencies, environment variables, cron, scheduler, Vercel configuration, Production resources, INFILE transport, or FEL provider behavior.
 
 ## Scope
 
@@ -101,10 +105,10 @@ Summary and Attempts are cached and reloaded independently.
 
 ```text
 Pre-Hosted hardening checkpoint on top of 239d2473ec6c87a9541bde69f2013ae4d953c770.
-Final-I.6.4 remains Implementation completed; Hosted functional validation PASS; final Reload placement visual revalidation pending.
+This checkpoint kept Final-I.6.4 within its bounded implementation/validation track before final owner acceptance.
 ```
 
-This checkpoint corrected the remaining cache/UX regressions before Hosted owner validation:
+This checkpoint corrected the remaining cache/UX regressions before formal owner acceptance:
 
 ```text
 - The generic top-level lazy-load effect now skips both Additional Charges and Financial, so the Financial tab no longer emits a duplicate first-visit request.
@@ -143,15 +147,15 @@ A final owner UX requirement was identified after the header placement approval:
 
 This correction keeps previous successful data in the internal tab cache while `status = refreshing`, but rendering ignores that data until the request resolves. If the refresh fails after previously valid data existed, the page restores that cached content and shows the existing localized error snackbar. First-load failures with no usable data continue to show the inline error/retry panel. Financial keeps the compact Summary / Attempts nested navigation visible during nested reloads while the nested body shows only the appropriate loading panel. Additional Charges now uses its existing first-load management loading card for explicit page-header Reloads, while mutation-triggered internal refreshes continue to use their existing non-blanking `loadManagement()` path.
 
-Status remains:
+Status after owner acceptance:
 
 ```text
-Final-I.6.4 - Implementation completed; Hosted functional validation PASS; Reload placement visual validation PASS; Full-loading-on-Reload validation PASS; final navigation/spacing/Zoho polish revalidation pending
+Final-I.6.4 - Completed and accepted on 2026-10-08
 ```
 
 ## Final Owner Polish Checkpoint - 2026-10-08
 
-After the full-loading-on-Reload Hosted pass, the owner requested a final bounded Reservation-detail UI polish checkpoint before acceptance:
+After the full-loading-on-Reload Hosted pass, the owner requested a final bounded Reservation-detail UI polish checkpoint before formal acceptance:
 
 ```text
 - Additional Charges explicit reload loading now uses the shared compact loading card with only the spinner and localized `copy.loading`; it does not repeat the Additional Charges section title.
@@ -164,10 +168,10 @@ After the full-loading-on-Reload Hosted pass, the owner requested a final bounde
 
 This checkpoint does not change the lazy tab API, cache invalidation contract, domain logic, schema, migrations, configuration, scheduler, or Production boundaries.
 
-Status remains:
+Status after owner acceptance:
 
 ```text
-Final-I.6.4 - Implementation completed; Hosted functional validation PASS; Reload placement visual validation PASS; Full-loading-on-Reload validation PASS; final navigation/spacing/Zoho polish revalidation pending
+Final-I.6.4 - Completed and accepted on 2026-10-08
 ```
 ## Preserved Boundaries
 
@@ -188,21 +192,179 @@ Final-I.6.4 preserves:
 ## Validation Ledger
 
 ```text
-Final-I.6.4 implementation validation:
-- npm run final-i:validate - initial implementation run PASS, 107/107; 2026-10-08 cache/UX correction rerun PASS, 111/111; 2026-10-08 header Reload placement rerun PASS, 111/111; 2026-10-08 full-loading-on-Reload correction rerun PASS, 111/111; 2026-10-08 final navigation/spacing/Zoho polish rerun PASS, 111/111
+Final-I.6.4 accepted validation:
+- npm run final-i:validate - PASS, 111/111
 - npm run final-h:validate - PASS, 20/20
 - npm run lint - PASS
 - npm run build - PASS; Next slow filesystem warning only
-- Local authenticated browser/network inspection - not executed in this code-only correction pass because no local authenticated Admin browser fixture was available; Hosted owner validation remains pending
 - git diff --check - PASS; Windows CRLF normalization warnings only
+- Vercel Hosted deployment at accepted feature head c80f172ac9e1e366e54517020dd5b1a1e1c30a76 - SUCCESS
 ```
 
 ## Current State
 
 ```text
-Final-I.6.4 - Implementation completed; Hosted functional validation PASS; Reload placement visual validation PASS; Full-loading-on-Reload validation PASS; final navigation/spacing/Zoho polish revalidation pending
+Final-I.6.4 - Completed and accepted on 2026-10-08
+Final-I.6.5 - Not started / next bounded Admin UX polish: Admin Contextual Help & Copy Density Polish
 Final-I.7 - Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 - Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 - Not started / integrated Final-I closure
 Phase 13 - Blocked / Not started until Final-I closes
 ```
+## 2026-10-08 - Final-I.6.4 Completed And Accepted
+
+Owner Hosted validation passed for the complete accepted Final-I.6.4 behavior. Owner formal acceptance is recorded as PASS on 2026-10-08.
+
+```text
+Accepted Final-I.6.4 feature head: c80f172ac9e1e366e54517020dd5b1a1e1c30a76
+Documentation closure commit: documentation-only closure; it does not replace the accepted feature head
+Owner formal acceptance: PASS on 2026-10-08
+Vercel Hosted deployment at accepted feature head: SUCCESS
+Final-I.6.5: Not started / next bounded Admin UX polish: Admin Contextual Help & Copy Density Polish
+Final-I.7: Blocked pending official INFILE technical documentation + Test credentials
+Final-I.8: Not started / reserved for FEL delivery email/PDF/XML/history UX
+Final-I.9: Not started / integrated Final-I closure
+Phase 13: Blocked / Not started until Final-I closes
+```
+
+Accepted contracts frozen by this closure:
+
+```text
+Lightweight initial Reservation-detail route:
+- /admin/reservations/<reservationId> normal navigation and F5 select Reservation.
+- The initial server route loads only the lightweight shell and the initial Reservation payload.
+- It does not eagerly load payments, payment attempts, emails, cancellation requests, date mutations, refunds, financial summary, operational history, or Additional Charges.
+
+Lazy top-level tab loading:
+- Accepted top-level tabs: Reservation, Payments and diagnostics, Email delivery, Lifecycle, Additional Charges, Refunds, Date changes, and Operational history.
+- First visit fetches only the relevant tab data.
+- Leaving a tab retains page-scoped state.
+- Returning to a visited valid tab does not fetch.
+- Explicit Reload fetches only the active data unit.
+
+Financial nested tabs:
+- Summary / Resumen is the default.
+- Attempts / Intentos is separate.
+- Summary loads/reloads only the financial payload.
+- Attempts loads/reloads only the payment-attempts payload.
+- Both remain independently cached and reloadable.
+- The compact nested tab list does not consume unnecessary desktop width.
+
+Page-scoped cache:
+- Accepted states: idle, loading, ready, refreshing, error.
+- Per-tab in-flight request deduplication is preserved.
+- Failed lazy loads do not create automatic retry loops.
+- Locale changes do not invalidate data.
+- Inactive valid caches are preserved.
+- Mutation-dependent inactive caches become stale rather than fetching eagerly.
+
+Mutation invalidation:
+- Successful mutations refresh the owning active unit immediately.
+- Dependent inactive units are marked stale only.
+- Next visit to a stale unit fetches once.
+- No full Reservation-detail route refresh is required for the accepted lazy architecture.
+
+Header Reload:
+- Placement is [Back to Reservations] [Reload] in the Reservation detail header.
+- Reload is immediately to the right of Back to Reservations.
+- Reload is icon-only, localized, tooltip-backed, keyboard accessible, and aria-label backed.
+- Tooltip/aria label copy is ES Recargar and EN Reload.
+- Reload is disabled/spinning while the active unit is loading or refreshing.
+- Normal per-tab Reload toolbars do not appear in tab bodies.
+
+Reload target semantics:
+- Reservation -> reservation.
+- Payments and diagnostics / Summary -> financial.
+- Payments and diagnostics / Attempts -> payment-attempts.
+- Email delivery -> emails.
+- Lifecycle -> lifecycle.
+- Additional Charges -> Additional Charges management only.
+- Refunds -> refunds.
+- Date changes -> changes.
+- Operational history -> history.
+- Reload never intentionally reloads unrelated cached tabs.
+
+Full-loading-on-Reload UX:
+- Explicit header Reload hides the active tab's previous content.
+- It shows the same loading presentation as first load.
+- Fresh content renders only after the request succeeds.
+- The previous successful cache may remain internally preserved for failure recovery.
+- If explicit refresh fails after prior valid data existed, loading ends, prior valid data returns, a safe error Snackbar appears, and no automatic retry starts.
+
+Additional Charges loading:
+- Loading shows only spinner plus localized loading message.
+- It does not repeat Additional Charges / Cargos adicionales as a CardTitle.
+- Explicit header Reload uses the full loading presentation.
+- Mutation-triggered internal management refreshes preserve their existing accepted behavior.
+- loadManagement remains independent from locale, messages, copy, and resolveError.
+- ES/EN copy changes do not reload Additional Charges.
+
+Header status synchronization:
+- The Reservation status badge follows the latest successful lazy payload status.
+- Example accepted behavior: Confirmed -> cancellation approved -> lifecycle refresh -> header status becomes Cancelled without F5/full route refresh.
+
+Contextual notification focus:
+- Supported focus includes refund, additionalChargePaymentRequest, and lifecycleAdjustment.
+- Deep links use lightweight target-tab resolution and load only target data.
+- The exact nested item/accordion opens and scrolls once.
+- focus and focusId are removed through history.replaceState only after the exact focus is applied.
+- Subsequent F5 returns to Reservation and loads only the Reservation payload.
+
+Reservation-detail top-level navigation copy:
+- ES: Ciclo de vida, Cambios de fechas, Historial operativo.
+- EN: Lifecycle, Date changes, Operational history.
+- These are dedicated navigation labels and do not redefine broader internal section titles/badges.
+
+Canonical top-level spacing:
+- Top-level tab content uses TabsContent mt-4 sm:mt-6 spacing.
+- Lifecycle, Refunds, Date changes, and Operational history no longer cancel it through parent -mt-6 wrappers.
+- Embedded section first cards use the accepted no-extra-top-margin contract.
+- The Reservation detail page must not reintroduce -mt-6 workarounds for these tabs.
+
+Email Delivery nested tabs:
+- Accepted nested tabs: Guests / Huespedes, Administration / Administracion, Zoho.
+- Zoho appears to the right of Administration.
+- Zoho uses an Inbox icon immediately to the left of the name.
+- These nested tabs remain available even when emailNotifications.length === 0.
+- Default nested tab: Guests when guest notifications exist; else Administration when admin notifications exist; else Zoho.
+
+Guest correspondence relocation:
+- Guest correspondence / Correspondencia del huesped no longer belongs to the Reservation overview tab.
+- It belongs to Email delivery -> Zoho.
+- Existing behavior is preserved: guest email display, description/helper copy, open Zoho Mail, best-effort guest-email clipboard copy, desktop/mobile action labels, success/error Snackbar, explicit user gesture, _blank, noopener noreferrer, and siteConfig.correspondence.zohoMailWebUrl.
+- No extra server request is required for Zoho; it reuses emailData.guestEmail.
+```
+
+Accepted owner validation ledger:
+
+```text
+- lightweight initial Reservation load - PASS
+- first-visit tab lazy loading - PASS
+- visited-tab cache reuse - PASS
+- Financial Summary/Attempts independent loading - PASS
+- Additional Charges ES/EN no-refetch - PASS
+- active-unit Reload behavior - PASS
+- F5 -> Reservation behavior - PASS
+- contextual financial notification deep-links - PASS
+- header Reservation-status synchronization - PASS
+- Reload header placement desktop/mobile - PASS
+- full-loading-on-Reload behavior - PASS
+- Additional Charges loading presentation - PASS
+- canonical spacing of Lifecycle / Refunds / Date changes / Operational history - PASS
+- Zoho nested tab and Guest Correspondence relocation - PASS
+- zero-email Zoho accessibility - PASS
+- shortened ES/EN navigation labels - PASS
+```
+
+Accepted automated validation ledger:
+
+```text
+- npm run final-i:validate - PASS, 111/111
+- npm run final-h:validate - PASS, 20/20
+- npm run lint - PASS
+- npm run build - PASS
+- git diff --check - PASS
+- vercel.json remains { "crons": [] }
+```
+
+This acceptance closure is documentation-only and does not modify runtime behavior, APIs, tab loaders, cache code, messages/runtime copy, Prisma schema, migrations, dependencies, environment variables, cron, scheduler, `vercel.json`, INFILE, FEL behavior, Production resources, Final-I.6.5 implementation, Final-I.7, Final-I.8, Final-I.9, or Phase 13.

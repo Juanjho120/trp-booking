@@ -39,15 +39,17 @@ Final-I.6.2 implementation and acceptance record: docs/216-final-i-6-2-admin-ux-
 Final-I.6.3 status: Completed and accepted on 2026-10-07
 Accepted Final-I.6.3 feature head: 235bd1f5a8a7d48161146c485c979d5f57a6530d
 Final-I.6.3 implementation and acceptance record: docs/217-final-i-6-3-additional-charges-email-delivery-layout-polish.md
-Final-I.6.4 status: Implementation completed; Hosted owner validation pending
-Final-I.6.4 implementation record: docs/218-final-i-6-4-reservation-detail-lazy-loading-tab-cache.md
+Final-I.6.4 status: Completed and accepted on 2026-10-08
+Accepted Final-I.6.4 feature head: c80f172ac9e1e366e54517020dd5b1a1e1c30a76
+Final-I.6.4 implementation and acceptance record: docs/218-final-i-6-4-reservation-detail-lazy-loading-tab-cache.md
+Final-I.6.5 status: Not started / next bounded Admin UX polish: Admin Contextual Help & Copy Density Polish
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
 Phase 13 status: Blocked / Not started until Final-I closes
 ```
 
-Final-I is an owner-requested pre-Production addendum registered after the accepted Final-H closure. It does not rewrite the historical acceptance of Phase 12, Final-A through Final-H, or the complete Post-Phase-12 / Pre-Phase-13 Final Improvement Track at `6922cf27e31e63fde071c0d0a810b141e44b9f90`. Final-I.1 is completed and accepted at its feature head `9a15f349c1104671f5555d1988caa56756e5ff0c`, and Final-I.2 is completed and accepted at `6451cb705d972c83a771a9ff39f6da80d130cf58`; Final-I.3 is completed and accepted on 2026-09-29 at accepted head `8c5a9186e392f35bdbc998f463c5c3c6cd0be295` after Hosted owner validation of the desktop, Android mobile browser, Android standalone PWA, Push deep-link, and final mobile/PWA auto-scroll refinement. Final-I.4 is completed and accepted on 2026-09-30 at accepted feature head `8e2d7d56a8e81a860833b05f4a28cba8a517bad4` after Hosted/mobile owner validation of representative guest emails. Final-I.5 is completed and accepted on 2026-09-30 at accepted head `fde3ae06427af1f8905e6f7589263c199f918553`; the provider-independent FEL fiscal domain contract remains recorded in `docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md`. Final-I.6 is completed and accepted on 2026-10-02 at accepted feature head `80469abda146d0d50516ab598a514a9ccea2db6d`; the implementation and acceptance record is `docs/214-final-i-6-fel-persistence-admin-draft-module.md`. Final-I.6.1 is completed and accepted on 2026-10-06 at accepted feature head `4d8a1dd5eb2f2eaaadf43bd8b97d7dd1df6e500e`; its implementation and acceptance record is `docs/215-final-i-6-1-interim-operational-hardening.md`. Final-I.6.2 is completed and accepted on 2026-10-07 at accepted feature head `d936983edd22607919148f871e3ba339ab4a4ed9`; Workstreams A-K are completed; its implementation and acceptance record is `docs/216-final-i-6-2-admin-ux-navigation-accordions-pagination-polish.md`. Final-I.6.3 is completed and accepted on 2026-10-07 at accepted feature head `235bd1f5a8a7d48161146c485c979d5f57a6530d`; it is a bounded Additional Charges email-delivery layout polish recorded in `docs/217-final-i-6-3-additional-charges-email-delivery-layout-polish.md`. Final-I.6.4 implementation is completed with Hosted owner validation pending; it is recorded in `docs/218-final-i-6-4-reservation-detail-lazy-loading-tab-cache.md`. Final-I remains active because Final-I.7 is blocked, Final-I.8 and Final-I.9 are not started, and Phase 13 remains not started and blocked until Final-I closes and receives owner acceptance.
+Final-I is an owner-requested pre-Production addendum registered after the accepted Final-H closure. It does not rewrite the historical acceptance of Phase 12, Final-A through Final-H, or the complete Post-Phase-12 / Pre-Phase-13 Final Improvement Track at `6922cf27e31e63fde071c0d0a810b141e44b9f90`. Final-I.1 is completed and accepted at its feature head `9a15f349c1104671f5555d1988caa56756e5ff0c`, and Final-I.2 is completed and accepted at `6451cb705d972c83a771a9ff39f6da80d130cf58`; Final-I.3 is completed and accepted on 2026-09-29 at accepted head `8c5a9186e392f35bdbc998f463c5c3c6cd0be295` after Hosted owner validation of the desktop, Android mobile browser, Android standalone PWA, Push deep-link, and final mobile/PWA auto-scroll refinement. Final-I.4 is completed and accepted on 2026-09-30 at accepted feature head `8e2d7d56a8e81a860833b05f4a28cba8a517bad4` after Hosted/mobile owner validation of representative guest emails. Final-I.5 is completed and accepted on 2026-09-30 at accepted head `fde3ae06427af1f8905e6f7589263c199f918553`; the provider-independent FEL fiscal domain contract remains recorded in `docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md`. Final-I.6 is completed and accepted on 2026-10-02 at accepted feature head `80469abda146d0d50516ab598a514a9ccea2db6d`; the implementation and acceptance record is `docs/214-final-i-6-fel-persistence-admin-draft-module.md`. Final-I.6.1 is completed and accepted on 2026-10-06 at accepted feature head `4d8a1dd5eb2f2eaaadf43bd8b97d7dd1df6e500e`; its implementation and acceptance record is `docs/215-final-i-6-1-interim-operational-hardening.md`. Final-I.6.2 is completed and accepted on 2026-10-07 at accepted feature head `d936983edd22607919148f871e3ba339ab4a4ed9`; Workstreams A-K are completed; its implementation and acceptance record is `docs/216-final-i-6-2-admin-ux-navigation-accordions-pagination-polish.md`. Final-I.6.3 is completed and accepted on 2026-10-07 at accepted feature head `235bd1f5a8a7d48161146c485c979d5f57a6530d`; it is a bounded Additional Charges email-delivery layout polish recorded in `docs/217-final-i-6-3-additional-charges-email-delivery-layout-polish.md`. Final-I.6.4 is completed and accepted on 2026-10-08 at accepted feature head c80f172ac9e1e366e54517020dd5b1a1e1c30a76; it is recorded in `docs/218-final-i-6-4-reservation-detail-lazy-loading-tab-cache.md`. Final-I remains active because Final-I.6.5 is not started, Final-I.7 is blocked, Final-I.8 and Final-I.9 are not started, and Phase 13 remains not started and blocked until Final-I closes and receives owner acceptance.
 
 Final-I.5 canonical amount-source hardening freezes `FelCommercialSourceAllocation.amountSnapshot` and `FelCommercialSourceAllocation.currencySnapshot` as the only canonical commercial amount source for future draft line totals. `FelLineSource` is frozen as provenance/evidence only: its rows are never summed to compute `FelLineItem.amount` or `FelDocument` totals, including when `sourceRole = AMOUNT_SOURCE`. Conceptual mandatory `FelLineSource.sourceAmount` / `sourceCurrency` fields were removed from the I.5 persistence contract to avoid two divergent monetary sources of truth; any supporting monetary evidence belongs only inside `sourceSnapshotJson` as non-authoritative audit/reproduction metadata.
 
@@ -804,7 +806,7 @@ Workstream D Hosted functional validation passed for the internal Additional Cha
 
 Final-I.6.2 is completed and accepted on 2026-10-07 at accepted feature head `d936983edd22607919148f871e3ba339ab4a4ed9`. The implementation and acceptance record is `docs/216-final-i-6-2-admin-ux-navigation-accordions-pagination-polish.md`. Workstreams A-K are completed inside the same subphase. The later Final-I.6.3 is an independent bounded layout polish and does not replace the accepted Final-I.6.2 head.
 
-Implemented scope:
+Accepted scope:
 
 ```text
 - Additional Charges nested tabs now use the compact Email Delivery tab pattern while preserving the default Charges tab and all existing charge/payment-request behavior.
@@ -828,7 +830,7 @@ Final-I.6.3 is completed and accepted on 2026-10-07 at accepted feature head `23
 
 Owner Hosted validation and formal acceptance passed on 2026-10-07. This documentation-only closure records acceptance without replacing the accepted Final-I.6.3 feature head.
 
-Implemented scope:
+Accepted scope:
 
 ```text
 - Additional Charges -> Payment Requests -> Email delivery metadata cards now place status/origin badges and the optional resend action in the card header.
@@ -846,11 +848,11 @@ Frozen non-scope:
 - Final-I.7 remains blocked pending official INFILE technical documentation + Test credentials.
 ```
 
-## Final-I.6.4 Implementation Completed
+## Final-I.6.4 Completed And Accepted
 
-Final-I.6.4 implementation is completed with Hosted owner validation pending. The implementation record is `docs/218-final-i-6-4-reservation-detail-lazy-loading-tab-cache.md`.
+Final-I.6.4 is completed and accepted on 2026-10-08 at accepted feature head c80f172ac9e1e366e54517020dd5b1a1e1c30a76. Owner formal acceptance passed on 2026-10-08. The implementation and acceptance record is `docs/218-final-i-6-4-reservation-detail-lazy-loading-tab-cache.md`.
 
-Implemented scope:
+Accepted scope:
 
 ```text
 - Admin Reservation detail initial route now loads only the lightweight id/status shell plus safe contextual focus parsing.
@@ -1034,7 +1036,7 @@ Final-I.6.1 Workstream E architecture-correction validation:
 - git diff --check - PASS; Windows CRLF normalization warnings only
 Final-I.6.1 Workstream E Hosted validation + Workstream A implementation validation:
 - npm run final-i:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; rerun outside the sandbox PASS, 65/65
-- npm run final-h:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; rerun outside the sandbox PASS, 20/20
+- npm run final-h:validate - PASS, 20/20
 - npm run lint - PASS
 - npm run build - sandbox attempt failed fetching Google Fonts; rerun outside the sandbox PASS
 - git diff --check - PASS; Windows CRLF normalization warnings only
@@ -1047,7 +1049,7 @@ Final-I.6.1 Workstream A confidence hardening validation:
 - git diff --check - PASS; Windows CRLF normalization warnings only
 Final-I.6.1 Workstream A timezone resolution correction validation:
 - npm run final-i:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; rerun outside the sandbox PASS, 67/67
-- npm run final-h:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; rerun outside the sandbox PASS, 20/20
+- npm run final-h:validate - PASS, 20/20
 - npm run lint - PASS
 - npm run build - sandbox attempt failed fetching Google Fonts; rerun outside the sandbox PASS
 - npm audit --omit=dev - sandbox attempt failed against the npm audit endpoint/cache; rerun outside the sandbox PASS, 0 vulnerabilities
@@ -1061,7 +1063,7 @@ Workstreams B+C implementation validation:
 - npm run db:migrate:status - initial sandbox attempt returned Schema engine error; rerun outside the sandbox PASS, 31 migrations, database schema is up to date
 - npm run final-i:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; rerun outside the sandbox PASS, 72/72
 - TRP_ENVIRONMENT=test npm run final-i:db:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; after a test-only DB fixture size reduction preserved the existing line-order/grouped-extra assertions under the accepted transaction timeout, rerun outside the sandbox PASS, 14/14
-- npm run final-h:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; rerun outside the sandbox PASS, 20/20
+- npm run final-h:validate - PASS, 20/20
 - npm run lint - PASS
 - npm run build - sandbox attempt failed fetching Google Fonts; rerun outside the sandbox PASS
 - npm audit --omit=dev - sandbox attempt failed against the npm audit endpoint/cache; rerun outside the sandbox PASS, 0 vulnerabilities
@@ -1069,7 +1071,7 @@ Workstreams B+C implementation validation:
 
 Workstream D implementation validation:
 - npm run final-i:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; rerun outside the sandbox PASS, 77/77
-- npm run final-h:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; rerun outside the sandbox PASS, 20/20
+- npm run final-h:validate - PASS, 20/20
 - npm run lint - PASS
 - npm run build - initial sandbox attempt failed fetching Google Fonts; rerun outside the sandbox PASS
 - npm audit --omit=dev - FAIL outside the sandbox with existing dependency advisories for sharp <0.35.5 and source-map-js 1.0.0-1.2.1; no dependency change is part of this UI-only Workstream D checkpoint
@@ -1077,27 +1079,27 @@ Workstream D implementation validation:
 
 Workstream D full-width Charge accordion-header refinement validation:
 - npm run final-i:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; rerun outside the sandbox PASS, 78/78
-- npm run final-h:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; rerun outside the sandbox PASS, 20/20
+- npm run final-h:validate - PASS, 20/20
 - npm run lint - PASS
 - npm run build - initial sandbox attempt failed fetching Google Fonts; rerun outside the sandbox PASS
 - git diff --check - PASS; Windows CRLF normalization warnings only
 
 Final-I.6.1 documentation acceptance closure validation:
 - npm run final-i:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; rerun outside the sandbox PASS, 78/78
-- npm run final-h:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; rerun outside the sandbox PASS, 20/20
+- npm run final-h:validate - PASS, 20/20
 - npm run lint - PASS
-- npm run build - initial sandbox attempt failed fetching Google Fonts; rerun outside the sandbox PASS; Next slow filesystem warning only
+- npm run build - PASS; Next slow filesystem warning only
 - git diff --check - PASS; Windows CRLF normalization warnings only
 
 Final-I.6.2 documentation acceptance closure validation:
 - npm run final-i:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; rerun outside the sandbox PASS, 96/96
 - npm run final-h:validate - run outside the sandbox after the Final-I tsx sandbox ENOMEM blocker; PASS, 20/20
 - npm run lint - PASS
-- npm run build - initial sandbox attempt failed fetching Google Fonts; rerun outside the sandbox PASS; Next slow filesystem warning only
+- npm run build - PASS; Next slow filesystem warning only
 - git diff --check - PASS; Windows CRLF normalization warnings only
 Final-I.6.3 implementation validation:
 - npm run final-i:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; first outside-sandbox run reached 98/99 and exposed an overly rigid test assertion, which was corrected before the final outside-sandbox rerun passed, 99/99
-- npm run final-h:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; rerun outside the sandbox PASS, 20/20
+- npm run final-h:validate - PASS, 20/20
 - npm run lint - PASS
 - npm run build - initial sandbox attempt failed fetching Google Fonts; rerun outside the sandbox PASS; Next slow filesystem warning and non-fatal Prisma database reachability warnings during static generation only
 - git diff --check - PASS; Windows CRLF normalization warnings only
@@ -1106,13 +1108,13 @@ Final-I.6.3 documentation acceptance closure validation:
 - npm run final-i:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; rerun outside the sandbox PASS, 99/99
 - npm run final-h:validate - run outside the sandbox after the Final-I tsx sandbox ENOMEM blocker; PASS, 20/20
 - npm run lint - PASS
-- npm run build - initial sandbox attempt failed fetching Google Fonts; rerun outside the sandbox PASS; Next slow filesystem warning only
+- npm run build - PASS; Next slow filesystem warning only
 - git diff --check - PASS; Windows CRLF normalization warnings only
-Final-I.6.4 implementation validation:
-- npm run final-i:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; first outside-sandbox run reached 98/107 and exposed an obsolete I.6.2 focus expectation, which was reconciled with the new lightweight focus resolver; final outside-sandbox rerun PASS, 107/107
-- npm run final-h:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; rerun outside the sandbox PASS, 20/20
+Final-I.6.4 accepted validation:
+- npm run final-i:validate - PASS, 111/111
+- npm run final-h:validate - PASS, 20/20
 - npm run lint - PASS
-- npm run build - initial sandbox attempt failed fetching Google Fonts; rerun outside the sandbox PASS; Next slow filesystem warning only
+- npm run build - PASS; Next slow filesystem warning only
 - git diff --check - PASS; Windows CRLF normalization warnings only
 ```
 
