@@ -24,7 +24,7 @@ function expectExcludes(source: string, unexpected: string): void {
 }
 
 
-test("I.6.5 shared admin help is localized, accessible and not hover-only", () => {
+test("I.6.5 shared admin help is localized, accessible and deterministic", () => {
   const component = read(`${ADMIN_COMPONENTS}/admin-contextual-help.tsx`);
   const esMessages = read("messages/es.ts");
   const enMessages = read("messages/en.ts");
@@ -34,28 +34,48 @@ test("I.6.5 shared admin help is localized, accessible and not hover-only", () =
     "export function AdminContextualHelp",
     "CircleHelp",
     "PopoverPrimitive.Root",
-    "PopoverPrimitive.Trigger asChild",
+    "PopoverPrimitive.Anchor asChild",
     "PopoverPrimitive.Content",
     "messages.admin.feedback.help",
+    "const contentId = useId();",
+    "const [open, setOpen] = useState(false);",
+    "const [pinnedOpen, setPinnedOpen] = useState(false);",
+    "pinnedOpenRef",
+    "onOpenChange={handleOpenChange}",
     "aria-label={label}",
+    "aria-controls={contentId}",
+    "aria-expanded={open}",
+    "aria-haspopup=\"dialog\"",
     "aria-hidden=\"true\"",
     "type=\"button\"",
     "variant=\"ghost\"",
-    "onOpenChange={setOpen}",
     "onMouseEnter={showHelp}",
-    "onFocus={showHelp}",
     "onMouseLeave={scheduleClose}",
     "onBlur={scheduleClose}",
+    "onClick={handleActivation}",
+    "onFocus={handleFocus}",
+    "matches(\":focus-visible\")",
+    "setPinned(false)",
+    "setPinned(true)",
+    "onMouseEnter={clearCloseTimer}",
+    "id={contentId}",
+    "onOpenAutoFocus={(event) => {",
+    "onCloseAutoFocus={(event) => {",
+    "event.preventDefault();",
+    "useEffect(() =>",
+    "size-10 rounded-full text-muted-foreground sm:size-7",
+    "max-w-[min(24rem,calc(100vw-2rem))]",
   ]) {
     expectIncludes(component, expected);
   }
 
   expectExcludes(component, "title=");
+  expectExcludes(component, "PopoverPrimitive.Trigger asChild");
+  expectExcludes(component, "onFocus={showHelp}");
   expectIncludes(esMessages, 'help: "Ayuda"');
   expectIncludes(enMessages, 'help: "Help"');
   expectIncludes(packageJson, '"radix-ui"');
 });
-
 test("I.6.5 admin page header moves descriptions behind contextual help", () => {
   const header = read(`${ADMIN_COMPONENTS}/admin-page-header.tsx`);
 
@@ -310,7 +330,7 @@ test("I.6.5 implementation record contains the complete admin component audit", 
     "Category A",
     "Category B",
     "Category C",
-    "No runtime/schema/migration/provider/cron/dependency changes",
+    "Runtime changes are limited to Admin presentation/accessibility",
     "Final-I.6.5 — Implementation completed; Hosted owner validation pending",
     "Final-I.7 — Blocked",
   ]) {

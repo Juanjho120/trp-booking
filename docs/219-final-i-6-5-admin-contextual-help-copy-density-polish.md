@@ -15,7 +15,7 @@ Final-I.6.5 — Implementation completed; Hosted owner validation pending.
 
 ## Scope Boundaries
 
-No runtime/schema/migration/provider/cron/dependency changes.
+Runtime changes are limited to Admin presentation/accessibility; no domain/API/schema/migration/provider/cron/dependency/configuration behavior changed.
 
 This subphase only reduces always-visible admin explanatory copy by adding reusable contextual help. It preserves existing admin data, workflows, risk warnings, destructive-action guardrails, security notes, financial boundaries, provider behavior, API behavior, reservation detail lazy loading, tab caching, and financial-tab separation.
 
@@ -25,6 +25,7 @@ The implementation uses the existing `radix-ui` dependency and `lucide-react` ic
 
 - Added `features/admin/components/admin-contextual-help.tsx` as a reusable localized admin help trigger.
 - The trigger is icon-only (`CircleHelp`), uses localized accessible labels (`Ayuda` / `Help`), and is available through pointer hover, keyboard focus, click, and tap via Radix Popover.
+- The shared help primitive was hardened to use a controlled Radix Popover Anchor, explicit click/tap pinning, focus-visible keyboard opening, Escape/outside dismissal through `onOpenChange`, prevented Radix auto-focus jumps, timer cleanup on unmount, a larger mobile touch target, and viewport-safe popover width.
 - Refactored `features/admin/components/admin-page-header.tsx` so page-level descriptions are no longer persistent paragraphs; they are available through contextual help beside the single `<h1>`.
 - Moved only Category A explanatory copy behind contextual help in high-density admin surfaces.
 - Kept Category B operational metadata visible, including ids, timestamps, statuses, provider references, guests/properties, counts, amounts, and email metadata that admins need for work.

@@ -2105,9 +2105,9 @@ Final-I.8-Final-I.9: Not started
 Phase 13: Blocked / Not started until Final-I closes
 ```
 
-Final-I.6.5 adds reusable Admin contextual help and moves only Category A explanatory copy out of persistent admin panels. Operational metadata remains visible, and critical warnings/security/financial/provider boundaries remain visible. The component audit is recorded in `docs/219-final-i-6-5-admin-contextual-help-copy-density-polish.md`.
+Final-I.6.5 adds reusable Admin contextual help and moves only Category A explanatory copy out of persistent admin panels. Operational metadata remains visible, and critical warnings/security/financial/provider boundaries remain visible. The shared help primitive now uses controlled Radix Anchor behavior with explicit click/tap pinning, focus-visible keyboard opening, Escape/outside dismissal, prevented auto-focus jumps, timer cleanup, a larger mobile touch target, and viewport-safe popover width. The component audit is recorded in `docs/219-final-i-6-5-admin-contextual-help-copy-density-polish.md`.
 
-No runtime behavior, schema, migration, dependency, environment variable, provider integration, cron/scheduler registration, `vercel.json`, INFILE/FEL provider behavior, Final-I.7, Final-I.8, Final-I.9, Phase 13, or Production resource is introduced by this implementation.
+Runtime changes are limited to Admin presentation/accessibility. No domain/API/schema/migration/dependency/environment variable/provider integration, cron/scheduler registration, `vercel.json`, INFILE/FEL provider behavior, Final-I.7, Final-I.8, Final-I.9, Phase 13, or Production resource is introduced by this implementation.
 
 Validation executed for I.6.5: `npm run final-i:validate` PASS 117/117; `npm run final-h:validate` PASS 20/20; `npm run lint` PASS; `npm run build` PASS with Next slow filesystem warning only; `git diff --check` PASS with Windows CRLF normalization warnings only; `vercel.json` remains exactly `{ "crons": [] }`.
 ## 2026-10-08 — Final-I.6.4 Completed And Accepted
