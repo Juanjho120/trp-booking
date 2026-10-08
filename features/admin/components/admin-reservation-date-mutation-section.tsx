@@ -195,11 +195,13 @@ function toInitialDraft(
 }
 
 export function AdminReservationDateMutationSection({
+  embedded = false,
   focusedLifecycleRequestId = null,
   onDataChanged,
   onInitialFocusApplied,
   reservation,
 }: Readonly<{
+  embedded?: boolean;
   focusedLifecycleRequestId?: string | null;
   onDataChanged?: () => void;
   onInitialFocusApplied?: () => void;
@@ -610,7 +612,7 @@ export function AdminReservationDateMutationSection({
         variant={errorFeedback ? "error" : "success"}
       />
 
-      <Card className="mt-6 border-border/70 bg-card shadow-sm">
+      <Card className={`${embedded ? "mt-0" : "mt-6"} border-border/70 bg-card shadow-sm`}>
         <CardHeader className="gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <div className="mb-2 flex items-center gap-2 text-sm font-medium text-muted-foreground">

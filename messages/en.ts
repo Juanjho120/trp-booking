@@ -961,6 +961,14 @@ export const enMessages = {
           summary: "Summary",
           attempts: "Attempts",
         },
+        navigation: {
+          lifecycle: "Lifecycle",
+          changes: "Date changes",
+          history: "Operational history",
+        },
+        emailTabs: {
+          zoho: "Zoho",
+        },
       },
       additionalCharges: {
         badge: "Ancillary charges",

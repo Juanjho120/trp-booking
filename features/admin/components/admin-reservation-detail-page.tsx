@@ -7,6 +7,7 @@ import {
   CreditCard,
   ExternalLink,
   History,
+  Inbox,
   Loader2,
   Mail,
   ReceiptText,
@@ -1000,7 +1001,7 @@ export function AdminReservationDetailPage({
             </TabsTrigger>
             <TabsTrigger className="min-h-10 shrink-0 gap-2" value="lifecycle">
               <ShieldCheck aria-hidden="true" className="size-4 shrink-0" />
-              {reservationCopy.cancellation.badge}
+              {detailCopy.navigation.lifecycle}
             </TabsTrigger>
             <TabsTrigger
               className="min-h-10 shrink-0 gap-2"
@@ -1015,11 +1016,11 @@ export function AdminReservationDetailPage({
             </TabsTrigger>
             <TabsTrigger className="min-h-10 shrink-0 gap-2" value="changes">
               <CalendarClock aria-hidden="true" className="size-4 shrink-0" />
-              {reservationCopy.dateMutation.title}
+              {detailCopy.navigation.changes}
             </TabsTrigger>
             <TabsTrigger className="min-h-10 shrink-0 gap-2" value="history">
               <History aria-hidden="true" className="size-4 shrink-0" />
-              {reservationCopy.operationalHistory.badge}
+              {detailCopy.navigation.history}
             </TabsTrigger>
           </TabsList>
         </div>
@@ -1038,7 +1039,6 @@ export function AdminReservationDetailPage({
               formatDate={formatDate}
               formatDateTime={formatDateTime}
               formatMoney={formatMoney}
-              onCopyGuestEmail={copyGuestEmailForZoho}
               renderError={() => renderErrorPanel(() => void loadServerTab("reservation", { force: true }))}
               renderLoadingPanel={renderLoadingPanel}
             />
@@ -1082,6 +1082,7 @@ export function AdminReservationDetailPage({
           >
             <EmailsPanel
               cache={emailsCache}
+              onCopyGuestEmail={copyGuestEmailForZoho}
               renderEmailNotification={renderEmailNotification}
               renderError={() => renderErrorPanel(() => void loadServerTab("emails", { force: true }))}
               renderLoadingPanel={renderLoadingPanel}
@@ -1098,12 +1099,11 @@ export function AdminReservationDetailPage({
             {isCacheBusy(lifecycleCache) ? (
               renderLoadingPanel(detailCopy.loading.lifecycle)
             ) : lifecycleCache.data ? (
-              <div className="-mt-6">
-                <AdminReservationCancellationSection
-                  onDataChanged={handleLifecycleChanged}
-                  reservation={lifecycleCache.data}
-                />
-              </div>
+              <AdminReservationCancellationSection
+                embedded
+                onDataChanged={handleLifecycleChanged}
+                reservation={lifecycleCache.data}
+              />
             ) : lifecycleCache.status === "error" ? (
               renderErrorPanel(() => void loadServerTab("lifecycle", { force: true }))
             ) : (
@@ -1163,18 +1163,17 @@ export function AdminReservationDetailPage({
             {isCacheBusy(changesCache) ? (
               renderLoadingPanel(detailCopy.loading.changes)
             ) : changesCache.data ? (
-              <div className="-mt-6">
-                <AdminReservationDateMutationSection
-                  focusedLifecycleRequestId={
-                    initialFocus?.kind === "lifecycleAdjustment"
-                      ? initialFocus.focusId
-                      : null
-                  }
-                  onDataChanged={handleChangesChanged}
-                  onInitialFocusApplied={cleanupInitialFocusQuery}
-                  reservation={changesCache.data}
-                />
-              </div>
+              <AdminReservationDateMutationSection
+                embedded
+                focusedLifecycleRequestId={
+                  initialFocus?.kind === "lifecycleAdjustment"
+                    ? initialFocus.focusId
+                    : null
+                }
+                onDataChanged={handleChangesChanged}
+                onInitialFocusApplied={cleanupInitialFocusQuery}
+                reservation={changesCache.data}
+              />
             ) : changesCache.status === "error" ? (
               renderErrorPanel(() => void loadServerTab("changes", { force: true }))
             ) : (
@@ -1192,11 +1191,10 @@ export function AdminReservationDetailPage({
             {isCacheBusy(historyCache) ? (
               renderLoadingPanel(detailCopy.loading.history)
             ) : historyCache.data ? (
-              <div className="-mt-6">
-                <AdminReservationOperationalHistorySection
-                  reservation={historyCache.data}
-                />
-              </div>
+              <AdminReservationOperationalHistorySection
+                embedded
+                reservation={historyCache.data}
+              />
             ) : historyCache.status === "error" ? (
               renderErrorPanel(() => void loadServerTab("history", { force: true }))
             ) : (
@@ -1291,7 +1289,6 @@ function ReservationOverviewPanel({
   formatDate,
   formatDateTime,
   formatMoney,
-  onCopyGuestEmail,
   renderError,
   renderLoadingPanel,
 }: Readonly<{
@@ -1300,7 +1297,6 @@ function ReservationOverviewPanel({
   formatDate: (value: string) => string;
   formatDateTime: (value: string | null) => string;
   formatMoney: (value: string, currency: string) => string;
-  onCopyGuestEmail: (value: string) => Promise<void>;
   renderError: () => ReactNode;
   renderLoadingPanel: (message: string) => ReactNode;
 }>) {
@@ -1309,7 +1305,6 @@ function ReservationOverviewPanel({
   const paymentCopy = messages.admin.paymentsPage;
   const requestCopy = messages.reservations.request;
   const pendingCopy = messages.reservations.pendingHold;
-  const correspondenceCopy = reservationCopy.correspondence;
   const reservation = cache.data;
 
   if (isCacheBusy(cache)) {
@@ -1387,43 +1382,6 @@ function ReservationOverviewPanel({
         formatMoney={formatMoney}
       />
 
-      <Card className="mt-6 border-border/70 bg-card shadow-sm">
-        <CardHeader>
-          <CardTitle>{correspondenceCopy.title}</CardTitle>
-          <CardDescription>{correspondenceCopy.description}</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-          <div className="min-w-0">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">
-              {requestCopy.fields.guestEmail}
-            </p>
-            <p className="mt-1 break-all text-sm font-medium">
-              {reservation.guestEmail}
-            </p>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-              {correspondenceCopy.helper}
-            </p>
-          </div>
-
-          <Button asChild className="w-full shrink-0 sm:w-auto">
-            <a
-              href={siteConfig.correspondence.zohoMailWebUrl}
-              onClick={() => void onCopyGuestEmail(reservation.guestEmail)}
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              <Mail aria-hidden="true" />
-              <span className="hidden sm:inline">
-                {correspondenceCopy.actions.openDesktop}
-              </span>
-              <span className="sm:hidden">
-                {correspondenceCopy.actions.openMobile}
-              </span>
-              <ExternalLink aria-hidden="true" />
-            </a>
-          </Button>
-        </CardContent>
-      </Card>
     </>
   );
 }
@@ -1696,11 +1654,13 @@ function FinancialSummaryContent({
 
 function EmailsPanel({
   cache,
+  onCopyGuestEmail,
   renderEmailNotification,
   renderError,
   renderLoadingPanel,
 }: Readonly<{
   cache: CacheEntry<AdminReservationEmailsTab>;
+  onCopyGuestEmail: (value: string) => Promise<void>;
   renderEmailNotification: (
     notification: AdminReservationDetailEmailNotification,
     reservationStatus: string,
@@ -1725,6 +1685,7 @@ function EmailsPanel({
   return (
     <EmailNotificationContent
       emailData={emailData}
+      onCopyGuestEmail={onCopyGuestEmail}
       renderEmailNotification={renderEmailNotification}
     />
   );
@@ -1732,9 +1693,11 @@ function EmailsPanel({
 
 function EmailNotificationContent({
   emailData,
+  onCopyGuestEmail,
   renderEmailNotification,
 }: Readonly<{
   emailData: AdminReservationEmailsTab;
+  onCopyGuestEmail: (value: string) => Promise<void>;
   renderEmailNotification: (
     notification: AdminReservationDetailEmailNotification,
     reservationStatus: string,
@@ -1742,6 +1705,7 @@ function EmailNotificationContent({
 }>) {
   const { messages } = useLocale();
   const reservationCopy = messages.admin.reservationsPage;
+  const detailCopy = reservationCopy.detailTabs;
   const notificationCopy = reservationCopy.notifications;
   const emailNotificationGroups = useMemo(
     () => groupAdminReservationEmailNotifications(emailData.emailNotifications),
@@ -1754,7 +1718,11 @@ function EmailNotificationContent({
     emailNotificationGroups.administration,
   );
   const defaultEmailGroup =
-    emailNotificationGroups.guest.length > 0 ? "guest" : "administration";
+    emailNotificationGroups.guest.length > 0
+      ? "guest"
+      : emailNotificationGroups.administration.length > 0
+        ? "administration"
+        : "zoho";
   const paginationLabels = {
     next: reservationCopy.actions.next,
     of: reservationCopy.labels.of,
@@ -1770,102 +1738,111 @@ function EmailNotificationContent({
         <CardDescription>{notificationCopy.description}</CardDescription>
       </CardHeader>
       <CardContent>
-        {emailData.emailNotifications.length > 0 ? (
-          <Tabs defaultValue={defaultEmailGroup}>
-            <div className="-mx-1 overflow-x-auto px-1 pb-2">
-              <TabsList
-                aria-label={notificationCopy.title}
-                className="inline-flex h-auto min-w-full justify-start gap-1 rounded-2xl border border-border/70 bg-muted/40 p-1.5 sm:min-w-0"
+        <Tabs defaultValue={defaultEmailGroup}>
+          <div className="-mx-1 overflow-x-auto px-1 pb-2">
+            <TabsList
+              aria-label={notificationCopy.title}
+              className="inline-flex h-auto min-w-full justify-start gap-1 rounded-2xl border border-border/70 bg-muted/40 p-1.5 sm:min-w-0"
+            >
+              <TabsTrigger className="min-h-10 shrink-0 gap-2" value="guest">
+                <Mail aria-hidden="true" className="size-4 shrink-0" />
+                {reservationCopy.labels.guests}
+                <Badge variant="secondary">
+                  {emailNotificationGroups.guest.length}
+                </Badge>
+              </TabsTrigger>
+              <TabsTrigger
+                className="min-h-10 shrink-0 gap-2"
+                value="administration"
               >
-                <TabsTrigger className="min-h-10 shrink-0 gap-2" value="guest">
-                  <Mail aria-hidden="true" className="size-4 shrink-0" />
-                  {reservationCopy.labels.guests}
-                  <Badge variant="secondary">
-                    {emailNotificationGroups.guest.length}
-                  </Badge>
-                </TabsTrigger>
-                <TabsTrigger
-                  className="min-h-10 shrink-0 gap-2"
-                  value="administration"
+                <ShieldCheck aria-hidden="true" className="size-4 shrink-0" />
+                {messages.footer.adminEmailLabel}
+                <Badge variant="secondary">
+                  {emailNotificationGroups.administration.length}
+                </Badge>
+              </TabsTrigger>
+              <TabsTrigger className="min-h-10 shrink-0 gap-2" value="zoho">
+                <Inbox aria-hidden="true" className="size-4 shrink-0" />
+                {detailCopy.emailTabs.zoho}
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          <TabsContent
+            className="mt-4 data-[state=inactive]:hidden"
+            forceMount
+            value="guest"
+          >
+            {emailNotificationGroups.guest.length > 0 ? (
+              <>
+                <Accordion
+                  className="grid gap-3"
+                  collapsible
+                  key={`guest-${guestEmailPagination.page}-${guestEmailPagination.pageSize}`}
+                  type="single"
                 >
-                  <ShieldCheck aria-hidden="true" className="size-4 shrink-0" />
-                  {messages.footer.adminEmailLabel}
-                  <Badge variant="secondary">
-                    {emailNotificationGroups.administration.length}
-                  </Badge>
-                </TabsTrigger>
-              </TabsList>
-            </div>
+                  {guestEmailPagination.pageItems.map((notification) =>
+                    renderEmailNotification(notification, emailData.status),
+                  )}
+                </Accordion>
+                <AdminRecordPagination
+                  labels={paginationLabels}
+                  onPageChange={guestEmailPagination.setPage}
+                  onPageSizeChange={guestEmailPagination.changePageSize}
+                  page={guestEmailPagination.page}
+                  pageSize={guestEmailPagination.pageSize}
+                  totalItems={guestEmailPagination.totalItems}
+                  totalPages={guestEmailPagination.totalPages}
+                />
+              </>
+            ) : (
+              <EmailGroupEmptyState label={reservationCopy.labels.results} />
+            )}
+          </TabsContent>
 
-            <TabsContent
-              className="mt-4 data-[state=inactive]:hidden"
-              forceMount
-              value="guest"
-            >
-              {emailNotificationGroups.guest.length > 0 ? (
-                <>
-                  <Accordion
-                    className="grid gap-3"
-                    collapsible
-                    key={`guest-${guestEmailPagination.page}-${guestEmailPagination.pageSize}`}
-                    type="single"
-                  >
-                    {guestEmailPagination.pageItems.map((notification) =>
-                      renderEmailNotification(notification, emailData.status),
-                    )}
-                  </Accordion>
-                  <AdminRecordPagination
-                    labels={paginationLabels}
-                    onPageChange={guestEmailPagination.setPage}
-                    onPageSizeChange={guestEmailPagination.changePageSize}
-                    page={guestEmailPagination.page}
-                    pageSize={guestEmailPagination.pageSize}
-                    totalItems={guestEmailPagination.totalItems}
-                    totalPages={guestEmailPagination.totalPages}
-                  />
-                </>
-              ) : (
-                <EmailGroupEmptyState label={reservationCopy.labels.results} />
-              )}
-            </TabsContent>
+          <TabsContent
+            className="mt-4 data-[state=inactive]:hidden"
+            forceMount
+            value="administration"
+          >
+            {emailNotificationGroups.administration.length > 0 ? (
+              <>
+                <Accordion
+                  className="grid gap-3"
+                  collapsible
+                  key={`administration-${adminEmailPagination.page}-${adminEmailPagination.pageSize}`}
+                  type="single"
+                >
+                  {adminEmailPagination.pageItems.map((notification) =>
+                    renderEmailNotification(notification, emailData.status),
+                  )}
+                </Accordion>
+                <AdminRecordPagination
+                  labels={paginationLabels}
+                  onPageChange={adminEmailPagination.setPage}
+                  onPageSizeChange={adminEmailPagination.changePageSize}
+                  page={adminEmailPagination.page}
+                  pageSize={adminEmailPagination.pageSize}
+                  totalItems={adminEmailPagination.totalItems}
+                  totalPages={adminEmailPagination.totalPages}
+                />
+              </>
+            ) : (
+              <EmailGroupEmptyState label={reservationCopy.labels.results} />
+            )}
+          </TabsContent>
 
-            <TabsContent
-              className="mt-4 data-[state=inactive]:hidden"
-              forceMount
-              value="administration"
-            >
-              {emailNotificationGroups.administration.length > 0 ? (
-                <>
-                  <Accordion
-                    className="grid gap-3"
-                    collapsible
-                    key={`administration-${adminEmailPagination.page}-${adminEmailPagination.pageSize}`}
-                    type="single"
-                  >
-                    {adminEmailPagination.pageItems.map((notification) =>
-                      renderEmailNotification(notification, emailData.status),
-                    )}
-                  </Accordion>
-                  <AdminRecordPagination
-                    labels={paginationLabels}
-                    onPageChange={adminEmailPagination.setPage}
-                    onPageSizeChange={adminEmailPagination.changePageSize}
-                    page={adminEmailPagination.page}
-                    pageSize={adminEmailPagination.pageSize}
-                    totalItems={adminEmailPagination.totalItems}
-                    totalPages={adminEmailPagination.totalPages}
-                  />
-                </>
-              ) : (
-                <EmailGroupEmptyState label={reservationCopy.labels.results} />
-              )}
-            </TabsContent>
-          </Tabs>
-        ) : (
-          <p className="text-sm text-muted-foreground">
-            {notificationCopy.empty}
-          </p>
-        )}
+          <TabsContent
+            className="mt-4 data-[state=inactive]:hidden"
+            forceMount
+            value="zoho"
+          >
+            <ZohoCorrespondenceCard
+              guestEmail={emailData.guestEmail}
+              onCopyGuestEmail={onCopyGuestEmail}
+            />
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
   );
@@ -1892,8 +1869,9 @@ function RefundsPanel({
   };
 
   return (
-    <div className="-mt-6">
+    <>
       <AdminReservationRefundSection
+        embedded
         focusedRefundId={focusedRefundId}
         onDataChanged={onDataChanged}
         onInitialFocusApplied={onInitialFocusApplied}
@@ -1905,10 +1883,60 @@ function RefundsPanel({
         onInitialFocusApplied={onInitialFocusApplied}
         reservation={reservation}
       />
-    </div>
+    </>
   );
 }
 
+function ZohoCorrespondenceCard({
+  guestEmail,
+  onCopyGuestEmail,
+}: Readonly<{
+  guestEmail: string;
+  onCopyGuestEmail: (value: string) => Promise<void>;
+}>) {
+  const { messages } = useLocale();
+  const reservationCopy = messages.admin.reservationsPage;
+  const requestCopy = messages.reservations.request;
+  const correspondenceCopy = reservationCopy.correspondence;
+
+  return (
+    <Card className="border-border/70 bg-card shadow-sm">
+      <CardHeader>
+        <CardTitle>{correspondenceCopy.title}</CardTitle>
+        <CardDescription>{correspondenceCopy.description}</CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">
+            {requestCopy.fields.guestEmail}
+          </p>
+          <p className="mt-1 break-all text-sm font-medium">{guestEmail}</p>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+            {correspondenceCopy.helper}
+          </p>
+        </div>
+
+        <Button asChild className="w-full shrink-0 sm:w-auto">
+          <a
+            href={siteConfig.correspondence.zohoMailWebUrl}
+            onClick={() => void onCopyGuestEmail(guestEmail)}
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            <Mail aria-hidden="true" />
+            <span className="hidden sm:inline">
+              {correspondenceCopy.actions.openDesktop}
+            </span>
+            <span className="sm:hidden">
+              {correspondenceCopy.actions.openMobile}
+            </span>
+            <ExternalLink aria-hidden="true" />
+          </a>
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
 function EmailGroupEmptyState({ label }: Readonly<{ label: string }>) {
   return (
     <div className="rounded-2xl border border-dashed border-border bg-muted/10 px-4 py-8 text-center text-sm text-muted-foreground">

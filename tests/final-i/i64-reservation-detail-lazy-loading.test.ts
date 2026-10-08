@@ -12,6 +12,10 @@ const DETAIL_PAGE =
   "features/admin/components/admin-reservation-detail-page.tsx";
 const ADDITIONAL_CHARGES =
   "features/admin/components/admin-additional-charges-section.tsx";
+const CANCELLATION_SECTION =
+  "features/admin/components/admin-reservation-cancellation-section.tsx";
+const OPERATIONAL_HISTORY_SECTION =
+  "features/admin/components/admin-reservation-operational-history-section.tsx";
 const FOCUS_SCROLL_HOOK =
   "features/admin/components/use-admin-initial-focus-scroll.ts";
 const DATE_MUTATION_SECTION =
@@ -286,7 +290,11 @@ test("I.6.4 Additional Charges management reload is explicit and locale-stable",
   expectNotIncludes(explicitReloadEffect, "void loadManagement(false);");
   expectIncludes(loadingBlock, "aria-live=\"polite\"");
   expectIncludes(loadingBlock, "role=\"status\"");
-  expectIncludes(loadingBlock, "<CardDescription>{copy.loading}</CardDescription>");
+  expectIncludes(loadingBlock, "<Loader2");
+  expectIncludes(loadingBlock, "{copy.loading}");
+  expectIncludes(loadingBlock, "CardContent className=\"flex items-center gap-3 p-6 text-sm text-muted-foreground\"");
+  expectNotIncludes(loadingBlock, "<CardTitle>{copy.title}</CardTitle>");
+  expectNotIncludes(loadingBlock, "<CardDescription>{copy.loading}</CardDescription>");
   expectIncludes(component, "await loadManagement();");
   expectIncludes(component, "onDataChanged?.();");
   expectIncludes(loadManagement, "onLoadBusyChangeRef.current?.(true);");
@@ -299,6 +307,10 @@ test("I.6.4 Additional Charges management reload is explicit and locale-stable",
 
 test("I.6.4 mutations invalidate dependent units without full route refresh", () => {
   const component = read(DETAIL_PAGE);
+  const cancellationSection = read(CANCELLATION_SECTION);
+  const dateMutationSection = read(DATE_MUTATION_SECTION);
+  const historySection = read(OPERATIONAL_HISTORY_SECTION);
+  const refundSection = read(REFUND_SECTION);
 
   for (const expected of [
     "function handleLifecycleChanged(): void {",
@@ -313,6 +325,27 @@ test("I.6.4 mutations invalidate dependent units without full route refresh", ()
     "function handleAdditionalChargesChanged(): void {",
   ]) {
     expectIncludes(component, expected);
+  }
+
+  expectNotIncludes(component, 'className="-mt-6"');
+  expectIncludes(component, "<AdminReservationCancellationSection\n                embedded");
+  expectIncludes(component, "<AdminReservationDateMutationSection\n                embedded");
+  expectIncludes(component, "<AdminReservationOperationalHistorySection\n                embedded");
+  expectIncludes(component, "<AdminReservationRefundSection\n        embedded");
+  expectIncludes(component, "<AdminReservationLifecycleAdjustmentRefundSection");
+
+  for (const affectedSection of [
+    cancellationSection,
+    dateMutationSection,
+    historySection,
+    refundSection,
+  ]) {
+    expectIncludes(affectedSection, "embedded = false");
+    expectIncludes(affectedSection, "embedded?: boolean;");
+    expectIncludes(
+      affectedSection,
+      'className={`${embedded ? "mt-0" : "mt-6"} border-border/70 bg-card shadow-sm`}',
+    );
   }
 });
 
@@ -360,6 +393,26 @@ test("I.6.4 reload control is icon-only, localized and scoped to the active data
   const es = read("messages/es.ts");
   const en = read("messages/en.ts");
   const header = blockBetween(component, "<AdminPageHeader", "      <AdminSnackbar");
+  const topLevelTabs = blockBetween(
+    component,
+    "<TabsList\n            aria-label={reservationCopy.title}",
+    "          </TabsList>",
+  );
+  const reservationPanel = blockBetween(
+    component,
+    "function ReservationOverviewPanel({",
+    "function FinancialPanel({",
+  );
+  const emailContent = blockBetween(
+    component,
+    "function EmailNotificationContent({",
+    "function RefundsPanel({",
+  );
+  const zohoCard = blockBetween(
+    component,
+    "function ZohoCorrespondenceCard({",
+    "function EmailGroupEmptyState({",
+  );
   const actions = blockBetween(header, "actions={", "        badge={shellBadge}");
   const reloadButton = blockBetween(
     actions,
@@ -403,6 +456,41 @@ test("I.6.4 reload control is icon-only, localized and scoped to the active data
   expectIncludes(reloadUnit, "setAdditionalChargesReloadVersion((value) => value + 1);");
   expectIncludes(reloadUnit, 'activeFinancialTab === "attempts" ? "payment-attempts" : "financial"');
 
+  expectIncludes(topLevelTabs, "{detailCopy.navigation.lifecycle}");
+  expectIncludes(topLevelTabs, "{detailCopy.navigation.changes}");
+  expectIncludes(topLevelTabs, "{detailCopy.navigation.history}");
+  expectNotIncludes(topLevelTabs, "{reservationCopy.cancellation.badge}");
+  expectNotIncludes(topLevelTabs, "{reservationCopy.dateMutation.title}");
+  expectNotIncludes(topLevelTabs, "{reservationCopy.operationalHistory.badge}");
+
+  expectNotIncludes(reservationPanel, "correspondenceCopy");
+  expectNotIncludes(reservationPanel, "siteConfig.correspondence.zohoMailWebUrl");
+  expectNotIncludes(reservationPanel, "onCopyGuestEmail");
+  expectIncludes(emailContent, 'value="zoho"');
+  expectIncludes(emailContent, "<Inbox");
+  expectIncludes(emailContent, "{detailCopy.emailTabs.zoho}");
+  assert.ok(
+    emailContent.indexOf('value="administration"') <
+      emailContent.indexOf('value="zoho"'),
+    "Zoho tab should render after Administration",
+  );
+  expectNotIncludes(emailContent, "emailData.emailNotifications.length > 0 ? (");
+  expectIncludes(emailContent, '        : "zoho";');
+  expectIncludes(emailContent, "guestEmail={emailData.guestEmail}");
+  expectIncludes(emailContent, "<EmailGroupEmptyState label={reservationCopy.labels.results} />");
+  expectIncludes(zohoCard, "siteConfig.correspondence.zohoMailWebUrl");
+  expectIncludes(zohoCard, "onCopyGuestEmail(guestEmail)");
+  expectIncludes(zohoCard, "correspondenceCopy.actions.openDesktop");
+  expectIncludes(zohoCard, "correspondenceCopy.actions.openMobile");
+
   expectIncludes(es, 'reload: "Recargar"');
+  expectIncludes(es, 'lifecycle: "Ciclo de vida"');
+  expectIncludes(es, 'changes: "Cambios de fechas"');
+  expectIncludes(es, 'history: "Historial operativo"');
+  expectIncludes(es, 'zoho: "Zoho"');
   expectIncludes(en, 'reload: "Reload"');
+  expectIncludes(en, 'lifecycle: "Lifecycle"');
+  expectIncludes(en, 'changes: "Date changes"');
+  expectIncludes(en, 'history: "Operational history"');
+  expectIncludes(en, 'zoho: "Zoho"');
 });

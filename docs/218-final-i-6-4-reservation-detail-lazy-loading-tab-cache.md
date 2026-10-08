@@ -6,7 +6,7 @@
 Project: TRP Booking
 Track: Final-I - Operational Polish, Notification UX & FEL Invoicing
 Subphase: Final-I.6.4 - Reservation Detail Lazy Loading, Tab Cache & Financial Tabs
-Status: Implementation completed; Hosted functional validation PASS; Reload placement visual validation PASS; final full-loading-on-Reload revalidation pending
+Status: Implementation completed; Hosted functional validation PASS; Reload placement visual validation PASS; Full-loading-on-Reload validation PASS; final navigation/spacing/Zoho polish revalidation pending
 Registration date: 2026-10-07
 Implementation base: f934ae3ddae61dcdb3560fff771152c83e8768a7
 Implementation base commit: docs(final-i): close Final-I.6.3
@@ -146,9 +146,29 @@ This correction keeps previous successful data in the internal tab cache while `
 Status remains:
 
 ```text
-Final-I.6.4 - Implementation completed; Hosted functional validation PASS; Reload placement visual validation PASS; final full-loading-on-Reload revalidation pending
+Final-I.6.4 - Implementation completed; Hosted functional validation PASS; Reload placement visual validation PASS; Full-loading-on-Reload validation PASS; final navigation/spacing/Zoho polish revalidation pending
 ```
 
+## Final Owner Polish Checkpoint - 2026-10-08
+
+After the full-loading-on-Reload Hosted pass, the owner requested a final bounded Reservation-detail UI polish checkpoint before acceptance:
+
+```text
+- Additional Charges explicit reload loading now uses the shared compact loading card with only the spinner and localized `copy.loading`; it does not repeat the Additional Charges section title.
+- Lifecycle, Refunds, Date Changes, and Operational History now align to the canonical top-level tab spacing by removing the parent `-mt-6` wrappers and using embedded section rendering for the first cards.
+- Guest Correspondence moved out of the Reservation overview tab and into Email Delivery as a third nested `Zoho` tab to the right of Administration.
+- Email Delivery nested tabs now remain available even when the reservation has zero email notifications, so the Zoho handoff remains discoverable from the Email Delivery surface.
+- The Zoho handoff preserves the existing explicit user gesture, `_blank`, `noopener,noreferrer`, stable `https://mail.zoho.com/` target, best-effort guest-email clipboard copy, snackbar success/error feedback, and no subject/body/recipient/secrets in the URL.
+- Top-level Reservation-detail labels now use dedicated shorter navigation copy: Lifecycle / Ciclo de vida, Date changes / Cambios de fechas, and Operational history / Historial operativo, without renaming the shared section titles used inside panels.
+```
+
+This checkpoint does not change the lazy tab API, cache invalidation contract, domain logic, schema, migrations, configuration, scheduler, or Production boundaries.
+
+Status remains:
+
+```text
+Final-I.6.4 - Implementation completed; Hosted functional validation PASS; Reload placement visual validation PASS; Full-loading-on-Reload validation PASS; final navigation/spacing/Zoho polish revalidation pending
+```
 ## Preserved Boundaries
 
 Final-I.6.4 preserves:
@@ -169,7 +189,7 @@ Final-I.6.4 preserves:
 
 ```text
 Final-I.6.4 implementation validation:
-- npm run final-i:validate - initial implementation run PASS, 107/107; 2026-10-08 cache/UX correction rerun PASS, 111/111; 2026-10-08 header Reload placement rerun PASS, 111/111; 2026-10-08 full-loading-on-Reload correction rerun PASS, 111/111
+- npm run final-i:validate - initial implementation run PASS, 107/107; 2026-10-08 cache/UX correction rerun PASS, 111/111; 2026-10-08 header Reload placement rerun PASS, 111/111; 2026-10-08 full-loading-on-Reload correction rerun PASS, 111/111; 2026-10-08 final navigation/spacing/Zoho polish rerun PASS, 111/111
 - npm run final-h:validate - PASS, 20/20
 - npm run lint - PASS
 - npm run build - PASS; Next slow filesystem warning only
@@ -180,7 +200,7 @@ Final-I.6.4 implementation validation:
 ## Current State
 
 ```text
-Final-I.6.4 - Implementation completed; Hosted functional validation PASS; Reload placement visual validation PASS; final full-loading-on-Reload revalidation pending
+Final-I.6.4 - Implementation completed; Hosted functional validation PASS; Reload placement visual validation PASS; Full-loading-on-Reload validation PASS; final navigation/spacing/Zoho polish revalidation pending
 Final-I.7 - Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 - Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 - Not started / integrated Final-I closure

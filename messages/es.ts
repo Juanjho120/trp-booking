@@ -963,6 +963,14 @@ export const esMessages = {
           summary: "Resumen",
           attempts: "Intentos",
         },
+        navigation: {
+          lifecycle: "Ciclo de vida",
+          changes: "Cambios de fechas",
+          history: "Historial operativo",
+        },
+        emailTabs: {
+          zoho: "Zoho",
+        },
       },
       additionalCharges: {
         badge: "Cargos adicionales",

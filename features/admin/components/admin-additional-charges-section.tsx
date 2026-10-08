@@ -4,6 +4,7 @@ import {
   Check,
   Copy,
   CreditCard,
+  Loader2,
   Mail,
   PencilLine,
   Plus,
@@ -1176,10 +1177,10 @@ export function AdminAdditionalChargesSection({
         className="mt-6 border-border/70 bg-card shadow-sm"
         role="status"
       >
-        <CardHeader>
-          <CardTitle>{copy.title}</CardTitle>
-          <CardDescription>{copy.loading}</CardDescription>
-        </CardHeader>
+        <CardContent className="flex items-center gap-3 p-6 text-sm text-muted-foreground">
+          <Loader2 aria-hidden="true" className="size-4 animate-spin" />
+          {copy.loading}
+        </CardContent>
       </Card>
     );
   }
