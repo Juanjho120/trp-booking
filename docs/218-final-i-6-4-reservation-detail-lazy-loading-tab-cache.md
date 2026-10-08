@@ -6,7 +6,7 @@
 Project: TRP Booking
 Track: Final-I - Operational Polish, Notification UX & FEL Invoicing
 Subphase: Final-I.6.4 - Reservation Detail Lazy Loading, Tab Cache & Financial Tabs
-Status: Implementation completed; Hosted functional validation PASS; final Reload placement visual revalidation pending
+Status: Implementation completed; Hosted functional validation PASS; Reload placement visual validation PASS; final full-loading-on-Reload revalidation pending
 Registration date: 2026-10-07
 Implementation base: f934ae3ddae61dcdb3560fff771152c83e8768a7
 Implementation base commit: docs(final-i): close Final-I.6.3
@@ -117,11 +117,11 @@ This checkpoint corrected the remaining cache/UX regressions before Hosted owner
 - Contextual focus query cleanup is now driven by successful exact-target focus/scroll application, not by an unconditional mount effect.
 ```
 
-## Hosted Functional Validation and Reload Placement Refinement - 2026-10-08
+## Hosted Functional Validation, Reload Placement and Full-Loading Reload UX - 2026-10-08
 
-Hosted functional validation passed for the Final-I.6.4 lazy Reservation detail behavior before formal acceptance. The owner then identified one final visual finding: the normal active-tab Reload icon was functionally correct, but its per-tab toolbar placement added unnecessary vertical UI noise.
+Hosted functional validation passed for the Final-I.6.4 lazy Reservation detail behavior before formal acceptance. The owner then identified one visual finding: the normal active-tab Reload icon was functionally correct, but its per-tab toolbar placement added unnecessary vertical UI noise.
 
-Owner requested relocation to the Reservation detail page-header action area, immediately to the right of the Back to Reservations action.
+Owner requested relocation to the Reservation detail page-header action area, immediately to the right of the Back to Reservations action. That header Reload placement has now passed visual validation.
 
 This visual refinement keeps the same `reloadActiveUnit()` domain semantics and moves only the normal reload placement:
 
@@ -139,10 +139,14 @@ This visual refinement keeps the same `reloadActiveUnit()` domain semantics and 
 
 The header Reload remains icon-only, localized through existing ES/EN `detailCopy.reload`, keyboard accessible, tooltip-backed, and compact beside the Back action for desktop and mobile header layouts. Its busy state now derives from the active top-level or nested Financial data unit and treats `loading` and `refreshing` as busy. Additional Charges now reports both initial management loading and manual refreshing through `onLoadBusyChange`, while `loadManagement` remains independent from localized copy so locale changes still do not refetch.
 
+A final owner UX requirement was identified after the header placement approval: during an explicit header Reload, stale cached content must not remain visible while fresh data is being requested. The accepted target behavior is that the active tab temporarily returns to the exact same full loading presentation used on first load, and fresh content appears only when the request succeeds.
+
+This correction keeps previous successful data in the internal tab cache while `status = refreshing`, but rendering ignores that data until the request resolves. If the refresh fails after previously valid data existed, the page restores that cached content and shows the existing localized error snackbar. First-load failures with no usable data continue to show the inline error/retry panel. Financial keeps the compact Summary / Attempts nested navigation visible during nested reloads while the nested body shows only the appropriate loading panel. Additional Charges now uses its existing first-load management loading card for explicit page-header Reloads, while mutation-triggered internal refreshes continue to use their existing non-blanking `loadManagement()` path.
+
 Status remains:
 
 ```text
-Final-I.6.4 - Implementation completed; Hosted functional validation PASS; final Reload placement visual revalidation pending
+Final-I.6.4 - Implementation completed; Hosted functional validation PASS; Reload placement visual validation PASS; final full-loading-on-Reload revalidation pending
 ```
 
 ## Preserved Boundaries
@@ -165,7 +169,7 @@ Final-I.6.4 preserves:
 
 ```text
 Final-I.6.4 implementation validation:
-- npm run final-i:validate - initial implementation run PASS, 107/107; 2026-10-08 cache/UX correction rerun PASS, 111/111; 2026-10-08 header Reload placement rerun PASS, 111/111
+- npm run final-i:validate - initial implementation run PASS, 107/107; 2026-10-08 cache/UX correction rerun PASS, 111/111; 2026-10-08 header Reload placement rerun PASS, 111/111; 2026-10-08 full-loading-on-Reload correction rerun PASS, 111/111
 - npm run final-h:validate - PASS, 20/20
 - npm run lint - PASS
 - npm run build - PASS; Next slow filesystem warning only
@@ -176,7 +180,7 @@ Final-I.6.4 implementation validation:
 ## Current State
 
 ```text
-Final-I.6.4 - Implementation completed; Hosted functional validation PASS; final Reload placement visual revalidation pending
+Final-I.6.4 - Implementation completed; Hosted functional validation PASS; Reload placement visual validation PASS; final full-loading-on-Reload revalidation pending
 Final-I.7 - Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 - Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 - Not started / integrated Final-I closure

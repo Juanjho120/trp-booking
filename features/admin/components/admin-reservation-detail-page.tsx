@@ -862,7 +862,11 @@ export function AdminReservationDetailPage({
   function renderLoadingPanel(message: string) {
     return (
       <Card className="border-border/70 bg-card shadow-sm">
-        <CardContent className="flex items-center gap-3 p-6 text-sm text-muted-foreground">
+        <CardContent
+          aria-live="polite"
+          className="flex items-center gap-3 p-6 text-sm text-muted-foreground"
+          role="status"
+        >
           <Loader2 aria-hidden="true" className="size-4 animate-spin" />
           {message}
         </CardContent>
@@ -1036,6 +1040,7 @@ export function AdminReservationDetailPage({
               formatMoney={formatMoney}
               onCopyGuestEmail={copyGuestEmailForZoho}
               renderError={() => renderErrorPanel(() => void loadServerTab("reservation", { force: true }))}
+              renderLoadingPanel={renderLoadingPanel}
             />
           </TabsContent>
         ) : null}
@@ -1090,7 +1095,9 @@ export function AdminReservationDetailPage({
             forceMount
             value="lifecycle"
           >
-            {lifecycleCache.data ? (
+            {isCacheBusy(lifecycleCache) ? (
+              renderLoadingPanel(detailCopy.loading.lifecycle)
+            ) : lifecycleCache.data ? (
               <div className="-mt-6">
                 <AdminReservationCancellationSection
                   onDataChanged={handleLifecycleChanged}
@@ -1128,7 +1135,9 @@ export function AdminReservationDetailPage({
             forceMount
             value="refunds"
           >
-            {refundsCache.data ? (
+            {isCacheBusy(refundsCache) ? (
+              renderLoadingPanel(detailCopy.loading.refunds)
+            ) : refundsCache.data ? (
               <RefundsPanel
                 focusedRefundId={
                   initialFocus?.kind === "refund" ? initialFocus.focusId : null
@@ -1151,7 +1160,9 @@ export function AdminReservationDetailPage({
             forceMount
             value="changes"
           >
-            {changesCache.data ? (
+            {isCacheBusy(changesCache) ? (
+              renderLoadingPanel(detailCopy.loading.changes)
+            ) : changesCache.data ? (
               <div className="-mt-6">
                 <AdminReservationDateMutationSection
                   focusedLifecycleRequestId={
@@ -1178,7 +1189,9 @@ export function AdminReservationDetailPage({
             forceMount
             value="history"
           >
-            {historyCache.data ? (
+            {isCacheBusy(historyCache) ? (
+              renderLoadingPanel(detailCopy.loading.history)
+            ) : historyCache.data ? (
               <div className="-mt-6">
                 <AdminReservationOperationalHistorySection
                   reservation={historyCache.data}
@@ -1280,6 +1293,7 @@ function ReservationOverviewPanel({
   formatMoney,
   onCopyGuestEmail,
   renderError,
+  renderLoadingPanel,
 }: Readonly<{
   cache: CacheEntry<AdminReservationOverviewTab>;
   copy: Readonly<{ loading: string }>;
@@ -1288,6 +1302,7 @@ function ReservationOverviewPanel({
   formatMoney: (value: string, currency: string) => string;
   onCopyGuestEmail: (value: string) => Promise<void>;
   renderError: () => ReactNode;
+  renderLoadingPanel: (message: string) => ReactNode;
 }>) {
   const { locale, messages } = useLocale();
   const reservationCopy = messages.admin.reservationsPage;
@@ -1297,17 +1312,12 @@ function ReservationOverviewPanel({
   const correspondenceCopy = reservationCopy.correspondence;
   const reservation = cache.data;
 
+  if (isCacheBusy(cache)) {
+    return renderLoadingPanel(copy.loading);
+  }
+
   if (!reservation) {
-    return cache.status === "error" ? (
-      renderError()
-    ) : (
-      <Card className="border-border/70 bg-card shadow-sm">
-        <CardContent className="flex items-center gap-3 p-6 text-sm text-muted-foreground">
-          <Loader2 aria-hidden="true" className="size-4 animate-spin" />
-          {copy.loading}
-        </CardContent>
-      </Card>
-    );
+    return cache.status === "error" ? renderError() : renderLoadingPanel(copy.loading);
   }
 
   const propertyName =
@@ -1474,10 +1484,10 @@ function FinancialPanel({
         forceMount
         value="summary"
       >
-        {!financial ? (
-          financialCache.status === "error" ? (
-            renderFinancialError()
-          ) : (
+        {isCacheBusy(financialCache) ? (
+          renderLoadingPanel(detailCopy.loading.financial)
+        ) : !financial ? (
+          financialCache.status === "error" ? renderFinancialError() : (
             renderLoadingPanel(detailCopy.loading.financial)
           )
         ) : (
@@ -1495,10 +1505,10 @@ function FinancialPanel({
         forceMount
         value="attempts"
       >
-        {!attempts ? (
-          attemptsCache.status === "error" ? (
-            renderAttemptsError()
-          ) : (
+        {isCacheBusy(attemptsCache) ? (
+          renderLoadingPanel(detailCopy.loading.paymentAttempts)
+        ) : !attempts ? (
+          attemptsCache.status === "error" ? renderAttemptsError() : (
             renderLoadingPanel(detailCopy.loading.paymentAttempts)
           )
         ) : (
@@ -1701,6 +1711,10 @@ function EmailsPanel({
   const { messages } = useLocale();
   const reservationCopy = messages.admin.reservationsPage;
   const emailData = cache.data;
+
+  if (isCacheBusy(cache)) {
+    return renderLoadingPanel(reservationCopy.detailTabs.loading.emails);
+  }
 
   if (!emailData) {
     return cache.status === "error"

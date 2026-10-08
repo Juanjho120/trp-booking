@@ -203,6 +203,26 @@ test("I.6.4 failed lazy loads do not auto-retry and refresh failures keep data",
     "const loadServerTab = useCallback(",
     "  useEffect(() => {\n    setVisitedTabs((current) => {",
   );
+  const updateCacheError = blockBetween(
+    component,
+    "  const updateCacheError = useCallback(",
+    "  const loadServerTab = useCallback(",
+  );
+  const reservationPanel = blockBetween(
+    component,
+    "function ReservationOverviewPanel({",
+    "function FinancialPanel({",
+  );
+  const financialPanel = blockBetween(
+    component,
+    "function FinancialPanel({",
+    "function FinancialSummaryContent({",
+  );
+  const emailsPanel = blockBetween(
+    component,
+    "function EmailsPanel({",
+    "function EmailNotificationContent({",
+  );
 
   expectIncludes(loadServerTab, "shouldLoadAdminReservationTab({");
   expectIncludes(loadServerTab, "status: current.status");
@@ -211,6 +231,23 @@ test("I.6.4 failed lazy loads do not auto-retry and refresh failures keep data",
   expectIncludes(loadServerTab, "setErrorFeedback(detailCopy.loadFailed);");
   expectIncludes(loadServerTab, "finally {");
   expectIncludes(loadServerTab, "inFlightTabsRef.current.delete(tab);");
+  expectIncludes(updateCacheError, "...entry,");
+  expectIncludes(updateCacheError, "status: \"error\",");
+  expectIncludes(reservationPanel, "if (isCacheBusy(cache)) {\n    return renderLoadingPanel(copy.loading);\n  }");
+  expectIncludes(reservationPanel, "return cache.status === \"error\" ? renderError() : renderLoadingPanel(copy.loading);");
+  expectIncludes(financialPanel, "isCacheBusy(financialCache) ? (\n          renderLoadingPanel(detailCopy.loading.financial)");
+  expectIncludes(financialPanel, "isCacheBusy(attemptsCache) ? (\n          renderLoadingPanel(detailCopy.loading.paymentAttempts)");
+  expectIncludes(emailsPanel, "if (isCacheBusy(cache)) {\n    return renderLoadingPanel(reservationCopy.detailTabs.loading.emails);\n  }");
+  for (const expected of [
+    "isCacheBusy(lifecycleCache) ? (\n              renderLoadingPanel(detailCopy.loading.lifecycle)",
+    "isCacheBusy(refundsCache) ? (\n              renderLoadingPanel(detailCopy.loading.refunds)",
+    "isCacheBusy(changesCache) ? (\n              renderLoadingPanel(detailCopy.loading.changes)",
+    "isCacheBusy(historyCache) ? (\n              renderLoadingPanel(detailCopy.loading.history)",
+  ]) {
+    expectIncludes(component, expected);
+  }
+  expectIncludes(component, "aria-live=\"polite\"");
+  expectIncludes(component, "role=\"status\"");
 });
 
 test("I.6.4 header badge follows lazy payload reservation status", () => {
@@ -229,13 +266,28 @@ test("I.6.4 Additional Charges management reload is explicit and locale-stable",
     "const loadManagement = useCallback(",
     "  useEffect(() => {\n    void loadManagement(true);",
   );
+  const explicitReloadEffect = blockBetween(
+    component,
+    "  useEffect(() => {\n    if (reloadVersion > 0) {",
+    "  }, [loadManagement, reloadVersion]);",
+  );
+  const loadingBlock = blockBetween(
+    component,
+    "  if (loading) {",
+    "  return (\n    <>",
+  );
 
   expectIncludes(component, "reloadVersion?: number;");
   expectIncludes(component, "onLoadBusyChange?: (busy: boolean) => void;");
   expectIncludes(component, "onLoadBusyChangeRef.current?.(true);");
   expectIncludes(component, "onLoadBusyChangeRef.current?.(false);");
   expectIncludes(component, "if (reloadVersion > 0) {");
-  expectIncludes(component, "void loadManagement(false);");
+  expectIncludes(explicitReloadEffect, "void loadManagement(true);");
+  expectNotIncludes(explicitReloadEffect, "void loadManagement(false);");
+  expectIncludes(loadingBlock, "aria-live=\"polite\"");
+  expectIncludes(loadingBlock, "role=\"status\"");
+  expectIncludes(loadingBlock, "<CardDescription>{copy.loading}</CardDescription>");
+  expectIncludes(component, "await loadManagement();");
   expectIncludes(component, "onDataChanged?.();");
   expectIncludes(loadManagement, "onLoadBusyChangeRef.current?.(true);");
   expectIncludes(loadManagement, "[reservationId]");

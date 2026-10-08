@@ -352,7 +352,7 @@ export function AdminAdditionalChargesSection({
 
   useEffect(() => {
     if (reloadVersion > 0) {
-      void loadManagement(false);
+      void loadManagement(true);
     }
   }, [loadManagement, reloadVersion]);
 
@@ -1171,7 +1171,11 @@ export function AdminAdditionalChargesSection({
 
   if (loading) {
     return (
-      <Card className="mt-6 border-border/70 bg-card shadow-sm">
+      <Card
+        aria-live="polite"
+        className="mt-6 border-border/70 bg-card shadow-sm"
+        role="status"
+      >
         <CardHeader>
           <CardTitle>{copy.title}</CardTitle>
           <CardDescription>{copy.loading}</CardDescription>
