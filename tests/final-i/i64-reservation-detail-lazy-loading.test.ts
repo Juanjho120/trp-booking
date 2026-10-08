@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
+import { shouldLoadAdminReservationTab } from "@/features/admin/reservation-detail-tab-cache";
+
 import { test } from "./harness";
 
 const ROOT = process.cwd();
@@ -10,6 +12,14 @@ const DETAIL_PAGE =
   "features/admin/components/admin-reservation-detail-page.tsx";
 const ADDITIONAL_CHARGES =
   "features/admin/components/admin-additional-charges-section.tsx";
+const FOCUS_SCROLL_HOOK =
+  "features/admin/components/use-admin-initial-focus-scroll.ts";
+const DATE_MUTATION_SECTION =
+  "features/admin/components/admin-reservation-date-mutation-section.tsx";
+const REFUND_SECTION =
+  "features/admin/components/admin-reservation-refund-section.tsx";
+const LIFECYCLE_REFUND_SECTION =
+  "features/admin/components/admin-reservation-lifecycle-adjustment-refund-section.tsx";
 const TAB_ROUTE =
   "app/api/admin/reservations/[reservationId]/tabs/[tab]/route.ts";
 const DETAIL_SERVICE = "lib/admin/reservation-detail.ts";
@@ -33,6 +43,37 @@ function blockBetween(source: string, startMarker: string, endMarker: string): s
   assert.notEqual(end, -1, `Missing end marker: ${endMarker}`);
   return source.slice(start, end + endMarker.length);
 }
+
+test("I.6.4 tab load decision helper blocks loops and allows explicit reload", () => {
+  assert.equal(
+    shouldLoadAdminReservationTab({ status: "idle", stale: false }),
+    true,
+  );
+  assert.equal(
+    shouldLoadAdminReservationTab({ status: "ready", stale: false }),
+    false,
+  );
+  assert.equal(
+    shouldLoadAdminReservationTab({ status: "ready", stale: true }),
+    true,
+  );
+  assert.equal(
+    shouldLoadAdminReservationTab({ status: "error", stale: false }),
+    false,
+  );
+  assert.equal(
+    shouldLoadAdminReservationTab({ force: true, status: "error", stale: false }),
+    true,
+  );
+  assert.equal(
+    shouldLoadAdminReservationTab({ force: true, status: "loading", stale: true }),
+    false,
+  );
+  assert.equal(
+    shouldLoadAdminReservationTab({ force: true, status: "refreshing", stale: true }),
+    false,
+  );
+});
 
 test("I.6.4 reservation detail route renders only the lightweight shell initially", () => {
   const route = read(DETAIL_ROUTE);
@@ -97,10 +138,13 @@ test("I.6.4 page-scoped tab cache lazy-loads once and keeps visited tabs mounted
   const component = read(DETAIL_PAGE);
 
   for (const expected of [
-    "type CacheStatus = \"idle\" | \"loading\" | \"ready\" | \"refreshing\" | \"error\";",
+    "type CacheStatus = AdminReservationTabCacheStatus;",
     "const [visitedTabs, setVisitedTabs] = useState<",
     "new Set([initialActiveTab])",
-    "current.status === \"ready\" && !current.stale",
+    "shouldLoadAdminReservationTab({",
+    "inFlightTabsRef.current.has(tab)",
+    "inFlightTabsRef.current.add(tab)",
+    "inFlightTabsRef.current.delete(tab)",
     "cache: \"no-store\"",
     "setCacheForTab(payload)",
     "forceMount",
@@ -132,6 +176,52 @@ test("I.6.4 financial summary and payment attempts are separate cached units", (
   }
 });
 
+test("I.6.4 financial tab fetch is owned by the financial-specific effect", () => {
+  const component = read(DETAIL_PAGE);
+  const genericEffect = blockBetween(
+    component,
+    "  useEffect(() => {\n    if (\n      activeReservationTab === \"additionalCharges\" ||",
+    "  }, [activeReservationTab, loadServerTab]);",
+  );
+  const financialEffect = blockBetween(
+    component,
+    "  useEffect(() => {\n    if (activeReservationTab === \"financial\") {",
+    "  }, [activeFinancialTab, activeReservationTab, loadServerTab]);",
+  );
+
+  expectIncludes(genericEffect, 'activeReservationTab === "financial"');
+  expectIncludes(genericEffect, "return;");
+  expectIncludes(genericEffect, "void loadServerTab(tab);");
+  expectIncludes(financialEffect, 'activeFinancialTab === "attempts" ? "payment-attempts" : "financial"');
+  expectIncludes(financialEffect, "void loadServerTab(");
+});
+
+test("I.6.4 failed lazy loads do not auto-retry and refresh failures keep data", () => {
+  const component = read(DETAIL_PAGE);
+  const loadServerTab = blockBetween(
+    component,
+    "const loadServerTab = useCallback(",
+    "  useEffect(() => {\n    setVisitedTabs((current) => {",
+  );
+
+  expectIncludes(loadServerTab, "shouldLoadAdminReservationTab({");
+  expectIncludes(loadServerTab, "status: current.status");
+  expectIncludes(loadServerTab, "const hadExistingData = current.data !== null;");
+  expectIncludes(loadServerTab, "updateCacheStatus(tab, hadExistingData ? \"refreshing\" : \"loading\");");
+  expectIncludes(loadServerTab, "setErrorFeedback(detailCopy.loadFailed);");
+  expectIncludes(loadServerTab, "finally {");
+  expectIncludes(loadServerTab, "inFlightTabsRef.current.delete(tab);");
+});
+
+test("I.6.4 header badge follows lazy payload reservation status", () => {
+  const component = read(DETAIL_PAGE);
+
+  expectIncludes(component, "const [reservationStatus, setReservationStatus] = useState(");
+  expectIncludes(component, "setReservationStatus(payload.data.status);");
+  expectIncludes(component, "const shellBadge = reservationStatusLabel(reservationStatus);");
+  expectNotIncludes(component, "const shellBadge = reservationStatusLabel(reservationShell.status);");
+});
+
 test("I.6.4 Additional Charges management reload is explicit and locale-stable", () => {
   const component = read(ADDITIONAL_CHARGES);
   const loadManagement = blockBetween(
@@ -141,9 +231,13 @@ test("I.6.4 Additional Charges management reload is explicit and locale-stable",
   );
 
   expectIncludes(component, "reloadVersion?: number;");
+  expectIncludes(component, "onRefreshingChange?: (refreshing: boolean) => void;");
+  expectIncludes(component, "onRefreshingChangeRef.current?.(true);");
+  expectIncludes(component, "onRefreshingChangeRef.current?.(false);");
   expectIncludes(component, "if (reloadVersion > 0) {");
   expectIncludes(component, "void loadManagement(false);");
   expectIncludes(component, "onDataChanged?.();");
+  expectIncludes(loadManagement, "const shouldNotifyRefreshing = !showLoading;");
   expectIncludes(loadManagement, "[reservationId]");
   expectNotIncludes(loadManagement, "resolveError");
   expectNotIncludes(loadManagement, "[copy]");
@@ -168,15 +262,39 @@ test("I.6.4 mutations invalidate dependent units without full route refresh", ()
   }
 });
 
-test("I.6.4 contextual focus uses lightweight refund lookup and cleans URL state", () => {
+test("I.6.4 contextual focus cleans URL only after exact focus scroll", () => {
+  const additionalCharges = read(ADDITIONAL_CHARGES);
+  const dateMutationSection = read(DATE_MUTATION_SECTION);
+  const focusHook = read(FOCUS_SCROLL_HOOK);
+  const lifecycleRefundSection = read(LIFECYCLE_REFUND_SECTION);
+  const refundSection = read(REFUND_SECTION);
   const route = read(DETAIL_ROUTE);
   const component = read(DETAIL_PAGE);
   const service = read(DETAIL_SERVICE);
 
   expectIncludes(route, "resolveAdminReservationRefundFocusTab");
+  expectIncludes(component, "const cleanupInitialFocusQuery = useCallback");
   expectIncludes(component, 'url.searchParams.delete("focus");');
   expectIncludes(component, 'url.searchParams.delete("focusId");');
   expectIncludes(component, "window.history.replaceState(window.history.state, \"\", nextUrl);");
+  expectIncludes(component, "onInitialFocusApplied={cleanupInitialFocusQuery}");
+  for (const focusedSection of [
+    additionalCharges,
+    dateMutationSection,
+    lifecycleRefundSection,
+    refundSection,
+  ]) {
+    expectIncludes(focusedSection, "onInitialFocusApplied?: () => void;");
+  }
+  expectIncludes(additionalCharges, "onScrolled: notifyInitialFocusApplied");
+  expectIncludes(dateMutationSection, "onScrolled: onInitialFocusApplied");
+  expectIncludes(lifecycleRefundSection, "onScrolled: onInitialFocusApplied");
+  expectIncludes(refundSection, "onScrolled: onInitialFocusApplied");
+  expectIncludes(focusHook, "onScrolled?.();");
+  expectNotIncludes(
+    component,
+    "  useEffect(() => {\n    if (!initialFocus) {\n      return;\n    }\n\n    const url = new URL(window.location.href);",
+  );
   expectIncludes(service, "export async function resolveAdminReservationRefundFocusTab");
   expectIncludes(service, "refund.findFirst");
   expectIncludes(service, "payment: {\n        reservationId,");
@@ -193,6 +311,9 @@ test("I.6.4 reload control is icon-only, localized and scoped to the active data
     "size=\"icon\"",
     "aria-label={label}",
     "<TooltipContent align=\"end\" side=\"bottom\">",
+    "const [additionalChargesRefreshing, setAdditionalChargesRefreshing] =",
+    "busy={additionalChargesRefreshing}",
+    "onRefreshingChange={setAdditionalChargesRefreshing}",
     "setAdditionalChargesReloadVersion((value) => value + 1);",
     "reloadActiveUnit",
   ]) {

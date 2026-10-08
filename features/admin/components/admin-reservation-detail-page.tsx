@@ -15,7 +15,7 @@ import {
   Send,
   ShieldCheck,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
 import {
@@ -53,6 +53,10 @@ import {
   getAdminReservationEmailNotificationTypeLabel,
   groupAdminReservationEmailNotifications,
 } from "@/features/admin/email-notification-display";
+import {
+  shouldLoadAdminReservationTab,
+  type AdminReservationTabCacheStatus,
+} from "@/features/admin/reservation-detail-tab-cache";
 import { useLocale } from "@/features/i18n";
 import type {
   AdminReservationDetailFocus,
@@ -97,7 +101,7 @@ import { AdminSnackbar } from "./admin-snackbar";
 
 type FinancialNestedTab = "summary" | "attempts";
 type ClientDataKey = AdminReservationDetailServerTab | "additionalCharges";
-type CacheStatus = "idle" | "loading" | "ready" | "refreshing" | "error";
+type CacheStatus = AdminReservationTabCacheStatus;
 
 type CacheEntry<T> = Readonly<{
   data: T | null;
@@ -189,6 +193,9 @@ export function AdminReservationDetailPage({
     useState<AdminReservationDetailTab>(initialActiveTab);
   const [activeFinancialTab, setActiveFinancialTab] =
     useState<FinancialNestedTab>("summary");
+  const [reservationStatus, setReservationStatus] = useState(
+    reservationShell.status,
+  );
   const [visitedTabs, setVisitedTabs] = useState<
     ReadonlySet<AdminReservationDetailTab>
   >(() => new Set([initialActiveTab]));
@@ -211,8 +218,12 @@ export function AdminReservationDetailPage({
     useState<CacheEntry<AdminReservationChangesTab>>(emptyCache);
   const [historyCache, setHistoryCache] =
     useState<CacheEntry<AdminReservationHistoryTab>>(emptyCache);
+  const inFlightTabsRef = useRef(new Set<AdminReservationDetailServerTab>());
+  const initialFocusCleanedRef = useRef(false);
   const [additionalChargesReloadVersion, setAdditionalChargesReloadVersion] =
     useState(0);
+  const [additionalChargesRefreshing, setAdditionalChargesRefreshing] =
+    useState(false);
   const [manualResendTarget, setManualResendTarget] =
     useState<ManualResendTarget | null>(null);
   const [busyNotificationId, setBusyNotificationId] = useState<string | null>(
@@ -224,6 +235,20 @@ export function AdminReservationDetailPage({
 
   const setCacheForTab = useCallback(
     (payload: AdminReservationDetailTabPayload): void => {
+      switch (payload.tab) {
+        case "reservation":
+        case "financial":
+        case "emails":
+        case "lifecycle":
+        case "refunds":
+        case "changes":
+          setReservationStatus(payload.data.status);
+          break;
+        case "payment-attempts":
+        case "history":
+          break;
+      }
+
       switch (payload.tab) {
         case "reservation":
           setReservationCache({
@@ -445,16 +470,23 @@ export function AdminReservationDetailPage({
     ): Promise<void> => {
       const current = getCacheForTab(tab);
 
+      if (inFlightTabsRef.current.has(tab)) {
+        return;
+      }
+
       if (
-        !options.force &&
-        (current.status === "loading" ||
-          current.status === "refreshing" ||
-          (current.status === "ready" && !current.stale))
+        !shouldLoadAdminReservationTab({
+          force: options.force,
+          stale: current.stale,
+          status: current.status,
+        })
       ) {
         return;
       }
 
-      updateCacheStatus(tab, current.data ? "refreshing" : "loading");
+      inFlightTabsRef.current.add(tab);
+      const hadExistingData = current.data !== null;
+      updateCacheStatus(tab, hadExistingData ? "refreshing" : "loading");
 
       try {
         const response = await fetch(
@@ -474,12 +506,20 @@ export function AdminReservationDetailPage({
 
         if (!response.ok || !("data" in payload)) {
           updateCacheError(tab, detailCopy.loadFailed);
+          if (hadExistingData) {
+            setErrorFeedback(detailCopy.loadFailed);
+          }
           return;
         }
 
         setCacheForTab(payload);
       } catch {
         updateCacheError(tab, detailCopy.loadFailed);
+        if (hadExistingData) {
+          setErrorFeedback(detailCopy.loadFailed);
+        }
+      } finally {
+        inFlightTabsRef.current.delete(tab);
       }
     },
     [
@@ -491,7 +531,6 @@ export function AdminReservationDetailPage({
       updateCacheStatus,
     ],
   );
-
   useEffect(() => {
     setVisitedTabs((current) => {
       if (current.has(activeReservationTab)) {
@@ -503,7 +542,10 @@ export function AdminReservationDetailPage({
   }, [activeReservationTab]);
 
   useEffect(() => {
-    if (activeReservationTab === "additionalCharges") {
+    if (
+      activeReservationTab === "additionalCharges" ||
+      activeReservationTab === "financial"
+    ) {
       return;
     }
 
@@ -523,8 +565,12 @@ export function AdminReservationDetailPage({
     }
   }, [activeFinancialTab, activeReservationTab, loadServerTab]);
 
-  useEffect(() => {
-    if (!initialFocus) {
+  const cleanupInitialFocusQuery = useCallback((): void => {
+    if (
+      !initialFocus ||
+      initialFocusCleanedRef.current ||
+      typeof window === "undefined"
+    ) {
       return;
     }
 
@@ -533,6 +579,7 @@ export function AdminReservationDetailPage({
     url.searchParams.delete("focusId");
     const nextUrl = `${url.pathname}${url.search}${url.hash}`;
 
+    initialFocusCleanedRef.current = true;
     window.history.replaceState(window.history.state, "", nextUrl);
   }, [initialFocus]);
 
@@ -839,7 +886,7 @@ export function AdminReservationDetailPage({
     );
   }
 
-  const shellBadge = reservationStatusLabel(reservationShell.status);
+  const shellBadge = reservationStatusLabel(reservationStatus);
   const resendTargetWasSent =
     manualResendTarget?.notification.status === "SENT";
 
@@ -1034,13 +1081,15 @@ export function AdminReservationDetailPage({
             value="additionalCharges"
           >
             <PanelToolbar
-              busy={false}
+              busy={additionalChargesRefreshing}
               label={detailCopy.reload}
               onReload={reloadActiveUnit}
             />
             <AdminAdditionalChargesSection
               initialFocus={initialFocus}
               onDataChanged={handleAdditionalChargesChanged}
+              onInitialFocusApplied={cleanupInitialFocusQuery}
+              onRefreshingChange={setAdditionalChargesRefreshing}
               reloadVersion={additionalChargesReloadVersion}
               reservationId={reservationShell.id}
             />
@@ -1064,6 +1113,7 @@ export function AdminReservationDetailPage({
                   initialFocus?.kind === "refund" ? initialFocus.focusId : null
                 }
                 onDataChanged={handleRefundsChanged}
+                onInitialFocusApplied={cleanupInitialFocusQuery}
                 reservation={refundsCache.data}
               />
             ) : refundsCache.status === "error" ? (
@@ -1094,6 +1144,7 @@ export function AdminReservationDetailPage({
                       : null
                   }
                   onDataChanged={handleChangesChanged}
+                  onInitialFocusApplied={cleanupInitialFocusQuery}
                   reservation={changesCache.data}
                 />
               </div>
@@ -1836,10 +1887,12 @@ function EmailNotificationContent({
 function RefundsPanel({
   focusedRefundId,
   onDataChanged,
+  onInitialFocusApplied,
   reservation,
 }: Readonly<{
   focusedRefundId: string | null;
   onDataChanged: () => void;
+  onInitialFocusApplied?: () => void;
   reservation: AdminReservationRefundsTab;
 }>) {
   const standardRefundReservation: AdminReservationRefundsTab = {
@@ -1856,11 +1909,13 @@ function RefundsPanel({
       <AdminReservationRefundSection
         focusedRefundId={focusedRefundId}
         onDataChanged={onDataChanged}
+        onInitialFocusApplied={onInitialFocusApplied}
         reservation={standardRefundReservation}
       />
       <AdminReservationLifecycleAdjustmentRefundSection
         focusedRefundId={focusedRefundId}
         onDataChanged={onDataChanged}
+        onInitialFocusApplied={onInitialFocusApplied}
         reservation={reservation}
       />
     </div>

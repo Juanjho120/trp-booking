@@ -6,11 +6,13 @@ export function useAdminInitialFocusScroll({
   enabled = true,
   focusKey,
   getElement,
+  onScrolled,
   scrollReadyKey,
 }: Readonly<{
   enabled?: boolean;
   focusKey: string | null;
   getElement: () => HTMLElement | null | undefined;
+  onScrolled?: () => void;
   scrollReadyKey?: string | number;
 }>) {
   const scrolledFocusKeyRef = useRef<string | null>(null);
@@ -53,6 +55,7 @@ export function useAdminInitialFocusScroll({
           behavior: reducedMotion ? "auto" : "smooth",
         });
         scrolledFocusKeyRef.current = focusKey;
+        onScrolled?.();
       });
     });
 
@@ -67,5 +70,5 @@ export function useAdminInitialFocusScroll({
         secondFrameRef.current = null;
       }
     };
-  }, [enabled, focusKey, getElement, scrollReadyKey]);
+  }, [enabled, focusKey, getElement, onScrolled, scrollReadyKey]);
 }

@@ -129,10 +129,12 @@ function isRefundConsultType(value: string | null | undefined): boolean {
 export function AdminReservationRefundSection({
   focusedRefundId = null,
   onDataChanged,
+  onInitialFocusApplied,
   reservation,
 }: Readonly<{
   focusedRefundId?: string | null;
   onDataChanged?: () => void;
+  onInitialFocusApplied?: () => void;
   reservation: AdminReservationRefundsTab;
 }>) {
   const router = useRouter();
@@ -312,6 +314,7 @@ export function AdminReservationRefundSection({
     enabled: focusedRefundGroupIndex >= 0,
     focusKey: focusedRefundId,
     getElement: getFocusedRefundElement,
+    onScrolled: onInitialFocusApplied,
     scrollReadyKey: `${refundPagination.page}:${openRefundGroupId}:${openNestedRefundId}`,
   });
 

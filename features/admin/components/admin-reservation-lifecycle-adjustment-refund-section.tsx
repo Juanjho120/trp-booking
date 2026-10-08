@@ -119,10 +119,12 @@ function isRefundConsultType(value: string | null | undefined): boolean {
 export function AdminReservationLifecycleAdjustmentRefundSection({
   focusedRefundId = null,
   onDataChanged,
+  onInitialFocusApplied,
   reservation,
 }: Readonly<{
   focusedRefundId?: string | null;
   onDataChanged?: () => void;
+  onInitialFocusApplied?: () => void;
   reservation: AdminReservationRefundsTab;
 }>) {
   const router = useRouter();
@@ -262,6 +264,7 @@ export function AdminReservationLifecycleAdjustmentRefundSection({
     enabled: focusedRefundEntryIndex >= 0,
     focusKey: focusedRefundId,
     getElement: getFocusedRefundElement,
+    onScrolled: onInitialFocusApplied,
     scrollReadyKey: `${entryPagination.page}:${openLifecycleRefundId}`,
   });
 

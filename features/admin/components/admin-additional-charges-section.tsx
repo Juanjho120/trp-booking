@@ -185,11 +185,15 @@ function isAdditionalChargeTab(value: string): value is AdditionalChargeTab {
 export function AdminAdditionalChargesSection({
   initialFocus = null,
   onDataChanged,
+  onInitialFocusApplied,
+  onRefreshingChange,
   reservationId,
   reloadVersion = 0,
 }: Readonly<{
   initialFocus?: AdminReservationDetailFocus | null;
   onDataChanged?: () => void;
+  onInitialFocusApplied?: () => void;
+  onRefreshingChange?: (refreshing: boolean) => void;
   reservationId: string;
   reloadVersion?: number;
 }>) {
@@ -251,6 +255,8 @@ export function AdminAdditionalChargesSection({
   );
   const focusElementRefs = useRef(new Map<string, HTMLElement>());
   const appliedFocusKeyRef = useRef<string | null>(null);
+  const onInitialFocusAppliedRef = useRef(onInitialFocusApplied);
+  const onRefreshingChangeRef = useRef(onRefreshingChange);
   const intlLocale = locale === "en" ? "en-US" : "es-GT";
   const refundCopy = messages.admin.reservationsPage.refunds;
   const isBusy = busyKey !== null;
@@ -258,6 +264,18 @@ export function AdminAdditionalChargesSection({
   const reconciliationConsultOutcome = refundConsultOutcome(reconciliationRefund);
   const reconciliationHasConclusiveConsultEvidence =
     hasConclusiveRefundConsultEvidence(reconciliationRefund);
+
+  useEffect(() => {
+    onInitialFocusAppliedRef.current = onInitialFocusApplied;
+  }, [onInitialFocusApplied]);
+
+  useEffect(() => {
+    onRefreshingChangeRef.current = onRefreshingChange;
+  }, [onRefreshingChange]);
+
+  const notifyInitialFocusApplied = useCallback((): void => {
+    onInitialFocusAppliedRef.current?.();
+  }, []);
 
   const resolveError = useCallback(
     (code: string): string => {
@@ -276,8 +294,12 @@ export function AdminAdditionalChargesSection({
         return false;
       }
 
+      const shouldNotifyRefreshing = !showLoading;
+
       if (showLoading) {
         setLoading(true);
+      } else {
+        onRefreshingChangeRef.current?.(true);
       }
 
       try {
@@ -318,6 +340,10 @@ export function AdminAdditionalChargesSection({
       } finally {
         if (showLoading) {
           setLoading(false);
+        }
+
+        if (shouldNotifyRefreshing) {
+          onRefreshingChangeRef.current?.(false);
         }
       }
     },
@@ -408,6 +434,7 @@ export function AdminAdditionalChargesSection({
     enabled: focusElementKey !== null,
     focusKey,
     getElement: getFocusElement,
+    onScrolled: notifyInitialFocusApplied,
     scrollReadyKey: `${activeTab}:${openChargeId}:${openPaymentRequestId}:${openRefundHistoryId}`,
   });
 

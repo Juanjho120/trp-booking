@@ -71,12 +71,12 @@ Summary and Attempts are cached and reloaded independently.
 
 - `features/admin/components/admin-reservation-detail-page.tsx`
   - Adds page-scoped tab cache entries with `idle`, `loading`, `ready`, `refreshing`, and `error` states.
-  - Fetches each tab on first visit and keeps visited tabs mounted.
+  - Fetches each tab on first visit and keeps visited tabs mounted, with per-tab in-flight deduplication for fast clicks, reloads, and callback/effect churn.
   - Keeps locale changes from triggering new data fetches.
   - Adds an icon-only localized reload action scoped to the active tab/data unit.
-  - Splits Financial Summary and Payment Attempts into separately cached nested tabs.
+  - Splits Financial Summary and Payment Attempts into separately cached nested tabs; the Financial tab is loaded only by its Financial-specific effect, not by the generic top-level tab effect.
   - Replaces full route refreshes for Reservation-detail mutations with scoped cache invalidation.
-  - Cleans contextual `focus` / `focusId` query params through `history.replaceState` after the initial landing.
+  - Cleans contextual `focus` / `focusId` query params through `history.replaceState` only after the exact target component applies focus and performs the initial scroll.
 
 - `features/admin/components/admin-additional-charges-section.tsx`
   - Receives an explicit `reloadVersion` from the Reservation detail page.
@@ -93,6 +93,26 @@ Summary and Attempts are cached and reloaded independently.
 
 - `tests/final-i/i64-reservation-detail-lazy-loading.test.ts`
   - Adds deterministic source-level coverage for the I.6.4 lazy-loading, tab-cache, Financial split, Additional Charges locale-refetch, scoped invalidation, focus-cleanup, and reload contracts.
+```
+
+## Correction Checkpoint - 2026-10-08
+
+```text
+Pre-Hosted hardening checkpoint on top of 239d2473ec6c87a9541bde69f2013ae4d953c770.
+Final-I.6.4 remains Implementation completed; Hosted owner validation pending.
+```
+
+This checkpoint corrected the remaining cache/UX regressions before Hosted owner validation:
+
+```text
+- The generic top-level lazy-load effect now skips both Additional Charges and Financial, so the Financial tab no longer emits a duplicate first-visit request.
+- Financial Summary and Payment Attempts remain owned by the Financial-specific effect.
+- Lazy server-tab requests now use a per-tab in-flight Set and a pure `shouldLoadAdminReservationTab` helper.
+- Automatic effect-driven retries stop after `error`; explicit reload/force actions remain available.
+- Manual refresh failures preserve existing tab data and surface localized snackbar feedback instead of blanking the panel.
+- The Reservation header badge now follows the latest successful lazy payload status instead of the immutable shell status.
+- Additional Charges reports real refresh state to the parent toolbar while preserving first-mount loading and locale-stable `loadManagement` dependencies.
+- Contextual focus query cleanup is now driven by successful exact-target focus/scroll application, not by an unconditional mount effect.
 ```
 
 ## Preserved Boundaries
@@ -115,10 +135,11 @@ Final-I.6.4 preserves:
 
 ```text
 Final-I.6.4 implementation validation:
-- npm run final-i:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; first outside-sandbox run reached 98/107 and exposed an obsolete I.6.2 focus expectation, which was reconciled with the new lightweight focus resolver; final outside-sandbox rerun PASS, 107/107
-- npm run final-h:validate - initial sandbox attempt failed before tests with uv_os_get_passwd ENOMEM; rerun outside the sandbox PASS, 20/20
+- npm run final-i:validate - initial implementation run PASS, 107/107; 2026-10-08 correction rerun PASS, 111/111
+- npm run final-h:validate - PASS, 20/20
 - npm run lint - PASS
-- npm run build - initial sandbox attempt failed fetching Google Fonts; rerun outside the sandbox PASS; Next slow filesystem warning only
+- npm run build - PASS; Next slow filesystem warning only
+- Local authenticated browser/network inspection - not executed in this code-only correction pass because no local authenticated Admin browser fixture was available; Hosted owner validation remains pending
 - git diff --check - PASS; Windows CRLF normalization warnings only
 ```
 

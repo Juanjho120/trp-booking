@@ -197,10 +197,12 @@ function toInitialDraft(
 export function AdminReservationDateMutationSection({
   focusedLifecycleRequestId = null,
   onDataChanged,
+  onInitialFocusApplied,
   reservation,
 }: Readonly<{
   focusedLifecycleRequestId?: string | null;
   onDataChanged?: () => void;
+  onInitialFocusApplied?: () => void;
   reservation: AdminReservationChangesTab;
 }>) {
   const router = useRouter();
@@ -326,6 +328,7 @@ export function AdminReservationDateMutationSection({
     enabled: focusedRequestIndex >= 0,
     focusKey: focusedLifecycleRequestId,
     getElement: getFocusedRequestElement,
+    onScrolled: onInitialFocusApplied,
     scrollReadyKey: `${requestPagination.page}:${openRequestId}`,
   });
 
