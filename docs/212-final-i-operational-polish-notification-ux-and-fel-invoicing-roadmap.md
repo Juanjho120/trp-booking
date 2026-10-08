@@ -42,14 +42,15 @@ Final-I.6.3 implementation and acceptance record: docs/217-final-i-6-3-additiona
 Final-I.6.4 status: Completed and accepted on 2026-10-08
 Accepted Final-I.6.4 feature head: c80f172ac9e1e366e54517020dd5b1a1e1c30a76
 Final-I.6.4 implementation and acceptance record: docs/218-final-i-6-4-reservation-detail-lazy-loading-tab-cache.md
-Final-I.6.5 status: Not started / next bounded Admin UX polish: Admin Contextual Help & Copy Density Polish
+Final-I.6.5 status: Implementation completed; Hosted owner validation pending
+Final-I.6.5 implementation record: docs/219-final-i-6-5-admin-contextual-help-copy-density-polish.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
 Phase 13 status: Blocked / Not started until Final-I closes
 ```
 
-Final-I is an owner-requested pre-Production addendum registered after the accepted Final-H closure. It does not rewrite the historical acceptance of Phase 12, Final-A through Final-H, or the complete Post-Phase-12 / Pre-Phase-13 Final Improvement Track at `6922cf27e31e63fde071c0d0a810b141e44b9f90`. Final-I.1 is completed and accepted at its feature head `9a15f349c1104671f5555d1988caa56756e5ff0c`, and Final-I.2 is completed and accepted at `6451cb705d972c83a771a9ff39f6da80d130cf58`; Final-I.3 is completed and accepted on 2026-09-29 at accepted head `8c5a9186e392f35bdbc998f463c5c3c6cd0be295` after Hosted owner validation of the desktop, Android mobile browser, Android standalone PWA, Push deep-link, and final mobile/PWA auto-scroll refinement. Final-I.4 is completed and accepted on 2026-09-30 at accepted feature head `8e2d7d56a8e81a860833b05f4a28cba8a517bad4` after Hosted/mobile owner validation of representative guest emails. Final-I.5 is completed and accepted on 2026-09-30 at accepted head `fde3ae06427af1f8905e6f7589263c199f918553`; the provider-independent FEL fiscal domain contract remains recorded in `docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md`. Final-I.6 is completed and accepted on 2026-10-02 at accepted feature head `80469abda146d0d50516ab598a514a9ccea2db6d`; the implementation and acceptance record is `docs/214-final-i-6-fel-persistence-admin-draft-module.md`. Final-I.6.1 is completed and accepted on 2026-10-06 at accepted feature head `4d8a1dd5eb2f2eaaadf43bd8b97d7dd1df6e500e`; its implementation and acceptance record is `docs/215-final-i-6-1-interim-operational-hardening.md`. Final-I.6.2 is completed and accepted on 2026-10-07 at accepted feature head `d936983edd22607919148f871e3ba339ab4a4ed9`; Workstreams A-K are completed; its implementation and acceptance record is `docs/216-final-i-6-2-admin-ux-navigation-accordions-pagination-polish.md`. Final-I.6.3 is completed and accepted on 2026-10-07 at accepted feature head `235bd1f5a8a7d48161146c485c979d5f57a6530d`; it is a bounded Additional Charges email-delivery layout polish recorded in `docs/217-final-i-6-3-additional-charges-email-delivery-layout-polish.md`. Final-I.6.4 is completed and accepted on 2026-10-08 at accepted feature head c80f172ac9e1e366e54517020dd5b1a1e1c30a76; it is recorded in `docs/218-final-i-6-4-reservation-detail-lazy-loading-tab-cache.md`. Final-I remains active because Final-I.6.5 is not started, Final-I.7 is blocked, Final-I.8 and Final-I.9 are not started, and Phase 13 remains not started and blocked until Final-I closes and receives owner acceptance.
+Final-I is an owner-requested pre-Production addendum registered after the accepted Final-H closure. It does not rewrite the historical acceptance of Phase 12, Final-A through Final-H, or the complete Post-Phase-12 / Pre-Phase-13 Final Improvement Track at `6922cf27e31e63fde071c0d0a810b141e44b9f90`. Final-I.1 is completed and accepted at its feature head `9a15f349c1104671f5555d1988caa56756e5ff0c`, and Final-I.2 is completed and accepted at `6451cb705d972c83a771a9ff39f6da80d130cf58`; Final-I.3 is completed and accepted on 2026-09-29 at accepted head `8c5a9186e392f35bdbc998f463c5c3c6cd0be295` after Hosted owner validation of the desktop, Android mobile browser, Android standalone PWA, Push deep-link, and final mobile/PWA auto-scroll refinement. Final-I.4 is completed and accepted on 2026-09-30 at accepted feature head `8e2d7d56a8e81a860833b05f4a28cba8a517bad4` after Hosted/mobile owner validation of representative guest emails. Final-I.5 is completed and accepted on 2026-09-30 at accepted head `fde3ae06427af1f8905e6f7589263c199f918553`; the provider-independent FEL fiscal domain contract remains recorded in `docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md`. Final-I.6 is completed and accepted on 2026-10-02 at accepted feature head `80469abda146d0d50516ab598a514a9ccea2db6d`; the implementation and acceptance record is `docs/214-final-i-6-fel-persistence-admin-draft-module.md`. Final-I.6.1 is completed and accepted on 2026-10-06 at accepted feature head `4d8a1dd5eb2f2eaaadf43bd8b97d7dd1df6e500e`; its implementation and acceptance record is `docs/215-final-i-6-1-interim-operational-hardening.md`. Final-I.6.2 is completed and accepted on 2026-10-07 at accepted feature head `d936983edd22607919148f871e3ba339ab4a4ed9`; Workstreams A-K are completed; its implementation and acceptance record is `docs/216-final-i-6-2-admin-ux-navigation-accordions-pagination-polish.md`. Final-I.6.3 is completed and accepted on 2026-10-07 at accepted feature head `235bd1f5a8a7d48161146c485c979d5f57a6530d`; it is a bounded Additional Charges email-delivery layout polish recorded in `docs/217-final-i-6-3-additional-charges-email-delivery-layout-polish.md`. Final-I.6.4 is completed and accepted on 2026-10-08 at accepted feature head c80f172ac9e1e366e54517020dd5b1a1e1c30a76; it is recorded in `docs/218-final-i-6-4-reservation-detail-lazy-loading-tab-cache.md`. Final-I remains active because Final-I.6.5 implementation is completed but Hosted owner validation is pending, Final-I.7 is blocked, Final-I.8 and Final-I.9 are not started, and Phase 13 remains not started and blocked until Final-I closes and receives owner acceptance.
 
 Final-I.5 canonical amount-source hardening freezes `FelCommercialSourceAllocation.amountSnapshot` and `FelCommercialSourceAllocation.currencySnapshot` as the only canonical commercial amount source for future draft line totals. `FelLineSource` is frozen as provenance/evidence only: its rows are never summed to compute `FelLineItem.amount` or `FelDocument` totals, including when `sourceRole = AMOUNT_SOURCE`. Conceptual mandatory `FelLineSource.sourceAmount` / `sourceCurrency` fields were removed from the I.5 persistence contract to avoid two divergent monetary sources of truth; any supporting monetary evidence belongs only inside `sourceSnapshotJson` as non-authoritative audit/reproduction metadata.
 
@@ -66,6 +67,7 @@ Final-I.6.1 - Interim Operational Hardening
 Final-I.6.2 - Admin UX Navigation, Accordions & Pagination Polish
 Final-I.6.3 - Additional Charges Email Delivery Layout Polish
 Final-I.6.4 - Reservation Detail Lazy Loading, Tab Cache & Financial Tabs
+Final-I.6.5 - Admin Contextual Help & Copy Density Polish
 Final-I.7 - INFILE provider integration: certification, cancellation, credit notes, retry/contingency
 Final-I.8 - FEL delivery email/PDF/XML/history UX
 Final-I.9 - Integrated A-I regression, Hosted acceptance and renewed pre-Phase-13 closure
@@ -871,17 +873,40 @@ Frozen non-scope:
 - Final-I.7 remains blocked pending official INFILE technical documentation + Test credentials.
 ```
 
+## Final-I.6.5 Implementation Completed; Hosted Owner Validation Pending
+
+Final-I.6.5 implements a bounded Admin Contextual Help & Copy Density Polish package on top of the accepted Final-I.6.4 closure. The implementation record is `docs/219-final-i-6-5-admin-contextual-help-copy-density-polish.md`.
+
+Implemented scope:
+
+```text
+- Reusable `AdminContextualHelp` component using existing Radix Popover and `CircleHelp` icon.
+- Localized accessible labels: `Ayuda` and `Help`.
+- Pointer hover, keyboard focus, click, and tap access to contextual help.
+- `AdminPageHeader` page descriptions moved behind contextual help while preserving a single visible `<h1>` and existing actions/badges.
+- Category A explanatory copy moved behind contextual help across high-density Admin surfaces.
+- Category B operational metadata remains visible.
+- Category C warnings, risk/consequence copy, security/privacy notes and financial/provider boundaries remain visible.
+```
+
+Frozen non-scope:
+
+```text
+- No schema, migration, dependency, environment variable, scheduler, cron, Vercel, Production, public-site, guest-facing, API, provider, FEL provider/INFILE, Final-I.7, Final-I.8, Final-I.9, or Phase 13 scope is introduced by Final-I.6.5.
+- Final-I.6.4 remains completed and accepted at c80f172ac9e1e366e54517020dd5b1a1e1c30a76.
+- Final-I.7 remains blocked pending official INFILE technical documentation + Test credentials.
+```
 ## Boundaries
 
 ```text
 - Phase 13 remains blocked / not started until Final-I closes.
-- No Production provider account, credential, DNS cutover, payment credential, database, media account, WhatsApp sender, FEL account, or public go-live is introduced by Final-I.1 through Final-I.6.4.
+- No Production provider account, credential, DNS cutover, payment credential, database, media account, WhatsApp sender, FEL account, or public go-live is introduced by Final-I.1 through Final-I.6.5.
 - Workstreams B+C intentionally add one enum-only migration, one protected cron registry entry/route, one localized cron copy entry, and three bounded AdminNotification types; `vercel.json` remains `{ "crons": [] }` and no Production scheduler is activated.
 - Workstream D is UI organization only: nested design-system tabs plus single/collapsible accordions inside the existing Additional Charges card; no backend/API/schema/payment/refund semantics change.
 - Workstreams G-K are Admin presentation/navigation and Notification Center retrieval/read orchestration only. They add no notification type, Push service-worker shortcut, raw arbitrary target navigation, financial arithmetic, persistence column, or provider behavior.
 - Final-I.6.3 is Admin presentation layout polish only for Additional Charges Payment Requests email-delivery metadata. It adds no processing, provider, resend, persistence, notification-type, Push, email-delivery, financial, FEL, INFILE, public-site, or guest-facing behavior.
-- Final-I.6.4 is Admin Reservation detail lazy-loading/cache UX work only. It adds no schema, migration, dependency, environment, scheduler, cron, provider, FEL, INFILE, public-site, guest-facing, Production-resource, or Phase 13 behavior.
-- No dependency beyond `countries-and-timezones` static timezone metadata for Workstream A, environment variable, Production resource, external receiver lookup, INFILE transport, certification, Credit Note issuing workflow, PDF/XML retrieval, Final-I.7 provider integration, Final-G/H reopening, or Phase 13 work is part of Final-I.6.1. Final-I.6.2, Final-I.6.3, and Final-I.6.4 add no dependency, schema, migration, environment, scheduler, cron, or Production-resource change.
+- Final-I.6.4 is Admin Reservation detail lazy-loading/cache UX work only. It adds no schema, migration, dependency, environment, scheduler, cron, provider, FEL, INFILE, public-site, guest-facing, Production-resource, or Phase 13 behavior. Final-I.6.5 is Admin contextual-help/copy-density UX work only and likewise adds no schema, migration, dependency, environment, scheduler, cron, provider, FEL, INFILE, public-site, guest-facing, Production-resource, or Phase 13 behavior.
+- No dependency beyond `countries-and-timezones` static timezone metadata for Workstream A, environment variable, Production resource, external receiver lookup, INFILE transport, certification, Credit Note issuing workflow, PDF/XML retrieval, Final-I.7 provider integration, Final-G/H reopening, or Phase 13 work is part of Final-I.6.1. Final-I.6.2, Final-I.6.3, Final-I.6.4, and Final-I.6.5 add no dependency, schema, migration, environment, scheduler, cron, or Production-resource change.
 - Final-I.7 is blocked pending official INFILE technical documentation + Test credentials and must not begin until explicitly requested.
 - Existing Final-F.7 Zoho webhook signature verification, bootstrap behavior, Limited Data parsing, bounded persistence, notification-center serialization, and immediate Web Push delivery remain preserved.
 - `vercel.json` remains `{ "crons": [] }`; the new GPR expiration cron is registered for protected manual/admin execution evidence only until Production scheduler activation is explicitly handled later.
@@ -1116,6 +1141,13 @@ Final-I.6.4 accepted validation:
 - npm run lint - PASS
 - npm run build - PASS; Next slow filesystem warning only
 - git diff --check - PASS; Windows CRLF normalization warnings only
+Final-I.6.5 implementation validation:
+- npm run final-i:validate - PASS, 117/117
+- npm run final-h:validate - PASS, 20/20
+- npm run lint - PASS
+- npm run build - PASS; Next slow filesystem warning only
+- git diff --check - PASS; Windows CRLF normalization warnings only
+- vercel.json confirmation - PASS; remains exactly `{ "crons": [] }`
 ```
 
 ## Final-I.1 Hosted Owner Validation Completed

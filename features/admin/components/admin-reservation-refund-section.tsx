@@ -27,7 +27,6 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -74,6 +73,7 @@ import {
   useAdminRecordPagination,
 } from "./admin-record-pagination";
 import { AdminRefundOperationCard } from "./admin-refund-operational-controls";
+import { AdminContextualHelp } from "./admin-contextual-help";
 import { AdminSnackbar } from "./admin-snackbar";
 import { useAdminInitialFocusScroll } from "./use-admin-initial-focus-scroll";
 
@@ -731,8 +731,10 @@ export function AdminReservationRefundSection({
               <CircleDollarSign aria-hidden="true" className="size-4" />
               {copy.badge}
             </div>
-            <CardTitle>{copy.title}</CardTitle>
-            <CardDescription>{copy.description}</CardDescription>
+            <div className="flex items-center gap-2">
+              <CardTitle>{copy.title}</CardTitle>
+              <AdminContextualHelp content={copy.description} />
+            </div>
           </div>
           {canAuthorizeStandard || canAuthorizeExtraordinary ? (
             <div className="flex flex-wrap justify-end gap-2">

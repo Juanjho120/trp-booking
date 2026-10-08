@@ -10,7 +10,6 @@ import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -21,6 +20,7 @@ import type {
   PaymentSubmissionAttemptStatus,
 } from "@/types/payment-submission-attempt";
 
+import { AdminContextualHelp } from "./admin-contextual-help";
 import {
   AdminRecordPagination,
   useAdminRecordPagination,
@@ -96,10 +96,12 @@ export function AdminPaymentSubmissionAttemptHistory({
   return (
     <Card className="mt-6 border-border/70 bg-card shadow-sm">
       <CardHeader>
-        <CardTitle>
-          {paymentCopy.title} · {notificationLabels.attempts}
-        </CardTitle>
-        <CardDescription>{historyCopy.description}</CardDescription>
+        <div className="flex items-center gap-2">
+          <CardTitle>
+            {paymentCopy.title} · {notificationLabels.attempts}
+          </CardTitle>
+          <AdminContextualHelp content={historyCopy.description} />
+        </div>
       </CardHeader>
       <CardContent className="grid gap-6">
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

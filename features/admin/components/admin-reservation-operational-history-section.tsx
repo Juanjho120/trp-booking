@@ -21,7 +21,6 @@ import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -33,6 +32,7 @@ import type {
 } from "@/types/admin-reservation-operational-history";
 import type { Locale } from "@/types/locale";
 
+import { AdminContextualHelp } from "./admin-contextual-help";
 import {
   AdminRecordPagination,
   useAdminRecordPagination,
@@ -171,8 +171,10 @@ export function AdminReservationOperationalHistorySection({
           <History aria-hidden="true" className="size-4" />
           {copy.badge}
         </div>
-        <CardTitle>{copy.title}</CardTitle>
-        <CardDescription>{copy.description}</CardDescription>
+        <div className="flex items-center gap-2">
+          <CardTitle>{copy.title}</CardTitle>
+          <AdminContextualHelp content={copy.description} />
+        </div>
       </CardHeader>
       <CardContent>
         {reservation.operationalHistory.length > 0 ? (

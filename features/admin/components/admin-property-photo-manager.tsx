@@ -21,7 +21,6 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -41,6 +40,7 @@ import type {
   AdminPropertyPhotoUploadSignature,
 } from "@/types/admin-property-photos";
 
+import { AdminContextualHelp } from "./admin-contextual-help";
 import { AdminPageHeader } from "./admin-page-header";
 import { AdminSnackbar } from "./admin-snackbar";
 
@@ -437,11 +437,16 @@ export function AdminPropertyPhotoManager({
       <Card className="mb-8 border-border/70 bg-card shadow-sm">
         <CardHeader>
           <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
+            <div className="flex items-center gap-2">
               <CardTitle>{copy.sections.upload}</CardTitle>
-              <CardDescription className="mt-2 max-w-3xl">
-                {copy.notes.formats}
-              </CardDescription>
+              <AdminContextualHelp
+                content={
+                  <>
+                    <p>{copy.notes.formats}</p>
+                    <p className="mt-2">{copy.notes.altText}</p>
+                  </>
+                }
+              />
             </div>
             <Badge variant="secondary">
               {copy.labels.currentCount}: {settings.photos.length} /{" "}
@@ -543,9 +548,7 @@ export function AdminPropertyPhotoManager({
             </label>
 
             <div className="flex flex-wrap items-center justify-between gap-3 lg:col-span-2">
-              <p className="text-xs leading-5 text-muted-foreground">
-                {copy.notes.altText}
-              </p>
+
               <Button
                 disabled={
                   isBusy ||
@@ -572,15 +575,15 @@ export function AdminPropertyPhotoManager({
 
       <section aria-labelledby="property-photo-list-heading">
         <div className="mb-5">
-          <h2
-            className="text-2xl font-semibold tracking-tight"
-            id="property-photo-list-heading"
-          >
-            {copy.sections.current}
-          </h2>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-            {copy.notes.order}
-          </p>
+          <div className="flex items-center gap-2">
+            <h2
+              className="text-2xl font-semibold tracking-tight"
+              id="property-photo-list-heading"
+            >
+              {copy.sections.current}
+            </h2>
+            <AdminContextualHelp content={copy.notes.order} />
+          </div>
         </div>
 
         {settings.photos.length > 0 ? (

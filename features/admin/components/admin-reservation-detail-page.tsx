@@ -87,6 +87,7 @@ import type {
 import type { Locale } from "@/types/locale";
 
 import { AdminAdditionalChargesSection } from "./admin-additional-charges-section";
+import { AdminContextualHelp } from "./admin-contextual-help";
 import { AdminPageHeader } from "./admin-page-header";
 import { AdminPaymentSubmissionAttemptHistory } from "./admin-payment-submission-attempt-history";
 import {
@@ -1561,8 +1562,10 @@ function FinancialSummaryContent({
 
       <Card className="h-fit border-border/70 bg-card shadow-sm">
         <CardHeader>
-          <CardTitle>{paymentCopy.title}</CardTitle>
-          <CardDescription>{paymentCopy.description}</CardDescription>
+          <div className="flex items-center gap-2">
+            <CardTitle>{paymentCopy.title}</CardTitle>
+            <AdminContextualHelp content={paymentCopy.description} />
+          </div>
         </CardHeader>
         <CardContent>
           {financial.payments.length > 0 ? (
@@ -1734,8 +1737,10 @@ function EmailNotificationContent({
   return (
     <Card className="border-border/70 bg-card shadow-sm">
       <CardHeader>
-        <CardTitle>{notificationCopy.title}</CardTitle>
-        <CardDescription>{notificationCopy.description}</CardDescription>
+        <div className="flex items-center gap-2">
+          <CardTitle>{notificationCopy.title}</CardTitle>
+          <AdminContextualHelp content={notificationCopy.description} />
+        </div>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue={defaultEmailGroup}>
@@ -1902,8 +1907,17 @@ function ZohoCorrespondenceCard({
   return (
     <Card className="border-border/70 bg-card shadow-sm">
       <CardHeader>
-        <CardTitle>{correspondenceCopy.title}</CardTitle>
-        <CardDescription>{correspondenceCopy.description}</CardDescription>
+        <div className="flex items-center gap-2">
+          <CardTitle>{correspondenceCopy.title}</CardTitle>
+          <AdminContextualHelp
+            content={
+              <>
+                <p>{correspondenceCopy.description}</p>
+                <p className="mt-2">{correspondenceCopy.helper}</p>
+              </>
+            }
+          />
+        </div>
       </CardHeader>
       <CardContent className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
@@ -1911,9 +1925,7 @@ function ZohoCorrespondenceCard({
             {requestCopy.fields.guestEmail}
           </p>
           <p className="mt-1 break-all text-sm font-medium">{guestEmail}</p>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-            {correspondenceCopy.helper}
-          </p>
+
         </div>
 
         <Button asChild className="w-full shrink-0 sm:w-auto">
@@ -2196,8 +2208,10 @@ function ReservationPricingBreakdownCard({
   return (
     <Card className="mt-6 border-border/70 bg-card shadow-sm">
       <CardHeader>
-        <CardTitle>{copy.title}</CardTitle>
-        <CardDescription>{copy.description}</CardDescription>
+        <div className="flex items-center gap-2">
+          <CardTitle>{copy.title}</CardTitle>
+          <AdminContextualHelp content={copy.description} />
+        </div>
       </CardHeader>
 
       <CardContent>

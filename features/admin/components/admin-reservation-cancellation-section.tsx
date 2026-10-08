@@ -23,7 +23,6 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -56,6 +55,7 @@ import {
   AdminRecordPagination,
   useAdminRecordPagination,
 } from "./admin-record-pagination";
+import { AdminContextualHelp } from "./admin-contextual-help";
 import { AdminSnackbar } from "./admin-snackbar";
 
 const inputClassName =
@@ -350,8 +350,10 @@ export function AdminReservationCancellationSection({
               <CalendarX2 aria-hidden="true" className="size-4" />
               {copy.badge}
             </div>
-            <CardTitle>{copy.title}</CardTitle>
-            <CardDescription>{copy.description}</CardDescription>
+            <div className="flex items-center gap-2">
+              <CardTitle>{copy.title}</CardTitle>
+              <AdminContextualHelp content={copy.description} />
+            </div>
           </div>
           {canCreateRequest ? (
             <Button onClick={openCreateRequest} type="button">

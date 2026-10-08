@@ -41,6 +41,7 @@ import {
   type AmenityIconName,
 } from "@/types/amenity";
 
+import { AdminContextualHelp } from "./admin-contextual-help";
 import { AdminPageHeader } from "./admin-page-header";
 import { AdminSnackbar } from "./admin-snackbar";
 
@@ -739,13 +740,11 @@ function CatalogSectionHeader({
 }>) {
   return (
     <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-      <div>
+      <div className="flex items-center gap-2">
         <h2 className="text-2xl font-semibold tracking-tight" id={id}>
           {title}
         </h2>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-          {description}
-        </p>
+        <AdminContextualHelp content={description} />
       </div>
       <div className="shrink-0">{action}</div>
     </div>

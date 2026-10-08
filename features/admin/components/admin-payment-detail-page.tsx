@@ -16,6 +16,7 @@ import { useLocale } from "@/features/i18n";
 import type { AdminPaymentDetailData } from "@/types/admin-payment-detail";
 import type { Locale } from "@/types/locale";
 
+import { AdminContextualHelp } from "./admin-contextual-help";
 import { AdminPageHeader } from "./admin-page-header";
 
 function getIntlLocale(locale: Locale): string {
@@ -157,8 +158,10 @@ export function AdminPaymentDetailPage({
 
           <Card className="border-border/70 bg-card shadow-sm">
             <CardHeader>
-              <CardTitle>{paymentCopy.tabs.events}</CardTitle>
-              <CardDescription>{paymentCopy.description}</CardDescription>
+              <div className="flex items-center gap-2">
+                <CardTitle>{paymentCopy.tabs.events}</CardTitle>
+                <AdminContextualHelp content={paymentCopy.description} />
+              </div>
             </CardHeader>
             <CardContent>
               {payment.clientEvents.length > 0 ? (

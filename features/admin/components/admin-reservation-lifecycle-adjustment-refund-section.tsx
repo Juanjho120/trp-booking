@@ -30,7 +30,6 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -76,6 +75,7 @@ import {
   AdminRecordPagination,
   useAdminRecordPagination,
 } from "./admin-record-pagination";
+import { AdminContextualHelp } from "./admin-contextual-help";
 import { AdminSnackbar } from "./admin-snackbar";
 import { useAdminInitialFocusScroll } from "./use-admin-initial-focus-scroll";
 
@@ -647,8 +647,10 @@ export function AdminReservationLifecycleAdjustmentRefundSection({
             <CircleDollarSign aria-hidden="true" className="size-4" />
             {dateMutationCopy.badge}
           </div>
-          <CardTitle>{`${dateMutationCopy.title} · ${refundCopy.title}`}</CardTitle>
-          <CardDescription>{dateMutationCopy.description}</CardDescription>
+          <div className="flex items-center gap-2">
+            <CardTitle>{`${dateMutationCopy.title} · ${refundCopy.title}`}</CardTitle>
+            <AdminContextualHelp content={dateMutationCopy.description} />
+          </div>
         </CardHeader>
         <CardContent>
           <Accordion

@@ -39,6 +39,7 @@ import type {
 } from "@/types/admin-public-location";
 import type { Locale } from "@/types/locale";
 
+import { AdminContextualHelp } from "./admin-contextual-help";
 import { AdminPageHeader } from "./admin-page-header";
 import { AdminSnackbar } from "./admin-snackbar";
 
@@ -281,8 +282,10 @@ export function AdminPublicLocationPage({
             <div className="grid h-fit gap-6">
               <Card className="overflow-hidden border-border/70 bg-card shadow-sm">
                 <CardHeader>
-                  <CardTitle>{copy.sections.preview}</CardTitle>
-                  <CardDescription>{copy.preview.savedNote}</CardDescription>
+                  <div className="flex items-center gap-2">
+                    <CardTitle>{copy.sections.preview}</CardTitle>
+                    <AdminContextualHelp content={copy.preview.savedNote} />
+                  </div>
                 </CardHeader>
                 <CardContent>
                   {canPreview ? (
@@ -325,8 +328,10 @@ export function AdminPublicLocationPage({
         <TabsContent className="mt-6" value="history">
           <Card className="border-border/70 bg-card shadow-sm">
             <CardHeader>
-              <CardTitle>{copy.sections.history}</CardTitle>
-              <CardDescription>{copy.history.description}</CardDescription>
+              <div className="flex items-center gap-2">
+                <CardTitle>{copy.sections.history}</CardTitle>
+                <AdminContextualHelp content={copy.history.description} />
+              </div>
             </CardHeader>
             <CardContent>
               {data.history.length > 0 ? (

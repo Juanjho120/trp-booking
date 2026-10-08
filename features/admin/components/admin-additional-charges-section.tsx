@@ -26,7 +26,6 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -75,6 +74,7 @@ import type {
   AdminRefundSummary,
 } from "@/types/admin-refund";
 
+import { AdminContextualHelp } from "./admin-contextual-help";
 import { AdminSnackbar } from "./admin-snackbar";
 import { useAdminInitialFocusScroll } from "./use-admin-initial-focus-scroll";
 import {
@@ -1194,8 +1194,10 @@ export function AdminAdditionalChargesSection({
               <ReceiptText aria-hidden="true" className="size-4" />
               {copy.badge}
             </div>
-            <CardTitle>{copy.title}</CardTitle>
-            <CardDescription>{copy.description}</CardDescription>
+            <div className="flex items-center gap-2">
+              <CardTitle>{copy.title}</CardTitle>
+              <AdminContextualHelp content={copy.description} />
+            </div>
           </div>
           <Button
             disabled={!management?.canCreateCharge}

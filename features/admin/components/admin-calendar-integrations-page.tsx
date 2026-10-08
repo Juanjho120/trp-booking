@@ -29,7 +29,6 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -51,6 +50,7 @@ import type {
 } from "@/types/admin-external-calendar-integration";
 import type { Locale } from "@/types/locale";
 
+import { AdminContextualHelp } from "./admin-contextual-help";
 import { AdminPageHeader } from "./admin-page-header";
 import { AdminSnackbar } from "./admin-snackbar";
 
@@ -342,8 +342,10 @@ function IntegrationCard({
       <CardHeader className="border-b border-border/70">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <CardTitle>{propertyName}</CardTitle>
-            <CardDescription>{copy.cards.description}</CardDescription>
+            <div className="flex items-center gap-2">
+              <CardTitle>{propertyName}</CardTitle>
+              <AdminContextualHelp content={copy.cards.description} />
+            </div>
           </div>
           <Badge variant="outline">{copy.values.airbnb}</Badge>
         </div>
@@ -356,14 +358,15 @@ function IntegrationCard({
             </span>
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <h2 className="font-semibold">{copy.directions.inbound.title}</h2>
+                <div className="flex items-center gap-2">
+                  <h2 className="font-semibold">{copy.directions.inbound.title}</h2>
+                  <AdminContextualHelp content={copy.directions.inbound.description} />
+                </div>
                 <Badge variant={inboundBadgeVariant(integration.inboundStatus)}>
                   {copy.inboundStatuses[integration.inboundStatus]}
                 </Badge>
               </div>
-              <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                {copy.directions.inbound.description}
-              </p>
+
             </div>
           </div>
 
@@ -551,14 +554,15 @@ function IntegrationCard({
             </span>
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <h2 className="font-semibold">{copy.directions.outbound.title}</h2>
+                <div className="flex items-center gap-2">
+                  <h2 className="font-semibold">{copy.directions.outbound.title}</h2>
+                  <AdminContextualHelp content={copy.directions.outbound.description} />
+                </div>
                 <Badge variant={outboundBadgeVariant(integration.outboundStatus)}>
                   {copy.outboundStatuses[integration.outboundStatus]}
                 </Badge>
               </div>
-              <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                {copy.directions.outbound.description}
-              </p>
+
             </div>
           </div>
 

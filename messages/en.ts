@@ -604,6 +604,7 @@ export const enMessages = {
     },
     feedback: {
       dismiss: "Dismiss notification",
+      help: "Help",
     },
     navigation: {
       fallbackUserName: "Administrator",

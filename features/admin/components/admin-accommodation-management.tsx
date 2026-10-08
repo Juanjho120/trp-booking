@@ -27,6 +27,7 @@ import type { AdminPreparationBufferSettings } from "@/types/admin-preparation-b
 import type { Locale } from "@/types/locale";
 
 import { AdminAccommodationSettings } from "./admin-accommodation-settings";
+import { AdminContextualHelp } from "./admin-contextual-help";
 import { AdminPageHeader } from "./admin-page-header";
 
 function getIntlLocale(locale: Locale): string {
@@ -67,16 +68,14 @@ export function AdminAccommodationManagement({
       />
 
       <section aria-labelledby="accommodation-content-heading">
-        <div className="mb-5">
+        <div className="mb-5 flex items-center gap-2">
           <h2
             className="text-2xl font-semibold tracking-tight"
             id="accommodation-content-heading"
           >
             {copy.overview.sectionTitle}
           </h2>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-            {copy.overview.sectionDescription}
-          </p>
+          <AdminContextualHelp content={copy.overview.sectionDescription} />
         </div>
 
         <div className="grid gap-5 xl:grid-cols-3">
@@ -208,15 +207,15 @@ export function AdminAccommodationManagement({
           <Badge className="mb-4 rounded-full" variant="secondary">
             {copy.preparation.badge}
           </Badge>
-          <h2
-            className="text-2xl font-semibold tracking-tight"
-            id="preparation-settings-heading"
-          >
-            {copy.preparation.title}
-          </h2>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-            {copy.preparation.description}
-          </p>
+          <div className="flex items-center gap-2">
+            <h2
+              className="text-2xl font-semibold tracking-tight"
+              id="preparation-settings-heading"
+            >
+              {copy.preparation.title}
+            </h2>
+            <AdminContextualHelp content={copy.preparation.description} />
+          </div>
         </div>
 
         <AdminAccommodationSettings

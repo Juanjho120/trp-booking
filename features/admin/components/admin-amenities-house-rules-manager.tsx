@@ -17,7 +17,6 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -27,6 +26,7 @@ import type {
   AdminAmenityHouseRuleSettings,
 } from "@/types/admin-amenities-house-rules";
 
+import { AdminContextualHelp } from "./admin-contextual-help";
 import { AdminPageHeader } from "./admin-page-header";
 import { AdminSnackbar } from "./admin-snackbar";
 
@@ -195,10 +195,10 @@ export function AdminAmenitiesHouseRulesManager({
         <CardHeader>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <CardTitle>{copy.sections.assignments}</CardTitle>
-              <CardDescription className="mt-2 max-w-3xl">
-                {copy.notes.assignment}
-              </CardDescription>
+              <div className="flex items-center gap-2">
+                <CardTitle>{copy.sections.assignments}</CardTitle>
+                <AdminContextualHelp content={copy.notes.assignment} />
+              </div>
             </div>
             <Badge variant="secondary">
               {statusCopy[settings.property.status]}

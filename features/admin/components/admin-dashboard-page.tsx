@@ -15,7 +15,6 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -23,6 +22,7 @@ import { useLocale } from "@/features/i18n";
 import type { AdminDashboardSummary } from "@/types/admin-dashboard";
 import type { Locale } from "@/types/locale";
 
+import { AdminContextualHelp } from "./admin-contextual-help";
 import { AdminPageHeader } from "./admin-page-header";
 
 const statDefinitions = [
@@ -98,8 +98,10 @@ export function AdminDashboardPage({
                     </div>
                     <Badge variant="outline">{statValues[definition.key]}</Badge>
                   </div>
-                  <CardTitle className="pt-3">{statCopy.label}</CardTitle>
-                  <CardDescription>{statCopy.description}</CardDescription>
+                  <div className="flex items-center gap-2 pt-3">
+                    <CardTitle>{statCopy.label}</CardTitle>
+                    <AdminContextualHelp content={statCopy.description} />
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <Button asChild className="w-full" variant="outline">
@@ -114,13 +116,11 @@ export function AdminDashboardPage({
 
       <section className="mt-8" aria-labelledby="upcoming-arrivals-title">
         <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-          <div>
+          <div className="flex items-center gap-2">
             <h2 className="text-xl font-semibold" id="upcoming-arrivals-title">
               {copy.sections.upcomingArrivals}
             </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {copy.upcomingArrivalsDescription}
-            </p>
+            <AdminContextualHelp content={copy.upcomingArrivalsDescription} />
           </div>
           <Button asChild variant="outline">
             <Link href="/admin/reservations">{copy.actions.viewAll}</Link>

@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 
 import { Badge } from "@/components/ui/badge";
 
+import { AdminContextualHelp } from "./admin-contextual-help";
+
 export function AdminPageHeader({
   badge,
   title,
@@ -21,12 +23,12 @@ export function AdminPageHeader({
             {badge}
           </Badge>
         ) : null}
-        <h1 className="text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
-          {title}
-        </h1>
-        <p className="mt-3 text-sm leading-6 text-muted-foreground sm:text-base">
-          {description}
-        </p>
+        <div className="flex flex-wrap items-start gap-2">
+          <h1 className="min-w-0 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
+            {title}
+          </h1>
+          <AdminContextualHelp align="start" content={description} side="bottom" />
+        </div>
       </div>
       {actions ? <div className="shrink-0">{actions}</div> : null}
     </header>

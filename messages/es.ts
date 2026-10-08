@@ -604,6 +604,7 @@ export const esMessages = {
     },
     feedback: {
       dismiss: "Cerrar notificación",
+      help: "Ayuda",
     },
     navigation: {
       fallbackUserName: "Administrador",

@@ -35,6 +35,7 @@ import {
   type AdminNotificationsDisplayMode,
 } from "@/lib/admin-notifications/center-routing";
 
+import { AdminContextualHelp } from "./admin-contextual-help";
 import { AdminPageHeader } from "./admin-page-header";
 import { AdminSnackbar } from "./admin-snackbar";
 
@@ -918,13 +919,11 @@ export function AdminNotificationsPageView({
     <Card className="border-border/70 bg-card shadow-sm">
       <CardContent className="grid gap-5 p-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2">
             <h2 className="text-lg font-semibold tracking-tight">
               {copy.history.title}
             </h2>
-            <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
-              {copy.history.description}
-            </p>
+            <AdminContextualHelp content={copy.history.description} />
           </div>
           <Badge variant={unreadCount > 0 ? "secondary" : "outline"}>
             {copy.history.unreadCount.replace("{count}", String(unreadCount))}
@@ -1137,13 +1136,11 @@ export function AdminNotificationsPageView({
 
       <Card className="border-border/70 bg-card shadow-sm">
         <CardContent className="grid gap-5 p-5">
-          <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2">
             <h2 className="text-lg font-semibold tracking-tight">
               {copy.device.title}
             </h2>
-            <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
-              {copy.device.description}
-            </p>
+            <AdminContextualHelp content={copy.device.description} />
           </div>
 
           <div className="flex flex-wrap gap-2">

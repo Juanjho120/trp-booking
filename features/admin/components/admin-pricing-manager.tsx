@@ -44,6 +44,7 @@ import type {
 } from "@/types/admin-pricing";
 import type { Locale } from "@/types/locale";
 
+import { AdminContextualHelp } from "./admin-contextual-help";
 import { AdminPageHeader } from "./admin-page-header";
 import {
   AdminPricingDateRangeCalendar,
@@ -704,8 +705,10 @@ function BaseRateCard({
   return (
     <Card className="border-border/70 bg-card shadow-sm">
       <CardHeader>
-        <CardTitle>{copy.base.title}</CardTitle>
-        <CardDescription>{copy.base.description}</CardDescription>
+        <div className="flex items-center gap-2">
+          <CardTitle>{copy.base.title}</CardTitle>
+          <AdminContextualHelp content={copy.base.description} />
+        </div>
       </CardHeader>
       <CardContent>
         <div className="flex items-center gap-3">
@@ -744,18 +747,18 @@ function PricingSummaryCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{copy.summary.title}</CardTitle>
-        <CardDescription>{copy.summary.description}</CardDescription>
+        <div className="flex items-center gap-2">
+          <CardTitle>{copy.summary.title}</CardTitle>
+          <AdminContextualHelp content={copy.summary.description} />
+        </div>
       </CardHeader>
       <CardContent className="grid gap-6 lg:grid-cols-2">
         <div className="space-y-3">
-          <div>
+          <div className="flex items-center gap-2">
             <p className="font-semibold text-foreground">
               {copy.summary.seasonalTitle}
             </p>
-            <p className="text-xs text-muted-foreground">
-              {copy.summary.seasonalDescription}
-            </p>
+            <AdminContextualHelp content={copy.summary.seasonalDescription} />
           </div>
           {activeSeasonalRules.length > 0 ? (
             <div className="grid gap-2">
@@ -793,13 +796,11 @@ function PricingSummaryCard({
         </div>
 
         <div className="space-y-3">
-          <div>
+          <div className="flex items-center gap-2">
             <p className="font-semibold text-foreground">
               {copy.summary.losTitle}
             </p>
-            <p className="text-xs text-muted-foreground">
-              {copy.summary.losDescription}
-            </p>
+            <AdminContextualHelp content={copy.summary.losDescription} />
           </div>
           {configuredLosRules.length > 0 ? (
             <div className="grid gap-2">
@@ -863,13 +864,11 @@ function SeasonalRatesSection({
   return (
     <section className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
+        <div className="flex items-center gap-2">
           <h2 className="text-2xl font-semibold tracking-tight">
             {copy.seasonal.title}
           </h2>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-            {copy.seasonal.description}
-          </p>
+          <AdminContextualHelp content={copy.seasonal.description} />
         </div>
         <Button onClick={onCreate} type="button">
           <Plus aria-hidden="true" />
@@ -1001,13 +1000,11 @@ function LengthOfStayRatesSection({
 }>) {
   return (
     <section>
-      <div>
+      <div className="flex items-center gap-2">
         <h2 className="text-2xl font-semibold tracking-tight">
           {copy.los.title}
         </h2>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-          {copy.los.description}
-        </p>
+        <AdminContextualHelp content={copy.los.description} />
       </div>
 
       <div className="mt-5 grid gap-3 lg:grid-cols-2">
@@ -1106,13 +1103,11 @@ function PricingPreviewCard({
 
   return (
     <section>
-      <div>
+      <div className="flex items-center gap-2">
         <h2 className="text-2xl font-semibold tracking-tight">
           {copy.preview.title}
         </h2>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-          {copy.preview.description}
-        </p>
+        <AdminContextualHelp content={copy.preview.description} />
       </div>
       <Card className="mt-5 overflow-visible">
           <CardContent className="space-y-5 p-5">

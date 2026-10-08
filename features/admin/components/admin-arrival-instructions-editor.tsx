@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -23,6 +22,7 @@ import {
   ARRIVAL_INSTRUCTIONS_MIN_LEAD_TIME_HOURS,
 } from "@/types/admin-arrival-instructions";
 
+import { AdminContextualHelp } from "./admin-contextual-help";
 import { AdminPageHeader } from "./admin-page-header";
 import { AdminSnackbar } from "./admin-snackbar";
 
@@ -157,10 +157,10 @@ export function AdminArrivalInstructionsEditor({
           <CardHeader>
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <CardTitle>{copy.sections.content}</CardTitle>
-                <CardDescription className="mt-2">
-                  {copy.notes.contentOwnership}
-                </CardDescription>
+                <div className="flex items-center gap-2">
+                  <CardTitle>{copy.sections.content}</CardTitle>
+                  <AdminContextualHelp content={copy.notes.contentOwnership} />
+                </div>
               </div>
               <Badge variant={draft.enabled ? "default" : "secondary"}>
                 {draft.enabled ? copy.states.enabled : copy.states.disabled}
@@ -240,8 +240,10 @@ export function AdminArrivalInstructionsEditor({
         <div className="grid h-fit gap-6">
           <Card className="border-border/70 bg-card shadow-sm">
             <CardHeader>
-              <CardTitle>{copy.sections.schedule}</CardTitle>
-              <CardDescription>{copy.notes.schedule}</CardDescription>
+              <div className="flex items-center gap-2">
+                <CardTitle>{copy.sections.schedule}</CardTitle>
+                <AdminContextualHelp content={copy.notes.schedule} />
+              </div>
             </CardHeader>
             <CardContent className="grid gap-5">
               <div className="rounded-2xl border border-border bg-muted/30 p-4">

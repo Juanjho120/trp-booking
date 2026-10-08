@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -30,6 +29,7 @@ import type {
   AdminAccommodationContentProperty,
 } from "@/types/admin-accommodation-content";
 
+import { AdminContextualHelp } from "./admin-contextual-help";
 import { AdminPageHeader } from "./admin-page-header";
 import { AdminSnackbar } from "./admin-snackbar";
 
@@ -191,11 +191,9 @@ export function AdminAccommodationContentEditor({
         <Card className="border-border/70 bg-card shadow-sm">
           <CardHeader>
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
+              <div className="flex items-center gap-2">
                 <CardTitle>{copy.sections.identity}</CardTitle>
-                <CardDescription className="mt-2">
-                  {copy.notes.requiredLanguages}
-                </CardDescription>
+                <AdminContextualHelp content={copy.notes.requiredLanguages} />
               </div>
               <Badge variant="secondary">
                 {overviewCopy.statuses[property.status]}
@@ -236,8 +234,10 @@ export function AdminAccommodationContentEditor({
 
         <Card className="border-border/70 bg-card shadow-sm">
           <CardHeader>
-            <CardTitle>{copy.sections.descriptions}</CardTitle>
-            <CardDescription>{copy.notes.publicImpact}</CardDescription>
+            <div className="flex items-center gap-2">
+              <CardTitle>{copy.sections.descriptions}</CardTitle>
+              <AdminContextualHelp content={copy.notes.publicImpact} />
+            </div>
           </CardHeader>
           <CardContent className="grid gap-5 lg:grid-cols-2">
             <label className="grid gap-2 text-sm font-medium">
@@ -302,8 +302,10 @@ export function AdminAccommodationContentEditor({
         <div className="grid gap-6 xl:grid-cols-2">
           <Card className="border-border/70 bg-card shadow-sm">
             <CardHeader>
-              <CardTitle>{copy.sections.capacity}</CardTitle>
-              <CardDescription>{copy.notes.capacityRange}</CardDescription>
+              <div className="flex items-center gap-2">
+                <CardTitle>{copy.sections.capacity}</CardTitle>
+                <AdminContextualHelp content={copy.notes.capacityRange} />
+              </div>
             </CardHeader>
             <CardContent className="grid gap-5 sm:grid-cols-3">
               {(
@@ -333,8 +335,10 @@ export function AdminAccommodationContentEditor({
 
           <Card className="border-border/70 bg-card shadow-sm">
             <CardHeader>
-              <CardTitle>{copy.sections.arrival}</CardTitle>
-              <CardDescription>{copy.notes.timeFormat}</CardDescription>
+              <div className="flex items-center gap-2">
+                <CardTitle>{copy.sections.arrival}</CardTitle>
+                <AdminContextualHelp content={copy.notes.timeFormat} />
+              </div>
             </CardHeader>
             <CardContent className="grid gap-5 sm:grid-cols-2">
               <label className="grid gap-2 text-sm font-medium">
