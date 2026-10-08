@@ -44,7 +44,7 @@ Final-I.6.3 implementation and acceptance record: docs/217-final-i-6-3-additiona
 Final-I.6.4 status: Completed and accepted on 2026-10-08
 Accepted Final-I.6.4 feature head: c80f172ac9e1e366e54517020dd5b1a1e1c30a76
 Final-I.6.4 implementation and acceptance record: docs/218-final-i-6-4-reservation-detail-lazy-loading-tab-cache.md
-Final-I.6.5 status: Implementation completed; Hosted owner validation pending
+Final-I.6.5 status: Implementation completed; Contextual-help Hosted validation PASS; final Reservation-detail Card-header density revalidation pending
 Final-I.6.5 implementation record: docs/219-final-i-6-5-admin-contextual-help-copy-density-polish.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
@@ -93,7 +93,7 @@ Final-I.6.3 implementation and acceptance record: docs/217-final-i-6-3-additiona
 Final-I.6.4 status: Completed and accepted on 2026-10-08
 Accepted Final-I.6.4 feature head: c80f172ac9e1e366e54517020dd5b1a1e1c30a76
 Final-I.6.4 implementation and acceptance record: docs/218-final-i-6-4-reservation-detail-lazy-loading-tab-cache.md
-Final-I.6.5 status: Implementation completed; Hosted owner validation pending
+Final-I.6.5 status: Implementation completed; Contextual-help Hosted validation PASS; final Reservation-detail Card-header density revalidation pending
 Final-I.6.5 implementation record: docs/219-final-i-6-5-admin-contextual-help-copy-density-polish.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
@@ -304,7 +304,7 @@ Final-I.6.3 implementation and acceptance record: docs/217-final-i-6-3-additiona
 Final-I.6.4 status: Completed and accepted on 2026-10-08
 Accepted Final-I.6.4 feature head: c80f172ac9e1e366e54517020dd5b1a1e1c30a76
 Final-I.6.4 implementation and acceptance record: docs/218-final-i-6-4-reservation-detail-lazy-loading-tab-cache.md
-Final-I.6.5 status: Implementation completed; Hosted owner validation pending
+Final-I.6.5 status: Implementation completed; Contextual-help Hosted validation PASS; final Reservation-detail Card-header density revalidation pending
 Final-I.6.5 implementation record: docs/219-final-i-6-5-admin-contextual-help-copy-density-polish.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
@@ -353,7 +353,7 @@ Final-I.6.3 implementation and acceptance record: docs/217-final-i-6-3-additiona
 Final-I.6.4 status: Completed and accepted on 2026-10-08
 Accepted Final-I.6.4 feature head: c80f172ac9e1e366e54517020dd5b1a1e1c30a76
 Final-I.6.4 implementation and acceptance record: docs/218-final-i-6-4-reservation-detail-lazy-loading-tab-cache.md
-Final-I.6.5 status: Implementation completed; Hosted owner validation pending
+Final-I.6.5 status: Implementation completed; Contextual-help Hosted validation PASS; final Reservation-detail Card-header density revalidation pending
 Final-I.6.5 implementation record: docs/219-final-i-6-5-admin-contextual-help-copy-density-polish.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
@@ -2119,7 +2119,7 @@ Status: Completed and accepted on 2026-10-08
 Accepted Final-I.6.4 feature head: c80f172ac9e1e366e54517020dd5b1a1e1c30a76
 Record: docs/218-final-i-6-4-reservation-detail-lazy-loading-tab-cache.md
 Documentation closure commit: documentation-only; it does not replace the accepted feature head
-Final-I.6.5: Implementation completed; Hosted owner validation pending; record docs/219-final-i-6-5-admin-contextual-help-copy-density-polish.md
+Final-I.6.5: Implementation completed; Contextual-help Hosted validation PASS; final Reservation-detail Card-header density revalidation pending; record docs/219-final-i-6-5-admin-contextual-help-copy-density-polish.md
 Final-I.7: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9: Not started / integrated Final-I closure

@@ -8,7 +8,6 @@ import {
   Mail,
   PencilLine,
   Plus,
-  ReceiptText,
   RotateCcw,
   Send,
   Trash2,
@@ -50,6 +49,12 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useLocale } from "@/features/i18n";
 import type { AdminReservationDetailFocus } from "@/lib/admin/reservation-detail-focus";
 import {
@@ -1188,25 +1193,32 @@ export function AdminAdditionalChargesSection({
   return (
     <>
       <Card className="mt-6 border-border/70 bg-card shadow-sm">
-        <CardHeader className="gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <div className="mb-2 flex items-center gap-2 text-sm font-medium text-primary">
-              <ReceiptText aria-hidden="true" className="size-4" />
-              {copy.badge}
-            </div>
-            <div className="flex items-center gap-2">
-              <CardTitle>{copy.title}</CardTitle>
+        <CardHeader>
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex min-w-0 flex-1 items-start gap-2">
+              <CardTitle className="min-w-0">{copy.title}</CardTitle>
               <AdminContextualHelp content={copy.description} />
             </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      aria-label={copy.actions.createCharge}
+                      className="size-10 sm:size-9"
+                      disabled={!management?.canCreateCharge}
+                      onClick={openCreateCharge}
+                      size="icon"
+                      type="button"
+                    >
+                      <Plus aria-hidden="true" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{copy.actions.createCharge}</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           </div>
-          <Button
-            disabled={!management?.canCreateCharge}
-            onClick={openCreateCharge}
-            type="button"
-          >
-            <Plus aria-hidden="true" />
-            {copy.actions.createCharge}
-          </Button>
         </CardHeader>
         <CardContent className="grid gap-6">
           <div className="rounded-2xl border border-primary/15 bg-primary/5 p-4 text-sm leading-6 text-muted-foreground">

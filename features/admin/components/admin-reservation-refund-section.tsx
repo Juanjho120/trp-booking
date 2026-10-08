@@ -38,6 +38,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   Sheet,
   SheetContent,
   SheetDescription,
@@ -725,40 +731,52 @@ export function AdminReservationRefundSection({
       />
 
       <Card className={`${embedded ? "mt-0" : "mt-6"} border-border/70 bg-card shadow-sm`}>
-        <CardHeader className="gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <div className="mb-2 flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <CircleDollarSign aria-hidden="true" className="size-4" />
-              {copy.badge}
-            </div>
-            <div className="flex items-center gap-2">
-              <CardTitle>{copy.title}</CardTitle>
+        <CardHeader>
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex min-w-0 flex-1 items-start gap-2">
+              <CardTitle className="min-w-0">{copy.title}</CardTitle>
               <AdminContextualHelp content={copy.description} />
             </div>
-          </div>
-          {canAuthorizeStandard || canAuthorizeExtraordinary ? (
-            <div className="flex flex-wrap justify-end gap-2">
-              {canAuthorizeStandard ? (
-                <Button
-                  onClick={() => openAuthorization("STANDARD_POLICY")}
-                  type="button"
-                >
-                  <ShieldCheck aria-hidden="true" />
-                  {copy.actions.authorizeStandard}
-                </Button>
-              ) : null}
-              {canAuthorizeExtraordinary ? (
-                <Button
-                  onClick={() => openAuthorization("EXTRAORDINARY")}
-                  type="button"
-                  variant="outline"
-                >
-                  <CircleDollarSign aria-hidden="true" />
-                  {copy.actions.authorizeExtraordinary}
-                </Button>
+            <div className="flex shrink-0 items-center gap-2">
+              {canAuthorizeStandard || canAuthorizeExtraordinary ? (
+                <TooltipProvider>
+                  {canAuthorizeStandard ? (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          aria-label={copy.actions.authorizeStandard}
+                          className="size-10 sm:size-9"
+                          onClick={() => openAuthorization("STANDARD_POLICY")}
+                          size="icon"
+                          type="button"
+                        >
+                          <ShieldCheck aria-hidden="true" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>{copy.actions.authorizeStandard}</TooltipContent>
+                    </Tooltip>
+                  ) : null}
+                  {canAuthorizeExtraordinary ? (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          aria-label={copy.actions.authorizeExtraordinary}
+                          className="size-10 sm:size-9"
+                          onClick={() => openAuthorization("EXTRAORDINARY")}
+                          size="icon"
+                          type="button"
+                          variant="outline"
+                        >
+                          <CircleDollarSign aria-hidden="true" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>{copy.actions.authorizeExtraordinary}</TooltipContent>
+                    </Tooltip>
+                  ) : null}
+                </TooltipProvider>
               ) : null}
             </div>
-          ) : null}
+          </div>
         </CardHeader>
         <CardContent className="grid gap-5">
           {financialSummary ? (

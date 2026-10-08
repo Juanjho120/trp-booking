@@ -23,6 +23,55 @@ function expectExcludes(source: string, unexpected: string): void {
   );
 }
 
+function getCardHeader(source: string, titleMarker: string): string {
+  const titleIndex = source.indexOf(titleMarker);
+  assert.notEqual(titleIndex, -1, `Expected header title marker: ${titleMarker}`);
+  const headerStart = source.lastIndexOf("<CardHeader", titleIndex);
+  assert.notEqual(headerStart, -1, "Expected CardHeader before title marker");
+  const headerEnd = source.indexOf("</CardHeader>", titleIndex);
+  assert.notEqual(headerEnd, -1, "Expected CardHeader closing tag after title marker");
+  return source.slice(headerStart, headerEnd + "</CardHeader>".length);
+}
+
+function expectCompactReservationHeader(
+  header: string,
+  options: Readonly<{ hasActions?: boolean }> = {},
+): void {
+  expectIncludes(header, "className=\"flex items-start justify-between gap-3\"");
+  expectIncludes(
+    header,
+    "className=\"flex min-w-0 flex-1 items-start gap-2\"",
+  );
+  expectIncludes(header, "<CardTitle className=\"min-w-0\">{copy.title}</CardTitle>");
+  expectIncludes(header, "<AdminContextualHelp content={copy.description} />");
+  expectExcludes(header, "mb-2 flex items-center gap-2 text-sm font-medium");
+  expectExcludes(header, "copy.badge");
+  expectExcludes(header, "sm:flex-row sm:items-start sm:justify-between");
+
+  if (options.hasActions) {
+    expectIncludes(header, "className=\"flex shrink-0 items-center gap-2\"");
+  }
+}
+
+function expectIconOnlyAction(
+  header: string,
+  labelExpression: string,
+  iconMarkup: string,
+): void {
+  expectIncludes(header, `<TooltipContent>{${labelExpression}}</TooltipContent>`);
+  expectIncludes(header, "<TooltipTrigger asChild>");
+  expectIncludes(header, `aria-label={${labelExpression}}`);
+  const buttonBlocks = header.match(/<Button[\s\S]*?<\/Button>/g) ?? [];
+  const button = buttonBlocks.find((block) =>
+    block.includes(`aria-label={${labelExpression}}`),
+  );
+  assert.ok(button, `Expected icon action button for ${labelExpression}`);
+  expectIncludes(button, "className=\"size-10 sm:size-9\"");
+  expectIncludes(button, "size=\"icon\"");
+  expectIncludes(button, iconMarkup);
+  const buttonBody = button.slice(button.indexOf(">") + 1);
+  expectExcludes(buttonBody, `{${labelExpression}}`);
+}
 
 test("I.6.5 shared admin help is localized, accessible and deterministic", () => {
   const component = read(`${ADMIN_COMPONENTS}/admin-contextual-help.tsx`);
@@ -215,6 +264,74 @@ test("I.6.5 operational metadata remains visible outside contextual help", () =>
   expectIncludes(accommodation, "copy.overview.notes.readonlyBoundaries");
 });
 
+test("I.6.5 reservation detail card headers stay compact and action-safe", () => {
+  const additionalCharges = read(`${ADMIN_COMPONENTS}/admin-additional-charges-section.tsx`);
+  const cancellation = read(`${ADMIN_COMPONENTS}/admin-reservation-cancellation-section.tsx`);
+  const dateChanges = read(`${ADMIN_COMPONENTS}/admin-reservation-date-mutation-section.tsx`);
+  const refunds = read(`${ADMIN_COMPONENTS}/admin-reservation-refund-section.tsx`);
+  const operationalHistory = read(`${ADMIN_COMPONENTS}/admin-reservation-operational-history-section.tsx`);
+  const titleMarker = "<CardTitle className=\"min-w-0\">{copy.title}</CardTitle>";
+
+  const lifecycleHeader = getCardHeader(cancellation, titleMarker);
+  expectCompactReservationHeader(lifecycleHeader, { hasActions: true });
+  expectExcludes(cancellation, "CalendarX2");
+  expectIncludes(lifecycleHeader, "{canCreateRequest ? (");
+  expectIncludes(lifecycleHeader, "onClick={openCreateRequest}");
+  expectIconOnlyAction(
+    lifecycleHeader,
+    "copy.actions.createRequest",
+    "<Plus aria-hidden=\"true\" />",
+  );
+
+  const additionalChargesHeader = getCardHeader(additionalCharges, titleMarker);
+  expectCompactReservationHeader(additionalChargesHeader, { hasActions: true });
+  expectExcludes(additionalCharges, "ReceiptText");
+  expectIncludes(additionalChargesHeader, "disabled={!management?.canCreateCharge}");
+  expectIncludes(additionalChargesHeader, "onClick={openCreateCharge}");
+  expectIconOnlyAction(
+    additionalChargesHeader,
+    "copy.actions.createCharge",
+    "<Plus aria-hidden=\"true\" />",
+  );
+
+  const dateChangesHeader = getCardHeader(dateChanges, titleMarker);
+  expectCompactReservationHeader(dateChangesHeader, { hasActions: true });
+  expectIncludes(dateChangesHeader, "{canCreateRequest ? (");
+  expectIncludes(dateChangesHeader, "onClick={openCreateRequest}");
+  expectIconOnlyAction(
+    dateChangesHeader,
+    "copy.actions.createRequest",
+    "<Plus aria-hidden=\"true\" />",
+  );
+  expectExcludes(dateChangesHeader, "CalendarClock aria-hidden=\"true\" className=\"size-4\"");
+
+  const refundsHeader = getCardHeader(refunds, titleMarker);
+  expectCompactReservationHeader(refundsHeader, { hasActions: true });
+  expectIncludes(refundsHeader, "canAuthorizeStandard || canAuthorizeExtraordinary");
+  expectIncludes(refundsHeader, "{canAuthorizeStandard ? (");
+  expectIncludes(refundsHeader, "{canAuthorizeExtraordinary ? (");
+  expectIncludes(refundsHeader, "onClick={() => openAuthorization(\"STANDARD_POLICY\")}");
+  expectIncludes(refundsHeader, "onClick={() => openAuthorization(\"EXTRAORDINARY\")}");
+  expectIncludes(refundsHeader, "variant=\"outline\"");
+  expectIconOnlyAction(
+    refundsHeader,
+    "copy.actions.authorizeStandard",
+    "<ShieldCheck aria-hidden=\"true\" />",
+  );
+  expectIconOnlyAction(
+    refundsHeader,
+    "copy.actions.authorizeExtraordinary",
+    "<CircleDollarSign aria-hidden=\"true\" />",
+  );
+
+  const operationalHistoryHeader = getCardHeader(operationalHistory, titleMarker);
+  expectCompactReservationHeader(operationalHistoryHeader);
+  expectExcludes(
+    operationalHistoryHeader,
+    "<History aria-hidden=\"true\" className=\"size-4\" />",
+  );
+});
+
 test("I.6.5 critical warnings and security boundaries stay visible", () => {
   const additionalCharges = read(`${ADMIN_COMPONENTS}/admin-additional-charges-section.tsx`);
   const cancellation = read(`${ADMIN_COMPONENTS}/admin-reservation-cancellation-section.tsx`);
@@ -331,7 +448,7 @@ test("I.6.5 implementation record contains the complete admin component audit", 
     "Category B",
     "Category C",
     "Runtime changes are limited to Admin presentation/accessibility",
-    "Final-I.6.5 — Implementation completed; Hosted owner validation pending",
+    "Final-I.6.5 — Implementation completed; Contextual-help Hosted validation PASS; final Reservation-detail Card-header density revalidation pending",
     "Final-I.7 — Blocked",
   ]) {
     expectIncludes(doc, expected);

@@ -2,7 +2,7 @@
 
 ## Status
 
-Final-I.6.5 — Implementation completed; Hosted owner validation pending.
+Final-I.6.5 — Implementation completed; Contextual-help Hosted validation PASS; final Reservation-detail Card-header density revalidation pending.
 
 - Implementation base: `01c8b27d3e648b0653c27cd81a79c60ccbf7b7e0`
 - Implementation date: 2026-10-08
@@ -30,6 +30,10 @@ The implementation uses the existing `radix-ui` dependency and `lucide-react` ic
 - Moved only Category A explanatory copy behind contextual help in high-density admin surfaces.
 - Kept Category B operational metadata visible, including ids, timestamps, statuses, provider references, guests/properties, counts, amounts, and email metadata that admins need for work.
 - Kept Category C warnings, consequences, security/privacy notes, financial boundaries, refund/payment caveats, destructive-action descriptions, and provider/secret notes visible.
+- Removed redundant pre-title badge/icon rows from the Reservation-detail Lifecycle, Additional Charges, Refunds, Date Changes, and Operational History cards.
+- Converted Lifecycle, Additional Charges, Refunds, and Date Changes top-card actions to compact icon-only header controls with localized tooltips and `aria-label`s while preserving every existing permission gate, handler, dialog, and business behavior.
+- Preserved the Refunds dual-action model: standard-policy authorization keeps `ShieldCheck`, extraordinary authorization keeps `CircleDollarSign`, and both remain independently permission-gated.
+- Mobile and desktop Reservation-detail card headers now keep title/help on the left and compact actions on the right in the same horizontal header row.
 
 ## Copy Classification
 
@@ -77,21 +81,41 @@ The implementation uses the existing `radix-ui` dependency and `lucide-react` ic
 | `admin-accommodation-management.tsx` | Overview/preparation descriptions plus property slugs, capacity, pricing and immutable-boundary note. | Category A/B/C | Moved overview/preparation descriptions to help. | Property slugs, metrics, last-updated and readonly-boundary note remain visible. |
 | `admin-accommodation-content-editor.tsx` | Identity/language, public-impact, capacity and time-format descriptions; immutable-fields note. | Category A/C | Moved explanatory section notes to help. | Immutable-field boundary remains visible. |
 
-## Expected Hosted Owner Validation
+## Hosted Contextual-Help Validation and Final Visual-Polish Checkpoint
 
-Hosted owner validation remains pending and should verify:
+Contextual-help Hosted owner validation: PASS on 2026-10-08.
 
-- Desktop: help triggers appear beside admin headings and open through hover/focus/click.
-- Intermediate/tablet widths: help triggers remain reachable without wrapping over controls.
-- Android PWA/touch: help opens on tap and does not require hover.
-- Keyboard: help triggers are tabbable, labelled, and expose help text through focus/click.
-- Spanish and English: accessible labels are localized as `Ayuda` / `Help`.
-- Additional Charges, Cancellation, Date Changes, Refunds, FEL, Calendar secrets/rotation and other risk-boundary text still appears visibly where admins make decisions.
+Validated Hosted contextual-help evidence:
+
+- Desktop hover/click behavior passed.
+- Keyboard behavior passed.
+- Android/PWA tap behavior passed.
+- Responsive help popover behavior passed.
+- Spanish and English localization passed.
+- Category B/C operational metadata, warnings and security/financial boundaries remained visible.
+
+Final owner visual-polish checkpoint implemented after the contextual-help PASS:
+
+- Removed redundant pre-title badge/icon rows from Lifecycle, Additional Charges, Refunds, Date Changes, and Operational History Reservation-detail cards.
+- Converted Lifecycle, Additional Charges, Refunds, and Date Changes top-card actions to compact icon-only controls with localized tooltips and `aria-label`s.
+- Preserved all action permissions, dialogs and business behavior.
+- Preserved Refunds as two independent actions: standard-policy authorization and extraordinary authorization.
+- Mobile keeps Card title/help and actions on the same compact header row.
+
+## Expected Final Card-Header Revalidation
+
+Final Reservation-detail Card-header density revalidation remains pending and should verify:
+
+- Lifecycle, Additional Charges, Refunds, Date Changes and Operational History no longer show redundant pre-title badge/icon rows.
+- Lifecycle, Additional Charges and Date Changes top-card create actions are compact icon-only `+` controls with localized tooltip and `aria-label`.
+- Refunds keeps both compact icon-only actions: `ShieldCheck` for standard-policy authorization and `CircleDollarSign` for extraordinary authorization.
+- Desktop and mobile keep Card title/help and action controls on the same compact header row.
+- Category C visible notes and existing workflows remain unchanged.
 
 ## Validation Ledger
 
 Final-I.6.5 implementation validation:
-- npm run final-i:validate - PASS, 117/117
+- npm run final-i:validate - PASS, 118/118
 - npm run final-h:validate - PASS, 20/20
 - npm run lint - PASS
 - npm run build - PASS; Next slow filesystem warning only
@@ -100,7 +124,7 @@ Final-I.6.5 implementation validation:
 
 ## Current State
 
-- Final-I.6.5 — Implementation completed; Hosted owner validation pending.
+- Final-I.6.5 — Implementation completed; Contextual-help Hosted validation PASS; final Reservation-detail Card-header density revalidation pending.
 - Final-I.7 — Blocked pending official INFILE technical documentation + Test credentials.
 - Final-I.8 — Not started / reserved for FEL delivery email/PDF/XML/history UX.
 - Final-I.9 — Not started / integrated Final-I closure.
