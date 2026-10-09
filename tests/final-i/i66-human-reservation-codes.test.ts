@@ -32,6 +32,21 @@ function expectIncludes(source: string, expected: string): void {
 function expectNotIncludes(source: string, rejected: string): void {
   assert.ok(!source.includes(rejected), `Expected source to omit: ${rejected}`);
 }
+function sourceBetween(
+  source: string,
+  startMarker: string,
+  endMarker: string,
+): string {
+  const start = source.indexOf(startMarker);
+
+  assert.notEqual(start, -1, `Expected source to include: ${startMarker}`);
+
+  const end = source.indexOf(endMarker, start);
+
+  assert.notEqual(end, -1, `Expected source to include: ${endMarker}`);
+
+  return source.slice(start, end);
+}
 
 function listFiles(relativeDirectory: string): string[] {
   const absoluteDirectory = path.join(ROOT, relativeDirectory);
@@ -105,11 +120,27 @@ test("I.6.6 schema and migration enforce backfilled unique reservation codes", (
   assert.doesNotMatch(migration, /md5|digest|encode|gen_random_uuid/i);
 });
 
-test("I.6.6 pending-hold creation persists and returns reservationCode with bounded collision retry", () => {
+test("I.6.6 pending-hold creation persists and returns reservationCode with fresh-transaction collision retry", () => {
   const service = read("lib/reservations/pending-holds.ts");
   const type = read("types/reservation-pending-hold.ts");
   const form = read(
     "features/reservations/components/reservation-request-form.tsx",
+  );
+
+  const attemptBody = sourceBetween(
+    service,
+    "async function createPendingReservationHoldAttempt(",
+    "async function createPendingReservationHoldWithTransactionRetry(",
+  );
+  expectIncludes(attemptBody, "reservationCode: string");
+
+  const transactionRetryBody = sourceBetween(
+    service,
+    "async function createPendingReservationHoldWithTransactionRetry(",
+    "export async function createPendingReservationHold(",
+  );
+  const exportedBody = service.slice(
+    service.indexOf("export async function createPendingReservationHold("),
   );
 
   expectIncludes(service, "generateReservationCode");
@@ -120,7 +151,37 @@ test("I.6.6 pending-hold creation persists and returns reservationCode with boun
     service,
     'value === "reservationCode" || value === "reservation_code"',
   );
-  expectIncludes(service, "reservationCode: generateReservationCode()");
+
+  assert.equal(
+    (attemptBody.match(/tx\.reservation\.create/g) ?? []).length,
+    1,
+  );
+  expectIncludes(attemptBody, "reservationCode,");
+  expectNotIncludes(attemptBody, "generateReservationCode()");
+  expectNotIncludes(attemptBody, "RESERVATION_CODE_MAX_GENERATION_ATTEMPTS");
+  expectNotIncludes(attemptBody, "continue;");
+  expectNotIncludes(attemptBody, "isReservationCodeUniqueCollision(error)");
+  expectNotIncludes(service, "reservationCode: generateReservationCode()");
+
+  assert.equal(
+    (
+      transactionRetryBody.match(
+        /createPendingReservationHoldAttempt\(input, reservationCode\)/g,
+      ) ?? []
+    ).length,
+    2,
+  );
+  expectIncludes(transactionRetryBody, "isSerializableTransactionConflict");
+  expectNotIncludes(transactionRetryBody, "generateReservationCode()");
+  expectNotIncludes(transactionRetryBody, "isReservationCodeUniqueCollision");
+
+  expectIncludes(exportedBody, "generateReservationCode()");
+  expectIncludes(exportedBody, "createPendingReservationHoldWithTransactionRetry(");
+  expectIncludes(exportedBody, "isReservationCodeUniqueCollision(error)");
+  expectIncludes(
+    exportedBody,
+    'throw new PendingReservationHoldError("PENDING_HOLD_CONFLICT")',
+  );
   expectIncludes(service, "reservationCode: true");
   expectIncludes(service, "reservationCode: reservation.reservationCode");
   expectIncludes(type, "reservationCode: string;");

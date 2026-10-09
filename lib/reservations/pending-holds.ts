@@ -407,6 +407,7 @@ async function findReusableActivePendingReservationHold(
 
 async function createPendingReservationHoldAttempt(
   input: CreatePendingReservationHoldInput,
+  reservationCode: string,
 ): Promise<PendingReservationHold> {
   assertGuestDetails(input);
 
@@ -501,50 +502,19 @@ async function createPendingReservationHoldAttempt(
         },
       };
 
-      let reservation: Readonly<{
-        id: string;
-        reservationCode: string;
-        status: ReservationStatus;
-        expiresAt: Date | null;
-        updatedAt: Date;
-      }> | null = null;
-
-      for (
-        let attempt = 1;
-        attempt <= RESERVATION_CODE_MAX_GENERATION_ATTEMPTS;
-        attempt += 1
-      ) {
-        try {
-          reservation = await tx.reservation.create({
-            data: {
-              ...reservationData,
-              reservationCode: generateReservationCode(),
-            },
-            select: {
-              id: true,
-              reservationCode: true,
-              status: true,
-              expiresAt: true,
-              updatedAt: true,
-            },
-          });
-          break;
-        } catch (error) {
-          if (isReservationCodeUniqueCollision(error)) {
-            if (attempt < RESERVATION_CODE_MAX_GENERATION_ATTEMPTS) {
-              continue;
-            }
-
-            throw new PendingReservationHoldError("PENDING_HOLD_CONFLICT");
-          }
-
-          throw error;
-        }
-      }
-
-      if (!reservation) {
-        throw new PendingReservationHoldError("PENDING_HOLD_CONFLICT");
-      }
+      const reservation = await tx.reservation.create({
+        data: {
+          ...reservationData,
+          reservationCode,
+        },
+        select: {
+          id: true,
+          reservationCode: true,
+          status: true,
+          expiresAt: true,
+          updatedAt: true,
+        },
+      });
 
       if (!reservation.expiresAt) {
         throw new PendingReservationHoldError("INVALID_PENDING_HOLD_REQUEST");
@@ -572,11 +542,12 @@ async function createPendingReservationHoldAttempt(
   );
 }
 
-export async function createPendingReservationHold(
+async function createPendingReservationHoldWithTransactionRetry(
   input: CreatePendingReservationHoldInput,
+  reservationCode: string,
 ): Promise<PendingReservationHold> {
   try {
-    return await createPendingReservationHoldAttempt(input);
+    return await createPendingReservationHoldAttempt(input, reservationCode);
   } catch (firstError) {
     if (!isSerializableTransactionConflict(firstError)) {
       throw firstError;
@@ -584,7 +555,7 @@ export async function createPendingReservationHold(
   }
 
   try {
-    return await createPendingReservationHoldAttempt(input);
+    return await createPendingReservationHoldAttempt(input, reservationCode);
   } catch (secondError) {
     if (isSerializableTransactionConflict(secondError)) {
       throw new PendingReservationHoldError("PENDING_HOLD_CONFLICT");
@@ -592,6 +563,29 @@ export async function createPendingReservationHold(
 
     throw secondError;
   }
+}
+
+export async function createPendingReservationHold(
+  input: CreatePendingReservationHoldInput,
+): Promise<PendingReservationHold> {
+  for (
+    let attempt = 1;
+    attempt <= RESERVATION_CODE_MAX_GENERATION_ATTEMPTS;
+    attempt += 1
+  ) {
+    try {
+      return await createPendingReservationHoldWithTransactionRetry(
+        input,
+        generateReservationCode(),
+      );
+    } catch (error) {
+      if (!isReservationCodeUniqueCollision(error)) {
+        throw error;
+      }
+    }
+  }
+
+  throw new PendingReservationHoldError("PENDING_HOLD_CONFLICT");
 }
 
 function parseExpectedUpdatedAt(value: string): Date {

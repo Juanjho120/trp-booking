@@ -74,10 +74,14 @@ The backfill does not derive the human code from `Reservation.id` or any provide
 
 Pending-hold creation generates `reservationCode` when creating the `Reservation` row.
 
-Unique-code collision handling is intentionally narrow:
+Unique-code collision handling is intentionally narrow and transaction-safe:
 
 ```text
 - retry only Prisma P2002 collisions targeting reservationCode / reservation_code
+- each candidate reservationCode is attempted inside exactly one PostgreSQL/Prisma transaction attempt
+- a reservation-code P2002 escapes the failed transaction so PostgreSQL can roll it back
+- the next reservation-code retry starts with a fresh generated code and a fresh transaction
+- Serializable P2034 retry remains separate and reuses the same reservationCode inside the transaction-retry layer
 - retry is bounded by RESERVATION_CODE_MAX_GENERATION_ATTEMPTS
 - unrelated uniqueness or persistence errors are rethrown
 - repeated code collision exhausts to the existing pending-hold conflict path
@@ -91,6 +95,34 @@ reservationCode -> visible guest/admin reference
 ```
 
 The public reservation form displays `reservationCode`; the Tilopay checkout still receives `reservationId`.
+
+## Pre-Hosted Hardening Checkpoint
+
+Initial implementation head:
+
+```text
+eccf2ff76b4aad1f09e357c07d8a7f8525b4cc2b
+```
+
+Finding:
+
+```text
+The initial runtime collision retry caught a Prisma P2002 reservationCode / reservation_code collision inside the same interactive transaction and then attempted another tx.reservation.create within that transaction callback.
+```
+
+Correction:
+
+```text
+Reservation-code collision now escapes the failed transaction, allowing PostgreSQL/Prisma to roll it back completely. The outer reservation-code retry loop generates a fresh code and starts a fresh transaction. Serializable P2034 transaction retry remains a separate layer and retries once with the same candidate reservationCode.
+```
+
+Preserved behavior:
+
+```text
+- reusable active pending holds return the existing Reservation and existing reservationCode
+- technical Reservation.id remains authoritative for routes, payment handoff, Admin actions, FEL source allocations, notification targets, and relations
+- non-code P2002, business validation failures, pricing failures, unavailable dates, and connectivity errors do not trigger reservation-code retry
+```
 
 ## Visible Surfaces Updated
 
@@ -157,7 +189,7 @@ Final-I.6.6 adds `tests/final-i/i66-human-reservation-codes.test.ts`, covering:
 ```text
 - generator format and validator rejection of ambiguous/invalid codes
 - Prisma schema and migration constraints
-- pending-hold persistence/return contract and bounded collision retry
+- pending-hold persistence/return contract and fresh-transaction reservation-code collision retry
 - admin list display/search plus ID-preserving routing
 - admin detail shell/overview code display plus ID-preserving fetches
 - confirmation/admin-new-reservation email visible code contract
@@ -209,7 +241,40 @@ Notes:
 ```text
 - final-i:db:validate without TRP_ENVIRONMENT=test failed closed as expected and was rerun with the required Test environment.
 - Two intermediate DB-backed reruns hit transient Local/Test database connectivity/transaction-timeout failures before the final 14/14 pass.
-- git diff --check is executed after final documentation reconciliation and recorded in docs/212 plus the completion report.
+```
+
+Pre-Hosted hardening validation executed after the transaction-safety correction:
+
+```text
+npm run final-i:validate
+PASS — 127/127 after correcting the new test marker; an earlier run failed on the intentionally updated regression-test assertion before the final pass
+
+$env:TRP_ENVIRONMENT='test'; npm run final-i:db:validate
+PASS — 14/14
+
+npm run final-h:validate
+PASS — 20/20
+
+npm run db:validate
+PASS — Prisma package.json#prisma deprecation warning only
+
+npm run db:generate
+PASS — Prisma package.json#prisma deprecation warning only
+
+npm run db:migrate:status
+PASS — 32 migrations; database schema is up to date
+
+npm run lint
+PASS
+
+npm run build
+PASS — Next slow-filesystem warning only
+
+git diff --check
+PASS — Windows CRLF normalization warnings only
+
+vercel.json exact crons confirmation
+PASS — remains exactly { "crons": [] }
 ```
 
 ## Current State
