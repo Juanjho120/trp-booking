@@ -205,15 +205,12 @@ export function AdminReservationDetailPage({
   const [visitedTabs, setVisitedTabs] = useState<
     ReadonlySet<AdminReservationDetailTab>
   >(() => new Set([initialActiveTab]));
-  const [reservationCache, setReservationCache] = useState<
-    CacheEntry<AdminReservationOverviewTab>
-  >(emptyCache);
-  const [financialCache, setFinancialCache] = useState<
-    CacheEntry<AdminReservationFinancialTab>
-  >(emptyCache);
-  const [attemptsCache, setAttemptsCache] = useState<
-    CacheEntry<AdminPaymentSubmissionAttemptHistoryData>
-  >(emptyCache);
+  const [reservationCache, setReservationCache] =
+    useState<CacheEntry<AdminReservationOverviewTab>>(emptyCache);
+  const [financialCache, setFinancialCache] =
+    useState<CacheEntry<AdminReservationFinancialTab>>(emptyCache);
+  const [attemptsCache, setAttemptsCache] =
+    useState<CacheEntry<AdminPaymentSubmissionAttemptHistoryData>>(emptyCache);
   const [emailsCache, setEmailsCache] =
     useState<CacheEntry<AdminReservationEmailsTab>>(emptyCache);
   const [lifecycleCache, setLifecycleCache] =
@@ -642,15 +639,17 @@ export function AdminReservationDetailPage({
 
   function emailNotificationLocaleLabel(value: string): string {
     return (
-      notificationCopy.locales[value as keyof typeof notificationCopy.locales] ??
-      value
+      notificationCopy.locales[
+        value as keyof typeof notificationCopy.locales
+      ] ?? value
     );
   }
 
   function emailNotificationOriginLabel(value: string): string {
     return (
-      notificationCopy.origins[value as keyof typeof notificationCopy.origins] ??
-      value
+      notificationCopy.origins[
+        value as keyof typeof notificationCopy.origins
+      ] ?? value
     );
   }
 
@@ -721,8 +720,8 @@ export function AdminReservationDetailPage({
     code: AdminEmailNotificationResendErrorCode | undefined,
   ): string {
     return code
-      ? notificationCopy.errors[code] ??
-          notificationCopy.errors.ADMIN_EMAIL_NOTIFICATION_UNEXPECTED_ERROR
+      ? (notificationCopy.errors[code] ??
+          notificationCopy.errors.ADMIN_EMAIL_NOTIFICATION_UNEXPECTED_ERROR)
       : notificationCopy.errors.ADMIN_EMAIL_NOTIFICATION_UNEXPECTED_ERROR;
   }
 
@@ -823,9 +822,7 @@ export function AdminReservationDetailPage({
 
   function getActiveReloadBusy(): boolean {
     if (activeReservationTab === "additionalCharges") {
-      return (
-        additionalChargesLoadBusy || !visitedTabs.has("additionalCharges")
-      );
+      return additionalChargesLoadBusy || !visitedTabs.has("additionalCharges");
     }
 
     if (activeReservationTab === "financial") {
@@ -843,7 +840,13 @@ export function AdminReservationDetailPage({
   }
 
   function handleLifecycleChanged(): void {
-    markTabsStale(["reservation", "changes", "refunds", "financial", "history"]);
+    markTabsStale([
+      "reservation",
+      "changes",
+      "refunds",
+      "financial",
+      "history",
+    ]);
     void loadServerTab("lifecycle", { force: true });
   }
 
@@ -881,7 +884,12 @@ export function AdminReservationDetailPage({
       <Card className="border-border/70 bg-card shadow-sm">
         <CardContent className="grid gap-4 p-6 text-sm text-muted-foreground">
           <p>{detailCopy.loadFailed}</p>
-          <Button className="w-fit" onClick={onReload} type="button" variant="outline">
+          <Button
+            className="w-fit"
+            onClick={onReload}
+            type="button"
+            variant="outline"
+          >
             <RefreshCcw aria-hidden="true" />
             {detailCopy.reload}
           </Button>
@@ -961,7 +969,7 @@ export function AdminReservationDetailPage({
         }
         badge={shellBadge}
         description={reservationCopy.description}
-        title={`${reservationCopy.title} · ${reservationShell.id}`}
+        title={`${reservationCopy.title} · ${reservationShell.reservationCode}`}
       />
 
       <AdminSnackbar
@@ -988,7 +996,10 @@ export function AdminReservationDetailPage({
             aria-label={reservationCopy.title}
             className="inline-flex h-auto min-w-full justify-start gap-1 rounded-2xl border border-border/70 bg-muted/40 p-1.5"
           >
-            <TabsTrigger className="min-h-10 shrink-0 gap-2" value="reservation">
+            <TabsTrigger
+              className="min-h-10 shrink-0 gap-2"
+              value="reservation"
+            >
               <ShieldCheck aria-hidden="true" className="size-4 shrink-0" />
               {reservationCopy.labels.reservation}
             </TabsTrigger>
@@ -1040,7 +1051,11 @@ export function AdminReservationDetailPage({
               formatDate={formatDate}
               formatDateTime={formatDateTime}
               formatMoney={formatMoney}
-              renderError={() => renderErrorPanel(() => void loadServerTab("reservation", { force: true }))}
+              renderError={() =>
+                renderErrorPanel(
+                  () => void loadServerTab("reservation", { force: true }),
+                )
+              }
               renderLoadingPanel={renderLoadingPanel}
             />
           </TabsContent>
@@ -1061,13 +1076,13 @@ export function AdminReservationDetailPage({
               onTabChange={setActiveFinancialTab}
               paymentStatusLabel={paymentStatusLabel}
               renderAttemptsError={() =>
-                renderErrorPanel(() =>
-                  void loadServerTab("payment-attempts", { force: true }),
+                renderErrorPanel(
+                  () => void loadServerTab("payment-attempts", { force: true }),
                 )
               }
               renderFinancialError={() =>
-                renderErrorPanel(() =>
-                  void loadServerTab("financial", { force: true }),
+                renderErrorPanel(
+                  () => void loadServerTab("financial", { force: true }),
                 )
               }
               renderLoadingPanel={renderLoadingPanel}
@@ -1085,7 +1100,11 @@ export function AdminReservationDetailPage({
               cache={emailsCache}
               onCopyGuestEmail={copyGuestEmailForZoho}
               renderEmailNotification={renderEmailNotification}
-              renderError={() => renderErrorPanel(() => void loadServerTab("emails", { force: true }))}
+              renderError={() =>
+                renderErrorPanel(
+                  () => void loadServerTab("emails", { force: true }),
+                )
+              }
               renderLoadingPanel={renderLoadingPanel}
             />
           </TabsContent>
@@ -1106,7 +1125,9 @@ export function AdminReservationDetailPage({
                 reservation={lifecycleCache.data}
               />
             ) : lifecycleCache.status === "error" ? (
-              renderErrorPanel(() => void loadServerTab("lifecycle", { force: true }))
+              renderErrorPanel(
+                () => void loadServerTab("lifecycle", { force: true }),
+              )
             ) : (
               renderLoadingPanel(detailCopy.loading.lifecycle)
             )}
@@ -1148,7 +1169,9 @@ export function AdminReservationDetailPage({
                 reservation={refundsCache.data}
               />
             ) : refundsCache.status === "error" ? (
-              renderErrorPanel(() => void loadServerTab("refunds", { force: true }))
+              renderErrorPanel(
+                () => void loadServerTab("refunds", { force: true }),
+              )
             ) : (
               renderLoadingPanel(detailCopy.loading.refunds)
             )}
@@ -1176,7 +1199,9 @@ export function AdminReservationDetailPage({
                 reservation={changesCache.data}
               />
             ) : changesCache.status === "error" ? (
-              renderErrorPanel(() => void loadServerTab("changes", { force: true }))
+              renderErrorPanel(
+                () => void loadServerTab("changes", { force: true }),
+              )
             ) : (
               renderLoadingPanel(detailCopy.loading.changes)
             )}
@@ -1197,7 +1222,9 @@ export function AdminReservationDetailPage({
                 reservation={historyCache.data}
               />
             ) : historyCache.status === "error" ? (
-              renderErrorPanel(() => void loadServerTab("history", { force: true }))
+              renderErrorPanel(
+                () => void loadServerTab("history", { force: true }),
+              )
             ) : (
               renderLoadingPanel(detailCopy.loading.history)
             )}
@@ -1313,7 +1340,9 @@ function ReservationOverviewPanel({
   }
 
   if (!reservation) {
-    return cache.status === "error" ? renderError() : renderLoadingPanel(copy.loading);
+    return cache.status === "error"
+      ? renderError()
+      : renderLoadingPanel(copy.loading);
   }
 
   const propertyName =
@@ -1328,8 +1357,8 @@ function ReservationOverviewPanel({
         </CardHeader>
         <CardContent className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
           <DetailValue
-            label={reservationCopy.labels.reservation}
-            value={reservation.id}
+            label={reservationCopy.labels.reservationCode}
+            value={reservation.reservationCode}
           />
           <DetailValue
             label={requestCopy.fields.checkInDate}
@@ -1382,7 +1411,6 @@ function ReservationOverviewPanel({
         formatDate={formatDate}
         formatMoney={formatMoney}
       />
-
     </>
   );
 }
@@ -1446,7 +1474,9 @@ function FinancialPanel({
         {isCacheBusy(financialCache) ? (
           renderLoadingPanel(detailCopy.loading.financial)
         ) : !financial ? (
-          financialCache.status === "error" ? renderFinancialError() : (
+          financialCache.status === "error" ? (
+            renderFinancialError()
+          ) : (
             renderLoadingPanel(detailCopy.loading.financial)
           )
         ) : (
@@ -1467,7 +1497,9 @@ function FinancialPanel({
         {isCacheBusy(attemptsCache) ? (
           renderLoadingPanel(detailCopy.loading.paymentAttempts)
         ) : !attempts ? (
-          attemptsCache.status === "error" ? renderAttemptsError() : (
+          attemptsCache.status === "error" ? (
+            renderAttemptsError()
+          ) : (
             renderLoadingPanel(detailCopy.loading.paymentAttempts)
           )
         ) : (
@@ -1925,7 +1957,6 @@ function ZohoCorrespondenceCard({
             {requestCopy.fields.guestEmail}
           </p>
           <p className="mt-1 break-all text-sm font-medium">{guestEmail}</p>
-
         </div>
 
         <Button asChild className="w-full shrink-0 sm:w-auto">
@@ -2044,7 +2075,10 @@ function EmailNotificationCard({
       </AccordionTrigger>
       <AccordionContent className="border-t border-border/70 px-4 pt-4 sm:px-5">
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <DetailValue label={labels.recipient} value={notification.recipient} />
+          <DetailValue
+            label={labels.recipient}
+            value={notification.recipient}
+          />
           <DetailValue label={labels.locale} value={localeLabel} />
           <DetailValue label={labels.origin} value={originLabel} />
           <DetailValue
@@ -2192,10 +2226,7 @@ function ReservationPricingBreakdownCard({
         : copy.sources.SEASONAL;
     }
 
-    if (
-      segment.source === "LENGTH_OF_STAY" &&
-      segment.minimumNights !== null
-    ) {
+    if (segment.source === "LENGTH_OF_STAY" && segment.minimumNights !== null) {
       return copy.sources.LENGTH_OF_STAY.replace(
         "{minimumNights}",
         String(segment.minimumNights),
@@ -2238,9 +2269,7 @@ function ReservationPricingBreakdownCard({
                 >
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <Badge variant="secondary">
-                        {sourceLabel(segment)}
-                      </Badge>
+                      <Badge variant="secondary">{sourceLabel(segment)}</Badge>
                     </div>
 
                     <p className="mt-3 text-sm font-medium">

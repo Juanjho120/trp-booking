@@ -68,6 +68,7 @@ const initialReceiverState: ReceiverState = {
 
 type ReservationChoice = Readonly<{
   id: string;
+  reservationCode: string;
   guestName: string;
   guestEmail: string | null;
   guestPhone: string | null;
@@ -174,7 +175,9 @@ function buildPreviewSignature(
   );
 }
 
-function receiverStateFromDocument(document: AdminFelDocumentDetail): ReceiverState {
+function receiverStateFromDocument(
+  document: AdminFelDocumentDetail,
+): ReceiverState {
   return {
     receiverName: document.receiverName,
     receiverIdentifierType:
@@ -244,11 +247,10 @@ export function AdminFelPageView({
   const copy = messages.admin.felPage;
   const intlLocale = getIntlLocale(locale);
   const [activeTab, setActiveTab] = useState("new");
-  const [selectedReservationIds, setSelectedReservationIds] = useState<string[]>(
-    [],
-  );
-  const [receiver, setReceiver] =
-    useState<ReceiverState>(initialReceiverState);
+  const [selectedReservationIds, setSelectedReservationIds] = useState<
+    string[]
+  >([]);
+  const [receiver, setReceiver] = useState<ReceiverState>(initialReceiverState);
   const [receiverEmailMode, setReceiverEmailMode] =
     useState<SuggestionMode>("AUTO");
   const [receiverCountryMode, setReceiverCountryMode] =
@@ -257,8 +259,9 @@ export function AdminFelPageView({
   const [editingDocumentId, setEditingDocumentId] = useState<string | null>(
     null,
   );
-  const [draftPreview, setDraftPreview] =
-    useState<AdminFelDraftPreview | null>(null);
+  const [draftPreview, setDraftPreview] = useState<AdminFelDraftPreview | null>(
+    null,
+  );
   const [draftPreviewSignature, setDraftPreviewSignature] = useState<
     string | null
   >(null);
@@ -271,6 +274,7 @@ export function AdminFelPageView({
   const reservationChoices = useMemo<ReservationChoice[]>(() => {
     const choices = data.eligibleReservations.map((reservation) => ({
       id: reservation.id,
+      reservationCode: reservation.reservationCode,
       guestName: reservation.guestName,
       guestEmail: reservation.guestEmail,
       guestPhone: reservation.guestPhone,
@@ -295,6 +299,7 @@ export function AdminFelPageView({
         seenIds.add(reservation.reservationId);
         choices.push({
           id: reservation.reservationId,
+          reservationCode: reservation.reservationCode,
           guestName: copy.labels.savedDraftSource,
           guestEmail: null,
           guestPhone: null,
@@ -302,7 +307,10 @@ export function AdminFelPageView({
           propertyName: reservation.propertyName,
           checkInDate: reservation.checkInDate,
           checkOutDate: reservation.checkOutDate,
-          nights: nightsBetween(reservation.checkInDate, reservation.checkOutDate),
+          nights: nightsBetween(
+            reservation.checkInDate,
+            reservation.checkOutDate,
+          ),
           total: reservation.total,
           currency: reservation.currency,
           eligibleExtraCount: 0,
@@ -338,7 +346,8 @@ export function AdminFelPageView({
     [selectedReservationChoices],
   );
   const countrySuggestions = useMemo(
-    () => buildReceiverCountrySuggestions(selectedReservationChoices, intlLocale),
+    () =>
+      buildReceiverCountrySuggestions(selectedReservationChoices, intlLocale),
     [intlLocale, selectedReservationChoices],
   );
   const selectedCurrency =
@@ -749,7 +758,11 @@ export function AdminFelPageView({
         title={copy.title}
       />
 
-      <Tabs className="grid gap-6" onValueChange={setActiveTab} value={activeTab}>
+      <Tabs
+        className="grid gap-6"
+        onValueChange={setActiveTab}
+        value={activeTab}
+      >
         <TabsList aria-label={copy.tabs.ariaLabel}>
           <TabsTrigger value="new">{copy.tabs.newInvoice}</TabsTrigger>
           <TabsTrigger value="history">{copy.tabs.history}</TabsTrigger>
@@ -768,9 +781,12 @@ export function AdminFelPageView({
                   </p>
                 ) : (
                   reservationChoices.map((reservation) => {
-                    const selected = selectedReservationIds.includes(reservation.id);
+                    const selected = selectedReservationIds.includes(
+                      reservation.id,
+                    );
                     const incompatible =
-                      !selected && incompatibleReservationIds.has(reservation.id);
+                      !selected &&
+                      incompatibleReservationIds.has(reservation.id);
 
                     return (
                       <button
@@ -784,7 +800,9 @@ export function AdminFelPageView({
                         type="button"
                       >
                         <span className="flex flex-wrap items-center gap-2">
-                          <span className="font-semibold">{reservation.guestName}</span>
+                          <span className="font-semibold">
+                            {reservation.guestName}
+                          </span>
                           <Badge variant={selected ? "default" : "secondary"}>
                             {selected
                               ? copy.labels.selected
@@ -797,6 +815,8 @@ export function AdminFelPageView({
                           ) : null}
                         </span>
                         <span className="text-muted-foreground">
+                          {copy.labels.reservationCode}:{" "}
+                          {reservation.reservationCode} ·{" "}
                           {reservation.propertyName} ·{" "}
                           {formatAdminFelDateRangeForCard(
                             reservation.checkInDate,
@@ -810,8 +830,9 @@ export function AdminFelPageView({
                         </span>
                         <span>
                           {copy.labels.stayTotal}:{" "}
-                          {formatMoney(reservation.total, reservation.currency)} ·{" "}
-                          {copy.labels.extras}: {reservation.eligibleExtraCount} /{" "}
+                          {formatMoney(reservation.total, reservation.currency)}{" "}
+                          · {copy.labels.extras}:{" "}
+                          {reservation.eligibleExtraCount} /{" "}
                           {formatMoney(
                             reservation.eligibleExtraTotal,
                             reservation.currency,
@@ -841,9 +862,7 @@ export function AdminFelPageView({
                     }
                     value={receiver.receiverIdentifierType}
                   >
-                    <SelectTrigger
-                      aria-labelledby="fel-receiver-identifier-type-label"
-                    >
+                    <SelectTrigger aria-labelledby="fel-receiver-identifier-type-label">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -1025,7 +1044,9 @@ export function AdminFelPageView({
                   <Badge variant="secondary">{copy.labels.previewFresh}</Badge>
                 ) : null}
                 {previewIsStale ? (
-                  <Badge variant="destructive">{copy.labels.previewStale}</Badge>
+                  <Badge variant="destructive">
+                    {copy.labels.previewStale}
+                  </Badge>
                 ) : null}
               </div>
               {previewIsStale ? (
@@ -1051,7 +1072,8 @@ export function AdminFelPageView({
                       {copy.labels.currency}: {draftPreview.commercialCurrency}
                     </span>
                     <span>
-                      {copy.labels.receiver}: {draftPreview.receiver.receiverName}
+                      {copy.labels.receiver}:{" "}
+                      {draftPreview.receiver.receiverName}
                     </span>
                   </div>
                   <div className="overflow-x-auto">
@@ -1059,7 +1081,9 @@ export function AdminFelPageView({
                       <thead className="text-xs uppercase text-muted-foreground">
                         <tr>
                           <th className="py-2 pr-4">{copy.labels.line}</th>
-                          <th className="py-2 pr-4">{copy.labels.description}</th>
+                          <th className="py-2 pr-4">
+                            {copy.labels.description}
+                          </th>
                           <th className="py-2 pr-4 text-right">
                             {copy.labels.currency}
                           </th>
@@ -1176,7 +1200,10 @@ export function AdminFelPageView({
                     key={`${selectedDocument.id}-editor-${line.lineNumber}`}
                   >
                     <span className="min-w-0">{line.description}</span>
-                    <AmountFields amount={line.amount} currency={line.currency} />
+                    <AmountFields
+                      amount={line.amount}
+                      currency={line.currency}
+                    />
                   </div>
                 ))}
                 <div className="grid gap-2 rounded-lg border border-border/70 bg-muted/30 p-3 font-semibold sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
@@ -1230,7 +1257,8 @@ export function AdminFelPageView({
                         {copy.labels.lines}: {document.lineCount}
                       </span>
                       <span>
-                        {copy.labels.createdAt}: {formatDateTime(document.createdAt)}
+                        {copy.labels.createdAt}:{" "}
+                        {formatDateTime(document.createdAt)}
                       </span>
                     </div>
                     <Button
@@ -1278,7 +1306,6 @@ export function AdminFelPageView({
               ) : null}
             </CardContent>
           </Card>
-
         </TabsContent>
       </Tabs>
 

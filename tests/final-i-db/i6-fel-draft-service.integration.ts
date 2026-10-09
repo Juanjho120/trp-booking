@@ -28,6 +28,7 @@ import {
   saveAdminFelDraftChanges,
 } from "@/lib/admin/fel";
 import { prisma } from "@/lib/db/prisma";
+import { generateReservationCode } from "@/lib/reservations/reservation-code";
 import type { AdminActor } from "@/types/admin";
 
 import { test } from "./harness";
@@ -327,6 +328,7 @@ async function createReservation(
     data: {
       id: reservationId,
       propertyId,
+      reservationCode: generateReservationCode(),
       guestName: `Huesped ${suffix}`,
       guestEmail: `${context.prefix}-${suffix}@guest.test`,
       guestPhone: "+50255550000",
@@ -347,14 +349,13 @@ async function createReservation(
     },
   });
 
-  for (const payment of
-    input.payments ?? [
-      {
-        suffix: "initial",
-        purpose: PaymentPurpose.INITIAL_RESERVATION,
-        amount: total,
-      },
-    ]) {
+  for (const payment of input.payments ?? [
+    {
+      suffix: "initial",
+      purpose: PaymentPurpose.INITIAL_RESERVATION,
+      amount: total,
+    },
+  ]) {
     const paymentId = makeId(context, `payment-${suffix}-${payment.suffix}`);
     const lifecycleRequestId =
       payment.purpose === PaymentPurpose.LIFECYCLE_ADJUSTMENT
@@ -434,7 +435,10 @@ async function createReservation(
         status: PaymentStatus.APPROVED,
         amount: new Prisma.Decimal(payment.amount),
         currency: "USD",
-        providerReference: makeId(context, `provider-${suffix}-${payment.suffix}`),
+        providerReference: makeId(
+          context,
+          `provider-${suffix}-${payment.suffix}`,
+        ),
         paidAt: new Date("2026-08-01T12:30:00.000Z"),
       },
     });
@@ -569,7 +573,9 @@ async function readDocumentGraph(documentId: string) {
   });
 }
 
-function normalizeDocumentGraph(graph: Awaited<ReturnType<typeof readDocumentGraph>>) {
+function normalizeDocumentGraph(
+  graph: Awaited<ReturnType<typeof readDocumentGraph>>,
+) {
   return JSON.parse(JSON.stringify(graph));
 }
 
@@ -910,12 +916,13 @@ test("I.6 DB rejects duplicate GPRI commercial source allocation", async () => {
       where: { guestPaymentRequestItemId: extraA.guestPaymentRequestItemId },
       orderBy: { felDocumentId: "asc" },
     });
-    const documentBAllocations = await prisma.felCommercialSourceAllocation.count({
-      where: {
-        felDocumentId: documentB.id,
-        guestPaymentRequestItemId: extraA.guestPaymentRequestItemId,
-      },
-    });
+    const documentBAllocations =
+      await prisma.felCommercialSourceAllocation.count({
+        where: {
+          felDocumentId: documentB.id,
+          guestPaymentRequestItemId: extraA.guestPaymentRequestItemId,
+        },
+      });
 
     assert.equal(allocations.length, 1);
     assert.equal(allocations[0].felDocumentId, documentA.id);
@@ -940,16 +947,18 @@ test("I.6 DB enforces XOR source constraint for commercial allocations", async (
     assert.ok(graph);
     const lineId = graph.lineItems[0].id;
 
-    await assert.rejects(() =>
-      prisma.$executeRaw`
+    await assert.rejects(
+      () =>
+        prisma.$executeRaw`
         INSERT INTO "fel_commercial_source_allocations"
           ("id", "fel_document_id", "fel_line_item_id", "amount_snapshot", "currency_snapshot", "created_at")
         VALUES
           (${makeId(context, "invalid-xor-null")}, ${document.id}, ${lineId}, ${"1.00"}, ${"USD"}, NOW())
       `,
     );
-    await assert.rejects(() =>
-      prisma.$executeRaw`
+    await assert.rejects(
+      () =>
+        prisma.$executeRaw`
         INSERT INTO "fel_commercial_source_allocations"
           ("id", "fel_document_id", "fel_line_item_id", "reservation_id", "guest_payment_request_item_id", "amount_snapshot", "currency_snapshot", "created_at")
         VALUES
@@ -1040,7 +1049,9 @@ test("I.6 DB failed save changes rolls back original draft graph", async () => {
     const reservationB = await createReservation(context, "rollback-b");
     const documentA = await createDraft(context, [reservationA.id]);
     const documentB = await createDraft(context, [reservationB.id]);
-    const before = normalizeDocumentGraph(await readDocumentGraph(documentA.id));
+    const before = normalizeDocumentGraph(
+      await readDocumentGraph(documentA.id),
+    );
 
     await assertAdminFelError(
       saveAdminFelDraftChanges(
@@ -1062,9 +1073,10 @@ test("I.6 DB failed save changes rolls back original draft graph", async () => {
         reservationId: reservationB.id,
       },
     });
-    const documentBAllocations = await prisma.felCommercialSourceAllocation.count({
-      where: { felDocumentId: documentB.id },
-    });
+    const documentBAllocations =
+      await prisma.felCommercialSourceAllocation.count({
+        where: { felDocumentId: documentB.id },
+      });
 
     assert.deepEqual(after, before);
     assert.equal(partialBRows, 0);

@@ -76,8 +76,7 @@ export const enMessages = {
     adminEmailLabel: "Administration",
     rights: "All rights reserved.",
     poweredBy: "Direct booking website powered by",
-    note:
-      "Check availability, choose your accommodation, and complete your direct booking from the website.",
+    note: "Check availability, choose your accommodation, and complete your direct booking from the website.",
   },
   publicWhatsApp: {
     ariaLabel: "Contact us on WhatsApp",
@@ -97,7 +96,8 @@ export const enMessages = {
       ],
       bookingCard: {
         eyebrow: "Direct Booking",
-        title: "Book direct, avoid intermediaries, and receive confirmation by email.",
+        title:
+          "Book direct, avoid intermediaries, and receive confirmation by email.",
         description:
           "Check availability, book directly, and complete secure payments with Tilopay.",
       },
@@ -119,7 +119,8 @@ export const enMessages = {
     },
     benefits: {
       badge: "Direct booking",
-      title: "A clear, trustworthy experience without unnecessary intermediaries.",
+      title:
+        "A clear, trustworthy experience without unnecessary intermediaries.",
       description:
         "The website is designed so guests can learn about the accommodations, review important information, and book with direct host communication.",
       items: [
@@ -151,7 +152,8 @@ export const enMessages = {
         "Near restaurants and shops",
       ],
       mapTitle: "General location",
-      mapFrameTitle: "Interactive map with the public location of Tu Refugio Perfecto",
+      mapFrameTitle:
+        "Interactive map with the public location of Tu Refugio Perfecto",
       mapDescription:
         "The exact address and detailed arrival instructions are shared after the reservation is confirmed.",
     },
@@ -249,7 +251,8 @@ export const enMessages = {
       maxGuestsNote: "Maximum allowed capacity: {maxGuests} guest(s).",
       calculateQuote: "Calculate quote",
       loadingQuote: "Calculating quote...",
-      genericQuoteError: "We could not calculate the quote. Review the details and try again.",
+      genericQuoteError:
+        "We could not calculate the quote. Review the details and try again.",
       quoteTitle: "Estimated quote",
       quoteRows: {
         nights: "Nights",
@@ -270,8 +273,7 @@ export const enMessages = {
         sources: {
           BASE: "Base rate",
           SEASONAL: "Seasonal rate",
-          LENGTH_OF_STAY:
-            "{minimumNights}+ night stay rate",
+          LENGTH_OF_STAY: "{minimumNights}+ night stay rate",
         },
       },
     },
@@ -310,7 +312,7 @@ export const enMessages = {
       createHold: "Create pending reservation",
       creatingHold: "Creating pending reservation...",
       successTitle: "Pending reservation created",
-      reservationId: "Reservation",
+      reservationCode: "Reservation code",
       status: "Status",
       expiresAt: "Expires",
       total: "Total",
@@ -370,8 +372,7 @@ export const enMessages = {
       alreadySubmittedDescription:
         "This link has already been used and cannot edit or submit another review.",
       expiredTitle: "This review link has expired",
-      expiredDescription:
-        "The time to use this private link has ended.",
+      expiredDescription: "The time to use this private link has ended.",
       unavailableTitle: "This link is no longer available",
       unavailableDescription:
         "We could not enable review submission from this link.",
@@ -380,14 +381,10 @@ export const enMessages = {
         "Review the link or contact the accommodation if you need help.",
       backToAccommodations: "Back to accommodations",
       errors: {
-        INVALID_REVIEW_INVITATION:
-          "We could not validate this review link.",
-        INVALID_REVIEW_SUBMISSION:
-          "Select a rating and enter a valid comment.",
-        REVIEW_INVITATION_EXPIRED:
-          "This review link has expired.",
-        REVIEW_INVITATION_UNAVAILABLE:
-          "This link is no longer available.",
+        INVALID_REVIEW_INVITATION: "We could not validate this review link.",
+        INVALID_REVIEW_SUBMISSION: "Select a rating and enter a valid comment.",
+        REVIEW_INVITATION_EXPIRED: "This review link has expired.",
+        REVIEW_INVITATION_UNAVAILABLE: "This link is no longer available.",
         REVIEW_SUBMISSION_UNEXPECTED_ERROR:
           "We could not submit the review. Please try again.",
       },
@@ -417,8 +414,10 @@ export const enMessages = {
       providerNote:
         "The result is applied only after server-side payment validation. An approved charge only activates the authorized transition for its flow.",
       sessionError: "We could not prepare the payment form. Please try again.",
-      sdkError: "We could not initialize the Tilopay secure form. Please try again.",
-      paymentError: "We could not send the payment to Tilopay. Review the details and try again.",
+      sdkError:
+        "We could not initialize the Tilopay secure form. Please try again.",
+      paymentError:
+        "We could not send the payment to Tilopay. Review the details and try again.",
     },
     lifecycleAdjustment: {
       title: "Pay the stay adjustment",
@@ -519,8 +518,7 @@ export const enMessages = {
       errors: {
         INVALID_GUEST_PAYMENT_REQUEST:
           "The link is invalid or was altered. Request a new link from the accommodation.",
-        GUEST_PAYMENT_REQUEST_EXPIRED:
-          "This private payment link has expired.",
+        GUEST_PAYMENT_REQUEST_EXPIRED: "This private payment link has expired.",
         GUEST_PAYMENT_REQUEST_NOT_PAYABLE:
           "This request is no longer available for payment.",
         GUEST_PAYMENT_REQUEST_PAYMENT_MISMATCH:
@@ -542,7 +540,8 @@ export const enMessages = {
       },
       errors: {
         invalid_card_number: "Please enter a valid card number.",
-        invalid_cvv: "The CVV is invalid. Review the security code and try again.",
+        invalid_cvv:
+          "The CVV is invalid. Review the security code and try again.",
         insufficient_funds:
           "The card has insufficient funds. Use another card or contact your bank.",
         card_not_allowed_sensitive:
@@ -566,7 +565,7 @@ export const enMessages = {
           "We could not verify the payment result. Please contact us before trying again.",
       },
       labels: {
-        reservationId: "Reservation",
+        reservationCode: "Reservation code",
         paymentId: "Payment ID",
         paymentStatus: "Payment status",
         reservationStatus: "Reservation status",
@@ -741,8 +740,7 @@ export const enMessages = {
         },
       },
       errors: {
-        ADMIN_UNAUTHORIZED:
-          "Your admin session expired. Please sign in again.",
+        ADMIN_UNAUTHORIZED: "Your admin session expired. Please sign in again.",
         ADMIN_PUSH_ORIGIN_INVALID:
           "We could not validate the origin of this admin action.",
         INVALID_ADMIN_PUSH_REQUEST:
@@ -832,14 +830,12 @@ export const enMessages = {
         noResults: "No reviews match these filters.",
       },
       errors: {
-        ADMIN_UNAUTHORIZED:
-          "Your admin session expired. Please sign in again.",
+        ADMIN_UNAUTHORIZED: "Your admin session expired. Please sign in again.",
         ADMIN_REVIEW_ORIGIN_INVALID:
           "We could not validate the origin of this admin action.",
         INVALID_ADMIN_REVIEW_REQUEST:
           "We could not process the moderation request.",
-        ADMIN_REVIEW_NOT_FOUND:
-          "We could not find the requested review.",
+        ADMIN_REVIEW_NOT_FOUND: "We could not find the requested review.",
         ADMIN_REVIEW_STALE:
           "This review changed since you loaded the page. We refreshed the view so you can check the current status.",
         ADMIN_REVIEW_INVALID_TRANSITION:
@@ -868,7 +864,8 @@ export const enMessages = {
       },
       paymentClientEvent: {
         TILOPAY_SDK_START_PAYMENT_FAILED: "SDK payment start failed",
-        TILOPAY_SDK_START_PAYMENT_NON_SUCCESS: "SDK payment start was not successful",
+        TILOPAY_SDK_START_PAYMENT_NON_SUCCESS:
+          "SDK payment start was not successful",
       },
       emailNotification: {
         PENDING: "Pending",
@@ -938,10 +935,8 @@ export const enMessages = {
         sources: {
           BASE: "Base rate",
           SEASONAL: "Seasonal rate",
-          LENGTH_OF_STAY:
-            "{minimumNights}+ night stay",
-          PRESERVED_LEGACY_STAY:
-            "Preserved historical price",
+          LENGTH_OF_STAY: "{minimumNights}+ night stay",
+          PRESERVED_LEGACY_STAY: "Preserved historical price",
         },
       },
       detailTabs: {
@@ -1177,7 +1172,8 @@ export const enMessages = {
         },
         empty: {
           charges: "This reservation does not have additional charges yet.",
-          requests: "This reservation does not have guest payment requests yet.",
+          requests:
+            "This reservation does not have guest payment requests yet.",
           notifications:
             "This request does not have email events recorded yet.",
         },
@@ -1263,12 +1259,13 @@ export const enMessages = {
         contact: "Contact",
         total: "Total",
         guests: "Guests",
+        reservationCode: "Reservation code",
         reservation: "Reservation",
         latestPayment: "Latest payment",
         unavailable: "Unavailable",
       },
       placeholders: {
-        search: "Search by guest, email, or reservation ID",
+        search: "Search by guest, email, code, or reservation ID",
       },
       filters: {
         allProperties: "All accommodations",
@@ -1408,7 +1405,8 @@ export const enMessages = {
             "This request had already been rejected; the operation was not repeated.",
         },
         errors: {
-          ADMIN_UNAUTHORIZED: "Your session is not authorized for administration.",
+          ADMIN_UNAUTHORIZED:
+            "Your session is not authorized for administration.",
           INVALID_ADMIN_CANCELLATION_REQUEST:
             "Review the channel, contact details, reason, and confirmation before continuing.",
           ADMIN_CANCELLATION_RESERVATION_NOT_FOUND:
@@ -1620,7 +1618,8 @@ export const enMessages = {
           paymentLinkCopied: "The private payment link was copied.",
         },
         errors: {
-          ADMIN_UNAUTHORIZED: "Your session is not authorized for admin actions.",
+          ADMIN_UNAUTHORIZED:
+            "Your session is not authorized for admin actions.",
           INVALID_ADMIN_DATE_MUTATION_REQUEST:
             "Review the request type, dates, channel, contact details, and reason.",
           ADMIN_DATE_MUTATION_RESERVATION_NOT_FOUND:
@@ -1874,7 +1873,8 @@ export const enMessages = {
             "Cancellation is required only for a policy refund. An extraordinary refund may be authorized while the reservation has refundable stay balance.",
         },
         errors: {
-          ADMIN_UNAUTHORIZED: "Your session is not authorized for administration.",
+          ADMIN_UNAUTHORIZED:
+            "Your session is not authorized for administration.",
           INVALID_ADMIN_REFUND_REQUEST:
             "Review the amount, reason, references, and confirmation details.",
           ADMIN_REFUND_LIFECYCLE_REQUEST_NOT_FOUND:
@@ -1955,8 +1955,7 @@ export const enMessages = {
           REVIEW_INVITATION: "Review invitation",
           ADMIN_REVIEW_SUBMITTED: "New review for administration",
           ADMIN_NEW_RESERVATION: "New reservation for administration",
-          DATE_CHANGE_PAYMENT_REQUIRED:
-            "Payment required for date change",
+          DATE_CHANGE_PAYMENT_REQUIRED: "Payment required for date change",
           STAY_EXTENSION_PAYMENT_REQUIRED:
             "Payment required for stay extension",
           ADDITIONAL_CHARGE_PAYMENT_REQUIRED:
@@ -2017,7 +2016,8 @@ export const enMessages = {
             "The new notification was created, but delivery failed without an automatic retry scheduled.",
         },
         errors: {
-          ADMIN_UNAUTHORIZED: "Your session is not authorized for administration.",
+          ADMIN_UNAUTHORIZED:
+            "Your session is not authorized for administration.",
           INVALID_ADMIN_EMAIL_NOTIFICATION_RESEND_REQUEST:
             "The resend request is invalid. Refresh the page and try again.",
           ADMIN_EMAIL_NOTIFICATION_NOT_FOUND:
@@ -2038,9 +2038,11 @@ export const enMessages = {
       operationalHistory: {
         badge: "Protected operational history",
         title: "Reservation operational history",
-        description: "Chronological sequence of requests, holds, payments, refunds, emails, and recovery activity. This history is read-only and does not execute business transitions.",
+        description:
+          "Chronological sequence of requests, holds, payments, refunds, emails, and recovery activity. This history is read-only and does not execute business transitions.",
         listAriaLabel: "Reservation operational events",
-        empty: "This reservation does not have operational events to display yet.",
+        empty:
+          "This reservation does not have operational events to display yet.",
         categories: {
           RESERVATION: "Reservation",
           REQUEST: "Request",
@@ -2149,11 +2151,13 @@ export const enMessages = {
           },
           RESERVATION_CONFIRMED: {
             title: "Reservation confirmed",
-            description: "A validated payment confirmed the reservation and its availability.",
+            description:
+              "A validated payment confirmed the reservation and its availability.",
           },
           RESERVATION_CANCELLED: {
             title: "Reservation cancelled",
-            description: "The authorized cancellation changed the reservation's operational status.",
+            description:
+              "The authorized cancellation changed the reservation's operational status.",
           },
           CANCELLATION_REQUESTED: {
             title: "Cancellation requested",
@@ -2165,7 +2169,8 @@ export const enMessages = {
           },
           CANCELLATION_REJECTED: {
             title: "Cancellation rejected",
-            description: "An administrator rejected the request and preserved the reservation.",
+            description:
+              "An administrator rejected the request and preserved the reservation.",
           },
           CANCELLATION_COMPLETED: {
             title: "Cancellation completed",
@@ -2177,31 +2182,38 @@ export const enMessages = {
           },
           CANCELLATION_EXPIRED: {
             title: "Cancellation request expired",
-            description: "The request stopped being eligible before a decision.",
+            description:
+              "The request stopped being eligible before a decision.",
           },
           CANCELLATION_WITHDRAWN: {
             title: "Cancellation request withdrawn",
-            description: "The request was withdrawn without changing the reservation.",
+            description:
+              "The request was withdrawn without changing the reservation.",
           },
           DATE_CHANGE_REQUESTED: {
             title: "Date change requested",
-            description: "Alternative dates and a server-side quote were recorded.",
+            description:
+              "Alternative dates and a server-side quote were recorded.",
           },
           DATE_CHANGE_APPROVED: {
             title: "Date change approved",
-            description: "An administrator authorized the requested change to continue.",
+            description:
+              "An administrator authorized the requested change to continue.",
           },
           DATE_CHANGE_REJECTED: {
             title: "Date change rejected",
-            description: "The request was rejected and the confirmed dates were preserved.",
+            description:
+              "The request was rejected and the confirmed dates were preserved.",
           },
           DATE_CHANGE_COMPLETED: {
             title: "Date change completed",
-            description: "The authorized dates were applied to the confirmed reservation.",
+            description:
+              "The authorized dates were applied to the confirmed reservation.",
           },
           DATE_CHANGE_FAILED: {
             title: "Date change failed",
-            description: "Completion could not be applied and preserved the corresponding safe state.",
+            description:
+              "Completion could not be applied and preserved the corresponding safe state.",
           },
           DATE_CHANGE_EXPIRED: {
             title: "Date change request expired",
@@ -2209,7 +2221,8 @@ export const enMessages = {
           },
           DATE_CHANGE_WITHDRAWN: {
             title: "Date change request withdrawn",
-            description: "The request was withdrawn without applying the proposed dates.",
+            description:
+              "The request was withdrawn without applying the proposed dates.",
           },
           STAY_EXTENSION_REQUESTED: {
             title: "Stay extension requested",
@@ -2217,15 +2230,18 @@ export const enMessages = {
           },
           STAY_EXTENSION_APPROVED: {
             title: "Stay extension approved",
-            description: "An administrator authorized the extension to continue.",
+            description:
+              "An administrator authorized the extension to continue.",
           },
           STAY_EXTENSION_REJECTED: {
             title: "Stay extension rejected",
-            description: "The extension was rejected and the confirmed checkout was preserved.",
+            description:
+              "The extension was rejected and the confirmed checkout was preserved.",
           },
           STAY_EXTENSION_COMPLETED: {
             title: "Stay extension completed",
-            description: "The new checkout date was applied to the reservation.",
+            description:
+              "The new checkout date was applied to the reservation.",
           },
           STAY_EXTENSION_FAILED: {
             title: "Stay extension failed",
@@ -2237,27 +2253,33 @@ export const enMessages = {
           },
           STAY_EXTENSION_WITHDRAWN: {
             title: "Stay extension request withdrawn",
-            description: "The request was withdrawn without extending the stay.",
+            description:
+              "The request was withdrawn without extending the stay.",
           },
           LIFECYCLE_HOLD_CREATED: {
             title: "Date hold created",
-            description: "The requested dates were temporarily held while the adjustment was completed.",
+            description:
+              "The requested dates were temporarily held while the adjustment was completed.",
           },
           LIFECYCLE_HOLD_RELEASED: {
             title: "Date hold released",
-            description: "The temporary hold stopped participating in availability.",
+            description:
+              "The temporary hold stopped participating in availability.",
           },
           LIFECYCLE_HOLD_EXPIRED: {
             title: "Date hold expired",
-            description: "The temporary hold expired without a valid completion.",
+            description:
+              "The temporary hold expired without a valid completion.",
           },
           PAYMENT_CREATED: {
             title: "Payment recorded",
-            description: "A payment attempt associated with the reservation was created.",
+            description:
+              "A payment attempt associated with the reservation was created.",
           },
           PAYMENT_APPROVED: {
             title: "Payment approved",
-            description: "The provider approved the payment and the server validated its result.",
+            description:
+              "The provider approved the payment and the server validated its result.",
           },
           PAYMENT_REJECTED: {
             title: "Payment rejected",
@@ -2269,7 +2291,8 @@ export const enMessages = {
           },
           PAYMENT_PARTIALLY_REFUNDED: {
             title: "Payment partially refunded",
-            description: "An approved reconciliation updated the payment's financial balance.",
+            description:
+              "An approved reconciliation updated the payment's financial balance.",
           },
           PAYMENT_REFUNDED: {
             title: "Payment refunded",
@@ -2277,19 +2300,23 @@ export const enMessages = {
           },
           REFUND_AUTHORIZED: {
             title: "Refund authorized",
-            description: "An administrator created a pending refund authorization.",
+            description:
+              "An administrator created a pending refund authorization.",
           },
           REFUND_PROVIDER_EXECUTION_STARTED: {
             title: "Refund execution started",
-            description: "The controlled provider modification submission was started.",
+            description:
+              "The controlled provider modification submission was started.",
           },
           REFUND_PROVIDER_RESPONSE_OBSERVED: {
             title: "Provider response observed",
-            description: "The system recorded a safe classification of the provider response.",
+            description:
+              "The system recorded a safe classification of the provider response.",
           },
           REFUND_PROVIDER_RESULT_UNCERTAIN: {
             title: "Provider result uncertain",
-            description: "The result requires explicit verification before changing financial state.",
+            description:
+              "The result requires explicit verification before changing financial state.",
           },
           REFUND_PROVIDER_EXECUTION_FAILED: {
             title: "Provider execution failed",
@@ -2297,51 +2324,63 @@ export const enMessages = {
           },
           REFUND_PROVIDER_CONSULT_OBSERVED: {
             title: "Provider consultation observed",
-            description: "An administrator reviewed allowlisted provider financial evidence.",
+            description:
+              "An administrator reviewed allowlisted provider financial evidence.",
           },
           REFUND_RECONCILED_APPROVED: {
             title: "Refund reconciled as approved",
-            description: "The evidence was confirmed and the payment updated its financial status.",
+            description:
+              "The evidence was confirmed and the payment updated its financial status.",
           },
           REFUND_RECONCILED_FAILED: {
             title: "Refund reconciled as failed",
-            description: "The evidence confirmed that the refund was not completed.",
+            description:
+              "The evidence confirmed that the refund was not completed.",
           },
           REFUND_APPROVED: {
             title: "Refund approved",
-            description: "The refund record reached an approved financial outcome.",
+            description:
+              "The refund record reached an approved financial outcome.",
           },
           REFUND_FAILED: {
             title: "Refund failed",
-            description: "The attempt remained failed without changing the reservation.",
+            description:
+              "The attempt remained failed without changing the reservation.",
           },
           EMAIL_CREATED: {
             title: "Notification created",
-            description: "A durable email intent was created without causing a business transition.",
+            description:
+              "A durable email intent was created without causing a business transition.",
           },
           EMAIL_PROCESSING: {
             title: "Email processing",
-            description: "A worker acquired the delivery claim for this notification.",
+            description:
+              "A worker acquired the delivery claim for this notification.",
           },
           EMAIL_RETRY_SCHEDULED: {
             title: "Email retry scheduled",
-            description: "Delivery failed temporarily and another attempt was scheduled.",
+            description:
+              "Delivery failed temporarily and another attempt was scheduled.",
           },
           EMAIL_SENT: {
             title: "Email accepted by provider",
-            description: "Resend accepted the message from TRP Booking; this does not confirm reading or opening.",
+            description:
+              "Resend accepted the message from TRP Booking; this does not confirm reading or opening.",
           },
           EMAIL_FAILED: {
             title: "Email delivery failed",
-            description: "Delivery failed and retained normalized, safe diagnostics.",
+            description:
+              "Delivery failed and retained normalized, safe diagnostics.",
           },
           EMAIL_SKIPPED: {
             title: "Email skipped",
-            description: "The notification stopped being current before delivery.",
+            description:
+              "The notification stopped being current before delivery.",
           },
           EMAIL_MANUAL_RESEND_REQUESTED: {
             title: "Manual resend requested",
-            description: "An administrator created a child notification without rewriting original history.",
+            description:
+              "An administrator created a child notification without rewriting original history.",
           },
         },
       },
@@ -2374,8 +2413,7 @@ export const enMessages = {
           "Example: Panajachel, Sololá, near Calle Santander and Lake Atitlán.",
         publicLocationEn:
           "Example: Panajachel, Sololá, near Calle Santander and Lake Atitlán.",
-        mapEmbedUrl:
-          "https://www.google.com/maps/embed?pb=...",
+        mapEmbedUrl: "https://www.google.com/maps/embed?pb=...",
       },
       actions: {
         enable: "Enable public map",
@@ -2547,8 +2585,7 @@ export const enMessages = {
           "Pending reservation hold expiration could not be completed.",
         GUEST_PAYMENT_REQUEST_EXPIRATION_UNEXPECTED_ERROR:
           "Guest payment request expiration could not be completed.",
-        EMAIL_DELIVERY_UNAVAILABLE:
-          "Email delivery is currently unavailable.",
+        EMAIL_DELIVERY_UNAVAILABLE: "Email delivery is currently unavailable.",
         EMAIL_NOTIFICATION_PROCESSING_PARTIAL_SUCCESS:
           "One or more email notifications could not be processed.",
         EMAIL_NOTIFICATION_PROCESSING_UNEXPECTED_ERROR:
@@ -2571,7 +2608,8 @@ export const enMessages = {
         history: "No cron-job executions have been recorded yet.",
       },
       errors: {
-        ADMIN_UNAUTHORIZED: "Your session is not authorized for administration.",
+        ADMIN_UNAUTHORIZED:
+          "Your session is not authorized for administration.",
         INVALID_ADMIN_CRON_JOB_REQUEST:
           "The selected cron job is not registered for manual execution.",
         ADMIN_CRON_JOB_ALREADY_RUNNING:
@@ -2673,6 +2711,7 @@ export const enMessages = {
       labels: {
         selected: "Selected",
         selectable: "Select",
+        reservationCode: "Reservation code",
         currencyMismatch: "Currency mismatch",
         nightSingular: "night",
         nightPlural: "nights",
@@ -2744,7 +2783,8 @@ export const enMessages = {
       empty: {
         noEligibleReservations:
           "There are no confirmed reservations with checkout completed and no fiscal blockers.",
-        preview: "Select at least one eligible reservation to prepare the preview.",
+        preview:
+          "Select at least one eligible reservation to prepare the preview.",
         history: "No FEL documents have been recorded yet.",
       },
       pagination: {
@@ -2755,7 +2795,8 @@ export const enMessages = {
         results: "documents",
       },
       errors: {
-        ADMIN_UNAUTHORIZED: "Your session is not authorized for administration.",
+        ADMIN_UNAUTHORIZED:
+          "Your session is not authorized for administration.",
         ADMIN_FEL_ORIGIN_INVALID:
           "The request did not come from the authorized admin origin.",
         INVALID_ADMIN_FEL_REQUEST:
@@ -3038,7 +3079,8 @@ export const enMessages = {
           losDisabled: "The length-of-stay rate is now disabled.",
         },
         errors: {
-          ADMIN_UNAUTHORIZED: "Your session is not authorized for admin access.",
+          ADMIN_UNAUTHORIZED:
+            "Your session is not authorized for admin access.",
           ADMIN_PRICING_ORIGIN_INVALID:
             "We could not validate the origin of this admin operation.",
           INVALID_ADMIN_PRICING_REQUEST:
@@ -3173,7 +3215,8 @@ export const enMessages = {
             "Arrival settings were saved. Upcoming reservations will be scheduled without changing payment or confirmation state.",
         },
         errors: {
-          ADMIN_UNAUTHORIZED: "Your session does not have administrator access.",
+          ADMIN_UNAUTHORIZED:
+            "Your session does not have administrator access.",
           INVALID_ADMIN_ARRIVAL_INSTRUCTIONS_REQUEST:
             "Review the address, both languages, map link, and lead-time range before saving.",
           ADMIN_ARRIVAL_INSTRUCTIONS_PROPERTY_NOT_FOUND:
@@ -3250,8 +3293,7 @@ export const enMessages = {
             "Review the photo and complete the alternative text correctly in both languages.",
           PROPERTY_PHOTO_PROPERTY_NOT_FOUND:
             "We could not find the requested accommodation.",
-          PROPERTY_PHOTO_NOT_FOUND:
-            "We could not find the selected photo.",
+          PROPERTY_PHOTO_NOT_FOUND: "We could not find the selected photo.",
           PROPERTY_PHOTO_STALE:
             "The gallery changed after you opened this page. Reload before trying again.",
           PROPERTY_PHOTO_LIMIT_REACHED:
@@ -3428,8 +3470,7 @@ export const enMessages = {
           "Review the selected dates and try again.",
         ADMIN_CALENDAR_PROPERTY_NOT_FOUND:
           "We could not find the requested accommodation.",
-        ADMIN_CALENDAR_DATE_IN_PAST:
-          "Dates in the past cannot be changed.",
+        ADMIN_CALENDAR_DATE_IN_PAST: "Dates in the past cannot be changed.",
         ADMIN_CALENDAR_RANGE_UNAVAILABLE:
           "The selected range includes dates that are already occupied or blocked. Select available dates only.",
         ADMIN_CALENDAR_MANUAL_BLOCK_NOT_FOUND:
@@ -3600,17 +3641,26 @@ export const enMessages = {
           "The rotation response does not expose the token. When it finishes, use Copy URL on this same card to send the new URL to the clipboard.",
       },
       success: {
-        urlSaved: "The Airbnb URL was saved encrypted. It was not synchronized automatically.",
-        urlReplaced: "The Airbnb URL was replaced securely. It was not synchronized automatically.",
-        connectionPassed: "Connection test passed. No calendar data was changed.",
-        syncCompleted: "Airbnb synchronization completed for this accommodation.",
+        urlSaved:
+          "The Airbnb URL was saved encrypted. It was not synchronized automatically.",
+        urlReplaced:
+          "The Airbnb URL was replaced securely. It was not synchronized automatically.",
+        connectionPassed:
+          "Connection test passed. No calendar data was changed.",
+        syncCompleted:
+          "Airbnb synchronization completed for this accommodation.",
         importEnabled: "Airbnb import was enabled.",
-        importDisabled: "Airbnb import was disabled without deleting the saved URL.",
-        exportUrlCopied: "The private TRP Booking URL was copied to the clipboard without being rendered on the page.",
-        exportTokenGenerated: "A new private URL was generated for this accommodation. You can now copy it and enable export.",
-        exportTokenRotated: "The private URL was rotated. The previous URL is no longer valid; copy the new one before updating Airbnb.",
+        importDisabled:
+          "Airbnb import was disabled without deleting the saved URL.",
+        exportUrlCopied:
+          "The private TRP Booking URL was copied to the clipboard without being rendered on the page.",
+        exportTokenGenerated:
+          "A new private URL was generated for this accommodation. You can now copy it and enable export.",
+        exportTokenRotated:
+          "The private URL was rotated. The previous URL is no longer valid; copy the new one before updating Airbnb.",
         exportEnabled: "Export to Airbnb was enabled.",
-        exportDisabled: "Export to Airbnb was disabled without deleting the saved token.",
+        exportDisabled:
+          "Export to Airbnb was disabled without deleting the saved token.",
       },
       errors: {
         ADMIN_UNAUTHORIZED:
@@ -3656,16 +3706,22 @@ export const enMessages = {
     reservation: {
       unavailableDates: "The selected dates are no longer available.",
       invalidGuestCount: "The number of guests exceeds the allowed capacity.",
-      expiredReservation: "The reservation expired before payment was completed.",
-      invalidAccommodation: "The requested accommodation is not available for quoting.",
+      expiredReservation:
+        "The reservation expired before payment was completed.",
+      invalidAccommodation:
+        "The requested accommodation is not available for quoting.",
       invalidDateRange: "The quote dates are not valid.",
-      invalidQuoteRequest: "We could not calculate a quote with the submitted information.",
+      invalidQuoteRequest:
+        "We could not calculate a quote with the submitted information.",
       pendingHold: {
-        INVALID_PENDING_HOLD_REQUEST: "Review the reservation details and try again.",
+        INVALID_PENDING_HOLD_REQUEST:
+          "Review the reservation details and try again.",
         INVALID_ACCOMMODATION: "We could not find this accommodation.",
         INVALID_DATE_RANGE: "Select a valid check-in and check-out date.",
-        INVALID_GUEST_COUNT: "The guest count is not valid for this accommodation.",
-        UNAVAILABLE_DATES: "These dates are no longer available. Select a different date range.",
+        INVALID_GUEST_COUNT:
+          "The guest count is not valid for this accommodation.",
+        UNAVAILABLE_DATES:
+          "These dates are no longer available. Select a different date range.",
         PENDING_HOLD_CONFLICT:
           "Someone else took these dates at the same time. Select a different date range.",
         PENDING_HOLD_UNEXPECTED_ERROR:
@@ -3674,10 +3730,8 @@ export const enMessages = {
       pendingHoldRelease: {
         INVALID_PENDING_HOLD_RELEASE_REQUEST:
           "We could not validate the request to edit this reservation. Refresh the page and try again.",
-        PENDING_HOLD_NOT_FOUND:
-          "We could not find this pending reservation.",
-        PENDING_HOLD_NOT_EDITABLE:
-          "This reservation can no longer be edited.",
+        PENDING_HOLD_NOT_FOUND: "We could not find this pending reservation.",
+        PENDING_HOLD_NOT_EDITABLE: "This reservation can no longer be edited.",
         PENDING_HOLD_EDIT_LOCKED_BY_PAYMENT:
           "This reservation can no longer be edited because payment preparation has already started. Continue using the available payment link.",
         PENDING_HOLD_RELEASE_STALE:
@@ -3689,7 +3743,8 @@ export const enMessages = {
         INVALID_PAYMENT_HANDOFF_REQUEST:
           "We could not validate this pending reservation. Please try again.",
         PENDING_HOLD_NOT_FOUND: "We could not find this pending reservation.",
-        PENDING_HOLD_NOT_PAYABLE: "This reservation is no longer available for payment.",
+        PENDING_HOLD_NOT_PAYABLE:
+          "This reservation is no longer available for payment.",
         PENDING_HOLD_EXPIRED:
           "The payment window for this pending reservation expired. Create a new reservation.",
         PAYMENT_HANDOFF_UNAVAILABLE_DATES:
@@ -3707,7 +3762,8 @@ export const enMessages = {
         INVALID_PAYMENT_HANDOFF_REQUEST:
           "We could not prepare the payment attempt. Please try again.",
         PENDING_HOLD_NOT_FOUND: "We could not find this pending reservation.",
-        PENDING_HOLD_NOT_PAYABLE: "This reservation is no longer available for payment.",
+        PENDING_HOLD_NOT_PAYABLE:
+          "This reservation is no longer available for payment.",
         PENDING_HOLD_EXPIRED:
           "The payment window for this pending reservation expired. Create a new reservation.",
         PAYMENT_HANDOFF_UNAVAILABLE_DATES:
@@ -3733,7 +3789,8 @@ export const enMessages = {
         INVALID_PAYMENT_HANDOFF_REQUEST:
           "We could not prepare the payment. Please try again.",
         PENDING_HOLD_NOT_FOUND: "We could not find this pending reservation.",
-        PENDING_HOLD_NOT_PAYABLE: "This reservation is no longer available for payment.",
+        PENDING_HOLD_NOT_PAYABLE:
+          "This reservation is no longer available for payment.",
         PENDING_HOLD_EXPIRED:
           "The payment window for this pending reservation expired. Create a new reservation.",
         PAYMENT_HANDOFF_UNAVAILABLE_DATES:
@@ -3797,8 +3854,7 @@ export const enMessages = {
         "Tu Refugio Perfecto · Panajachel, Guatemala · Secure direct booking",
       appliedRates: "Applied rates",
       seasonalRate: "Seasonal rate",
-      lengthOfStayRate:
-        "{minimumNights}+ night stay",
+      lengthOfStayRate: "{minimumNights}+ night stay",
     },
     reservationConfirmed: {
       subjectPrefix: "Reservation confirmed",
@@ -3878,8 +3934,7 @@ export const enMessages = {
     },
     lifecycleAdjustmentPayment: {
       guest: {
-        dateChangeSubjectPrefix:
-          "Payment pending to confirm your date change",
+        dateChangeSubjectPrefix: "Payment pending to confirm your date change",
         stayExtensionSubjectPrefix:
           "Payment pending to confirm your stay extension",
         preview: "Complete the difference before the hold expires",

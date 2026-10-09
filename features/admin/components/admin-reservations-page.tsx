@@ -254,13 +254,18 @@ export function AdminReservationsPageView({
                       </p>
                     </div>
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-medium">{dateRange}</p>
+                      <p className="truncate text-sm font-medium">
+                        {dateRange}
+                      </p>
                       <p className="mt-0.5 text-sm text-muted-foreground">
                         {formatMoney(reservation.total, reservation.currency)} ·{" "}
                         {copy.labels.guests}: {reservation.guestCount}
                       </p>
                     </div>
-                    <Badge className="justify-self-start sm:justify-self-end" variant="outline">
+                    <Badge
+                      className="justify-self-start sm:justify-self-end"
+                      variant="outline"
+                    >
                       {reservationStatusLabel(reservation.status)}
                     </Badge>
                   </div>
@@ -279,12 +284,14 @@ export function AdminReservationsPageView({
                       ) : null}
                     </div>
                     <SummaryValue
-                      label={copy.labels.reservation}
-                      value={reservation.id}
+                      label={copy.labels.reservationCode}
+                      value={reservation.reservationCode}
                     />
                     <SummaryValue
                       label={copy.labels.latestPayment}
-                      value={paymentStatusLabel(reservation.latestPaymentStatus)}
+                      value={paymentStatusLabel(
+                        reservation.latestPaymentStatus,
+                      )}
                     />
                     <SummaryValue label={copy.labels.dates} value={dateRange} />
                   </div>

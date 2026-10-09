@@ -282,6 +282,7 @@ async function readClaimedNotification(claim: EmailNotificationClaim) {
       reservation: {
         select: {
           id: true,
+          reservationCode: true,
           status: true,
           guestName: true,
           guestEmail: true,
@@ -370,17 +371,14 @@ function buildTemplateReservation(
   );
 
   const pricingMessages =
-    locale === "es"
-      ? esMessages.emails.common
-      : enMessages.emails.common;
+    locale === "es" ? esMessages.emails.common : enMessages.emails.common;
 
   const appliedPricingLabels: string[] = [];
 
   if (pricingSnapshot) {
     const hasSeasonal = pricingSnapshot.segments.some(
       (segment) =>
-        segment.kind === "RESOLVED_RATE" &&
-        segment.source === "SEASONAL",
+        segment.kind === "RESOLVED_RATE" && segment.source === "SEASONAL",
     );
 
     if (hasSeasonal) {
@@ -409,12 +407,11 @@ function buildTemplateReservation(
   }
 
   const appliedPricingSummary =
-    appliedPricingLabels.length > 0
-      ? appliedPricingLabels.join(" · ")
-      : null;
+    appliedPricingLabels.length > 0 ? appliedPricingLabels.join(" · ") : null;
 
   return {
     id: reservation.id,
+    reservationCode: reservation.reservationCode,
     guestName: reservation.guestName,
     guestEmail: reservation.guestEmail,
     guestPhone: reservation.guestPhone,

@@ -83,7 +83,7 @@ export async function buildAdminNewReservationEmail(
         </EmailSectionTitle>
         <EmailDetailRow
           label={messages.common.reservationReference}
-          value={view.reservationId}
+          value={view.reservationCode}
         />
         <EmailDetailRow
           label={messages.common.accommodation}
@@ -151,7 +151,7 @@ export async function buildAdminNewReservationEmail(
     buildPlainTextRows([
       {
         label: messages.common.reservationReference,
-        value: view.reservationId,
+        value: view.reservationCode,
       },
       { label: messages.common.accommodation, value: view.propertyName },
       { label: messages.common.checkIn, value: view.checkInDate },

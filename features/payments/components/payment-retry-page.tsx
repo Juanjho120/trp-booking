@@ -12,11 +12,13 @@ import type { TilopayRetryPaymentIssue } from "@/types/tilopay-retry-payment";
 
 type PaymentRetryPageProps = Readonly<{
   reservationId: string | null;
+  reservationCode: string | null;
   paymentIssue: TilopayRetryPaymentIssue | null;
 }>;
 
 export function PaymentRetryPage({
   reservationId,
+  reservationCode,
   paymentIssue,
 }: PaymentRetryPageProps) {
   const { messages } = useLocale();
@@ -42,16 +44,18 @@ export function PaymentRetryPage({
 
           {reservationId ? (
             <>
-              <dl className="grid gap-3 rounded-3xl border border-border/70 bg-background p-4 text-left text-sm">
-                <div className="grid gap-1">
-                  <dt className="font-medium text-foreground">
-                    {messages.reservations.pendingHold.reservationId}
-                  </dt>
-                  <dd className="break-all text-muted-foreground">
-                    {reservationId}
-                  </dd>
-                </div>
-              </dl>
+              {reservationCode ? (
+                <dl className="grid gap-3 rounded-3xl border border-border/70 bg-background p-4 text-left text-sm">
+                  <div className="grid gap-1">
+                    <dt className="font-medium text-foreground">
+                      {messages.reservations.pendingHold.reservationCode}
+                    </dt>
+                    <dd className="break-all text-muted-foreground">
+                      {reservationCode}
+                    </dd>
+                  </div>
+                </dl>
+              ) : null}
 
               <div className="scroll-mt-24" ref={paymentSectionRef}>
                 <TilopaySdkCheckout

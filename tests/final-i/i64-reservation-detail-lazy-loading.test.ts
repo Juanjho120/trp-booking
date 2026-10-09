@@ -33,14 +33,21 @@ function read(relativePath: string): string {
 }
 
 function expectIncludes(source: string, expected: string): void {
-  assert.ok(source.includes(expected), `Expected source to include: ${expected}`);
+  assert.ok(
+    source.includes(expected),
+    `Expected source to include: ${expected}`,
+  );
 }
 
 function expectNotIncludes(source: string, rejected: string): void {
   assert.ok(!source.includes(rejected), `Expected source to omit: ${rejected}`);
 }
 
-function blockBetween(source: string, startMarker: string, endMarker: string): string {
+function blockBetween(
+  source: string,
+  startMarker: string,
+  endMarker: string,
+): string {
   const start = source.indexOf(startMarker);
   assert.notEqual(start, -1, `Missing start marker: ${startMarker}`);
   const end = source.indexOf(endMarker, start);
@@ -66,15 +73,27 @@ test("I.6.4 tab load decision helper blocks loops and allows explicit reload", (
     false,
   );
   assert.equal(
-    shouldLoadAdminReservationTab({ force: true, status: "error", stale: false }),
+    shouldLoadAdminReservationTab({
+      force: true,
+      status: "error",
+      stale: false,
+    }),
     true,
   );
   assert.equal(
-    shouldLoadAdminReservationTab({ force: true, status: "loading", stale: true }),
+    shouldLoadAdminReservationTab({
+      force: true,
+      status: "loading",
+      stale: true,
+    }),
     false,
   );
   assert.equal(
-    shouldLoadAdminReservationTab({ force: true, status: "refreshing", stale: true }),
+    shouldLoadAdminReservationTab({
+      force: true,
+      status: "refreshing",
+      stale: true,
+    }),
     false,
   );
 });
@@ -149,7 +168,7 @@ test("I.6.4 page-scoped tab cache lazy-loads once and keeps visited tabs mounted
     "inFlightTabsRef.current.has(tab)",
     "inFlightTabsRef.current.add(tab)",
     "inFlightTabsRef.current.delete(tab)",
-    "cache: \"no-store\"",
+    'cache: "no-store"',
     "setCacheForTab(payload)",
     "forceMount",
     "data-[state=inactive]:hidden",
@@ -165,11 +184,11 @@ test("I.6.4 financial summary and payment attempts are separate cached units", (
   const component = read(DETAIL_PAGE);
 
   for (const expected of [
-    "const [financialCache, setFinancialCache] = useState<",
+    "const [financialCache, setFinancialCache] =\n    useState<",
     "CacheEntry<AdminReservationFinancialTab>",
-    "const [attemptsCache, setAttemptsCache] = useState<",
+    "const [attemptsCache, setAttemptsCache] =\n    useState<",
     "CacheEntry<AdminPaymentSubmissionAttemptHistoryData>",
-    "activeFinancialTab === \"attempts\" ? \"payment-attempts\" : \"financial\"",
+    'activeFinancialTab === "attempts" ? "payment-attempts" : "financial"',
     "detailCopy.financial.summary",
     "detailCopy.financial.attempts",
     "renderFinancialError",
@@ -184,19 +203,22 @@ test("I.6.4 financial tab fetch is owned by the financial-specific effect", () =
   const component = read(DETAIL_PAGE);
   const genericEffect = blockBetween(
     component,
-    "  useEffect(() => {\n    if (\n      activeReservationTab === \"additionalCharges\" ||",
+    '  useEffect(() => {\n    if (\n      activeReservationTab === "additionalCharges" ||',
     "  }, [activeReservationTab, loadServerTab]);",
   );
   const financialEffect = blockBetween(
     component,
-    "  useEffect(() => {\n    if (activeReservationTab === \"financial\") {",
+    '  useEffect(() => {\n    if (activeReservationTab === "financial") {',
     "  }, [activeFinancialTab, activeReservationTab, loadServerTab]);",
   );
 
   expectIncludes(genericEffect, 'activeReservationTab === "financial"');
   expectIncludes(genericEffect, "return;");
   expectIncludes(genericEffect, "void loadServerTab(tab);");
-  expectIncludes(financialEffect, 'activeFinancialTab === "attempts" ? "payment-attempts" : "financial"');
+  expectIncludes(
+    financialEffect,
+    'activeFinancialTab === "attempts" ? "payment-attempts" : "financial"',
+  );
   expectIncludes(financialEffect, "void loadServerTab(");
 });
 
@@ -230,18 +252,39 @@ test("I.6.4 failed lazy loads do not auto-retry and refresh failures keep data",
 
   expectIncludes(loadServerTab, "shouldLoadAdminReservationTab({");
   expectIncludes(loadServerTab, "status: current.status");
-  expectIncludes(loadServerTab, "const hadExistingData = current.data !== null;");
-  expectIncludes(loadServerTab, "updateCacheStatus(tab, hadExistingData ? \"refreshing\" : \"loading\");");
+  expectIncludes(
+    loadServerTab,
+    "const hadExistingData = current.data !== null;",
+  );
+  expectIncludes(
+    loadServerTab,
+    'updateCacheStatus(tab, hadExistingData ? "refreshing" : "loading");',
+  );
   expectIncludes(loadServerTab, "setErrorFeedback(detailCopy.loadFailed);");
   expectIncludes(loadServerTab, "finally {");
   expectIncludes(loadServerTab, "inFlightTabsRef.current.delete(tab);");
   expectIncludes(updateCacheError, "...entry,");
-  expectIncludes(updateCacheError, "status: \"error\",");
-  expectIncludes(reservationPanel, "if (isCacheBusy(cache)) {\n    return renderLoadingPanel(copy.loading);\n  }");
-  expectIncludes(reservationPanel, "return cache.status === \"error\" ? renderError() : renderLoadingPanel(copy.loading);");
-  expectIncludes(financialPanel, "isCacheBusy(financialCache) ? (\n          renderLoadingPanel(detailCopy.loading.financial)");
-  expectIncludes(financialPanel, "isCacheBusy(attemptsCache) ? (\n          renderLoadingPanel(detailCopy.loading.paymentAttempts)");
-  expectIncludes(emailsPanel, "if (isCacheBusy(cache)) {\n    return renderLoadingPanel(reservationCopy.detailTabs.loading.emails);\n  }");
+  expectIncludes(updateCacheError, 'status: "error",');
+  expectIncludes(
+    reservationPanel,
+    "if (isCacheBusy(cache)) {\n    return renderLoadingPanel(copy.loading);\n  }",
+  );
+  expectIncludes(
+    reservationPanel,
+    'return cache.status === "error"\n      ? renderError()\n      : renderLoadingPanel(copy.loading);',
+  );
+  expectIncludes(
+    financialPanel,
+    "isCacheBusy(financialCache) ? (\n          renderLoadingPanel(detailCopy.loading.financial)",
+  );
+  expectIncludes(
+    financialPanel,
+    "isCacheBusy(attemptsCache) ? (\n          renderLoadingPanel(detailCopy.loading.paymentAttempts)",
+  );
+  expectIncludes(
+    emailsPanel,
+    "if (isCacheBusy(cache)) {\n    return renderLoadingPanel(reservationCopy.detailTabs.loading.emails);\n  }",
+  );
   for (const expected of [
     "isCacheBusy(lifecycleCache) ? (\n              renderLoadingPanel(detailCopy.loading.lifecycle)",
     "isCacheBusy(refundsCache) ? (\n              renderLoadingPanel(detailCopy.loading.refunds)",
@@ -250,17 +293,26 @@ test("I.6.4 failed lazy loads do not auto-retry and refresh failures keep data",
   ]) {
     expectIncludes(component, expected);
   }
-  expectIncludes(component, "aria-live=\"polite\"");
-  expectIncludes(component, "role=\"status\"");
+  expectIncludes(component, 'aria-live="polite"');
+  expectIncludes(component, 'role="status"');
 });
 
 test("I.6.4 header badge follows lazy payload reservation status", () => {
   const component = read(DETAIL_PAGE);
 
-  expectIncludes(component, "const [reservationStatus, setReservationStatus] = useState(");
+  expectIncludes(
+    component,
+    "const [reservationStatus, setReservationStatus] = useState(",
+  );
   expectIncludes(component, "setReservationStatus(payload.data.status);");
-  expectIncludes(component, "const shellBadge = reservationStatusLabel(reservationStatus);");
-  expectNotIncludes(component, "const shellBadge = reservationStatusLabel(reservationShell.status);");
+  expectIncludes(
+    component,
+    "const shellBadge = reservationStatusLabel(reservationStatus);",
+  );
+  expectNotIncludes(
+    component,
+    "const shellBadge = reservationStatusLabel(reservationShell.status);",
+  );
 });
 
 test("I.6.4 Additional Charges management reload is explicit and locale-stable", () => {
@@ -288,19 +340,28 @@ test("I.6.4 Additional Charges management reload is explicit and locale-stable",
   expectIncludes(component, "if (reloadVersion > 0) {");
   expectIncludes(explicitReloadEffect, "void loadManagement(true);");
   expectNotIncludes(explicitReloadEffect, "void loadManagement(false);");
-  expectIncludes(loadingBlock, "aria-live=\"polite\"");
-  expectIncludes(loadingBlock, "role=\"status\"");
+  expectIncludes(loadingBlock, 'aria-live="polite"');
+  expectIncludes(loadingBlock, 'role="status"');
   expectIncludes(loadingBlock, "<Loader2");
   expectIncludes(loadingBlock, "{copy.loading}");
-  expectIncludes(loadingBlock, "CardContent className=\"flex items-center gap-3 p-6 text-sm text-muted-foreground\"");
+  expectIncludes(
+    loadingBlock,
+    'CardContent className="flex items-center gap-3 p-6 text-sm text-muted-foreground"',
+  );
   expectNotIncludes(loadingBlock, "<CardTitle>{copy.title}</CardTitle>");
-  expectNotIncludes(loadingBlock, "<CardDescription>{copy.loading}</CardDescription>");
+  expectNotIncludes(
+    loadingBlock,
+    "<CardDescription>{copy.loading}</CardDescription>",
+  );
   expectIncludes(component, "await loadManagement();");
   expectIncludes(component, "onDataChanged?.();");
   expectIncludes(loadManagement, "onLoadBusyChangeRef.current?.(true);");
   expectIncludes(loadManagement, "[reservationId]");
   expectNotIncludes(component, "onRefreshingChange");
-  expectNotIncludes(loadManagement, "const shouldNotifyRefreshing = !showLoading;");
+  expectNotIncludes(
+    loadManagement,
+    "const shouldNotifyRefreshing = !showLoading;",
+  );
   expectNotIncludes(loadManagement, "resolveError");
   expectNotIncludes(loadManagement, "[copy]");
 });
@@ -314,25 +375,37 @@ test("I.6.4 mutations invalidate dependent units without full route refresh", ()
 
   for (const expected of [
     "function handleLifecycleChanged(): void {",
-    'markTabsStale(["reservation", "changes", "refunds", "financial", "history"])',
-    "void loadServerTab(\"lifecycle\", { force: true });",
+    'markTabsStale([\n      "reservation",\n      "changes",\n      "refunds",\n      "financial",\n      "history",\n    ])',
+    'void loadServerTab("lifecycle", { force: true });',
     "function handleChangesChanged(): void {",
     'markTabsStale(["reservation", "financial", "refunds", "history"])',
-    "void loadServerTab(\"changes\", { force: true });",
+    'void loadServerTab("changes", { force: true });',
     "function handleRefundsChanged(): void {",
     'markTabsStale(["financial", "history"])',
-    "void loadServerTab(\"refunds\", { force: true });",
+    'void loadServerTab("refunds", { force: true });',
     "function handleAdditionalChargesChanged(): void {",
   ]) {
     expectIncludes(component, expected);
   }
 
   expectNotIncludes(component, 'className="-mt-6"');
-  expectIncludes(component, "<AdminReservationCancellationSection\n                embedded");
-  expectIncludes(component, "<AdminReservationDateMutationSection\n                embedded");
-  expectIncludes(component, "<AdminReservationOperationalHistorySection\n                embedded");
+  expectIncludes(
+    component,
+    "<AdminReservationCancellationSection\n                embedded",
+  );
+  expectIncludes(
+    component,
+    "<AdminReservationDateMutationSection\n                embedded",
+  );
+  expectIncludes(
+    component,
+    "<AdminReservationOperationalHistorySection\n                embedded",
+  );
   expectIncludes(component, "<AdminReservationRefundSection\n        embedded");
-  expectIncludes(component, "<AdminReservationLifecycleAdjustmentRefundSection");
+  expectIncludes(
+    component,
+    "<AdminReservationLifecycleAdjustmentRefundSection",
+  );
 
   for (const affectedSection of [
     cancellationSection,
@@ -363,7 +436,10 @@ test("I.6.4 contextual focus cleans URL only after exact focus scroll", () => {
   expectIncludes(component, "const cleanupInitialFocusQuery = useCallback");
   expectIncludes(component, 'url.searchParams.delete("focus");');
   expectIncludes(component, 'url.searchParams.delete("focusId");');
-  expectIncludes(component, "window.history.replaceState(window.history.state, \"\", nextUrl);");
+  expectIncludes(
+    component,
+    'window.history.replaceState(window.history.state, "", nextUrl);',
+  );
   expectIncludes(component, "onInitialFocusApplied={cleanupInitialFocusQuery}");
   for (const focusedSection of [
     additionalCharges,
@@ -382,7 +458,10 @@ test("I.6.4 contextual focus cleans URL only after exact focus scroll", () => {
     component,
     "  useEffect(() => {\n    if (!initialFocus) {\n      return;\n    }\n\n    const url = new URL(window.location.href);",
   );
-  expectIncludes(service, "export async function resolveAdminReservationRefundFocusTab");
+  expectIncludes(
+    service,
+    "export async function resolveAdminReservationRefundFocusTab",
+  );
   expectIncludes(service, "refund.findFirst");
   expectIncludes(service, "payment: {\n        reservationId,");
   expectIncludes(service, 'authorizationType === "ADDITIONAL_CHARGE"');
@@ -392,7 +471,11 @@ test("I.6.4 reload control is icon-only, localized and scoped to the active data
   const component = read(DETAIL_PAGE);
   const es = read("messages/es.ts");
   const en = read("messages/en.ts");
-  const header = blockBetween(component, "<AdminPageHeader", "      <AdminSnackbar");
+  const header = blockBetween(
+    component,
+    "<AdminPageHeader",
+    "      <AdminSnackbar",
+  );
   const topLevelTabs = blockBetween(
     component,
     "<TabsList\n            aria-label={reservationCopy.title}",
@@ -413,7 +496,11 @@ test("I.6.4 reload control is icon-only, localized and scoped to the active data
     "function ZohoCorrespondenceCard({",
     "function EmailGroupEmptyState({",
   );
-  const actions = blockBetween(header, "actions={", "        badge={shellBadge}");
+  const actions = blockBetween(
+    header,
+    "actions={",
+    "        badge={shellBadge}",
+  );
   const reloadButton = blockBetween(
     actions,
     "aria-label={detailCopy.reload}",
@@ -435,26 +522,56 @@ test("I.6.4 reload control is icon-only, localized and scoped to the active data
   );
   expectIncludes(reloadButton, 'size="icon"');
   expectIncludes(reloadButton, "<RefreshCcw");
-  expectNotIncludes(reloadButton, "\n                    {detailCopy.reload}\n");
+  expectNotIncludes(
+    reloadButton,
+    "\n                    {detailCopy.reload}\n",
+  );
   expectIncludes(actions, '<TooltipContent align="end" side="bottom">');
   expectIncludes(actions, "{detailCopy.reload}");
-  expectIncludes(component, "function isCacheBusy(entry: CacheEntry<unknown>): boolean");
-  expectIncludes(component, 'entry.status === "loading" || entry.status === "refreshing"');
+  expectIncludes(
+    component,
+    "function isCacheBusy(entry: CacheEntry<unknown>): boolean",
+  );
+  expectIncludes(
+    component,
+    'entry.status === "loading" || entry.status === "refreshing"',
+  );
   expectIncludes(component, "function getActiveReloadBusy(): boolean");
   expectIncludes(component, 'activeReservationTab === "additionalCharges"');
-  expectIncludes(component, 'additionalChargesLoadBusy || !visitedTabs.has("additionalCharges")');
-  expectIncludes(component, 'const [additionalChargesLoadBusy, setAdditionalChargesLoadBusy] = useState(');
+  expectIncludes(
+    component,
+    'additionalChargesLoadBusy || !visitedTabs.has("additionalCharges")',
+  );
+  expectIncludes(
+    component,
+    "const [additionalChargesLoadBusy, setAdditionalChargesLoadBusy] = useState(",
+  );
   expectIncludes(component, 'initialActiveTab === "additionalCharges"');
-  expectIncludes(component, 'value === "additionalCharges" && !visitedTabs.has(value)');
-  expectIncludes(component, 'activeFinancialTab === "attempts" ? attemptsCache : financialCache');
+  expectIncludes(
+    component,
+    'value === "additionalCharges" && !visitedTabs.has(value)',
+  );
+  expectIncludes(
+    component,
+    'activeFinancialTab === "attempts" ? attemptsCache : financialCache',
+  );
   expectIncludes(component, "return isCacheBusy(getCacheForTab(tab));");
   expectIncludes(component, "const activeReloadBusy = getActiveReloadBusy();");
   expectIncludes(component, "aria-busy={activeReloadBusy}");
   expectIncludes(component, "disabled={activeReloadBusy}");
-  expectIncludes(component, 'className={activeReloadBusy ? "animate-spin" : undefined}');
+  expectIncludes(
+    component,
+    'className={activeReloadBusy ? "animate-spin" : undefined}',
+  );
   expectIncludes(component, "onLoadBusyChange={setAdditionalChargesLoadBusy}");
-  expectIncludes(reloadUnit, "setAdditionalChargesReloadVersion((value) => value + 1);");
-  expectIncludes(reloadUnit, 'activeFinancialTab === "attempts" ? "payment-attempts" : "financial"');
+  expectIncludes(
+    reloadUnit,
+    "setAdditionalChargesReloadVersion((value) => value + 1);",
+  );
+  expectIncludes(
+    reloadUnit,
+    'activeFinancialTab === "attempts" ? "payment-attempts" : "financial"',
+  );
 
   expectIncludes(topLevelTabs, "{detailCopy.navigation.lifecycle}");
   expectIncludes(topLevelTabs, "{detailCopy.navigation.changes}");
@@ -464,7 +581,10 @@ test("I.6.4 reload control is icon-only, localized and scoped to the active data
   expectNotIncludes(topLevelTabs, "{reservationCopy.operationalHistory.badge}");
 
   expectNotIncludes(reservationPanel, "correspondenceCopy");
-  expectNotIncludes(reservationPanel, "siteConfig.correspondence.zohoMailWebUrl");
+  expectNotIncludes(
+    reservationPanel,
+    "siteConfig.correspondence.zohoMailWebUrl",
+  );
   expectNotIncludes(reservationPanel, "onCopyGuestEmail");
   expectIncludes(emailContent, 'value="zoho"');
   expectIncludes(emailContent, "<Inbox");
@@ -474,10 +594,16 @@ test("I.6.4 reload control is icon-only, localized and scoped to the active data
       emailContent.indexOf('value="zoho"'),
     "Zoho tab should render after Administration",
   );
-  expectNotIncludes(emailContent, "emailData.emailNotifications.length > 0 ? (");
+  expectNotIncludes(
+    emailContent,
+    "emailData.emailNotifications.length > 0 ? (",
+  );
   expectIncludes(emailContent, '        : "zoho";');
   expectIncludes(emailContent, "guestEmail={emailData.guestEmail}");
-  expectIncludes(emailContent, "<EmailGroupEmptyState label={reservationCopy.labels.results} />");
+  expectIncludes(
+    emailContent,
+    "<EmailGroupEmptyState label={reservationCopy.labels.results} />",
+  );
   expectIncludes(zohoCard, "siteConfig.correspondence.zohoMailWebUrl");
   expectIncludes(zohoCard, "onCopyGuestEmail(guestEmail)");
   expectIncludes(zohoCard, "correspondenceCopy.actions.openDesktop");

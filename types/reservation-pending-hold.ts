@@ -46,6 +46,7 @@ export type ReleasePendingReservationHoldInput = Readonly<{
 
 export type PendingReservationHold = Readonly<{
   reservationId: string;
+  reservationCode: string;
   status: PendingReservationHoldStatus;
   expiresAt: string;
   updatedAt: string;

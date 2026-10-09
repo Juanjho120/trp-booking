@@ -95,6 +95,7 @@ export type AdminReservationPricingBreakdown = Readonly<{
 
 export type AdminReservationDetailData = Readonly<{
   id: string;
+  reservationCode: string;
   property: AdminPropertyOption &
     Readonly<{
       checkInTime: string;

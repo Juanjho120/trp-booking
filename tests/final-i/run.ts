@@ -12,6 +12,7 @@ import "./i62-admin-notification-navigation.test";
 import "./i63-additional-charge-email-delivery-layout.test";
 import "./i64-reservation-detail-lazy-loading.test";
 import "./i65-admin-contextual-help.test";
+import "./i66-human-reservation-codes.test";
 
 import { runFinalITests } from "./harness";
 

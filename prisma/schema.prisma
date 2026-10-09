@@ -678,6 +678,7 @@ model PropertyRule {
 
 model Reservation {
   id                  String            @id @default(cuid())
+  reservationCode     String            @unique @map("reservation_code") @db.VarChar(12)
   propertyId          String            @map("property_id")
   guestName           String            @map("guest_name")
   guestEmail          String            @map("guest_email")

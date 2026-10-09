@@ -88,7 +88,7 @@ type PendingHoldSummaryCopy = Readonly<{
   createHold: string;
   creatingHold: string;
   successTitle: string;
-  reservationId: string;
+  reservationCode: string;
   status: string;
   expiresAt: string;
   total: string;
@@ -113,14 +113,13 @@ let tilopayCheckoutComponentPromise: Promise<TilopayCheckoutComponent> | null =
   null;
 
 function loadTilopayCheckoutComponent(): Promise<TilopayCheckoutComponent> {
-  tilopayCheckoutComponentPromise ??= import(
-    "@/features/payments/components/tilopay-sdk-checkout"
-  )
-    .then((module) => module.TilopaySdkCheckout as TilopayCheckoutComponent)
-    .catch((error: unknown) => {
-      tilopayCheckoutComponentPromise = null;
-      throw error;
-    });
+  tilopayCheckoutComponentPromise ??=
+    import("@/features/payments/components/tilopay-sdk-checkout")
+      .then((module) => module.TilopaySdkCheckout as TilopayCheckoutComponent)
+      .catch((error: unknown) => {
+        tilopayCheckoutComponentPromise = null;
+        throw error;
+      });
 
   return tilopayCheckoutComponentPromise;
 }
@@ -186,9 +185,7 @@ function toMonthStartDateOnlyString(date: Date): DateOnlyString {
 }
 
 function toNextMonthStartDateOnlyString(date: Date): DateOnlyString {
-  return toDateOnlyString(
-    new Date(date.getFullYear(), date.getMonth() + 1, 1),
-  );
+  return toDateOnlyString(new Date(date.getFullYear(), date.getMonth() + 1, 1));
 }
 
 function dateOnlyStringToLocalDate(value: DateOnlyString): Date {
@@ -197,10 +194,12 @@ function dateOnlyStringToLocalDate(value: DateOnlyString): Date {
   return new Date(year, month - 1, day);
 }
 
-function buildBlockedDatesUrl(input: Readonly<{
-  accommodationId: AccommodationId;
-  month: Date;
-}>): string {
+function buildBlockedDatesUrl(
+  input: Readonly<{
+    accommodationId: AccommodationId;
+    month: Date;
+  }>,
+): string {
   const searchParams = new URLSearchParams({
     accommodationId: input.accommodationId,
     startDate: toMonthStartDateOnlyString(input.month),
@@ -236,13 +235,15 @@ function isDateInRange(date: Date, from: Date, to: Date): boolean {
   return dateTime >= startOfDate(from) && dateTime <= startOfDate(to);
 }
 
-function buildQuoteUrl(input: Readonly<{
-  accommodationId: AccommodationId;
-  checkInDate: string;
-  checkOutDate: string;
-  guestCount: string;
-  locale: string;
-}>): string {
+function buildQuoteUrl(
+  input: Readonly<{
+    accommodationId: AccommodationId;
+    checkInDate: string;
+    checkOutDate: string;
+    guestCount: string;
+    locale: string;
+  }>,
+): string {
   const searchParams = new URLSearchParams({
     accommodationId: input.accommodationId,
     checkInDate: input.checkInDate.trim(),
@@ -254,18 +255,20 @@ function buildQuoteUrl(input: Readonly<{
   return `/api/reservations/quote?${searchParams.toString()}`;
 }
 
-function buildPendingHoldPayload(input: Readonly<{
-  accommodationId: AccommodationId;
-  checkInDate: string;
-  checkOutDate: string;
-  guestCount: string;
-  guestName: string;
-  guestEmail: string;
-  guestCountry: CountryOption;
-  guestPhoneLocal: string;
-  arrivalTimeEstimate: string;
-  locale: string;
-}>): string {
+function buildPendingHoldPayload(
+  input: Readonly<{
+    accommodationId: AccommodationId;
+    checkInDate: string;
+    checkOutDate: string;
+    guestCount: string;
+    guestName: string;
+    guestEmail: string;
+    guestCountry: CountryOption;
+    guestPhoneLocal: string;
+    arrivalTimeEstimate: string;
+    locale: string;
+  }>,
+): string {
   return JSON.stringify({
     accommodationId: input.accommodationId,
     checkInDate: input.checkInDate.trim(),
@@ -312,9 +315,7 @@ function getBrowserTimeZone(): string | null {
   try {
     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-    return typeof timeZone === "string" && timeZone.trim()
-      ? timeZone
-      : null;
+    return typeof timeZone === "string" && timeZone.trim() ? timeZone : null;
   } catch {
     return null;
   }
@@ -386,8 +387,9 @@ export function ReservationRequestForm({
   const [arrivalTimeEstimate, setArrivalTimeEstimate] = useState("");
   const [arrivalTimeOpen, setArrivalTimeOpen] = useState(false);
   const [quote, setQuote] = useState<ReservationQuote | null>(null);
-  const [pendingHold, setPendingHold] =
-    useState<PendingReservationHold | null>(null);
+  const [pendingHold, setPendingHold] = useState<PendingReservationHold | null>(
+    null,
+  );
   const [status, setStatus] = useState<RequestStatus>("idle");
   const [holdStatus, setHoldStatus] = useState<RequestStatus>("idle");
   const [releaseStatus, setReleaseStatus] = useState<RequestStatus>("idle");
@@ -396,8 +398,9 @@ export function ReservationRequestForm({
   const [modifySheetOpen, setModifySheetOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [holdErrorMessage, setHoldErrorMessage] = useState<string | null>(null);
-  const [paymentCheckoutLoadError, setPaymentCheckoutLoadError] =
-    useState<string | null>(null);
+  const [paymentCheckoutLoadError, setPaymentCheckoutLoadError] = useState<
+    string | null
+  >(null);
   const [releaseErrorMessage, setReleaseErrorMessage] = useState<string | null>(
     null,
   );
@@ -410,8 +413,7 @@ export function ReservationRequestForm({
   const pendingHoldErrorRef = useRef<HTMLParagraphElement | null>(null);
   const paymentSectionRef = useRef<HTMLDivElement | null>(null);
   const formContainerRef = useRef<HTMLDivElement | null>(null);
-  const countrySelectionSourceRef =
-    useRef<CountrySelectionSource>("DEFAULT");
+  const countrySelectionSourceRef = useRef<CountrySelectionSource>("DEFAULT");
   const [visibleMonth, setVisibleMonth] = useState(() => new Date());
   const [blockedDates, setBlockedDates] = useState<readonly Date[]>([]);
 
@@ -459,9 +461,7 @@ export function ReservationRequestForm({
       })
       .catch(() => {
         setPaymentCheckoutLoadStatus("error");
-        setPaymentCheckoutLoadError(
-          messages.payments.tilopaySdk.sessionError,
-        );
+        setPaymentCheckoutLoadError(messages.payments.tilopaySdk.sessionError);
       });
   }, [
     PaymentCheckoutComponent,
@@ -1049,7 +1049,11 @@ function DeferredPaymentCheckoutFallback({
           <p className="rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm leading-6 text-destructive">
             {errorMessage}
           </p>
-          <Button className="w-full rounded-full" onClick={onRetry} type="button">
+          <Button
+            className="w-full rounded-full"
+            onClick={onRetry}
+            type="button"
+          >
             {retryLabel}
           </Button>
         </>
@@ -1391,13 +1395,7 @@ function PhoneField({
 type FieldProps = Readonly<{
   autoComplete?: string;
   inputMode?:
-    | "decimal"
-    | "email"
-    | "numeric"
-    | "search"
-    | "tel"
-    | "text"
-    | "url";
+    "decimal" | "email" | "numeric" | "search" | "tel" | "text" | "url";
   label: string;
   maxLength?: number;
   onChange: (value: string) => void;
@@ -1447,8 +1445,8 @@ function PendingHoldSummary({
       <p className="font-medium text-foreground">{copy.successTitle}</p>
       <dl className="mt-3 grid gap-2 text-muted-foreground">
         <QuoteRow
-          label={copy.reservationId}
-          value={pendingHold.reservationId}
+          label={copy.reservationCode}
+          value={pendingHold.reservationCode}
         />
         <QuoteRow label={copy.status} value={copy.pendingPayment} />
         <QuoteRow

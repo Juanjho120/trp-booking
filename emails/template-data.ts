@@ -34,6 +34,10 @@ const reservationIdSchema = z
   .min(1)
   .max(128)
   .regex(/^[A-Za-z0-9_-]+$/);
+const reservationCodeSchema = z
+  .string()
+  .trim()
+  .regex(/^TR[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{10}$/);
 const dateOnlySchema = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}$/)
@@ -128,8 +132,7 @@ const optionalNormalizedTextSchema = z.preprocess((value) => {
 }, z.string().max(160).nullable());
 
 const optionalArrivalTimeSchema = z.preprocess(
-  (value) =>
-    typeof value === "string" && value.trim() ? value.trim() : null,
+  (value) => (typeof value === "string" && value.trim() ? value.trim() : null),
   arrivalTimeSchema.nullable(),
 );
 
@@ -142,22 +145,29 @@ const normalizedMultilineSchema = (
     .transform((value) => value.replace(/\r\n/g, "\n").trim())
     .pipe(z.string().min(minimumLength).max(maximumLength));
 
-const optionalHttpsUrlSchema = z.preprocess((value) => {
-  if (typeof value !== "string" || !value.trim()) {
-    return null;
-  }
+const optionalHttpsUrlSchema = z.preprocess(
+  (value) => {
+    if (typeof value !== "string" || !value.trim()) {
+      return null;
+    }
 
-  return value.trim();
-}, z.string().url().superRefine((value, context) => {
-  const url = new URL(value);
+    return value.trim();
+  },
+  z
+    .string()
+    .url()
+    .superRefine((value, context) => {
+      const url = new URL(value);
 
-  if (url.protocol !== "https:" || url.username || url.password) {
-    context.addIssue({
-      code: "custom",
-      message: "Must use HTTPS without URL credentials.",
-    });
-  }
-}).nullable());
+      if (url.protocol !== "https:" || url.username || url.password) {
+        context.addIssue({
+          code: "custom",
+          message: "Must use HTTPS without URL credentials.",
+        });
+      }
+    })
+    .nullable(),
+);
 
 const reservationTemplateSchema = z
   .object({
@@ -166,6 +176,7 @@ const reservationTemplateSchema = z
     brandLogoUrl: absoluteHttpsAssetUrlSchema,
     reservation: z.object({
       id: reservationIdSchema,
+      reservationCode: reservationCodeSchema,
       guestName: normalizedTextSchema(120),
       guestEmail: z
         .string()
@@ -344,6 +355,7 @@ export function buildReservationEmailTemplateViewModel(
     locale,
     localeTag: localeTags[locale],
     reservationId: reservation.id,
+    reservationCode: reservation.reservationCode,
     guestName: reservation.guestName,
     guestEmail: reservation.guestEmail,
     guestPhone: reservation.guestPhone,
@@ -353,8 +365,7 @@ export function buildReservationEmailTemplateViewModel(
       locale === "es" ? reservation.propertyNameEs : reservation.propertyNameEn,
     houseRules: reservation.houseRules.map((rule) => ({
       title: locale === "es" ? rule.titleEs : rule.titleEn,
-      description:
-        locale === "es" ? rule.descriptionEs : rule.descriptionEn,
+      description: locale === "es" ? rule.descriptionEs : rule.descriptionEn,
     })),
     checkInDate: formatDateOnly(reservation.checkInDate, locale),
     checkOutDate: formatDateOnly(reservation.checkOutDate, locale),

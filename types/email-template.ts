@@ -21,6 +21,7 @@ export type ReservationEmailTemplateHouseRuleViewModel = Readonly<{
 
 export type ReservationEmailTemplateReservation = Readonly<{
   id: string;
+  reservationCode: string;
   guestName: string;
   guestEmail: string;
   guestPhone: string | null;
@@ -62,6 +63,7 @@ export type ReservationEmailTemplateViewModel = Readonly<{
   locale: TransactionalEmailLocale;
   localeTag: "es-GT" | "en-US";
   reservationId: string;
+  reservationCode: string;
   guestName: string;
   guestEmail: string;
   guestPhone: string | null;

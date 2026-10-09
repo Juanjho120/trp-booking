@@ -77,6 +77,7 @@ export type AdminFelEligibleExtra = Readonly<{
 
 export type AdminFelEligibleReservation = Readonly<{
   id: string;
+  reservationCode: string;
   guestName: string;
   guestEmail: string | null;
   guestPhone: string | null;
@@ -150,6 +151,7 @@ export type AdminFelDocumentDetail = AdminFelDocumentSummary &
     receiverCountry: string | null;
     reservations: readonly Readonly<{
       reservationId: string;
+      reservationCode: string;
       propertyName: string;
       checkInDate: string;
       checkOutDate: string;

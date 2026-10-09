@@ -127,6 +127,7 @@ export type AdminFelDraftSourceExtra = Readonly<{
 
 export type AdminFelDraftSourceReservation = Readonly<{
   id: string;
+  reservationCode: string;
   guestName: string;
   guestEmail: string | null;
   guestPhone: string | null;
@@ -188,6 +189,7 @@ type FelDraftComposition = Readonly<{
 
 const adminFelReservationSelect = {
   id: true,
+  reservationCode: true,
   guestName: true,
   guestEmail: true,
   guestPhone: true,
@@ -311,13 +313,28 @@ const adminFelDocumentInclude = {
     },
   },
   reservations: {
-    orderBy: [{ checkInDate: "asc" }, { checkOutDate: "asc" }, { reservationId: "asc" }],
+    orderBy: [
+      { checkInDate: "asc" },
+      { checkOutDate: "asc" },
+      { reservationId: "asc" },
+    ],
+    include: {
+      reservation: {
+        select: {
+          reservationCode: true,
+        },
+      },
+    },
   },
   lineItems: {
     orderBy: { lineNumber: "asc" },
     include: {
       sources: {
-        orderBy: [{ sourceType: "asc" }, { sourceId: "asc" }, { sourceRole: "asc" }],
+        orderBy: [
+          { sourceType: "asc" },
+          { sourceId: "asc" },
+          { sourceRole: "asc" },
+        ],
       },
       commercialAllocations: true,
     },
@@ -340,8 +357,7 @@ export class AdminFelError extends Error {
 
 function isKnownPrismaError(error: unknown, code: string): boolean {
   return (
-    error instanceof Prisma.PrismaClientKnownRequestError &&
-    error.code === code
+    error instanceof Prisma.PrismaClientKnownRequestError && error.code === code
   );
 }
 
@@ -478,7 +494,9 @@ function centsToMoney(cents: number): MoneyString {
 }
 
 function sumMoney(values: readonly string[]): MoneyString {
-  return centsToMoney(values.reduce((total, value) => total + moneyToCents(value), 0));
+  return centsToMoney(
+    values.reduce((total, value) => total + moneyToCents(value), 0),
+  );
 }
 
 function normalizeCurrency(value: string | null | undefined): string | null {
@@ -524,7 +542,10 @@ function trimSuggestion(
 function normalizeReceiverInput(
   input: AdminFelReceiverInput,
 ): AdminFelReceiverSnapshot {
-  const receiverName = trimBounded(input.receiverName, RECEIVER_NAME_MAX_LENGTH);
+  const receiverName = trimBounded(
+    input.receiverName,
+    RECEIVER_NAME_MAX_LENGTH,
+  );
   const receiverIdentifierType = input.receiverIdentifierType;
 
   if (!receiverName) {
@@ -544,7 +565,10 @@ function normalizeReceiverInput(
     throw new AdminFelError("INVALID_ADMIN_FEL_REQUEST");
   }
 
-  const receiverEmail = trimBounded(input.receiverEmail, RECEIVER_EMAIL_MAX_LENGTH);
+  const receiverEmail = trimBounded(
+    input.receiverEmail,
+    RECEIVER_EMAIL_MAX_LENGTH,
+  );
   if (receiverEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(receiverEmail)) {
     throw new AdminFelError("INVALID_ADMIN_FEL_REQUEST");
   }
@@ -554,9 +578,15 @@ function normalizeReceiverInput(
     receiverIdentifierType,
     receiverIdentifier:
       receiverIdentifierType === "CONSUMIDOR_FINAL" ? null : receiverIdentifier,
-    receiverAddress: trimBounded(input.receiverAddress, RECEIVER_ADDRESS_MAX_LENGTH),
+    receiverAddress: trimBounded(
+      input.receiverAddress,
+      RECEIVER_ADDRESS_MAX_LENGTH,
+    ),
     receiverEmail,
-    receiverCountry: trimBounded(input.receiverCountry, RECEIVER_COUNTRY_MAX_LENGTH),
+    receiverCountry: trimBounded(
+      input.receiverCountry,
+      RECEIVER_COUNTRY_MAX_LENGTH,
+    ),
   };
 }
 
@@ -575,7 +605,9 @@ function normalizeReservationIds(reservationIds: readonly string[]): string[] {
   return normalized;
 }
 
-function normalizeOptionalDocumentId(value: string | null | undefined): string | null {
+function normalizeOptionalDocumentId(
+  value: string | null | undefined,
+): string | null {
   const normalized = value?.trim() ?? "";
 
   return normalized.length > 0 ? normalized : null;
@@ -606,7 +638,9 @@ function isUnresolvedLifecycleStatus(
 }
 
 export function hasUnresolvedFelLifecycleMutation(
-  lifecycleRequests: readonly Readonly<{ status: ReservationLifecycleRequestStatus }>[],
+  lifecycleRequests: readonly Readonly<{
+    status: ReservationLifecycleRequestStatus;
+  }>[],
 ): boolean {
   return lifecycleRequests.some((request) =>
     isUnresolvedLifecycleStatus(request.status),
@@ -617,7 +651,9 @@ function hasCommittedRefundStatus(status: RefundStatus): boolean {
   return COMMITTED_REFUND_STATUSES.includes(status);
 }
 
-function hasFiscalReconciliationBlocker(record: AdminFelReservationRecord): boolean {
+function hasFiscalReconciliationBlocker(
+  record: AdminFelReservationRecord,
+): boolean {
   if (
     record.status === ReservationStatus.CANCELLED ||
     record.status === ReservationStatus.PARTIALLY_REFUNDED ||
@@ -630,7 +666,9 @@ function hasFiscalReconciliationBlocker(record: AdminFelReservationRecord): bool
     record.payments.some(
       (payment) =>
         REFUNDED_PAYMENT_STATUSES.includes(payment.status) ||
-        payment.refunds.some((refund) => hasCommittedRefundStatus(refund.status)),
+        payment.refunds.some((refund) =>
+          hasCommittedRefundStatus(refund.status),
+        ),
     )
   ) {
     return true;
@@ -708,7 +746,9 @@ export function evaluateAdminFelReservationEligibility(
   return { eligible: true, checkoutAt, currency };
 }
 
-function isEligibleExtra(charge: AdminFelReservationRecord["additionalCharges"][number]) {
+function isEligibleExtra(
+  charge: AdminFelReservationRecord["additionalCharges"][number],
+) {
   if (charge.status !== AdditionalChargeStatus.PAID) {
     return false;
   }
@@ -795,6 +835,7 @@ function toDraftSourceReservation(
 
   return {
     id: record.id,
+    reservationCode: record.reservationCode,
     guestName: record.guestName,
     guestEmail: trimSuggestion(record.guestEmail, RECEIVER_EMAIL_MAX_LENGTH),
     guestPhone: trimSuggestion(record.guestPhone, GUEST_PHONE_MAX_LENGTH),
@@ -868,7 +909,10 @@ function monthNameEs(month: number): string {
   ][month - 1];
 }
 
-function formatSpanishDateRange(checkInDate: string, checkOutDate: string): string {
+function formatSpanishDateRange(
+  checkInDate: string,
+  checkOutDate: string,
+): string {
   const checkIn = parseDateOnlyParts(checkInDate);
   const checkOut = parseDateOnlyParts(checkOutDate);
 
@@ -883,7 +927,9 @@ function formatSpanishDateRange(checkInDate: string, checkOutDate: string): stri
   return `${checkIn.day} de ${monthNameEs(checkIn.month)} de ${checkIn.year} al ${checkOut.day} de ${monthNameEs(checkOut.month)} de ${checkOut.year}`;
 }
 
-function lodgingDescription(reservation: AdminFelDraftSourceReservation): string {
+function lodgingDescription(
+  reservation: AdminFelDraftSourceReservation,
+): string {
   const nightsLabel =
     reservation.nights === 1 ? "1 noche" : `${reservation.nights} noches`;
   const propertyName = reservation.propertyName.trim();
@@ -1058,7 +1104,9 @@ function buildFelDraftComposition(
   }>,
 ): FelDraftComposition {
   const reservations = sortDraftSourceReservations(input.reservations);
-  const currencies = new Set(reservations.map((reservation) => reservation.currency));
+  const currencies = new Set(
+    reservations.map((reservation) => reservation.currency),
+  );
 
   if (reservations.length === 0) {
     throw new AdminFelError("INVALID_ADMIN_FEL_REQUEST");
@@ -1071,7 +1119,10 @@ function buildFelDraftComposition(
   const [commercialCurrency] = currencies;
   const lines: FelLinePlan[] = [];
   const extras = reservations.flatMap((reservation) =>
-    reservation.extras.map((extra) => ({ reservationId: reservation.id, extra })),
+    reservation.extras.map((extra) => ({
+      reservationId: reservation.id,
+      extra,
+    })),
   );
   const skippedCurrencyExtras = extras.filter(
     ({ extra }) => extra.currency !== commercialCurrency,
@@ -1180,14 +1231,18 @@ export function buildAdminFelDraftPreview(
   return toDraftPreview(composition);
 }
 
-function toDraftPreview(composition: FelDraftComposition): AdminFelDraftPreview {
+function toDraftPreview(
+  composition: FelDraftComposition,
+): AdminFelDraftPreview {
   return {
     documentType: composition.documentType,
     status: "DRAFT",
     commercialCurrency: composition.commercialCurrency,
     receiver: composition.receiver,
     groupExtras: composition.groupExtras,
-    reservationIds: composition.reservations.map((reservation) => reservation.id),
+    reservationIds: composition.reservations.map(
+      (reservation) => reservation.id,
+    ),
     lines: composition.lines.map(toLinePreview),
     total: composition.total,
   };
@@ -1198,6 +1253,7 @@ function toEligibleReservation(
 ): AdminFelEligibleReservation {
   return {
     id: source.id,
+    reservationCode: source.reservationCode,
     guestName: source.guestName,
     guestEmail: source.guestEmail,
     guestPhone: source.guestPhone,
@@ -1263,7 +1319,11 @@ function recordsToDraftSources(
       throw new AdminFelError(eligibility.reason);
     }
 
-    return toDraftSourceReservation(record, eligibility.checkoutAt, editingDocumentId);
+    return toDraftSourceReservation(
+      record,
+      eligibility.checkoutAt,
+      editingDocumentId,
+    );
   });
 }
 
@@ -1394,7 +1454,9 @@ function auditMetadataForComposition(
   composition: FelDraftComposition,
 ): Prisma.InputJsonObject {
   return {
-    reservationIds: composition.reservations.map((reservation) => reservation.id),
+    reservationIds: composition.reservations.map(
+      (reservation) => reservation.id,
+    ),
     groupExtras: composition.groupExtras,
     lineCount: composition.lines.length,
     total: composition.total,
@@ -1446,6 +1508,7 @@ function toAdminFelDocumentDetail(
     updatedAt: document.updatedAt.toISOString(),
     reservations: document.reservations.map((reservation) => ({
       reservationId: reservation.reservationId,
+      reservationCode: reservation.reservation.reservationCode,
       propertyName: reservation.propertyNameSnapshot,
       checkInDate: toDateOnlyString(reservation.checkInDate),
       checkOutDate: toDateOnlyString(reservation.checkOutDate),
@@ -1484,7 +1547,9 @@ export async function previewAdminFelDraft(
 ): Promise<AdminFelDraftPreview> {
   const reservationIds = normalizeReservationIds(input.reservationIds);
   const receiver = normalizeReceiverInput(input);
-  const editingDocumentId = normalizeOptionalDocumentId(input.editingDocumentId);
+  const editingDocumentId = normalizeOptionalDocumentId(
+    input.editingDocumentId,
+  );
 
   return prisma.$transaction(
     async (transaction) => {
@@ -1560,7 +1625,11 @@ export async function getAdminFelPage(
       return [];
     }
 
-    return [toEligibleReservation(toDraftSourceReservation(record, eligibility.checkoutAt))];
+    return [
+      toEligibleReservation(
+        toDraftSourceReservation(record, eligibility.checkoutAt),
+      ),
+    ];
   });
 
   return {

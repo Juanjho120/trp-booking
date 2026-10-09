@@ -49,7 +49,9 @@ test("I.6.1 DB persists GPR expiration cron and financial AdminNotification enum
       JOIN pg_enum e ON e.enumtypid = t.oid
       WHERE t.typname IN ('cron_job_key', 'admin_notification_type')
     `;
-    const labels = new Set(rows.map((row) => `${row.typname}:${row.enumlabel}`));
+    const labels = new Set(
+      rows.map((row) => `${row.typname}:${row.enumlabel}`),
+    );
 
     assert.ok(labels.has("cron_job_key:EXPIRE_GUEST_PAYMENT_REQUESTS"));
     assert.ok(labels.has("admin_notification_type:ADDITIONAL_CHARGE_PAID"));
@@ -101,7 +103,10 @@ test("I.6.1 DB persists GPR expiration cron and financial AdminNotification enum
 
     assert.equal(
       await prisma.cronJobExecution.count({
-        where: { jobKey: CronJobKey.EXPIRE_GUEST_PAYMENT_REQUESTS },
+        where: {
+          id: cronId,
+          jobKey: CronJobKey.EXPIRE_GUEST_PAYMENT_REQUESTS,
+        },
       }),
       1,
     );

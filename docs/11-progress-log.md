@@ -47,6 +47,9 @@ Final-I.6.4 implementation and acceptance record: docs/218-final-i-6-4-reservati
 Final-I.6.5 status: Completed and accepted on 2026-10-09
 Accepted Final-I.6.5 feature head: 61ba8ea88bc7b7073f4ef6e733422e7c34b29698
 Final-I.6.5 implementation and acceptance record: docs/219-final-i-6-5-admin-contextual-help-copy-density-polish.md
+Final-I.6.6 status: Implementation completed; Hosted owner validation pending
+Final-I.6.6 implementation base: 0e28002e7a6317986745b6d6406b260a85f3fa44
+Final-I.6.6 implementation record: docs/220-final-i-6-6-human-reservation-codes.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -97,6 +100,9 @@ Final-I.6.4 implementation and acceptance record: docs/218-final-i-6-4-reservati
 Final-I.6.5 status: Completed and accepted on 2026-10-09
 Accepted Final-I.6.5 feature head: 61ba8ea88bc7b7073f4ef6e733422e7c34b29698
 Final-I.6.5 implementation and acceptance record: docs/219-final-i-6-5-admin-contextual-help-copy-density-polish.md
+Final-I.6.6 status: Implementation completed; Hosted owner validation pending
+Final-I.6.6 implementation base: 0e28002e7a6317986745b6d6406b260a85f3fa44
+Final-I.6.6 implementation record: docs/220-final-i-6-6-human-reservation-codes.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -309,6 +315,9 @@ Final-I.6.4 implementation and acceptance record: docs/218-final-i-6-4-reservati
 Final-I.6.5 status: Completed and accepted on 2026-10-09
 Accepted Final-I.6.5 feature head: 61ba8ea88bc7b7073f4ef6e733422e7c34b29698
 Final-I.6.5 implementation and acceptance record: docs/219-final-i-6-5-admin-contextual-help-copy-density-polish.md
+Final-I.6.6 status: Implementation completed; Hosted owner validation pending
+Final-I.6.6 implementation base: 0e28002e7a6317986745b6d6406b260a85f3fa44
+Final-I.6.6 implementation record: docs/220-final-i-6-6-human-reservation-codes.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -359,6 +368,9 @@ Final-I.6.4 implementation and acceptance record: docs/218-final-i-6-4-reservati
 Final-I.6.5 status: Completed and accepted on 2026-10-09
 Accepted Final-I.6.5 feature head: 61ba8ea88bc7b7073f4ef6e733422e7c34b29698
 Final-I.6.5 implementation and acceptance record: docs/219-final-i-6-5-admin-contextual-help-copy-density-polish.md
+Final-I.6.6 status: Implementation completed; Hosted owner validation pending
+Final-I.6.6 implementation base: 0e28002e7a6317986745b6d6406b260a85f3fa44
+Final-I.6.6 implementation record: docs/220-final-i-6-6-human-reservation-codes.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -2095,6 +2107,28 @@ This does not reintroduce the previous implicit-history-selection bug: entering 
 
 Validation executed for this correction: `npm run final-i:validate` PASS 57/57 after rerun outside the sandbox because the sandbox-only `tsx` startup failed with `uv_os_get_passwd ENOMEM`; `npm run final-i:db:validate` PASS 13/13 with `TRP_ENVIRONMENT=test` after the same sandbox-only `tsx` startup failure; `npm run final-h:validate` PASS 20/20 after the same sandbox-only `tsx` startup failure; `npm run lint` PASS; `npm run build` PASS after rerun outside the sandbox because the sandbox run could not fetch Google Fonts; and `git diff --check` PASS with Windows CRLF normalization warnings only.
 
+## 2026-10-09 — Final-I.6.6 Human Reservation Codes Implemented
+
+```text
+Package: Final-I — Operational Polish, Notification UX & FEL Invoicing
+Subphase: Final-I.6.6 — Human Reservation Codes
+Starting head: 0e28002e7a6317986745b6d6406b260a85f3fa44
+Status: Implementation completed; Hosted owner validation pending
+Record: docs/220-final-i-6-6-human-reservation-codes.md
+Final-I.6.5: Completed and accepted on 2026-10-09 at 61ba8ea88bc7b7073f4ef6e733422e7c34b29698
+Final-I.7: Blocked pending official INFILE technical documentation + Test credentials
+Final-I.8: Not started / reserved for FEL delivery email/PDF/XML/history UX
+Final-I.9: Not started / integrated Final-I closure
+Phase 13: Blocked / Not started until Final-I closes
+```
+
+Final-I.6.6 adds immutable human Reservation codes with `TR` plus ten non-ambiguous uppercase alphanumeric characters. The code is generated server-side, persisted on `Reservation.reservationCode`, backfilled for existing Reservations, constrained by format, and protected by a database unique index plus bounded creation retry on collisions. The code is public-reference-safe but not security-sensitive and is not used as a bearer credential, provider idempotency key, webhook key, payment confirmation credential, or database relation replacement.
+
+Visible Reservation references now use `reservationCode` in the guest pending-hold confirmation, public payment result/retry screens, Reservation confirmation emails, admin new-reservation emails, Admin Reservation list/detail surfaces, and Admin FEL draft selection/preview. Technical `Reservation.id` remains authoritative for routing, payment checkout, provider workflows, Admin actions, FEL source allocations, and all relational integrity.
+
+No public lookup route by Reservation code, no `/reservations/[reservationCode]`, no payment confirmation by code, no auth bypass, no INFILE/FEL provider integration, no Final-I.7, no Final-I.8, no Final-I.9, no Phase 13, and no Production resource was introduced.
+
+Validation executed for I.6.6: `npm run final-i:validate` PASS 127/127; `TRP_ENVIRONMENT=test npm run final-i:db:validate` PASS 14/14 after the expected fail-closed run without Test environment and transient DB connectivity/transaction-timeout reruns; `npm run final-h:validate` PASS 20/20; `npm run db:validate` PASS with Prisma `package.json#prisma` deprecation warning only; `npm run db:generate` PASS with Prisma warning/update notice only; `npm run db:migrate:deploy` PASS and applied `20261009130000_final_i_6_6_human_reservation_codes`; `npm run db:migrate:status` PASS with 32 migrations and database schema up to date; `npm run lint` PASS; `npm run build` PASS with Next slow-filesystem warning only; `vercel.json` remains exactly `{ "crons": [] }`; and `git diff --check` PASS with Windows CRLF normalization warnings only.
 ## 2026-10-09 — Final-I.6.5 Completed And Accepted
 
 ```text

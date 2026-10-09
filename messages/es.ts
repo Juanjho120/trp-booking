@@ -76,8 +76,7 @@ export const esMessages = {
     adminEmailLabel: "Administración",
     rights: "Todos los derechos reservados.",
     poweredBy: "Direct booking website desarrollado con",
-    note:
-      "Consulta disponibilidad, elige tu alojamiento y completa tu reserva directa desde el sitio.",
+    note: "Consulta disponibilidad, elige tu alojamiento y completa tu reserva directa desde el sitio.",
   },
   publicWhatsApp: {
     ariaLabel: "Contactar por WhatsApp",
@@ -97,7 +96,8 @@ export const esMessages = {
       ],
       bookingCard: {
         eyebrow: "Direct Booking",
-        title: "Reserva directo, evita intermediarios y recibe confirmación por correo.",
+        title:
+          "Reserva directo, evita intermediarios y recibe confirmación por correo.",
         description:
           "Consulta disponibilidad, reserva directamente y completa pagos seguros con Tilopay.",
       },
@@ -119,7 +119,8 @@ export const esMessages = {
     },
     benefits: {
       badge: "Reserva directa",
-      title: "Una experiencia clara, confiable y sin intermediarios innecesarios.",
+      title:
+        "Una experiencia clara, confiable y sin intermediarios innecesarios.",
       description:
         "La página está pensada para que puedas conocer los alojamientos, revisar información importante y reservar con comunicación directa con el anfitrión.",
       items: [
@@ -151,7 +152,8 @@ export const esMessages = {
         "Cerca de restaurantes y tiendas",
       ],
       mapTitle: "Ubicación general",
-      mapFrameTitle: "Mapa interactivo con la ubicación pública de Tu Refugio Perfecto",
+      mapFrameTitle:
+        "Mapa interactivo con la ubicación pública de Tu Refugio Perfecto",
       mapDescription:
         "La dirección exacta y las instrucciones detalladas se comparten después de confirmar la reserva.",
     },
@@ -249,7 +251,8 @@ export const esMessages = {
       maxGuestsNote: "Capacidad máxima permitida: {maxGuests} huésped(es).",
       calculateQuote: "Calcular cotización",
       loadingQuote: "Calculando cotización...",
-      genericQuoteError: "No pudimos calcular la cotización. Revisa los datos e intenta de nuevo.",
+      genericQuoteError:
+        "No pudimos calcular la cotización. Revisa los datos e intenta de nuevo.",
       quoteTitle: "Cotización estimada",
       quoteRows: {
         nights: "Noches",
@@ -270,8 +273,7 @@ export const esMessages = {
         sources: {
           BASE: "Tarifa base",
           SEASONAL: "Tarifa estacional",
-          LENGTH_OF_STAY:
-            "Tarifa por estancia de {minimumNights}+ noches",
+          LENGTH_OF_STAY: "Tarifa por estancia de {minimumNights}+ noches",
         },
       },
     },
@@ -310,7 +312,7 @@ export const esMessages = {
       createHold: "Crear reserva pendiente",
       creatingHold: "Creando reserva pendiente...",
       successTitle: "Reserva pendiente creada",
-      reservationId: "Reserva",
+      reservationCode: "Código de reservación",
       status: "Estado",
       expiresAt: "Expira",
       total: "Total",
@@ -370,8 +372,7 @@ export const esMessages = {
       alreadySubmittedDescription:
         "Este enlace ya fue utilizado y no permite editar ni enviar otra reseña.",
       expiredTitle: "Este enlace de reseña ya expiró",
-      expiredDescription:
-        "El tiempo para usar este enlace privado terminó.",
+      expiredDescription: "El tiempo para usar este enlace privado terminó.",
       unavailableTitle: "Este enlace ya no está disponible",
       unavailableDescription:
         "No pudimos habilitar la reseña desde este enlace.",
@@ -380,14 +381,11 @@ export const esMessages = {
         "Revisa el enlace o contacta al alojamiento si necesitas ayuda.",
       backToAccommodations: "Volver a alojamientos",
       errors: {
-        INVALID_REVIEW_INVITATION:
-          "No pudimos validar este enlace de reseña.",
+        INVALID_REVIEW_INVITATION: "No pudimos validar este enlace de reseña.",
         INVALID_REVIEW_SUBMISSION:
           "Selecciona una calificación y escribe un comentario válido.",
-        REVIEW_INVITATION_EXPIRED:
-          "Este enlace de reseña ya expiró.",
-        REVIEW_INVITATION_UNAVAILABLE:
-          "Este enlace ya no está disponible.",
+        REVIEW_INVITATION_EXPIRED: "Este enlace de reseña ya expiró.",
+        REVIEW_INVITATION_UNAVAILABLE: "Este enlace ya no está disponible.",
         REVIEW_SUBMISSION_UNEXPECTED_ERROR:
           "No pudimos enviar la reseña. Inténtalo de nuevo.",
       },
@@ -416,9 +414,12 @@ export const esMessages = {
         "El pago fue enviado a Tilopay. Espera la respuesta del formulario seguro antes de cerrar esta página.",
       providerNote:
         "El resultado se aplicará únicamente después de validar el pago en el servidor. Un cobro aprobado solo activa la transición autorizada para su flujo.",
-      sessionError: "No pudimos preparar el formulario de pago. Inténtalo de nuevo.",
-      sdkError: "No pudimos inicializar el formulario seguro de Tilopay. Inténtalo de nuevo.",
-      paymentError: "No pudimos enviar el pago a Tilopay. Revisa los datos e inténtalo de nuevo.",
+      sessionError:
+        "No pudimos preparar el formulario de pago. Inténtalo de nuevo.",
+      sdkError:
+        "No pudimos inicializar el formulario seguro de Tilopay. Inténtalo de nuevo.",
+      paymentError:
+        "No pudimos enviar el pago a Tilopay. Revisa los datos e inténtalo de nuevo.",
     },
     lifecycleAdjustment: {
       title: "Pagar diferencia de la estadía",
@@ -519,8 +520,7 @@ export const esMessages = {
       errors: {
         INVALID_GUEST_PAYMENT_REQUEST:
           "El enlace no es válido o fue alterado. Solicita un enlace nuevo al alojamiento.",
-        GUEST_PAYMENT_REQUEST_EXPIRED:
-          "Este enlace privado de pago expiró.",
+        GUEST_PAYMENT_REQUEST_EXPIRED: "Este enlace privado de pago expiró.",
         GUEST_PAYMENT_REQUEST_NOT_PAYABLE:
           "Esta solicitud ya no está disponible para pago.",
         GUEST_PAYMENT_REQUEST_PAYMENT_MISMATCH:
@@ -542,7 +542,8 @@ export const esMessages = {
       },
       errors: {
         invalid_card_number: "Ingresa un número de tarjeta válido.",
-        invalid_cvv: "El CVV no es válido. Revisa el código de seguridad e inténtalo de nuevo.",
+        invalid_cvv:
+          "El CVV no es válido. Revisa el código de seguridad e inténtalo de nuevo.",
         insufficient_funds:
           "La tarjeta no tiene fondos suficientes. Usa otra tarjeta o contacta a tu banco.",
         card_not_allowed_sensitive:
@@ -566,7 +567,7 @@ export const esMessages = {
           "No pudimos verificar el resultado del pago. Contáctanos antes de intentarlo nuevamente.",
       },
       labels: {
-        reservationId: "Reserva",
+        reservationCode: "Código de reservación",
         paymentId: "ID de pago",
         paymentStatus: "Estado del pago",
         reservationStatus: "Estado de la reserva",
@@ -713,8 +714,7 @@ export const esMessages = {
           "Las notificaciones quedaron desactivadas para este dispositivo.",
         testSent: "Enviamos una notificación de prueba a este dispositivo.",
         markedRead: "La notificación quedó marcada como leída.",
-        zohoEmailCopied:
-          "Abrimos Zoho Mail y copiamos el correo del huésped.",
+        zohoEmailCopied: "Abrimos Zoho Mail y copiamos el correo del huésped.",
       },
       pagination: {
         results: "Resultados",
@@ -769,8 +769,7 @@ export const esMessages = {
           "No pudimos validar el origen de esta acción administrativa.",
         INVALID_ADMIN_NOTIFICATION_REQUEST:
           "No pudimos procesar la notificación seleccionada.",
-        ADMIN_NOTIFICATION_NOT_FOUND:
-          "La notificación ya no está disponible.",
+        ADMIN_NOTIFICATION_NOT_FOUND: "La notificación ya no está disponible.",
         ADMIN_NOTIFICATION_ZOHO_COPY_FAILED:
           "Abrimos Zoho Mail, pero no pudimos copiar el correo del huésped.",
         ADMIN_NOTIFICATION_UNEXPECTED_ERROR:
@@ -840,8 +839,7 @@ export const esMessages = {
           "No pudimos validar el origen de esta acción administrativa.",
         INVALID_ADMIN_REVIEW_REQUEST:
           "No pudimos procesar la solicitud de moderación.",
-        ADMIN_REVIEW_NOT_FOUND:
-          "No encontramos la reseña solicitada.",
+        ADMIN_REVIEW_NOT_FOUND: "No encontramos la reseña solicitada.",
         ADMIN_REVIEW_STALE:
           "La reseña cambió desde que cargaste la página. Actualizamos la vista para que revises el estado actual.",
         ADMIN_REVIEW_INVALID_TRANSITION:
@@ -896,15 +894,18 @@ export const esMessages = {
         },
         pending: {
           label: "Reservas pendientes activas",
-          description: "Holds que aún se encuentran dentro de su ventana de pago.",
+          description:
+            "Holds que aún se encuentran dentro de su ventana de pago.",
         },
         paymentIssues: {
           label: "Pagos con incidencias",
-          description: "Intentos rechazados o fallidos disponibles para revisión.",
+          description:
+            "Intentos rechazados o fallidos disponibles para revisión.",
         },
         manualBlocks: {
           label: "Bloqueos manuales activos",
-          description: "Rangos cerrados directamente desde el calendario administrativo.",
+          description:
+            "Rangos cerrados directamente desde el calendario administrativo.",
         },
       },
       labels: {
@@ -940,10 +941,8 @@ export const esMessages = {
         sources: {
           BASE: "Tarifa base",
           SEASONAL: "Tarifa estacional",
-          LENGTH_OF_STAY:
-            "Estancia de {minimumNights}+ noches",
-          PRESERVED_LEGACY_STAY:
-            "Precio histórico preservado",
+          LENGTH_OF_STAY: "Estancia de {minimumNights}+ noches",
+          PRESERVED_LEGACY_STAY: "Precio histórico preservado",
         },
       },
       detailTabs: {
@@ -1179,13 +1178,13 @@ export const esMessages = {
         },
         empty: {
           charges: "Esta reservación todavía no tiene cargos adicionales.",
-          requests: "Esta reservación todavía no tiene solicitudes de pago del huésped.",
+          requests:
+            "Esta reservación todavía no tiene solicitudes de pago del huésped.",
           notifications:
             "Esta solicitud todavía no tiene eventos de correo registrados.",
         },
         errors: {
-          ADMIN_UNAUTHORIZED:
-            "Tu sesión no tiene autorización administrativa.",
+          ADMIN_UNAUTHORIZED: "Tu sesión no tiene autorización administrativa.",
           ADMIN_ADDITIONAL_CHARGE_ORIGIN_INVALID:
             "La operación fue bloqueada porque su origen no coincide con este entorno de TRP Booking.",
           INVALID_ADMIN_ADDITIONAL_CHARGE_REQUEST:
@@ -1265,12 +1264,13 @@ export const esMessages = {
         contact: "Contacto",
         total: "Total",
         guests: "Huéspedes",
+        reservationCode: "Código de reservación",
         reservation: "Reserva",
         latestPayment: "Último pago",
         unavailable: "No disponible",
       },
       placeholders: {
-        search: "Buscar por huésped, correo o ID de reserva",
+        search: "Buscar por huésped, correo, código o ID de reserva",
       },
       filters: {
         allProperties: "Todos los alojamientos",
@@ -1482,8 +1482,7 @@ export const esMessages = {
           FAILED: "Fallida",
         },
         pricingModes: {
-          FULL_STAY_CURRENT_PRICE:
-            "Toda la estadía con el precio vigente",
+          FULL_STAY_CURRENT_PRICE: "Toda la estadía con el precio vigente",
           ADDED_NIGHTS_CURRENT_PRICE:
             "Total original más noches agregadas al precio vigente",
         },
@@ -1700,7 +1699,8 @@ export const esMessages = {
           capturedStayPayments: "Pagos capturados de la estadía",
           committedStayRefunds: "Reembolsos comprometidos de la estadía",
           approvedStayRefunds: "Reembolsos aprobados de la estadía",
-          remainingRefundableStayBalance: "Saldo reembolsable de la reservación",
+          remainingRefundableStayBalance:
+            "Saldo reembolsable de la reservación",
           refundOperation: "Operación de reembolso",
           operationAmount: "Monto de la operación",
           providerMovements: "movimientos de proveedor",
@@ -1839,7 +1839,8 @@ export const esMessages = {
             "Tilopay devolvió evidencia concluyente para este movimiento. El resultado, la fuente, el modo y la referencia están bloqueados y serán validados nuevamente por el servidor.",
         },
         success: {
-          authorized: "El reembolso quedó autorizado y pendiente de procesamiento.",
+          authorized:
+            "El reembolso quedó autorizado y pendiente de procesamiento.",
           authorizedOperation:
             "La operación de reembolso quedó autorizada y fue distribuida en los movimientos de proveedor necesarios.",
           authorizationAlreadyExists:
@@ -1866,7 +1867,8 @@ export const esMessages = {
             "El intento quedó marcado como fallido sin cambiar el estado de la reservación.",
         },
         empty: {
-          noRefunds: "Esta reservación todavía no tiene reembolsos autorizados.",
+          noRefunds:
+            "Esta reservación todavía no tiene reembolsos autorizados.",
           noFinancialSummary:
             "Todavía no existe un resumen financiero reembolsable para esta reservación.",
           noEligiblePolicy:
@@ -1953,16 +1955,13 @@ export const esMessages = {
           ADMIN_STAY_EXTENSION_CONFIRMED:
             "Extensión de estadía confirmada para administración",
           REFUND_PROCESSED: "Reembolso procesado",
-          ADMIN_REFUND_PROCESSED:
-            "Reembolso procesado para administración",
+          ADMIN_REFUND_PROCESSED: "Reembolso procesado para administración",
           ARRIVAL_INSTRUCTIONS: "Instrucciones de llegada",
           REVIEW_INVITATION: "Invitación para reseña",
           ADMIN_REVIEW_SUBMITTED: "Nueva reseña para administración",
           ADMIN_NEW_RESERVATION: "Nueva reserva para administración",
-          DATE_CHANGE_PAYMENT_REQUIRED:
-            "Pago requerido para cambio de fechas",
-          STAY_EXTENSION_PAYMENT_REQUIRED:
-            "Pago requerido para extensión",
+          DATE_CHANGE_PAYMENT_REQUIRED: "Pago requerido para cambio de fechas",
+          STAY_EXTENSION_PAYMENT_REQUIRED: "Pago requerido para extensión",
           ADDITIONAL_CHARGE_PAYMENT_REQUIRED:
             "Pago requerido por cargo adicional",
           ADMIN_ADDITIONAL_CHARGE_PAYMENT_REQUIRED:
@@ -2042,9 +2041,11 @@ export const esMessages = {
       operationalHistory: {
         badge: "Historial operativo protegido",
         title: "Historial operativo de la reservación",
-        description: "Secuencia cronológica de solicitudes, holds, pagos, reembolsos, correos y recuperaciones. Este historial es de solo lectura y no ejecuta transiciones de negocio.",
+        description:
+          "Secuencia cronológica de solicitudes, holds, pagos, reembolsos, correos y recuperaciones. Este historial es de solo lectura y no ejecuta transiciones de negocio.",
         listAriaLabel: "Eventos operativos de la reservación",
-        empty: "Esta reservación todavía no tiene eventos operativos para mostrar.",
+        empty:
+          "Esta reservación todavía no tiene eventos operativos para mostrar.",
         categories: {
           RESERVATION: "Reservación",
           REQUEST: "Solicitud",
@@ -2153,15 +2154,18 @@ export const esMessages = {
           },
           RESERVATION_CONFIRMED: {
             title: "Reservación confirmada",
-            description: "El pago validado confirmó la reservación y su disponibilidad.",
+            description:
+              "El pago validado confirmó la reservación y su disponibilidad.",
           },
           RESERVATION_CANCELLED: {
             title: "Reservación cancelada",
-            description: "La cancelación autorizada cambió el estado operativo de la reservación.",
+            description:
+              "La cancelación autorizada cambió el estado operativo de la reservación.",
           },
           CANCELLATION_REQUESTED: {
             title: "Cancelación solicitada",
-            description: "Se registró una solicitud administrativa de cancelación.",
+            description:
+              "Se registró una solicitud administrativa de cancelación.",
           },
           CANCELLATION_APPROVED: {
             title: "Cancelación aprobada",
@@ -2169,7 +2173,8 @@ export const esMessages = {
           },
           CANCELLATION_REJECTED: {
             title: "Cancelación rechazada",
-            description: "Un administrador rechazó la solicitud y conservó la reservación.",
+            description:
+              "Un administrador rechazó la solicitud y conservó la reservación.",
           },
           CANCELLATION_COMPLETED: {
             title: "Cancelación completada",
@@ -2181,31 +2186,38 @@ export const esMessages = {
           },
           CANCELLATION_EXPIRED: {
             title: "Solicitud de cancelación expirada",
-            description: "La solicitud dejó de ser elegible antes de una decisión.",
+            description:
+              "La solicitud dejó de ser elegible antes de una decisión.",
           },
           CANCELLATION_WITHDRAWN: {
             title: "Solicitud de cancelación retirada",
-            description: "La solicitud fue retirada sin cambiar la reservación.",
+            description:
+              "La solicitud fue retirada sin cambiar la reservación.",
           },
           DATE_CHANGE_REQUESTED: {
             title: "Cambio de fechas solicitado",
-            description: "Se registraron fechas alternativas y una cotización del servidor.",
+            description:
+              "Se registraron fechas alternativas y una cotización del servidor.",
           },
           DATE_CHANGE_APPROVED: {
             title: "Cambio de fechas aprobado",
-            description: "Un administrador autorizó continuar con el cambio solicitado.",
+            description:
+              "Un administrador autorizó continuar con el cambio solicitado.",
           },
           DATE_CHANGE_REJECTED: {
             title: "Cambio de fechas rechazado",
-            description: "La solicitud fue rechazada y las fechas confirmadas se conservaron.",
+            description:
+              "La solicitud fue rechazada y las fechas confirmadas se conservaron.",
           },
           DATE_CHANGE_COMPLETED: {
             title: "Cambio de fechas completado",
-            description: "Las fechas autorizadas quedaron aplicadas a la reservación confirmada.",
+            description:
+              "Las fechas autorizadas quedaron aplicadas a la reservación confirmada.",
           },
           DATE_CHANGE_FAILED: {
             title: "Cambio de fechas fallido",
-            description: "La finalización no pudo aplicarse y conservó el estado seguro correspondiente.",
+            description:
+              "La finalización no pudo aplicarse y conservó el estado seguro correspondiente.",
           },
           DATE_CHANGE_EXPIRED: {
             title: "Solicitud de cambio expirada",
@@ -2213,7 +2225,8 @@ export const esMessages = {
           },
           DATE_CHANGE_WITHDRAWN: {
             title: "Solicitud de cambio retirada",
-            description: "La solicitud fue retirada sin aplicar las fechas propuestas.",
+            description:
+              "La solicitud fue retirada sin aplicar las fechas propuestas.",
           },
           STAY_EXTENSION_REQUESTED: {
             title: "Extensión solicitada",
@@ -2221,19 +2234,23 @@ export const esMessages = {
           },
           STAY_EXTENSION_APPROVED: {
             title: "Extensión aprobada",
-            description: "Un administrador autorizó continuar con la extensión.",
+            description:
+              "Un administrador autorizó continuar con la extensión.",
           },
           STAY_EXTENSION_REJECTED: {
             title: "Extensión rechazada",
-            description: "La extensión fue rechazada y la salida confirmada se conservó.",
+            description:
+              "La extensión fue rechazada y la salida confirmada se conservó.",
           },
           STAY_EXTENSION_COMPLETED: {
             title: "Extensión completada",
-            description: "La nueva fecha de salida quedó aplicada a la reservación.",
+            description:
+              "La nueva fecha de salida quedó aplicada a la reservación.",
           },
           STAY_EXTENSION_FAILED: {
             title: "Extensión fallida",
-            description: "La finalización de la extensión terminó con un fallo seguro.",
+            description:
+              "La finalización de la extensión terminó con un fallo seguro.",
           },
           STAY_EXTENSION_EXPIRED: {
             title: "Solicitud de extensión expirada",
@@ -2245,23 +2262,28 @@ export const esMessages = {
           },
           LIFECYCLE_HOLD_CREATED: {
             title: "Hold de fechas creado",
-            description: "Las fechas solicitadas quedaron apartadas temporalmente para completar el ajuste.",
+            description:
+              "Las fechas solicitadas quedaron apartadas temporalmente para completar el ajuste.",
           },
           LIFECYCLE_HOLD_RELEASED: {
             title: "Hold de fechas liberado",
-            description: "El bloqueo temporal dejó de participar en disponibilidad.",
+            description:
+              "El bloqueo temporal dejó de participar en disponibilidad.",
           },
           LIFECYCLE_HOLD_EXPIRED: {
             title: "Hold de fechas expirado",
-            description: "El bloqueo temporal venció sin una finalización válida.",
+            description:
+              "El bloqueo temporal venció sin una finalización válida.",
           },
           PAYMENT_CREATED: {
             title: "Pago registrado",
-            description: "Se creó un intento de pago asociado a la reservación.",
+            description:
+              "Se creó un intento de pago asociado a la reservación.",
           },
           PAYMENT_APPROVED: {
             title: "Pago aprobado",
-            description: "El proveedor aprobó el pago y el servidor validó su resultado.",
+            description:
+              "El proveedor aprobó el pago y el servidor validó su resultado.",
           },
           PAYMENT_REJECTED: {
             title: "Pago rechazado",
@@ -2269,11 +2291,13 @@ export const esMessages = {
           },
           PAYMENT_FAILED: {
             title: "Pago fallido",
-            description: "El intento terminó con un fallo seguro sin asumir aprobación.",
+            description:
+              "El intento terminó con un fallo seguro sin asumir aprobación.",
           },
           PAYMENT_PARTIALLY_REFUNDED: {
             title: "Pago parcialmente reembolsado",
-            description: "Una reconciliación aprobada actualizó el saldo financiero del pago.",
+            description:
+              "Una reconciliación aprobada actualizó el saldo financiero del pago.",
           },
           PAYMENT_REFUNDED: {
             title: "Pago reembolsado",
@@ -2281,71 +2305,88 @@ export const esMessages = {
           },
           REFUND_AUTHORIZED: {
             title: "Reembolso autorizado",
-            description: "Un administrador creó una autorización de reembolso pendiente.",
+            description:
+              "Un administrador creó una autorización de reembolso pendiente.",
           },
           REFUND_PROVIDER_EXECUTION_STARTED: {
             title: "Ejecución de reembolso iniciada",
-            description: "Se inició el envío controlado de la modificación al proveedor.",
+            description:
+              "Se inició el envío controlado de la modificación al proveedor.",
           },
           REFUND_PROVIDER_RESPONSE_OBSERVED: {
             title: "Respuesta del proveedor observada",
-            description: "El sistema registró una clasificación segura de la respuesta del proveedor.",
+            description:
+              "El sistema registró una clasificación segura de la respuesta del proveedor.",
           },
           REFUND_PROVIDER_RESULT_UNCERTAIN: {
             title: "Resultado del proveedor incierto",
-            description: "El resultado requiere verificación explícita antes de cambiar el estado financiero.",
+            description:
+              "El resultado requiere verificación explícita antes de cambiar el estado financiero.",
           },
           REFUND_PROVIDER_EXECUTION_FAILED: {
             title: "Ejecución del proveedor fallida",
-            description: "La ejecución terminó de forma segura sin confirmar un reembolso.",
+            description:
+              "La ejecución terminó de forma segura sin confirmar un reembolso.",
           },
           REFUND_PROVIDER_CONSULT_OBSERVED: {
             title: "Consulta del proveedor observada",
-            description: "Un administrador consultó evidencia financiera allowlisted del proveedor.",
+            description:
+              "Un administrador consultó evidencia financiera allowlisted del proveedor.",
           },
           REFUND_RECONCILED_APPROVED: {
             title: "Reembolso reconciliado como aprobado",
-            description: "La evidencia fue confirmada y el pago actualizó su estado financiero.",
+            description:
+              "La evidencia fue confirmada y el pago actualizó su estado financiero.",
           },
           REFUND_RECONCILED_FAILED: {
             title: "Reembolso reconciliado como fallido",
-            description: "La evidencia confirmó que el reembolso no se realizó.",
+            description:
+              "La evidencia confirmó que el reembolso no se realizó.",
           },
           REFUND_APPROVED: {
             title: "Reembolso aprobado",
-            description: "El registro de reembolso alcanzó un resultado financiero aprobado.",
+            description:
+              "El registro de reembolso alcanzó un resultado financiero aprobado.",
           },
           REFUND_FAILED: {
             title: "Reembolso fallido",
-            description: "El intento quedó en estado fallido sin alterar la reservación.",
+            description:
+              "El intento quedó en estado fallido sin alterar la reservación.",
           },
           EMAIL_CREATED: {
             title: "Notificación creada",
-            description: "Se creó un intent durable de correo sin ejecutar una transición de negocio.",
+            description:
+              "Se creó un intent durable de correo sin ejecutar una transición de negocio.",
           },
           EMAIL_PROCESSING: {
             title: "Correo en procesamiento",
-            description: "Un worker adquirió el claim de entrega de esta notificación.",
+            description:
+              "Un worker adquirió el claim de entrega de esta notificación.",
           },
           EMAIL_RETRY_SCHEDULED: {
             title: "Reintento de correo programado",
-            description: "La entrega falló temporalmente y quedó programada para otro intento.",
+            description:
+              "La entrega falló temporalmente y quedó programada para otro intento.",
           },
           EMAIL_SENT: {
             title: "Correo aceptado por el proveedor",
-            description: "Resend aceptó el mensaje desde TRP Booking; esto no confirma lectura ni apertura.",
+            description:
+              "Resend aceptó el mensaje desde TRP Booking; esto no confirma lectura ni apertura.",
           },
           EMAIL_FAILED: {
             title: "Entrega de correo fallida",
-            description: "La entrega falló y conserva diagnóstico normalizado y seguro.",
+            description:
+              "La entrega falló y conserva diagnóstico normalizado y seguro.",
           },
           EMAIL_SKIPPED: {
             title: "Correo omitido",
-            description: "La notificación dejó de ser vigente antes de su entrega.",
+            description:
+              "La notificación dejó de ser vigente antes de su entrega.",
           },
           EMAIL_MANUAL_RESEND_REQUESTED: {
             title: "Reenvío manual solicitado",
-            description: "Un administrador creó una notificación hija sin reescribir el historial original.",
+            description:
+              "Un administrador creó una notificación hija sin reescribir el historial original.",
           },
         },
       },
@@ -2378,8 +2419,7 @@ export const esMessages = {
           "Ejemplo: Panajachel, Sololá, cerca de Calle Santander y del Lago de Atitlán.",
         publicLocationEn:
           "Example: Panajachel, Sololá, near Calle Santander and Lake Atitlán.",
-        mapEmbedUrl:
-          "https://www.google.com/maps/embed?pb=...",
+        mapEmbedUrl: "https://www.google.com/maps/embed?pb=...",
       },
       actions: {
         enable: "Activar mapa público",
@@ -2572,7 +2612,8 @@ export const esMessages = {
         results: "ejecuciones",
       },
       empty: {
-        history: "Todavía no se han registrado ejecuciones de tareas programadas.",
+        history:
+          "Todavía no se han registrado ejecuciones de tareas programadas.",
       },
       errors: {
         ADMIN_UNAUTHORIZED: "Tu sesión no tiene autorización administrativa.",
@@ -2677,6 +2718,7 @@ export const esMessages = {
       labels: {
         selected: "Seleccionada",
         selectable: "Seleccionar",
+        reservationCode: "Código de reservación",
         currencyMismatch: "Moneda incompatible",
         nightSingular: "noche",
         nightPlural: "noches",
@@ -2743,12 +2785,14 @@ export const esMessages = {
           "La vista previa fiscal se actualizó desde las fuentes comerciales actuales.",
         saved: "El borrador fiscal quedó guardado.",
         changesSaved: "Los cambios del borrador quedaron guardados.",
-        discarded: "El borrador fue descartado y sus fuentes quedaron liberadas.",
+        discarded:
+          "El borrador fue descartado y sus fuentes quedaron liberadas.",
       },
       empty: {
         noEligibleReservations:
           "No hay reservas confirmadas con checkout completado y sin bloqueos fiscales.",
-        preview: "Selecciona al menos una reserva elegible para preparar la vista previa.",
+        preview:
+          "Selecciona al menos una reserva elegible para preparar la vista previa.",
         history: "Todavía no hay documentos FEL registrados.",
       },
       pagination: {
@@ -3034,7 +3078,8 @@ export const esMessages = {
           seasonalUpdated: "La tarifa estacional se actualizó correctamente.",
           seasonalEnabled: "La tarifa estacional quedó activa.",
           seasonalDisabled: "La tarifa estacional quedó desactivada.",
-          seasonalDeleted: "La tarifa estacional se eliminó del pricing activo.",
+          seasonalDeleted:
+            "La tarifa estacional se eliminó del pricing activo.",
           seasonalRestored:
             "La tarifa estacional se restauró desactivada para revisión.",
           losSaved: "La tarifa por duración se guardó correctamente.",
@@ -3145,7 +3190,8 @@ export const esMessages = {
           propertyCheckIn: "Hora de check-in del alojamiento",
         },
         placeholders: {
-          exactAddress: "Dirección que recibirá únicamente el huésped confirmado",
+          exactAddress:
+            "Dirección que recibirá únicamente el huésped confirmado",
           mapUrl: "https://maps.google.com/...",
           instructionsEs:
             "Describe cómo llegar, dónde estacionarse y con quién comunicarse.",
@@ -3336,7 +3382,8 @@ export const esMessages = {
           allowedRange: "Valores permitidos: de 0 a 30 días.",
         },
         success: {
-          settingsSaved: "La configuración de preparación se guardó correctamente.",
+          settingsSaved:
+            "La configuración de preparación se guardó correctamente.",
         },
         errors: {
           ADMIN_UNAUTHORIZED: "Tu sesión no tiene autorización administrativa.",
@@ -3604,17 +3651,26 @@ export const esMessages = {
           "La respuesta de rotación no muestra el token. Al terminar, usa Copiar URL desde esta misma card para llevar la nueva URL al portapapeles.",
       },
       success: {
-        urlSaved: "La URL de Airbnb se guardó cifrada. No se sincronizó automáticamente.",
-        urlReplaced: "La URL de Airbnb se reemplazó de forma segura. No se sincronizó automáticamente.",
-        connectionPassed: "La prueba de conexión fue exitosa. No se modificaron datos del calendario.",
-        syncCompleted: "La sincronización con Airbnb terminó para este alojamiento.",
+        urlSaved:
+          "La URL de Airbnb se guardó cifrada. No se sincronizó automáticamente.",
+        urlReplaced:
+          "La URL de Airbnb se reemplazó de forma segura. No se sincronizó automáticamente.",
+        connectionPassed:
+          "La prueba de conexión fue exitosa. No se modificaron datos del calendario.",
+        syncCompleted:
+          "La sincronización con Airbnb terminó para este alojamiento.",
         importEnabled: "La importación desde Airbnb quedó habilitada.",
-        importDisabled: "La importación desde Airbnb quedó deshabilitada sin eliminar la URL guardada.",
-        exportUrlCopied: "La URL privada de TRP Booking se copió al portapapeles sin mostrarse en la página.",
-        exportTokenGenerated: "Se generó una nueva URL privada para este alojamiento. Ya puedes copiarla y habilitar la exportación.",
-        exportTokenRotated: "La URL privada fue rotada. La URL anterior dejó de ser válida; copia la nueva antes de actualizar Airbnb.",
+        importDisabled:
+          "La importación desde Airbnb quedó deshabilitada sin eliminar la URL guardada.",
+        exportUrlCopied:
+          "La URL privada de TRP Booking se copió al portapapeles sin mostrarse en la página.",
+        exportTokenGenerated:
+          "Se generó una nueva URL privada para este alojamiento. Ya puedes copiarla y habilitar la exportación.",
+        exportTokenRotated:
+          "La URL privada fue rotada. La URL anterior dejó de ser válida; copia la nueva antes de actualizar Airbnb.",
         exportEnabled: "La exportación hacia Airbnb quedó habilitada.",
-        exportDisabled: "La exportación hacia Airbnb quedó deshabilitada sin eliminar el token guardado.",
+        exportDisabled:
+          "La exportación hacia Airbnb quedó deshabilitada sin eliminar el token guardado.",
       },
       errors: {
         ADMIN_UNAUTHORIZED:
@@ -3659,17 +3715,24 @@ export const esMessages = {
   errors: {
     reservation: {
       unavailableDates: "Las fechas seleccionadas ya no están disponibles.",
-      invalidGuestCount: "La cantidad de huéspedes excede la capacidad permitida.",
+      invalidGuestCount:
+        "La cantidad de huéspedes excede la capacidad permitida.",
       expiredReservation: "La reservación expiró antes de completar el pago.",
-      invalidAccommodation: "El alojamiento solicitado no está disponible para cotizar.",
+      invalidAccommodation:
+        "El alojamiento solicitado no está disponible para cotizar.",
       invalidDateRange: "Las fechas de la cotización no son válidas.",
-      invalidQuoteRequest: "No pudimos calcular la cotización con la información enviada.",
+      invalidQuoteRequest:
+        "No pudimos calcular la cotización con la información enviada.",
       pendingHold: {
-        INVALID_PENDING_HOLD_REQUEST: "Revisa los datos de la reserva e inténtalo de nuevo.",
+        INVALID_PENDING_HOLD_REQUEST:
+          "Revisa los datos de la reserva e inténtalo de nuevo.",
         INVALID_ACCOMMODATION: "No pudimos encontrar este alojamiento.",
-        INVALID_DATE_RANGE: "Selecciona una fecha de entrada y una fecha de salida válidas.",
-        INVALID_GUEST_COUNT: "La cantidad de huéspedes no es válida para este alojamiento.",
-        UNAVAILABLE_DATES: "Estas fechas ya no están disponibles. Selecciona otro rango de fechas.",
+        INVALID_DATE_RANGE:
+          "Selecciona una fecha de entrada y una fecha de salida válidas.",
+        INVALID_GUEST_COUNT:
+          "La cantidad de huéspedes no es válida para este alojamiento.",
+        UNAVAILABLE_DATES:
+          "Estas fechas ya no están disponibles. Selecciona otro rango de fechas.",
         PENDING_HOLD_CONFLICT:
           "Alguien más tomó estas fechas al mismo tiempo. Selecciona otro rango de fechas.",
         PENDING_HOLD_UNEXPECTED_ERROR:
@@ -3678,10 +3741,8 @@ export const esMessages = {
       pendingHoldRelease: {
         INVALID_PENDING_HOLD_RELEASE_REQUEST:
           "No pudimos validar la solicitud para editar esta reserva. Recarga la página e inténtalo de nuevo.",
-        PENDING_HOLD_NOT_FOUND:
-          "No encontramos esta reserva pendiente.",
-        PENDING_HOLD_NOT_EDITABLE:
-          "Esta reserva ya no puede editarse.",
+        PENDING_HOLD_NOT_FOUND: "No encontramos esta reserva pendiente.",
+        PENDING_HOLD_NOT_EDITABLE: "Esta reserva ya no puede editarse.",
         PENDING_HOLD_EDIT_LOCKED_BY_PAYMENT:
           "Esta reserva ya no puede editarse porque la preparación del pago ya comenzó. Continúa utilizando el enlace de pago disponible.",
         PENDING_HOLD_RELEASE_STALE:
@@ -3693,7 +3754,8 @@ export const esMessages = {
         INVALID_PAYMENT_HANDOFF_REQUEST:
           "No pudimos validar esta reserva pendiente. Inténtalo de nuevo.",
         PENDING_HOLD_NOT_FOUND: "No encontramos esta reserva pendiente.",
-        PENDING_HOLD_NOT_PAYABLE: "Esta reserva ya no está disponible para pago.",
+        PENDING_HOLD_NOT_PAYABLE:
+          "Esta reserva ya no está disponible para pago.",
         PENDING_HOLD_EXPIRED:
           "El tiempo para pagar esta reserva pendiente expiró. Crea una nueva reserva.",
         PAYMENT_HANDOFF_UNAVAILABLE_DATES:
@@ -3711,7 +3773,8 @@ export const esMessages = {
         INVALID_PAYMENT_HANDOFF_REQUEST:
           "No pudimos preparar el intento de pago. Inténtalo de nuevo.",
         PENDING_HOLD_NOT_FOUND: "No encontramos esta reserva pendiente.",
-        PENDING_HOLD_NOT_PAYABLE: "Esta reserva ya no está disponible para pago.",
+        PENDING_HOLD_NOT_PAYABLE:
+          "Esta reserva ya no está disponible para pago.",
         PENDING_HOLD_EXPIRED:
           "El tiempo para pagar esta reserva pendiente expiró. Crea una nueva reserva.",
         PAYMENT_HANDOFF_UNAVAILABLE_DATES:
@@ -3737,7 +3800,8 @@ export const esMessages = {
         INVALID_PAYMENT_HANDOFF_REQUEST:
           "No pudimos preparar el pago. Inténtalo de nuevo.",
         PENDING_HOLD_NOT_FOUND: "No encontramos esta reserva pendiente.",
-        PENDING_HOLD_NOT_PAYABLE: "Esta reserva ya no está disponible para pago.",
+        PENDING_HOLD_NOT_PAYABLE:
+          "Esta reserva ya no está disponible para pago.",
         PENDING_HOLD_EXPIRED:
           "El tiempo para pagar esta reserva pendiente expiró. Crea una nueva reserva.",
         PAYMENT_HANDOFF_UNAVAILABLE_DATES:
@@ -3801,8 +3865,7 @@ export const esMessages = {
         "Tu Refugio Perfecto · Panajachel, Guatemala · Reserva directa segura",
       appliedRates: "Tarifas aplicadas",
       seasonalRate: "Tarifa estacional",
-      lengthOfStayRate:
-        "Estancia de {minimumNights}+ noches",
+      lengthOfStayRate: "Estancia de {minimumNights}+ noches",
     },
     reservationConfirmed: {
       subjectPrefix: "Reserva confirmada",

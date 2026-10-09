@@ -7,6 +7,10 @@ import {
   calculateReservationQuoteWithPricingSnapshot,
   ReservationQuoteError,
 } from "@/lib/reservations/pricing";
+import {
+  generateReservationCode,
+  RESERVATION_CODE_MAX_GENERATION_ATTEMPTS,
+} from "@/lib/reservations/reservation-code";
 import type { AccommodationId, LocalizedText } from "@/types/accommodation";
 import type { DateOnlyString } from "@/types/availability";
 import type {
@@ -47,6 +51,7 @@ export class PendingReservationHoldError extends Error {
 
 const reusablePendingReservationSelect = {
   id: true,
+  reservationCode: true,
   propertyId: true,
   checkInDate: true,
   checkOutDate: true,
@@ -151,7 +156,9 @@ function assertGuestDetails(input: CreatePendingReservationHoldInput): void {
   }
 }
 
-function mapQuoteError(error: ReservationQuoteError): PendingReservationHoldError {
+function mapQuoteError(
+  error: ReservationQuoteError,
+): PendingReservationHoldError {
   switch (error.code) {
     case "INVALID_ACCOMMODATION":
       return new PendingReservationHoldError("INVALID_ACCOMMODATION");
@@ -169,6 +176,28 @@ function isSerializableTransactionConflict(error: unknown): boolean {
   return (
     error instanceof Prisma.PrismaClientKnownRequestError &&
     error.code === "P2034"
+  );
+}
+
+function isReservationCodeUniqueCollision(error: unknown): boolean {
+  if (
+    !(error instanceof Prisma.PrismaClientKnownRequestError) ||
+    error.code !== "P2002"
+  ) {
+    return false;
+  }
+
+  const target = error.meta?.target;
+
+  if (Array.isArray(target)) {
+    return target.some(
+      (value) => value === "reservationCode" || value === "reservation_code",
+    );
+  }
+
+  return (
+    typeof target === "string" &&
+    (target.includes("reservationCode") || target.includes("reservation_code"))
   );
 }
 
@@ -310,6 +339,7 @@ async function buildPendingReservationHoldFromReservation(
 
   return {
     reservationId: reservation.id,
+    reservationCode: reservation.reservationCode,
     status: "PENDING_PAYMENT",
     expiresAt: reservation.expiresAt.toISOString(),
     updatedAt: reservation.updatedAt.toISOString(),
@@ -386,17 +416,18 @@ async function createPendingReservationHoldAttempt(
       let pricingSnapshot;
 
       try {
-        const pricingResult = await calculateReservationQuoteWithPricingSnapshot(
-          {
-            accommodationId: input.accommodationId,
-            checkInDate: input.checkInDate,
-            checkOutDate: input.checkOutDate,
-            guestCount: input.guestCount,
-          },
-          {
-            prismaClient: tx,
-          },
-        );
+        const pricingResult =
+          await calculateReservationQuoteWithPricingSnapshot(
+            {
+              accommodationId: input.accommodationId,
+              checkInDate: input.checkInDate,
+              checkOutDate: input.checkOutDate,
+              guestCount: input.guestCount,
+            },
+            {
+              prismaClient: tx,
+            },
+          );
         quote = pricingResult.quote;
         pricingSnapshot = pricingResult.pricingSnapshot;
       } catch (error) {
@@ -441,42 +472,79 @@ async function createPendingReservationHoldAttempt(
       const guestPhoneLocal = normalizePhoneLocal(input.guestPhoneLocal);
       const guestPhone = buildGuestPhone(countryDialCode, guestPhoneLocal);
 
-      const reservation = await tx.reservation.create({
-        data: {
-          propertyId: input.accommodationId as AccommodationId,
-          guestName,
-          guestEmail,
-          guestPhone,
-          guestCountry,
-          preferredLocale: input.locale,
-          checkInDate: toDateOnlyDate(input.checkInDate),
-          checkOutDate: toDateOnlyDate(input.checkOutDate),
-          arrivalTimeEstimate: input.arrivalTimeEstimate.trim(),
-          guestCount: input.guestCount,
-          status: ReservationStatus.PENDING_PAYMENT,
-          subtotal: quote.subtotal.amount.toString(),
-          cleaningFee: quote.cleaningFee.amount.toString(),
-          taxes: quote.taxes.amount.toString(),
-          discounts: quote.discounts.amount.toString(),
-          total: quote.total.amount.toString(),
-          currency: quote.currency,
-          pricingSnapshot: pricingSnapshot as Prisma.InputJsonValue,
-          expiresAt,
-          guests: {
-            create: {
-              name: guestName,
-              email: guestEmail,
-              phone: guestPhone,
-            },
+      const reservationData = {
+        propertyId: input.accommodationId as AccommodationId,
+        guestName,
+        guestEmail,
+        guestPhone,
+        guestCountry,
+        preferredLocale: input.locale,
+        checkInDate: toDateOnlyDate(input.checkInDate),
+        checkOutDate: toDateOnlyDate(input.checkOutDate),
+        arrivalTimeEstimate: input.arrivalTimeEstimate.trim(),
+        guestCount: input.guestCount,
+        status: ReservationStatus.PENDING_PAYMENT,
+        subtotal: quote.subtotal.amount.toString(),
+        cleaningFee: quote.cleaningFee.amount.toString(),
+        taxes: quote.taxes.amount.toString(),
+        discounts: quote.discounts.amount.toString(),
+        total: quote.total.amount.toString(),
+        currency: quote.currency,
+        pricingSnapshot: pricingSnapshot as Prisma.InputJsonValue,
+        expiresAt,
+        guests: {
+          create: {
+            name: guestName,
+            email: guestEmail,
+            phone: guestPhone,
           },
         },
-        select: {
-          id: true,
-          status: true,
-          expiresAt: true,
-          updatedAt: true,
-        },
-      });
+      };
+
+      let reservation: Readonly<{
+        id: string;
+        reservationCode: string;
+        status: ReservationStatus;
+        expiresAt: Date | null;
+        updatedAt: Date;
+      }> | null = null;
+
+      for (
+        let attempt = 1;
+        attempt <= RESERVATION_CODE_MAX_GENERATION_ATTEMPTS;
+        attempt += 1
+      ) {
+        try {
+          reservation = await tx.reservation.create({
+            data: {
+              ...reservationData,
+              reservationCode: generateReservationCode(),
+            },
+            select: {
+              id: true,
+              reservationCode: true,
+              status: true,
+              expiresAt: true,
+              updatedAt: true,
+            },
+          });
+          break;
+        } catch (error) {
+          if (isReservationCodeUniqueCollision(error)) {
+            if (attempt < RESERVATION_CODE_MAX_GENERATION_ATTEMPTS) {
+              continue;
+            }
+
+            throw new PendingReservationHoldError("PENDING_HOLD_CONFLICT");
+          }
+
+          throw error;
+        }
+      }
+
+      if (!reservation) {
+        throw new PendingReservationHoldError("PENDING_HOLD_CONFLICT");
+      }
 
       if (!reservation.expiresAt) {
         throw new PendingReservationHoldError("INVALID_PENDING_HOLD_REQUEST");
@@ -484,6 +552,7 @@ async function createPendingReservationHoldAttempt(
 
       return {
         reservationId: reservation.id,
+        reservationCode: reservation.reservationCode,
         status: "PENDING_PAYMENT",
         expiresAt: reservation.expiresAt.toISOString(),
         updatedAt: reservation.updatedAt.toISOString(),
@@ -565,9 +634,7 @@ async function releasePendingReservationHoldAttempt(
       }
 
       if (reservation.payments.length > 0) {
-        throw new PendingReservationHoldError(
-          "PENDING_HOLD_PAYMENT_STARTED",
-        );
+        throw new PendingReservationHoldError("PENDING_HOLD_PAYMENT_STARTED");
       }
 
       if (reservation.status === ReservationStatus.EXPIRED) {

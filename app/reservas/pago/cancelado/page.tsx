@@ -1,6 +1,5 @@
-import {
-  PaymentResultPage,
-} from "@/features/payments/components/payment-result-page";
+import { PaymentResultPage } from "@/features/payments/components/payment-result-page";
+import { getReservationCodeById } from "@/lib/reservations/reservation-public-reference";
 
 type PaymentResultSearchParams = Promise<
   Readonly<Record<string, string | string[] | undefined>>
@@ -25,14 +24,18 @@ export default async function CancelledPaymentPage({
   searchParams: PaymentResultSearchParams;
 }>) {
   const params = await searchParams;
+  const reservationId = readParam(params, "reservationId");
+  const reservationCode = await getReservationCodeById(reservationId);
 
   return (
     <PaymentResultPage
       code={readParam(params, "code")}
       paymentId={readParam(params, "paymentId")}
       paymentStatus={readParam(params, "paymentStatus")}
-      reservationConfirmed={readParam(params, "reservationConfirmed") === "true"}
-      reservationId={readParam(params, "reservationId")}
+      reservationConfirmed={
+        readParam(params, "reservationConfirmed") === "true"
+      }
+      reservationCode={reservationCode}
       reservationStatus={readParam(params, "reservationStatus")}
       resultType="cancel"
     />

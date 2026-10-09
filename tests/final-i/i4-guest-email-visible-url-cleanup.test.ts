@@ -19,7 +19,8 @@ const PUBLIC_BASE_URL = "https://trp-booking.juantzun.dev";
 const BRAND_LOGO_URL = "https://trp-booking.juantzun.dev/logo-email.png";
 const MAP_URL =
   "https://maps.example.com/directions/final-i4-long-visible-map-token";
-const REVIEW_TOKEN = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+const REVIEW_TOKEN =
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 const REVIEW_URL = `${PUBLIC_BASE_URL}/resenas/${REVIEW_TOKEN}`;
 const PAYMENT_URL =
   "https://trp-booking.juantzun.dev/pagos/final-i4-payment-token";
@@ -28,7 +29,7 @@ function decodeHtmlEntities(value: string): string {
   return value
     .replace(/&nbsp;/g, " ")
     .replace(/&amp;/g, "&")
-    .replace(/&quot;/g, "\"")
+    .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">");
@@ -45,10 +46,13 @@ function visibleTextFromHtml(html: string): string {
   );
 }
 
-function expectHtmlHrefOnly(content: {
-  readonly html: string;
-  readonly text: string;
-}, url: string): void {
+function expectHtmlHrefOnly(
+  content: {
+    readonly html: string;
+    readonly text: string;
+  },
+  url: string,
+): void {
   assert.ok(
     content.html.includes(`href="${url}"`),
     `Expected HTML href to preserve ${url}`,
@@ -63,10 +67,13 @@ function expectHtmlHrefOnly(content: {
   );
 }
 
-function expectVisibleHtmlUrl(content: {
-  readonly html: string;
-  readonly text: string;
-}, url: string): void {
+function expectVisibleHtmlUrl(
+  content: {
+    readonly html: string;
+    readonly text: string;
+  },
+  url: string,
+): void {
   assert.ok(content.html.includes(`href="${url}"`));
   assert.ok(visibleTextFromHtml(content.html).includes(url));
   assert.ok(content.text.includes(url));
@@ -75,6 +82,7 @@ function expectVisibleHtmlUrl(content: {
 function reservation(locale: TransactionalEmailLocale) {
   return {
     id: `final-i4-${locale}`,
+    reservationCode: locale === "es" ? "TRABCDEFGHJK" : "TRABCDEFGHJL",
     guestName: locale === "es" ? "Huesped Final I4" : "Final I4 Guest",
     guestEmail: `guest-final-i4-${locale}@example.com`,
     guestPhone: "+50255551234",
@@ -280,7 +288,10 @@ test("I.4 keeps reservation-confirmed rendering stable as a no-action-url contro
 
     assert.ok(content.subject.length > 0);
     assert.ok(content.html.includes("Tu Refugio Perfecto"));
-    assert.ok(content.text.includes(reservation(locale).id));
+    assert.ok(content.text.includes(reservation(locale).reservationCode));
+    assert.ok(
+      !visibleTextFromHtml(content.html).includes(reservation(locale).id),
+    );
     assert.ok(!visibleTextFromHtml(content.html).includes(REVIEW_URL));
     assert.ok(!visibleTextFromHtml(content.html).includes(PAYMENT_URL));
   }

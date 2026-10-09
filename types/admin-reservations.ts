@@ -3,6 +3,7 @@ import type { DateOnlyString } from "@/types/availability";
 
 export type AdminReservationListItem = Readonly<{
   id: string;
+  reservationCode: string;
   property: AdminPropertyOption;
   guestName: string;
   guestEmail: string;

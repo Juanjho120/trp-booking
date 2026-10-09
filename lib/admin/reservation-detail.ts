@@ -11,7 +11,7 @@ import type {
   AdminReservationDetailEmailNotification,
   AdminReservationDetailPayment,
   AdminReservationFinancialSummary,
-  AdminReservationPricingBreakdown
+  AdminReservationPricingBreakdown,
 } from "@/types/admin-reservation-detail";
 import type {
   AdminReservationChangesTab,
@@ -106,8 +106,7 @@ async function getAdminFinancialSummary(
   } catch (error) {
     if (
       error instanceof ReservationFinancialSummaryError &&
-      error.code ===
-        "RESERVATION_FINANCIAL_SUMMARY_INITIAL_PAYMENT_NOT_FOUND"
+      error.code === "RESERVATION_FINANCIAL_SUMMARY_INITIAL_PAYMENT_NOT_FOUND"
     ) {
       return null;
     }
@@ -233,8 +232,7 @@ async function getAdminReservationPricingBreakdown(
   const seasonalRuleIds = Array.from(
     new Set(
       snapshot.segments.flatMap((segment) =>
-        segment.kind === "RESOLVED_RATE" &&
-        segment.source === "SEASONAL"
+        segment.kind === "RESOLVED_RATE" && segment.source === "SEASONAL"
           ? [segment.ruleId]
           : [],
       ),
@@ -287,12 +285,10 @@ async function getAdminReservationPricingBreakdown(
         source: segment.source,
         seasonalRuleName:
           segment.source === "SEASONAL"
-            ? seasonalRuleNames.get(segment.ruleId) ?? null
+            ? (seasonalRuleNames.get(segment.ruleId) ?? null)
             : null,
         minimumNights:
-          segment.source === "LENGTH_OF_STAY"
-            ? segment.minimumNights
-            : null,
+          segment.source === "LENGTH_OF_STAY" ? segment.minimumNights : null,
         nightlyRate: centsToAmount(segment.nightlyRateCents),
         subtotal: centsToAmount(segment.subtotalCents),
       };
@@ -313,6 +309,7 @@ export async function getAdminReservationDetail(
     where: { id },
     select: {
       id: true,
+      reservationCode: true,
       guestName: true,
       guestEmail: true,
       guestPhone: true,
@@ -397,7 +394,7 @@ export async function getAdminReservationDetail(
 
   const pricingBreakdown = await getAdminReservationPricingBreakdown(
     reservation?.pricingSnapshot,
-    reservation?.property.id
+    reservation?.property.id,
   );
 
   if (!reservation) {
@@ -422,6 +419,7 @@ export async function getAdminReservationDetail(
 
   return {
     id: reservation.id,
+    reservationCode: reservation.reservationCode,
     property: reservation.property,
     guestName: reservation.guestName,
     guestEmail: reservation.guestEmail,
@@ -522,6 +520,7 @@ export async function getAdminReservationDetailShell(
     where: { id },
     select: {
       id: true,
+      reservationCode: true,
       status: true,
     },
   });
@@ -540,6 +539,7 @@ export async function getAdminReservationOverviewTab(
     where: { id },
     select: {
       id: true,
+      reservationCode: true,
       guestName: true,
       guestEmail: true,
       guestPhone: true,
@@ -574,6 +574,7 @@ export async function getAdminReservationOverviewTab(
 
   return {
     id: reservation.id,
+    reservationCode: reservation.reservationCode,
     property: reservation.property,
     guestName: reservation.guestName,
     guestEmail: reservation.guestEmail,
@@ -603,6 +604,7 @@ export async function getAdminReservationFinancialTab(
     where: { id },
     select: {
       id: true,
+      reservationCode: true,
       status: true,
       subtotal: true,
       cleaningFee: true,
@@ -639,6 +641,7 @@ export async function getAdminReservationFinancialTab(
 
   return {
     id: reservation.id,
+    reservationCode: reservation.reservationCode,
     status: reservation.status,
     subtotal: reservation.subtotal.toFixed(2),
     cleaningFee: reservation.cleaningFee.toFixed(2),
@@ -665,6 +668,7 @@ export async function getAdminReservationEmailsTab(
     where: { id },
     select: {
       id: true,
+      reservationCode: true,
       status: true,
       guestEmail: true,
       emailNotifications: {
@@ -711,6 +715,7 @@ export async function getAdminReservationEmailsTab(
 
   return {
     id: reservation.id,
+    reservationCode: reservation.reservationCode,
     status: reservation.status,
     guestEmail: reservation.guestEmail,
     emailNotifications: reservation.emailNotifications.map(
@@ -732,6 +737,7 @@ export async function getAdminReservationLifecycleTab(
     where: { id },
     select: {
       id: true,
+      reservationCode: true,
       guestName: true,
       guestEmail: true,
       guestPhone: true,
@@ -750,6 +756,7 @@ export async function getAdminReservationLifecycleTab(
 
   return {
     id: reservation.id,
+    reservationCode: reservation.reservationCode,
     guestName: reservation.guestName,
     guestEmail: reservation.guestEmail,
     guestPhone: reservation.guestPhone,
@@ -772,6 +779,7 @@ export async function getAdminReservationRefundsTab(
     where: { id },
     select: {
       id: true,
+      reservationCode: true,
       status: true,
       updatedAt: true,
       currency: true,
@@ -814,6 +822,7 @@ export async function getAdminReservationRefundsTab(
 
   return {
     id: reservation.id,
+    reservationCode: reservation.reservationCode,
     status: reservation.status,
     updatedAt: reservation.updatedAt.toISOString(),
     currency: reservation.currency,
@@ -840,6 +849,7 @@ export async function getAdminReservationChangesTab(
     where: { id },
     select: {
       id: true,
+      reservationCode: true,
       guestName: true,
       guestEmail: true,
       guestPhone: true,
@@ -861,6 +871,7 @@ export async function getAdminReservationChangesTab(
 
   return {
     id: reservation.id,
+    reservationCode: reservation.reservationCode,
     guestName: reservation.guestName,
     guestEmail: reservation.guestEmail,
     guestPhone: reservation.guestPhone,
@@ -884,7 +895,7 @@ export async function getAdminReservationHistoryTab(
 
   const reservation = await prisma.reservation.findUnique({
     where: { id },
-    select: { id: true },
+    select: { id: true, reservationCode: true },
   });
 
   if (!reservation) {
@@ -892,6 +903,8 @@ export async function getAdminReservationHistoryTab(
   }
 
   return {
+    id: reservation.id,
+    reservationCode: reservation.reservationCode,
     operationalHistory: await getAdminReservationOperationalHistory(
       reservation.id,
     ),

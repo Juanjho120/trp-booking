@@ -37,8 +37,7 @@ import { test } from "./harness";
 
 const ROOT = process.cwd();
 const MIGRATION_DIR = "20260930182358_final_i_6_fel_draft_persistence";
-const I6_RECORD =
-  "docs/214-final-i-6-fel-persistence-admin-draft-module.md";
+const I6_RECORD = "docs/214-final-i-6-fel-persistence-admin-draft-module.md";
 
 const EXPECTED_CRON_JOBS = [
   ["SYNC_AIRBNB_CALENDARS", "sync-airbnb-calendars", "*/30 * * * *"],
@@ -88,6 +87,7 @@ function sourceReservation(
 ): AdminFelDraftSourceReservation {
   return {
     id: "reservation-a",
+    reservationCode: "TRABCDEFGHJK",
     guestName: "Ada Lovelace",
     guestEmail: "ada@example.com",
     guestPhone: "+50255550000",
@@ -233,7 +233,7 @@ test("I.6 adds provider-independent FEL schema and preserves the I.6 migration c
     assert.match(schema, new RegExp(`\\bmodel\\s+${modelName}\\b`));
   }
 
-  assert.equal(migrations.length, 31);
+  assert.equal(migrations.length, 32);
   assert.equal(
     migrations.filter((entry) => entry.name === MIGRATION_DIR).length,
     1,
@@ -247,9 +247,7 @@ test("I.6 adds provider-independent FEL schema and preserves the I.6 migration c
   );
   assert.equal(existsSync(migrationPath), true);
 
-  const migration = read(
-    `prisma/migrations/${MIGRATION_DIR}/migration.sql`,
-  );
+  const migration = read(`prisma/migrations/${MIGRATION_DIR}/migration.sql`);
   assert.match(
     migration,
     /fel_commercial_source_allocations_exactly_one_source_check/,
@@ -272,7 +270,10 @@ test("I.6 eligibility uses confirmed checkout time, lifecycle blockers, refund b
 
   assert.deepEqual(evaluateReservationEligibility({}, now).eligible, true);
   assert.equal(
-    calculateFelCheckoutAt(new Date("2026-08-16T00:00:00.000Z"), "11:00")?.toISOString(),
+    calculateFelCheckoutAt(
+      new Date("2026-08-16T00:00:00.000Z"),
+      "11:00",
+    )?.toISOString(),
     "2026-08-16T17:00:00.000Z",
   );
   assert.equal(
@@ -740,14 +741,14 @@ test("I.6 Admin surface exists with nav, localization parity and no provider act
   assert.doesNotMatch(component, /rebuildDraft|updateReceiver\(\)/);
   assert.equal(
     existsSync(
-      path.join(
-        ROOT,
-        "app/api/admin/fel/drafts/[documentId]/rebuild/route.ts",
-      ),
+      path.join(ROOT, "app/api/admin/fel/drafts/[documentId]/rebuild/route.ts"),
     ),
     false,
   );
-  assert.match(component, /documentTypeLabel\(copy,\s*draftPreview\.documentType\)/);
+  assert.match(
+    component,
+    /documentTypeLabel\(copy,\s*draftPreview\.documentType\)/,
+  );
   assert.doesNotMatch(component, /:\s*\{draftPreview\.documentType\}/);
   assert.match(es, /felPage:\s*{/);
   assert.match(en, /felPage:\s*{/);
@@ -765,7 +766,10 @@ test("I.6 server-authoritative preview route backs draft editing", () => {
   const route = read("app/api/admin/fel/preview/route.ts");
 
   assert.match(service, /export async function previewAdminFelDraft/);
-  assert.match(service, /recordsToDraftSources\(\s*records,\s*new Date\(\),\s*editingDocumentId/s);
+  assert.match(
+    service,
+    /recordsToDraftSources\(\s*records,\s*new Date\(\),\s*editingDocumentId/s,
+  );
   assert.match(route, /previewAdminFelDraft/);
   assert.match(route, /adminApiSuccessResponse\(\{\s*preview\s*\}\)/);
   assert.match(component, /\/api\/admin\/fel\/preview/);
@@ -779,10 +783,7 @@ test("I.6 server-authoritative preview route backs draft editing", () => {
 test("I.6 Admin FEL starts in explicit CREATE mode and only edits after open", () => {
   const component = read("features/admin/components/admin-fel-page.tsx");
 
-  assert.match(
-    component,
-    /useState<AdminFelDocumentDetail \| null>\(null\)/,
-  );
+  assert.match(component, /useState<AdminFelDocumentDetail \| null>\(null\)/);
   assert.match(component, /useState<string \| null>\(\s*null,\s*\)/);
   assert.doesNotMatch(component, /data\.documents\[0\]\s*\?\?\s*null/);
   assert.match(
@@ -796,7 +797,10 @@ test("I.6 Admin FEL starts in explicit CREATE mode and only edits after open", (
   assert.match(component, /copy\.actions\.newInvoice/);
   assert.match(component, /resetToNewInvoice/);
   assert.match(component, /setActiveTab\("new"\)/);
-  assert.match(component, /function acceptDocumentSnapshot\(document: AdminFelDocumentDetail\): void/);
+  assert.match(
+    component,
+    /function acceptDocumentSnapshot\(document: AdminFelDocumentDetail\): void/,
+  );
   assert.match(
     component,
     /setSelectedDocument\(document\);\s*setEditingDocumentId\(document\.id\);\s*setActiveTab\("new"\);/s,
@@ -809,15 +813,36 @@ test("I.6 Admin FEL starts in explicit CREATE mode and only edits after open", (
     component,
     /async function saveDraft\(\): Promise<void>[\s\S]*?if \(document && "id" in document\) \{\s*acceptDocumentSnapshot\(document\);\s*\}/,
   );
-  assert.doesNotMatch(component, /setSelectedDocument\(null\);\s*setEditingDocumentId\(null\);\s*setDraftJustSaved\(true\);/s);
-  assert.match(component, /if \(selectedDocument && editingDocumentId === selectedDocument\.id\)/);
-  assert.match(component, /for \(const reservation of selectedDocument\.reservations\)/);
-  assert.match(component, /selectedDocument && editingDocumentId === selectedDocument\.id \? \(/);
+  assert.doesNotMatch(
+    component,
+    /setSelectedDocument\(null\);\s*setEditingDocumentId\(null\);\s*setDraftJustSaved\(true\);/s,
+  );
+  assert.match(
+    component,
+    /if \(selectedDocument && editingDocumentId === selectedDocument\.id\)/,
+  );
+  assert.match(
+    component,
+    /for \(const reservation of selectedDocument\.reservations\)/,
+  );
+  assert.match(
+    component,
+    /selectedDocument && editingDocumentId === selectedDocument\.id \? \(/,
+  );
   assert.doesNotMatch(component, /copy\.actions\.updateReceiver/);
   assert.doesNotMatch(component, /copy\.actions\.rebuild/);
-  assert.doesNotMatch(component, /\/api\/admin\/fel\/drafts\/\$\{encodeURIComponent\(selectedDocument\.id\)\}\/rebuild/);
-  assert.match(component, /selectedDocument\.id}-editor-\$\{line\.lineNumber\}/);
-  assert.doesNotMatch(component, /selectedDocument\.id}-\$\{line\.lineNumber\}/);
+  assert.doesNotMatch(
+    component,
+    /\/api\/admin\/fel\/drafts\/\$\{encodeURIComponent\(selectedDocument\.id\)\}\/rebuild/,
+  );
+  assert.match(
+    component,
+    /selectedDocument\.id}-editor-\$\{line\.lineNumber\}/,
+  );
+  assert.doesNotMatch(
+    component,
+    /selectedDocument\.id}-\$\{line\.lineNumber\}/,
+  );
 });
 
 test("I.6 Admin FEL card dates and nights are localized without date drift", () => {
@@ -986,20 +1011,33 @@ test("I.6 receiver UI keeps manual fields and no NIT/CUI lookup runtime", () => 
   assert.doesNotMatch(component, /copy\.actions\.validateNit/);
   assert.doesNotMatch(component, /copy\.actions\.validatingNit/);
   assert.doesNotMatch(component, /copy\.nitLookup/);
-  assert.doesNotMatch(component, /Validate NIT|Validar NIT|Validate CUI|Validar CUI/);
+  assert.doesNotMatch(
+    component,
+    /Validate NIT|Validar NIT|Validate CUI|Validar CUI/,
+  );
   assert.doesNotMatch(component, /readOnly=\{receiverNameLocked\}/);
   assert.doesNotMatch(component, /receiverName:\s*payload\.name/);
   assert.match(component, /draftPreviewSignature/);
   assert.match(component, /receiverName:\s*event\.target\.value/);
   assert.doesNotMatch(service, /normalizeReceiverNit|receiver-nit-lookup/);
-  assert.doesNotMatch(es, /validateNit|validatingNit|nitLookup|Validar NIT|Validando NIT/);
-  assert.doesNotMatch(en, /validateNit|validatingNit|nitLookup|Validate NIT|Validating NIT/);
+  assert.doesNotMatch(
+    es,
+    /validateNit|validatingNit|nitLookup|Validar NIT|Validando NIT/,
+  );
+  assert.doesNotMatch(
+    en,
+    /validateNit|validatingNit|nitLookup|Validate NIT|Validating NIT/,
+  );
   assert.equal(
-    existsSync(path.join(ROOT, "app/api/admin/fel/receiver/nit-lookup/route.ts")),
+    existsSync(
+      path.join(ROOT, "app/api/admin/fel/receiver/nit-lookup/route.ts"),
+    ),
     false,
   );
   assert.equal(
-    existsSync(path.join(ROOT, "app/api/admin/fel/receiver/cui-lookup/route.ts")),
+    existsSync(
+      path.join(ROOT, "app/api/admin/fel/receiver/cui-lookup/route.ts"),
+    ),
     false,
   );
   assert.equal(
@@ -1018,7 +1056,10 @@ test("I.6 documentation defers authoritative NIT and CUI lookup to I.7", () => {
   const record = read(I6_RECORD);
 
   for (const source of [roadmap, architecture, record]) {
-    assert.match(source, /Identifier type -> Identifier -> Receiver name -> Email -> Country -> Address/);
+    assert.match(
+      source,
+      /Identifier type -> Identifier -> Receiver name -> Email -> Country -> Address/,
+    );
     assert.match(source, /NIT/);
     assert.match(source, /CUI/);
     assert.match(source, /FOUND/);
@@ -1029,7 +1070,10 @@ test("I.6 documentation defers authoritative NIT and CUI lookup to I.7", () => {
     assert.match(source, /certification readiness/i);
     assert.match(source, /IDReceptor/);
     assert.match(source, /TipoEspecial = CUI/);
-    assert.doesNotMatch(source, /Final-I\.6 .*NIT lookup API|POST\s+\/api\/admin\/fel\/receiver\/nit-lookup/);
+    assert.doesNotMatch(
+      source,
+      /Final-I\.6 .*NIT lookup API|POST\s+\/api\/admin\/fel\/receiver\/nit-lookup/,
+    );
   }
 });
 
@@ -1053,8 +1097,14 @@ test("I.6 APIs use admin session, same-origin protection and bounded FEL error c
 
 test("I.6 preserves scheduler boundary and does not add FEL cron work", () => {
   assert.deepEqual(JSON.parse(read("vercel.json")), { crons: [] });
-  assert.doesNotMatch(read("prisma/schema.prisma"), /\bPROCESS_FEL_DOCUMENTS\b/);
-  assert.doesNotMatch(read("lib/cron/registry.ts"), /\bPROCESS_FEL_DOCUMENTS\b/);
+  assert.doesNotMatch(
+    read("prisma/schema.prisma"),
+    /\bPROCESS_FEL_DOCUMENTS\b/,
+  );
+  assert.doesNotMatch(
+    read("lib/cron/registry.ts"),
+    /\bPROCESS_FEL_DOCUMENTS\b/,
+  );
   assert.deepEqual(
     listCronJobDefinitions().map((definition) => [
       definition.key,
@@ -1078,7 +1128,10 @@ test("I.6 documentation records owner acceptance and preserves future boundaries
   const currentRecords = [agents, progress, roadmap, record, i61Record];
 
   for (const source of [progress, roadmap, record]) {
-    assert.match(source, /Final-I\.6 status: Completed and accepted on 2026-10-02/);
+    assert.match(
+      source,
+      /Final-I\.6 status: Completed and accepted on 2026-10-02/,
+    );
     assert.match(
       source,
       /Accepted Final-I\.6 head: 80469abda146d0d50516ab598a514a9ccea2db6d/,
@@ -1088,14 +1141,23 @@ test("I.6 documentation records owner acceptance and preserves future boundaries
   for (const source of currentRecords) {
     assert.match(source, /Completed and accepted on 2026-10-02/);
     assert.match(source, /80469abda146d0d50516ab598a514a9ccea2db6d/);
-    assert.match(source, /Final-I\.7 .*Blocked pending official INFILE technical documentation \+ Test credentials/);
+    assert.match(
+      source,
+      /Final-I\.7 .*Blocked pending official INFILE technical documentation \+ Test credentials/,
+    );
     assert.match(source, /Phase 13 .*Blocked \/ Not started/);
   }
 
   for (const source of [agents, progress, roadmap, i61Record]) {
-    assert.match(source, /Final-I\.6\.1 .*Completed and accepted on 2026-10-06/);
+    assert.match(
+      source,
+      /Final-I\.6\.1 .*Completed and accepted on 2026-10-06/,
+    );
     assert.match(source, /4d8a1dd5eb2f2eaaadf43bd8b97d7dd1df6e500e/);
-    assert.match(source, /docs\/215-final-i-6-1-interim-operational-hardening\.md/);
+    assert.match(
+      source,
+      /docs\/215-final-i-6-1-interim-operational-hardening\.md/,
+    );
   }
 
   assert.match(i61Record, /E - Zoho guest-correspondence trigger hardening/);
@@ -1107,30 +1169,54 @@ test("I.6 documentation records owner acceptance and preserves future boundaries
     i61Record,
     /Workstream A status: Completed; Hosted owner validation PASS on 2026-10-05/,
   );
-  assert.match(i61Record, /Runtime acceptance remains intentionally domain-based/);
+  assert.match(
+    i61Record,
+    /Runtime acceptance remains intentionally domain-based/,
+  );
   assert.match(i61Record, /Any \/ OR/);
   assert.match(i61Record, /A - Guest phone-country inference/);
   assert.match(i61Record, /B - GuestPaymentRequest expiration cron/);
   assert.match(i61Record, /C - Financial Admin Web Push notifications/);
-  assert.match(i61Record, /D - Reservation Additional Charges nested tabs \+ single accordions/);
-  assert.match(i61Record, /Final-I\.8 status: Not started \/ reserved for FEL delivery email\/PDF\/XML\/history UX/);
-  assert.match(i61Record, /Final-I\.9 status: Not started \/ integrated Final-I closure/);
+  assert.match(
+    i61Record,
+    /D - Reservation Additional Charges nested tabs \+ single accordions/,
+  );
+  assert.match(
+    i61Record,
+    /Final-I\.8 status: Not started \/ reserved for FEL delivery email\/PDF\/XML\/history UX/,
+  );
+  assert.match(
+    i61Record,
+    /Final-I\.9 status: Not started \/ integrated Final-I closure/,
+  );
   assert.match(i61Record, /GET \/api\/geo\/phone-country/);
   assert.match(i61Record, /export const revalidate = 300/);
-  assert.match(i61Record, /Workstream B\+C status: Completed; Hosted owner validation PASS on 2026-10-06/);
-  assert.match(i61Record, /20261005130000_final_i_6_1_financial_operations_hardening/);
+  assert.match(
+    i61Record,
+    /Workstream B\+C status: Completed; Hosted owner validation PASS on 2026-10-06/,
+  );
+  assert.match(
+    i61Record,
+    /20261005130000_final_i_6_1_financial_operations_hardening/,
+  );
   assert.match(i61Record, /enum-only migration/);
   assert.match(
     i61Record,
     /Workstream D status: Completed; Hosted functional validation PASS; final full-width Charge accordion-header visual revalidation PASS; Hosted owner validation PASS on 2026-10-06/,
   );
   assert.match(i61Record, /contaminated test data/);
-  assert.match(i61Record, /Clean stay-extension and full date-change C2 tests both passed/);
+  assert.match(
+    i61Record,
+    /Clean stay-extension and full date-change C2 tests both passed/,
+  );
   assert.match(i61Record, /vercel\.json.*crons/);
 
   assert.match(record, /Owner Hosted validation: PASS/);
   assert.match(record, /Owner formal acceptance: PASS on 2026-10-02/);
-  assert.match(record, /Final-I\.6 documentation acceptance closure validation:/);
+  assert.match(
+    record,
+    /Final-I\.6 documentation acceptance closure validation:/,
+  );
   assert.match(
     record,
     /Accepted Final-I\.6 feature head - 80469abda146d0d50516ab598a514a9ccea2db6d/,
@@ -1143,7 +1229,10 @@ test("I.6 documentation records owner acceptance and preserves future boundaries
     record,
     /documentation-only closure commit does not replace that accepted feature head/,
   );
-  assert.match(record, /NIT\/CUI receiver validation runtime remains deferred to Final-I\.7/);
+  assert.match(
+    record,
+    /NIT\/CUI receiver validation runtime remains deferred to Final-I\.7/,
+  );
   assert.match(record, /PAYMENT != FISCAL LINE/);
   assert.match(record, /FelCommercialSourceAllocation\.amountSnapshot/);
 });

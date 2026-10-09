@@ -63,8 +63,7 @@ export async function buildReservationConfirmedEmail(
     messages.common.guestPlural,
   );
   const arrivalTime = view.arrivalTimeEstimate ?? messages.common.notProvided;
-  const checkOutTime =
-    view.checkOutTime ?? messages.common.flexibleCheckOut;
+  const checkOutTime = view.checkOutTime ?? messages.common.flexibleCheckOut;
   const subject = `${messages.reservationConfirmed.subjectPrefix} · ${view.propertyName}`;
   const previewText = `${messages.reservationConfirmed.previewPrefix} ${view.checkInDate}.`;
 
@@ -95,7 +94,7 @@ export async function buildReservationConfirmedEmail(
         </EmailSectionTitle>
         <EmailDetailRow
           label={messages.common.reservationReference}
-          value={view.reservationId}
+          value={view.reservationCode}
         />
         <EmailDetailRow
           label={messages.common.accommodation}
@@ -115,7 +114,7 @@ export async function buildReservationConfirmedEmail(
         />
         <EmailDetailRow label={messages.common.nights} value={nights} />
         <EmailDetailRow label={messages.common.guests} value={guests} />
-                <EmailDetailRow
+        <EmailDetailRow
           label={messages.common.arrivalTime}
           value={arrivalTime}
         />
@@ -176,13 +175,13 @@ export async function buildReservationConfirmedEmail(
     buildPlainTextRows([
       {
         label: messages.common.reservationReference,
-        value: view.reservationId,
+        value: view.reservationCode,
       },
       { label: messages.common.accommodation, value: view.propertyName },
       { label: messages.common.checkIn, value: view.checkInDate },
       { label: messages.common.checkOut, value: view.checkOutDate },
       { label: messages.common.checkOutTime, value: checkOutTime },
-            { label: messages.common.nights, value: nights },
+      { label: messages.common.nights, value: nights },
       { label: messages.common.guests, value: guests },
       { label: messages.common.arrivalTime, value: arrivalTime },
       ...(view.appliedPricingSummary

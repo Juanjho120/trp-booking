@@ -1,4 +1,5 @@
 import { PaymentRetryPage } from "@/features/payments/components/payment-retry-page";
+import { getReservationCodeById } from "@/lib/reservations/reservation-public-reference";
 import {
   isTilopayRetryPaymentIssue,
   type TilopayRetryPaymentIssue,
@@ -35,11 +36,14 @@ export default async function RetryPaymentPage({
   searchParams: PaymentRetrySearchParams;
 }>) {
   const params = await searchParams;
+  const reservationId = readParam(params, "reservationId");
+  const reservationCode = await getReservationCodeById(reservationId);
 
   return (
     <PaymentRetryPage
       paymentIssue={readPaymentIssue(params)}
-      reservationId={readParam(params, "reservationId")}
+      reservationCode={reservationCode}
+      reservationId={reservationId}
     />
   );
 }

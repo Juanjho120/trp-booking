@@ -1,7 +1,4 @@
-import {
-  ReservationStatus,
-  type Prisma,
-} from "@prisma/client";
+import { ReservationStatus, type Prisma } from "@prisma/client";
 
 import {
   adminAccommodationIds,
@@ -25,8 +22,11 @@ function normalizeSearch(value: string | undefined): string | undefined {
   return search ? search.slice(0, 120) : undefined;
 }
 
-function normalizeReservationStatus(value: string | undefined): ReservationStatus | undefined {
-  return value && Object.values(ReservationStatus).includes(value as ReservationStatus)
+function normalizeReservationStatus(
+  value: string | undefined,
+): ReservationStatus | undefined {
+  return value &&
+    Object.values(ReservationStatus).includes(value as ReservationStatus)
     ? (value as ReservationStatus)
     : undefined;
 }
@@ -48,6 +48,12 @@ export async function getAdminReservationsPage(
           OR: [
             {
               id: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+            {
+              reservationCode: {
                 contains: search,
                 mode: "insensitive",
               },
@@ -103,6 +109,7 @@ export async function getAdminReservationsPage(
     take: PAGE_SIZE,
     select: {
       id: true,
+      reservationCode: true,
       guestName: true,
       guestEmail: true,
       guestPhone: true,
@@ -152,6 +159,7 @@ export async function getAdminReservationsPage(
     },
     reservations: reservations.map((reservation) => ({
       id: reservation.id,
+      reservationCode: reservation.reservationCode,
       property: reservation.property,
       guestName: reservation.guestName,
       guestEmail: reservation.guestEmail,

@@ -3,12 +3,13 @@ import type { AdminReservationDetailData } from "@/types/admin-reservation-detai
 
 export type AdminReservationDetailShell = Pick<
   AdminReservationDetailData,
-  "id" | "status"
+  "id" | "reservationCode" | "status"
 >;
 
 export type AdminReservationOverviewTab = Pick<
   AdminReservationDetailData,
   | "id"
+  | "reservationCode"
   | "property"
   | "guestName"
   | "guestEmail"
@@ -27,6 +28,7 @@ export type AdminReservationOverviewTab = Pick<
 export type AdminReservationFinancialTab = Pick<
   AdminReservationDetailData,
   | "id"
+  | "reservationCode"
   | "status"
   | "subtotal"
   | "cleaningFee"
@@ -41,12 +43,13 @@ export type AdminReservationFinancialTab = Pick<
 
 export type AdminReservationEmailsTab = Pick<
   AdminReservationDetailData,
-  "id" | "status" | "guestEmail" | "emailNotifications"
+  "id" | "reservationCode" | "status" | "guestEmail" | "emailNotifications"
 >;
 
 export type AdminReservationLifecycleTab = Pick<
   AdminReservationDetailData,
   | "id"
+  | "reservationCode"
   | "guestName"
   | "guestEmail"
   | "guestPhone"
@@ -58,6 +61,7 @@ export type AdminReservationLifecycleTab = Pick<
 export type AdminReservationRefundsTab = Pick<
   AdminReservationDetailData,
   | "id"
+  | "reservationCode"
   | "status"
   | "updatedAt"
   | "currency"
@@ -73,6 +77,7 @@ export type AdminReservationRefundsTab = Pick<
 export type AdminReservationChangesTab = Pick<
   AdminReservationDetailData,
   | "id"
+  | "reservationCode"
   | "guestName"
   | "guestEmail"
   | "guestPhone"
@@ -86,7 +91,7 @@ export type AdminReservationChangesTab = Pick<
 
 export type AdminReservationHistoryTab = Pick<
   AdminReservationDetailData,
-  "operationalHistory"
+  "id" | "reservationCode" | "operationalHistory"
 >;
 
 export type AdminReservationPaymentAttemptsTab =

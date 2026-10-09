@@ -10,7 +10,7 @@ export type PaymentResultType = "success" | "cancel" | "error";
 
 type PaymentResultPageProps = Readonly<{
   resultType: PaymentResultType;
-  reservationId: string | null;
+  reservationCode: string | null;
   paymentId: string | null;
   paymentStatus: string | null;
   reservationStatus: string | null;
@@ -18,7 +18,9 @@ type PaymentResultPageProps = Readonly<{
   code: string | null;
 }>;
 
-function ResultIcon({ resultType }: Readonly<{ resultType: PaymentResultType }>) {
+function ResultIcon({
+  resultType,
+}: Readonly<{ resultType: PaymentResultType }>) {
   if (resultType === "success") {
     return (
       <span className="mx-auto flex size-16 items-center justify-center rounded-full bg-primary/10 text-primary">
@@ -56,7 +58,7 @@ type PaymentResultMessages = Readonly<{
   cancel: PaymentResultContentCopy;
   error: PaymentResultContentCopy;
   labels: Readonly<{
-    reservationId: string;
+    reservationCode: string;
     paymentId: string;
     paymentStatus: string;
     reservationStatus: string;
@@ -82,7 +84,10 @@ function getResultCopy(
 }
 
 function normalizeStatusKey(value: string): string {
-  return value.trim().toUpperCase().replace(/[\s-]+/g, "_");
+  return value
+    .trim()
+    .toUpperCase()
+    .replace(/[\s-]+/g, "_");
 }
 
 function translateDisplayValue(
@@ -100,7 +105,7 @@ function translateDisplayValue(
 
 export function PaymentResultPage({
   resultType,
-  reservationId,
+  reservationCode,
   paymentId,
   paymentStatus,
   reservationStatus,
@@ -123,7 +128,9 @@ export function PaymentResultPage({
 
   const title = resultCopy.title;
   const description = resultCopy.description;
-  const borderClassName = isSuccess ? "border-primary/20" : "border-destructive/30";
+  const borderClassName = isSuccess
+    ? "border-primary/20"
+    : "border-destructive/30";
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -144,12 +151,14 @@ export function PaymentResultPage({
           </div>
 
           <dl className="grid gap-3 rounded-3xl border border-border/70 bg-background p-4 text-left text-sm">
-            {reservationId ? (
+            {reservationCode ? (
               <div className="grid gap-1">
                 <dt className="font-medium text-foreground">
-                  {resultMessages.labels.reservationId}
+                  {resultMessages.labels.reservationCode}
                 </dt>
-                <dd className="break-all text-muted-foreground">{reservationId}</dd>
+                <dd className="break-all text-muted-foreground">
+                  {reservationCode}
+                </dd>
               </div>
             ) : null}
 
@@ -167,7 +176,9 @@ export function PaymentResultPage({
                 <dt className="font-medium text-foreground">
                   {resultMessages.labels.paymentStatus}
                 </dt>
-                <dd className="text-muted-foreground">{normalizedPaymentStatus}</dd>
+                <dd className="text-muted-foreground">
+                  {normalizedPaymentStatus}
+                </dd>
               </div>
             ) : null}
 
@@ -178,7 +189,9 @@ export function PaymentResultPage({
                 </dt>
                 <dd className="text-muted-foreground">
                   {normalizedReservationStatus}
-                  {reservationConfirmed ? "" : ` · ${messages.errors.payment.failed}`}
+                  {reservationConfirmed
+                    ? ""
+                    : ` · ${messages.errors.payment.failed}`}
                 </dd>
               </div>
             ) : null}
@@ -188,7 +201,9 @@ export function PaymentResultPage({
                 <dt className="font-medium text-foreground">
                   {resultMessages.labels.providerCode}
                 </dt>
-                <dd className="break-all text-muted-foreground">{normalizedCode}</dd>
+                <dd className="break-all text-muted-foreground">
+                  {normalizedCode}
+                </dd>
               </div>
             ) : null}
           </dl>
