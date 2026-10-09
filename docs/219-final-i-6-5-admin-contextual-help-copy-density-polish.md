@@ -2,10 +2,17 @@
 
 ## Status
 
-Final-I.6.5 — Implementation completed; Contextual-help Hosted validation PASS; final Reservation-detail Card-header density revalidation pending.
+Status: Completed and accepted on 2026-10-09
+
+Accepted Final-I.6.5 feature head: `61ba8ea88bc7b7073f4ef6e733422e7c34b29698`
+
+Owner formal acceptance: PASS on 2026-10-09
+
+Documentation closure commit: documentation-only; it does not replace the accepted feature head.
 
 - Implementation base: `01c8b27d3e648b0653c27cd81a79c60ccbf7b7e0`
 - Implementation date: 2026-10-08
+- Acceptance date: 2026-10-09
 - Scope: Admin contextual help and copy-density polish only.
 - Final-I.6.4 remains completed and accepted; this work does not reopen its lazy-loading/tab-cache/financial-tab contract.
 - Final-I.7 — Blocked pending official INFILE technical documentation and Test credentials.
@@ -17,29 +24,150 @@ Final-I.6.5 — Implementation completed; Contextual-help Hosted validation PASS
 
 Runtime changes are limited to Admin presentation/accessibility; no domain/API/schema/migration/provider/cron/dependency/configuration behavior changed.
 
-This subphase only reduces always-visible admin explanatory copy by adding reusable contextual help. It preserves existing admin data, workflows, risk warnings, destructive-action guardrails, security notes, financial boundaries, provider behavior, API behavior, reservation detail lazy loading, tab caching, and financial-tab separation.
+This subphase reduces always-visible admin explanatory copy through reusable contextual help and a final Reservation-detail Card-header density polish. It preserves existing admin data, workflows, risk warnings, destructive-action guardrails, security notes, financial boundaries, provider behavior, API behavior, Reservation detail lazy loading, tab caching, and financial-tab separation.
 
-The implementation uses the existing `radix-ui` dependency and `lucide-react` icons. No new package was added.
+The accepted implementation uses the existing `radix-ui` dependency and `lucide-react` icons. No new package was added.
 
-## Implementation Summary
+The accepted feature head is `61ba8ea88bc7b7073f4ef6e733422e7c34b29698`. The documentation closure commit that records this acceptance is not the accepted feature head.
 
-- Added `features/admin/components/admin-contextual-help.tsx` as a reusable localized admin help trigger.
-- The trigger is icon-only (`CircleHelp`), uses localized accessible labels (`Ayuda` / `Help`), and is available through pointer hover, keyboard focus, click, and tap via Radix Popover.
-- The shared help primitive was hardened to use a controlled Radix Popover Anchor, explicit click/tap pinning, focus-visible keyboard opening, Escape/outside dismissal through `onOpenChange`, prevented Radix auto-focus jumps, timer cleanup on unmount, a larger mobile touch target, and viewport-safe popover width.
-- Refactored `features/admin/components/admin-page-header.tsx` so page-level descriptions are no longer persistent paragraphs; they are available through contextual help beside the single `<h1>`.
-- Moved only Category A explanatory copy behind contextual help in high-density admin surfaces.
-- Kept Category B operational metadata visible, including ids, timestamps, statuses, provider references, guests/properties, counts, amounts, and email metadata that admins need for work.
-- Kept Category C warnings, consequences, security/privacy notes, financial boundaries, refund/payment caveats, destructive-action descriptions, and provider/secret notes visible.
-- Removed redundant pre-title badge/icon rows from the Reservation-detail Lifecycle, Additional Charges, Refunds, Date Changes, and Operational History cards.
-- Converted Lifecycle, Additional Charges, Refunds, and Date Changes top-card actions to compact icon-only header controls with localized tooltips and `aria-label`s while preserving every existing permission gate, handler, dialog, and business behavior.
-- Preserved the Refunds dual-action model: standard-policy authorization keeps `ShieldCheck`, extraordinary authorization keeps `CircleDollarSign`, and both remain independently permission-gated.
-- Mobile and desktop Reservation-detail card headers now keep title/help on the left and compact actions on the right in the same horizontal header row.
+## Accepted Contextual-Help Architecture
+
+The accepted shared component is `features/admin/components/admin-contextual-help.tsx`.
+
+Accepted behavior:
+
+```text
+desktop hover -> opens contextual help
+keyboard focus-visible -> opens contextual help
+click/tap -> pins help open
+second click/tap -> closes
+Escape -> closes
+outside click/tap -> closes
+```
+
+Frozen architecture:
+
+- Controlled Radix Popover architecture.
+- `Popover.Anchor`, not competing trigger state.
+- Explicit pinning state.
+- `:focus-visible` keyboard handling.
+- No pointer/touch double-toggle.
+- Radix auto-focus jumps prevented.
+- Close timer cleanup.
+- Viewport-safe help width.
+
+## Accepted Mobile And PWA Support
+
+Help must not require hover.
+
+Accepted mobile/PWA contract:
+
+- Android/mobile tap works.
+- Standalone PWA tap works.
+- Mobile interaction target is enlarged.
+- Help content remains inside the viewport.
+- No horizontal overflow.
+- The icon remains visually compact even when the touch target is larger.
+
+## Accepted Accessibility Contract
+
+Accepted contextual-help trigger:
+
+```text
+native interactive button
+localized aria-label
+aria-controls
+aria-expanded
+aria-haspopup
+decorative CircleHelp aria-hidden
+```
+
+Accepted localized accessible names:
+
+```text
+ES: Ayuda
+EN: Help
+```
+
+Page/title semantics remain intact.
+
+## Accepted AdminPageHeader Cleanup
+
+`AdminPageHeader` still contains one proper `<h1>`.
+
+Page descriptions are no longer persistent paragraphs. The accepted pattern is:
+
+```text
+Page title (?)
+```
+
+The previous localized description is available through contextual Help.
+
+Frozen behavior:
+
+- Badge unchanged.
+- Actions unchanged.
+- Title remains visible.
+- Responsive title wrapping preserved.
 
 ## Copy Classification
 
-- Category A: explanatory/orienting copy that can safely move behind contextual help without hiding the current state or consequences.
-- Category B: operational metadata that must remain visible for repeated admin work and reconciliation.
-- Category C: warnings, risk/consequence copy, security boundaries, privacy notes, destructive-action guidance, and financial/provider safeguards that must remain visible.
+### Category A — Contextual / Supplementary
+
+Moved to contextual Help where appropriate.
+
+Examples:
+
+```text
+page descriptions
+section descriptions
+metric explanations
+format guidance
+supplementary helper copy
+general conceptual explanations
+```
+
+### Category B — Operational State / Data
+
+Must remain visible.
+
+Examples:
+
+```text
+IDs
+statuses
+amounts
+dates
+guest/property information
+provider references
+email metadata
+loading states
+empty states
+pagination
+timestamps
+current values
+```
+
+### Category C — Risk / Consequence / Security
+
+Must remain visible proactively.
+
+Examples:
+
+```text
+financial boundaries
+refund/payment consequences
+cancellation consequences
+availability release effects
+date-change operational rules
+secret/token security
+rotation warnings
+destructive-action consequences
+FEL/provider limitations
+stale-preview warnings
+```
+
+Do not require Help interaction to discover Category-C information.
 
 ## Component Audit Inventory
 
@@ -81,51 +209,346 @@ The implementation uses the existing `radix-ui` dependency and `lucide-react` ic
 | `admin-accommodation-management.tsx` | Overview/preparation descriptions plus property slugs, capacity, pricing and immutable-boundary note. | Category A/B/C | Moved overview/preparation descriptions to help. | Property slugs, metrics, last-updated and readonly-boundary note remain visible. |
 | `admin-accommodation-content-editor.tsx` | Identity/language, public-impact, capacity and time-format descriptions; immutable-fields note. | Category A/C | Moved explanatory section notes to help. | Immutable-field boundary remains visible. |
 
-## Hosted Contextual-Help Validation and Final Visual-Polish Checkpoint
+The complete current Admin component surface was reviewed and classified. Do not remove this audit inventory during future continuity updates.
 
-Contextual-help Hosted owner validation: PASS on 2026-10-08.
+## Representative Accepted Migrations
 
-Validated Hosted contextual-help evidence:
+Category-A copy was successfully moved to contextual Help across representative Admin surfaces including:
 
-- Desktop hover/click behavior passed.
-- Keyboard behavior passed.
-- Android/PWA tap behavior passed.
-- Responsive help popover behavior passed.
-- Spanish and English localization passed.
-- Category B/C operational metadata, warnings and security/financial boundaries remained visible.
+```text
+Dashboard
+Accommodation content/management
+Amenities / House Rules
+Arrival Instructions
+Calendar Integrations
+Catalog
+Pricing
+Property Photos
+Public Location
+Notifications
+Payment diagnostics/history
+Reservation detail
+Cancellation
+Date changes
+Refunds
+Additional Charges
+Operational History
+```
 
-Final owner visual-polish checkpoint implemented after the contextual-help PASS:
+FEL remained intentionally conservative.
 
-- Removed redundant pre-title badge/icon rows from Lifecycle, Additional Charges, Refunds, Date Changes, and Operational History Reservation-detail cards.
-- Converted Lifecycle, Additional Charges, Refunds, and Date Changes top-card actions to compact icon-only controls with localized tooltips and `aria-label`s.
-- Preserved all action permissions, dialogs and business behavior.
-- Preserved Refunds as two independent actions: standard-policy authorization and extraordinary authorization.
-- Mobile keeps Card title/help and actions on the same compact header row.
+## Critical Visible Boundaries
 
-## Expected Final Card-Header Revalidation
+The following remain visible and are not contextual-help-only.
 
-Final Reservation-detail Card-header density revalidation remains pending and should verify:
+### Additional Charges
 
-- Lifecycle, Additional Charges, Refunds, Date Changes and Operational History no longer show redundant pre-title badge/icon rows.
-- Lifecycle, Additional Charges and Date Changes top-card create actions are compact icon-only `+` controls with localized tooltip and `aria-label`.
-- Refunds keeps both compact icon-only actions: `ShieldCheck` for standard-policy authorization and `CircleDollarSign` for extraordinary authorization.
-- Desktop and mobile keep Card title/help and action controls on the same compact header row.
-- Category C visible notes and existing workflows remain unchanged.
+```text
+financialIsolation
+chargeBoundary
+requestBoundary
+```
+
+### Cancellation
+
+```text
+policyCalculation
+refundSeparate
+availabilityRelease
+```
+
+### Date Changes
+
+```text
+serverQuote
+availability
+noMutation
+```
+
+### Refunds
+
+```text
+separateLifecycle
+providerMovements
+financial summary
+authorization limits
+execution/reconciliation consequences
+```
+
+### Calendar Integrations
+
+```text
+secret safety
+legacy migration warning
+generate-required state
+rotation-required state
+rotation warning
+```
+
+### Public Location
+
+```text
+security/privacy guidance
+provider restrictions where operationally necessary
+```
+
+### FEL
+
+```text
+no provider certification
+stale preview
+saved snapshot evidence/state
+fiscal/provider warnings
+```
+
+## Accepted Reservation-Detail Card-Header Polish
+
+The final accepted polish at `61ba8ea88bc7b7073f4ef6e733422e7c34b29698` removed redundant pre-title icon/badge rows from:
+
+```text
+Lifecycle
+Additional Charges
+Refunds
+Date changes
+Operational history
+```
+
+These rows must not return merely as decorative duplication.
+
+Accepted Reservation Card hierarchy, with actual localized Card titles remaining authoritative from existing messages:
+
+```text
+Cancelación administrativa (?)                  [+]
+Cargos adicionales (?)                          [+]
+Reembolsos (...)                         [shield] [$]
+Cambios de fechas y extensiones (?)              [+]
+Historial operativo de la reservación (?)
+```
+
+Top-level tab navigation labels remain separate.
+
+## Accepted Compact Action Buttons
+
+Accepted header actions are icon-only and remain in the same Card-header row as the title/help group.
+
+Lifecycle:
+
+```text
+Plus
+Tooltip / aria-label:
+Registrar solicitud / Record request
+```
+
+Additional Charges:
+
+```text
+Plus
+Crear cargo / Create charge
+```
+
+Date changes:
+
+```text
+Plus
+Registrar cambio o extensión / Record change or extension
+```
+
+Refunds may display:
+
+```text
+ShieldCheck
+Autorizar según política / Authorize by policy
+
+CircleDollarSign
+Autorizar extraordinario / Authorize extraordinary
+```
+
+Both Refund actions remain independently permission-controlled.
+
+## Frozen Action Semantics
+
+The visual compacting does not change:
+
+```text
+canCreateRequest
+management.canCreateCharge
+canAuthorizeStandard
+canAuthorizeExtraordinary
+openCreateRequest
+openCreateCharge
+openAuthorization("STANDARD_POLICY")
+openAuthorization("EXTRAORDINARY")
+```
+
+Dialogs/sheets and business logic remain unchanged.
+
+## Accepted Responsive Action Layout
+
+Accepted Card-header layout:
+
+```text
+title/help group
++
+shrink-0 action group
+```
+
+on both desktop and mobile.
+
+Frozen behavior:
+
+- Actions do not unnecessarily consume a separate vertical row.
+- Mobile targets remain comfortable to tap.
+- Title may wrap.
+- No horizontal overflow.
+- Action icon remains compact.
+
+Accepted target sizing:
+
+```text
+mobile approximately 40px
+desktop approximately 36px
+```
+
+## Accepted Tooltip Distinction
+
+These Card action buttons use normal Tooltip behavior, not `AdminContextualHelp`.
+
+Each icon-only action has:
+
+```text
+TooltipContent using existing localized action label
+aria-label using the same localized label
+```
+
+This distinction remains:
+
+```text
+AdminContextualHelp -> explanatory information
+Button + Tooltip -> action name
+```
+
+## Final-I.6.4 Compatibility
+
+I.6.5 does not reopen or supersede I.6.4.
+
+Preserved accepted I.6.4 behavior:
+
+```text
+lightweight Reservation initial shell
+lazy top-level tabs
+page-scoped cache
+Financial Summary / Attempts
+active-unit Reload
+full loading presentation on Reload
+Additional Charges locale stability
+Zoho nested tab
+Guest Correspondence relocation
+contextual notification focus
+focus cleanup
+F5 -> Reservation
+header status synchronization
+canonical tab spacing
+short top-level navigation labels
+```
+
+## Owner Hosted Acceptance Ledger
+
+Contextual-help Hosted validation: PASS.
+
+Accepted evidence covered:
+
+```text
+desktop hover
+desktop click/pinning
+keyboard focus
+Escape
+outside dismissal
+Android/mobile tap
+standalone PWA touch
+responsive help width
+ES/EN
+Category B visibility
+Category C visibility
+reduced Admin copy density
+```
+
+Final Reservation-detail Card-header density validation: PASS on 2026-10-09.
+
+Accepted evidence covered:
+
+```text
+Lifecycle redundant pre-title removed
+Additional Charges redundant pre-title removed
+Refunds redundant pre-title removed
+Date changes redundant pre-title removed
+Operational History redundant pre-title removed
+
+Lifecycle compact icon action
+Additional Charges compact icon action
+Date changes compact icon action
+Refund dual compact icon actions
+
+desktop layout
+mobile layout
+tooltips
+aria-labels
+same dialogs/workflows
+no overflow
+```
+
+Owner formal acceptance: PASS on 2026-10-09.
 
 ## Validation Ledger
 
-Final-I.6.5 implementation validation:
-- npm run final-i:validate - PASS, 118/118
-- npm run final-h:validate - PASS, 20/20
-- npm run lint - PASS
-- npm run build - PASS; Next slow filesystem warning only
-- git diff --check - PASS; Windows CRLF normalization warnings only
-- vercel.json confirmation - PASS; remains exactly `{ "crons": [] }`
+Final-I.6.5 accepted validation:
+
+```text
+npm run final-i:validate
+PASS — 118/118
+
+npm run final-h:validate
+PASS — 20/20
+
+npm run lint
+PASS
+
+npm run build
+PASS
+
+git diff --check
+PASS
+```
+
+Accepted feature-head Vercel deployment: SUCCESS.
+
+`vercel.json` remains exactly:
+
+```json
+{
+  "crons": []
+}
+```
 
 ## Current State
 
-- Final-I.6.5 — Implementation completed; Contextual-help Hosted validation PASS; final Reservation-detail Card-header density revalidation pending.
-- Final-I.7 — Blocked pending official INFILE technical documentation + Test credentials.
-- Final-I.8 — Not started / reserved for FEL delivery email/PDF/XML/history UX.
-- Final-I.9 — Not started / integrated Final-I closure.
-- Phase 13 — Blocked / Not started.
+```text
+Final-I.6.5 — Completed and accepted on 2026-10-09
+Accepted Final-I.6.5 feature head: 61ba8ea88bc7b7073f4ef6e733422e7c34b29698
+
+Final-I.7 — Blocked pending official INFILE technical documentation + Test credentials
+Final-I.8 — Not started / reserved for FEL delivery email/PDF/XML/history UX
+Final-I.9 — Not started / integrated Final-I closure
+Phase 13 — Blocked / Not started until Final-I closes
+```
+
+Final-I remains Active because I.7/I.8/I.9 are not complete.
+
+## 2026-10-09 — Final-I.6.5 Completed And Accepted
+
+The owner completed Hosted validation for both the Admin contextual-help/copy-density implementation and the Reservation-detail Card-header density polish, then formally accepted the complete Final-I.6.5 package on 2026-10-09.
+
+Accepted Final-I.6.5 feature head: `61ba8ea88bc7b7073f4ef6e733422e7c34b29698`
+
+Owner formal acceptance: PASS on 2026-10-09.
+
+The documentation closure commit that records this acceptance must not replace the accepted feature head.

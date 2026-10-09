@@ -448,7 +448,9 @@ test("I.6.5 implementation record contains the complete admin component audit", 
     "Category B",
     "Category C",
     "Runtime changes are limited to Admin presentation/accessibility",
-    "Final-I.6.5 — Implementation completed; Contextual-help Hosted validation PASS; final Reservation-detail Card-header density revalidation pending",
+    "Status: Completed and accepted on 2026-10-09",
+    "Accepted Final-I.6.5 feature head: `61ba8ea88bc7b7073f4ef6e733422e7c34b29698`",
+    "Owner formal acceptance: PASS on 2026-10-09",
     "Final-I.7 — Blocked",
   ]) {
     expectIncludes(doc, expected);

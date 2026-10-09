@@ -44,8 +44,9 @@ Final-I.6.3 implementation and acceptance record: docs/217-final-i-6-3-additiona
 Final-I.6.4 status: Completed and accepted on 2026-10-08
 Accepted Final-I.6.4 feature head: c80f172ac9e1e366e54517020dd5b1a1e1c30a76
 Final-I.6.4 implementation and acceptance record: docs/218-final-i-6-4-reservation-detail-lazy-loading-tab-cache.md
-Final-I.6.5 status: Implementation completed; Contextual-help Hosted validation PASS; final Reservation-detail Card-header density revalidation pending
-Final-I.6.5 implementation record: docs/219-final-i-6-5-admin-contextual-help-copy-density-polish.md
+Final-I.6.5 status: Completed and accepted on 2026-10-09
+Accepted Final-I.6.5 feature head: 61ba8ea88bc7b7073f4ef6e733422e7c34b29698
+Final-I.6.5 implementation and acceptance record: docs/219-final-i-6-5-admin-contextual-help-copy-density-polish.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -93,8 +94,9 @@ Final-I.6.3 implementation and acceptance record: docs/217-final-i-6-3-additiona
 Final-I.6.4 status: Completed and accepted on 2026-10-08
 Accepted Final-I.6.4 feature head: c80f172ac9e1e366e54517020dd5b1a1e1c30a76
 Final-I.6.4 implementation and acceptance record: docs/218-final-i-6-4-reservation-detail-lazy-loading-tab-cache.md
-Final-I.6.5 status: Implementation completed; Contextual-help Hosted validation PASS; final Reservation-detail Card-header density revalidation pending
-Final-I.6.5 implementation record: docs/219-final-i-6-5-admin-contextual-help-copy-density-polish.md
+Final-I.6.5 status: Completed and accepted on 2026-10-09
+Accepted Final-I.6.5 feature head: 61ba8ea88bc7b7073f4ef6e733422e7c34b29698
+Final-I.6.5 implementation and acceptance record: docs/219-final-i-6-5-admin-contextual-help-copy-density-polish.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -304,8 +306,9 @@ Final-I.6.3 implementation and acceptance record: docs/217-final-i-6-3-additiona
 Final-I.6.4 status: Completed and accepted on 2026-10-08
 Accepted Final-I.6.4 feature head: c80f172ac9e1e366e54517020dd5b1a1e1c30a76
 Final-I.6.4 implementation and acceptance record: docs/218-final-i-6-4-reservation-detail-lazy-loading-tab-cache.md
-Final-I.6.5 status: Implementation completed; Contextual-help Hosted validation PASS; final Reservation-detail Card-header density revalidation pending
-Final-I.6.5 implementation record: docs/219-final-i-6-5-admin-contextual-help-copy-density-polish.md
+Final-I.6.5 status: Completed and accepted on 2026-10-09
+Accepted Final-I.6.5 feature head: 61ba8ea88bc7b7073f4ef6e733422e7c34b29698
+Final-I.6.5 implementation and acceptance record: docs/219-final-i-6-5-admin-contextual-help-copy-density-polish.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -353,8 +356,9 @@ Final-I.6.3 implementation and acceptance record: docs/217-final-i-6-3-additiona
 Final-I.6.4 status: Completed and accepted on 2026-10-08
 Accepted Final-I.6.4 feature head: c80f172ac9e1e366e54517020dd5b1a1e1c30a76
 Final-I.6.4 implementation and acceptance record: docs/218-final-i-6-4-reservation-detail-lazy-loading-tab-cache.md
-Final-I.6.5 status: Implementation completed; Contextual-help Hosted validation PASS; final Reservation-detail Card-header density revalidation pending
-Final-I.6.5 implementation record: docs/219-final-i-6-5-admin-contextual-help-copy-density-polish.md
+Final-I.6.5 status: Completed and accepted on 2026-10-09
+Accepted Final-I.6.5 feature head: 61ba8ea88bc7b7073f4ef6e733422e7c34b29698
+Final-I.6.5 implementation and acceptance record: docs/219-final-i-6-5-admin-contextual-help-copy-density-polish.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -2091,13 +2095,38 @@ This does not reintroduce the previous implicit-history-selection bug: entering 
 
 Validation executed for this correction: `npm run final-i:validate` PASS 57/57 after rerun outside the sandbox because the sandbox-only `tsx` startup failed with `uv_os_get_passwd ENOMEM`; `npm run final-i:db:validate` PASS 13/13 with `TRP_ENVIRONMENT=test` after the same sandbox-only `tsx` startup failure; `npm run final-h:validate` PASS 20/20 after the same sandbox-only `tsx` startup failure; `npm run lint` PASS; `npm run build` PASS after rerun outside the sandbox because the sandbox run could not fetch Google Fonts; and `git diff --check` PASS with Windows CRLF normalization warnings only.
 
-## 2026-10-08 — Final-I.6.5 Admin Contextual Help Implemented; Hosted Owner Validation Pending
+## 2026-10-09 — Final-I.6.5 Completed And Accepted
+
+```text
+Package: Final-I — Operational Polish, Notification UX & FEL Invoicing
+Subphase: Final-I.6.5 — Admin Contextual Help & Copy Density Polish
+Status: Completed and accepted on 2026-10-09
+Accepted Final-I.6.5 feature head: 61ba8ea88bc7b7073f4ef6e733422e7c34b29698
+Record: docs/219-final-i-6-5-admin-contextual-help-copy-density-polish.md
+Documentation closure commit: documentation-only; it does not replace the accepted feature head
+Final-I.7: Blocked pending official INFILE technical documentation + Test credentials
+Final-I.8: Not started / reserved for FEL delivery email/PDF/XML/history UX
+Final-I.9: Not started / integrated Final-I closure
+Phase 13: Blocked / Not started until Final-I closes
+```
+
+Owner Hosted validation and formal acceptance passed on 2026-10-09 for the complete Final-I.6.5 Admin Contextual Help & Copy Density Polish package. The accepted feature head remains `61ba8ea88bc7b7073f4ef6e733422e7c34b29698`; this documentation-only closure does not replace it.
+
+Accepted evidence includes contextual help desktop hover/click/pinning, keyboard focus, Escape dismissal, outside dismissal, Android/mobile tap, standalone PWA touch, responsive help width, ES/EN localization, Category B operational visibility, Category C risk/security/financial visibility, reduced Admin copy density, and the final Reservation-detail Card-header density polish.
+
+The final Card-header validation confirmed redundant pre-title rows removed from Lifecycle, Additional Charges, Refunds, Date changes, and Operational History; compact icon actions for Lifecycle, Additional Charges, Date changes, and Refunds; desktop/mobile layout; tooltips; aria-labels; unchanged dialogs/workflows; and no overflow.
+
+No runtime behavior, Admin component, message/runtime copy, API, loader, cache, domain/business logic, Prisma schema, migration, dependency, environment variable, cron/scheduler registration, `vercel.json`, FEL runtime, INFILE behavior, Final-I.7, Final-I.8, Final-I.9, Phase 13, or Production resource was introduced by this documentation closure.
+
+Validation accepted for Final-I.6.5: `npm run final-i:validate` PASS 118/118; `npm run final-h:validate` PASS 20/20; `npm run lint` PASS; `npm run build` PASS with Next slow filesystem warning only; `git diff --check` PASS with Windows CRLF normalization warnings only; `vercel.json` remains exactly `{ "crons": [] }`; Vercel deployment for the accepted feature head was SUCCESS.
+
+## 2026-10-08 — Final-I.6.5 Admin Contextual Help Implemented; Accepted On 2026-10-09
 
 ```text
 Package: Final-I — Operational Polish, Notification UX & FEL Invoicing
 Subphase: Final-I.6.5 — Admin Contextual Help & Copy Density Polish
 Starting head: 01c8b27d3e648b0653c27cd81a79c60ccbf7b7e0
-Status: Implementation completed; Hosted owner validation pending
+Status: Implementation completed; owner acceptance later completed on 2026-10-09
 Record: docs/219-final-i-6-5-admin-contextual-help-copy-density-polish.md
 Final-I.6.4: Completed and accepted on 2026-10-08 at c80f172ac9e1e366e54517020dd5b1a1e1c30a76
 Final-I.7: Blocked pending official INFILE technical documentation + Test credentials
@@ -2109,7 +2138,7 @@ Final-I.6.5 adds reusable Admin contextual help and moves only Category A explan
 
 Runtime changes are limited to Admin presentation/accessibility. No domain/API/schema/migration/dependency/environment variable/provider integration, cron/scheduler registration, `vercel.json`, INFILE/FEL provider behavior, Final-I.7, Final-I.8, Final-I.9, Phase 13, or Production resource is introduced by this implementation.
 
-Validation executed for I.6.5: `npm run final-i:validate` PASS 117/117; `npm run final-h:validate` PASS 20/20; `npm run lint` PASS; `npm run build` PASS with Next slow filesystem warning only; `git diff --check` PASS with Windows CRLF normalization warnings only; `vercel.json` remains exactly `{ "crons": [] }`.
+Validation executed for I.6.5: `npm run final-i:validate` PASS 118/118; `npm run final-h:validate` PASS 20/20; `npm run lint` PASS; `npm run build` PASS with Next slow filesystem warning only; `git diff --check` PASS with Windows CRLF normalization warnings only; `vercel.json` remains exactly `{ "crons": [] }`.
 ## 2026-10-08 — Final-I.6.4 Completed And Accepted
 
 ```text
@@ -2119,7 +2148,7 @@ Status: Completed and accepted on 2026-10-08
 Accepted Final-I.6.4 feature head: c80f172ac9e1e366e54517020dd5b1a1e1c30a76
 Record: docs/218-final-i-6-4-reservation-detail-lazy-loading-tab-cache.md
 Documentation closure commit: documentation-only; it does not replace the accepted feature head
-Final-I.6.5: Implementation completed; Contextual-help Hosted validation PASS; final Reservation-detail Card-header density revalidation pending; record docs/219-final-i-6-5-admin-contextual-help-copy-density-polish.md
+Final-I.6.5: Completed and accepted on 2026-10-09 at accepted feature head 61ba8ea88bc7b7073f4ef6e733422e7c34b29698; record docs/219-final-i-6-5-admin-contextual-help-copy-density-polish.md
 Final-I.7: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9: Not started / integrated Final-I closure
