@@ -37,7 +37,7 @@ const reservationIdSchema = z
 const reservationCodeSchema = z
   .string()
   .trim()
-  .regex(/^TR[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{10}$/);
+  .regex(/^TR[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}$/);
 const dateOnlySchema = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}$/)

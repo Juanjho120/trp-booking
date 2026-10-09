@@ -14,9 +14,11 @@ import {
 import { test } from "./harness";
 
 const ROOT = process.cwd();
-const CODE_PATTERN = /^TR[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{10}$/;
-const MIGRATION_PATH =
+const CODE_PATTERN = /^TR[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}$/;
+const ORIGINAL_MIGRATION_PATH =
   "prisma/migrations/20261009130000_final_i_6_6_human_reservation_codes/migration.sql";
+const FORMAT_REFINEMENT_MIGRATION_PATH =
+  "prisma/migrations/20261009143000_final_i_6_6_reservation_code_8_chars/migration.sql";
 
 function read(relativePath: string): string {
   return readFileSync(path.join(ROOT, relativePath), "utf8");
@@ -71,25 +73,25 @@ function listFiles(relativeDirectory: string): string[] {
 
 test("I.6.6 reservation code generator uses human-safe TR format", () => {
   assert.equal(RESERVATION_CODE_PREFIX, "TR");
-  assert.equal(RESERVATION_CODE_LENGTH, 12);
+  assert.equal(RESERVATION_CODE_LENGTH, 8);
   assert.equal(RESERVATION_CODE_ALPHABET, "ABCDEFGHJKLMNPQRSTUVWXYZ23456789");
   assert.equal(RESERVATION_CODE_MAX_GENERATION_ATTEMPTS, 8);
 
   for (let index = 0; index < 128; index += 1) {
     const code = generateReservationCode();
 
-    assert.equal(code.length, 12);
+    assert.equal(code.length, 8);
     assert.match(code, CODE_PATTERN);
     assert.ok(!/[IO01]/.test(code.slice(2)));
     assert.equal(isReservationCode(code), true);
   }
 
   for (const rejected of [
-    "TRABCDEFGHJ",
-    "TRABCDEFGHJKL",
-    "trABCDEFGHJK",
-    "TRABCDEFGHJI",
-    "TRABCDEFGHJ0",
+    "TR8K3Q7",
+    "TR8K3Q7ZA",
+    "tr8K3Q7Z",
+    "TR8K3Q7I",
+    "TR8K3Q70",
     "reservation-technical-id",
     null,
   ]) {
@@ -97,27 +99,56 @@ test("I.6.6 reservation code generator uses human-safe TR format", () => {
   }
 });
 
-test("I.6.6 schema and migration enforce backfilled unique reservation codes", () => {
+test("I.6.6 schema and migrations enforce unique reservation codes with forward-only 8-char refinement", () => {
   const schema = read("prisma/schema.prisma");
-  const migration = read(MIGRATION_PATH);
+  const originalMigration = read(ORIGINAL_MIGRATION_PATH);
+  const refinementMigration = read(FORMAT_REFINEMENT_MIGRATION_PATH);
 
   expectIncludes(
     schema,
-    'reservationCode     String            @unique @map("reservation_code") @db.VarChar(12)',
+    'reservationCode     String            @unique @map("reservation_code") @db.VarChar(8)',
   );
-  expectIncludes(migration, 'ADD COLUMN "reservation_code" VARCHAR(12)');
-  expectIncludes(migration, "ABCDEFGHJKLMNPQRSTUVWXYZ23456789");
-  expectIncludes(migration, "floor(random() * length(alphabet))");
-  expectIncludes(migration, 'CHECK ("reservation_code" ~');
-  expectIncludes(migration, "^TR[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{10}$");
-  expectIncludes(migration, 'ALTER COLUMN "reservation_code" SET NOT NULL');
+  expectIncludes(originalMigration, 'ADD COLUMN "reservation_code" VARCHAR(12)');
+  expectIncludes(originalMigration, "ABCDEFGHJKLMNPQRSTUVWXYZ23456789");
+  expectIncludes(originalMigration, "floor(random() * length(alphabet))");
+  expectIncludes(originalMigration, 'CHECK ("reservation_code" ~');
   expectIncludes(
-    migration,
+    originalMigration,
+    "^TR[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{10}$",
+  );
+  expectIncludes(
+    originalMigration,
+    'ALTER COLUMN "reservation_code" SET NOT NULL',
+  );
+  expectIncludes(
+    originalMigration,
     'CREATE UNIQUE INDEX "reservations_reservation_code_key"',
   );
-  expectIncludes(migration, 'ON "reservations"("reservation_code")');
+  expectIncludes(originalMigration, 'ON "reservations"("reservation_code")');
+  expectIncludes(refinementMigration, "existing_reservations");
+  expectIncludes(refinementMigration, 'FROM "reservations"');
+  expectIncludes(refinementMigration, "reservation codes are immutable");
+  expectIncludes(
+    refinementMigration,
+    'DROP CONSTRAINT "reservations_reservation_code_format_check"',
+  );
+  expectIncludes(
+    refinementMigration,
+    'ALTER COLUMN "reservation_code" TYPE VARCHAR(8)',
+  );
+  expectIncludes(refinementMigration, 'CHECK ("reservation_code" ~');
+  expectIncludes(
+    refinementMigration,
+    "^TR[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}$",
+  );
+  expectNotIncludes(refinementMigration, 'SET "reservation_code"');
+  expectNotIncludes(refinementMigration, "random()");
 
-  assert.doesNotMatch(migration, /md5|digest|encode|gen_random_uuid/i);
+  assert.doesNotMatch(originalMigration, /md5|digest|encode|gen_random_uuid/i);
+  assert.doesNotMatch(
+    refinementMigration,
+    /md5|digest|encode|gen_random_uuid/i,
+  );
 });
 
 test("I.6.6 pending-hold creation persists and returns reservationCode with fresh-transaction collision retry", () => {
@@ -248,6 +279,7 @@ test("I.6.6 confirmation emails show reservationCode while admin links keep the 
   expectIncludes(templateTypes, "reservationCode: string;");
   expectIncludes(templateData, "const reservationCodeSchema = z");
   expectIncludes(templateData, "reservationCode: reservationCodeSchema");
+  expectIncludes(templateData, ".regex(/^TR[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}$/);");
   expectIncludes(templateData, "reservationCode: reservation.reservationCode");
   expectIncludes(templateData, "reservationId: reservation.id");
   expectIncludes(notificationService, "reservationCode: true");
@@ -312,7 +344,7 @@ test("I.6.6 FEL visible reservation references use code while source ids stay te
   expectIncludes(component, "copy.labels.reservationCode");
   expectIncludes(component, "reservation.reservationCode");
   expectIncludes(component, ".map((reservation) => reservation.id)");
-  expectIncludes(testFixture, 'reservationCode: "TRABCDEFGHJK"');
+  expectIncludes(testFixture, 'reservationCode: "TR8K3Q7Z"');
 });
 
 test("I.6.6 does not introduce public reservation-code routes", () => {

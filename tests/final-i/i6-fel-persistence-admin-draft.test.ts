@@ -87,7 +87,7 @@ function sourceReservation(
 ): AdminFelDraftSourceReservation {
   return {
     id: "reservation-a",
-    reservationCode: "TRABCDEFGHJK",
+    reservationCode: "TR8K3Q7Z",
     guestName: "Ada Lovelace",
     guestEmail: "ada@example.com",
     guestPhone: "+50255550000",
@@ -233,7 +233,7 @@ test("I.6 adds provider-independent FEL schema and preserves the I.6 migration c
     assert.match(schema, new RegExp(`\\bmodel\\s+${modelName}\\b`));
   }
 
-  assert.equal(migrations.length, 32);
+  assert.equal(migrations.length, 33);
   assert.equal(
     migrations.filter((entry) => entry.name === MIGRATION_DIR).length,
     1,

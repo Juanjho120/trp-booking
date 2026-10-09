@@ -82,7 +82,7 @@ function expectVisibleHtmlUrl(
 function reservation(locale: TransactionalEmailLocale) {
   return {
     id: `final-i4-${locale}`,
-    reservationCode: locale === "es" ? "TRABCDEFGHJK" : "TRABCDEFGHJL",
+    reservationCode: locale === "es" ? "TR8K3Q7Z" : "TR9M4R8X",
     guestName: locale === "es" ? "Huesped Final I4" : "Final I4 Guest",
     guestEmail: `guest-final-i4-${locale}@example.com`,
     guestPhone: "+50255551234",

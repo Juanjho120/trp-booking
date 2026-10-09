@@ -6,6 +6,8 @@ Status: Implementation completed; Hosted owner validation pending
 
 - Implementation base: `0e28002e7a6317986745b6d6406b260a85f3fa44`
 - Implementation date: 2026-10-09
+- Owner-approved format refinement date: 2026-10-09
+- Owner-approved eight-character refinement implementation head: the Git commit containing this entry; final SHA reported after push
 - Scope: Human-readable Reservation reference codes for guest/admin presentation only.
 - Final-I.6.5 remains completed and accepted; this work does not reopen Admin contextual-help/copy-density polish.
 - Final-I.7 — Blocked pending official INFILE technical documentation and Test credentials.
@@ -25,48 +27,76 @@ No Production resources, provider credentials, cron changes, dependency changes,
 
 ## Code Format
 
-Accepted runtime format:
+Accepted runtime format after owner refinement on 2026-10-09:
 
 ```text
-TRXXXXXXXXXX
+TRXXXXXX
 ```
 
 Rules:
 
 ```text
-length: 12 characters
+length: 8 characters
 prefix: TR
-random suffix length: 10
+random suffix length: 6
 alphabet: ABCDEFGHJKLMNPQRSTUVWXYZ23456789
 excluded ambiguous characters: I, O, 0, 1
+valid example: TR8K3Q7Z
 ```
 
-The implementation lives in `lib/reservations/reservation-code.ts` and uses Node `crypto.randomInt`. The helper validates the full code with `^TR[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{10}$`.
+The implementation lives in `lib/reservations/reservation-code.ts` and uses Node `crypto.randomInt`. The helper validates the full code with `^TR[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}$`.
 
 ## Persistence And Backfill
 
-Migration:
+Original applied migration:
 
 ```text
 20261009130000_final_i_6_6_human_reservation_codes
 ```
 
+Incremental owner-format refinement migration:
+
+```text
+20261009143000_final_i_6_6_reservation_code_8_chars
+```
+
 Schema field:
 
 ```prisma
-reservationCode String @unique @map("reservation_code") @db.VarChar(12)
+reservationCode String @unique @map("reservation_code") @db.VarChar(8)
 ```
 
-Migration behavior:
+Original migration behavior:
 
 ```text
-- add nullable reservations.reservation_code
+- add nullable reservations.reservation_code as VARCHAR(12)
 - backfill existing rows with random TR codes from the approved alphabet
 - retry backfill candidates on collision
-- add CHECK format constraint
+- add CHECK format constraint for the historical 12-character format
 - set NOT NULL
 - add unique index reservations_reservation_code_key
 ```
+
+The original migration remains immutable because it was already applied.
+
+Incremental migration behavior:
+
+```text
+- fail closed before changing the column if any reservations exist
+- preserve immutable existing Reservation codes by refusing automatic shrink/regeneration
+- drop and replace reservations_reservation_code_format_check with the final 8-character validation
+- alter reservations.reservation_code to VARCHAR(8)
+- preserve NOT NULL and the existing unique index reservations_reservation_code_key
+- do not update, regenerate, or derive reservation codes from existing rows
+```
+
+Pre-application Local/Test precondition checked on 2026-10-09:
+
+```sql
+SELECT COUNT(*) FROM trp_booking.reservations;
+```
+
+Result: `0`, so the forward-only refinement could be applied to the shared Local/Test database without rewriting Reservation codes.
 
 The backfill does not derive the human code from `Reservation.id` or any provider/payment identifier.
 
@@ -277,6 +307,53 @@ vercel.json exact crons confirmation
 PASS — remains exactly { "crons": [] }
 ```
 
+Owner-approved 8-character format refinement validation executed on 2026-10-09:
+
+```text
+Pre-application Local/Test data guard
+PASS — SELECT COUNT(*) FROM trp_booking.reservations returned 0 before migration deployment
+
+npm run final-i:validate
+PASS — 127/127
+
+npm run db:validate
+PASS — Prisma package.json#prisma deprecation warning only
+
+npm run db:migrate:deploy
+PASS — applied 20261009143000_final_i_6_6_reservation_code_8_chars to the Local/Test database
+
+npm run db:generate
+PASS — Prisma package.json#prisma deprecation warning only; generated Prisma Client v6.19.3
+
+npm run db:migrate:status
+PASS — 33 migrations; database schema is up to date
+
+$env:TRP_ENVIRONMENT='test'; npm run final-i:db:validate
+PASS — 14/14
+
+npm run final-h:validate
+PASS — 20/20
+
+npm run lint
+PASS
+
+npm run build
+PASS — Next slow-filesystem warning only
+
+vercel.json exact crons confirmation
+PASS — remains exactly { "crons": [] }
+
+git diff --check
+PASS — Windows CRLF normalization warnings only
+```
+
+Notes:
+
+```text
+- The original 12-character migration remains immutable and is still tested as historical applied migration evidence.
+- The incremental 8-character migration is fail-closed and refuses to alter existing immutable Reservation codes if any Reservation rows exist.
+- No existing Reservation code was rewritten or regenerated because the pre-application Local/Test reservation count was 0.
+```
 ## Current State
 
 ```text
