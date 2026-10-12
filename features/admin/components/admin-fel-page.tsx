@@ -762,9 +762,16 @@ export function AdminFelPageView({
         onValueChange={setActiveTab}
         value={activeTab}
       >
-        <TabsList aria-label={copy.tabs.ariaLabel}>
-          <TabsTrigger value="new">{copy.tabs.newInvoice}</TabsTrigger>
-          <TabsTrigger value="history">{copy.tabs.history}</TabsTrigger>
+        <TabsList
+          aria-label={copy.tabs.ariaLabel}
+          className="h-auto w-fit justify-self-start"
+        >
+          <TabsTrigger className="min-h-10 shrink-0" value="new">
+            {copy.tabs.newInvoice}
+          </TabsTrigger>
+          <TabsTrigger className="min-h-10 shrink-0" value="history">
+            {copy.tabs.history}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent className="grid gap-6" value="new">

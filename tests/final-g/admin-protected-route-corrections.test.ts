@@ -47,7 +47,7 @@ const expectedAdminRouteImports: Readonly<Record<string, readonly string[]>> = {
   "app/admin/reservations/[reservationId]/page.tsx": [
     'from "@/features/admin/components/admin-reservation-detail-page"',
     'from "@/lib/admin/reservation-detail"',
-    'from "@/lib/admin/payment-submission-attempts"',
+    'from "@/lib/admin/reservation-detail-focus"',
   ],
   "app/admin/calendar/page.tsx": [
     'from "@/features/admin/components/admin-property-calendar"',

@@ -261,7 +261,6 @@ test("I.6.5 operational metadata remains visible outside contextual help", () =>
   expectIncludes(paymentHistory, "attempt.paymentId");
   expectIncludes(paymentHistory, "attempt.environment");
   expectIncludes(accommodation, "/alojamientos/{property.slug}");
-  expectIncludes(accommodation, "copy.overview.notes.readonlyBoundaries");
 });
 
 test("I.6.5 reservation detail card headers stay compact and action-safe", () => {
@@ -377,7 +376,6 @@ test("I.6.5 critical warnings and security boundaries stay visible", () => {
   }
 
   for (const expected of [
-    "copy.notes.secretSafe",
     "copy.notes.legacyMigrationDescription",
     "copy.notes.generateRequiredDescription",
     "copy.notes.rotationRequiredDescription",

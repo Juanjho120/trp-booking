@@ -61,7 +61,6 @@ test("I.6.7 redundant admin page-header badges are removed only from target page
   for (const file of [
     "admin-accommodation-content-editor.tsx",
     "admin-accommodation-settings.tsx",
-    "admin-calendar-integrations-page.tsx",
     "admin-amenities-house-rules-manager.tsx",
     "admin-pricing-manager.tsx",
     "admin-property-photo-manager.tsx",
@@ -81,7 +80,6 @@ test("I.6.7 operational status badges remain visible after header cleanup", () =
   expectIncludes(reservationDetail, "badge={shellBadge}");
   expectIncludes(paymentDetail, "badge={paymentStatusLabel(payment.status)}");
   expectIncludes(accommodation, "{copy.overview.statuses[property.status]}");
-  expectIncludes(accommodation, "{copy.preparation.badge}");
   expectIncludes(payments, "{paymentStatusLabel(payment.status)}");
   expectIncludes(cronJobs, "{latest ? statusLabel(latest.status) : copy.statuses.NEVER_RUN}");
 });

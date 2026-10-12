@@ -219,9 +219,6 @@ export function AdminAccommodationManagement({
               })}
             </div>
 
-            <div className="mt-6 rounded-2xl border border-border bg-muted/30 p-4 text-sm leading-6 text-muted-foreground">
-              {copy.overview.notes.readonlyBoundaries}
-            </div>
           </section>
         </TabsContent>
 
@@ -232,9 +229,6 @@ export function AdminAccommodationManagement({
         >
           <section aria-labelledby="preparation-settings-heading">
             <div className="mb-6">
-              <Badge className="mb-4 rounded-full" variant="secondary">
-                {copy.preparation.badge}
-              </Badge>
               <div className="flex items-center gap-2">
                 <h2
                   className="text-2xl font-semibold tracking-tight"

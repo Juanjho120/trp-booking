@@ -56,6 +56,10 @@ Final-I.6.7 registration date: 2026-10-12
 Final-I.6.7 implementation base: fa7d7b8191dd973a7def3f34f080c19934386b78
 Accepted Final-I.6.7 feature head: e5538e8e4528bc0c956bdc0ae07bcdbf2c52f283
 Final-I.6.7 implementation and acceptance record: docs/221-final-i-6-7-admin-ui-consistency-navigation-polish.md
+Final-I.6.8 status: Implementation completed; Hosted owner validation pending
+Final-I.6.8 registration date: 2026-10-12
+Final-I.6.8 implementation base: 39725387bd0cb8381108f1de36f17f0792060687
+Final-I.6.8 implementation record: docs/222-final-i-6-8-admin-calendar-ux-cleanup-and-performance.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -115,6 +119,10 @@ Final-I.6.7 registration date: 2026-10-12
 Final-I.6.7 implementation base: fa7d7b8191dd973a7def3f34f080c19934386b78
 Accepted Final-I.6.7 feature head: e5538e8e4528bc0c956bdc0ae07bcdbf2c52f283
 Final-I.6.7 implementation and acceptance record: docs/221-final-i-6-7-admin-ui-consistency-navigation-polish.md
+Final-I.6.8 status: Implementation completed; Hosted owner validation pending
+Final-I.6.8 registration date: 2026-10-12
+Final-I.6.8 implementation base: 39725387bd0cb8381108f1de36f17f0792060687
+Final-I.6.8 implementation record: docs/222-final-i-6-8-admin-calendar-ux-cleanup-and-performance.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -2130,6 +2138,37 @@ The correction keeps successful draft creation as an explicit EDIT entry point. 
 This does not reintroduce the previous implicit-history-selection bug: entering `/admin/fel`, refreshing, or returning later still starts in CREATE mode with no selected document. Only successful draft creation and explicit `Abrir / Editar` enter EDIT mode. No schema, migration, persistence architecture, INFILE, NIT/CUI lookup, dependency, environment variable, scheduler, Production resource, Final-I.7, or Phase 13 work was introduced.
 
 Validation executed for this correction: `npm run final-i:validate` PASS 57/57 after rerun outside the sandbox because the sandbox-only `tsx` startup failed with `uv_os_get_passwd ENOMEM`; `npm run final-i:db:validate` PASS 13/13 with `TRP_ENVIRONMENT=test` after the same sandbox-only `tsx` startup failure; `npm run final-h:validate` PASS 20/20 after the same sandbox-only `tsx` startup failure; `npm run lint` PASS; `npm run build` PASS after rerun outside the sandbox because the sandbox run could not fetch Google Fonts; and `git diff --check` PASS with Windows CRLF normalization warnings only.
+
+## 2026-10-12 — Final-I.6.8 Admin Calendar UX Cleanup Implemented
+
+```text
+Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track addendum
+Package: Final-I — Operational Polish, Notification UX & FEL Invoicing
+Subphase: Final-I.6.8 — Admin Calendar UX Cleanup & Performance Optimization
+Status: Implementation completed; Hosted owner validation pending
+Implementation base: 39725387bd0cb8381108f1de36f17f0792060687
+Implementation record: docs/222-final-i-6-8-admin-calendar-ux-cleanup-and-performance.md
+Final-I.6.7: Completed and accepted on 2026-10-12 at e5538e8e4528bc0c956bdc0ae07bcdbf2c52f283
+Final-I.7: Blocked pending official INFILE technical documentation + Test credentials
+Final-I.8: Not started / reserved for FEL delivery email/PDF/XML/history UX
+Final-I.9: Not started / integrated Final-I closure
+Phase 13: Blocked / Not started
+```
+
+Implemented the bounded owner-requested Admin calendar UX cleanup: removed the redundant Accommodations readonly note, removed the preparation badge, kept FEL tabs at natural width inside their grid, removed the Calendar integrations page-header badge and presentation cards, and replaced Calendar integrations property buttons with controlled shared Tabs using horizontal overflow and Radix keyboard behavior.
+
+Measured the Admin calendar server data path through `getAdminPropertyCalendar()` for three accommodations across previous/current/next months with five sequential samples each. Median totals ranged from 497.0 ms to 741.2 ms with one multi-second first-sample outlier; the accepted availability service and current parallel read architecture were preserved because the evidence did not justify a riskier data-path rewrite. No private data, secrets, external calendar values, or provider payloads were logged or persisted.
+
+No Prisma schema, migration, API contract, payment/refund/FEL/INFILE behavior, notification semantics, cron execution, scheduler registration, dependency, environment variable, Production resource, Final-I.7, Final-I.8, Final-I.9, or Phase 13 work was introduced.
+
+Validation:
+- npm run final-i:validate - initial sandbox run failed before tests with uv_os_get_passwd ENOMEM; outside-sandbox rerun PASS, 141/141
+- npm run final-h:validate - PASS, 20/20
+- npm run final-g:validate - PASS, 48/48
+- npm run admin:calendar-display:validate - initial sandbox run failed before tests with uv_os_get_passwd ENOMEM; outside-sandbox rerun PASS
+- npm run lint - PASS
+- npm run build - initial sandbox run failed fetching Google Fonts; outside-sandbox rerun PASS with Next slow-filesystem warning only
+- git diff --check - PASS; Windows CRLF normalization warnings only
 
 ## 2026-10-12 — Final-I.6.7 Completed And Accepted
 

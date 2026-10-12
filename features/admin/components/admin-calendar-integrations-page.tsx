@@ -10,7 +10,6 @@ import {
   CloudDownload,
   CloudUpload,
   Copy,
-  Database,
   Eye,
   EyeOff,
   Loader2,
@@ -19,7 +18,6 @@ import {
   RefreshCw,
   RotateCw,
   Save,
-  ShieldCheck,
   TestTube2,
   TriangleAlert,
 } from "lucide-react";
@@ -40,6 +38,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocale } from "@/features/i18n";
 import type {
   AdminExternalCalendarErrorCode,
@@ -829,58 +828,38 @@ export function AdminCalendarIntegrationsPage({
             </Link>
           </Button>
         }
-        badge={copy.badge}
         description={copy.description}
         title={copy.title}
       />
 
-      <div className="mb-6 grid gap-4 md:grid-cols-2">
-        <Card className="border-border/70 bg-muted/20 shadow-none">
-          <CardContent className="flex gap-3 p-4 sm:p-5">
-            <ShieldCheck aria-hidden="true" className="mt-0.5 size-5 shrink-0" />
-            <div>
-              <p className="text-sm font-medium">{copy.notes.secretSafeTitle}</p>
-              <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                {copy.notes.secretSafe}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-border/70 bg-muted/20 shadow-none">
-          <CardContent className="flex gap-3 p-4 sm:p-5">
-            <Database aria-hidden="true" className="mt-0.5 size-5 shrink-0" />
-            <div>
-              <p className="text-sm font-medium">{copy.notes.independentDirectionsTitle}</p>
-              <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                {copy.notes.independentDirections}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div
-        aria-label={copy.title}
-        className="mb-5 flex gap-2 overflow-x-auto pb-1"
-        role="group"
-      >
-        {initialData.integrations.map((integration) => {
-          const property = integration.property;
-          const active = property.id === selectedIntegration?.property.id;
-
-          return (
-            <Button
-              aria-pressed={active}
-              key={property.id}
-              onClick={() => setSelectedPropertyId(property.id)}
-              type="button"
-              variant={active ? "default" : "outline"}
+      {selectedIntegration ? (
+        <Tabs
+          className="mb-5"
+          onValueChange={setSelectedPropertyId}
+          value={selectedIntegration.property.id}
+        >
+          <div className="-mx-1 overflow-x-auto px-1 pb-2">
+            <TabsList
+              aria-label={copy.title}
+              className="inline-flex h-auto min-w-max justify-start gap-1 border border-border/70 bg-muted/40 p-1.5"
             >
-              {locale === "en" ? property.nameEn : property.nameEs}
-            </Button>
-          );
-        })}
-      </div>
+              {initialData.integrations.map((integration) => {
+                const property = integration.property;
+
+                return (
+                  <TabsTrigger
+                    className="min-h-10 shrink-0"
+                    key={property.id}
+                    value={property.id}
+                  >
+                    {locale === "en" ? property.nameEn : property.nameEs}
+                  </TabsTrigger>
+                );
+              })}
+            </TabsList>
+          </div>
+        </Tabs>
+      ) : null}
 
       <div className="grid gap-5">
         {selectedIntegration ? (
