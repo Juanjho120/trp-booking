@@ -1202,7 +1202,6 @@ export function AdminNotificationsPageView({
   return (
     <>
       <AdminPageHeader
-        badge={copy.badge}
         description={copy.description}
         title={copy.title}
       />

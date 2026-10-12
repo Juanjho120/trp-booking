@@ -51,6 +51,10 @@ Final-I.6.6 status: Completed and accepted on 2026-10-12
 Final-I.6.6 implementation base: 0e28002e7a6317986745b6d6406b260a85f3fa44
 Accepted Final-I.6.6 feature head: 7c1441ac62c06d723f9e1fbe07d61b5a4de0a8dd
 Final-I.6.6 implementation and acceptance record: docs/220-final-i-6-6-human-reservation-codes.md
+Final-I.6.7 status: Implementation completed; Hosted owner validation pending
+Final-I.6.7 registration date: 2026-10-12
+Final-I.6.7 implementation base: fa7d7b8191dd973a7def3f34f080c19934386b78
+Final-I.6.7 implementation record: docs/221-final-i-6-7-admin-ui-consistency-navigation-polish.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -105,6 +109,10 @@ Final-I.6.6 status: Completed and accepted on 2026-10-12
 Final-I.6.6 implementation base: 0e28002e7a6317986745b6d6406b260a85f3fa44
 Accepted Final-I.6.6 feature head: 7c1441ac62c06d723f9e1fbe07d61b5a4de0a8dd
 Final-I.6.6 implementation and acceptance record: docs/220-final-i-6-6-human-reservation-codes.md
+Final-I.6.7 status: Implementation completed; Hosted owner validation pending
+Final-I.6.7 registration date: 2026-10-12
+Final-I.6.7 implementation base: fa7d7b8191dd973a7def3f34f080c19934386b78
+Final-I.6.7 implementation record: docs/221-final-i-6-7-admin-ui-consistency-navigation-polish.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -321,6 +329,10 @@ Final-I.6.6 status: Completed and accepted on 2026-10-12
 Final-I.6.6 implementation base: 0e28002e7a6317986745b6d6406b260a85f3fa44
 Accepted Final-I.6.6 feature head: 7c1441ac62c06d723f9e1fbe07d61b5a4de0a8dd
 Final-I.6.6 implementation and acceptance record: docs/220-final-i-6-6-human-reservation-codes.md
+Final-I.6.7 status: Implementation completed; Hosted owner validation pending
+Final-I.6.7 registration date: 2026-10-12
+Final-I.6.7 implementation base: fa7d7b8191dd973a7def3f34f080c19934386b78
+Final-I.6.7 implementation record: docs/221-final-i-6-7-admin-ui-consistency-navigation-polish.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -375,6 +387,10 @@ Final-I.6.6 status: Completed and accepted on 2026-10-12
 Final-I.6.6 implementation base: 0e28002e7a6317986745b6d6406b260a85f3fa44
 Accepted Final-I.6.6 feature head: 7c1441ac62c06d723f9e1fbe07d61b5a4de0a8dd
 Final-I.6.6 implementation and acceptance record: docs/220-final-i-6-6-human-reservation-codes.md
+Final-I.6.7 status: Implementation completed; Hosted owner validation pending
+Final-I.6.7 registration date: 2026-10-12
+Final-I.6.7 implementation base: fa7d7b8191dd973a7def3f34f080c19934386b78
+Final-I.6.7 implementation record: docs/221-final-i-6-7-admin-ui-consistency-navigation-polish.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -2110,6 +2126,33 @@ The correction keeps successful draft creation as an explicit EDIT entry point. 
 This does not reintroduce the previous implicit-history-selection bug: entering `/admin/fel`, refreshing, or returning later still starts in CREATE mode with no selected document. Only successful draft creation and explicit `Abrir / Editar` enter EDIT mode. No schema, migration, persistence architecture, INFILE, NIT/CUI lookup, dependency, environment variable, scheduler, Production resource, Final-I.7, or Phase 13 work was introduced.
 
 Validation executed for this correction: `npm run final-i:validate` PASS 57/57 after rerun outside the sandbox because the sandbox-only `tsx` startup failed with `uv_os_get_passwd ENOMEM`; `npm run final-i:db:validate` PASS 13/13 with `TRP_ENVIRONMENT=test` after the same sandbox-only `tsx` startup failure; `npm run final-h:validate` PASS 20/20 after the same sandbox-only `tsx` startup failure; `npm run lint` PASS; `npm run build` PASS after rerun outside the sandbox because the sandbox run could not fetch Google Fonts; and `git diff --check` PASS with Windows CRLF normalization warnings only.
+
+## 2026-10-12 — Final-I.6.7 Admin UI Consistency & Navigation Polish Implemented
+
+```text
+Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track addendum
+Package: Final-I — Operational Polish, Notification UX & FEL Invoicing
+Subphase: Final-I.6.7 — Admin UI Consistency & Navigation Polish
+Status: Implementation completed; Hosted owner validation pending
+Implementation base: fa7d7b8191dd973a7def3f34f080c19934386b78
+Implementation record: docs/221-final-i-6-7-admin-ui-consistency-navigation-polish.md
+Final-I.6.6: Completed and accepted on 2026-10-12 at 7c1441ac62c06d723f9e1fbe07d61b5a4de0a8dd
+Final-I.7: Blocked pending official INFILE technical documentation + Test credentials
+Final-I.8: Not started
+Final-I.9: Not started
+Phase 13: Blocked / Not started
+```
+
+Implemented the owner-requested Admin UI consistency polish: removed the eleven targeted redundant Admin page-header badges, moved Cron Job card descriptions into contextual help, reorganized Accommodations into mounted shared Tabs, narrowed the main Reservation-detail tab-list background to natural width, centralized selected Admin tab styling in the shared Tabs component, and added a reusable Admin link-tab abstraction for Catalogs, Calendar, and Payments while preserving URL-driven navigation semantics.
+
+Runtime scope stayed presentation-only for the requested Admin UI surfaces. No Prisma schema, migration, API route, financial/Tilopay/FEL/INFILE behavior, notification semantics, availability logic, cron execution, scheduler registration, dependency, environment variable, Production resource, Final-I.7, Final-I.8, Final-I.9, or Phase 13 work was introduced.
+
+Validation:
+- npm run final-i:validate - initial sandbox attempt failed before tests with Node uv_os_get_passwd ENOMEM; outside-sandbox rerun PASS, 135/135
+- npm run final-h:validate - PASS, 20/20
+- npm run lint - PASS
+- npm run build - PASS; Next slow-filesystem warning only
+- git diff --check - PASS; Windows CRLF normalization warnings only
 
 ## 2026-10-12 — Final-I.6.6 Completed And Accepted
 

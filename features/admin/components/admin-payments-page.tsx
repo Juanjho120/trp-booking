@@ -27,6 +27,7 @@ import type {
 } from "@/types/admin-payments";
 import type { Locale } from "@/types/locale";
 
+import { AdminLinkTab, AdminLinkTabList } from "./admin-link-tabs";
 import { AdminPageHeader } from "./admin-page-header";
 
 const paymentStatuses = [
@@ -119,26 +120,26 @@ export function AdminPaymentsPageView({
 
   function ViewTab({ target }: Readonly<{ target: AdminPaymentsView }>) {
     return (
-      <Button asChild variant={view === target ? "default" : "outline"}>
-        <Link href={buildUrl({ view: target, status: undefined, page: 1 })}>
-          {copy.tabs[target]}
-        </Link>
-      </Button>
+      <AdminLinkTab
+        active={view === target}
+        href={buildUrl({ view: target, status: undefined, page: 1 })}
+      >
+        {copy.tabs[target]}
+      </AdminLinkTab>
     );
   }
 
   return (
     <>
       <AdminPageHeader
-        badge={copy.badge}
         description={copy.description}
         title={copy.title}
       />
 
-      <div className="mb-5 flex flex-wrap gap-2">
+      <AdminLinkTabList aria-label={copy.title} className="mb-5">
         <ViewTab target="payments" />
         <ViewTab target="events" />
-      </div>
+      </AdminLinkTabList>
 
       <Card className="mb-6 border-border/70 bg-card shadow-sm">
         <CardContent className="py-5">

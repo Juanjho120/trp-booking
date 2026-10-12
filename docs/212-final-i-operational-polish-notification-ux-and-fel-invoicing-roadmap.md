@@ -49,13 +49,17 @@ Final-I.6.6 status: Completed and accepted on 2026-10-12
 Final-I.6.6 implementation base: 0e28002e7a6317986745b6d6406b260a85f3fa44
 Accepted Final-I.6.6 feature head: 7c1441ac62c06d723f9e1fbe07d61b5a4de0a8dd
 Final-I.6.6 implementation and acceptance record: docs/220-final-i-6-6-human-reservation-codes.md
+Final-I.6.7 status: Implementation completed; Hosted owner validation pending
+Final-I.6.7 registration date: 2026-10-12
+Final-I.6.7 implementation base: fa7d7b8191dd973a7def3f34f080c19934386b78
+Final-I.6.7 implementation record: docs/221-final-i-6-7-admin-ui-consistency-navigation-polish.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
 Phase 13 status: Blocked / Not started until Final-I closes
 ```
 
-Final-I is an owner-requested pre-Production addendum registered after the accepted Final-H closure. It does not rewrite the historical acceptance of Phase 12, Final-A through Final-H, or the complete Post-Phase-12 / Pre-Phase-13 Final Improvement Track at `6922cf27e31e63fde071c0d0a810b141e44b9f90`. Final-I.1 is completed and accepted at its feature head `9a15f349c1104671f5555d1988caa56756e5ff0c`, and Final-I.2 is completed and accepted at `6451cb705d972c83a771a9ff39f6da80d130cf58`; Final-I.3 is completed and accepted on 2026-09-29 at accepted head `8c5a9186e392f35bdbc998f463c5c3c6cd0be295` after Hosted owner validation of the desktop, Android mobile browser, Android standalone PWA, Push deep-link, and final mobile/PWA auto-scroll refinement. Final-I.4 is completed and accepted on 2026-09-30 at accepted feature head `8e2d7d56a8e81a860833b05f4a28cba8a517bad4` after Hosted/mobile owner validation of representative guest emails. Final-I.5 is completed and accepted on 2026-09-30 at accepted head `fde3ae06427af1f8905e6f7589263c199f918553`; the provider-independent FEL fiscal domain contract remains recorded in `docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md`. Final-I.6 is completed and accepted on 2026-10-02 at accepted feature head `80469abda146d0d50516ab598a514a9ccea2db6d`; the implementation and acceptance record is `docs/214-final-i-6-fel-persistence-admin-draft-module.md`. Final-I.6.1 is completed and accepted on 2026-10-06 at accepted feature head `4d8a1dd5eb2f2eaaadf43bd8b97d7dd1df6e500e`; its implementation and acceptance record is `docs/215-final-i-6-1-interim-operational-hardening.md`. Final-I.6.2 is completed and accepted on 2026-10-07 at accepted feature head `d936983edd22607919148f871e3ba339ab4a4ed9`; Workstreams A-K are completed; its implementation and acceptance record is `docs/216-final-i-6-2-admin-ux-navigation-accordions-pagination-polish.md`. Final-I.6.3 is completed and accepted on 2026-10-07 at accepted feature head `235bd1f5a8a7d48161146c485c979d5f57a6530d`; it is a bounded Additional Charges email-delivery layout polish recorded in `docs/217-final-i-6-3-additional-charges-email-delivery-layout-polish.md`. Final-I.6.4 is completed and accepted on 2026-10-08 at accepted feature head c80f172ac9e1e366e54517020dd5b1a1e1c30a76; it is recorded in `docs/218-final-i-6-4-reservation-detail-lazy-loading-tab-cache.md`. Final-I remains active because Final-I.6.5 is completed and accepted on 2026-10-09 at accepted feature head `61ba8ea88bc7b7073f4ef6e733422e7c34b29698`, Final-I.6.6 is completed and accepted on 2026-10-12 at accepted feature head 7c1441ac62c06d723f9e1fbe07d61b5a4de0a8dd, Final-I.7 is blocked, Final-I.8 and Final-I.9 are not started, and Phase 13 remains not started and blocked until Final-I closes and receives owner acceptance.
+Final-I is an owner-requested pre-Production addendum registered after the accepted Final-H closure. It does not rewrite the historical acceptance of Phase 12, Final-A through Final-H, or the complete Post-Phase-12 / Pre-Phase-13 Final Improvement Track at `6922cf27e31e63fde071c0d0a810b141e44b9f90`. Final-I.1 is completed and accepted at its feature head `9a15f349c1104671f5555d1988caa56756e5ff0c`, and Final-I.2 is completed and accepted at `6451cb705d972c83a771a9ff39f6da80d130cf58`; Final-I.3 is completed and accepted on 2026-09-29 at accepted head `8c5a9186e392f35bdbc998f463c5c3c6cd0be295` after Hosted owner validation of the desktop, Android mobile browser, Android standalone PWA, Push deep-link, and final mobile/PWA auto-scroll refinement. Final-I.4 is completed and accepted on 2026-09-30 at accepted feature head `8e2d7d56a8e81a860833b05f4a28cba8a517bad4` after Hosted/mobile owner validation of representative guest emails. Final-I.5 is completed and accepted on 2026-09-30 at accepted head `fde3ae06427af1f8905e6f7589263c199f918553`; the provider-independent FEL fiscal domain contract remains recorded in `docs/213-final-i-5-fel-fiscal-domain-contract-and-architecture.md`. Final-I.6 is completed and accepted on 2026-10-02 at accepted feature head `80469abda146d0d50516ab598a514a9ccea2db6d`; the implementation and acceptance record is `docs/214-final-i-6-fel-persistence-admin-draft-module.md`. Final-I.6.1 is completed and accepted on 2026-10-06 at accepted feature head `4d8a1dd5eb2f2eaaadf43bd8b97d7dd1df6e500e`; its implementation and acceptance record is `docs/215-final-i-6-1-interim-operational-hardening.md`. Final-I.6.2 is completed and accepted on 2026-10-07 at accepted feature head `d936983edd22607919148f871e3ba339ab4a4ed9`; Workstreams A-K are completed; its implementation and acceptance record is `docs/216-final-i-6-2-admin-ux-navigation-accordions-pagination-polish.md`. Final-I.6.3 is completed and accepted on 2026-10-07 at accepted feature head `235bd1f5a8a7d48161146c485c979d5f57a6530d`; it is a bounded Additional Charges email-delivery layout polish recorded in `docs/217-final-i-6-3-additional-charges-email-delivery-layout-polish.md`. Final-I.6.4 is completed and accepted on 2026-10-08 at accepted feature head c80f172ac9e1e366e54517020dd5b1a1e1c30a76; it is recorded in `docs/218-final-i-6-4-reservation-detail-lazy-loading-tab-cache.md`. Final-I remains active because Final-I.6.5 is completed and accepted on 2026-10-09 at accepted feature head `61ba8ea88bc7b7073f4ef6e733422e7c34b29698`, Final-I.6.6 is completed and accepted on 2026-10-12 at accepted feature head 7c1441ac62c06d723f9e1fbe07d61b5a4de0a8dd, Final-I.6.7 implementation is completed with Hosted owner validation pending, Final-I.7 is blocked, Final-I.8 and Final-I.9 are not started, and Phase 13 remains not started and blocked until Final-I closes and receives owner acceptance.
 
 Final-I.5 canonical amount-source hardening freezes `FelCommercialSourceAllocation.amountSnapshot` and `FelCommercialSourceAllocation.currencySnapshot` as the only canonical commercial amount source for future draft line totals. `FelLineSource` is frozen as provenance/evidence only: its rows are never summed to compute `FelLineItem.amount` or `FelDocument` totals, including when `sourceRole = AMOUNT_SOURCE`. Conceptual mandatory `FelLineSource.sourceAmount` / `sourceCurrency` fields were removed from the I.5 persistence contract to avoid two divergent monetary sources of truth; any supporting monetary evidence belongs only inside `sourceSnapshotJson` as non-authoritative audit/reproduction metadata.
 
@@ -74,6 +78,7 @@ Final-I.6.3 - Additional Charges Email Delivery Layout Polish
 Final-I.6.4 - Reservation Detail Lazy Loading, Tab Cache & Financial Tabs
 Final-I.6.5 - Admin Contextual Help & Copy Density Polish
 Final-I.6.6 - Human Reservation Codes
+Final-I.6.7 - Admin UI Consistency & Navigation Polish
 Final-I.7 - INFILE provider integration: certification, cancellation, credit notes, retry/contingency
 Final-I.8 - FEL delivery email/PDF/XML/history UX
 Final-I.9 - Integrated A-I regression, Hosted acceptance and renewed pre-Phase-13 closure
@@ -1194,6 +1199,35 @@ Final-I.6.6 formal acceptance:
 - Vercel deployment for accepted feature head - SUCCESS
 - Final code format - TRXXXXXX, fixed TR prefix plus six random characters from ABCDEFGHJKLMNPQRSTUVWXYZ23456789
 - Final-I.7 remains blocked; Final-I.8 and Final-I.9 remain Not started; Phase 13 remains Blocked / Not started
+
+## Final-I.6.7 Implementation Completed - Hosted Owner Validation Pending
+
+Final-I.6.7 is registered as a bounded Admin UI consistency and navigation polish subphase on top of the accepted Final-I.6.6 Human Reservation Codes closure.
+
+```text
+Subphase: Final-I.6.7 — Admin UI Consistency & Navigation Polish
+Registration date: 2026-10-12
+Implementation base: fa7d7b8191dd973a7def3f34f080c19934386b78
+Implementation record: docs/221-final-i-6-7-admin-ui-consistency-navigation-polish.md
+Status: Implementation completed; Hosted owner validation pending
+```
+
+Implemented scope:
+- Removed only the eleven targeted redundant Admin page-header badges.
+- Moved Cron Job card descriptions into `AdminContextualHelp` while preserving operational status badges and confirmation-sheet descriptions.
+- Reorganized `/admin/accommodations` into mounted shared Tabs for public content and preparation buffers.
+- Adjusted the main Reservation-detail tab-list background to natural width while preserving scrolling, eight tabs, mounted panels, deep-links and reload behavior.
+- Centralized selected Admin tab styling in the shared Tabs component and removed the redundant Location/Cron Jobs active-tab overrides.
+- Added a shared Admin link-tab abstraction for URL-driven Catalogs, Calendar and Payments navigation while preserving real Next.js links and URL parameters.
+
+Final-I.6.7 validation:
+- npm run final-i:validate - initial sandbox attempt failed before tests with Node uv_os_get_passwd ENOMEM; outside-sandbox rerun PASS, 135/135
+- npm run final-h:validate - PASS, 20/20
+- npm run lint - PASS
+- npm run build - PASS; Next slow-filesystem warning only
+- git diff --check - PASS; Windows CRLF normalization warnings only
+
+No Prisma schema, migration, API route, financial/Tilopay/FEL/INFILE behavior, notification semantics, availability logic, cron execution, scheduler registration, dependency, environment variable, Production resource, Final-I.7, Final-I.8, Final-I.9, or Phase 13 work is introduced by Final-I.6.7. Final-I.6.7 must remain pending acceptance until Hosted owner validation and explicit owner acceptance are recorded.
 
 ## Final-I.1 Hosted Owner Validation Completed
 

@@ -55,6 +55,7 @@ import type {
 } from "@/types/cron-job";
 import type { Locale } from "@/types/locale";
 
+import { AdminContextualHelp } from "./admin-contextual-help";
 import { AdminPageHeader } from "./admin-page-header";
 import { AdminSnackbar } from "./admin-snackbar";
 
@@ -90,9 +91,6 @@ export function AdminCronJobsPage({
   const [successFeedback, setSuccessFeedback] = useState<string | null>(null);
   const [errorFeedback, setErrorFeedback] = useState<string | null>(null);
   const isBusy = runningJobSlug !== null;
-
-  const activeTabClassName =
-  "data-[state=active]:border-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md";
 
   function clearFeedback(): void {
     setSuccessFeedback(null);
@@ -208,7 +206,6 @@ export function AdminCronJobsPage({
   return (
     <>
       <AdminPageHeader
-        badge={copy.badge}
         description={copy.description}
         title={copy.title}
       />
@@ -222,8 +219,8 @@ export function AdminCronJobsPage({
 
       <Tabs className="mt-6" defaultValue={initialTab}>
         <TabsList className="grid w-full grid-cols-2 sm:w-fit">
-          <TabsTrigger className={activeTabClassName} value="execution">{copy.tabs.execution}</TabsTrigger>
-          <TabsTrigger className={activeTabClassName} value="history">{copy.tabs.history}</TabsTrigger>
+          <TabsTrigger value="execution">{copy.tabs.execution}</TabsTrigger>
+          <TabsTrigger value="history">{copy.tabs.history}</TabsTrigger>
         </TabsList>
 
         <TabsContent className="mt-6" value="execution">
@@ -427,10 +424,10 @@ function CronJobCard({
               <TimerReset aria-hidden="true" className="size-5" />
             </span>
             <div className="min-w-0">
-              <CardTitle>{jobTitle}</CardTitle>
-              <CardDescription className="mt-1">
-                {jobDescription}
-              </CardDescription>
+              <div className="flex items-center gap-2">
+                <CardTitle>{jobTitle}</CardTitle>
+                <AdminContextualHelp content={jobDescription} />
+              </div>
             </div>
           </div>
 

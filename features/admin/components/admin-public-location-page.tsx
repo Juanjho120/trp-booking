@@ -47,8 +47,6 @@ const inputClassName =
   "h-11 w-full rounded-2xl border border-input bg-background px-3 text-sm text-foreground shadow-xs outline-none transition focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50";
 const textareaClassName =
   "min-h-28 w-full resize-y rounded-2xl border border-input bg-background px-3 py-3 text-sm leading-6 text-foreground shadow-xs outline-none transition focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50";
-const activeTabClassName =
-  "data-[state=active]:border-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md";
 
 type PublicLocationDraft = Readonly<{
   enabled: boolean;
@@ -149,7 +147,6 @@ export function AdminPublicLocationPage({
   return (
     <>
       <AdminPageHeader
-        badge={copy.badge}
         description={copy.description}
         title={copy.title}
       />
@@ -163,10 +160,10 @@ export function AdminPublicLocationPage({
 
       <Tabs className="mt-6" defaultValue="configuration">
         <TabsList className="grid w-full grid-cols-2 sm:w-fit">
-          <TabsTrigger className={activeTabClassName} value="configuration">
+          <TabsTrigger value="configuration">
             {copy.tabs.configuration}
           </TabsTrigger>
-          <TabsTrigger className={activeTabClassName} value="history">
+          <TabsTrigger value="history">
             {copy.tabs.history}
           </TabsTrigger>
         </TabsList>

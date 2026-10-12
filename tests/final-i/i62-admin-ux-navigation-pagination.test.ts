@@ -35,6 +35,8 @@ test("I.6.2 A additional-charge nested tabs use compact Email Delivery tab patte
   );
   const compactTabsClass =
     "inline-flex h-auto min-w-full justify-start gap-1 rounded-2xl border border-border/70 bg-muted/40 p-1.5 sm:min-w-0";
+  const reservationNaturalTabsClass =
+    "inline-flex h-auto w-max justify-start gap-1 rounded-2xl border border-border/70 bg-muted/40 p-1.5";
 
   expectIncludes(additionalCharges, 'const [activeTab, setActiveTab] = useState<AdditionalChargeTab>(');
   expectIncludes(additionalCharges, '<Tabs');
@@ -45,7 +47,7 @@ test("I.6.2 A additional-charge nested tabs use compact Email Delivery tab patte
   expectIncludes(additionalCharges, `<TabsList className="${compactTabsClass}">`);
   expectIncludes(additionalCharges, '<TabsTrigger className="min-h-10 shrink-0" value="charges">');
   expectIncludes(additionalCharges, '<TabsTrigger className="min-h-10 shrink-0" value="requests">');
-  expectIncludes(reservationDetail, `className="${compactTabsClass}"`);
+  expectIncludes(reservationDetail, `className="${reservationNaturalTabsClass}"`);
   expectNotIncludes(
     additionalCharges,
     '<TabsList className="w-full justify-start overflow-x-auto sm:w-auto">',

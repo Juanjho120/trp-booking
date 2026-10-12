@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { Loader2, Plus, Save, Trash2 } from "lucide-react";
 import { type ChangeEvent, type ReactNode, useState } from "react";
 
@@ -42,6 +41,7 @@ import {
 } from "@/types/amenity";
 
 import { AdminContextualHelp } from "./admin-contextual-help";
+import { AdminLinkTab, AdminLinkTabList } from "./admin-link-tabs";
 import { AdminPageHeader } from "./admin-page-header";
 import { AdminSnackbar } from "./admin-snackbar";
 
@@ -383,7 +383,6 @@ export function AdminCatalogManager({
   return (
     <>
       <AdminPageHeader
-        badge={copy.badge}
         description={copy.description}
         title={copy.title}
       />
@@ -395,34 +394,20 @@ export function AdminCatalogManager({
         variant={errorFeedback ? "error" : "success"}
       />
 
-      <div className="mb-6 flex gap-2 overflow-x-auto pb-1">
-        <Button
-          asChild
-          variant={selectedCatalog === "amenities" ? "default" : "outline"}
+      <AdminLinkTabList aria-label={copy.title} className="mb-6">
+        <AdminLinkTab
+          active={selectedCatalog === "amenities"}
+          href="/admin/catalogs?catalog=amenities"
         >
-          <Link
-            aria-current={selectedCatalog === "amenities" ? "page" : undefined}
-            href="/admin/catalogs?catalog=amenities"
-          >
-            {copy.tabs.amenities}
-          </Link>
-        </Button>
-        <Button
-          asChild
-          variant={
-            selectedCatalog === "house-rules" ? "default" : "outline"
-          }
+          {copy.tabs.amenities}
+        </AdminLinkTab>
+        <AdminLinkTab
+          active={selectedCatalog === "house-rules"}
+          href="/admin/catalogs?catalog=house-rules"
         >
-          <Link
-            aria-current={
-              selectedCatalog === "house-rules" ? "page" : undefined
-            }
-            href="/admin/catalogs?catalog=house-rules"
-          >
-            {copy.tabs.houseRules}
-          </Link>
-        </Button>
-      </div>
+          {copy.tabs.houseRules}
+        </AdminLinkTab>
+      </AdminLinkTabList>
 
       {selectedCatalog === "amenities" ? (
         <section aria-labelledby="amenity-catalog-heading">

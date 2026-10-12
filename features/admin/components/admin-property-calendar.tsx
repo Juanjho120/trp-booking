@@ -50,6 +50,7 @@ import type { AdminPreparationBufferErrorCode } from "@/types/admin-preparation-
 import type { DateOnlyString } from "@/types/availability";
 import type { Locale } from "@/types/locale";
 
+import { AdminLinkTab, AdminLinkTabList } from "./admin-link-tabs";
 import { AdminPageHeader } from "./admin-page-header";
 import { AdminSnackbar } from "./admin-snackbar";
 
@@ -389,7 +390,6 @@ export function AdminPropertyCalendarView({
   return (
     <>
       <AdminPageHeader
-        badge={copy.badge}
         description={copy.description}
         title={copy.title}
         actions={
@@ -430,20 +430,20 @@ export function AdminPropertyCalendarView({
         variant={errorFeedback ? "error" : "success"}
       />
 
-      <div className="mb-5 flex gap-2 overflow-x-auto pb-1">
+      <AdminLinkTabList aria-label={copy.title} className="mb-5">
         {initialCalendar.properties.map((property) => {
           const active = property.id === initialCalendar.selectedProperty.id;
           return (
-            <Button asChild key={property.id} variant={active ? "default" : "outline"}>
-              <Link
-                href={`/admin/calendar?propertyId=${encodeURIComponent(property.id)}&month=${initialCalendar.month}`}
-              >
-                {locale === "en" ? property.nameEn : property.nameEs}
-              </Link>
-            </Button>
+            <AdminLinkTab
+              active={active}
+              href={`/admin/calendar?propertyId=${encodeURIComponent(property.id)}&month=${initialCalendar.month}`}
+              key={property.id}
+            >
+              {locale === "en" ? property.nameEn : property.nameEs}
+            </AdminLinkTab>
           );
         })}
-      </div>
+      </AdminLinkTabList>
 
       <Card className="border-border/70 bg-card shadow-sm">
         <CardHeader className="gap-5 border-b border-border">
