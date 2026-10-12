@@ -7,9 +7,13 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track addendum
 Package: Final-I - Operational Polish, Notification UX & FEL Invoicing
 Subphase: Final-I.6.7 - Admin UI Consistency & Navigation Polish
-Status: Implementation completed; Hosted owner validation pending
+Status: Completed and accepted
 Registration date: 2026-10-12
 Implementation base: fa7d7b8191dd973a7def3f34f080c19934386b78
+Acceptance date: 2026-10-12
+Accepted feature HEAD: e5538e8e4528bc0c956bdc0ae07bcdbf2c52f283
+Hosted owner validation: PASS
+Owner formal acceptance: PASS
 Final-I.6.6 status: Completed and accepted on 2026-10-12 at 7c1441ac62c06d723f9e1fbe07d61b5a4de0a8dd
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
@@ -78,15 +82,34 @@ git diff --check — PASS; Windows CRLF normalization warnings only
 
 The pre-Hosted hardening rerun completed successfully at 136/136 after adding explicit active/inactive tab-hover coverage.
 
+## Formal Acceptance
+
+The owner confirmed that all Hosted tests for Final-I.6.7 completed satisfactorily and formally accepted the subphase on 2026-10-12.
+
+Accepted feature HEAD:
+
+```text
+e5538e8e4528bc0c956bdc0ae07bcdbf2c52f283
+```
+
+Acceptance evidence:
+
+- Hosted owner validation: PASS.
+- Owner formal acceptance: PASS.
+- Workstreams A-F: completed and accepted.
+- The accepted feature head includes the final pre-Hosted visual hardening that preserves active-tab hover styling, the accepted public availability tab style, and responsive horizontal Admin tab scrolling.
+
+This formal acceptance does not replace the accepted Final-I.6.6 Human Reservation Codes feature head and does not start Final-I.7, Final-I.8, Final-I.9, Phase 13, or Production work.
+
 ## Current State After Implementation
 
 ```text
 Final-I.6.6 — Completed and accepted on 2026-10-12 at 7c1441ac62c06d723f9e1fbe07d61b5a4de0a8dd
-Final-I.6.7 — Implementation completed; Hosted owner validation pending
+Final-I.6.7 — Completed and accepted on 2026-10-12 at e5538e8e4528bc0c956bdc0ae07bcdbf2c52f283
 Final-I.7 — Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 — Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 — Not started / integrated Final-I closure
 Phase 13 — Blocked / Not started until Final-I closes
 ```
 
-Final-I.6.7 must not be marked completed and accepted until Hosted owner validation and explicit owner acceptance are recorded in a later closure commit.
+Final-I.7 remains blocked pending official INFILE technical documentation and Test credentials. Final-I.8 and Final-I.9 remain Not started. Phase 13 remains Blocked / Not started until Final-I closes.

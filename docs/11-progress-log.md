@@ -51,10 +51,11 @@ Final-I.6.6 status: Completed and accepted on 2026-10-12
 Final-I.6.6 implementation base: 0e28002e7a6317986745b6d6406b260a85f3fa44
 Accepted Final-I.6.6 feature head: 7c1441ac62c06d723f9e1fbe07d61b5a4de0a8dd
 Final-I.6.6 implementation and acceptance record: docs/220-final-i-6-6-human-reservation-codes.md
-Final-I.6.7 status: Implementation completed; Hosted owner validation pending
+Final-I.6.7 status: Completed and accepted on 2026-10-12
 Final-I.6.7 registration date: 2026-10-12
 Final-I.6.7 implementation base: fa7d7b8191dd973a7def3f34f080c19934386b78
-Final-I.6.7 implementation record: docs/221-final-i-6-7-admin-ui-consistency-navigation-polish.md
+Accepted Final-I.6.7 feature head: e5538e8e4528bc0c956bdc0ae07bcdbf2c52f283
+Final-I.6.7 implementation and acceptance record: docs/221-final-i-6-7-admin-ui-consistency-navigation-polish.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -109,10 +110,11 @@ Final-I.6.6 status: Completed and accepted on 2026-10-12
 Final-I.6.6 implementation base: 0e28002e7a6317986745b6d6406b260a85f3fa44
 Accepted Final-I.6.6 feature head: 7c1441ac62c06d723f9e1fbe07d61b5a4de0a8dd
 Final-I.6.6 implementation and acceptance record: docs/220-final-i-6-6-human-reservation-codes.md
-Final-I.6.7 status: Implementation completed; Hosted owner validation pending
+Final-I.6.7 status: Completed and accepted on 2026-10-12
 Final-I.6.7 registration date: 2026-10-12
 Final-I.6.7 implementation base: fa7d7b8191dd973a7def3f34f080c19934386b78
-Final-I.6.7 implementation record: docs/221-final-i-6-7-admin-ui-consistency-navigation-polish.md
+Accepted Final-I.6.7 feature head: e5538e8e4528bc0c956bdc0ae07bcdbf2c52f283
+Final-I.6.7 implementation and acceptance record: docs/221-final-i-6-7-admin-ui-consistency-navigation-polish.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -329,10 +331,11 @@ Final-I.6.6 status: Completed and accepted on 2026-10-12
 Final-I.6.6 implementation base: 0e28002e7a6317986745b6d6406b260a85f3fa44
 Accepted Final-I.6.6 feature head: 7c1441ac62c06d723f9e1fbe07d61b5a4de0a8dd
 Final-I.6.6 implementation and acceptance record: docs/220-final-i-6-6-human-reservation-codes.md
-Final-I.6.7 status: Implementation completed; Hosted owner validation pending
+Final-I.6.7 status: Completed and accepted on 2026-10-12
 Final-I.6.7 registration date: 2026-10-12
 Final-I.6.7 implementation base: fa7d7b8191dd973a7def3f34f080c19934386b78
-Final-I.6.7 implementation record: docs/221-final-i-6-7-admin-ui-consistency-navigation-polish.md
+Accepted Final-I.6.7 feature head: e5538e8e4528bc0c956bdc0ae07bcdbf2c52f283
+Final-I.6.7 implementation and acceptance record: docs/221-final-i-6-7-admin-ui-consistency-navigation-polish.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -387,10 +390,11 @@ Final-I.6.6 status: Completed and accepted on 2026-10-12
 Final-I.6.6 implementation base: 0e28002e7a6317986745b6d6406b260a85f3fa44
 Accepted Final-I.6.6 feature head: 7c1441ac62c06d723f9e1fbe07d61b5a4de0a8dd
 Final-I.6.6 implementation and acceptance record: docs/220-final-i-6-6-human-reservation-codes.md
-Final-I.6.7 status: Implementation completed; Hosted owner validation pending
+Final-I.6.7 status: Completed and accepted on 2026-10-12
 Final-I.6.7 registration date: 2026-10-12
 Final-I.6.7 implementation base: fa7d7b8191dd973a7def3f34f080c19934386b78
-Final-I.6.7 implementation record: docs/221-final-i-6-7-admin-ui-consistency-navigation-polish.md
+Accepted Final-I.6.7 feature head: e5538e8e4528bc0c956bdc0ae07bcdbf2c52f283
+Final-I.6.7 implementation and acceptance record: docs/221-final-i-6-7-admin-ui-consistency-navigation-polish.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -2127,13 +2131,36 @@ This does not reintroduce the previous implicit-history-selection bug: entering 
 
 Validation executed for this correction: `npm run final-i:validate` PASS 57/57 after rerun outside the sandbox because the sandbox-only `tsx` startup failed with `uv_os_get_passwd ENOMEM`; `npm run final-i:db:validate` PASS 13/13 with `TRP_ENVIRONMENT=test` after the same sandbox-only `tsx` startup failure; `npm run final-h:validate` PASS 20/20 after the same sandbox-only `tsx` startup failure; `npm run lint` PASS; `npm run build` PASS after rerun outside the sandbox because the sandbox run could not fetch Google Fonts; and `git diff --check` PASS with Windows CRLF normalization warnings only.
 
+## 2026-10-12 — Final-I.6.7 Completed And Accepted
+
+```text
+Package: Final-I — Operational Polish, Notification UX & FEL Invoicing
+Subphase: Final-I.6.7 — Admin UI Consistency & Navigation Polish
+Status: Completed and accepted on 2026-10-12
+Accepted feature HEAD: e5538e8e4528bc0c956bdc0ae07bcdbf2c52f283
+Hosted owner validation: PASS
+Owner formal acceptance: PASS
+Workstreams A-F: Completed and accepted
+Record: docs/221-final-i-6-7-admin-ui-consistency-navigation-polish.md
+Final-I.7: Blocked pending official INFILE technical documentation + Test credentials
+Final-I.8: Not started / reserved for FEL delivery email/PDF/XML/history UX
+Final-I.9: Not started / integrated Final-I closure
+Phase 13: Blocked / Not started until Final-I closes
+```
+
+The owner confirmed that all Final-I.6.7 Hosted tests passed satisfactorily and formally accepted Admin UI Consistency & Navigation Polish on 2026-10-12. The accepted feature head remains `e5538e8e4528bc0c956bdc0ae07bcdbf2c52f283`; this documentation closure does not replace that feature head.
+
+The acceptance covers Workstreams A-F and the final pre-Hosted visual hardening: active tab hover preserves the selected primary styling, public availability tabs keep their accepted public visual style, and Admin horizontal tab navigation keeps responsive scroll/background behavior.
+
+Previously recorded automated evidence remains `npm run final-i:validate` PASS 136/136, `npm run final-h:validate` PASS 20/20, `npm run lint` PASS, `npm run build` PASS, and `git diff --check` PASS. No runtime behavior, React component, style, translation, test, Prisma schema, migration, data, API, infrastructure configuration, Production resource, Final-I.7, Final-I.8, Final-I.9, or Phase 13 scope changed in this documentation-only closure.
+
 ## 2026-10-12 — Final-I.6.7 Admin UI Consistency & Navigation Polish Implemented
 
 ```text
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track addendum
 Package: Final-I — Operational Polish, Notification UX & FEL Invoicing
 Subphase: Final-I.6.7 — Admin UI Consistency & Navigation Polish
-Status: Implementation completed; Hosted owner validation pending
+Status at implementation: Implementation completed; later completed and accepted on 2026-10-12 at e5538e8e4528bc0c956bdc0ae07bcdbf2c52f283
 Implementation base: fa7d7b8191dd973a7def3f34f080c19934386b78
 Implementation record: docs/221-final-i-6-7-admin-ui-consistency-navigation-polish.md
 Final-I.6.6: Completed and accepted on 2026-10-12 at 7c1441ac62c06d723f9e1fbe07d61b5a4de0a8dd
