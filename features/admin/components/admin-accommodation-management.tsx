@@ -76,7 +76,7 @@ export function AdminAccommodationManagement({
         <div className="-mx-1 overflow-x-auto px-1 pb-2">
           <TabsList
             aria-label={copy.title}
-            className="inline-flex h-auto w-max max-w-full justify-start gap-1 border border-border/70 bg-muted/40 p-1.5"
+            className="inline-flex h-auto min-w-max justify-start gap-1 border border-border/70 bg-muted/40 p-1.5"
           >
             <TabsTrigger className="min-h-10 shrink-0" value="content">
               {copy.overview.sectionTitle}

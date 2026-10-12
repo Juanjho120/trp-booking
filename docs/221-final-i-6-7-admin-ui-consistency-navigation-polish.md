@@ -38,6 +38,17 @@ Final-I.6.7 is intentionally presentation-only for Admin UI consistency. It does
 - API routes, server actions, loaders, cache contracts, availability behavior, financial arithmetic, Tilopay, refunds, Additional Charges, FEL provider behavior, INFILE behavior, email delivery, notification semantics, cron execution, scheduler registration, `vercel.json`, environment variables, dependencies, Production resources, Final-I.7, Final-I.8, Final-I.9, or Phase 13.
 - Accepted Final-I.6.6 Human Reservation Code generation, PostgreSQL uniqueness, transaction retry behavior, or the separation between `Reservation.id` and human reservation codes.
 
+## Pre-Hosted Visual Hardening
+
+The pre-Hosted review of implementation head `ab2072969915b63c1d83cc25975a46894dda6e11` identified one preventive visual correction before owner validation:
+
+- Shared tab trigger hover styling is now inactive-only. Active Radix Tabs and `AdminLinkTab` links keep the accepted primary background, primary foreground text, border, and shadow while hovered.
+- Reusable tab classes remain centralized in `components/ui/tabs.tsx`; `AdminLinkTab` consumes the shared active and inactive trigger tokens instead of duplicating hover/active styling.
+- Public availability tabs opt into an explicit subtle shared-Tabs variant so the accepted public availability tab appearance remains unchanged while Admin Tabs keep primary selection as the default.
+- Admin link-tab and Accommodations tab lists use natural minimum width inside their existing horizontal scroll wrappers, preserving background and border across all options on narrow screens without widening the page.
+
+This hardening does not alter availability queries, accommodation selection, business logic, persistence, APIs, schema, migrations, FEL, payments, notifications, cron jobs, dependencies, or Production resources.
+
 ## Test Coverage
 
 Final-I.6.7 adds `tests/final-i/i67-admin-ui-consistency-navigation.test.ts`, registered through `tests/final-i/run.ts`.
@@ -49,22 +60,23 @@ The new coverage verifies:
 - Accommodations management uses mounted shared Tabs for public content and preparation buffers while preserving localized ES/EN labels and the existing settings module.
 - The main Reservation detail tab list no longer uses full-width background sizing, while the existing eight tabs, mounted panels, and scroll container remain intact.
 - Active tab styling is centralized in `components/ui/tabs.tsx`; Location and Cron Jobs no longer define local active-selection class copies.
+- Active tab hover states remain primary-colored, while inactive tab hover affordance is applied only through inactive shared trigger tokens.
 - Catalogs, Calendar, and Payments use the shared Admin link-tab abstraction while preserving URL parameters and real navigation-link semantics.
-- Known public shared-Tabs consumers remain accounted for before the global active-state styling change.
+- Public availability remains an explicit subtle shared-Tabs consumer after the Admin primary active-state styling change.
 
 The existing Final-I.6.2 navigation-pagination regression was adjusted only where the accepted I.6.7 change intentionally narrows the main Reservation detail tab list from `min-w-full` to natural `w-max` sizing. Nested financial/email/additional-charge tab layouts remain unchanged.
 
 ## Validation Ledger
 
 ```text
-npm run final-i:validate — PASS, 135/135
+npm run final-i:validate — PASS, 136/136
 npm run final-h:validate — PASS, 20/20
 npm run lint — PASS
 npm run build — PASS; Next slow-filesystem warning only
 git diff --check — PASS; Windows CRLF normalization warnings only
 ```
 
-The first sandboxed `npm run final-i:validate` attempt failed before tests with Node `uv_os_get_passwd ENOMEM`; the outside-sandbox rerun completed successfully at 135/135.
+The pre-Hosted hardening rerun completed successfully at 136/136 after adding explicit active/inactive tab-hover coverage.
 
 ## Current State After Implementation
 

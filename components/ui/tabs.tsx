@@ -8,11 +8,19 @@ import { cn } from "@/lib/utils";
 const tabsListClassName =
   "inline-flex items-center justify-center rounded-2xl bg-muted p-1 text-muted-foreground";
 const tabsTriggerBaseClassName =
-  "inline-flex items-center justify-center whitespace-nowrap rounded-xl border border-transparent px-3 py-2 text-sm font-medium outline-none transition hover:bg-background/80 hover:text-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50";
+  "inline-flex items-center justify-center whitespace-nowrap rounded-xl border border-transparent px-3 py-2 text-sm font-medium outline-none transition focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50";
+const tabsTriggerInactiveClassName =
+  "text-muted-foreground hover:bg-background/80 hover:text-foreground";
+const tabsTriggerInactiveDataClassName =
+  "data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:bg-background/80 data-[state=inactive]:hover:text-foreground";
 const tabsTriggerActiveClassName =
   "border-primary bg-primary text-primary-foreground shadow-md";
 const tabsTriggerActiveDataClassName =
   "data-[state=active]:border-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md";
+const tabsTriggerSubtleActiveDataClassName =
+  "data-[state=active]:border-border/70 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm";
+
+type TabsTriggerVariant = "primary" | "subtle";
 
 function Tabs({
   className,
@@ -42,13 +50,19 @@ function TabsList({
 
 function TabsTrigger({
   className,
+  variant = "primary",
   ...props
-}: React.ComponentProps<typeof TabsPrimitive.Trigger>) {
+}: React.ComponentProps<typeof TabsPrimitive.Trigger> & {
+  variant?: TabsTriggerVariant;
+}) {
   return (
     <TabsPrimitive.Trigger
       className={cn(
         tabsTriggerBaseClassName,
-        tabsTriggerActiveDataClassName,
+        tabsTriggerInactiveDataClassName,
+        variant === "primary"
+          ? tabsTriggerActiveDataClassName
+          : tabsTriggerSubtleActiveDataClassName,
         className,
       )}
       data-slot="tabs-trigger"
@@ -81,4 +95,5 @@ export {
   tabsListClassName,
   tabsTriggerActiveClassName,
   tabsTriggerBaseClassName,
+  tabsTriggerInactiveClassName,
 };

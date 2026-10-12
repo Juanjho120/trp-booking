@@ -69,6 +69,7 @@ export function PublicAvailabilityPage({
                     className="min-w-[10rem]"
                     key={accommodation.id}
                     value={accommodation.id}
+                    variant="subtle"
                   >
                     {accommodation.name[locale]}
                   </TabsTrigger>

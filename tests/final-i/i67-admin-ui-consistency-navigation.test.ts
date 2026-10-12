@@ -167,12 +167,33 @@ test("I.6.7 primary tab selection styling is centralized in the shared Tabs comp
   const tabs = read("components/ui/tabs.tsx");
   const cronJobs = read(`${ADMIN_COMPONENTS}/admin-cron-jobs-page.tsx`);
   const publicLocation = read(`${ADMIN_COMPONENTS}/admin-public-location-page.tsx`);
+  const baseBlock = blockBetween(
+    tabs,
+    "const tabsTriggerBaseClassName =",
+    "const tabsTriggerInactiveClassName =",
+  );
+  const inactiveBlock = blockBetween(
+    tabs,
+    "const tabsTriggerInactiveClassName =",
+    "const tabsTriggerActiveClassName =",
+  );
+  const activeBlock = blockBetween(
+    tabs,
+    "const tabsTriggerActiveClassName =",
+    "function Tabs(",
+  );
 
   for (const expected of [
     "tabsListClassName",
     "tabsTriggerBaseClassName",
+    "tabsTriggerInactiveClassName",
+    "tabsTriggerInactiveDataClassName",
     "tabsTriggerActiveClassName",
     "tabsTriggerActiveDataClassName",
+    "tabsTriggerSubtleActiveDataClassName",
+    'type TabsTriggerVariant = "primary" | "subtle"',
+    'variant = "primary"',
+    "variant?: TabsTriggerVariant",
     "data-[state=active]:border-primary",
     "data-[state=active]:bg-primary",
     "data-[state=active]:text-primary-foreground",
@@ -184,10 +205,41 @@ test("I.6.7 primary tab selection styling is centralized in the shared Tabs comp
     expectIncludes(tabs, expected);
   }
 
+  expectNotIncludes(baseBlock, "hover:bg-background/80");
+  expectNotIncludes(baseBlock, "hover:text-foreground");
+  expectIncludes(inactiveBlock, "hover:bg-background/80");
+  expectIncludes(inactiveBlock, "hover:text-foreground");
+  expectNotIncludes(activeBlock, "hover:bg-background/80");
+  expectNotIncludes(activeBlock, "hover:text-foreground");
   expectNotIncludes(cronJobs, "activeTabClassName");
   expectNotIncludes(publicLocation, "activeTabClassName");
   expectNotIncludes(cronJobs, "data-[state=active]:border-primary");
   expectNotIncludes(publicLocation, "data-[state=active]:border-primary");
+});
+
+test("I.6.7 active tabs keep primary styling on hover while inactive tabs receive hover affordance", () => {
+  const tabs = read("components/ui/tabs.tsx");
+  const linkTabs = read(`${ADMIN_COMPONENTS}/admin-link-tabs.tsx`);
+  const publicAvailability = read("features/availability/components/public-availability-page.tsx");
+  const inactiveDataBlock = blockBetween(
+    tabs,
+    "const tabsTriggerInactiveDataClassName =",
+    "const tabsTriggerActiveClassName =",
+  );
+  const activeDataBlock = blockBetween(
+    tabs,
+    "const tabsTriggerActiveDataClassName =",
+    "const tabsTriggerSubtleActiveDataClassName =",
+  );
+
+  expectIncludes(inactiveDataBlock, "data-[state=inactive]:hover:bg-background/80");
+  expectIncludes(inactiveDataBlock, "data-[state=inactive]:hover:text-foreground");
+  expectIncludes(activeDataBlock, "data-[state=active]:bg-primary");
+  expectIncludes(activeDataBlock, "data-[state=active]:text-primary-foreground");
+  expectNotIncludes(activeDataBlock, "hover:bg-background/80");
+  expectNotIncludes(activeDataBlock, "hover:text-foreground");
+  expectIncludes(linkTabs, "active ? tabsTriggerActiveClassName : tabsTriggerInactiveClassName");
+  expectIncludes(publicAvailability, 'variant="subtle"');
 });
 
 test("I.6.7 admin link navigation shares tab tokens and preserves URL semantics", () => {
@@ -200,11 +252,16 @@ test("I.6.7 admin link navigation shares tab tokens and preserves URL semantics"
     "tabsListClassName",
     "tabsTriggerBaseClassName",
     "tabsTriggerActiveClassName",
+    "tabsTriggerInactiveClassName",
     "aria-current={active ? \"page\" : undefined}",
     "-mx-1 overflow-x-auto px-1 pb-2",
+    "min-w-max",
+    "active ? tabsTriggerActiveClassName : tabsTriggerInactiveClassName",
   ]) {
     expectIncludes(linkTabs, expected);
   }
+
+  expectNotIncludes(linkTabs, "w-max max-w-full");
 
   for (const source of [catalogs, calendar, payments]) {
     expectIncludes(source, "<AdminLinkTabList");
@@ -230,10 +287,13 @@ test("I.6.7 responsive admin navigation keeps controlled horizontal overflow", (
 
   expectIncludes(linkTabs, "overflow-x-auto");
   expectIncludes(linkTabs, "shrink-0");
+  expectIncludes(linkTabs, "min-w-max");
   expectIncludes(accommodation, '<div className="-mx-1 overflow-x-auto px-1 pb-2">');
-  expectIncludes(accommodation, "w-max max-w-full");
+  expectIncludes(accommodation, "min-w-max");
+  expectNotIncludes(accommodation, "w-max max-w-full");
   expectIncludes(reservationDetail, '<div className="-mx-1 overflow-x-auto px-1 pb-2">');
   expectIncludes(reservationDetail, "w-max justify-start");
   expectIncludes(publicAvailability, "TabsTrigger");
+  expectIncludes(publicAvailability, 'variant="subtle"');
   expectIncludes(publicAvailability, "w-max max-w-full justify-start");
 });

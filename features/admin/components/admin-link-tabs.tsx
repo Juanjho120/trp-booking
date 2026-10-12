@@ -7,6 +7,7 @@ import {
   tabsListClassName,
   tabsTriggerActiveClassName,
   tabsTriggerBaseClassName,
+  tabsTriggerInactiveClassName,
 } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 
@@ -39,7 +40,7 @@ function AdminLinkTabList({
       <div
         className={cn(
           tabsListClassName,
-          "h-auto w-max max-w-full justify-start gap-1 border border-border/70 bg-muted/40 p-1.5",
+          "h-auto min-w-max justify-start gap-1 border border-border/70 bg-muted/40 p-1.5",
           listClassName,
         )}
       >
@@ -60,8 +61,8 @@ function AdminLinkTab({
       aria-current={active ? "page" : undefined}
       className={cn(
         tabsTriggerBaseClassName,
-        "min-h-10 shrink-0 text-muted-foreground",
-        active && tabsTriggerActiveClassName,
+        "min-h-10 shrink-0",
+        active ? tabsTriggerActiveClassName : tabsTriggerInactiveClassName,
         className,
       )}
       href={href}
