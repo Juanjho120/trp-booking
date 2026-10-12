@@ -2,6 +2,16 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
+import * as React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+
 import { test } from "./harness";
 
 const ROOT = process.cwd();
@@ -46,8 +56,8 @@ test("I.6.8 calendar integrations use controlled shared tabs without header/info
   const source = read(`${ADMIN_COMPONENTS}/admin-calendar-integrations-page.tsx`);
 
   for (const expected of [
-    'import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";',
-    '<Tabs\n          className="mb-5"',
+    "TabsContent",
+    '<Tabs\n          className="mb-5 grid gap-5"',
     "onValueChange={setSelectedPropertyId}",
     "value={selectedIntegration.property.id}",
     '<div className="-mx-1 overflow-x-auto px-1 pb-2">',
@@ -55,6 +65,10 @@ test("I.6.8 calendar integrations use controlled shared tabs without header/info
     "inline-flex h-auto min-w-max justify-start gap-1",
     "<TabsTrigger",
     'className="min-h-10 shrink-0"',
+    "<TabsContent",
+    "value={integration.property.id}",
+    "integration.property.id === selectedIntegration.property.id",
+    "integration={selectedIntegration}",
     "{locale === \"en\" ? property.nameEn : property.nameEs}",
     "{copy.values.airbnb}",
     "inboundBadgeVariant",
@@ -72,9 +86,44 @@ test("I.6.8 calendar integrations use controlled shared tabs without header/info
     "aria-pressed",
     'variant={active ? "default" : "outline"}',
     'role="group"',
+    '<div className="grid gap-5">',
   ]) {
     expectNotIncludes(source, rejected);
   }
+});
+
+test("I.6.8 calendar integration tabs render trigger and panel semantics", () => {
+  const markup = renderToStaticMarkup(
+    React.createElement(
+      Tabs,
+      { value: "black-white-apartment" },
+      React.createElement(
+        TabsList,
+        { "aria-label": "Calendar integrations" },
+        React.createElement(
+          TabsTrigger,
+          { value: "black-white-apartment" },
+          "Black and White Apartment",
+        ),
+        React.createElement(
+          TabsTrigger,
+          { value: "perfect-retreat-bungalow" },
+          "Perfect Retreat Bungalow",
+        ),
+      ),
+      React.createElement(
+        TabsContent,
+        { value: "black-white-apartment" },
+        "Selected integration",
+      ),
+    ),
+  );
+
+  assert.match(markup, /role="tablist"/);
+  assert.match(markup, /role="tab"/);
+  assert.match(markup, /role="tabpanel"/);
+  assert.match(markup, /aria-controls=/);
+  assert.match(markup, /aria-labelledby=/);
 });
 
 test("I.6.8 FEL tabs keep natural width while panels remain full-width", () => {
@@ -110,15 +159,35 @@ test("I.6.8 admin calendar still re-reads server state after write operations", 
 test("I.6.8 calendar performance record preserves accepted availability architecture", () => {
   const propertyCalendar = read("lib/admin/property-calendar.ts");
   const availability = read("lib/availability/service.ts");
+  const packageJson = read("package.json");
+  const measurementScript = read("scripts/measure-admin-property-calendar.ts");
   const docs = read("docs/222-final-i-6-8-admin-calendar-ux-cleanup-and-performance.md");
+  const propertiesStart = propertyCalendar.indexOf("const propertiesPromise");
+  const blockingStart = propertyCalendar.indexOf("const blockingRecordsPromise");
+  const overridesStart = propertyCalendar.indexOf(
+    "const preparationOverridesPromise",
+  );
+  const propertiesAwait = propertyCalendar.indexOf(
+    "const properties = await propertiesPromise;",
+  );
 
   expectIncludes(propertyCalendar, "getAvailabilityBlockingRecords");
+  expectIncludes(propertyCalendar, "type AdminPropertyCalendarTimingEvent");
+  expectIncludes(propertyCalendar, "measureCalendarRead");
   expectIncludes(propertyCalendar, "Promise.all([");
+  assert.ok(propertiesStart >= 0);
+  assert.ok(blockingStart > propertiesStart && blockingStart < propertiesAwait);
+  assert.ok(overridesStart > blockingStart && overridesStart < propertiesAwait);
   expectIncludes(availability, "prismaClient.reservation.findMany");
   expectIncludes(availability, "prismaClient.calendarBlock.findMany");
   expectIncludes(availability, "prismaClient.lifecycleRequestHold.findMany");
+  expectIncludes(packageJson, '"admin:calendar-performance:measure"');
+  expectIncludes(measurementScript, "TRP_ENVIRONMENT");
+  expectIncludes(measurementScript, "Refusing to measure against a production-looking database URL");
+  expectIncludes(measurementScript, "TRP_ADMIN_SESSION_COOKIE");
+  expectIncludes(measurementScript, "dataPathResults");
   expectNotIncludes(propertyCalendar, "unstable_cache");
   expectNotIncludes(propertyCalendar, "localStorage");
-  expectIncludes(docs, "G.4 historical black-white September 2026 median");
+  expectIncludes(docs, "Pre-Hosted hardening");
   expectIncludes(docs, "No persistent cache, Redis, localStorage, CDN cache, or unstable_cache");
 });

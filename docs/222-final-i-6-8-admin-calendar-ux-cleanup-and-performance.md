@@ -10,7 +10,8 @@ Subphase: Final-I.6.8 - Admin Calendar UX Cleanup & Performance Optimization
 Status: Implementation completed; Hosted owner validation pending
 Registration date: 2026-10-12
 Implementation base: 39725387bd0cb8381108f1de36f17f0792060687
-Implementation head: This implementation commit; Hosted acceptance pending
+Initial implementation head: 8d7be6c3168f8cf3f4e8c66301fdfc096f8f18fe
+Pre-Hosted hardening head: This hardening commit; Hosted acceptance pending
 Final-I.6.7 status: Completed and accepted on 2026-10-12 at e5538e8e4528bc0c956bdc0ae07bcdbf2c52f283
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
@@ -28,7 +29,9 @@ Final-I.6.8 is a bounded Admin calendar and adjacent Admin UX polish subphase. I
 - Calendar integrations removes the redundant page-header badge and the two informational presentation cards above the property navigation.
 - Calendar integrations replaces the Button-based accommodation selector with controlled shared Tabs backed by `selectedPropertyId`; selection remains component state, not URL navigation, and the tabs keep keyboard-accessible Radix behavior plus horizontal overflow on narrow screens.
 - Calendar integrations preserves secret-safe forms, operational badges, inbound/outbound status indicators, confirmation flows, and refresh behavior.
-- Admin calendar performance was measured before deciding whether to alter server data flow. The accepted availability service and composed-listing blocking rules remain the source of truth.
+- Pre-Hosted hardening wraps each calendar-integration property card in a matching Radix `TabsContent` so every property tab owns a tabpanel while still mounting only the selected `IntegrationCard`.
+- Admin calendar performance was measured before and after changing the server data flow. The accepted availability service and composed-listing blocking rules remain the source of truth.
+- `getAdminPropertyCalendar()` now starts the independent property-list, availability-record, and preparation-override reads before awaiting the property list, then fetches blocking-block details and reservation details only after their IDs are known. This preserves the existing meaning while overlapping independent database latency.
 
 ## Preserved Boundaries
 
@@ -38,7 +41,15 @@ The public availability tabs continue to use the accepted subtle visual variant.
 
 ## Admin Calendar Performance Measurement
 
-Measurement was read-only against the local/test database path through `getAdminPropertyCalendar()` with `now` fixed to `2026-10-12T12:00:00.000Z`. The run used three accommodations and the previous, current, and next calendar months, with five sequential samples per accommodation/month. The timing represents the server calendar data path used by initial load, property changes, and month changes because the Admin calendar page is dynamic and route-driven.
+Measurement was read-only against the local/test database path through `getAdminPropertyCalendar()` with `now` fixed to `2026-10-12T12:00:00.000Z`. The original implementation run used three accommodations and the previous, current, and next calendar months, with five sequential samples per accommodation/month. The Pre-Hosted hardening run used the same accommodation/month matrix with seven sequential samples per combination through the reproducible command below:
+
+```text
+TRP_ENVIRONMENT=test npm run admin:calendar-performance:measure -- --samples=7 --month=2026-10 --summary-only --skip-route
+```
+
+The measurement script is `scripts/measure-admin-property-calendar.ts`. It fails closed unless `TRP_ENVIRONMENT=test`, refuses production-looking database URLs, logs only property ids, months, durations, counts, safe stage names, and safe query-family timings, and never logs guest data, reservation values, provider URLs, tokens, cookies, secrets, or raw SQL parameters.
+
+The script also supports authenticated route-response timing through `--route-base-url=...` plus `TRP_ADMIN_SESSION_COOKIE`, but that browser/session measurement was not executed in this hardening pass because no ADMIN session cookie or authenticated browser session was available to automation. The cookie value is intentionally read only from environment and is not printed. No browser-visible "time until calendar displayed" metric is claimed in this record.
 
 No private reservation values, guest data, external calendar secrets, tokens, or provider payloads were logged or persisted during measurement. Query timing was grouped only by safe table family: property read, reservations/holds, calendar blocks, lifecycle holds, preparation overrides, and total function time.
 
@@ -69,7 +80,49 @@ complete-retreat / 2026-11:
 
 Observed medians across the nine accommodation/month combinations were `497.0-741.2 ms`, with an overall median of `619.2 ms`. The first black-white September sample was the only multi-second outlier. Subsequent samples and the other accommodation/month combinations did not show a deterministic query-count or construction-stage regression.
 
-The current implementation already delegates availability blocking to `getAvailabilityBlockingRecords()` and uses parallel reads for independent reservation, calendar-block, lifecycle-hold, blocking-block-detail, and preparation-override data. No duplicate replacement of availability logic was introduced.
+### Pre-Hosted Hardening Measurement
+
+After the bounded server optimization, the same read-only Test matrix produced these seven-sample medians:
+
+```text
+black-white-apartment / 2026-09:
+  first sample 2693.4 ms; median 641.2 ms; p80 763.9 ms; min/max 388.1-2693.4 ms; query count 7; entries 8
+black-white-apartment / 2026-10:
+  first sample 909.0 ms; median 651.2 ms; p80 904.0 ms; min/max 514.6-909.0 ms; query count 8; entries 34
+black-white-apartment / 2026-11:
+  first sample 513.8 ms; median 387.5 ms; p80 513.8 ms; min/max 385.9-522.7 ms; query count 7; entries 20
+
+perfect-retreat-bungalow / 2026-09:
+  first sample 516.7 ms; median 513.6 ms; p80 516.7 ms; min/max 386.6-647.5 ms; query count 7; entries 4
+perfect-retreat-bungalow / 2026-10:
+  first sample 641.4 ms; median 387.7 ms; p80 514.7 ms; min/max 386.8-641.4 ms; query count 7; entries 19
+perfect-retreat-bungalow / 2026-11:
+  first sample 397.6 ms; median 397.6 ms; p80 515.8 ms; min/max 387.5-648.3 ms; query count 7; entries 13
+
+complete-retreat / 2026-09:
+  first sample 661.3 ms; median 641.7 ms; p80 654.0 ms; min/max 385.5-661.3 ms; query count 7; entries 8
+complete-retreat / 2026-10:
+  first sample 522.0 ms; median 553.5 ms; p80 565.6 ms; min/max 522.0-683.5 ms; query count 8; entries 34
+complete-retreat / 2026-11:
+  first sample 406.7 ms; median 391.1 ms; p80 513.8 ms; min/max 386.8-650.0 ms; query count 7; entries 20
+```
+
+Before/after median comparison against the original Final-I.6.8 measurement:
+
+```text
+black-white-apartment / 2026-09: 741.2 -> 641.2 ms, 13.5% faster
+black-white-apartment / 2026-10: 624.4 -> 651.2 ms, 4.3% slower
+black-white-apartment / 2026-11: 515.1 -> 387.5 ms, 24.8% faster
+perfect-retreat-bungalow / 2026-09: 498.4 -> 513.6 ms, 3.0% slower
+perfect-retreat-bungalow / 2026-10: 619.2 -> 387.7 ms, 37.4% faster
+perfect-retreat-bungalow / 2026-11: 497.0 -> 397.6 ms, 20.0% faster
+complete-retreat / 2026-09: 619.9 -> 641.7 ms, 3.5% slower
+complete-retreat / 2026-10: 626.3 -> 553.5 ms, 11.6% faster
+complete-retreat / 2026-11: 504.5 -> 391.1 ms, 22.5% faster
+overall median across the nine combinations: 619.2 -> 513.6 ms, 17.1% faster
+```
+
+The safe stage timings confirmed that `properties`, `availability_records`, and `preparation_overrides` now overlap. Median totals remain driven primarily by availability and blocking-detail reads, not by presentation work. The bounded change is retained because it improved the overall median without changing query meaning, source precedence, availability records, preparation overrides, or mutation revalidation. Small per-combination regressions remain within the observed Test database/network variability and do not justify broader architecture work in this subphase.
 
 No persistent cache, Redis, localStorage, CDN cache, or unstable_cache was added. The authenticated Admin calendar remains dynamic and operational. A future second-stage optimization may be evaluated only if Hosted owner validation shows the bottleneck is route navigation or visible-client transition time rather than server data construction.
 
@@ -89,17 +142,22 @@ The new coverage verifies:
 
 - The Accommodations page removes only the redundant readonly-boundary note and preparation badge while preserving property status, edit actions, mounted tabs, and preparation settings.
 - Calendar integrations uses controlled shared Tabs instead of Button-based property selection, keeps horizontal overflow, and removes only the redundant header/info-card presentation.
+- Calendar integrations now renders `TabsContent` panels associated with the property triggers, preserving Radix tab/tabpanel semantics without mounting every `IntegrationCard`.
 - FEL tabs use natural width inside the grid while the existing full-width panels remain unchanged.
 - Admin calendar writes still rely on server-side routes and refresh the dynamic calendar view after successful mutations.
-- The Admin calendar performance record preserves the accepted availability architecture and explicitly rejects persistent client/server cache shortcuts for this subphase.
+- The Admin calendar performance record preserves the accepted availability architecture, verifies the Test-only measurement script, verifies independent server reads are started before awaiting the property list, and explicitly rejects persistent client/server cache shortcuts for this subphase.
 
 ## Validation Ledger
 
 ```text
-npm run final-i:validate — initial sandbox run failed before tests with uv_os_get_passwd ENOMEM; outside-sandbox rerun PASS, 141/141
-npm run final-h:validate — PASS, 20/20
-npm run final-g:validate — PASS, 48/48
+npm run admin:calendar-performance:measure -- --samples=7 --month=2026-10 --summary-only --skip-route — initial sandbox run failed before measurement with uv_os_get_passwd ENOMEM; outside-sandbox rerun PASS with Test-only guard and safe summarized output
+npm run final-i:validate — initial sandbox run failed before tests with uv_os_get_passwd ENOMEM; outside-sandbox rerun PASS, 142/142
+npm run final-h:validate — initial sandbox run failed before tests with uv_os_get_passwd ENOMEM; outside-sandbox rerun PASS, 20/20
+npm run final-g:validate — initial sandbox run failed before tests with uv_os_get_passwd ENOMEM; outside-sandbox rerun PASS, 48/48
 npm run admin:calendar-display:validate — initial sandbox run failed before tests with uv_os_get_passwd ENOMEM; outside-sandbox rerun PASS
+npm run airbnb:import-policy:validate — initial sandbox run failed before validation with uv_os_get_passwd ENOMEM; outside-sandbox rerun PASS
+npm run airbnb:export-policy:validate — initial sandbox run failed before validation with uv_os_get_passwd ENOMEM; outside-sandbox rerun PASS
+npm run airbnb:export-path:validate — initial sandbox run failed before validation with uv_os_get_passwd ENOMEM; outside-sandbox rerun PASS
 npm run lint — PASS
 npm run build — initial sandbox run failed fetching Google Fonts; outside-sandbox rerun PASS with Next slow-filesystem warning only
 git diff --check — PASS; Windows CRLF normalization warnings only

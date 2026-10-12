@@ -78,6 +78,30 @@ type CalendarBlockDetailsRecord = Prisma.CalendarBlockGetPayload<{
 }>;
 
 type AdminCalendarPrismaClient = PrismaClient | Prisma.TransactionClient;
+type DeferredCalendarRead<T> = Promise<
+  | Readonly<{ ok: true; value: T }>
+  | Readonly<{ ok: false; error: unknown }>
+>;
+
+export type AdminPropertyCalendarTimingStage =
+  | "properties"
+  | "availability_records"
+  | "preparation_overrides"
+  | "blocking_block_details"
+  | "reservations"
+  | "total";
+
+export type AdminPropertyCalendarTimingEvent = Readonly<{
+  stage: AdminPropertyCalendarTimingStage;
+  durationMs: number;
+  count?: number;
+}>;
+
+type AdminPropertyCalendarOptions = Readonly<{
+  prismaClient?: AdminCalendarPrismaClient;
+  now?: Date;
+  onTiming?: (event: AdminPropertyCalendarTimingEvent) => void;
+}>;
 
 export class AdminCalendarError extends Error {
   constructor(public readonly code: AdminCalendarErrorCode) {
@@ -165,6 +189,51 @@ function sourcePriority(source: AdminCalendarEntrySource): number {
   return priorities[source];
 }
 
+function deferCalendarRead<T>(read: Promise<T>): DeferredCalendarRead<T> {
+  return read.then(
+    (value) => ({ ok: true, value }) as const,
+    (error: unknown) => ({ ok: false, error }) as const,
+  );
+}
+
+async function measureCalendarRead<T>(
+  stage: AdminPropertyCalendarTimingStage,
+  read: Promise<T>,
+  onTiming: AdminPropertyCalendarOptions["onTiming"],
+  count?: (value: T) => number,
+): Promise<T> {
+  const startedAt = performance.now();
+
+  try {
+    const value = await read;
+
+    onTiming?.({
+      stage,
+      durationMs: performance.now() - startedAt,
+      count: count?.(value),
+    });
+
+    return value;
+  } catch (error) {
+    onTiming?.({
+      stage,
+      durationMs: performance.now() - startedAt,
+    });
+
+    throw error;
+  }
+}
+
+function unwrapCalendarRead<T>(
+  result: Awaited<DeferredCalendarRead<T>>,
+): T {
+  if (!result.ok) {
+    throw result.error;
+  }
+
+  return result.value;
+}
+
 function resolveEntrySource(
   source: string,
   reservationStatus: string | undefined,
@@ -195,10 +264,7 @@ function getDaySpan(startDate: DateOnlyString, endDate: DateOnlyString): number 
 
 export async function getAdminPropertyCalendar(
   input: GetAdminPropertyCalendarInput,
-  options: Readonly<{
-    prismaClient?: AdminCalendarPrismaClient;
-    now?: Date;
-  }> = {},
+  options: AdminPropertyCalendarOptions = {},
 ): Promise<AdminPropertyCalendar> {
   if (!isAdminAccommodationId(input.propertyId)) {
     throw new AdminCalendarError("ADMIN_CALENDAR_PROPERTY_NOT_FOUND");
@@ -206,17 +272,71 @@ export async function getAdminPropertyCalendar(
 
   const prismaClient = options.prismaClient ?? prisma;
   const now = options.now ?? new Date();
+  const totalStartedAt = performance.now();
   const calendarRange = parseMonth(input.month);
   const today = dateOnlyFromDate(now);
-  const properties = await prismaClient.property.findMany({
-    where: {
-      id: {
-        in: [...adminAccommodationIds],
+  const blockingPropertyIds = getBlockingAccommodationIds(input.propertyId);
+  const rangeStartDate = dateOnlyToUtcDate(calendarRange.startDate);
+  const rangeEndDate = dateOnlyToUtcDate(calendarRange.endDate);
+  const propertiesPromise = measureCalendarRead(
+    "properties",
+    prismaClient.property.findMany({
+      where: {
+        id: {
+          in: [...adminAccommodationIds],
+        },
+        deletedAt: null,
       },
-      deletedAt: null,
-    },
-    select: propertyCalendarSelect,
-  });
+      select: propertyCalendarSelect,
+    }),
+    options.onTiming,
+    (value) => value.length,
+  );
+  const blockingRecordsPromise = deferCalendarRead(
+    measureCalendarRead(
+      "availability_records",
+      getAvailabilityBlockingRecords(
+        {
+          accommodationId: input.propertyId,
+          startDate: calendarRange.startDate,
+          endDate: calendarRange.endDate,
+        },
+        {
+          prismaClient,
+          now,
+        },
+      ),
+      options.onTiming,
+      (value) => value.length,
+    ),
+  );
+  const preparationOverridesPromise = deferCalendarRead(
+    measureCalendarRead(
+      "preparation_overrides",
+      prismaClient.calendarBlock.findMany({
+        where: {
+          propertyId: {
+            in: [...blockingPropertyIds],
+          },
+          source: CalendarBlockSource.PREPARATION_BUFFER,
+          unlockedByAdminAt: {
+            not: null,
+          },
+          deletedAt: null,
+          startDate: {
+            lt: rangeEndDate,
+          },
+          endDate: {
+            gt: rangeStartDate,
+          },
+        },
+        select: calendarBlockDetailsSelect,
+      }),
+      options.onTiming,
+      (value) => value.length,
+    ),
+  );
+  const properties = await propertiesPromise;
   const propertyOrder = new Map<string, number>(
     adminAccommodationIds.map((propertyId, index) => [propertyId, index] as const),
   );
@@ -230,56 +350,34 @@ export async function getAdminPropertyCalendar(
   );
 
   if (!selectedProperty) {
+    await Promise.all([blockingRecordsPromise, preparationOverridesPromise]);
     throw new AdminCalendarError("ADMIN_CALENDAR_PROPERTY_NOT_FOUND");
   }
 
-  const blockingPropertyIds = getBlockingAccommodationIds(input.propertyId);
-  const blockingRecords = await getAvailabilityBlockingRecords(
-    {
-      accommodationId: input.propertyId,
-      startDate: calendarRange.startDate,
-      endDate: calendarRange.endDate,
-    },
-    {
-      prismaClient,
-      now,
-    },
-  );
+  const blockingRecords = unwrapCalendarRead(await blockingRecordsPromise);
   const calendarBlockIds = blockingRecords
     .map((record) => record.calendarBlockId)
     .filter((value): value is string => Boolean(value));
-  const [blockingCalendarBlocks, preparationOverrides] = await Promise.all([
-    calendarBlockIds.length > 0
-      ? prismaClient.calendarBlock.findMany({
-          where: {
-            id: {
-              in: calendarBlockIds,
+  const [blockingCalendarBlocks, preparationOverridesResult] = await Promise.all([
+    measureCalendarRead(
+      "blocking_block_details",
+      calendarBlockIds.length > 0
+        ? prismaClient.calendarBlock.findMany({
+            where: {
+              id: {
+                in: calendarBlockIds,
+              },
+              deletedAt: null,
             },
-            deletedAt: null,
-          },
-          select: calendarBlockDetailsSelect,
-        })
-      : Promise.resolve([] as CalendarBlockDetailsRecord[]),
-    prismaClient.calendarBlock.findMany({
-      where: {
-        propertyId: {
-          in: [...blockingPropertyIds],
-        },
-        source: CalendarBlockSource.PREPARATION_BUFFER,
-        unlockedByAdminAt: {
-          not: null,
-        },
-        deletedAt: null,
-        startDate: {
-          lt: dateOnlyToUtcDate(calendarRange.endDate),
-        },
-        endDate: {
-          gt: dateOnlyToUtcDate(calendarRange.startDate),
-        },
-      },
-      select: calendarBlockDetailsSelect,
-    }),
+            select: calendarBlockDetailsSelect,
+          })
+        : Promise.resolve([] as CalendarBlockDetailsRecord[]),
+      options.onTiming,
+      (value) => value.length,
+    ),
+    preparationOverridesPromise,
   ]);
+  const preparationOverrides = unwrapCalendarRead(preparationOverridesResult);
   const reservationIds = new Set<string>();
 
   blockingRecords.forEach((record) => {
@@ -293,9 +391,10 @@ export async function getAdminPropertyCalendar(
     }
   });
 
-  const reservations: ReservationCalendarRecord[] =
+  const reservations = await measureCalendarRead(
+    "reservations",
     reservationIds.size > 0
-      ? await prismaClient.reservation.findMany({
+      ? prismaClient.reservation.findMany({
           where: {
             id: {
               in: [...reservationIds],
@@ -303,7 +402,10 @@ export async function getAdminPropertyCalendar(
           },
           select: reservationCalendarSelect,
         })
-      : [];
+      : Promise.resolve([] as ReservationCalendarRecord[]),
+    options.onTiming,
+    (value) => value.length,
+  );
   const propertyById = new Map<string, PropertyCalendarRecord>(
     orderedProperties.map((property) => [property.id, property] as const),
   );
@@ -411,7 +513,7 @@ export async function getAdminPropertyCalendar(
     };
   });
 
-  return {
+  const result = {
     generatedAt: new Date().toISOString(),
     month: calendarRange.month,
     today,
@@ -423,6 +525,14 @@ export async function getAdminPropertyCalendar(
     properties: orderedProperties.map(toPropertyOption),
     days,
   };
+
+  options.onTiming?.({
+    stage: "total",
+    durationMs: performance.now() - totalStartedAt,
+    count: entries.length,
+  });
+
+  return result;
 }
 
 export async function createAdminManualCalendarBlock(

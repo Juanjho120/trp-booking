@@ -38,7 +38,12 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 import { useLocale } from "@/features/i18n";
 import type {
   AdminExternalCalendarErrorCode,
@@ -834,7 +839,7 @@ export function AdminCalendarIntegrationsPage({
 
       {selectedIntegration ? (
         <Tabs
-          className="mb-5"
+          className="mb-5 grid gap-5"
           onValueChange={setSelectedPropertyId}
           value={selectedIntegration.property.id}
         >
@@ -858,17 +863,23 @@ export function AdminCalendarIntegrationsPage({
               })}
             </TabsList>
           </div>
+
+          {initialData.integrations.map((integration) => (
+            <TabsContent
+              className="min-w-0"
+              key={integration.property.id}
+              value={integration.property.id}
+            >
+              {integration.property.id === selectedIntegration.property.id ? (
+                <IntegrationCard
+                  integration={selectedIntegration}
+                  key={selectedIntegration.property.id}
+                />
+              ) : null}
+            </TabsContent>
+          ))}
         </Tabs>
       ) : null}
-
-      <div className="grid gap-5">
-        {selectedIntegration ? (
-          <IntegrationCard
-            integration={selectedIntegration}
-            key={selectedIntegration.property.id}
-          />
-        ) : null}
-      </div>
 
       <div className="mt-6 flex justify-end">
         <Button asChild variant="ghost">
