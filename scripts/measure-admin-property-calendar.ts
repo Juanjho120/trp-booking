@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { performance } from "node:perf_hooks";
+import { pathToFileURL } from "node:url";
 
 import { PrismaClient } from "@prisma/client";
 
@@ -73,22 +74,41 @@ const TIMING_STAGES: readonly AdminPropertyCalendarTimingStage[] = [
 ];
 
 const ROUTE_COOKIE_ENV = "TRP_ADMIN_SESSION_COOKIE";
+export const AUTHORIZED_ADMIN_CALENDAR_ROUTE_ORIGIN =
+  "https://trp-booking.juantzun.dev";
+
+const AUTHORIZED_ADMIN_CALENDAR_ROUTE_ORIGINS = new Set([
+  AUTHORIZED_ADMIN_CALENDAR_ROUTE_ORIGIN,
+]);
+const ROUTE_AUTH_FAILURE_STATUSES = new Set([401, 403]);
+
+class CalendarMeasurementError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "CalendarMeasurementError";
+  }
+}
 
 function assertTestEnvironment(): void {
-  assert.equal(
-    process.env.TRP_ENVIRONMENT,
-    "test",
-    "Calendar performance measurement must run only with TRP_ENVIRONMENT=test.",
-  );
+  if (process.env.TRP_ENVIRONMENT !== "test") {
+    throw new CalendarMeasurementError(
+      "Calendar performance measurement must run only with TRP_ENVIRONMENT=test.",
+    );
+  }
 
   const databaseUrl = process.env.DATABASE_URL ?? "";
 
-  assert.ok(databaseUrl, "DATABASE_URL must be configured for measurement.");
-  assert.doesNotMatch(
-    databaseUrl,
-    /production|prod|turefugioperfecto/i,
-    "Refusing to measure against a production-looking database URL.",
-  );
+  if (!databaseUrl) {
+    throw new CalendarMeasurementError(
+      "DATABASE_URL must be configured for measurement.",
+    );
+  }
+
+  if (/production|prod|turefugioperfecto/i.test(databaseUrl)) {
+    throw new CalendarMeasurementError(
+      "Refusing to measure against a production-looking database URL.",
+    );
+  }
 }
 
 function optionValue(name: string): string | null {
@@ -354,15 +374,56 @@ async function measureCalendarDataPath(): Promise<
   }
 }
 
-function cleanRouteBaseUrl(rawValue: string): URL {
-  const parsed = new URL(rawValue);
+export function resolveAuthorizedAdminCalendarRouteBaseUrl(
+  rawValue: string,
+): URL {
+  let parsed: URL;
 
-  assert.match(parsed.protocol, /^https?:$/, "--route-base-url must be HTTP(S).");
+  try {
+    parsed = new URL(rawValue);
+  } catch {
+    throw new CalendarMeasurementError(
+      "--route-base-url must be a valid authorized Test URL.",
+    );
+  }
+
+  if (parsed.username || parsed.password) {
+    throw new CalendarMeasurementError(
+      "--route-base-url must not contain embedded credentials.",
+    );
+  }
+
+  if (parsed.protocol !== "https:") {
+    throw new CalendarMeasurementError(
+      "--route-base-url must use HTTPS for authenticated route timing.",
+    );
+  }
+
+  if (!AUTHORIZED_ADMIN_CALENDAR_ROUTE_ORIGINS.has(parsed.origin)) {
+    throw new CalendarMeasurementError(
+      "--route-base-url is restricted to the authorized Test origin.",
+    );
+  }
+
   parsed.pathname = parsed.pathname.replace(/\/+$/, "");
   parsed.search = "";
   parsed.hash = "";
 
   return parsed;
+}
+
+export function isInvalidAdminCalendarRouteSampleStatus(status: number): boolean {
+  return (
+    (status >= 300 && status < 400) || ROUTE_AUTH_FAILURE_STATUSES.has(status)
+  );
+}
+
+function assertAuthorizedRouteSampleResponse(response: Response): void {
+  if (isInvalidAdminCalendarRouteSampleStatus(response.status)) {
+    throw new CalendarMeasurementError(
+      "Admin route timing sample rejected because authentication failed or a redirect occurred.",
+    );
+  }
 }
 
 async function measureRouteResponses(): Promise<unknown> {
@@ -374,6 +435,7 @@ async function measureRouteResponses(): Promise<unknown> {
     };
   }
 
+  const baseUrl = resolveAuthorizedAdminCalendarRouteBaseUrl(rawBaseUrl);
   const cookie = process.env[ROUTE_COOKIE_ENV];
 
   if (!cookie) {
@@ -384,7 +446,6 @@ async function measureRouteResponses(): Promise<unknown> {
     };
   }
 
-  const baseUrl = cleanRouteBaseUrl(rawBaseUrl);
   const sampleCount = parsePositiveIntegerOption("route-samples", 5);
   const baseMonth = assertValidMonth(optionValue("month") ?? "2026-10");
   const propertyIds = parseProperties();
@@ -421,6 +482,12 @@ async function measureRouteResponses(): Promise<unknown> {
       url.searchParams.set("propertyId", target.propertyId);
       url.searchParams.set("month", target.month);
 
+      if (url.origin !== AUTHORIZED_ADMIN_CALENDAR_ROUTE_ORIGIN) {
+        throw new CalendarMeasurementError(
+          "Admin route timing refuses to send credentials outside the authorized Test origin.",
+        );
+      }
+
       const startedAt = performance.now();
       const response = await fetch(url, {
         headers: {
@@ -428,6 +495,7 @@ async function measureRouteResponses(): Promise<unknown> {
         },
         redirect: "manual",
       });
+      assertAuthorizedRouteSampleResponse(response);
       const bytes = (await response.arrayBuffer()).byteLength;
 
       samples.push({
@@ -435,7 +503,6 @@ async function measureRouteResponses(): Promise<unknown> {
         status: response.status,
         totalMs: round(performance.now() - startedAt),
         bytes,
-        redirected: response.status >= 300 && response.status < 400,
       });
     }
 
@@ -461,6 +528,12 @@ async function main(): Promise<void> {
 
   const sampleCount = parsePositiveIntegerOption("samples", 7);
   const baseMonth = assertValidMonth(optionValue("month") ?? "2026-10");
+  const routeBaseUrl = optionValue("route-base-url");
+
+  if (!hasFlag("skip-route") && routeBaseUrl) {
+    resolveAuthorizedAdminCalendarRouteBaseUrl(routeBaseUrl);
+  }
+
   const dataPathResults = await measureCalendarDataPath();
   const routeResponseResults = hasFlag("skip-route")
     ? { status: "skipped" }
@@ -481,7 +554,13 @@ async function main(): Promise<void> {
   );
 }
 
-main().catch((error: unknown) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((error: unknown) => {
+    console.error(
+      error instanceof CalendarMeasurementError
+        ? error.message
+        : "Calendar performance measurement failed.",
+    );
+    process.exitCode = 1;
+  });
+}

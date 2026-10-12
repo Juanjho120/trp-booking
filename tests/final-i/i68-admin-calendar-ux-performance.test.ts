@@ -11,6 +11,11 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import {
+  AUTHORIZED_ADMIN_CALENDAR_ROUTE_ORIGIN,
+  isInvalidAdminCalendarRouteSampleStatus,
+  resolveAuthorizedAdminCalendarRouteBaseUrl,
+} from "../../scripts/measure-admin-property-calendar";
 
 import { test } from "./harness";
 
@@ -156,6 +161,40 @@ test("I.6.8 admin calendar still re-reads server state after write operations", 
   expectIncludes(unlockRoute, "restoreAdminPreparationBufferDay");
 });
 
+test("I.6.8 route timing accepts only the authorized Test origin", () => {
+  const allowed = resolveAuthorizedAdminCalendarRouteBaseUrl(
+    "https://trp-booking.juantzun.dev/admin/calendar?ignored=true#fragment",
+  );
+
+  assert.equal(allowed.origin, AUTHORIZED_ADMIN_CALENDAR_ROUTE_ORIGIN);
+  assert.equal(allowed.protocol, "https:");
+  assert.equal(allowed.username, "");
+  assert.equal(allowed.password, "");
+  assert.equal(allowed.search, "");
+  assert.equal(allowed.hash, "");
+
+  for (const rejected of [
+    "http://trp-booking.juantzun.dev",
+    "ftp://trp-booking.juantzun.dev",
+    "https://turefugioperfecto.com",
+    "https://admin:secret@trp-booking.juantzun.dev",
+    "https://trp-booking.juantzun.dev.evil.example",
+    "https://evil.example",
+  ]) {
+    assert.throws(() => resolveAuthorizedAdminCalendarRouteBaseUrl(rejected));
+  }
+});
+
+test("I.6.8 route timing rejects redirect and authentication-failure samples", () => {
+  for (const status of [301, 302, 307, 308, 401, 403]) {
+    assert.equal(isInvalidAdminCalendarRouteSampleStatus(status), true);
+  }
+
+  for (const status of [200, 204, 404, 500]) {
+    assert.equal(isInvalidAdminCalendarRouteSampleStatus(status), false);
+  }
+});
+
 test("I.6.8 calendar performance record preserves accepted availability architecture", () => {
   const propertyCalendar = read("lib/admin/property-calendar.ts");
   const availability = read("lib/availability/service.ts");
@@ -185,6 +224,12 @@ test("I.6.8 calendar performance record preserves accepted availability architec
   expectIncludes(measurementScript, "TRP_ENVIRONMENT");
   expectIncludes(measurementScript, "Refusing to measure against a production-looking database URL");
   expectIncludes(measurementScript, "TRP_ADMIN_SESSION_COOKIE");
+  expectIncludes(measurementScript, "AUTHORIZED_ADMIN_CALENDAR_ROUTE_ORIGIN");
+  expectIncludes(measurementScript, "resolveAuthorizedAdminCalendarRouteBaseUrl");
+  expectIncludes(measurementScript, "pathToFileURL");
+  expectIncludes(measurementScript, "redirect: \"manual\"");
+  expectIncludes(measurementScript, "url.origin");
+  expectNotIncludes(measurementScript, "console.error(error)");
   expectIncludes(measurementScript, "dataPathResults");
   expectNotIncludes(propertyCalendar, "unstable_cache");
   expectNotIncludes(propertyCalendar, "localStorage");

@@ -49,7 +49,7 @@ TRP_ENVIRONMENT=test npm run admin:calendar-performance:measure -- --samples=7 -
 
 The measurement script is `scripts/measure-admin-property-calendar.ts`. It fails closed unless `TRP_ENVIRONMENT=test`, refuses production-looking database URLs, logs only property ids, months, durations, counts, safe stage names, and safe query-family timings, and never logs guest data, reservation values, provider URLs, tokens, cookies, secrets, or raw SQL parameters.
 
-The script also supports authenticated route-response timing through `--route-base-url=...` plus `TRP_ADMIN_SESSION_COOKIE`, but that browser/session measurement was not executed in this hardening pass because no ADMIN session cookie or authenticated browser session was available to automation. The cookie value is intentionally read only from environment and is not printed. No browser-visible "time until calendar displayed" metric is claimed in this record.
+The script also supports authenticated route-response timing through `--route-base-url=...` plus `TRP_ADMIN_SESSION_COOKIE`, but only for the explicit HTTPS Test origin `https://trp-booking.juantzun.dev`. Route timing rejects non-HTTPS schemes, embedded URL credentials, Production origins, external domains, and lookalike domains before any fetch can send the ADMIN cookie. The cookie value is intentionally read only from environment and is not printed. Redirect responses and authentication failures are invalid route samples. No browser-visible "time until calendar displayed" metric is claimed in this record because no real ADMIN session cookie or authenticated browser session was available to automation.
 
 No private reservation values, guest data, external calendar secrets, tokens, or provider payloads were logged or persisted during measurement. Query timing was grouped only by safe table family: property read, reservations/holds, calendar blocks, lifecycle holds, preparation overrides, and total function time.
 
@@ -146,6 +146,7 @@ The new coverage verifies:
 - FEL tabs use natural width inside the grid while the existing full-width panels remain unchanged.
 - Admin calendar writes still rely on server-side routes and refresh the dynamic calendar view after successful mutations.
 - The Admin calendar performance record preserves the accepted availability architecture, verifies the Test-only measurement script, verifies independent server reads are started before awaiting the property list, and explicitly rejects persistent client/server cache shortcuts for this subphase.
+- The measurement tool route-timing guard accepts only the authorized HTTPS Test origin, rejects HTTP/FTP, embedded credentials, Production/external/lookalike domains, and treats redirects plus authentication failures as invalid samples without logging cookies or sensitive headers.
 
 ## Validation Ledger
 
@@ -158,6 +159,18 @@ npm run admin:calendar-display:validate — initial sandbox run failed before te
 npm run airbnb:import-policy:validate — initial sandbox run failed before validation with uv_os_get_passwd ENOMEM; outside-sandbox rerun PASS
 npm run airbnb:export-policy:validate — initial sandbox run failed before validation with uv_os_get_passwd ENOMEM; outside-sandbox rerun PASS
 npm run airbnb:export-path:validate — initial sandbox run failed before validation with uv_os_get_passwd ENOMEM; outside-sandbox rerun PASS
+npm run lint — PASS
+npm run build — initial sandbox run failed fetching Google Fonts; outside-sandbox rerun PASS with Next slow-filesystem warning only
+git diff --check — PASS; Windows CRLF normalization warnings only
+```
+
+Measurement-tool security hardening validation:
+
+```text
+npm run final-i:validate — initial sandbox run failed before tests with uv_os_get_passwd ENOMEM; outside-sandbox rerun PASS, 144/144
+npm run final-h:validate — initial sandbox run failed before tests with uv_os_get_passwd ENOMEM; outside-sandbox rerun PASS, 20/20
+TRP_ENVIRONMENT=test npm run admin:calendar-performance:measure -- --samples=1 --month=2026-10 --summary-only --skip-route — PASS outside the sandbox; direct getAdminPropertyCalendar() measurement remains intact
+TRP_ENVIRONMENT=test TRP_ADMIN_SESSION_COOKIE=<fake> npm run admin:calendar-performance:measure -- --samples=1 --month=2026-10 --summary-only --route-base-url=https://evil.example --route-samples=1 — PASS as a negative security check; command exits non-zero before any route fetch with the safe diagnostic "--route-base-url is restricted to the authorized Test origin."
 npm run lint — PASS
 npm run build — initial sandbox run failed fetching Google Fonts; outside-sandbox rerun PASS with Next slow-filesystem warning only
 git diff --check — PASS; Windows CRLF normalization warnings only
