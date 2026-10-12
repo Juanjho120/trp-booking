@@ -2,12 +2,12 @@
 
 ## Status
 
-Status: Implementation completed; Hosted owner validation pending
+Status: Completed and accepted on 2026-10-12
 
 - Implementation base: `0e28002e7a6317986745b6d6406b260a85f3fa44`
 - Implementation date: 2026-10-09
 - Owner-approved format refinement date: 2026-10-09
-- Owner-approved eight-character refinement implementation head: the Git commit containing this entry; final SHA reported after push
+- Owner-approved eight-character refinement accepted feature HEAD: `7c1441ac62c06d723f9e1fbe07d61b5a4de0a8dd`
 - Scope: Human-readable Reservation reference codes for guest/admin presentation only.
 - Final-I.6.5 remains completed and accepted; this work does not reopen Admin contextual-help/copy-density polish.
 - Final-I.7 — Blocked pending official INFILE technical documentation and Test credentials.
@@ -15,7 +15,7 @@ Status: Implementation completed; Hosted owner validation pending
 - Final-I.9 — Not started / integrated Final-I closure.
 - Phase 13 — Blocked / Not started until Final-I closes and is explicitly accepted.
 
-Do not mark Final-I.6.6 accepted until Hosted owner validation and explicit owner acceptance are complete.
+Final-I.6.6 is completed and accepted after Hosted owner validation PASS and explicit owner acceptance on 2026-10-12.
 
 ## Scope Boundary
 
@@ -354,10 +354,53 @@ Notes:
 - The incremental 8-character migration is fail-closed and refuses to alter existing immutable Reservation codes if any Reservation rows exist.
 - No existing Reservation code was rewritten or regenerated because the pre-application Local/Test reservation count was 0.
 ```
+
+## Formal Acceptance
+
+Final-I.6.6 — Human Reservation Codes is completed and accepted on 2026-10-12.
+
+```text
+Accepted feature HEAD: 7c1441ac62c06d723f9e1fbe07d61b5a4de0a8dd
+Hosted owner validation: PASS
+Owner formal acceptance: PASS
+Vercel deployment for accepted feature HEAD: SUCCESS
+Final code format: TRXXXXXX
+Prefix: TR
+Random suffix length: 6
+Alphabet: ABCDEFGHJKLMNPQRSTUVWXYZ23456789
+```
+
+The owner confirmed that all Final-I.6.6 Hosted functional tests passed satisfactorily and formally approved the subphase on 2026-10-12. No additional Hosted metrics, logs, or per-step observations are invented by this acceptance entry.
+
+The accepted implementation keeps `Reservation.id` as the authoritative technical identifier for database relations, routes, payments, provider handoff, idempotency, audit history, FEL source ownership, and internal joins. The human `reservationCode` remains public-reference-safe only and is not a credential, lookup token, provider idempotency key, payment confirmation key, or relational replacement.
+
+Preserved implementation evidence:
+
+```text
+- Final format: TRXXXXXX, eight characters total.
+- Generation: fixed TR prefix plus six crypto.randomInt characters.
+- Alphabet: ABCDEFGHJKLMNPQRSTUVWXYZ23456789, excluding I, O, 0, and 1.
+- Collision handling: bounded transactional retries remain preserved.
+- Database protection: PostgreSQL uniqueness and CHECK constraints remain preserved.
+- Original migration retained: 20261009130000_final_i_6_6_human_reservation_codes.
+- Incremental refinement migration retained: 20261009143000_final_i_6_6_reservation_code_8_chars.
+```
+
+Previously recorded automated evidence remains authoritative:
+
+```text
+npm run final-i:validate — PASS, 127/127
+TRP_ENVIRONMENT=test npm run final-i:db:validate — PASS, 14/14
+npm run final-h:validate — PASS, 20/20
+npm run db:migrate:status — PASS, 33 migrations; database schema is up to date
+```
+
+This acceptance closure is documentation-only. It does not modify runtime behavior, Prisma schema, migrations, Local/Test data, reservation-code generation, Tilopay, FEL, email, notification, cron, dependency, environment, Vercel, Production, Final-I.7, Final-I.8, Final-I.9, or Phase 13 scope.
+
 ## Current State
 
 ```text
-Final-I.6.6 — Implementation completed; Hosted owner validation pending
+Final-I.6.6 — Completed and accepted on 2026-10-12 at 7c1441ac62c06d723f9e1fbe07d61b5a4de0a8dd
 Final-I.7 — Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 — Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 — Not started / integrated Final-I closure

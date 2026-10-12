@@ -47,9 +47,10 @@ Final-I.6.4 implementation and acceptance record: docs/218-final-i-6-4-reservati
 Final-I.6.5 status: Completed and accepted on 2026-10-09
 Accepted Final-I.6.5 feature head: 61ba8ea88bc7b7073f4ef6e733422e7c34b29698
 Final-I.6.5 implementation and acceptance record: docs/219-final-i-6-5-admin-contextual-help-copy-density-polish.md
-Final-I.6.6 status: Implementation completed; Hosted owner validation pending
+Final-I.6.6 status: Completed and accepted on 2026-10-12
 Final-I.6.6 implementation base: 0e28002e7a6317986745b6d6406b260a85f3fa44
-Final-I.6.6 implementation record: docs/220-final-i-6-6-human-reservation-codes.md
+Accepted Final-I.6.6 feature head: 7c1441ac62c06d723f9e1fbe07d61b5a4de0a8dd
+Final-I.6.6 implementation and acceptance record: docs/220-final-i-6-6-human-reservation-codes.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -100,9 +101,10 @@ Final-I.6.4 implementation and acceptance record: docs/218-final-i-6-4-reservati
 Final-I.6.5 status: Completed and accepted on 2026-10-09
 Accepted Final-I.6.5 feature head: 61ba8ea88bc7b7073f4ef6e733422e7c34b29698
 Final-I.6.5 implementation and acceptance record: docs/219-final-i-6-5-admin-contextual-help-copy-density-polish.md
-Final-I.6.6 status: Implementation completed; Hosted owner validation pending
+Final-I.6.6 status: Completed and accepted on 2026-10-12
 Final-I.6.6 implementation base: 0e28002e7a6317986745b6d6406b260a85f3fa44
-Final-I.6.6 implementation record: docs/220-final-i-6-6-human-reservation-codes.md
+Accepted Final-I.6.6 feature head: 7c1441ac62c06d723f9e1fbe07d61b5a4de0a8dd
+Final-I.6.6 implementation and acceptance record: docs/220-final-i-6-6-human-reservation-codes.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -315,9 +317,10 @@ Final-I.6.4 implementation and acceptance record: docs/218-final-i-6-4-reservati
 Final-I.6.5 status: Completed and accepted on 2026-10-09
 Accepted Final-I.6.5 feature head: 61ba8ea88bc7b7073f4ef6e733422e7c34b29698
 Final-I.6.5 implementation and acceptance record: docs/219-final-i-6-5-admin-contextual-help-copy-density-polish.md
-Final-I.6.6 status: Implementation completed; Hosted owner validation pending
+Final-I.6.6 status: Completed and accepted on 2026-10-12
 Final-I.6.6 implementation base: 0e28002e7a6317986745b6d6406b260a85f3fa44
-Final-I.6.6 implementation record: docs/220-final-i-6-6-human-reservation-codes.md
+Accepted Final-I.6.6 feature head: 7c1441ac62c06d723f9e1fbe07d61b5a4de0a8dd
+Final-I.6.6 implementation and acceptance record: docs/220-final-i-6-6-human-reservation-codes.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -368,9 +371,10 @@ Final-I.6.4 implementation and acceptance record: docs/218-final-i-6-4-reservati
 Final-I.6.5 status: Completed and accepted on 2026-10-09
 Accepted Final-I.6.5 feature head: 61ba8ea88bc7b7073f4ef6e733422e7c34b29698
 Final-I.6.5 implementation and acceptance record: docs/219-final-i-6-5-admin-contextual-help-copy-density-polish.md
-Final-I.6.6 status: Implementation completed; Hosted owner validation pending
+Final-I.6.6 status: Completed and accepted on 2026-10-12
 Final-I.6.6 implementation base: 0e28002e7a6317986745b6d6406b260a85f3fa44
-Final-I.6.6 implementation record: docs/220-final-i-6-6-human-reservation-codes.md
+Accepted Final-I.6.6 feature head: 7c1441ac62c06d723f9e1fbe07d61b5a4de0a8dd
+Final-I.6.6 implementation and acceptance record: docs/220-final-i-6-6-human-reservation-codes.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -2106,6 +2110,28 @@ The correction keeps successful draft creation as an explicit EDIT entry point. 
 This does not reintroduce the previous implicit-history-selection bug: entering `/admin/fel`, refreshing, or returning later still starts in CREATE mode with no selected document. Only successful draft creation and explicit `Abrir / Editar` enter EDIT mode. No schema, migration, persistence architecture, INFILE, NIT/CUI lookup, dependency, environment variable, scheduler, Production resource, Final-I.7, or Phase 13 work was introduced.
 
 Validation executed for this correction: `npm run final-i:validate` PASS 57/57 after rerun outside the sandbox because the sandbox-only `tsx` startup failed with `uv_os_get_passwd ENOMEM`; `npm run final-i:db:validate` PASS 13/13 with `TRP_ENVIRONMENT=test` after the same sandbox-only `tsx` startup failure; `npm run final-h:validate` PASS 20/20 after the same sandbox-only `tsx` startup failure; `npm run lint` PASS; `npm run build` PASS after rerun outside the sandbox because the sandbox run could not fetch Google Fonts; and `git diff --check` PASS with Windows CRLF normalization warnings only.
+
+## 2026-10-12 — Final-I.6.6 Completed And Accepted
+
+```text
+Package: Final-I — Operational Polish, Notification UX & FEL Invoicing
+Subphase: Final-I.6.6 — Human Reservation Codes
+Status: Completed and accepted on 2026-10-12
+Accepted feature HEAD: 7c1441ac62c06d723f9e1fbe07d61b5a4de0a8dd
+Hosted owner validation: PASS
+Owner formal acceptance: PASS
+Record: docs/220-final-i-6-6-human-reservation-codes.md
+Final-I.7: Blocked pending official INFILE technical documentation + Test credentials
+Final-I.8: Not started / reserved for FEL delivery email/PDF/XML/history UX
+Final-I.9: Not started / integrated Final-I closure
+Phase 13: Blocked / Not started until Final-I closes
+```
+
+The owner confirmed that all Final-I.6.6 Hosted functional tests passed satisfactorily and formally accepted Human Reservation Codes on 2026-10-12. The accepted feature head remains `7c1441ac62c06d723f9e1fbe07d61b5a4de0a8dd`; this documentation closure does not replace that feature head.
+
+The accepted final format is `TRXXXXXX`: fixed `TR` prefix plus six `crypto.randomInt` characters from `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`, excluding `I`, `O`, `0`, and `1`. The original and incremental migrations remain preserved, PostgreSQL uniqueness and bounded transactional retry remain preserved, and `Reservation.id` remains the authoritative technical identifier.
+
+Previously recorded automated evidence remains Final-I 127/127, Final-I DB 14/14, Final-H 20/20, and 33 migrations with database schema up to date. Vercel for the accepted feature head was SUCCESS. No runtime behavior, Prisma schema, migrations, data, dependencies, Vercel cron configuration, Production resource, Final-I.7, Final-I.8, Final-I.9, or Phase 13 scope changed in this documentation-only closure.
 
 ## 2026-10-09 — Final-I.6.6 Owner-Approved 8-Character Format Refinement Applied
 
