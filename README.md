@@ -74,7 +74,7 @@ TRP_ENVIRONMENT=production
 `VERCEL_ENV` remains deployment metadata and must not be used as the only signal for the TRP business environment. The accepted Test site uses the stable domain while remaining `TRP_ENVIRONMENT=test`; a Vercel production deployment target does not make it the TRP Production environment. A documented target URL must never be treated as proof of deployment without explicit validation.
 
 
-Current addendum: Final-I — Operational Polish, Notification UX & FEL Invoicing — is Active as of 2026-09-29 at registration base `950ff5e6948fb2a74cda03f81efdb7c676b33c73`. Final-I.1 is completed and accepted on 2026-09-29 at accepted head `9a15f349c1104671f5555d1988caa56756e5ff0c`. Final-I.2 is completed and accepted on 2026-09-29 at accepted head `6451cb705d972c83a771a9ff39f6da80d130cf58`; Final-I.3 is completed and accepted on 2026-09-29 at accepted head `8c5a9186e392f35bdbc998f463c5c3c6cd0be295`; Final-I.4 is completed and accepted on 2026-09-30 at accepted head 8e2d7d56a8e81a860833b05f4a28cba8a517bad4; Final-I.5 is completed and accepted on 2026-09-30 at accepted head `fde3ae06427af1f8905e6f7589263c199f918553`; Final-I.6 is completed and accepted on 2026-10-02 at accepted head `80469abda146d0d50516ab598a514a9ccea2db6d`; Final-I.6.1 is completed and accepted on 2026-10-06 at accepted feature head `4d8a1dd5eb2f2eaaadf43bd8b97d7dd1df6e500e`; Final-I.6.2 is completed and accepted on 2026-10-07 at accepted feature head `d936983edd22607919148f871e3ba339ab4a4ed9`; Workstreams A-K are completed; Final-I.6.3 is completed and accepted on 2026-10-07 at accepted feature head `235bd1f5a8a7d48161146c485c979d5f57a6530d`; Final-I.6.4 is completed and accepted on 2026-10-08 at accepted feature head c80f172ac9e1e366e54517020dd5b1a1e1c30a76; Final-I.6.5 is completed and accepted on 2026-10-09 at accepted feature head `61ba8ea88bc7b7073f4ef6e733422e7c34b29698`; implementation and acceptance record: `docs/219-final-i-6-5-admin-contextual-help-copy-density-polish.md`; Final-I.6.6 is completed and accepted on 2026-10-12 at accepted feature head `7c1441ac62c06d723f9e1fbe07d61b5a4de0a8dd`; implementation and acceptance record: `docs/220-final-i-6-6-human-reservation-codes.md`; Final-I.6.7 — Admin UI Consistency & Navigation Polish — is completed and accepted on 2026-10-12 at accepted feature head `e5538e8e4528bc0c956bdc0ae07bcdbf2c52f283`; implementation and acceptance record: `docs/221-final-i-6-7-admin-ui-consistency-navigation-polish.md`; Final-I.6.8 — Admin Calendar UX Cleanup & Performance Optimization — is completed and accepted on 2026-10-12 at accepted feature head `f0c38cf18d8c470f0ba184010be2e6aeeecf6980`; implementation and acceptance record: `docs/222-final-i-6-8-admin-calendar-ux-cleanup-and-performance.md`; Final-I.6.9 — Accommodation Detail Admin UI Consistency — is completed and accepted on 2026-10-13 at accepted feature head `6b68a8e24f7cc0de1127e883f49e1402d7fe5b31`; implementation and acceptance record: `docs/223-final-i-6-9-accommodation-detail-admin-ui-consistency.md`; Final-I.6.10 — Admin Navigation Feedback & Loading Skeletons — implementation is completed with Hosted owner validation pending; implementation base `cf9b4331b64a2af22073251979e619695120024c`; implementation record: `docs/224-final-i-6-10-admin-navigation-feedback-and-loading-skeletons.md`; Final-I.7 is Blocked pending official INFILE technical documentation + Test credentials; Final-I.8 is Not started / reserved for FEL delivery email/PDF/XML/history UX; Final-I.9 is Not started / integrated Final-I closure. Phase 13 remains Blocked / Not started until Final-I closes.
+Current addendum: Final-I — Operational Polish, Notification UX & FEL Invoicing — is Active as of 2026-09-29 at registration base `950ff5e6948fb2a74cda03f81efdb7c676b33c73`. Final-I.1 is completed and accepted on 2026-09-29 at accepted head `9a15f349c1104671f5555d1988caa56756e5ff0c`. Final-I.2 is completed and accepted on 2026-09-29 at accepted head `6451cb705d972c83a771a9ff39f6da80d130cf58`; Final-I.3 is completed and accepted on 2026-09-29 at accepted head `8c5a9186e392f35bdbc998f463c5c3c6cd0be295`; Final-I.4 is completed and accepted on 2026-09-30 at accepted head 8e2d7d56a8e81a860833b05f4a28cba8a517bad4; Final-I.5 is completed and accepted on 2026-09-30 at accepted head `fde3ae06427af1f8905e6f7589263c199f918553`; Final-I.6 is completed and accepted on 2026-10-02 at accepted head `80469abda146d0d50516ab598a514a9ccea2db6d`; Final-I.6.1 is completed and accepted on 2026-10-06 at accepted feature head `4d8a1dd5eb2f2eaaadf43bd8b97d7dd1df6e500e`; Final-I.6.2 is completed and accepted on 2026-10-07 at accepted feature head `d936983edd22607919148f871e3ba339ab4a4ed9`; Workstreams A-K are completed; Final-I.6.3 is completed and accepted on 2026-10-07 at accepted feature head `235bd1f5a8a7d48161146c485c979d5f57a6530d`; Final-I.6.4 is completed and accepted on 2026-10-08 at accepted feature head c80f172ac9e1e366e54517020dd5b1a1e1c30a76; Final-I.6.5 is completed and accepted on 2026-10-09 at accepted feature head `61ba8ea88bc7b7073f4ef6e733422e7c34b29698`; implementation and acceptance record: `docs/219-final-i-6-5-admin-contextual-help-copy-density-polish.md`; Final-I.6.6 is completed and accepted on 2026-10-12 at accepted feature head `7c1441ac62c06d723f9e1fbe07d61b5a4de0a8dd`; implementation and acceptance record: `docs/220-final-i-6-6-human-reservation-codes.md`; Final-I.6.7 — Admin UI Consistency & Navigation Polish — is completed and accepted on 2026-10-12 at accepted feature head `e5538e8e4528bc0c956bdc0ae07bcdbf2c52f283`; implementation and acceptance record: `docs/221-final-i-6-7-admin-ui-consistency-navigation-polish.md`; Final-I.6.8 — Admin Calendar UX Cleanup & Performance Optimization — is completed and accepted on 2026-10-12 at accepted feature head `f0c38cf18d8c470f0ba184010be2e6aeeecf6980`; implementation and acceptance record: `docs/222-final-i-6-8-admin-calendar-ux-cleanup-and-performance.md`; Final-I.6.9 — Accommodation Detail Admin UI Consistency — is completed and accepted on 2026-10-13 at accepted feature head `6b68a8e24f7cc0de1127e883f49e1402d7fe5b31`; implementation and acceptance record: `docs/223-final-i-6-9-accommodation-detail-admin-ui-consistency.md`; Final-I.6.10 — Admin Navigation Feedback & Loading Skeletons — completed and accepted on 2026-10-13 at accepted feature head `bd50240fb15dd33b064c63c19f09a8cea9bae5cc`; implementation base `cf9b4331b64a2af22073251979e619695120024c`; implementation and acceptance record: `docs/224-final-i-6-10-admin-navigation-feedback-and-loading-skeletons.md`; Final-I.7 is Blocked pending official INFILE technical documentation + Test credentials; Final-I.8 is Not started / reserved for FEL delivery email/PDF/XML/history UX; Final-I.9 is Not started / integrated Final-I closure. Phase 13 remains Blocked / Not started until Final-I closes.
 Detailed environment ownership, domain, provider-reuse, recipient-routing, and Phase 12/13 separation rules are documented in `docs/89-test-and-production-environment-strategy.md` and `docs/136-phase-12.1-test-deployment-and-environment-strategy.md`.
 
 ## Purpose
@@ -562,10 +562,11 @@ Final-I.6.9 registration date: 2026-10-13
 Final-I.6.9 implementation base: fd85bfa17473c93271cf70cef36c69189074651d
 Accepted Final-I.6.9 feature head: 6b68a8e24f7cc0de1127e883f49e1402d7fe5b31
 Final-I.6.9 implementation and acceptance record: docs/223-final-i-6-9-accommodation-detail-admin-ui-consistency.md
-Final-I.6.10 status: Implementation completed; Hosted owner validation pending
+Final-I.6.10 status: Completed and accepted on 2026-10-13
 Final-I.6.10 registration date: 2026-10-13
 Final-I.6.10 implementation base: cf9b4331b64a2af22073251979e619695120024c
-Final-I.6.10 implementation record: docs/224-final-i-6-10-admin-navigation-feedback-and-loading-skeletons.md
+Accepted Final-I.6.10 feature head: bd50240fb15dd33b064c63c19f09a8cea9bae5cc
+Final-I.6.10 implementation and acceptance record: docs/224-final-i-6-10-admin-navigation-feedback-and-loading-skeletons.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -635,10 +636,11 @@ Final-I.6.9 registration date: 2026-10-13
 Final-I.6.9 implementation base: fd85bfa17473c93271cf70cef36c69189074651d
 Accepted Final-I.6.9 feature head: 6b68a8e24f7cc0de1127e883f49e1402d7fe5b31
 Final-I.6.9 implementation and acceptance record: docs/223-final-i-6-9-accommodation-detail-admin-ui-consistency.md
-Final-I.6.10 status: Implementation completed; Hosted owner validation pending
+Final-I.6.10 status: Completed and accepted on 2026-10-13
 Final-I.6.10 registration date: 2026-10-13
 Final-I.6.10 implementation base: cf9b4331b64a2af22073251979e619695120024c
-Final-I.6.10 implementation record: docs/224-final-i-6-10-admin-navigation-feedback-and-loading-skeletons.md
+Accepted Final-I.6.10 feature head: bd50240fb15dd33b064c63c19f09a8cea9bae5cc
+Final-I.6.10 implementation and acceptance record: docs/224-final-i-6-10-admin-navigation-feedback-and-loading-skeletons.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -844,10 +846,11 @@ Final-I.6.9 registration date: 2026-10-13
 Final-I.6.9 implementation base: fd85bfa17473c93271cf70cef36c69189074651d
 Accepted Final-I.6.9 feature head: 6b68a8e24f7cc0de1127e883f49e1402d7fe5b31
 Final-I.6.9 implementation and acceptance record: docs/223-final-i-6-9-accommodation-detail-admin-ui-consistency.md
-Final-I.6.10 status: Implementation completed; Hosted owner validation pending
+Final-I.6.10 status: Completed and accepted on 2026-10-13
 Final-I.6.10 registration date: 2026-10-13
 Final-I.6.10 implementation base: cf9b4331b64a2af22073251979e619695120024c
-Final-I.6.10 implementation record: docs/224-final-i-6-10-admin-navigation-feedback-and-loading-skeletons.md
+Accepted Final-I.6.10 feature head: bd50240fb15dd33b064c63c19f09a8cea9bae5cc
+Final-I.6.10 implementation and acceptance record: docs/224-final-i-6-10-admin-navigation-feedback-and-loading-skeletons.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -917,10 +920,11 @@ Final-I.6.9 registration date: 2026-10-13
 Final-I.6.9 implementation base: fd85bfa17473c93271cf70cef36c69189074651d
 Accepted Final-I.6.9 feature head: 6b68a8e24f7cc0de1127e883f49e1402d7fe5b31
 Final-I.6.9 implementation and acceptance record: docs/223-final-i-6-9-accommodation-detail-admin-ui-consistency.md
-Final-I.6.10 status: Implementation completed; Hosted owner validation pending
+Final-I.6.10 status: Completed and accepted on 2026-10-13
 Final-I.6.10 registration date: 2026-10-13
 Final-I.6.10 implementation base: cf9b4331b64a2af22073251979e619695120024c
-Final-I.6.10 implementation record: docs/224-final-i-6-10-admin-navigation-feedback-and-loading-skeletons.md
+Accepted Final-I.6.10 feature head: bd50240fb15dd33b064c63c19f09a8cea9bae5cc
+Final-I.6.10 implementation and acceptance record: docs/224-final-i-6-10-admin-navigation-feedback-and-loading-skeletons.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure

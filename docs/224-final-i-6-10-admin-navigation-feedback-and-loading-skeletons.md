@@ -7,11 +7,16 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track addendum
 Package: Final-I - Operational Polish, Notification UX & FEL Invoicing
 Subphase: Final-I.6.10 - Admin Navigation Feedback & Loading Skeletons
-Status: Implementation completed; Hosted owner validation pending
+Status: Completed and accepted on 2026-10-13
 Registration date: 2026-10-13
 Implementation date: 2026-10-13
 Implementation base: cf9b4331b64a2af22073251979e619695120024c
-Implementation head: this implementation commit; final pushed SHA reported by Git after commit
+Implementation head: bd50240fb15dd33b064c63c19f09a8cea9bae5cc
+Accepted feature head: bd50240fb15dd33b064c63c19f09a8cea9bae5cc
+Acceptance date: 2026-10-13
+Hosted owner validation: PASS
+Owner formal acceptance: PASS
+Vercel deployment for accepted feature head: SUCCESS
 Final-I.6.9 status: Completed and accepted on 2026-10-13 at 6b68a8e24f7cc0de1127e883f49e1402d7fe5b31
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
@@ -134,7 +139,7 @@ The new coverage verifies:
 - Loading copy is centralized in ES/EN messages.
 - Direct URL and Back/Forward behavior remains server-authoritative.
 
-The repository does not include a slow-network browser E2E harness for this Admin navigation package. Visual timing, cancellation, and perceived responsiveness under Hosted network conditions remain owner Hosted-validation items.
+The repository does not include a slow-network browser E2E harness for this Admin navigation package. Visual timing, cancellation, and perceived responsiveness under Hosted network conditions were covered by the owner Hosted validation recorded below.
 
 ## Validation Ledger
 
@@ -148,11 +153,27 @@ npm run build — initial sandbox run failed fetching Google Fonts; approved net
 git diff --check — PASS with Windows CRLF normalization warnings only
 ```
 
+## Formal Acceptance
+
+Final-I.6.10 was formally accepted by the owner on 2026-10-13. The accepted feature HEAD remains `bd50240fb15dd33b064c63c19f09a8cea9bae5cc`; this documentation closure does not replace that feature head. Hosted owner validation is PASS, owner formal acceptance is PASS, and the Vercel deployment for the accepted feature head is SUCCESS.
+
+Accepted scope:
+- Reusable `AdminNavigationLink` for Admin route-navigation feedback.
+- Reusable Admin page skeletons for the scoped route-level loading states.
+- Optimistic selection for `Pagos` and `Eventos SDK`.
+- Optimistic selection for `Amenidades` and `Reglas`.
+- Navigation feedback between Calendar and Calendar Integrations.
+- Navigation feedback between Accommodations and its five editors.
+- Removal of the duplicated lower Calendar Integrations return button.
+- Preservation of local tabs without artificial route requests.
+- Prevention of duplicate navigations during an already pending transition.
+- Preservation of security, authorization, pagination, and existing operational behavior.
+
 ## Current State
 
 ```text
 Final-I.6.9 — Completed and accepted on 2026-10-13 at 6b68a8e24f7cc0de1127e883f49e1402d7fe5b31
-Final-I.6.10 — Implementation completed; Hosted owner validation pending
+Final-I.6.10 — Completed and accepted on 2026-10-13 at bd50240fb15dd33b064c63c19f09a8cea9bae5cc
 Final-I.7 — Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 — Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 — Not started / integrated Final-I closure

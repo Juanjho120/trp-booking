@@ -66,10 +66,11 @@ Final-I.6.9 registration date: 2026-10-13
 Final-I.6.9 implementation base: fd85bfa17473c93271cf70cef36c69189074651d
 Accepted Final-I.6.9 feature head: 6b68a8e24f7cc0de1127e883f49e1402d7fe5b31
 Final-I.6.9 implementation and acceptance record: docs/223-final-i-6-9-accommodation-detail-admin-ui-consistency.md
-Final-I.6.10 status: Implementation completed; Hosted owner validation pending
+Final-I.6.10 status: Completed and accepted on 2026-10-13
 Final-I.6.10 registration date: 2026-10-13
 Final-I.6.10 implementation base: cf9b4331b64a2af22073251979e619695120024c
-Final-I.6.10 implementation record: docs/224-final-i-6-10-admin-navigation-feedback-and-loading-skeletons.md
+Accepted Final-I.6.10 feature head: bd50240fb15dd33b064c63c19f09a8cea9bae5cc
+Final-I.6.10 implementation and acceptance record: docs/224-final-i-6-10-admin-navigation-feedback-and-loading-skeletons.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -139,10 +140,11 @@ Final-I.6.9 registration date: 2026-10-13
 Final-I.6.9 implementation base: fd85bfa17473c93271cf70cef36c69189074651d
 Accepted Final-I.6.9 feature head: 6b68a8e24f7cc0de1127e883f49e1402d7fe5b31
 Final-I.6.9 implementation and acceptance record: docs/223-final-i-6-9-accommodation-detail-admin-ui-consistency.md
-Final-I.6.10 status: Implementation completed; Hosted owner validation pending
+Final-I.6.10 status: Completed and accepted on 2026-10-13
 Final-I.6.10 registration date: 2026-10-13
 Final-I.6.10 implementation base: cf9b4331b64a2af22073251979e619695120024c
-Final-I.6.10 implementation record: docs/224-final-i-6-10-admin-navigation-feedback-and-loading-skeletons.md
+Accepted Final-I.6.10 feature head: bd50240fb15dd33b064c63c19f09a8cea9bae5cc
+Final-I.6.10 implementation and acceptance record: docs/224-final-i-6-10-admin-navigation-feedback-and-loading-skeletons.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -2159,14 +2161,18 @@ This does not reintroduce the previous implicit-history-selection bug: entering 
 
 Validation executed for this correction: `npm run final-i:validate` PASS 57/57 after rerun outside the sandbox because the sandbox-only `tsx` startup failed with `uv_os_get_passwd ENOMEM`; `npm run final-i:db:validate` PASS 13/13 with `TRP_ENVIRONMENT=test` after the same sandbox-only `tsx` startup failure; `npm run final-h:validate` PASS 20/20 after the same sandbox-only `tsx` startup failure; `npm run lint` PASS; `npm run build` PASS after rerun outside the sandbox because the sandbox run could not fetch Google Fonts; and `git diff --check` PASS with Windows CRLF normalization warnings only.
 
-## 2026-10-13 — Final-I.6.10 Admin Navigation Feedback & Loading Skeletons Implemented
+## 2026-10-13 — Final-I.6.10 Admin Navigation Feedback & Loading Skeletons Completed And Accepted
 
 ```text
 Package: Final-I — Operational Polish, Notification UX & FEL Invoicing
 Subphase: Final-I.6.10 — Admin Navigation Feedback & Loading Skeletons
-Status: Implementation completed; Hosted owner validation pending
+Status: Completed and accepted on 2026-10-13
 Implementation base: cf9b4331b64a2af22073251979e619695120024c
-Record: docs/224-final-i-6-10-admin-navigation-feedback-and-loading-skeletons.md
+Accepted feature HEAD: bd50240fb15dd33b064c63c19f09a8cea9bae5cc
+Hosted owner validation: PASS
+Owner formal acceptance: PASS
+Vercel deployment for accepted feature HEAD: SUCCESS
+Implementation and acceptance record: docs/224-final-i-6-10-admin-navigation-feedback-and-loading-skeletons.md
 Final-I.6.9: Completed and accepted on 2026-10-13 at 6b68a8e24f7cc0de1127e883f49e1402d7fe5b31
 Final-I.7: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8: Not started / reserved for FEL delivery email/PDF/XML/history UX
@@ -2178,7 +2184,7 @@ Final-I.6.10 adds shared Admin route-navigation feedback and destination-shaped 
 
 The implementation preserves native link behavior, direct URL entry, browser Back/Forward, server-authoritative data loading, accepted Final-I.6.8 calendar navigation, accepted Final-I.6.9 responsive headers, and local tabs that should remain local. It introduces no schema, migration, API contract, payment/refund/FEL/INFILE behavior, notification semantics, cron/scheduler registration, dependency, environment variable, Production resource, public-site behavior, Final-I.7, Final-I.8, Final-I.9, Phase 13, or backend performance claim.
 
-Validation executed for this checkpoint is recorded in `docs/224-final-i-6-10-admin-navigation-feedback-and-loading-skeletons.md`. Hosted owner validation remains pending.
+Validation executed for the implementation checkpoint is recorded in `docs/224-final-i-6-10-admin-navigation-feedback-and-loading-skeletons.md`. Hosted owner validation and owner formal acceptance are recorded as PASS for the accepted feature head `bd50240fb15dd33b064c63c19f09a8cea9bae5cc`.
 
 ## 2026-10-13 — Final-I.6.9 Accommodation Detail Admin UI Consistency Completed And Accepted
 
