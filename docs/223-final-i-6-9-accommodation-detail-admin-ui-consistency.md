@@ -10,7 +10,8 @@ Subphase: Final-I.6.9 - Accommodation Detail Admin UI Consistency
 Status: Implementation completed; Hosted owner validation pending
 Registration date: 2026-10-13
 Implementation base: fd85bfa17473c93271cf70cef36c69189074651d
-Implementation head: recorded by the implementation commit that includes this file
+Implementation head: 32d9af56bffa33085554fd73378bbf859663cb2d
+Pre-Hosted responsive header hardening: recorded by the follow-up hardening commit
 Final-I.6.8 status: Completed and accepted on 2026-10-12 at f0c38cf18d8c470f0ba184010be2e6aeeecf6980
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
@@ -24,6 +25,8 @@ Final-I.6.9 is a bounded Admin UI consistency pass for the accommodation detail 
 
 - `AdminPageHeader` now exposes a reusable `inlineActions` variant. The default header layout remains unchanged for existing Admin pages; the new variant keeps the title, contextual `?` help affordance, and action buttons in one responsive row when space allows.
 - The inline header variant wraps actions below the title/help group on narrow or constrained widths without truncating long accommodation names.
+- The pre-Hosted responsive hardening splits the inline title/help class from the default title/help class. Inline title/help now stays on one non-wrapping flex row, the title itself can wrap across multiple lines inside its own flex item, the contextual `?` control is non-shrinking, and header actions may move below the title/help group when width is constrained.
+- The inline action group remains a wrapping flex row so two-button headers such as Photos and Amenities/Rules can wrap between buttons without causing horizontal overflow on narrow screens.
 - The variant was applied only to:
   - `features/admin/components/admin-accommodation-content-editor.tsx`
   - `features/admin/components/admin-pricing-manager.tsx`
@@ -55,6 +58,7 @@ Final-I.6.9 adds `tests/final-i/i69-accommodation-detail-admin-ui-consistency.te
 The new coverage verifies:
 
 - `AdminPageHeader` has a reusable inline-action variant while preserving the default layout for other Admin pages.
+- Inline title/help behavior is covered for short and long ES/EN titles at representative 320, 375, 768, and 1280 pixel widths through deterministic responsive class assertions. The repository does not include a browser layout test harness or Playwright dependency for this suite; the regression therefore protects the exact Tailwind contract that keeps the help icon attached to the title while allowing actions to wrap.
 - The five target accommodation detail editors use the inline variant and no longer pass `badge={copy.badge}`.
 - Title/help grouping and wrapped header actions remain centralized in `AdminPageHeader`.
 - Back actions and destination links are preserved, including the Pricing `ArrowLeft`, the Photos content-link action, and the Amenities catalog action.
@@ -69,11 +73,11 @@ Historical Final-I.6.5 and Final-I.6.7 tests were updated narrowly so they conti
 ## Validation Ledger
 
 ```text
-npm run final-i:validate — initial local run failed before tests with uv_os_get_passwd ENOMEM; rerun with a temporary Node preload workaround for that local Windows userInfo failure PASS, 155/155
+npm run final-i:validate — PASS, 156/156 with a temporary Node preload workaround for the local Windows uv_os_get_passwd/userInfo failure
 npm run final-h:validate — PASS, 20/20 with the same temporary Node preload workaround
 npm run final-g:validate — PASS, 48/48 with the same temporary Node preload workaround
 npm run lint — PASS
-npm run build — initial sandbox run failed fetching Google Fonts; approved network rerun PASS with Next slow-filesystem warning and a non-fatal Prisma P1001 static-cache revalidation warning during build output
+npm run build — initial sandbox run failed fetching Google Fonts; approved network rerun PASS with Next slow-filesystem warning only
 git diff --check — PASS
 ```
 

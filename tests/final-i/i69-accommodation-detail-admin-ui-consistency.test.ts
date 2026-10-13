@@ -45,10 +45,19 @@ test("I.6.9 admin page header exposes an inline action variant without changing 
     "adminPageHeaderDefaultClassName",
     "adminPageHeaderInlineClassName",
     "adminPageHeaderTitleHelpClassName",
+    "adminPageHeaderInlineTitleHelpClassName",
     "adminPageHeaderInlineRowClassName",
     "adminPageHeaderInlineActionsClassName",
+    "adminPageHeaderInlineTitleClassName",
+    "adminPageHeaderInlineHelpClassName",
     "flex min-w-0 flex-wrap items-start justify-between gap-x-4 gap-y-4",
-    "flex min-w-0 flex-wrap items-center gap-2",
+    "flex min-w-0 max-w-full flex-1 basis-full items-start gap-2 sm:basis-0",
+    "flex w-full min-w-0 flex-wrap items-center gap-2 sm:w-auto",
+    "`${adminPageHeaderTitleClassName} flex-1`",
+    'const adminPageHeaderInlineHelpClassName = "shrink-0"',
+    "className={adminPageHeaderInlineTitleHelpClassName}",
+    "className={adminPageHeaderInlineTitleClassName}",
+    "className={adminPageHeaderInlineHelpClassName}",
     "md:flex-row md:items-end",
   ]) {
     expectIncludes(header, expected);
@@ -56,6 +65,70 @@ test("I.6.9 admin page header exposes an inline action variant without changing 
 
   expectIncludes(dashboard, "<AdminPageHeader");
   expectNotIncludes(dashboard, 'variant="inlineActions"');
+});
+
+test("I.6.9 inline accommodation header keeps help attached to long titles responsively", () => {
+  const header = read(`${ADMIN_COMPONENTS}/admin-page-header.tsx`);
+  const responsiveSamples = [
+    { locale: "es", title: "Precios", width: 320 },
+    {
+      locale: "es",
+      title: "Administrar precios · Apartamento Blanco y Negro",
+      width: 320,
+    },
+    {
+      locale: "es",
+      title: "Administrar precios · Apartamento Blanco y Negro",
+      width: 375,
+    },
+    {
+      locale: "en",
+      title: "Pricing",
+      width: 768,
+    },
+    {
+      locale: "en",
+      title: "Manage pricing · Black and White Apartment",
+      width: 768,
+    },
+    {
+      locale: "en",
+      title: "Manage pricing · Black and White Apartment",
+      width: 1280,
+    },
+  ] as const;
+
+  for (const sample of responsiveSamples) {
+    const label = `${sample.locale} ${sample.width}px ${sample.title}`;
+
+    assert.ok(
+      header.includes(
+        "flex min-w-0 max-w-full flex-1 basis-full items-start gap-2 sm:basis-0",
+      ),
+      `Expected inline title/help row to stay nowrap for ${label}`,
+    );
+    assert.ok(
+      header.includes("`${adminPageHeaderTitleClassName} flex-1`"),
+      `Expected inline title text to wrap inside its own flex item for ${label}`,
+    );
+    assert.ok(
+      header.includes('const adminPageHeaderInlineHelpClassName = "shrink-0"'),
+      `Expected help icon to remain non-shrinking for ${label}`,
+    );
+    assert.ok(
+      header.includes("flex w-full min-w-0 flex-wrap items-center gap-2 sm:w-auto"),
+      `Expected actions to wrap below or between buttons without overflow for ${label}`,
+    );
+  }
+
+  const inlineBranch = blockBetween(
+    header,
+    "<header className={adminPageHeaderInlineClassName}>",
+    "</header>",
+  );
+
+  expectNotIncludes(inlineBranch, "adminPageHeaderTitleHelpClassName");
+  expectNotIncludes(inlineBranch, "flex-wrap items-start gap-2");
 });
 
 test("I.6.9 target accommodation detail editors use the inline header and drop only redundant header badges", () => {
