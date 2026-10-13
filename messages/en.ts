@@ -3451,6 +3451,7 @@ export const enMessages = {
         restoreBuffer: "Restore buffer",
       },
       states: {
+        loading: "Loading calendar...",
         selectStart: "Select the first date in the calendar.",
         blocked: "This date has one or more blocking sources.",
         available: "This date is available for this accommodation.",

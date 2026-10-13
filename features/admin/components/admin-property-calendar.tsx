@@ -2,7 +2,15 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useTransition,
+  type KeyboardEvent,
+  type MouseEvent,
+} from "react";
 import {
   CalendarPlus,
   ChevronLeft,
@@ -40,6 +48,18 @@ import {
   type AdminCalendarDisplayEntry,
   type AdminCalendarDisplaySource,
 } from "@/lib/admin/calendar-display";
+import {
+  ADMIN_CALENDAR_SKELETON_CELL_COUNT,
+  ADMIN_CALENDAR_SKELETON_WEEKDAY_COUNT,
+  areAdminCalendarTargetsEqual,
+  clearAdminCalendarNavigationPending,
+  createAdminCalendarHref,
+  createAdminCalendarNavigationState,
+  getVisibleAdminCalendarTarget,
+  reconcileAdminCalendarNavigation,
+  requestAdminCalendarNavigation,
+  type AdminCalendarNavigationTarget,
+} from "@/features/admin/lib/admin-calendar-navigation";
 import { cn } from "@/lib/utils";
 import type {
   AdminCalendarEntry,
@@ -104,6 +124,60 @@ function sourceClassName(source: AdminCalendarDisplaySource): string {
   return classes[source];
 }
 
+function AdminCalendarWeekdayHeader({
+  weekdays,
+}: Readonly<{ weekdays: readonly string[] }>) {
+  return (
+    <div className="grid grid-cols-7 border-b border-border bg-muted/20">
+      {weekdays.slice(0, ADMIN_CALENDAR_SKELETON_WEEKDAY_COUNT).map((weekday) => (
+        <div
+          className="px-1 py-3 text-center text-xs font-medium uppercase tracking-wide text-muted-foreground"
+          key={weekday}
+        >
+          {weekday}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function AdminCalendarGridSkeleton({
+  loadingLabel,
+  weekdays,
+}: Readonly<{
+  loadingLabel: string;
+  weekdays: readonly string[];
+}>) {
+  return (
+    <div
+      aria-busy="true"
+      aria-live="polite"
+      className="animate-pulse motion-reduce:animate-none"
+    >
+      <p className="sr-only">{loadingLabel}</p>
+      <AdminCalendarWeekdayHeader weekdays={weekdays} />
+      <div className="grid grid-cols-7">
+        {Array.from(
+          { length: ADMIN_CALENDAR_SKELETON_CELL_COUNT },
+          (_, index) => (
+            <div
+              aria-hidden="true"
+              className="min-h-28 border-b border-r border-border bg-background p-2 sm:min-h-32"
+              key={index}
+            >
+              <div className="size-7 rounded-full bg-muted" />
+              <div className="mt-3 grid gap-2">
+                <div className="h-3 rounded-full bg-muted/80" />
+                <div className="h-3 w-2/3 rounded-full bg-muted/70" />
+              </div>
+            </div>
+          ),
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function AdminPropertyCalendarView({
   initialCalendar,
 }: Readonly<{ initialCalendar: AdminPropertyCalendar }>) {
@@ -120,8 +194,31 @@ export function AdminPropertyCalendarView({
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [errorFeedback, setErrorFeedback] = useState<string | null>(null);
   const [successFeedback, setSuccessFeedback] = useState<string | null>(null);
+  const confirmedTarget = useMemo<AdminCalendarNavigationTarget>(
+    () => ({
+      month: initialCalendar.month,
+      propertyId: initialCalendar.selectedProperty.id,
+    }),
+    [initialCalendar.month, initialCalendar.selectedProperty.id],
+  );
+  const [navigationState, setNavigationState] = useState(() =>
+    createAdminCalendarNavigationState(confirmedTarget),
+  );
+  const pendingTargetRef = useRef<AdminCalendarNavigationTarget | null>(null);
+  const observedPendingTransitionRef = useRef(false);
+  const [isRoutePending, startRouteTransition] = useTransition();
+  const visibleTarget = getVisibleAdminCalendarTarget(navigationState);
+  const displayProperty =
+    initialCalendar.properties.find(
+      (property) => property.id === visibleTarget.propertyId,
+    ) ?? initialCalendar.selectedProperty;
+  const isNavigationPending = navigationState.pendingTarget !== null;
+  const isCalendarNavigationLocked = isNavigationPending || busyKey !== null;
+  const isCalendarInteractionLocked = isNavigationPending || busyKey !== null;
   const selectedDay = selectedDate
-    ? initialCalendar.days.find((day) => day.date === selectedDate) ?? null
+    ? isNavigationPending
+      ? null
+      : initialCalendar.days.find((day) => day.date === selectedDate) ?? null
     : null;
   const normalizedSearch = normalizeSearch(search);
   const selectedDayDisplayEntries = useMemo(
@@ -156,6 +253,32 @@ export function AdminPropertyCalendarView({
         .map((entry) => entry.id),
     );
   }, [initialCalendar.days, normalizedSearch]);
+
+  useEffect(() => {
+    setNavigationState((current) => {
+      const next = reconcileAdminCalendarNavigation(current, confirmedTarget);
+      pendingTargetRef.current = next.pendingTarget;
+      return next;
+    });
+  }, [confirmedTarget]);
+
+  useEffect(() => {
+    if (isRoutePending) {
+      observedPendingTransitionRef.current = true;
+      return;
+    }
+
+    if (!observedPendingTransitionRef.current || !pendingTargetRef.current) {
+      return;
+    }
+
+    observedPendingTransitionRef.current = false;
+    setNavigationState((current) => {
+      const next = clearAdminCalendarNavigationPending(current);
+      pendingTargetRef.current = null;
+      return next;
+    });
+  }, [isRoutePending]);
 
   function formatDate(value: string): string {
     return new Intl.DateTimeFormat(intlLocale, {
@@ -224,7 +347,74 @@ export function AdminPropertyCalendarView({
     setNote("");
   }
 
+  function resetCalendarSelectionState() {
+    setSelectedDate(null);
+    resetRangeMode();
+    setErrorFeedback(null);
+    setSuccessFeedback(null);
+  }
+
+  function requestCalendarNavigation(
+    target: AdminCalendarNavigationTarget,
+    event?: MouseEvent<HTMLAnchorElement>,
+  ) {
+    event?.preventDefault();
+
+    if (
+      busyKey !== null ||
+      pendingTargetRef.current ||
+      areAdminCalendarTargetsEqual(confirmedTarget, target)
+    ) {
+      return;
+    }
+
+    const decision = requestAdminCalendarNavigation(navigationState, target);
+
+    if (!decision.shouldNavigate || !decision.href) {
+      return;
+    }
+
+    const href = decision.href;
+    pendingTargetRef.current = decision.state.pendingTarget;
+    setNavigationState(decision.state);
+    resetCalendarSelectionState();
+    startRouteTransition(() => {
+      router.push(href, { scroll: false });
+    });
+  }
+
+  function preventLockedCalendarNavigation(
+    event: KeyboardEvent<HTMLAnchorElement>,
+  ) {
+    if (
+      isCalendarNavigationLocked &&
+      (event.key === "Enter" || event.key === " ")
+    ) {
+      event.preventDefault();
+    }
+  }
+
+  function calendarNavigationLinkProps(target: AdminCalendarNavigationTarget) {
+    return {
+      "aria-disabled": isCalendarNavigationLocked ? true : undefined,
+      className: isCalendarNavigationLocked
+        ? "aria-disabled:pointer-events-none aria-disabled:opacity-50"
+        : undefined,
+      href: createAdminCalendarHref(target),
+      onClick: (event: MouseEvent<HTMLAnchorElement>) => {
+        requestCalendarNavigation(target, event);
+      },
+      onKeyDown: preventLockedCalendarNavigation,
+      prefetch: false,
+      tabIndex: isCalendarNavigationLocked ? -1 : undefined,
+    };
+  }
+
   function selectRangeDate(date: DateOnlyString) {
+    if (isCalendarInteractionLocked) {
+      return;
+    }
+
     const selectedCalendarDay = initialCalendar.days.find(
       (day) => day.date === date,
     );
@@ -401,7 +591,12 @@ export function AdminPropertyCalendarView({
               </Link>
             </Button>
             <Button
+              disabled={isCalendarInteractionLocked}
               onClick={() => {
+                if (isCalendarInteractionLocked) {
+                  return;
+                }
+
                 if (rangeMode) {
                   resetRangeMode();
                 } else {
@@ -432,12 +627,17 @@ export function AdminPropertyCalendarView({
 
       <AdminLinkTabList aria-label={copy.title} className="mb-5">
         {initialCalendar.properties.map((property) => {
-          const active = property.id === initialCalendar.selectedProperty.id;
+          const active = property.id === visibleTarget.propertyId;
+          const target = {
+            month: visibleTarget.month,
+            propertyId: property.id,
+          };
+
           return (
             <AdminLinkTab
               active={active}
-              href={`/admin/calendar?propertyId=${encodeURIComponent(property.id)}&month=${initialCalendar.month}`}
               key={property.id}
+              {...calendarNavigationLinkProps(target)}
             >
               {locale === "en" ? property.nameEn : property.nameEs}
             </AdminLinkTab>
@@ -450,26 +650,30 @@ export function AdminPropertyCalendarView({
           <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
             <div>
               <CardTitle className="capitalize">
-                {formatMonth(initialCalendar.month)}
+                {formatMonth(visibleTarget.month)}
               </CardTitle>
               <CardDescription>
-                {locale === "en"
-                  ? initialCalendar.selectedProperty.nameEn
-                  : initialCalendar.selectedProperty.nameEs}
+                {locale === "en" ? displayProperty.nameEn : displayProperty.nameEs}
               </CardDescription>
             </div>
             <div className="flex items-center gap-2">
               <Button asChild size="icon" variant="outline">
                 <Link
                   aria-label={copy.actions.previousMonth}
-                  href={`/admin/calendar?propertyId=${encodeURIComponent(initialCalendar.selectedProperty.id)}&month=${addMonths(initialCalendar.month, -1)}`}
+                  {...calendarNavigationLinkProps({
+                    month: addMonths(visibleTarget.month, -1),
+                    propertyId: visibleTarget.propertyId,
+                  })}
                 >
                   <ChevronLeft aria-hidden="true" />
                 </Link>
               </Button>
               <Button asChild variant="outline">
                 <Link
-                  href={`/admin/calendar?propertyId=${encodeURIComponent(initialCalendar.selectedProperty.id)}&month=${initialCalendar.today.slice(0, 7)}`}
+                  {...calendarNavigationLinkProps({
+                    month: initialCalendar.today.slice(0, 7),
+                    propertyId: visibleTarget.propertyId,
+                  })}
                 >
                   {copy.actions.today}
                 </Link>
@@ -477,7 +681,10 @@ export function AdminPropertyCalendarView({
               <Button asChild size="icon" variant="outline">
                 <Link
                   aria-label={copy.actions.nextMonth}
-                  href={`/admin/calendar?propertyId=${encodeURIComponent(initialCalendar.selectedProperty.id)}&month=${addMonths(initialCalendar.month, 1)}`}
+                  {...calendarNavigationLinkProps({
+                    month: addMonths(visibleTarget.month, 1),
+                    propertyId: visibleTarget.propertyId,
+                  })}
                 >
                   <ChevronRight aria-hidden="true" />
                 </Link>
@@ -502,146 +709,164 @@ export function AdminPropertyCalendarView({
         </CardHeader>
 
         <CardContent className="p-0">
-          {rangeMode ? (
-            <div className="grid gap-4 border-b border-border bg-muted/25 p-4 md:grid-cols-[1fr_1fr_auto] md:items-end">
-              <div>
-                <p className="text-sm font-medium">{copy.labels.selectedRange}</p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {rangeStart
-                    ? `${formatDate(rangeStart)}${rangeEnd ? ` — ${formatDate(rangeEnd)}` : ""}`
-                    : copy.states.selectStart}
-                </p>
-              </div>
-              <label className="grid gap-2 text-sm font-medium">
-                {copy.labels.optionalNote}
-                <textarea
-                  className={textareaClassName}
-                  maxLength={500}
-                  onChange={(event) => setNote(event.target.value)}
-                  placeholder={copy.placeholders.optionalNote}
-                  value={note}
-                />
-              </label>
-              <Button
-                disabled={!rangeStart || busyKey !== null}
-                onClick={() => {
-                  if (rangeStart) {
-                    void createManualBlock(
-                      rangeStart,
-                      rangeEnd ?? rangeStart,
-                      note.trim() || null,
-                    );
-                  }
-                }}
-                type="button"
-              >
-                {busyKey?.startsWith("manual-create:") ? (
-                  <Loader2 aria-hidden="true" className="animate-spin" />
-                ) : (
-                  <LockKeyhole aria-hidden="true" />
-                )}
-                {copy.actions.confirmBlock}
-              </Button>
-            </div>
-          ) : null}
-
-          <div className="grid grid-cols-7 border-b border-border bg-muted/20">
-            {copy.weekdays.map((weekday) => (
-              <div
-                className="px-1 py-3 text-center text-xs font-medium uppercase tracking-wide text-muted-foreground"
-                key={weekday}
-              >
-                {weekday}
-              </div>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-7">
-            {initialCalendar.days.map((day) => {
-              const inSelectedRange = Boolean(
-                rangeStart &&
-                  day.date >= rangeStart &&
-                  day.date <= (rangeEnd ?? rangeStart),
-              );
-              const hasSearchMatch =
-                !matchingEntryIds ||
-                day.entries.some((entry) => matchingEntryIds.has(entry.id));
-              const displayEntries = consolidateAdminCalendarEntries(day.entries);
-              const blockingDisplayEntries = displayEntries.filter(
-                (entry) => entry.blocking,
-              );
-              const visibleEntries = blockingDisplayEntries.slice(0, 2);
-              const displayBlockingCount = blockingDisplayEntries.length;
-              const hasOverride = displayEntries.some(
-                (entry) => entry.source === "PREPARATION_BUFFER_OVERRIDE",
-              );
-
-              return (
-                <button
-                  aria-label={`${formatDate(day.date)}. ${
-                    displayBlockingCount > 0
-                      ? copy.states.blocked
-                      : copy.states.available
-                  }`}
-                  className={cn(
-                    "min-h-28 border-b border-r border-border p-2 text-left align-top transition focus-visible:relative focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:min-h-32",
-                    !day.inCurrentMonth && "bg-muted/20 text-muted-foreground",
-                    day.inCurrentMonth && "bg-background hover:bg-muted/30",
-                    displayBlockingCount > 0 && "bg-primary/[0.04]",
-                    day.isPast && "cursor-default opacity-60",
-                    rangeMode &&
-                      !day.canCreateManualBlock &&
-                      "cursor-not-allowed bg-muted/40 opacity-50 hover:bg-muted/40",
-                    inSelectedRange && "bg-primary/15 ring-2 ring-inset ring-primary",
-                    normalizedSearch && !hasSearchMatch && "opacity-35",
-                  )}
-                  disabled={rangeMode && !day.canCreateManualBlock}
-                  key={day.date}
-                  onClick={() => {
-                    if (rangeMode) {
-                      selectRangeDate(day.date);
-                    } else {
-                      setSelectedDate(day.date);
+          {isNavigationPending ? (
+            <AdminCalendarGridSkeleton
+              loadingLabel={copy.states.loading}
+              weekdays={copy.weekdays}
+            />
+          ) : (
+            <>
+              {rangeMode ? (
+                <div className="grid gap-4 border-b border-border bg-muted/25 p-4 md:grid-cols-[1fr_1fr_auto] md:items-end">
+                  <div>
+                    <p className="text-sm font-medium">
+                      {copy.labels.selectedRange}
+                    </p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {rangeStart
+                        ? `${formatDate(rangeStart)}${rangeEnd ? ` — ${formatDate(rangeEnd)}` : ""}`
+                        : copy.states.selectStart}
+                    </p>
+                  </div>
+                  <label className="grid gap-2 text-sm font-medium">
+                    {copy.labels.optionalNote}
+                    <textarea
+                      className={textareaClassName}
+                      disabled={isCalendarInteractionLocked}
+                      maxLength={500}
+                      onChange={(event) => setNote(event.target.value)}
+                      placeholder={copy.placeholders.optionalNote}
+                      value={note}
+                    />
+                  </label>
+                  <Button
+                    disabled={
+                      !rangeStart ||
+                      busyKey !== null ||
+                      isCalendarInteractionLocked
                     }
-                  }}
-                  type="button"
-                >
-                  <span
-                    className={cn(
-                      "flex size-7 items-center justify-center rounded-full text-sm font-medium",
-                      day.date === initialCalendar.today &&
-                        "bg-primary text-primary-foreground",
-                    )}
+                    onClick={() => {
+                      if (rangeStart && !isCalendarInteractionLocked) {
+                        void createManualBlock(
+                          rangeStart,
+                          rangeEnd ?? rangeStart,
+                          note.trim() || null,
+                        );
+                      }
+                    }}
+                    type="button"
                   >
-                    {dayNumber(day.date)}
-                  </span>
-                  <span className="mt-2 grid gap-1">
-                    {visibleEntries.map((entry) => (
+                    {busyKey?.startsWith("manual-create:") ? (
+                      <Loader2 aria-hidden="true" className="animate-spin" />
+                    ) : (
+                      <LockKeyhole aria-hidden="true" />
+                    )}
+                    {copy.actions.confirmBlock}
+                  </Button>
+                </div>
+              ) : null}
+
+              <AdminCalendarWeekdayHeader weekdays={copy.weekdays} />
+
+              <div className="grid grid-cols-7">
+                {initialCalendar.days.map((day) => {
+                  const inSelectedRange = Boolean(
+                    rangeStart &&
+                      day.date >= rangeStart &&
+                      day.date <= (rangeEnd ?? rangeStart),
+                  );
+                  const hasSearchMatch =
+                    !matchingEntryIds ||
+                    day.entries.some((entry) => matchingEntryIds.has(entry.id));
+                  const displayEntries = consolidateAdminCalendarEntries(
+                    day.entries,
+                  );
+                  const blockingDisplayEntries = displayEntries.filter(
+                    (entry) => entry.blocking,
+                  );
+                  const visibleEntries = blockingDisplayEntries.slice(0, 2);
+                  const displayBlockingCount = blockingDisplayEntries.length;
+                  const hasOverride = displayEntries.some(
+                    (entry) => entry.source === "PREPARATION_BUFFER_OVERRIDE",
+                  );
+                  const dayDisabled =
+                    isCalendarInteractionLocked ||
+                    (rangeMode && !day.canCreateManualBlock);
+
+                  return (
+                    <button
+                      aria-label={`${formatDate(day.date)}. ${
+                        displayBlockingCount > 0
+                          ? copy.states.blocked
+                          : copy.states.available
+                      }`}
+                      className={cn(
+                        "min-h-28 border-b border-r border-border p-2 text-left align-top transition focus-visible:relative focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:min-h-32",
+                        !day.inCurrentMonth &&
+                          "bg-muted/20 text-muted-foreground",
+                        day.inCurrentMonth && "bg-background hover:bg-muted/30",
+                        displayBlockingCount > 0 && "bg-primary/[0.04]",
+                        day.isPast && "cursor-default opacity-60",
+                        rangeMode &&
+                          !day.canCreateManualBlock &&
+                          "cursor-not-allowed bg-muted/40 opacity-50 hover:bg-muted/40",
+                        inSelectedRange &&
+                          "bg-primary/15 ring-2 ring-inset ring-primary",
+                        normalizedSearch && !hasSearchMatch && "opacity-35",
+                      )}
+                      disabled={dayDisabled}
+                      key={day.date}
+                      onClick={() => {
+                        if (isCalendarInteractionLocked) {
+                          return;
+                        }
+
+                        if (rangeMode) {
+                          selectRangeDate(day.date);
+                        } else {
+                          setSelectedDate(day.date);
+                        }
+                      }}
+                      type="button"
+                    >
                       <span
                         className={cn(
-                          "truncate rounded-lg border px-1.5 py-1 text-[10px] font-medium leading-none sm:text-xs",
-                          sourceClassName(entry.source),
+                          "flex size-7 items-center justify-center rounded-full text-sm font-medium",
+                          day.date === initialCalendar.today &&
+                            "bg-primary text-primary-foreground",
                         )}
-                        key={entry.id}
                       >
-                        {displaySourceLabel(entry.source)}
+                        {dayNumber(day.date)}
                       </span>
-                    ))}
-                    {displayBlockingCount > 2 ? (
-                      <span className="text-[10px] text-muted-foreground sm:text-xs">
-                        +{displayBlockingCount - 2} {copy.labels.more}
+                      <span className="mt-2 grid gap-1">
+                        {visibleEntries.map((entry) => (
+                          <span
+                            className={cn(
+                              "truncate rounded-lg border px-1.5 py-1 text-[10px] font-medium leading-none sm:text-xs",
+                              sourceClassName(entry.source),
+                            )}
+                            key={entry.id}
+                          >
+                            {displaySourceLabel(entry.source)}
+                          </span>
+                        ))}
+                        {displayBlockingCount > 2 ? (
+                          <span className="text-[10px] text-muted-foreground sm:text-xs">
+                            +{displayBlockingCount - 2} {copy.labels.more}
+                          </span>
+                        ) : null}
+                        {displayBlockingCount === 0 && hasOverride ? (
+                          <span className="truncate rounded-lg border border-primary/30 bg-primary/10 px-1.5 py-1 text-[10px] font-medium leading-none text-foreground sm:text-xs">
+                            {copy.sources.PREPARATION_BUFFER_OVERRIDE}
+                          </span>
+                        ) : null}
                       </span>
-                    ) : null}
-                    {displayBlockingCount === 0 && hasOverride ? (
-                      <span className="truncate rounded-lg border border-primary/30 bg-primary/10 px-1.5 py-1 text-[10px] font-medium leading-none text-foreground sm:text-xs">
-                        {copy.sources.PREPARATION_BUFFER_OVERRIDE}
-                      </span>
-                    ) : null}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
 

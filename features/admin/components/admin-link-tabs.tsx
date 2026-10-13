@@ -23,7 +23,10 @@ type AdminLinkTabProps = Readonly<
     active: boolean;
     children: ReactNode;
     className?: string;
-  } & Pick<ComponentProps<typeof Link>, "href">
+  } & Pick<
+    ComponentProps<typeof Link>,
+    "aria-disabled" | "href" | "onClick" | "onKeyDown" | "prefetch" | "tabIndex"
+  >
 >;
 
 function AdminLinkTabList({
@@ -55,6 +58,7 @@ function AdminLinkTab({
   children,
   className,
   href,
+  ...props
 }: AdminLinkTabProps) {
   return (
     <Link
@@ -66,6 +70,7 @@ function AdminLinkTab({
         className,
       )}
       href={href}
+      {...props}
     >
       {children}
     </Link>

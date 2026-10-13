@@ -269,7 +269,8 @@ test("I.6.7 admin link navigation shares tab tokens and preserves URL semantics"
 
   expectIncludes(catalogs, 'href="/admin/catalogs?catalog=amenities"');
   expectIncludes(catalogs, 'href="/admin/catalogs?catalog=house-rules"');
-  expectIncludes(calendar, "propertyId=${encodeURIComponent(property.id)}&month=${initialCalendar.month}");
+  expectIncludes(calendar, "calendarNavigationLinkProps(target)");
+  expectIncludes(calendar, "createAdminCalendarHref(target)");
   expectIncludes(payments, "href={buildUrl({ view: target, status: undefined, page: 1 })}");
   expectIncludes(payments, "search: data.filters.search");
   expectIncludes(payments, "propertyId: data.filters.propertyId");

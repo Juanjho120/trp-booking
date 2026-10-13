@@ -12,6 +12,16 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import {
+  ADMIN_CALENDAR_SKELETON_CELL_COUNT,
+  ADMIN_CALENDAR_SKELETON_WEEKDAY_COUNT,
+  clearAdminCalendarNavigationPending,
+  createAdminCalendarHref,
+  createAdminCalendarNavigationState,
+  getVisibleAdminCalendarTarget,
+  reconcileAdminCalendarNavigation,
+  requestAdminCalendarNavigation,
+} from "@/features/admin/lib/admin-calendar-navigation";
+import {
   AUTHORIZED_ADMIN_CALENDAR_ROUTE_ORIGIN,
   isInvalidAdminCalendarRouteSampleStatus,
   resolveAuthorizedAdminCalendarRouteBaseUrl,
@@ -159,6 +169,128 @@ test("I.6.8 admin calendar still re-reads server state after write operations", 
   expectIncludes(manualBlocksRoute, "releaseAdminManualCalendarBlockDay");
   expectIncludes(unlockRoute, "unlockAdminPreparationBufferDay");
   expectIncludes(unlockRoute, "restoreAdminPreparationBufferDay");
+});
+
+test("I.6.8 admin calendar navigation coordinator collapses rapid duplicate requests", () => {
+  const confirmed = {
+    month: "2026-10",
+    propertyId: "black-white-apartment",
+  };
+  const requested = {
+    month: "2026-10",
+    propertyId: "perfect-retreat-bungalow",
+  };
+  let state = createAdminCalendarNavigationState(confirmed);
+  let pushes = 0;
+
+  for (let index = 0; index < 10; index += 1) {
+    const decision = requestAdminCalendarNavigation(state, requested);
+    state = decision.state;
+
+    if (decision.shouldNavigate) {
+      pushes += 1;
+    }
+  }
+
+  assert.equal(pushes, 1);
+  assert.deepEqual(getVisibleAdminCalendarTarget(state), requested);
+  assert.equal(
+    createAdminCalendarHref(requested),
+    "/admin/calendar?propertyId=perfect-retreat-bungalow&month=2026-10",
+  );
+});
+
+test("I.6.8 admin calendar navigation clears on confirmed, cancelled, and external navigation", () => {
+  const confirmed = {
+    month: "2026-10",
+    propertyId: "black-white-apartment",
+  };
+  const requested = {
+    month: "2026-11",
+    propertyId: "black-white-apartment",
+  };
+  const external = {
+    month: "2026-09",
+    propertyId: "complete-retreat",
+  };
+  const decision = requestAdminCalendarNavigation(
+    createAdminCalendarNavigationState(confirmed),
+    requested,
+  );
+
+  assert.equal(decision.shouldNavigate, true);
+  assert.deepEqual(
+    reconcileAdminCalendarNavigation(decision.state, requested),
+    createAdminCalendarNavigationState(requested),
+  );
+  assert.deepEqual(
+    reconcileAdminCalendarNavigation(decision.state, external),
+    createAdminCalendarNavigationState(external),
+  );
+  assert.deepEqual(
+    clearAdminCalendarNavigationPending(decision.state),
+    createAdminCalendarNavigationState(confirmed),
+  );
+});
+
+test("I.6.8 admin calendar pending UX hides stale entries behind an accessible skeleton", () => {
+  const calendar = read(`${ADMIN_COMPONENTS}/admin-property-calendar.tsx`);
+  const es = read("messages/es.ts");
+  const en = read("messages/en.ts");
+
+  expectIncludes(calendar, "useTransition");
+  expectIncludes(calendar, "visibleTarget");
+  expectIncludes(calendar, "isNavigationPending ? (");
+  expectIncludes(calendar, "<AdminCalendarGridSkeleton");
+  expectIncludes(calendar, "loadingLabel={copy.states.loading}");
+  expectIncludes(calendar, 'aria-busy="true"');
+  expectIncludes(calendar, 'aria-live="polite"');
+  expectIncludes(calendar, "motion-reduce:animate-none");
+  expectIncludes(calendar, "ADMIN_CALENDAR_SKELETON_WEEKDAY_COUNT");
+  expectIncludes(calendar, "ADMIN_CALENDAR_SKELETON_CELL_COUNT");
+  expectIncludes(calendar, "initialCalendar.days.map");
+  expectIncludes(es, 'loading: "Cargando calendario..."');
+  expectIncludes(en, 'loading: "Loading calendar..."');
+  assert.equal(ADMIN_CALENDAR_SKELETON_WEEKDAY_COUNT, 7);
+  assert.equal(ADMIN_CALENDAR_SKELETON_CELL_COUNT, 42);
+});
+
+test("I.6.8 admin calendar disables stale navigation and mutations while pending", () => {
+  const calendar = read(`${ADMIN_COMPONENTS}/admin-property-calendar.tsx`);
+  const linkTabs = read(`${ADMIN_COMPONENTS}/admin-link-tabs.tsx`);
+
+  expectIncludes(calendar, "isCalendarNavigationLocked");
+  expectIncludes(calendar, "isCalendarInteractionLocked");
+  expectIncludes(calendar, '"aria-disabled": isCalendarNavigationLocked');
+  expectIncludes(calendar, "prefetch: false");
+  expectIncludes(calendar, "tabIndex: isCalendarNavigationLocked ? -1 : undefined");
+  expectIncludes(calendar, "preventLockedCalendarNavigation");
+  expectIncludes(calendar, 'event.key === "Enter" || event.key === " "');
+  expectIncludes(calendar, "busyKey !== null ||");
+  expectIncludes(calendar, "pendingTargetRef.current");
+  expectIncludes(calendar, "router.push(href, { scroll: false })");
+  expectIncludes(calendar, "disabled={isCalendarInteractionLocked}");
+  expectIncludes(calendar, "disabled={dayDisabled}");
+  expectIncludes(calendar, "if (isCalendarInteractionLocked) {");
+  expectIncludes(linkTabs, '"onClick"');
+  expectIncludes(linkTabs, '"onKeyDown"');
+  expectIncludes(linkTabs, '"prefetch"');
+  expectIncludes(linkTabs, '"aria-disabled"');
+});
+
+test("I.6.8 admin calendar month controls share the same route coordinator", () => {
+  const calendar = read(`${ADMIN_COMPONENTS}/admin-property-calendar.tsx`);
+
+  expectIncludes(calendar, "addMonths(visibleTarget.month, -1)");
+  expectIncludes(calendar, "initialCalendar.today.slice(0, 7)");
+  expectIncludes(calendar, "addMonths(visibleTarget.month, 1)");
+  assert.equal(
+    createAdminCalendarHref({
+      month: "2026-11",
+      propertyId: "complete-retreat",
+    }),
+    "/admin/calendar?propertyId=complete-retreat&month=2026-11",
+  );
 });
 
 test("I.6.8 route timing accepts only the authorized Test origin", () => {

@@ -11,7 +11,8 @@ Status: Implementation completed; Hosted owner validation pending
 Registration date: 2026-10-12
 Implementation base: 39725387bd0cb8381108f1de36f17f0792060687
 Initial implementation head: 8d7be6c3168f8cf3f4e8c66301fdfc096f8f18fe
-Pre-Hosted hardening head: This hardening commit; Hosted acceptance pending
+Pre-Hosted route-timing security hardening base: ab60b6953c6b03000d4d3b85706f04530713fbaa
+Pre-Hosted calendar navigation UX hardening head: This hardening commit; Hosted acceptance pending
 Final-I.6.7 status: Completed and accepted on 2026-10-12 at e5538e8e4528bc0c956bdc0ae07bcdbf2c52f283
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
@@ -32,6 +33,9 @@ Final-I.6.8 is a bounded Admin calendar and adjacent Admin UX polish subphase. I
 - Pre-Hosted hardening wraps each calendar-integration property card in a matching Radix `TabsContent` so every property tab owns a tabpanel while still mounting only the selected `IntegrationCard`.
 - Admin calendar performance was measured before and after changing the server data flow. The accepted availability service and composed-listing blocking rules remain the source of truth.
 - `getAdminPropertyCalendar()` now starts the independent property-list, availability-record, and preparation-override reads before awaiting the property list, then fetches blocking-block details and reservation details only after their IDs are known. This preserves the existing meaning while overlapping independent database latency.
+- Pre-Hosted calendar navigation UX hardening adds a typed `{ propertyId, month }` route coordinator for `/admin/calendar` so accommodation and month selections update visually immediately while preserving URL-driven navigation, browser history, and server-owned calendar data.
+- Pending calendar navigation now replaces the old calendar grid with a same-geometry skeleton for the target month/accommodation. The skeleton keeps seven weekday headers and 42 placeholder day cells, uses localized accessible loading copy, and avoids showing stale blocking entries under an optimistic tab or month.
+- Calendar accommodation tabs and previous/today/next controls are guarded by one pending state plus a synchronous duplicate guard. While navigation or a calendar mutation is in progress, tabs/month controls expose `aria-disabled`, keyboard prevention, and disabled affordance; manual block/date actions are also disabled against stale data. Calendar-specific `Link` prefetch is disabled only for these controls, and route pushes preserve scroll position.
 
 ## Preserved Boundaries
 
@@ -133,6 +137,7 @@ No persistent cache, Redis, localStorage, CDN cache, or unstable_cache was added
 - Manual block create/delete and preparation-buffer unlock/restore operations continue to execute server-side authorization and availability checks through their existing API routes.
 - Successful Admin calendar mutations still call `router.refresh()` so the next visible calendar state is re-read from the server after persistence.
 - Create/unlock/restore block behavior is unchanged; this subphase only verifies that the existing server-side refresh/re-read contract remains intact.
+- The navigation UX hardening does not change `getAdminPropertyCalendar()`, availability semantics, Airbnb imports/exports, composed-listing inheritance, preparation buffers, mutations, Prisma schema, or migrations. It improves perceived responsiveness and duplicate-request prevention around the existing dynamic route rather than claiming a new backend speedup.
 
 ## Test Coverage
 
@@ -147,6 +152,8 @@ The new coverage verifies:
 - Admin calendar writes still rely on server-side routes and refresh the dynamic calendar view after successful mutations.
 - The Admin calendar performance record preserves the accepted availability architecture, verifies the Test-only measurement script, verifies independent server reads are started before awaiting the property list, and explicitly rejects persistent client/server cache shortcuts for this subphase.
 - The measurement tool route-timing guard accepts only the authorized HTTPS Test origin, rejects HTTP/FTP, embedded credentials, Production/external/lookalike domains, and treats redirects plus authentication failures as invalid samples without logging cookies or sensitive headers.
+- The Admin calendar navigation coordinator collapses rapid duplicate accommodation/month requests, clears correctly after confirmed, cancelled, or external navigation, and preserves URL-based route construction.
+- The Admin calendar pending UX renders an accessible 42-cell skeleton instead of stale entries, updates the active accommodation/month immediately, disables tabs/month controls/manual block actions while pending, and uses the same coordinator for previous, today, and next month controls.
 
 ## Validation Ledger
 
@@ -173,6 +180,18 @@ TRP_ENVIRONMENT=test npm run admin:calendar-performance:measure -- --samples=1 -
 TRP_ENVIRONMENT=test TRP_ADMIN_SESSION_COOKIE=<fake> npm run admin:calendar-performance:measure -- --samples=1 --month=2026-10 --summary-only --route-base-url=https://evil.example --route-samples=1 — PASS as a negative security check; command exits non-zero before any route fetch with the safe diagnostic "--route-base-url is restricted to the authorized Test origin."
 npm run lint — PASS
 npm run build — initial sandbox run failed fetching Google Fonts; outside-sandbox rerun PASS with Next slow-filesystem warning only
+git diff --check — PASS; Windows CRLF normalization warnings only
+```
+
+Calendar navigation UX hardening validation:
+
+```text
+npm run final-i:validate — initial sandbox run failed before tests with uv_os_get_passwd ENOMEM; outside-sandbox rerun PASS, 149/149
+npm run final-h:validate — PASS, 20/20
+npm run final-g:validate — PASS, 48/48
+npm run admin:calendar-display:validate — PASS
+npm run lint — PASS
+npm run build — initial sandbox run failed fetching Google Fonts; first outside-sandbox rerun exposed a type-narrowing issue that was corrected; final outside-sandbox rerun PASS with Next slow-filesystem warning only
 git diff --check — PASS; Windows CRLF normalization warnings only
 ```
 

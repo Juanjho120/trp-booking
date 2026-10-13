@@ -3460,6 +3460,7 @@ export const esMessages = {
         restoreBuffer: "Restaurar buffer",
       },
       states: {
+        loading: "Cargando calendario...",
         selectStart: "Selecciona la primera fecha en el calendario.",
         blocked: "La fecha tiene una o más fuentes de bloqueo.",
         available: "La fecha está disponible para este alojamiento.",
