@@ -61,10 +61,11 @@ Final-I.6.8 registration date: 2026-10-12
 Final-I.6.8 implementation base: 39725387bd0cb8381108f1de36f17f0792060687
 Accepted Final-I.6.8 feature head: f0c38cf18d8c470f0ba184010be2e6aeeecf6980
 Final-I.6.8 implementation and acceptance record: docs/222-final-i-6-8-admin-calendar-ux-cleanup-and-performance.md
-Final-I.6.9 status: Implementation completed; Hosted owner validation pending
+Final-I.6.9 status: Completed and accepted on 2026-10-13
 Final-I.6.9 registration date: 2026-10-13
 Final-I.6.9 implementation base: fd85bfa17473c93271cf70cef36c69189074651d
-Final-I.6.9 implementation record: docs/223-final-i-6-9-accommodation-detail-admin-ui-consistency.md
+Accepted Final-I.6.9 feature head: 6b68a8e24f7cc0de1127e883f49e1402d7fe5b31
+Final-I.6.9 implementation and acceptance record: docs/223-final-i-6-9-accommodation-detail-admin-ui-consistency.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -129,10 +130,11 @@ Final-I.6.8 registration date: 2026-10-12
 Final-I.6.8 implementation base: 39725387bd0cb8381108f1de36f17f0792060687
 Accepted Final-I.6.8 feature head: f0c38cf18d8c470f0ba184010be2e6aeeecf6980
 Final-I.6.8 implementation and acceptance record: docs/222-final-i-6-8-admin-calendar-ux-cleanup-and-performance.md
-Final-I.6.9 status: Implementation completed; Hosted owner validation pending
+Final-I.6.9 status: Completed and accepted on 2026-10-13
 Final-I.6.9 registration date: 2026-10-13
 Final-I.6.9 implementation base: fd85bfa17473c93271cf70cef36c69189074651d
-Final-I.6.9 implementation record: docs/223-final-i-6-9-accommodation-detail-admin-ui-consistency.md
+Accepted Final-I.6.9 feature head: 6b68a8e24f7cc0de1127e883f49e1402d7fe5b31
+Final-I.6.9 implementation and acceptance record: docs/223-final-i-6-9-accommodation-detail-admin-ui-consistency.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -2149,13 +2151,13 @@ This does not reintroduce the previous implicit-history-selection bug: entering 
 
 Validation executed for this correction: `npm run final-i:validate` PASS 57/57 after rerun outside the sandbox because the sandbox-only `tsx` startup failed with `uv_os_get_passwd ENOMEM`; `npm run final-i:db:validate` PASS 13/13 with `TRP_ENVIRONMENT=test` after the same sandbox-only `tsx` startup failure; `npm run final-h:validate` PASS 20/20 after the same sandbox-only `tsx` startup failure; `npm run lint` PASS; `npm run build` PASS after rerun outside the sandbox because the sandbox run could not fetch Google Fonts; and `git diff --check` PASS with Windows CRLF normalization warnings only.
 
-## 2026-10-13 — Final-I.6.9 Accommodation Detail Admin UI Consistency Implemented
+## 2026-10-13 — Final-I.6.9 Accommodation Detail Admin UI Consistency Completed And Accepted
 
 Subphase: Final-I.6.9 — Accommodation Detail Admin UI Consistency
 
 Status:
 ```text
-Implementation completed; Hosted owner validation pending
+Completed and accepted on 2026-10-13
 ```
 
 Implementation base:
@@ -2163,7 +2165,22 @@ Implementation base:
 fd85bfa17473c93271cf70cef36c69189074651d
 ```
 
-Implementation record:
+Initial implementation head:
+```text
+32d9af56bffa33085554fd73378bbf859663cb2d
+```
+
+Responsive header hardening head:
+```text
+049af4e7318a825d512ba825b050fe5ac65dd0b8
+```
+
+Accepted feature head:
+```text
+6b68a8e24f7cc0de1127e883f49e1402d7fe5b31
+```
+
+Implementation and acceptance record:
 ```text
 docs/223-final-i-6-9-accommodation-detail-admin-ui-consistency.md
 ```
@@ -2186,7 +2203,7 @@ git diff --check — PASS
 
 No Prisma schema, migration, API route, server action, pricing arithmetic, availability logic, Airbnb behavior, payment/refund/FEL/INFILE behavior, notification semantics, cron execution, scheduler registration, dependency, environment variable, Production resource, Final-I.7, Final-I.8, Final-I.9, or Phase 13 work was introduced.
 
-Final-I.6.8 remains completed and accepted. Final-I.6.9 remains pending Hosted owner validation and explicit owner acceptance. Final-I.7 remains blocked pending official INFILE technical documentation and Test credentials; Final-I.8 and Final-I.9 remain Not started; Phase 13 remains Blocked / Not started until Final-I closes.
+Final-I.6.8 remains completed and accepted. Final-I.6.9 is completed and accepted on 2026-10-13 at accepted feature head 6b68a8e24f7cc0de1127e883f49e1402d7fe5b31 after Hosted owner validation PASS and owner formal acceptance PASS. Final-I.7 remains blocked pending official INFILE technical documentation and Test credentials; Final-I.8 and Final-I.9 remain Not started; Phase 13 remains Blocked / Not started until Final-I closes.
 
 ## 2026-10-12 — Final-I.6.8 Completed And Accepted
 

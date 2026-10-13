@@ -7,12 +7,16 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track addendum
 Package: Final-I - Operational Polish, Notification UX & FEL Invoicing
 Subphase: Final-I.6.9 - Accommodation Detail Admin UI Consistency
-Status: Implementation completed; Hosted owner validation pending
+Status: Completed and accepted
 Registration date: 2026-10-13
+Acceptance date: 2026-10-13
 Implementation base: fd85bfa17473c93271cf70cef36c69189074651d
-Implementation head: 32d9af56bffa33085554fd73378bbf859663cb2d
-Pre-Hosted responsive header hardening: recorded by the follow-up hardening commit
-Pre-Hosted header help icon position fix: recorded by this follow-up correction
+Initial implementation head: 32d9af56bffa33085554fd73378bbf859663cb2d
+Pre-Hosted responsive header hardening head: 049af4e7318a825d512ba825b050fe5ac65dd0b8
+Final help-icon position fix / accepted feature HEAD: 6b68a8e24f7cc0de1127e883f49e1402d7fe5b31
+Hosted owner validation: PASS
+Owner formal acceptance: PASS
+Vercel deployment for accepted feature HEAD: SUCCESS
 Final-I.6.8 status: Completed and accepted on 2026-10-12 at f0c38cf18d8c470f0ba184010be2e6aeeecf6980
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
@@ -87,15 +91,33 @@ git diff --check — PASS
 
 No dedicated pricing/accommodations npm validation script exists in `package.json`; the applicable coverage is included in `npm run final-i:validate` plus lint/build.
 
-## Current State After Implementation
+## Formal Acceptance
+
+Final-I.6.9 is completed and accepted on 2026-10-13 at accepted feature HEAD `6b68a8e24f7cc0de1127e883f49e1402d7fe5b31`.
+
+Hosted owner validation completed successfully, owner formal acceptance is recorded as PASS, and the Vercel deployment for the accepted feature HEAD is SUCCESS.
+
+The accepted scope includes:
+
+- Cleanup of redundant header badges across the five accommodation detail editors.
+- Centralized responsive accommodation-detail headers through `AdminPageHeader`.
+- Final correction of the contextual `?` help icon so it remains immediately after the visible title text.
+- Responsive wrapping of action buttons on narrow screens, including the Photos and Amenities/Rules two-button headers.
+- Removal of the redundant Content immutable-fields notice and Photos soft-delete notice.
+- New dedicated `Vista previa` / `Preview` pricing tab.
+- Preservation of pricing rules, validation, persistence, photo behavior, amenity/rule behavior, arrival-instruction behavior, authentication, authorization, operational badges, and security controls.
+
+Historical automated validation remains the previously recorded Final-I 156/156, Final-H 20/20, Final-G 48/48, lint PASS, build PASS, and `git diff --check` PASS. These gates were not re-run as part of this documentation-only closure.
+
+## Current State After Acceptance
 
 ```text
 Final-I.6.8 — Completed and accepted on 2026-10-12 at f0c38cf18d8c470f0ba184010be2e6aeeecf6980
-Final-I.6.9 — Implementation completed; Hosted owner validation pending
+Final-I.6.9 — Completed and accepted on 2026-10-13 at 6b68a8e24f7cc0de1127e883f49e1402d7fe5b31
 Final-I.7 — Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 — Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 — Not started / integrated Final-I closure
 Phase 13 — Blocked / Not started until Final-I closes
 ```
 
-Final-I.6.9 is not accepted yet. Hosted owner validation and explicit owner acceptance remain pending.
+The accepted feature HEAD remains `6b68a8e24f7cc0de1127e883f49e1402d7fe5b31`. This documentation closure does not replace it.
