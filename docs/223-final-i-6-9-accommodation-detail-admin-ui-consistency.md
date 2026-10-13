@@ -12,6 +12,7 @@ Registration date: 2026-10-13
 Implementation base: fd85bfa17473c93271cf70cef36c69189074651d
 Implementation head: 32d9af56bffa33085554fd73378bbf859663cb2d
 Pre-Hosted responsive header hardening: recorded by the follow-up hardening commit
+Pre-Hosted header help icon position fix: recorded by this follow-up correction
 Final-I.6.8 status: Completed and accepted on 2026-10-12 at f0c38cf18d8c470f0ba184010be2e6aeeecf6980
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
@@ -25,7 +26,8 @@ Final-I.6.9 is a bounded Admin UI consistency pass for the accommodation detail 
 
 - `AdminPageHeader` now exposes a reusable `inlineActions` variant. The default header layout remains unchanged for existing Admin pages; the new variant keeps the title, contextual `?` help affordance, and action buttons in one responsive row when space allows.
 - The inline header variant wraps actions below the title/help group on narrow or constrained widths without truncating long accommodation names.
-- The pre-Hosted responsive hardening splits the inline title/help class from the default title/help class. Inline title/help now stays on one non-wrapping flex row, the title itself can wrap across multiple lines inside its own flex item, the contextual `?` control is non-shrinking, and header actions may move below the title/help group when width is constrained.
+- The pre-Hosted responsive hardening splits the inline title/help class from the default title/help class. The follow-up Hosted issue fix removes the former expansive `flex-1` title/help layout and renders the inline title plus contextual `?` help control in the same inline flow with a fixed small gap, so the icon stays immediately after the visible title text instead of drifting toward the action buttons.
+- Inline actions are an independent responsive group: they align to the right when space allows, move below the title/help group when constrained, and do not insert expandable spacing between the title and its help affordance.
 - The inline action group remains a wrapping flex row so two-button headers such as Photos and Amenities/Rules can wrap between buttons without causing horizontal overflow on narrow screens.
 - The variant was applied only to:
   - `features/admin/components/admin-accommodation-content-editor.tsx`
@@ -58,7 +60,7 @@ Final-I.6.9 adds `tests/final-i/i69-accommodation-detail-admin-ui-consistency.te
 The new coverage verifies:
 
 - `AdminPageHeader` has a reusable inline-action variant while preserving the default layout for other Admin pages.
-- Inline title/help behavior is covered for short and long ES/EN titles at representative 320, 375, 768, and 1280 pixel widths through deterministic responsive class assertions. The repository does not include a browser layout test harness or Playwright dependency for this suite; the regression therefore protects the exact Tailwind contract that keeps the help icon attached to the title while allowing actions to wrap.
+- Inline title/help behavior is covered for short and long ES/EN titles at representative 320, 375, 768, and 1280 pixel widths through deterministic responsive class assertions. The regression now rejects `flex-1`, `justify-between`, `ml-auto`, and full-width expansion in the title/help contract, verifies the inline `h1` plus fixed-gap `inline-flex` help wrapper, and keeps the actions as a separate wrapping group. The repository does not include a browser layout test harness or Playwright dependency for this suite; real geometric spacing remains a Hosted owner-validation item.
 - The five target accommodation detail editors use the inline variant and no longer pass `badge={copy.badge}`.
 - Title/help grouping and wrapped header actions remain centralized in `AdminPageHeader`.
 - Back actions and destination links are preserved, including the Pricing `ArrowLeft`, the Photos content-link action, and the Amenities catalog action.
@@ -71,6 +73,8 @@ The new coverage verifies:
 Historical Final-I.6.5 and Final-I.6.7 tests were updated narrowly so they continue to protect shared contextual help and operational badge behavior while allowing the five I.6.9 accommodation detail badges to be removed.
 
 ## Validation Ledger
+
+After the help-icon position fix, the required validation was rerun with the following results:
 
 ```text
 npm run final-i:validate — PASS, 156/156 with a temporary Node preload workaround for the local Windows uv_os_get_passwd/userInfo failure

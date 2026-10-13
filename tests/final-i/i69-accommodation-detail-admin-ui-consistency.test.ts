@@ -49,14 +49,17 @@ test("I.6.9 admin page header exposes an inline action variant without changing 
     "adminPageHeaderInlineRowClassName",
     "adminPageHeaderInlineActionsClassName",
     "adminPageHeaderInlineTitleClassName",
+    "adminPageHeaderInlineHelpWrapperClassName",
     "adminPageHeaderInlineHelpClassName",
-    "flex min-w-0 flex-wrap items-start justify-between gap-x-4 gap-y-4",
-    "flex min-w-0 max-w-full flex-1 basis-full items-start gap-2 sm:basis-0",
-    "flex w-full min-w-0 flex-wrap items-center gap-2 sm:w-auto",
-    "`${adminPageHeaderTitleClassName} flex-1`",
+    "grid min-w-0 grid-cols-1 items-start gap-x-4 gap-y-4 sm:grid-cols-[minmax(0,1fr)_auto]",
+    "min-w-0 max-w-full",
+    "flex w-full min-w-0 flex-wrap items-center gap-2 sm:w-auto sm:justify-self-end",
+    "`${adminPageHeaderTitleClassName} inline`",
+    "ml-2 inline-flex align-top",
     'const adminPageHeaderInlineHelpClassName = "shrink-0"',
     "className={adminPageHeaderInlineTitleHelpClassName}",
     "className={adminPageHeaderInlineTitleClassName}",
+    "className={adminPageHeaderInlineHelpWrapperClassName}",
     "className={adminPageHeaderInlineHelpClassName}",
     "md:flex-row md:items-end",
   ]) {
@@ -69,6 +72,31 @@ test("I.6.9 admin page header exposes an inline action variant without changing 
 
 test("I.6.9 inline accommodation header keeps help attached to long titles responsively", () => {
   const header = read(`${ADMIN_COMPONENTS}/admin-page-header.tsx`);
+  const inlineTitleHelpDefinition = blockBetween(
+    header,
+    "const adminPageHeaderInlineTitleHelpClassName =",
+    ";",
+  );
+  const inlineTitleDefinition = blockBetween(
+    header,
+    "const adminPageHeaderInlineTitleClassName =",
+    ";",
+  );
+  const inlineHelpWrapperDefinition = blockBetween(
+    header,
+    "const adminPageHeaderInlineHelpWrapperClassName =",
+    ";",
+  );
+  const inlineRowDefinition = blockBetween(
+    header,
+    "const adminPageHeaderInlineRowClassName =",
+    ";",
+  );
+  const inlineActionsDefinition = blockBetween(
+    header,
+    "const adminPageHeaderInlineActionsClassName =",
+    ";",
+  );
   const responsiveSamples = [
     { locale: "es", title: "Precios", width: 320 },
     {
@@ -101,23 +129,36 @@ test("I.6.9 inline accommodation header keeps help attached to long titles respo
   for (const sample of responsiveSamples) {
     const label = `${sample.locale} ${sample.width}px ${sample.title}`;
 
+    expectNotIncludes(inlineTitleHelpDefinition, "flex-1");
+    expectNotIncludes(inlineTitleHelpDefinition, "justify-between");
+    expectNotIncludes(inlineTitleHelpDefinition, "ml-auto");
+    expectNotIncludes(inlineTitleDefinition, "flex-1");
+    expectNotIncludes(inlineTitleDefinition, "w-full");
+    expectNotIncludes(inlineTitleDefinition, "justify-between");
+    expectNotIncludes(inlineTitleDefinition, "ml-auto");
     assert.ok(
-      header.includes(
-        "flex min-w-0 max-w-full flex-1 basis-full items-start gap-2 sm:basis-0",
-      ),
-      `Expected inline title/help row to stay nowrap for ${label}`,
+      inlineTitleDefinition.includes("inline"),
+      `Expected the title to remain inline so help follows visible text for ${label}`,
     );
     assert.ok(
-      header.includes("`${adminPageHeaderTitleClassName} flex-1`"),
-      `Expected inline title text to wrap inside its own flex item for ${label}`,
+      inlineHelpWrapperDefinition.includes("ml-2 inline-flex align-top"),
+      `Expected a fixed small inline gap before the help icon for ${label}`,
     );
     assert.ok(
-      header.includes('const adminPageHeaderInlineHelpClassName = "shrink-0"'),
-      `Expected help icon to remain non-shrinking for ${label}`,
+      inlineRowDefinition.includes("grid min-w-0 grid-cols-1"),
+      `Expected single-column narrow layout for ${label}`,
     );
     assert.ok(
-      header.includes("flex w-full min-w-0 flex-wrap items-center gap-2 sm:w-auto"),
+      inlineRowDefinition.includes("sm:grid-cols-[minmax(0,1fr)_auto]"),
+      `Expected independent title/actions columns when space allows for ${label}`,
+    );
+    assert.ok(
+      inlineActionsDefinition.includes("flex-wrap"),
       `Expected actions to wrap below or between buttons without overflow for ${label}`,
+    );
+    assert.ok(
+      inlineActionsDefinition.includes("sm:justify-self-end"),
+      `Expected actions to align right independently from title/help for ${label}`,
     );
   }
 
@@ -126,9 +167,21 @@ test("I.6.9 inline accommodation header keeps help attached to long titles respo
     "<header className={adminPageHeaderInlineClassName}>",
     "</header>",
   );
+  const titleIndex = inlineBranch.indexOf(
+    "<h1 className={adminPageHeaderInlineTitleClassName}>{title}</h1>",
+  );
+  const helpWrapperIndex = inlineBranch.indexOf(
+    "<span className={adminPageHeaderInlineHelpWrapperClassName}>",
+  );
 
   expectNotIncludes(inlineBranch, "adminPageHeaderTitleHelpClassName");
   expectNotIncludes(inlineBranch, "flex-wrap items-start gap-2");
+  assert.notEqual(titleIndex, -1, "Expected inline branch to render the title");
+  assert.notEqual(helpWrapperIndex, -1, "Expected inline branch to wrap the help control");
+  assert.ok(
+    helpWrapperIndex > titleIndex,
+    "Expected help control to render immediately after the inline title",
+  );
 });
 
 test("I.6.9 target accommodation detail editors use the inline header and drop only redundant header badges", () => {
