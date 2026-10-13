@@ -402,6 +402,10 @@ At minimum, preserve these frozen boundaries:
 - All public-facing and admin-facing interactions must use the project design system.
 - Use styled, accessible components based on the approved UI stack.
 - Approved UI foundation: shadcn/ui + Radix UI + Tailwind CSS.
+- UI Design System & Reusable Component Governance: `docs/ui-design-system-and-reusable-component-governance.md`. Reuse shared UI components and centralized variants; only introduce page-specific differences when justified and authorized by the owner.
+- Owner UX Review Workflow: `docs/owner-ux-visual-prototyping-workflow.md`. For UI decisions that benefit from a preview, use four stages: visual proposal; optional interactive simulation; implementation with Codex adapted to this repository's stack; and owner Hosted validation.
+- Interactive prototypes shown in conversation are illustrative, not the live application or proof of backend behavior, security, data correctness, or performance. They do not replace automated tests or owner acceptance.
+- This visual-first workflow is not mandatory for pure backend, SQL, infrastructure, or documentation work without meaningful UI decisions. Do not mark a subphase accepted or advance blocked phases without the owner's explicit approval.
 
 ## Copy, i18n, and Error Message Rules
 
