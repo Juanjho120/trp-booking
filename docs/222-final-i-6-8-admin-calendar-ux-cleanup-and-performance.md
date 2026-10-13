@@ -7,12 +7,17 @@ Project: TRP Booking
 Track: Post-Phase-12 / Pre-Phase-13 Final Improvement Track addendum
 Package: Final-I - Operational Polish, Notification UX & FEL Invoicing
 Subphase: Final-I.6.8 - Admin Calendar UX Cleanup & Performance Optimization
-Status: Implementation completed; Hosted owner validation pending
+Status: Completed and accepted
 Registration date: 2026-10-12
+Acceptance date: 2026-10-12
 Implementation base: 39725387bd0cb8381108f1de36f17f0792060687
 Initial implementation head: 8d7be6c3168f8cf3f4e8c66301fdfc096f8f18fe
 Pre-Hosted route-timing security hardening base: ab60b6953c6b03000d4d3b85706f04530713fbaa
-Pre-Hosted calendar navigation UX hardening head: This hardening commit; Hosted acceptance pending
+Pre-Hosted calendar navigation UX hardening head: f0c38cf18d8c470f0ba184010be2e6aeeecf6980
+Accepted feature head: f0c38cf18d8c470f0ba184010be2e6aeeecf6980
+Hosted owner validation: PASS
+Owner formal acceptance: PASS
+Vercel deployment for accepted feature head: SUCCESS
 Final-I.6.7 status: Completed and accepted on 2026-10-12 at e5538e8e4528bc0c956bdc0ae07bcdbf2c52f283
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
@@ -195,15 +200,34 @@ npm run build — initial sandbox run failed fetching Google Fonts; first outsid
 git diff --check — PASS; Windows CRLF normalization warnings only
 ```
 
+## Formal Acceptance
+
+Final-I.6.8 was formally accepted by the owner on 2026-10-12. Hosted owner validation passed, owner formal acceptance passed, and the Vercel deployment for accepted feature head `f0c38cf18d8c470f0ba184010be2e6aeeecf6980` was successful.
+
+Accepted workstreams:
+
+- Alojamientos visual cleanup.
+- FEL tab width correction.
+- Calendar Integrations tab unification and visual cleanup.
+- Calendar Integrations tab accessibility correction with Radix tab/tabpanel semantics.
+- Admin calendar query optimization with the documented preliminary 17.1% Local/Test median improvement.
+- Measurement-tool security hardening for authenticated route timing.
+- Optimistic Admin calendar navigation.
+- Animated 42-cell calendar skeleton.
+- Temporary control blocking and duplicate-request prevention.
+- Preservation of authoritative availability and server-side validations.
+
+The accepted feature preserves the existing availability, Airbnb import/export, Reservation, composed-listing inheritance, preparation-buffer, manual-block, and server-side mutation contracts. It does not introduce schema, migration, API, cron, Production, dependency, or environment changes.
+
 ## Current State After Implementation
 
 ```text
 Final-I.6.7 — Completed and accepted on 2026-10-12 at e5538e8e4528bc0c956bdc0ae07bcdbf2c52f283
-Final-I.6.8 — Implementation completed; Hosted owner validation pending
+Final-I.6.8 — Completed and accepted on 2026-10-12 at f0c38cf18d8c470f0ba184010be2e6aeeecf6980
 Final-I.7 — Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 — Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 — Not started / integrated Final-I closure
 Phase 13 — Blocked / Not started until Final-I closes
 ```
 
-Final-I.6.8 remains pending Hosted owner validation and formal acceptance. Final-I.7 remains blocked, Final-I.8 and Final-I.9 remain Not started, and Phase 13 remains Blocked / Not started until Final-I closes.
+Final-I.6.8 is completed and accepted. Final-I.7 remains blocked pending official INFILE technical documentation and Test credentials, Final-I.8 and Final-I.9 remain Not started, and Phase 13 remains Blocked / Not started until Final-I closes.

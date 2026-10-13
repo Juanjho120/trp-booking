@@ -56,10 +56,11 @@ Final-I.6.7 registration date: 2026-10-12
 Final-I.6.7 implementation base: fa7d7b8191dd973a7def3f34f080c19934386b78
 Accepted Final-I.6.7 feature head: e5538e8e4528bc0c956bdc0ae07bcdbf2c52f283
 Final-I.6.7 implementation and acceptance record: docs/221-final-i-6-7-admin-ui-consistency-navigation-polish.md
-Final-I.6.8 status: Implementation completed; Hosted owner validation pending
+Final-I.6.8 status: Completed and accepted on 2026-10-12
 Final-I.6.8 registration date: 2026-10-12
 Final-I.6.8 implementation base: 39725387bd0cb8381108f1de36f17f0792060687
-Final-I.6.8 implementation record: docs/222-final-i-6-8-admin-calendar-ux-cleanup-and-performance.md
+Accepted Final-I.6.8 feature head: f0c38cf18d8c470f0ba184010be2e6aeeecf6980
+Final-I.6.8 implementation and acceptance record: docs/222-final-i-6-8-admin-calendar-ux-cleanup-and-performance.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -119,10 +120,11 @@ Final-I.6.7 registration date: 2026-10-12
 Final-I.6.7 implementation base: fa7d7b8191dd973a7def3f34f080c19934386b78
 Accepted Final-I.6.7 feature head: e5538e8e4528bc0c956bdc0ae07bcdbf2c52f283
 Final-I.6.7 implementation and acceptance record: docs/221-final-i-6-7-admin-ui-consistency-navigation-polish.md
-Final-I.6.8 status: Implementation completed; Hosted owner validation pending
+Final-I.6.8 status: Completed and accepted on 2026-10-12
 Final-I.6.8 registration date: 2026-10-12
 Final-I.6.8 implementation base: 39725387bd0cb8381108f1de36f17f0792060687
-Final-I.6.8 implementation record: docs/222-final-i-6-8-admin-calendar-ux-cleanup-and-performance.md
+Accepted Final-I.6.8 feature head: f0c38cf18d8c470f0ba184010be2e6aeeecf6980
+Final-I.6.8 implementation and acceptance record: docs/222-final-i-6-8-admin-calendar-ux-cleanup-and-performance.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -2138,6 +2140,30 @@ The correction keeps successful draft creation as an explicit EDIT entry point. 
 This does not reintroduce the previous implicit-history-selection bug: entering `/admin/fel`, refreshing, or returning later still starts in CREATE mode with no selected document. Only successful draft creation and explicit `Abrir / Editar` enter EDIT mode. No schema, migration, persistence architecture, INFILE, NIT/CUI lookup, dependency, environment variable, scheduler, Production resource, Final-I.7, or Phase 13 work was introduced.
 
 Validation executed for this correction: `npm run final-i:validate` PASS 57/57 after rerun outside the sandbox because the sandbox-only `tsx` startup failed with `uv_os_get_passwd ENOMEM`; `npm run final-i:db:validate` PASS 13/13 with `TRP_ENVIRONMENT=test` after the same sandbox-only `tsx` startup failure; `npm run final-h:validate` PASS 20/20 after the same sandbox-only `tsx` startup failure; `npm run lint` PASS; `npm run build` PASS after rerun outside the sandbox because the sandbox run could not fetch Google Fonts; and `git diff --check` PASS with Windows CRLF normalization warnings only.
+
+## 2026-10-12 — Final-I.6.8 Completed And Accepted
+
+```text
+Package: Final-I — Operational Polish, Notification UX & FEL Invoicing
+Subphase: Final-I.6.8 — Admin Calendar UX Cleanup & Performance Optimization
+Status: Completed and accepted on 2026-10-12
+Accepted feature HEAD: f0c38cf18d8c470f0ba184010be2e6aeeecf6980
+Hosted owner validation: PASS
+Owner formal acceptance: PASS
+Vercel deployment for accepted feature head: SUCCESS
+Record: docs/222-final-i-6-8-admin-calendar-ux-cleanup-and-performance.md
+Final-I.6.7: Completed and accepted on 2026-10-12 at e5538e8e4528bc0c956bdc0ae07bcdbf2c52f283
+Final-I.7: Blocked pending official INFILE technical documentation + Test credentials
+Final-I.8: Not started / reserved for FEL delivery email/PDF/XML/history UX
+Final-I.9: Not started / integrated Final-I closure
+Phase 13: Blocked / Not started
+```
+
+Owner Hosted validation for Final-I.6.8 passed and owner formal acceptance was explicit on 2026-10-12. The accepted feature head is `f0c38cf18d8c470f0ba184010be2e6aeeecf6980`; this documentation closure does not replace it.
+
+The accepted scope includes the Alojamientos visual cleanup, FEL tab width correction, Calendar Integrations tab unification and visual cleanup, Calendar Integrations accessibility correction, Admin calendar query optimization with the documented preliminary 17.1% Local/Test median improvement, measurement-tool security hardening, optimistic calendar navigation, animated 42-cell skeleton, temporary control blocking plus duplicate-request prevention, and preservation of authoritative availability and server-side validations.
+
+No code, schema, migration, API, test, dependency, environment, Vercel configuration, integration, Production, Final-I.7, Final-I.8, Final-I.9, or Phase 13 change was introduced by this documentation-only closure.
 
 ## 2026-10-12 — Final-I.6.8 Admin Calendar UX Cleanup Implemented
 
