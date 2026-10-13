@@ -1,11 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
   ArrowLeft,
-  ArrowRight,
   CheckCircle2,
   CloudDownload,
   CloudUpload,
@@ -55,6 +53,7 @@ import type {
 import type { Locale } from "@/types/locale";
 
 import { AdminContextualHelp } from "./admin-contextual-help";
+import { AdminNavigationLink } from "./admin-navigation-feedback";
 import { AdminPageHeader } from "./admin-page-header";
 import { AdminSnackbar } from "./admin-snackbar";
 
@@ -827,10 +826,10 @@ export function AdminCalendarIntegrationsPage({
       <AdminPageHeader
         actions={
           <Button asChild variant="outline">
-            <Link href="/admin/calendar">
+            <AdminNavigationLink href="/admin/calendar">
               <ArrowLeft aria-hidden="true" />
               {copy.actions.backToCalendar}
-            </Link>
+            </AdminNavigationLink>
           </Button>
         }
         description={copy.description}
@@ -880,15 +879,6 @@ export function AdminCalendarIntegrationsPage({
           ))}
         </Tabs>
       ) : null}
-
-      <div className="mt-6 flex justify-end">
-        <Button asChild variant="ghost">
-          <Link href="/admin/calendar">
-            {copy.actions.backToCalendar}
-            <ArrowRight aria-hidden="true" />
-          </Link>
-        </Button>
-      </div>
     </>
   );
 }

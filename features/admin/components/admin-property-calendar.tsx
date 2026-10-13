@@ -71,6 +71,7 @@ import type { DateOnlyString } from "@/types/availability";
 import type { Locale } from "@/types/locale";
 
 import { AdminLinkTab, AdminLinkTabList } from "./admin-link-tabs";
+import { AdminNavigationLink } from "./admin-navigation-feedback";
 import { AdminPageHeader } from "./admin-page-header";
 import { AdminSnackbar } from "./admin-snackbar";
 
@@ -585,10 +586,10 @@ export function AdminPropertyCalendarView({
         actions={
           <div className="flex flex-wrap gap-2">
             <Button asChild variant="outline">
-              <Link href="/admin/calendar/integrations">
+              <AdminNavigationLink href="/admin/calendar/integrations">
                 <Link2 aria-hidden="true" />
                 {copy.actions.integrations}
-              </Link>
+              </AdminNavigationLink>
             </Button>
             <Button
               disabled={isCalendarInteractionLocked}

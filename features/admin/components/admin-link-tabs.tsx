@@ -23,9 +23,16 @@ type AdminLinkTabProps = Readonly<
     active: boolean;
     children: ReactNode;
     className?: string;
+    pending?: boolean;
   } & Pick<
     ComponentProps<typeof Link>,
-    "aria-disabled" | "href" | "onClick" | "onKeyDown" | "prefetch" | "tabIndex"
+    | "aria-busy"
+    | "aria-disabled"
+    | "href"
+    | "onClick"
+    | "onKeyDown"
+    | "prefetch"
+    | "tabIndex"
   >
 >;
 
@@ -58,6 +65,7 @@ function AdminLinkTab({
   children,
   className,
   href,
+  pending = false,
   ...props
 }: AdminLinkTabProps) {
   return (
@@ -67,6 +75,8 @@ function AdminLinkTab({
         tabsTriggerBaseClassName,
         "min-h-10 shrink-0",
         active ? tabsTriggerActiveClassName : tabsTriggerInactiveClassName,
+        pending && "opacity-80 ring-2 ring-primary/30",
+        props["aria-disabled"] && "aria-disabled:pointer-events-none",
         className,
       )}
       href={href}

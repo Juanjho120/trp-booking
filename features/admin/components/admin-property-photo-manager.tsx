@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import {
   ArrowLeft,
   ChevronDown,
@@ -41,6 +40,10 @@ import type {
 } from "@/types/admin-property-photos";
 
 import { AdminContextualHelp } from "./admin-contextual-help";
+import {
+  AdminNavigationLink,
+  useAdminRouteNavigation,
+} from "./admin-navigation-feedback";
 import { AdminPageHeader } from "./admin-page-header";
 import { AdminSnackbar } from "./admin-snackbar";
 
@@ -89,6 +92,7 @@ export function AdminPropertyPhotoManager({
 }>) {
   const { locale, messages } = useLocale();
   const copy = messages.admin.accommodations.photos;
+  const routeNavigation = useAdminRouteNavigation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [settings, setSettings] =
     useState<AdminPropertyPhotoSettings>(initialSettings);
@@ -410,15 +414,21 @@ export function AdminPropertyPhotoManager({
         actions={
           <>
             <Button asChild className="rounded-full" variant="outline">
-              <Link href="/admin/accommodations">
+              <AdminNavigationLink
+                href="/admin/accommodations"
+                navigation={routeNavigation}
+              >
                 <ArrowLeft aria-hidden="true" />
                 {copy.actions.backToAccommodations}
-              </Link>
+              </AdminNavigationLink>
             </Button>
             <Button asChild className="rounded-full" variant="secondary">
-              <Link href={`/admin/accommodations/${settings.property.id}`}>
+              <AdminNavigationLink
+                href={`/admin/accommodations/${settings.property.id}`}
+                navigation={routeNavigation}
+              >
                 {copy.actions.backToContent}
-              </Link>
+              </AdminNavigationLink>
             </Button>
           </>
         }

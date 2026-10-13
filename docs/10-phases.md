@@ -75,6 +75,10 @@ Final-I.6.9 registration date: 2026-10-13
 Final-I.6.9 implementation base: fd85bfa17473c93271cf70cef36c69189074651d
 Accepted Final-I.6.9 feature head: 6b68a8e24f7cc0de1127e883f49e1402d7fe5b31
 Final-I.6.9 implementation and acceptance record: docs/223-final-i-6-9-accommodation-detail-admin-ui-consistency.md
+Final-I.6.10 status: Implementation completed; Hosted owner validation pending
+Final-I.6.10 registration date: 2026-10-13
+Final-I.6.10 implementation base: cf9b4331b64a2af22073251979e619695120024c
+Final-I.6.10 implementation record: docs/224-final-i-6-10-admin-navigation-feedback-and-loading-skeletons.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -144,6 +148,10 @@ Final-I.6.9 registration date: 2026-10-13
 Final-I.6.9 implementation base: fd85bfa17473c93271cf70cef36c69189074651d
 Accepted Final-I.6.9 feature head: 6b68a8e24f7cc0de1127e883f49e1402d7fe5b31
 Final-I.6.9 implementation and acceptance record: docs/223-final-i-6-9-accommodation-detail-admin-ui-consistency.md
+Final-I.6.10 status: Implementation completed; Hosted owner validation pending
+Final-I.6.10 registration date: 2026-10-13
+Final-I.6.10 implementation base: cf9b4331b64a2af22073251979e619695120024c
+Final-I.6.10 implementation record: docs/224-final-i-6-10-admin-navigation-feedback-and-loading-skeletons.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure

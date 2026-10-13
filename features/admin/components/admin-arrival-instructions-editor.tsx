@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { ArrowLeft, Clock3, Loader2, MailCheck, Save } from "lucide-react";
 import { type ChangeEvent, type ReactNode, useState } from "react";
 
@@ -23,6 +22,7 @@ import {
 } from "@/types/admin-arrival-instructions";
 
 import { AdminContextualHelp } from "./admin-contextual-help";
+import { AdminNavigationLink } from "./admin-navigation-feedback";
 import { AdminPageHeader } from "./admin-page-header";
 import { AdminSnackbar } from "./admin-snackbar";
 
@@ -134,10 +134,10 @@ export function AdminArrivalInstructionsEditor({
       <AdminPageHeader
         actions={
           <Button asChild variant="outline">
-            <Link href="/admin/accommodations">
+            <AdminNavigationLink href="/admin/accommodations">
               <ArrowLeft aria-hidden="true" />
               {copy.actions.backToAccommodations}
-            </Link>
+            </AdminNavigationLink>
           </Button>
         }
         description={copy.description}

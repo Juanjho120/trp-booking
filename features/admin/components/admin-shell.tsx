@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import {
   BedDouble,
   Bell,
@@ -41,6 +41,8 @@ import {
 import { siteConfig } from "@/config/site";
 import { LocaleSwitcher, useLocale } from "@/features/i18n";
 import { cn } from "@/lib/utils";
+
+import { useAdminRouteNavigation } from "./admin-navigation-feedback";
 
 const navigationItems = [
   {
@@ -116,16 +118,12 @@ export function AdminShell({
   children,
 }: AdminShellProps) {
   const pathname = usePathname();
-  const [pendingNavigation, setPendingNavigation] = useState<Readonly<{
-    fromPathname: string;
-    href: string;
-  }> | null>(null);
+  const routeNavigation = useAdminRouteNavigation();
   const { messages } = useLocale();
   const copy = messages.admin.navigation;
-  const optimisticPathname =
-    pendingNavigation?.fromPathname === pathname
-      ? pendingNavigation.href
-      : pathname;
+  const optimisticPathname = routeNavigation.pendingHref
+    ? new URL(routeNavigation.pendingHref, "https://trp-booking.local").pathname
+    : pathname;
 
   function NavigationLinks({ mobile = false }: Readonly<{ mobile?: boolean }>) {
     return (
@@ -136,7 +134,9 @@ export function AdminShell({
             optimisticPathname,
             item.href,
           );
+          const pending = routeNavigation.isPendingFor(item.href);
           const label = copy.items[item.key];
+          const linkProps = routeNavigation.getLinkProps(item.href);
           const link = (
             <Link
               aria-current={active ? "page" : undefined}
@@ -145,22 +145,9 @@ export function AdminShell({
                 active
                   ? "bg-primary text-primary-foreground shadow-sm"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                pending && "opacity-80 ring-2 ring-primary/20",
               )}
-              href={item.href}
-              onClick={(event) => {
-                if (
-                  event.button === 0 &&
-                  !event.altKey &&
-                  !event.ctrlKey &&
-                  !event.metaKey &&
-                  !event.shiftKey
-                ) {
-                  setPendingNavigation({
-                    fromPathname: pathname,
-                    href: item.href,
-                  });
-                }
-              }}
+              {...linkProps}
             >
               <Icon aria-hidden="true" className="size-4" />
               <span>{label}</span>

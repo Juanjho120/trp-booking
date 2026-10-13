@@ -613,6 +613,7 @@ export const enMessages = {
       closeMenu: "Close admin menu",
       publicSite: "View public site",
       signOut: "Sign out",
+      loadingPage: "Loading admin view...",
       items: {
         dashboard: "Overview",
         reservations: "Reservations",
@@ -2424,6 +2425,7 @@ export const enMessages = {
       states: {
         enabled: "Enabled",
         disabled: "Disabled",
+        loading: "Loading public location...",
       },
       notes: {
         publicOnly:
@@ -2547,6 +2549,9 @@ export const enMessages = {
         previous: "Previous",
         next: "Next",
       },
+      states: {
+        loading: "Loading cron jobs...",
+      },
       statuses: {
         NEVER_RUN: "Never run",
         RUNNING: "Running",
@@ -2658,6 +2663,9 @@ export const enMessages = {
         clear: "Clear",
         previous: "Previous",
         next: "Next",
+      },
+      states: {
+        loading: "Loading payments and diagnostics...",
       },
       diagnostics: {
         providerCode: "Provider code",
@@ -2853,6 +2861,9 @@ export const enMessages = {
         saveHouseRule: "Save rule",
         saving: "Saving...",
       },
+      states: {
+        loading: "Loading catalog...",
+      },
       notes: {
         amenities:
           "The catalog is shared by all three accommodations. Editing an amenity name or icon updates every accommodation where it is assigned. Keys and categories remain fixed.",
@@ -2920,6 +2931,14 @@ export const enMessages = {
       title: "Accommodations",
       description:
         "Manage bilingual public content, photos, assignments, and automatic preparation settings without mixing in prices or reservations.",
+      states: {
+        loading: "Loading accommodations...",
+        editorLoading: "Loading accommodation editor...",
+        pricingLoading: "Loading accommodation pricing...",
+        photosLoading: "Loading accommodation photos...",
+        amenitiesRulesLoading: "Loading amenities and rules...",
+        arrivalInstructionsLoading: "Loading arrival instructions...",
+      },
       overview: {
         sectionTitle: "Public content",
         sectionDescription:
@@ -3563,6 +3582,9 @@ export const enMessages = {
         disableExport: "Disable export",
         cancel: "Cancel",
         confirmRotation: "Rotate URL now",
+      },
+      states: {
+        loading: "Loading calendar integrations...",
       },
       values: {
         airbnb: "Airbnb",

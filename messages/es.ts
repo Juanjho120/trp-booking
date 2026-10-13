@@ -615,6 +615,7 @@ export const esMessages = {
       closeMenu: "Cerrar menú administrativo",
       publicSite: "Ver sitio público",
       signOut: "Cerrar sesión",
+      loadingPage: "Cargando vista administrativa...",
       items: {
         dashboard: "Resumen",
         reservations: "Reservas",
@@ -2430,6 +2431,7 @@ export const esMessages = {
       states: {
         enabled: "Activa",
         disabled: "Inactiva",
+        loading: "Cargando ubicación pública...",
       },
       notes: {
         publicOnly:
@@ -2553,6 +2555,9 @@ export const esMessages = {
         previous: "Anterior",
         next: "Siguiente",
       },
+      states: {
+        loading: "Cargando tareas programadas...",
+      },
       statuses: {
         NEVER_RUN: "Sin ejecuciones",
         RUNNING: "Ejecutando",
@@ -2665,6 +2670,9 @@ export const esMessages = {
         clear: "Limpiar",
         previous: "Anterior",
         next: "Siguiente",
+      },
+      states: {
+        loading: "Cargando pagos y diagnóstico...",
       },
       diagnostics: {
         providerCode: "Código del proveedor",
@@ -2860,6 +2868,9 @@ export const esMessages = {
         saveHouseRule: "Guardar regla",
         saving: "Guardando...",
       },
+      states: {
+        loading: "Cargando catálogo...",
+      },
       notes: {
         amenities:
           "El catálogo es compartido por los tres alojamientos. Editar el nombre o ícono de una amenidad actualiza todos los alojamientos que la tienen asignada. Las claves y categorías permanecen fijas.",
@@ -2927,6 +2938,14 @@ export const esMessages = {
       title: "Alojamientos",
       description:
         "Administra el contenido público bilingüe, las fotografías, las asignaciones y la preparación automática de cada alojamiento sin mezclar precios o reservas.",
+      states: {
+        loading: "Cargando alojamientos...",
+        editorLoading: "Cargando editor del alojamiento...",
+        pricingLoading: "Cargando precios del alojamiento...",
+        photosLoading: "Cargando fotos del alojamiento...",
+        amenitiesRulesLoading: "Cargando amenidades y reglas...",
+        arrivalInstructionsLoading: "Cargando instrucciones de llegada...",
+      },
       overview: {
         sectionTitle: "Contenido público",
         sectionDescription:
@@ -3573,6 +3592,9 @@ export const esMessages = {
         disableExport: "Deshabilitar exportación",
         cancel: "Cancelar",
         confirmRotation: "Rotar URL ahora",
+      },
+      states: {
+        loading: "Cargando integraciones de calendario...",
       },
       values: {
         airbnb: "Airbnb",

@@ -42,6 +42,8 @@ import {
 
 import { AdminContextualHelp } from "./admin-contextual-help";
 import { AdminLinkTab, AdminLinkTabList } from "./admin-link-tabs";
+import { AdminCatalogPageSkeleton } from "./admin-loading-skeletons";
+import { useAdminRouteNavigation } from "./admin-navigation-feedback";
 import { AdminPageHeader } from "./admin-page-header";
 import { AdminSnackbar } from "./admin-snackbar";
 
@@ -136,6 +138,19 @@ export function AdminCatalogManager({
   const { locale, messages } = useLocale();
   const copy = messages.admin.catalogs;
   const genericActions = messages.admin.accommodations.photos.actions;
+  const routeNavigation = useAdminRouteNavigation();
+  const pendingCatalog = routeNavigation.pendingHref
+    ? new URL(
+        routeNavigation.pendingHref,
+        "https://trp-booking.local",
+      ).searchParams.get("catalog") === "house-rules"
+      ? "house-rules"
+      : "amenities"
+    : null;
+  const visibleCatalog =
+    routeNavigation.isPending && pendingCatalog
+      ? pendingCatalog
+      : selectedCatalog;
   const [settings, setSettings] =
     useState<AdminCatalogSettings>(initialSettings);
   const [amenityDrafts, setAmenityDrafts] = useState<
@@ -379,6 +394,12 @@ export function AdminCatalogManager({
         ? deleteTarget.item.titleEn
         : deleteTarget.item.titleEs
     : null;
+  const amenitiesLinkProps = routeNavigation.getLinkProps(
+    "/admin/catalogs?catalog=amenities",
+  );
+  const houseRulesLinkProps = routeNavigation.getLinkProps(
+    "/admin/catalogs?catalog=house-rules",
+  );
 
   return (
     <>
@@ -396,20 +417,43 @@ export function AdminCatalogManager({
 
       <AdminLinkTabList aria-label={copy.title} className="mb-6">
         <AdminLinkTab
-          active={selectedCatalog === "amenities"}
+          aria-busy={amenitiesLinkProps["aria-busy"]}
+          aria-disabled={amenitiesLinkProps["aria-disabled"]}
+          active={visibleCatalog === "amenities"}
           href="/admin/catalogs?catalog=amenities"
+          onClick={amenitiesLinkProps.onClick}
+          onKeyDown={amenitiesLinkProps.onKeyDown}
+          pending={routeNavigation.isPendingFor(
+            "/admin/catalogs?catalog=amenities",
+          )}
+          prefetch={amenitiesLinkProps.prefetch}
+          tabIndex={amenitiesLinkProps.tabIndex}
         >
           {copy.tabs.amenities}
         </AdminLinkTab>
         <AdminLinkTab
-          active={selectedCatalog === "house-rules"}
+          aria-busy={houseRulesLinkProps["aria-busy"]}
+          aria-disabled={houseRulesLinkProps["aria-disabled"]}
+          active={visibleCatalog === "house-rules"}
           href="/admin/catalogs?catalog=house-rules"
+          onClick={houseRulesLinkProps.onClick}
+          onKeyDown={houseRulesLinkProps.onKeyDown}
+          pending={routeNavigation.isPendingFor(
+            "/admin/catalogs?catalog=house-rules",
+          )}
+          prefetch={houseRulesLinkProps.prefetch}
+          tabIndex={houseRulesLinkProps.tabIndex}
         >
           {copy.tabs.houseRules}
         </AdminLinkTab>
       </AdminLinkTabList>
 
-      {selectedCatalog === "amenities" ? (
+      {routeNavigation.isPending ? (
+        <AdminCatalogPageSkeleton
+          includeHeader={false}
+          label={copy.states.loading}
+        />
+      ) : selectedCatalog === "amenities" ? (
         <section aria-labelledby="amenity-catalog-heading">
           <CatalogSectionHeader
             action={

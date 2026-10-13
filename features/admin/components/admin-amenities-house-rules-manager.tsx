@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import {
   ArrowLeft,
   Check,
@@ -27,6 +26,10 @@ import type {
 } from "@/types/admin-amenities-house-rules";
 
 import { AdminContextualHelp } from "./admin-contextual-help";
+import {
+  AdminNavigationLink,
+  useAdminRouteNavigation,
+} from "./admin-navigation-feedback";
 import { AdminPageHeader } from "./admin-page-header";
 import { AdminSnackbar } from "./admin-snackbar";
 
@@ -67,6 +70,7 @@ export function AdminAmenitiesHouseRulesManager({
   const { locale, messages } = useLocale();
   const copy = messages.admin.accommodations.amenitiesRules;
   const statusCopy = messages.admin.accommodations.overview.statuses;
+  const routeNavigation = useAdminRouteNavigation();
   const [settings, setSettings] =
     useState<AdminAmenityHouseRuleSettings>(initialSettings);
   const [selectedAmenityIds, setSelectedAmenityIds] = useState<string[]>(() =>
@@ -163,16 +167,22 @@ export function AdminAmenitiesHouseRulesManager({
         actions={
           <>
             <Button asChild className="rounded-full" variant="outline">
-              <Link href="/admin/accommodations">
+              <AdminNavigationLink
+                href="/admin/accommodations"
+                navigation={routeNavigation}
+              >
                 <ArrowLeft aria-hidden="true" />
                 {copy.actions.backToAccommodations}
-              </Link>
+              </AdminNavigationLink>
             </Button>
             <Button asChild className="rounded-full" variant="outline">
-              <Link href="/admin/catalogs">
+              <AdminNavigationLink
+                href="/admin/catalogs"
+                navigation={routeNavigation}
+              >
                 <Library aria-hidden="true" />
                 {copy.actions.openCatalogs}
-              </Link>
+              </AdminNavigationLink>
             </Button>
           </>
         }

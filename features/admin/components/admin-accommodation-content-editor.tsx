@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { ArrowLeft, Loader2, Save } from "lucide-react";
 import { useMemo, useState } from "react";
 
@@ -30,6 +29,7 @@ import type {
 } from "@/types/admin-accommodation-content";
 
 import { AdminContextualHelp } from "./admin-contextual-help";
+import { AdminNavigationLink } from "./admin-navigation-feedback";
 import { AdminPageHeader } from "./admin-page-header";
 import { AdminSnackbar } from "./admin-snackbar";
 
@@ -160,10 +160,10 @@ export function AdminAccommodationContentEditor({
       <AdminPageHeader
         actions={
           <Button asChild className="rounded-full" variant="outline">
-            <Link href="/admin/accommodations">
+            <AdminNavigationLink href="/admin/accommodations">
               <ArrowLeft aria-hidden="true" />
               {copy.actions.backToAccommodations}
-            </Link>
+            </AdminNavigationLink>
           </Button>
         }
         description={copy.description}

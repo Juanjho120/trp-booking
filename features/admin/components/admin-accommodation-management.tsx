@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import {
   BedDouble,
   Clock3,
@@ -34,6 +33,10 @@ import type { Locale } from "@/types/locale";
 
 import { AdminAccommodationSettings } from "./admin-accommodation-settings";
 import { AdminContextualHelp } from "./admin-contextual-help";
+import {
+  AdminNavigationLink,
+  useAdminRouteNavigation,
+} from "./admin-navigation-feedback";
 import { AdminPageHeader } from "./admin-page-header";
 
 function getIntlLocale(locale: Locale): string {
@@ -50,6 +53,7 @@ export function AdminAccommodationManagement({
   const { locale, messages } = useLocale();
   const copy = messages.admin.accommodations;
   const intlLocale = getIntlLocale(locale);
+  const routeNavigation = useAdminRouteNavigation();
 
   function formatDateTime(value: string): string {
     return new Intl.DateTimeFormat(intlLocale, {
@@ -175,42 +179,49 @@ export function AdminAccommodationManagement({
 
                       <div className="grid gap-2">
                         <Button asChild className="w-full">
-                          <Link href={`/admin/accommodations/${property.id}`}>
+                          <AdminNavigationLink
+                            href={`/admin/accommodations/${property.id}`}
+                            navigation={routeNavigation}
+                          >
                             <FilePenLine aria-hidden="true" />
                             {copy.overview.actions.editContent}
-                          </Link>
+                          </AdminNavigationLink>
                         </Button>
                         <Button asChild className="w-full" variant="outline">
-                          <Link
+                          <AdminNavigationLink
                             href={`/admin/accommodations/${property.id}/pricing`}
+                            navigation={routeNavigation}
                           >
                             <DollarSign aria-hidden="true" />
                             {copy.overview.actions.managePricing}
-                          </Link>
+                          </AdminNavigationLink>
                         </Button>
                         <Button asChild className="w-full" variant="outline">
-                          <Link
+                          <AdminNavigationLink
                             href={`/admin/accommodations/${property.id}/photos`}
+                            navigation={routeNavigation}
                           >
                             <Images aria-hidden="true" />
                             {copy.overview.actions.managePhotos}
-                          </Link>
+                          </AdminNavigationLink>
                         </Button>
                         <Button asChild className="w-full" variant="outline">
-                          <Link
+                          <AdminNavigationLink
                             href={`/admin/accommodations/${property.id}/amenities-rules`}
+                            navigation={routeNavigation}
                           >
                             <ListChecks aria-hidden="true" />
                             {copy.overview.actions.manageAmenitiesRules}
-                          </Link>
+                          </AdminNavigationLink>
                         </Button>
                         <Button asChild className="w-full" variant="outline">
-                          <Link
+                          <AdminNavigationLink
                             href={`/admin/accommodations/${property.id}/arrival-instructions`}
+                            navigation={routeNavigation}
                           >
                             <MailCheck aria-hidden="true" />
                             {copy.overview.actions.manageArrivalInstructions}
-                          </Link>
+                          </AdminNavigationLink>
                         </Button>
                       </div>
                     </CardContent>

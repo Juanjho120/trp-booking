@@ -28,6 +28,8 @@ import type {
 import type { Locale } from "@/types/locale";
 
 import { AdminLinkTab, AdminLinkTabList } from "./admin-link-tabs";
+import { AdminPaymentsPageSkeleton } from "./admin-loading-skeletons";
+import { useAdminRouteNavigation } from "./admin-navigation-feedback";
 import { AdminPageHeader } from "./admin-page-header";
 
 const paymentStatuses = [
@@ -55,6 +57,15 @@ export function AdminPaymentsPageView({
   const statusCopy = messages.admin.statuses;
   const intlLocale = getIntlLocale(locale);
   const view = data.filters.view ?? "payments";
+  const routeNavigation = useAdminRouteNavigation();
+  const pendingView = routeNavigation.pendingHref
+    ? (new URL(
+        routeNavigation.pendingHref,
+        "https://trp-booking.local",
+      ).searchParams.get("view") as AdminPaymentsView | null) ?? "payments"
+    : null;
+  const visibleView =
+    routeNavigation.isPending && pendingView ? pendingView : view;
   const propertyFilterInputRef = useRef<HTMLInputElement>(null);
   const statusFilterInputRef = useRef<HTMLInputElement>(null);
 
@@ -119,10 +130,20 @@ export function AdminPaymentsPageView({
   }
 
   function ViewTab({ target }: Readonly<{ target: AdminPaymentsView }>) {
+    const href = buildUrl({ view: target, status: undefined, page: 1 });
+    const linkProps = routeNavigation.getLinkProps(href);
+
     return (
       <AdminLinkTab
-        active={view === target}
+        aria-busy={linkProps["aria-busy"]}
+        aria-disabled={linkProps["aria-disabled"]}
+        active={visibleView === target}
         href={buildUrl({ view: target, status: undefined, page: 1 })}
+        onClick={linkProps.onClick}
+        onKeyDown={linkProps.onKeyDown}
+        pending={routeNavigation.isPendingFor(href)}
+        prefetch={linkProps.prefetch}
+        tabIndex={linkProps.tabIndex}
       >
         {copy.tabs[target]}
       </AdminLinkTab>
@@ -141,6 +162,13 @@ export function AdminPaymentsPageView({
         <ViewTab target="events" />
       </AdminLinkTabList>
 
+      {routeNavigation.isPending ? (
+        <AdminPaymentsPageSkeleton
+          includeHeader={false}
+          label={copy.states.loading}
+        />
+      ) : (
+        <>
       <Card className="mb-6 border-border/70 bg-card shadow-sm">
         <CardContent className="py-5">
           <form
@@ -483,6 +511,8 @@ export function AdminPaymentsPageView({
           )}
         </Button>
       </div>
+        </>
+      )}
     </>
   );
 }
