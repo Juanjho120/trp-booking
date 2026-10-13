@@ -408,7 +408,7 @@ export function AdminPropertyPhotoManager({
     <>
       <AdminPageHeader
         actions={
-          <div className="flex flex-wrap gap-2">
+          <>
             <Button asChild className="rounded-full" variant="outline">
               <Link href="/admin/accommodations">
                 <ArrowLeft aria-hidden="true" />
@@ -420,11 +420,11 @@ export function AdminPropertyPhotoManager({
                 {copy.actions.backToContent}
               </Link>
             </Button>
-          </div>
+          </>
         }
-        badge={copy.badge}
         description={copy.description}
         title={`${copy.title}: ${propertyName}`}
+        variant="inlineActions"
       />
 
       <AdminSnackbar
@@ -728,10 +728,6 @@ export function AdminPropertyPhotoManager({
           </Card>
         )}
       </section>
-
-      <div className="mt-8 rounded-2xl border border-border bg-muted/30 p-4 text-sm leading-6 text-muted-foreground">
-        {copy.notes.softDelete}
-      </div>
 
       <Sheet
         onOpenChange={(open) => {

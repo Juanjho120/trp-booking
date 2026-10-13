@@ -161,7 +161,7 @@ export function AdminAmenitiesHouseRulesManager({
     <>
       <AdminPageHeader
         actions={
-          <div className="flex flex-wrap gap-2">
+          <>
             <Button asChild className="rounded-full" variant="outline">
               <Link href="/admin/accommodations">
                 <ArrowLeft aria-hidden="true" />
@@ -174,11 +174,11 @@ export function AdminAmenitiesHouseRulesManager({
                 {copy.actions.openCatalogs}
               </Link>
             </Button>
-          </div>
+          </>
         }
-        badge={copy.badge}
         description={copy.description}
         title={`${copy.title}: ${propertyName}`}
+        variant="inlineActions"
       />
 
       <AdminSnackbar

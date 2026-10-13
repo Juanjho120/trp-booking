@@ -61,6 +61,10 @@ Final-I.6.8 registration date: 2026-10-12
 Final-I.6.8 implementation base: 39725387bd0cb8381108f1de36f17f0792060687
 Accepted Final-I.6.8 feature head: f0c38cf18d8c470f0ba184010be2e6aeeecf6980
 Final-I.6.8 implementation and acceptance record: docs/222-final-i-6-8-admin-calendar-ux-cleanup-and-performance.md
+Final-I.6.9 status: Implementation completed; Hosted owner validation pending
+Final-I.6.9 registration date: 2026-10-13
+Final-I.6.9 implementation base: fd85bfa17473c93271cf70cef36c69189074651d
+Final-I.6.9 implementation record: docs/223-final-i-6-9-accommodation-detail-admin-ui-consistency.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -125,6 +129,10 @@ Final-I.6.8 registration date: 2026-10-12
 Final-I.6.8 implementation base: 39725387bd0cb8381108f1de36f17f0792060687
 Accepted Final-I.6.8 feature head: f0c38cf18d8c470f0ba184010be2e6aeeecf6980
 Final-I.6.8 implementation and acceptance record: docs/222-final-i-6-8-admin-calendar-ux-cleanup-and-performance.md
+Final-I.6.9 status: Implementation completed; Hosted owner validation pending
+Final-I.6.9 registration date: 2026-10-13
+Final-I.6.9 implementation base: fd85bfa17473c93271cf70cef36c69189074651d
+Final-I.6.9 implementation record: docs/223-final-i-6-9-accommodation-detail-admin-ui-consistency.md
 Final-I.7 status: Blocked pending official INFILE technical documentation + Test credentials
 Final-I.8 status: Not started / reserved for FEL delivery email/PDF/XML/history UX
 Final-I.9 status: Not started / integrated Final-I closure
@@ -2140,6 +2148,45 @@ The correction keeps successful draft creation as an explicit EDIT entry point. 
 This does not reintroduce the previous implicit-history-selection bug: entering `/admin/fel`, refreshing, or returning later still starts in CREATE mode with no selected document. Only successful draft creation and explicit `Abrir / Editar` enter EDIT mode. No schema, migration, persistence architecture, INFILE, NIT/CUI lookup, dependency, environment variable, scheduler, Production resource, Final-I.7, or Phase 13 work was introduced.
 
 Validation executed for this correction: `npm run final-i:validate` PASS 57/57 after rerun outside the sandbox because the sandbox-only `tsx` startup failed with `uv_os_get_passwd ENOMEM`; `npm run final-i:db:validate` PASS 13/13 with `TRP_ENVIRONMENT=test` after the same sandbox-only `tsx` startup failure; `npm run final-h:validate` PASS 20/20 after the same sandbox-only `tsx` startup failure; `npm run lint` PASS; `npm run build` PASS after rerun outside the sandbox because the sandbox run could not fetch Google Fonts; and `git diff --check` PASS with Windows CRLF normalization warnings only.
+
+## 2026-10-13 — Final-I.6.9 Accommodation Detail Admin UI Consistency Implemented
+
+Subphase: Final-I.6.9 — Accommodation Detail Admin UI Consistency
+
+Status:
+```text
+Implementation completed; Hosted owner validation pending
+```
+
+Implementation base:
+```text
+fd85bfa17473c93271cf70cef36c69189074651d
+```
+
+Implementation record:
+```text
+docs/223-final-i-6-9-accommodation-detail-admin-ui-consistency.md
+```
+
+Final-I.6.9 adds a reusable `AdminPageHeader` inline-action variant and applies it only to the accommodation detail content, pricing, photos, amenities/rules, and arrival-instructions editors. The change removes the five redundant accommodation detail header badges, keeps the `?` help affordance next to the title, and wraps action buttons below the title/help group on constrained widths without changing the default Admin page header layout.
+
+Pricing now has a dedicated fourth `Vista previa` / `Preview` tab. The existing `PricingPreviewCard` moved from Overview into `TabsContent value="preview"` without duplicating calculation logic, and the preview date/result state remains owned by the parent component so it survives tab changes. The pricing back action now includes the existing Admin `ArrowLeft` affordance.
+
+The content immutable-fields presentation block and photo soft-delete presentation block were removed as requested. Operational status badges, photo count/order/cover badges, delete confirmation warnings, assignment requirements, arrival-instruction enabled/disabled state, save controls, validation, and persistence behavior remain in place.
+
+Validation:
+```text
+npm run final-i:validate — initial local run failed before tests with uv_os_get_passwd ENOMEM; rerun with temporary Node preload workaround PASS, 155/155
+npm run final-h:validate — PASS, 20/20 with temporary Node preload workaround
+npm run final-g:validate — PASS, 48/48 with temporary Node preload workaround
+npm run lint — PASS
+npm run build — initial sandbox run failed fetching Google Fonts; approved network rerun PASS with Next slow-filesystem warning and non-fatal Prisma P1001 static-cache revalidation warning
+git diff --check — PASS
+```
+
+No Prisma schema, migration, API route, server action, pricing arithmetic, availability logic, Airbnb behavior, payment/refund/FEL/INFILE behavior, notification semantics, cron execution, scheduler registration, dependency, environment variable, Production resource, Final-I.7, Final-I.8, Final-I.9, or Phase 13 work was introduced.
+
+Final-I.6.8 remains completed and accepted. Final-I.6.9 remains pending Hosted owner validation and explicit owner acceptance. Final-I.7 remains blocked pending official INFILE technical documentation and Test credentials; Final-I.8 and Final-I.9 remain Not started; Phase 13 remains Blocked / Not started until Final-I closes.
 
 ## 2026-10-12 — Final-I.6.8 Completed And Accepted
 

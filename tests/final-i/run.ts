@@ -15,6 +15,7 @@ import "./i65-admin-contextual-help.test";
 import "./i66-human-reservation-codes.test";
 import "./i67-admin-ui-consistency-navigation.test";
 import "./i68-admin-calendar-ux-performance.test";
+import "./i69-accommodation-detail-admin-ui-consistency.test";
 
 import { runFinalITests } from "./harness";
 

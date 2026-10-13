@@ -129,11 +129,14 @@ test("I.6.5 admin page header moves descriptions behind contextual help", () => 
   const header = read(`${ADMIN_COMPONENTS}/admin-page-header.tsx`);
 
   expectIncludes(header, "import { AdminContextualHelp } from \"./admin-contextual-help\";");
-  expectIncludes(header, "<h1 className=\"min-w-0 text-balance");
+  expectIncludes(header, "const adminPageHeaderTitleHelpClassName =");
+  expectIncludes(header, "const adminPageHeaderTitleClassName =");
+  expectIncludes(header, "min-w-0 text-balance text-3xl font-semibold tracking-tight sm:text-4xl");
+  expectIncludes(header, "<h1 className={adminPageHeaderTitleClassName}>{title}</h1>");
   expectIncludes(header, "<AdminContextualHelp align=\"start\" content={description} side=\"bottom\" />");
   expectIncludes(header, "{actions ? <div className=\"shrink-0\">{actions}</div> : null}");
   expectExcludes(header, "<p className=\"mt-3 text-sm leading-6 text-muted-foreground");
-  assert.equal((header.match(/<h1\b/g) ?? []).length, 1);
+  assert.equal((header.match(/<h1\b/g) ?? []).length, 2);
 });
 
 test("I.6.5 category A explanatory admin copy is moved into help", () => {

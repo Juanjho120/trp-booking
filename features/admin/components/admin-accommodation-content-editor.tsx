@@ -166,9 +166,9 @@ export function AdminAccommodationContentEditor({
             </Link>
           </Button>
         }
-        badge={copy.badge}
         description={copy.description}
         title={`${copy.title}: ${currentPropertyName}`}
+        variant="inlineActions"
       />
 
       <AdminSnackbar
@@ -393,10 +393,6 @@ export function AdminAccommodationContentEditor({
               </label>
             </CardContent>
           </Card>
-        </div>
-
-        <div className="rounded-2xl border border-border bg-muted/30 p-4 text-sm leading-6 text-muted-foreground">
-          {copy.notes.immutableFields}
         </div>
 
         <div className="flex justify-end">

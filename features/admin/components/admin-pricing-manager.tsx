@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import {
+  ArrowLeft,
   CalendarRange,
   DollarSign,
   PencilLine,
@@ -471,25 +472,36 @@ export function AdminPricingManager({
   return (
     <>
       <AdminPageHeader
-        badge={copy.badge}
+        actions={
+          <Button asChild variant="outline">
+            <Link href="/admin/accommodations">
+              <ArrowLeft aria-hidden="true" />
+              {copy.actions.backToAccommodations}
+            </Link>
+          </Button>
+        }
         description={copy.description}
         title={`${copy.title} · ${propertyName}`}
+        variant="inlineActions"
       />
 
-      <div className="mb-6 flex flex-wrap gap-2">
-        <Button asChild variant="outline">
-          <Link href="/admin/accommodations">
-            {copy.actions.backToAccommodations}
-          </Link>
-        </Button>
-      </div>
-
       <Tabs defaultValue="overview">
-        <TabsList className="grid w-full grid-cols-3 sm:w-auto">
-          <TabsTrigger value="overview">{copy.tabs.overview}</TabsTrigger>
-          <TabsTrigger value="seasonal">{copy.tabs.seasonal}</TabsTrigger>
-          <TabsTrigger value="los">{copy.tabs.los}</TabsTrigger>
-        </TabsList>
+        <div className="-mx-1 overflow-x-auto px-1 pb-2">
+          <TabsList className="inline-flex h-auto min-w-max justify-start gap-1 rounded-2xl border border-border/70 bg-muted/40 p-1.5">
+            <TabsTrigger className="min-h-10 shrink-0" value="overview">
+              {copy.tabs.overview}
+            </TabsTrigger>
+            <TabsTrigger className="min-h-10 shrink-0" value="seasonal">
+              {copy.tabs.seasonal}
+            </TabsTrigger>
+            <TabsTrigger className="min-h-10 shrink-0" value="los">
+              {copy.tabs.los}
+            </TabsTrigger>
+            <TabsTrigger className="min-h-10 shrink-0" value="preview">
+              {copy.tabs.preview}
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent className="mt-6 space-y-6" value="overview">
           <BaseRateCard
@@ -502,17 +514,6 @@ export function AdminPricingManager({
             copy={copy}
             formatMoney={formatMoney}
             formatSeasonalRange={formatSeasonalRange}
-          />
-          <PricingPreviewCard
-            busy={busyKey === "preview"}
-            calendarCopy={copy.calendar}
-            copy={copy}
-            formatMoney={formatMoney}
-            locale={locale}
-            onPreview={() => void runPreview()}
-            onRangeChange={updatePreviewRange}
-            preview={preview}
-            range={previewRange}
           />
         </TabsContent>
 
@@ -550,6 +551,20 @@ export function AdminPricingManager({
               void toggleLos(minimumNights, updatedAt, enabled)
             }
             rules={settings.lengthOfStayRules}
+          />
+        </TabsContent>
+
+        <TabsContent className="mt-6" value="preview">
+          <PricingPreviewCard
+            busy={busyKey === "preview"}
+            calendarCopy={copy.calendar}
+            copy={copy}
+            formatMoney={formatMoney}
+            locale={locale}
+            onPreview={() => void runPreview()}
+            onRangeChange={updatePreviewRange}
+            preview={preview}
+            range={previewRange}
           />
         </TabsContent>
       </Tabs>

@@ -2958,6 +2958,7 @@ export const enMessages = {
           overview: "Overview",
           seasonal: "Seasonal rates",
           los: "Length of stay",
+          preview: "Preview",
         },
         base: {
           title: "Base rate",

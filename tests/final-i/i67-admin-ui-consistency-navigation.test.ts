@@ -59,12 +59,7 @@ test("I.6.7 redundant admin page-header badges are removed only from target page
   }
 
   for (const file of [
-    "admin-accommodation-content-editor.tsx",
     "admin-accommodation-settings.tsx",
-    "admin-amenities-house-rules-manager.tsx",
-    "admin-pricing-manager.tsx",
-    "admin-property-photo-manager.tsx",
-    "admin-arrival-instructions-editor.tsx",
   ]) {
     expectIncludes(read(`${ADMIN_COMPONENTS}/${file}`), "badge={copy.badge}");
   }

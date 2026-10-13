@@ -140,9 +140,9 @@ export function AdminArrivalInstructionsEditor({
             </Link>
           </Button>
         }
-        badge={copy.badge}
         description={copy.description}
         title={`${copy.title} · ${propertyName}`}
+        variant="inlineActions"
       />
 
       <AdminSnackbar

@@ -2965,6 +2965,7 @@ export const esMessages = {
           overview: "Resumen",
           seasonal: "Tarifas estacionales",
           los: "Duración de estadía",
+          preview: "Vista previa",
         },
         base: {
           title: "Tarifa base",
