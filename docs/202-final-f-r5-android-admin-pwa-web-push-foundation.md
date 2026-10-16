@@ -38,7 +38,7 @@ does not start Final-F.6.
 ```text
 - app/manifest.ts using MetadataRoute.Manifest
 - installed Admin PWA contract: TRP Admin, start_url /admin/notifications, scope /admin/, display standalone
-- existing /brand/logo-primary-192.png and /brand/logo-primary-512.png reused as icons
+- existing /brand/favicon-192.png and /brand/favicon-512.png reused as icons
 - public/sw.js with only push and notificationclick handlers
 - no service-worker fetch listener, offline caching, background sync, periodic sync, precache, CacheStorage, IndexedDB admin-data persistence, or localStorage persistence
 - /sw.js served as application/javascript with no-cache/no-store headers
@@ -328,9 +328,10 @@ TRP Admin device was active and registered before real operational notification 
 Investigation base: `5bd1be39c84e4ad2cceadf7a95eac6b08de39750`, clean `main`.
 The owner reported that Chrome Android no longer offered installation after uninstalling the app
 and changing its branding. The earlier 192px filename typo was already fixed in this base.
-This maintenance is not a new functional phase and is pending owner Android validation.
+This maintenance is not a new functional phase. It was completed and validated by the owner on
+2026-10-16; the initial investigation below predates that final validation.
 
-### Observed Test Evidence
+### Initial Observed Test Evidence (Before Owner Validation)
 
 Read-only requests to `https://trp-booking.juantzun.dev`, without credentials:
 
@@ -346,14 +347,15 @@ Read-only requests to `https://trp-booking.juantzun.dev`, without credentials:
 Both manifest PNGs decode fully as sRGB, four-channel PNGs with alpha. Local `app/icon.png` is
 512x512 PNG and `app/apple-icon.png` is 180x180 PNG. No asset-format mismatch was found.
 The manifest uses `public, max-age=0, must-revalidate`; icon responses use
-`public, max-age=14400, must-revalidate`. A previous device cache remains a hypothesis, not a
-demonstrated cause. No application identity change is introduced: the absent explicit `id`
+`public, max-age=14400, must-revalidate`. At this initial stage, a previous device cache was only
+a hypothesis; the later owner evidence is recorded below. No application identity change is introduced: the absent explicit `id`
 continues to derive from the unchanged `/admin/notifications` start URL.
 
 The available in-app browser reached the expected Admin login and its DOM contained the manifest
 link. It had no authenticated ADMIN session or Android installation/DevTools surface. Therefore
 authenticated page loading, device installation eligibility, Console/Network install errors,
-previously installed app state, actual splash rendering and real Push delivery were not verified.
+previously installed app state, actual splash rendering and real Push delivery were not verified
+by Codex in that investigation; subsequent owner validation is recorded below.
 Successful resource responses do not prove a successful Android install or Vercel deployment check.
 
 Source inspection preserves ADMIN middleware/Auth.js authorization and the existing service-worker
@@ -363,7 +365,7 @@ new install button, subscription change or runtime change was justified by this 
 Menu installation and automatic installation promotion are different surfaces; the absence of a
 prompt alone does not establish an invalid manifest.
 
-### Corrections and Validation
+### Initial Corrections and Historical Validation
 
 The confirmed repository defects were stale tests/documentation, not a reproduced Android runtime
 failure. F.R5/F.8 assertions now use the active primary-logo manifest paths. New executable tests
@@ -373,7 +375,8 @@ its fixed `take: 50` assertion and mock lacking total-count support were reconci
 10-item paginated service. The original per-admin/first-read assertions remain intact, with an
 additional pagination assertion. No notification runtime behavior was changed.
 
-Executed for this maintenance:
+Executed during the initial investigation at `79e1319038f94e4546c92acea6e5468143c959c1`,
+not rerun during this documentation-only closure:
 
 - `npm run final-f:validate`: PASS 127/127, including the new manifest/PNG checks. Initial sandbox
   invocation failed with `uv_os_get_passwd ENOMEM`; elevated runs exposed the stale F.6 assertion
@@ -386,7 +389,10 @@ Executed for this maintenance:
   from Google Fonts. No application build error remained.
 - `git diff --check`: PASS at final review; only tests and this maintenance record changed.
 
-### Owner Android Reinstall and Acceptance Checklist
+### Original Owner Android Reinstall and Acceptance Checklist
+
+The following guidance was supplied before final validation and is retained for troubleshooting;
+it is not a list of outstanding acceptance requirements.
 
 1. Use current Chrome Android in a regular profile, not an embedded browser or Incognito. Check
    Android Settings > Apps for an existing TRP Admin installation; removing a launcher shortcut
@@ -407,11 +413,63 @@ Executed for this maintenance:
    targeted site-data reset is a last diagnostic step requiring owner consent: it logs out the user
    and may require Push re-registration; never clear unrelated sites or disclose subscription keys.
 
-Root cause of the reported missing menu action remains unproven. Maintenance resolution and Hosted
-acceptance remain pending the owner's installation, splash and Push checks. No new deployment status
-is claimed. Final-I.6.10 remains Completed and accepted; Final-I.7 remains Blocked pending official
-INFILE documentation and Test credentials; Final-I.8/I.9 remain Not started; Phase 13 remains
-Blocked / Not started. Historical R5 and subsequent package acceptances are unchanged.
+### Owner Device Evidence and Resolution
+
+The owner reported `This app cannot be installed` in Google Chrome Android `155.0.8059.79`
+after uninstalling TRP Admin. TRP Admin was absent from installed applications, Chrome was current,
+and the failure occurred on both the public page and `/admin/notifications`. Other PWAs, including
+Squoosh, could be installed. The published manifest and images had passed the Codex checks above.
+
+Using ADB remote debugging on a Samsung Galaxy A72, the owner observed in Chrome DevTools Console:
+
+```text
+GET https://trp-booking.juantzun.dev/brand/logo-primary-192.png 404 (Not Found)
+```
+
+The same image downloaded successfully with the differentiated URL
+`/brand/logo-primary-192.png?v=20261016-2`. After enabling
+`Chrome DevTools > Network > Disable cache`, installation succeeded in Google Chrome, not Edge.
+The owner confirmed standalone operation, the updated `logo-primary` splash, successful opening of
+the Admin interface and continued Push notification operation.
+
+This sequence is strongly consistent with reuse of a stale cached response: Chrome observed a 404
+for the declared icon, the resource was accessible at a differentiated URL, and bypassing HTTP cache
+allowed installation. The responsible cache layer was not identified conclusively. This record
+does not attribute the failure to Prisma, Vercel, the database, the service worker or Android.
+
+```text
+Owner Android installation validation: PASS
+Chrome PWA installation: PASS
+Installed standalone experience: PASS
+Updated logo-primary splash screen: PASS
+Push notification validation: PASS
+Maintenance resolution: Completed and validated on 2026-10-16
+```
+
+### Subsequent Push Branding Update
+
+The owner's 2026-10-16 branding maintenance replaced `public/brand` resources, synchronized the
+`app/` icons, selected `logo-primary` in the manifest and corrected the 192px filename. These are
+later changes, not part of the original 2026-09-25 R5 acceptance.
+
+Commit `af075bb9df5e1ee1eda8e58fb193466552fbcb1a` subsequently changed the `showNotification()`
+`icon` in `public/sw.js` from `/brand/favicon-192.png` to `/brand/logo-primary-192.png` and updated
+the F.R5 regression assertion. The owner reports Vercel SUCCESS for that commit and confirms that
+the new notification design works on Android. The manifest installation icons, service-worker
+notification icon and browser favicons remain independently configured, even when they share an
+image resource. No runtime or test changes are made in this documentation closure.
+
+### Closure Validation and Preserved State
+
+This closure reviews repository HEAD/history, document consistency and the documentation-only diff,
+and runs `git diff --check`. The automated suite/lint/build results above remain historical results;
+they were not rerun for this closure. Device and deployment results above are owner-reported evidence.
+
+Final-F.R5 remains Completed and accepted on 2026-09-25 with its original accepted head unchanged.
+Final-F.6/F.7/F.8 retain their historical acceptance facts. Final-I.6.10 remains Completed and accepted
+on 2026-10-13; Final-I.7 remains Blocked pending official INFILE technical documentation + Test
+credentials; Final-I.8/I.9 remain Not started; Phase 13 remains Blocked / Not started.
+No new subphase is started and no accepted feature HEAD is replaced by this documentation commit.
 
 ## Documentation Authority
 
@@ -424,7 +482,7 @@ docs/201 = accepted Final-F.R4 implementation/validation record
 docs/202 = accepted Final-F.R5 implementation/validation record
 ```
 
-## Next State
+## Historical Next State (Final-F Closure)
 
 ```text
 Final-F.R3 — Completed and accepted on 2026-09-24
