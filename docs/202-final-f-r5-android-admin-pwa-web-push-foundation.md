@@ -38,7 +38,7 @@ does not start Final-F.6.
 ```text
 - app/manifest.ts using MetadataRoute.Manifest
 - installed Admin PWA contract: TRP Admin, start_url /admin/notifications, scope /admin/, display standalone
-- existing /brand/favicon-192.png and /brand/favicon-512.png reused as icons
+- existing /brand/logo-primary-192.png and /brand/logo-primary-512.png reused as icons
 - public/sw.js with only push and notificationclick handlers
 - no service-worker fetch listener, offline caching, background sync, periodic sync, precache, CacheStorage, IndexedDB admin-data persistence, or localStorage persistence
 - /sw.js served as application/javascript with no-cache/no-store headers

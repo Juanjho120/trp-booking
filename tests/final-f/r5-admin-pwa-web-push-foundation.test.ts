@@ -166,8 +166,8 @@ test("F.R5 preserves Admin app identity and keeps Push icon independent of splas
   assert.ok(start.pathname.startsWith(scope.pathname));
   assert.equal(data.id ?? data.start_url, "/admin/notifications");
   assert.notEqual(data.prefer_related_applications, true);
-  expectIncludes(SERVICE_WORKER, 'icon: "/brand/favicon-192.png"');
-  assert.ok(exists("public/brand/favicon-192.png"));
+  expectIncludes(SERVICE_WORKER, 'icon: "/brand/logo-primary-192.png"');
+  assert.ok(exists("public/brand/logo-primary-192.png"));
 });
 
 test("F.R5 service worker handles only push and notification clicks", () => {

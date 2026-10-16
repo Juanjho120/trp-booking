@@ -87,7 +87,7 @@ self.addEventListener("push", (event) => {
 
       await self.registration.showNotification(title, {
         body,
-        icon: "/brand/favicon-192.png",
+        icon: "/brand/logo-primary-192.png",
         data: { notificationId, targetPath },
       });
     })(),
