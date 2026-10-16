@@ -171,6 +171,8 @@ function createFakeNotificationCenterClient() {
     {
       id: "notification-1",
       type: AdminNotificationType.RESERVATION_CONFIRMED,
+      reservationId: null,
+      deduplicationKey: "test:notification-1",
       title: "Reservación confirmada · Bungalow",
       body: "Toca para ver detalles.",
       targetPath: "/admin/reservations/res-1",
@@ -201,7 +203,11 @@ function createFakeNotificationCenterClient() {
             .map((read) => ({ readAt: read.readAt })),
         }));
       },
-      async count(input: { where: { reads: { none: { userId: string } } } }) {
+      async count(input?: { where: { reads: { none: { userId: string } } } }) {
+        if (!input) {
+          return notifications.length;
+        }
+
         const userId = input.where.reads.none.userId;
 
         return notifications.filter(
@@ -488,7 +494,9 @@ test("F.6 registers the internal cron job but keeps Vercel crons empty", () => {
 test("F.6 notification center exposes safe history and per-admin read state", () => {
   for (const expected of [
     "getAdminNotificationCenter",
-    "take: 50",
+    "ADMIN_NOTIFICATION_CENTER_PAGE_SIZE = 10",
+    "take: ADMIN_NOTIFICATION_CENTER_PAGE_SIZE",
+    "skip: resolveAdminNotificationCenterSkip(page)",
     "reads: {",
     "unreadCount",
     "coerceAdminNotificationTargetPath",
@@ -926,6 +934,12 @@ test("F.6 notification read state is per-admin and preserves first readAt", asyn
   assert.equal(centerA.notifications[0]?.readAt, firstReadAt.toISOString());
   assert.equal(centerB.unreadCount, 1);
   assert.equal(centerB.notifications[0]?.readAt, null);
+  assert.deepEqual(centerA.pagination, {
+    page: 1,
+    pageSize: 10,
+    totalItems: 1,
+    totalPages: 1,
+  });
 });
 
 test("F.6 target resolver behavior is executable and fails closed", () => {

@@ -33,7 +33,7 @@ This record implements only the R5 device/PWA/Web Push foundation. It does not c
 event push triggers, does not add notification history/read state, does not add Zoho ingestion, and
 does not start Final-F.6.
 
-## Implemented Scope
+## Implemented Scope (Original R5 Acceptance)
 
 ```text
 - app/manifest.ts using MetadataRoute.Manifest
@@ -63,9 +63,13 @@ short_name: TRP Admin
 start_url: /admin/notifications
 scope: /admin/
 display: standalone
-icons: /brand/favicon-192.png, /brand/favicon-512.png
+icons: /brand/logo-primary-192.png, /brand/logo-primary-512.png
 maskable: not declared
 ```
+
+The current icons reflect the owner's later splash-branding update; the original R5 acceptance
+below retains its historical favicon paths. Browser favicons and the Push notification icon remain
+independent from installed-PWA splash branding.
 
 The PWA remains the existing TRP Booking app under the same origin. R5 does not create a second app,
 does not add public install UI, and does not add iOS/iPadOS-specific behavior.
@@ -289,7 +293,7 @@ R5 acceptance does not claim integrated business-event push delivery. Durable op
 notifications, read/unread state, delivery history, retries, and business-event push acceptance
 belong to Final-F.6 and Final-F.8.
 
-The accepted installed PWA contract is:
+The original R5 accepted installed PWA contract was (current icons are listed above):
 
 ```text
 Installed app name: TRP Admin
@@ -318,6 +322,96 @@ auth system and no arbitrary cross-origin navigation from push payloads.
 The owner validated Disable successfully. R5 acceptance did not depend on leaving the current
 Android subscription active after that test. Final-F.6 Hosted Test later confirmed that an Android
 TRP Admin device was active and registered before real operational notification delivery.
+
+## Android Installability Maintenance (2026-10-16)
+
+Investigation base: `5bd1be39c84e4ad2cceadf7a95eac6b08de39750`, clean `main`.
+The owner reported that Chrome Android no longer offered installation after uninstalling the app
+and changing its branding. The earlier 192px filename typo was already fixed in this base.
+This maintenance is not a new functional phase and is pending owner Android validation.
+
+### Observed Test Evidence
+
+Read-only requests to `https://trp-booking.juantzun.dev`, without credentials:
+
+| Resource | Result |
+| --- | --- |
+| `/manifest.webmanifest` | HTTP 200; `application/manifest+json`; valid JSON; accepted name, start URL, scope and standalone display |
+| `/brand/logo-primary-192.png` | HTTP 200; `image/png`; 40,814 bytes; actual PNG 192x192; byte-identical to repository asset |
+| `/brand/logo-primary-512.png` | HTTP 200; `image/png`; 195,321 bytes; actual PNG 512x512; byte-identical to repository asset |
+| `/sw.js` | HTTP 200; JavaScript MIME; `no-cache, no-store, must-revalidate` |
+| `/` | HTTP 200; HTML links `/manifest.webmanifest` |
+| `/admin/notifications` without session | HTTP 307 to sign-in, as required by ADMIN protection |
+
+Both manifest PNGs decode fully as sRGB, four-channel PNGs with alpha. Local `app/icon.png` is
+512x512 PNG and `app/apple-icon.png` is 180x180 PNG. No asset-format mismatch was found.
+The manifest uses `public, max-age=0, must-revalidate`; icon responses use
+`public, max-age=14400, must-revalidate`. A previous device cache remains a hypothesis, not a
+demonstrated cause. No application identity change is introduced: the absent explicit `id`
+continues to derive from the unchanged `/admin/notifications` start URL.
+
+The available in-app browser reached the expected Admin login and its DOM contained the manifest
+link. It had no authenticated ADMIN session or Android installation/DevTools surface. Therefore
+authenticated page loading, device installation eligibility, Console/Network install errors,
+previously installed app state, actual splash rendering and real Push delivery were not verified.
+Successful resource responses do not prove a successful Android install or Vercel deployment check.
+
+Source inspection preserves ADMIN middleware/Auth.js authorization and the existing service-worker
+registration (`/sw.js`, scope `/admin/`) on the notification page. No fetch listener, offline cache,
+new install button, subscription change or runtime change was justified by this evidence.
+[Chrome documents that menu installation no longer requires a fetch handler on Android 108+](https://developer.chrome.com/blog/update-install-criteria).
+Menu installation and automatic installation promotion are different surfaces; the absence of a
+prompt alone does not establish an invalid manifest.
+
+### Corrections and Validation
+
+The confirmed repository defects were stale tests/documentation, not a reproduced Android runtime
+failure. F.R5/F.8 assertions now use the active primary-logo manifest paths. New executable tests
+decode the declared PNG files, compare actual dimensions with declarations and preserve app identity
+and the independent Push icon. The mandatory F.6 gate also exposed pre-existing pagination drift:
+its fixed `take: 50` assertion and mock lacking total-count support were reconciled with the accepted
+10-item paginated service. The original per-admin/first-read assertions remain intact, with an
+additional pagination assertion. No notification runtime behavior was changed.
+
+Executed for this maintenance:
+
+- `npm run final-f:validate`: PASS 127/127, including the new manifest/PNG checks. Initial sandbox
+  invocation failed with `uv_os_get_passwd ENOMEM`; elevated runs exposed the stale F.6 assertion
+  and mock described above, then passed after test-only corrections.
+- `npm run final-i:validate`: PASS 169/169.
+- `npm run final-h:validate`: PASS 20/20.
+- `npm run final-g:validate`: PASS 48/48.
+- `npm run lint`: PASS.
+- `npm run build`: PASS after elevated rerun; the sandbox run failed fetching Inter/Geist Mono
+  from Google Fonts. No application build error remained.
+- `git diff --check`: PASS at final review; only tests and this maintenance record changed.
+
+### Owner Android Reinstall and Acceptance Checklist
+
+1. Use current Chrome Android in a regular profile, not an embedded browser or Incognito. Check
+   Android Settings > Apps for an existing TRP Admin installation; removing a launcher shortcut
+   alone does not establish that the installed app is gone. Do not erase site data automatically.
+2. Open `https://trp-booking.juantzun.dev/admin/notifications`, authenticate with the ADMIN account,
+   and confirm the notification page and its Configuration device state load successfully.
+3. Open Chrome's menu and inspect Install app / Add to Home screen (wording varies). Complete the
+   installation offered. If only a shortcut is created, do not record standalone installation PASS.
+   Capture Chrome version, menu wording and any install error without credentials.
+4. Launch TRP Admin from its icon. Verify standalone mode in Configuration and the installed app
+   in Android Settings. Close and reopen it to observe the splash; confirm `logo-primary` branding.
+5. In Configuration, explicitly enable notifications if necessary, grant permission, confirm device
+   registration, send the existing controlled test notification and tap it. Verify delivery and
+   navigation back to TRP Admin. Automated Push regressions are not a substitute for this device test.
+6. If installation is still absent, inspect Chrome remote DevTools Application > Manifest and
+   Service Workers on the affected authenticated page. Check install errors and icon requests.
+   Investigate stale manifest/cache or installed-profile identity only with device evidence. A
+   targeted site-data reset is a last diagnostic step requiring owner consent: it logs out the user
+   and may require Push re-registration; never clear unrelated sites or disclose subscription keys.
+
+Root cause of the reported missing menu action remains unproven. Maintenance resolution and Hosted
+acceptance remain pending the owner's installation, splash and Push checks. No new deployment status
+is claimed. Final-I.6.10 remains Completed and accepted; Final-I.7 remains Blocked pending official
+INFILE documentation and Test credentials; Final-I.8/I.9 remain Not started; Phase 13 remains
+Blocked / Not started. Historical R5 and subsequent package acceptances are unchanged.
 
 ## Documentation Authority
 

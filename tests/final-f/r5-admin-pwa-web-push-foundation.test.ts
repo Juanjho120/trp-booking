@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
+import sharp from "sharp";
 
+import manifest from "@/app/manifest";
 import { getWebPushEnv } from "@/lib/env/server";
 
 import { test } from "./harness";
@@ -116,9 +118,9 @@ test("F.R5 adds the native Next manifest with the accepted Admin PWA contract", 
     'start_url: "/admin/notifications"',
     'scope: "/admin/"',
     'display: "standalone"',
-    'src: "/brand/favicon-192.png"',
+    'src: "/brand/logo-primary-192.png"',
     'sizes: "192x192"',
-    'src: "/brand/favicon-512.png"',
+    'src: "/brand/logo-primary-512.png"',
     'sizes: "512x512"',
   ]) {
     expectIncludes(MANIFEST, expected);
@@ -127,9 +129,45 @@ test("F.R5 adds the native Next manifest with the accepted Admin PWA contract", 
   expectExcludes(MANIFEST, "maskable");
 });
 
-test("F.R5 reuses existing PWA icon assets", () => {
-  assert.equal(exists("public/brand/favicon-192.png"), true);
-  assert.equal(exists("public/brand/favicon-512.png"), true);
+test("F.R5 uses the current primary-logo PWA icon assets", () => {
+  assert.equal(exists("public/brand/logo-primary-192.png"), true);
+  assert.equal(exists("public/brand/logo-primary-512.png"), true);
+});
+
+test("F.R5 declared manifest icons decode as PNGs at their declared dimensions", async () => {
+  const icons = manifest().icons ?? [];
+  assert.equal(icons.length, 2);
+
+  for (const icon of icons) {
+    assert.match(icon.src, /^\/brand\/logo-primary-(192|512)\.png$/);
+    assert.equal(icon.type, "image/png");
+    const file = fromRoot(`public${icon.src}`);
+    assert.ok(existsSync(file), `Missing manifest icon: ${icon.src}`);
+    const bytes = readFileSync(file);
+    assert.deepEqual(bytes.subarray(0, 8), Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
+    const metadata = await sharp(bytes, { failOn: "warning" }).metadata();
+    assert.equal(metadata.format, "png");
+    assert.equal(metadata.space, "srgb");
+    assert.ok(metadata.channels === 3 || metadata.channels === 4);
+    assert.equal(`${metadata.width}x${metadata.height}`, icon.sizes);
+    // Decode pixels too: a valid PNG header alone does not prove a usable icon.
+    const decoded = await sharp(bytes, { failOn: "warning" }).raw().toBuffer({ resolveWithObject: true });
+    assert.equal(decoded.info.width, metadata.width);
+    assert.equal(decoded.info.height, metadata.height);
+  }
+});
+
+test("F.R5 preserves Admin app identity and keeps Push icon independent of splash branding", () => {
+  const data = manifest();
+  const origin = "https://trp-booking.juantzun.dev";
+  const start = new URL(data.start_url!, origin);
+  const scope = new URL(data.scope!, origin);
+  assert.equal(start.origin, scope.origin);
+  assert.ok(start.pathname.startsWith(scope.pathname));
+  assert.equal(data.id ?? data.start_url, "/admin/notifications");
+  assert.notEqual(data.prefer_related_applications, true);
+  expectIncludes(SERVICE_WORKER, 'icon: "/brand/favicon-192.png"');
+  assert.ok(exists("public/brand/favicon-192.png"));
 });
 
 test("F.R5 service worker handles only push and notification clicks", () => {
